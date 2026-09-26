@@ -16,8 +16,8 @@ const out=process.argv.includes('--out')?process.argv[process.argv.indexOf('--ou
 (async()=>{fs.mkdirSync(out,{recursive:true});
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
 const p=await b.newPage({viewport:{width:1280,height:720}});p.on('pageerror',e=>console.log('page error',e.message));
-await p.goto('http://localhost:8899/film-readymades/production/Film-Butter-Odyssey.html');
-await p.waitForFunction(()=>window.ButterLocation&&window.ButterFilms?.current&&!ButterFilms.busy&&ButterCast.cast.length,{timeout:240000});
+await p.goto('http://localhost:8899/film-readymades/production/Film-Butter-Odyssey.html',{timeout:600000});
+await p.waitForFunction(()=>window.ButterLocation&&window.ButterFilms?.current&&!ButterFilms.busy&&ButterCast.cast.length,null,{timeout:600000});
 if((await p.evaluate(()=>ButterFilms.current.sourceId))!==spec.location){
  await p.evaluate(id=>{const t=ButterFilms.records.find(r=>r.id===id).title,o=[...document.querySelectorAll('#versionSelect option')].find(o=>o.textContent.trim()===t);return ButterFilms.switchTo(o.value);},spec.location);
  await p.waitForFunction(id=>ButterFilms.current?.sourceId===id&&!ButterFilms.busy&&ButterCast.cast.length,spec.location,{timeout:240000});}

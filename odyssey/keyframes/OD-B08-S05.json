@@ -1,0 +1,210 @@
+{
+ "scene": "OD-B08-S05",
+ "location": "odyssey-od-b08-s05",
+ "title": "The Trojan Horse Song and the Name",
+ "source": "Homer, Odyssey VIII, tr. Samuel Butler (public domain)",
+ "note": "The song made visible: Demodocus sings how the Argives burned their camp and sailed, leaving the horse on the shore of Troy with Odysseus inside. The set is the shore (tools/forage/sets.js trojanShore) at the horse's scale; the horse is the display set itself (prop horse / horseOpen, tools/forage/product/woodenhorse.py).",
+ "look": {
+  "sky": [
+   "#f2b27a",
+   "#5b6fa3"
+  ],
+  "fog": [
+   700,
+   1900
+  ],
+  "dim": 0.0,
+  "fill": {
+   "sky": "#ffd8b0",
+   "ground": "#6b5537",
+   "intensity": 0.55
+  },
+  "sun": {
+   "dir": [
+    -0.6,
+    0.35,
+    -0.7
+   ],
+   "color": "#ffc58a",
+   "intensity": 1.25,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "The Argives set fire to their tents and sailed away, leaving the horse on the shore.",
+   "text": "'He began with how some of the Argives set fire to their tents and sailed away, while others, hidden within the horse, were waiting with Ulysses in the Trojan place of assembly.'",
+   "props": [
+    {
+     "name": "horse",
+     "id": "horse",
+     "at": [
+      0,
+      0,
+      123
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "demodocus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "alcinous",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     360,
+     70,
+     640
+    ],
+    "target": [
+     0,
+     175,
+     -60
+    ],
+    "fov": 60
+   },
+   "subjects": [
+    {
+     "id": "prop:horse",
+     "min": 0.3,
+     "primary": true,
+     "cut": true
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "Odysseus waits in the dark of the horse while the Trojans gather.",
+   "text": "'...while others, hidden within the horse, were waiting with Ulysses.'",
+   "props": [
+    {
+     "name": "horseOpen",
+     "id": "horse",
+     "at": [
+      0,
+      0,
+      123
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "y": 183.3,
+     "face": [
+      300,
+      0
+     ],
+     "props": false,
+     "at": "@horse.floor",
+     "off": [
+      16,
+      0,
+      0
+     ],
+     "pose": {
+      "headP": [
+       0,
+       0.3,
+       0
+      ]
+     }
+    },
+    {
+     "id": "demodocus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "alcinous",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     150,
+     214,
+     137
+    ],
+    "target": [
+     16,
+     210,
+     125
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "primary": true
+    }
+   ]
+  }
+ ]
+}

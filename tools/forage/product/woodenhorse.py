@@ -71,7 +71,7 @@ def anatomy(p):
     d['body'] = smin(smin(ell(p, *BARREL), ell(p, (0, 420, 150), (90, 128, 95)), 40), ell(p, (0, 445, -165), (92, 120, 100)), 40)
     d['body'] = smin(d['body'], ell(p, (0, 540, 110), (50, 45, 80)), 30)                        # the withers
     d['neck'] = cone(p, *NECK)
-    d['mane'] = cone(p, (0, 560, 80), (0, 786, 256), 29, 23)                                   # a raised crest of dark timber
+    d['mane'] = cone(p, (0, 512, 98), (0, 744, 274), 28, 20)   # on the crest line of the neck, half sunk in it                                   # a raised crest of dark timber
     d['head'] = smin(smin(cone(p, (0, 730, 318), (0, 596, 440), 44, 30), ell(p, (0, 700, 340), (44, 52, 58)), 24),
                      ell(p, (0, 600, 436), (30, 36, 42)), 20)
     d['ears'] = min(cone(p, (s * 22, 750, 318), (s * 24, 822, 330), 15, 12) for s in (-1, 1))

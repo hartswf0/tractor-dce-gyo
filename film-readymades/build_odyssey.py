@@ -86,7 +86,15 @@ def scene(sid):
                          vertices=base64.b64encode(f.astype('<f4').tobytes()).decode(), colors=base64.b64encode(rgb).decode(), ref=placed[0][0], sourceLine=None, layer=layer, reviewPage=len(pages),
                          glassTriangles=[i for i, c in enumerate(colors) if c in glassCodes], collectibles=[]))
         rows.append(dict(id=ident, part=ident, color=15, x=float(origin[0]), y=float(origin[1]), z=float(origin[2]), r=0))
-        if boxes and collide: colliders[ident] = [[(lo_ - origin).tolist(), (hi_ - origin).tolist()] for lo_, hi_ in boxes if (hi_ - lo_)[1] > 4]
+        if boxes and collide:
+            bx = [(lo_, hi_) for lo_, hi_ in boxes if (hi_ - lo_)[1] > 4]
+            if len(bx) > 240:   # a great set (a city of bricks): its colliders merged into columns on a coarse grid, the way an actor walks round a wall
+                cell = max(float(fhi[0] - flo[0]), float(fhi[2] - flo[2])) / 28; merged = {}
+                for lo_, hi_ in bx:
+                    c = (int((lo_[0] + hi_[0]) / 2 // cell), int((lo_[2] + hi_[2]) / 2 // cell))
+                    m = merged.get(c); merged[c] = (np.minimum(m[0], lo_), np.maximum(m[1], hi_)) if m else (lo_.copy(), hi_.copy())
+                bx = list(merged.values())
+            colliders[ident] = [[(lo_ - origin).tolist(), (hi_ - origin).tolist()] for lo_, hi_ in bx]
         pages.append(dict(id=ident, label=label, box=[round(float(v), 1) for v in list(flo) + list(fhi)], sourceStep=len(pages) + 1, placements=[len(pages)], bom=[dict(ref=placed[0][0], color=placed[0][1], quantity=1, subassembly=True)]))
         return ident
     piece('stage plate', [plate], 'shop', collide=False)
@@ -154,7 +162,7 @@ def clear_mark(target, dist, rise, want, boxes, subj):
     return target + np.array([math.sin(want) * dist, rise * 3, math.cos(want) * dist])
 
 # the scenes the Odyssey player carries: the Cyclops's cave, then the sea
-SCENES = ['OD-B04-S04', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
+SCENES = ['OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()

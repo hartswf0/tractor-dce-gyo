@@ -130,6 +130,8 @@ const KIT = {
 const seaFloor = (back = 'sea') => REAL('the sea', [R('3811', C.blue, 0, -8, -8), back === 'beach' ? R('3857p01', C.green, 0, 16, -8, 2) : R('3857', C.blue, 0, 16, -8)]);
 
 /* ── rooms: a floor, walls, a door ── */
+/* a floor wider than one slab (64 studs at most) is laid in sections of 32 */
+const floorWide = (w, d, a) => kit('floor', Array.from({ length: Math.ceil(w / 32) * Math.ceil(d / 32) }, (_, k) => { const i = (k % Math.ceil(w / 32)) * 32, j = Math.floor(k / Math.ceil(w / 32)) * 32; return K.slab(i, j, Math.min(32, w - i), Math.min(32, d - j), a); }));
 const floor = (w, d, a, b = null) => kit('floor', b == null ? [K.slab(0, 0, w, d, a)] : Array.from({ length: Math.ceil(w / 2) * Math.ceil(d / 2) }, (_, k) => { const i = (k % Math.ceil(w / 2)) * 2, j = Math.floor(k / Math.ceil(w / 2)) * 2; return K.slab(i, j, Math.min(2, w - i), Math.min(2, d - j), (i + j) / 2 % 2 ? a : b); }));
 /** Walls round three sides (back and the two flanks), h bricks high, the front open for the camera; a door gap in the back wall if asked. */
 const walls = (w, d, h, col, o = {}) => kit('walls', [K.box(0, 0, w, 1, h, col), K.box(0, 0, 1, d, h, col), K.box(w - 1, 0, 1, d, h, col), ...(o.door ? [K.cut(Math.floor(w / 2) - 2 + (o.doorX || 0), 0, 4, 1, 0, Math.min(h, 4))] : []), ...(o.band ? [K.slab(0, 0, w, 1, o.band, { y: h }), K.slab(0, 0, 1, d, o.band, { y: h }), K.slab(w - 1, 0, 1, d, o.band, { y: h })] : [])]);
@@ -151,13 +153,13 @@ const M = (x, z, face = 0, note = '', axis, y) => ({ x, z, face, note, ...(axis 
 
 /* stone coursing in running bond: a wall along x (or z) over stud centres a..b, n courses from base, 1 x 2 embossed bricks and 1 x 1
    bricks at the ends of the odd courses; holes [[from, to, course0, course1]] are left open (a window) */
-function coursing(col, a, b, at, n, { alongZ = false, base = -8, holes = [], id2 = '98283', band = null } = {}) {
+function coursing(col, a, b, at, n, { alongZ = false, base = -8, holes = [], id2 = '98283', band = null, k0 = 0 } = {}) {
   const out = [];
   for (let k = 0; k < n; k++) {
-    const y = base - 24 * k, c = k === 0 ? C.dtan : band && k === n - 1 ? band : col, studs = [];
+    const y = base - 24 * k, c = k + k0 === 0 ? C.dtan : band && k === n - 1 ? band : col, studs = [];
     for (let v = a; v <= b + 1e-6; v += 1) if (!holes.some(([f, t, c0, c1]) => v >= f - 1e-6 && v <= t + 1e-6 && k >= c0 && k <= c1)) studs.push(v);
     for (let i = 0; i < studs.length;) {
-      const v = studs[i], pair = i + 1 < studs.length && Math.abs(studs[i + 1] - v - 1) < 1e-6 && ((Math.round(v - a) + k) % 2 === 0);
+      const v = studs[i], pair = i + 1 < studs.length && Math.abs(studs[i + 1] - v - 1) < 1e-6 && ((Math.round(v - a) + k + k0) % 2 === 0);
       const u = pair ? v + 0.5 : v, id = pair ? id2 : '3005';
       out.push(alongZ ? { id, col: c, x: at, z: u, base: y, q: 1 } : { id, col: c, x: u, z: at, base: y });
       i += pair ? 2 : 1;
@@ -431,6 +433,140 @@ function troyGreat() {
     { id: '3957a', col: C.rbrown, x, z, base: -16 - 96 }, { id: '3062b', col: C.tOrange, x, z, base: -16 - 192 }, { id: '4589', col: C.orange, x, z, base: -16 - 216 });
   return REAL('the great troy', list);
 }
+/* a rectangle of studs [x0, x1) x [z0, z1) filled in one course with the longest bricks (or plates) that fit, laid along x or z */
+function fillCourse(x0, x1, z0, z1, base, col, alongZ, kind = 'brick', skip = () => false) {
+  const out = [], sizes = kind === 'plate' ? [[2, 8, '3034'], [2, 6, '3795'], [2, 4, '3020'], [2, 2, '3022'], [1, 4, '3710'], [1, 2, '3023'], [1, 1, '3024']]
+    : kind === 'tile' ? [[2, 4, '87079'], [2, 2, '3068b'], [1, 4, '2431'], [1, 2, '3069b'], [1, 1, '3070b']]
+    : [[2, 4, '3001'], [2, 3, '3002'], [2, 2, '3003'], [1, 4, '3010'], [1, 3, '3622'], [1, 2, '3004'], [1, 1, '3005']];
+  const left = new Set();
+  for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) if (!skip(x, z)) left.add(x + ',' + z);
+  const cells = [...left].map(k => k.split(',').map(Number)).sort((a, b) => alongZ ? a[0] - b[0] || a[1] - b[1] : a[1] - b[1] || a[0] - b[0]);
+  for (const [x, z] of cells) {
+    if (!left.has(x + ',' + z)) continue;
+    for (const [w, l, id] of sizes) {
+      const cov = []; for (let a = 0; a < w; a++) for (let b = 0; b < l; b++) cov.push(alongZ ? [x + a, z + b] : [x + b, z + a]);
+      if (!cov.every(([u, v]) => left.has(u + ',' + v))) continue;
+      cov.forEach(([u, v]) => left.delete(u + ',' + v));
+      const cx = alongZ ? x + w / 2 : x + l / 2, cz = alongZ ? z + l / 2 : z + w / 2;
+      out.push({ id, col: typeof col === 'function' ? col(x, z) : col, x: cx, z: cz, base, q: alongZ && w !== l ? 1 : 0 });
+      break;
+    }
+  }
+  return out;
+}
+/* a solid block of courses, each laid across the one below */
+const block = (x0, x1, z0, z1, k0, k1, col, skip) => Array.from({ length: k1 - k0 }, (_, i) => fillCourse(x0, x1, z0, z1, -8 - 24 * (k0 + i), col, (k0 + i) % 2 === 1, 'brick', skip)).flat();
+/* Troy's citadel at the scale of the real world (Homer VIII: "the Trojans had drawn it into their citadel"; they broke their own wall
+   to bring it in). A minifigure is a man of 1.75 m, so a brick course is about 0.44 m and a stud 0.37 m; the horse on its cart stands
+   15 m, and everything here is sized to that: the lower wall 10 m (24 courses) with its towers 14 m, the Scaean gate 3.7 m wide and 4.8 m
+   to the arch; the Temple of Athena peripteral, six columns by eight, 6 m columns on a three-step stylobate, an entablature with its
+   triglyphs painted blue as the Greeks painted them, a cornice, a dark red roof rising to a white pediment, gilt finials; the cella
+   inside with the Palladion, Athena's image, gold in the dark of the door; an altar before the steps. Houses of two storeys, 5 m, with
+   dark doorways and windows. The breach the Trojans made is 22 studs (8 m) wide, its courses stepping down to rubble. Authored with the
+   temple at the back (-z); the horse's place is the forecourt before it. */
+const ring = (x0, x1, z0, z1, t = 1) => (x, z) => x >= x0 + t && x < x1 - t && z >= z0 + t && z < z1 - t;   /* the inside of a hollow ring */
+const hollow = (x0, x1, z0, z1, k0, k1, col, t = 1, extra = () => false) => Array.from({ length: k1 - k0 }, (_, i) =>
+  fillCourse(x0, x1, z0, z1, -8 - 24 * (k0 + i), typeof col === 'function' ? (x, z) => col(x, z, k0 + i) : col, (k0 + i) % 2 === 1, 'brick', (x, z) => ring(x0, x1, z0, z1, t)(x, z) || extra(x, z, k0 + i))).flat();
+function troyCitadel() {
+  const list = [], WX = -54.5, H = 24;
+  /* the lower wall, two skins in running bond; the gate under its arch; the breach stepping down from both sides */
+  const GATE = [30.5, 39.5], BREACH = [-13.5, 8.5];
+  for (const x of [WX, WX + 1]) for (let k = 0; k < H; k++) {
+    const cut = (H - 1 - k) / 2.2, holes = [];
+    if (BREACH[0] + cut <= BREACH[1] - cut) holes.push([BREACH[0] + cut, BREACH[1] - cut]);
+    if (k < 11) holes.push(GATE); else if (k < 14) holes.push([GATE[0] - 1, GATE[1] + 1]);
+    list.push(...coursing(k % 8 === 7 ? C.dtan : C.tan, -54.5, 54.5, x, 1, { alongZ: true, base: -8 - 24 * k, k0: k + (x === WX ? 0 : 1), holes: holes.map(([f, t]) => [f, t, 0, 0]) }));
+  }
+  for (const x of [WX, WX + 1]) list.push({ id: '6108', col: C.dtan, x, z: (GATE[0] + GATE[1]) / 2, base: -8 - 24 * 11, q: 1 });
+  for (let z = -54.5; z <= 54.5; z += 2) if (!(z > BREACH[0] - 1 && z < BREACH[1] + 1) && !(z > 19 && z < 51)) list.push({ id: '3005', col: C.tan, x: WX, z, base: -8 - 24 * H });
+  for (const [x, z, n] of [[-52, -12, 3], [-51, -9, 1], [-52, 6, 2], [-50, 8, 1], [-51, -3, 1], [-49, 2, 1]]) for (let k = 0; k < n; k++) list.push({ id: k % 2 ? '3005' : '3004', col: k ? C.tan : C.dtan, x: x + (k % 2 ? 0.5 : 0), z, base: -8 - 24 * k });
+  /* the gate towers: hollow, 32 courses, set in a stud as they rise past the wall, arrow slits, crenellated */
+  for (const [z0, z1] of [[19, 29], [41, 51]]) {
+    list.push(...hollow(-56, -47, z0, z1, 0, 24, (x, z, k) => (x === -47 && (k === 13 || k === 14 || k === 20) && (z === z0 + 4 || z === z0 + 5)) ? C.black : C.tan));
+    list.push(...fillCourse(-56, -47, z0, z1, -8 - 24 * 24, C.dtan, false, 'plate'));
+    list.push(...hollow(-55, -48, z0 + 1, z1 - 1, 24, 32, (x, z, k) => k === 31 ? C.dtan : C.tan, 1, (x, z) => false).map(p => ({ ...p, base: p.base - 8 })));
+    for (let x = -55; x < -48; x += 2) for (const z of [z0 + 1, z1 - 2]) list.push({ id: '3005', col: C.tan, x: x + 0.5, z: z + 0.5, base: -8 - 8 - 24 * 32 });
+  }
+  /* the sacred way from the breach, and the forecourt */
+  list.push(...fillCourse(-52, -6, -6, 6, -8, (x, z) => (x * 3 + z) % 7 ? C.lbg : C.dtan, false, 'tile'));
+  list.push(...fillCourse(-6, 30, -4, 52, -8, (x, z) => (x * 3 + z * 5) % 9 ? C.lbg : C.dtan, true, 'tile'));
+  /* the Temple of Athena */
+  const T = [-6, 30, -54, -6];
+  list.push(...hollow(T[0], T[1], T[2], T[3], 0, 1, C.white, 2), ...hollow(T[0] + 1, T[1] - 1, T[2] + 1, T[3] - 1, 1, 2, C.white, 2));
+  list.push(...fillCourse(T[0] + 2, T[1] - 2, T[2] + 2, T[3] - 2, -8 - 48, C.white, false));
+  const colX = [0, 1, 2, 3, 4, 5].map(i => T[0] + 2 + 6 * i), colZ = [0, 1, 2, 3, 4, 5, 6, 7].map(i => T[2] + 2 + 6 * i);
+  const cols = [...colX.flatMap(x => [[x, colZ[0]], [x, colZ[7]]]), ...colZ.slice(1, 7).flatMap(z => [[colX[0], z], [colX[5], z]])];
+  const H0 = 72;                              /* the stylobate's top, above the ground */
+  for (const [x, z] of cols) {
+    list.push({ id: '4032a', col: C.white, x: x + 1, z: z + 1, base: -8 - H0 });
+    for (let k = 0; k < 14; k++) list.push({ id: '6143', col: C.white, x: x + 1, z: z + 1, base: -8 - H0 - 8 - 24 * k });
+    list.push({ id: '60474', col: C.white, x: x + 1, z: z + 1, base: -8 - H0 - 8 - 24 * 14 });
+  }
+  const E = H0 + 8 + 24 * 14 + 8;            /* the entablature's underside */
+  const P = [T[0] + 1, T[1] - 1, T[2] + 1, T[3] - 1];
+  for (let k = 0; k < 2; k++) list.push(...fillCourse(P[0], P[1], P[2], P[3], -8 - E - 24 * k, C.white, k % 2 === 0, 'brick', ring(P[0], P[1], P[2], P[3], 3)));
+  for (let x = P[0]; x < P[1]; x++) for (let z = P[2]; z < P[3]; z++) if (!ring(P[0], P[1], P[2], P[3], 3)(x, z)) {
+    const outer = x === P[0] || x === P[1] - 1 || z === P[2] || z === P[3] - 1, along = x === P[0] || x === P[1] - 1 ? z : x;
+    list.push({ id: '3005', col: outer && along % 3 === 0 ? C.dblue : C.white, x: x + 0.5, z: z + 0.5, base: -8 - E - 48 });
+  }
+  list.push(...fillCourse(T[0], T[1], T[2], T[3], -8 - E - 72, C.white, true, 'plate'));        /* the cornice, a stud proud all round */
+  for (let s = 0; s < 18; s++) {              /* the roof: plates two studs wide stepping in from both eaves, a white pediment at the front */
+    const a = T[0] + s, b = T[1] - s; if (b - a < 2) break;
+    const y = -8 - E - 72 - 8 * (s + 1), strip = b - a <= 3 ? [[a, b]] : [[a, a + 2], [b - 2, b]];
+    for (const [u, v] of strip) { list.push(...fillCourse(u, v, T[2], T[3] - 1, y, C.dred, true, 'plate')); list.push(...fillCourse(u, v, T[3] - 1, T[3], y, C.white, true, 'plate')); }
+  }
+  const top = E + 72 + 8 * 18;
+  for (const [x, z] of [[(T[0] + T[1]) / 2, T[2] + 0.5], [(T[0] + T[1]) / 2, T[3] - 0.5]]) list.push({ id: '3942c', col: C.gold, x, z: z + (z < -20 ? 0.5 : -0.5), base: -8 - top - 8 });
+  for (const [x, z] of [[T[0] + 0.5, T[2] + 0.5], [T[1] - 0.5, T[2] + 0.5], [T[0] + 0.5, T[3] - 0.5], [T[1] - 0.5, T[3] - 0.5]]) list.push({ id: '4589', col: C.gold, x, z, base: -8 - E - 80 });
+  /* the cella: walls of tan stone inside the colonnade, a door six studs wide, and the Palladion in the dark */
+  const Cc = [T[0] + 7, T[1] - 7, T[2] + 8, T[3] - 8];
+  for (let k = 0; k < 14; k++) list.push(...fillCourse(Cc[0], Cc[1], Cc[2], Cc[3], -8 - H0 - 24 * k, k === 13 ? C.dtan : C.tan, k % 2 === 1, 'brick',
+    (x, z) => ring(Cc[0], Cc[1], Cc[2], Cc[3])(x, z) || (z === Cc[3] - 1 && x >= (Cc[0] + Cc[1]) / 2 - 3 && x < (Cc[0] + Cc[1]) / 2 + 3 && k < 10)));
+  list.push(...fillCourse(Cc[0] + 1, Cc[1] - 1, Cc[2] + 1, Cc[3] - 1, -8 - H0, C.black, false, 'tile'));
+  const px = (Cc[0] + Cc[1]) / 2, pz = Cc[2] + 5;
+  list.push({ id: '3003', col: C.white, x: px, z: pz, base: -8 - H0 - 8 }, { id: '3003', col: C.white, x: px, z: pz, base: -8 - H0 - 32 });
+  for (let k = 0; k < 4; k++) list.push({ id: '6143', col: C.gold, x: px, z: pz, base: -8 - H0 - 56 - 24 * k });
+  list.push({ id: '3942c', col: C.gold, x: px, z: pz, base: -8 - H0 - 56 - 96 });
+  /* the altar before the steps, its fire */
+  list.push(...fillCourse(T[0] + 15, T[0] + 21, T[3] + 1, T[3] + 3, -16, C.white, false), ...fillCourse(T[0] + 15, T[0] + 21, T[3] + 1, T[3] + 3, -16 - 24, C.dred, false, 'plate'));
+  list.push({ id: '3062b', col: C.tOrange, x: T[0] + 17.5, z: T[3] + 1.5, base: -16 - 32 }, { id: '4589', col: C.orange, x: T[0] + 18.5, z: T[3] + 2.5, base: -16 - 32 });
+  /* houses of two storeys: hollow stone, a dark doorway 2.2 m high toward the street, windows above, flat roofs with a parapet */
+  const houses = [[33, -52, 10, 12], [44, -50, 11, 12], [33, -36, 10, 12], [44, -34, 11, 10], [33, 10, 10, 12], [44, 12, 11, 12], [33, 26, 10, 12], [44, 28, 11, 12], [33, 42, 10, 12],
+    [-46, 14, 10, 11], [-34, 16, 11, 12], [-46, 38, 10, 12], [-32, 36, 12, 11], [-46, -52, 12, 12], [-32, -50, 11, 12], [-46, -36, 10, 11]];
+  houses.forEach(([x0, z0, w, d], n) => {
+    const col = n % 3 === 1 ? C.tan : C.white, h = 12 - (n % 2) * 2, face = x0 > 0 ? x0 : x0 + w - 1, mid = z0 + Math.floor(d / 2);
+    const paint = (x, z, k) => x === face && ((Math.abs(z - mid) < 1 && k < 5) || (Math.abs(z - mid - 3) < 1 && k >= 7 && k < 9) || (Math.abs(z - mid + 3) < 1 && k >= 7 && k < 9)) ? C.black : k === 0 ? C.dtan : col;
+    for (let k = 0; k < h; k++) list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -8 - 24 * k, (x, z) => paint(x, z, k), k % 2 === 1, 'brick', (x, z) => ring(x0, x0 + w, z0, z0 + d)(x, z) || (x === face && paint(x, z, k) === C.black)));
+    for (let k = 0; k < h; k++) for (let z = z0; z < z0 + d; z++) if (paint(face, z, k) === C.black) list.push({ id: '3005', col: C.black, x: face + 0.5, z: z + 0.5, base: -8 - 24 * k });
+    list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -8 - 24 * h, col === C.white ? C.tan : C.dtan, false, 'plate'));
+    list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -16 - 24 * h, col, true, 'brick', ring(x0, x0 + w, z0, z0 + d)).map(p => ({ ...p })));
+  });
+  /* torches along the sacred way and before the temple */
+  for (const [x, z] of [[-8.5, -5.5], [30.5 - 1, -3.5], [-30.5, -5.5], [-30.5, 5.5], [-8.5, 5.5], [-44.5, 5.5]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -16 },
+    { id: '3957a', col: C.rbrown, x, z, base: -16 - 96 }, { id: '3062b', col: C.tOrange, x, z, base: -16 - 192 }, { id: '4589', col: C.orange, x, z, base: -16 - 216 });
+  return REAL('the citadel of troy', list);
+}
+/* the shore of Troy the morning after (Homer VIII: "the Argives set fire to their tents and sailed away, while Odysseus and the others
+   sat in the horse"): the sea at the back with two black ships under sail making off; a long beach of sand where the horse was left;
+   the Greek camp burned out on either side, charred posts and ash, embers still red and smoke going up; the stockade broken. */
+/* the floor is not turned about with the room's items (room() turns only those), so it is authored the other way round: the sea at +z */
+const trojanShoreFloor = () => REAL('the shore of troy', [R('3811', C.blue, -16, 32, -8), R('3811', C.blue, 16, 32, -8), R('3811', C.tan, -16, 0, -8), R('3811', C.tan, 16, 0, -8),
+  R('3811', C.tan, -16, -32, -8), R('3811', C.tan, 16, -32, -8)]);
+function trojanShore() {
+  const list = [];
+  /* the burned tents: four charred posts, a floor of ash, the embers, a column of smoke */
+  for (const [x0, z0, smoke] of [[-28, -6, 5], [-27, 14, 3], [21, -4, 4], [22, 18, 6], [-26, 34, 2]]) {
+    for (const [dx, dz] of [[0, 0], [6, 0], [0, 6], [6, 6]]) for (let k = 0; k < ((dx + dz + x0) % 3 === 0 ? 1 : 2); k++) list.push({ id: '3941', col: k ? C.dbrown : C.black, x: x0 + dx + 1, z: z0 + dz + 1, base: -8 - 24 * k });
+    list.push(...fillCourse(x0 + 2, x0 + 6, z0 + 2, z0 + 6, -8, (x, z) => (x + z) % 3 ? C.dbg : C.black, false, 'tile'));
+    list.push({ id: '3062b', col: C.tOrange, x: x0 + 4.5, z: z0 + 4.5, base: -16 }, { id: '4589', col: C.orange, x: x0 + 4.5, z: z0 + 4.5, base: -16 - 24 });
+    for (let k = 0; k < smoke; k++) list.push({ id: '3062b', col: C.tClear, x: x0 + 4.5 + (k % 2) * 0, z: z0 + 4.5, base: -16 - 48 - 24 * k });
+  }
+  /* the stockade along the landward edge, broken where the fire took it */
+  for (let x = -31; x <= 31; x += 2) if (!(x > -12 && x < 14) && (x * 5) % 7 !== 3) list.push({ id: '2453b', col: (x * 3) % 5 ? C.dbrown : C.black, x: x + 0.5, z: 46.5, base: -8 });
+  /* the sea: a swell of waves along the waterline */
+  for (let x = -30; x <= 30; x += 3) list.push({ id: '93273', col: (x / 3) % 3 ? C.blue : C.dblue, x, z: -17, base: -8 });
+  return REAL('the burned camp', list);
+}
 /* the island of Pharos (Homer IV): a beach under a sea cave, the seals hauled out on the sand; the cave of rock panels */
 function sealBeach() {
   const list = [];
@@ -515,7 +651,9 @@ const SETS = {
   hut: () => room("eumaeus's farm", 34, 34, floor(34, 34, C.dtan), [[swineherd(), 0, 0]],
     { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
   troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
-  troyGreat: () => room('troy, the square inside the scaean gate', 76, 64, floor(76, 64, C.dtan), [[troyGreat(), 0, 0]], { horse: M(0, 2, 0, 'the horse in the square'), helen: M(-10, 8, 1, 'Helen'), gate: M(0, -28, 0, 'the gate'), centre: M(0, 6, 0) }),
+  trojanShore: () => room('the shore of troy', 64, 96, trojanShoreFloor(), [[trojanShore(), 0, 0], [KIT.galley(), -14, -38, 2], [KIT.galley(), 12, -30, 2]], { horse: M(0, 14, 0, 'the horse on the beach'), sea: M(0, -30, 0, 'the sea'), camp: M(-24, 0, 1, 'the burned camp'), centre: M(0, 10, 0) }),
+  troyCitadel: () => room('troy, the citadel and the temple of athena', 112, 110, floorWide(112, 110, C.dtan), [[troyCitadel(), 0, 0]], { horse: M(12, 26, 0, 'the horse before the temple'), breach: M(-52, -3, 1, 'the breach'), gate: M(-52, 35, 1, 'the scaean gate'), temple: M(12, -30, 0, 'the temple of athena'), centre: M(0, 0, 0) }),
+  troyGreat: () => room('troy, the square inside the scaean gate', 76, 64, floorWide(76, 64, C.dtan), [[troyGreat(), 0, 0]], { horse: M(0, 2, 0, 'the horse in the square'), helen: M(-10, 8, 1, 'Helen'), gate: M(0, -28, 0, 'the gate'), centre: M(0, 6, 0) }),
   phorcys: () => room('the harbour of phorcys on ithaca', 32, 48, shoreFloor(), [[phorcys(), 0, 0], [KIT.galley(), 2, -9], [KIT.rocks(C.dtan), 13, 10], [KIT.swell(5, 0), -10, -20], [KIT.swell(5, 2), 11, -21]],
     { olive: M(-6, -6, 0, 'the olive at the head of the harbour'), cave: M(9, -14, 0, 'the cave of the nymphs'), ship: M(2, 10, 0, 'the ship run up on the sand'), centre: M(0, 0, 0) }),
   pharos: () => room('the seal beach on pharos', 32, 48, shoreFloor(C.dtan), [[sealBeach(), 0, 0], [KIT.swell(5, 1), -8, -16], [KIT.swell(6, 3), 8, -19]],
