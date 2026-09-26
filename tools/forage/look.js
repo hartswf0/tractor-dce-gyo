@@ -28,7 +28,7 @@ if (args.includes('--all')) { const idx = JSON.parse(fs.readFileSync(path.join(R
       await page.waitForFunction(i => window.__ready === i, id, { timeout: 120000 });
       await page.waitForTimeout(250);
       const file = path.join(OUT, id + (tt != null ? '@' + String(tt).padStart(5, '0') : '') + (args.includes('--jpeg') ? '.jpg' : '.png'));
-      await page.screenshot({ path: file, type: args.includes('--jpeg') ? 'jpeg' : 'png', quality: args.includes('--jpeg') ? 82 : undefined });
+      await page.screenshot({ path: file, type: args.includes('--jpeg') ? 'jpeg' : 'png', quality: args.includes('--jpeg') ? 82 : undefined, timeout: 300000 });   /* a great build takes a software renderer a while */
       console.log(`${++done}/${ids.length} ${id} ${((Date.now() - t) / 1000).toFixed(1)} s`);
     } catch (e) { console.log(`${++done}/${ids.length} ${id} FAILED ${e.message.split('\n')[0]}`); }
    }
