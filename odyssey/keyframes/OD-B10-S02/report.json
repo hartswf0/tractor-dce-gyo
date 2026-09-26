@@ -31,19 +31,19 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.279,
+     "size": 0.277,
      "inFrame": true,
      "head": [
       0.398,
-      0.462
+      0.464
      ],
      "facing": -0.96,
      "thirds": 0.065,
-     "headroom": 0.433,
+     "headroom": 0.434,
      "box": [
       0.377,
       0.419,
-      0.433,
+      0.434,
       0.711
      ],
      "behind": false
@@ -62,6 +62,7 @@
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K1.png"
   },
   {
@@ -70,8 +71,10 @@
    "text": "They found his wife, and she was as big as a mountain; they were horrified at her.",
    "pass": false,
    "fails": [
-    "the set (black ship 2) passes through three-scouts-1 (72 part overlaps)",
-    "the set (black ship) passes through three-scouts-3 (72 part overlaps)",
+    "three-scouts-1 passes through three-scouts-2 (31 part overlaps)",
+    "the set (black ship) passes through three-scouts-1 (64 part overlaps)",
+    "the set (black ship) passes through three-scouts-3 (64 part overlaps)",
+    "three-scouts-1 peeks from behind (0.25)",
     "three-scouts-2 stands on scenery 49 above the ground, not the floor"
    ],
    "camera": {
@@ -85,14 +88,19 @@
    "physics": {
     "collide": [
      [
-      "the set (black ship 2)",
       "three-scouts-1",
-      72
+      "three-scouts-2",
+      31
+     ],
+     [
+      "the set (black ship)",
+      "three-scouts-1",
+      64
      ],
      [
       "the set (black ship)",
       "three-scouts-3",
-      72
+      64
      ]
     ],
     "floating": [],
@@ -137,14 +145,58 @@
      "behind": false
     }
    },
+   "others": {
+    "three-scouts-1": {
+     "visible": 0.25,
+     "size": 0.307,
+     "inFrame": true,
+     "head": [
+      0.474,
+      0.705
+     ],
+     "facing": -1,
+     "thirds": 0.038,
+     "headroom": 0.676,
+     "box": [
+      0.448,
+      0.499,
+      0.676,
+      0.983
+     ],
+     "behind": false
+    },
+    "three-scouts-3": {
+     "visible": 1,
+     "size": 0.286,
+     "inFrame": false,
+     "head": [
+      0.579,
+      0.787
+     ],
+     "facing": -0.98,
+     "thirds": 0.088,
+     "headroom": 0.759,
+     "box": [
+      0.557,
+      0.604,
+      0.759,
+      1.046
+     ],
+     "behind": false
+    }
+   },
    "file": "odyssey/keyframes/OD-B10-S02/K2.png"
   },
   {
    "id": "K3",
    "beat": "The queen summons Antiphates, who seizes and eats one scout.",
    "text": "Antiphates... raised a cry through the town, which brought thousands of sturdy Laestrygonians running from every quarter: ogres, not men.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:antiphates hidden (0)",
+    "three-scouts-2 hidden (0)",
+    "three-scouts-1 cropped to a headless body"
+   ],
    "camera": {
     "pos": [
      0,
@@ -160,7 +212,7 @@
    },
    "subjects": {
     "prop:antiphates": {
-     "visible": 0.75,
+     "visible": 0,
      "size": 2.382,
      "inFrame": false,
      "head": [
@@ -173,7 +225,7 @@
      "behind": false
     },
     "three-scouts-2": {
-     "visible": 1,
+     "visible": 0,
      "size": 0.125,
      "inFrame": true,
      "head": [
@@ -188,6 +240,46 @@
       0.527,
       0.226,
       0.352
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "three-scouts-1": {
+     "visible": 1,
+     "size": 6.518,
+     "inFrame": false,
+     "head": [
+      0.42,
+      -0.095
+     ],
+     "facing": 0.83,
+     "thirds": 0.087,
+     "headroom": -0.125,
+     "box": [
+      -1.357,
+      0.546,
+      -0.125,
+      6.393
+     ],
+     "behind": false
+    },
+    "three-scouts-3": {
+     "visible": 0,
+     "size": 0.754,
+     "inFrame": false,
+     "head": [
+      0.678,
+      0.586
+     ],
+     "facing": 0.87,
+     "thirds": 0.011,
+     "headroom": 0.539,
+     "box": [
+      0.643,
+      0.807,
+      0.539,
+      1.293
      ],
      "behind": false
     }
@@ -241,6 +333,7 @@
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K4.png"
   },
   {
@@ -265,24 +358,25 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.467,
+     "size": 0.465,
      "inFrame": true,
      "head": [
       0.435,
-      0.498
+      0.5
      ],
      "facing": 0.96,
      "thirds": 0.102,
-     "headroom": 0.455,
+     "headroom": 0.457,
      "box": [
       0.4,
       0.467,
-      0.455,
+      0.457,
       0.922
      ],
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K5.png"
   }
  ]
