@@ -24,43 +24,44 @@
    "subjects": {
     "calypso": {
      "visible": 1,
-     "size": 0.283,
+     "size": 0.302,
      "inFrame": true,
      "head": [
-      0.406,
-      0.454
+      0.37,
+      0.609
      ],
-     "facing": -1,
-     "thirds": 0.073,
-     "headroom": 0.424,
+     "facing": -0.74,
+     "thirds": 0.037,
+     "headroom": 0.577,
      "box": [
-      0.38,
-      0.433,
-      0.424,
-      0.707
+      0.349,
+      0.392,
+      0.577,
+      0.879
      ],
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.408,
+     "size": 0.403,
      "inFrame": true,
      "head": [
-      0.544,
-      0.586
+      0.495,
+      0.572
      ],
-     "facing": -0.63,
-     "thirds": 0.081,
-     "headroom": 0.542,
+     "facing": -0.52,
+     "thirds": 0.094,
+     "headroom": 0.529,
      "box": [
-      0.523,
-      0.564,
-      0.542,
-      0.95
+      0.477,
+      0.511,
+      0.529,
+      0.932
      ],
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B05-S04/K1.png"
   },
   {
@@ -84,48 +85,47 @@
    },
    "subjects": {
     "odysseus": {
-     "visible": 0.75,
-     "size": 0.447,
+     "visible": 1,
+     "size": 0.541,
      "inFrame": true,
      "head": [
-      0.498,
-      0.448
+      0.435,
+      0.473
      ],
-     "facing": -0.06,
-     "thirds": 0.115,
-     "headroom": 0.4,
+     "facing": -0.83,
+     "thirds": 0.102,
+     "headroom": 0.415,
      "box": [
-      0.496,
-      0.5,
-      0.4,
-      0.847
+      0.398,
+      0.469,
+      0.415,
+      0.956
      ],
      "behind": false
     },
     "prop:trunk": {
      "visible": 1,
-     "size": 0.46,
+     "size": 0.447,
      "inFrame": false,
      "head": [
-      0.533,
-      0.785
+      0.531,
+      0.781
      ],
      "facing": 1,
-     "thirds": 0.118,
-     "headroom": 0.692,
+     "thirds": 0.114,
+     "headroom": 0.689,
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B05-S04/K2.png"
   },
   {
    "id": "K3",
    "beat": "He rigs mast, yard, sail, steering oar, and ballast.",
    "text": "He also made a mast with a yard arm, and a rudder to steer with... Calypso brought him some linen to make the sails, and he made these too, excellently.",
-   "pass": false,
-   "fails": [
-    "prop:raft passes through odysseus (5 part overlaps)"
-   ],
+   "pass": true,
+   "fails": [],
    "camera": {
     "pos": [
      -80,
@@ -135,46 +135,61 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [
-     [
-      "prop:raft",
-      "odysseus",
-      5
-     ]
-    ],
+    "collide": [],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "prop:raft": {
      "visible": 1,
-     "size": 1.304,
+     "size": 1.235,
      "inFrame": false,
      "head": [
-      0.451,
-      0.412
+      0.503,
+      0.416
      ],
      "facing": 1,
-     "thirds": 0.079,
-     "headroom": 0.243,
+     "thirds": 0.082,
+     "headroom": 0.247,
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.227,
+     "size": 0.228,
      "inFrame": true,
      "head": [
-      0.424,
-      0.542
-     ],
-     "facing": 0.65,
-     "thirds": 0.091,
-     "headroom": 0.517,
-     "box": [
       0.412,
-      0.436,
-      0.517,
-      0.744
+      0.555
+     ],
+     "facing": 0.27,
+     "thirds": 0.078,
+     "headroom": 0.53,
+     "box": [
+      0.407,
+      0.417,
+      0.53,
+      0.758
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "calypso": {
+     "visible": 1,
+     "size": 0.162,
+     "inFrame": true,
+     "head": [
+      0.361,
+      0.541
+     ],
+     "facing": 0.34,
+     "thirds": 0.027,
+     "headroom": 0.523,
+     "box": [
+      0.356,
+      0.367,
+      0.523,
+      0.685
      ],
      "behind": false
     }
@@ -185,8 +200,11 @@
    "id": "K4",
    "beat": "Calypso bathes and clothes him, loads food and water, and sends a warm wind behind the raft.",
    "text": "She sent him a warm and gentle wind to blow him along, and glad indeed was Ulysses as he spread his sail before it.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "odysseus hidden (0)",
+    "odysseus is sunk 7.8"
+   ],
    "camera": {
     "pos": [
      -230,
@@ -197,62 +215,68 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": [],
+    "floating": [
+     [
+      "odysseus",
+      -7.8
+     ]
+    ],
     "perched": []
    },
    "subjects": {
     "calypso": {
      "visible": 1,
-     "size": 0.176,
+     "size": 0.177,
      "inFrame": true,
      "head": [
-      0.568,
-      0.475
+      0.559,
+      0.467
      ],
-     "facing": 0.95,
-     "thirds": 0.098,
-     "headroom": 0.456,
+     "facing": 0.86,
+     "thirds": 0.108,
+     "headroom": 0.448,
      "box": [
-      0.553,
-      0.584,
-      0.456,
-      0.631
+      0.545,
+      0.573,
+      0.448,
+      0.625
      ],
      "behind": false
     },
     "prop:raft": {
      "visible": 1,
-     "size": 4.353,
+     "size": 3.065,
      "inFrame": false,
      "head": [
-      0.204,
-      0.116
+      0.175,
+      0.128
      ],
      "facing": 1,
-     "thirds": 0.129,
-     "headroom": -1.211,
+     "thirds": 0.158,
+     "headroom": -0.691,
      "behind": false
     },
     "odysseus": {
-     "visible": 1,
-     "size": 0.403,
+     "visible": 0,
+     "size": 0.41,
      "inFrame": true,
      "head": [
-      0.329,
-      0.426
+      0.317,
+      0.443
      ],
-     "facing": 0.69,
-     "thirds": 0.005,
-     "headroom": 0.383,
+     "facing": 0.65,
+     "thirds": 0.016,
+     "headroom": 0.398,
      "box": [
-      0.307,
-      0.352,
-      0.383,
-      0.786
+      0.296,
+      0.34,
+      0.398,
+      0.808
      ],
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B05-S04/K4.png"
   }
  ]

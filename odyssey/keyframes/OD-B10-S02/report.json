@@ -1,6 +1,6 @@
 {
  "scene": "OD-B10-S02",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -24,20 +24,20 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.284,
+     "size": 0.155,
      "inFrame": true,
      "head": [
-      0.402,
-      0.517
+      0.504,
+      0.51
      ],
-     "facing": -0.96,
-     "thirds": 0.069,
-     "headroom": 0.487,
+     "facing": -0.99,
+     "thirds": 0.157,
+     "headroom": 0.493,
      "box": [
-      0.38,
-      0.423,
-      0.487,
-      0.771
+      0.492,
+      0.516,
+      0.493,
+      0.648
      ],
      "behind": false
     },
@@ -55,14 +55,18 @@
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K1.png"
   },
   {
    "id": "K2",
    "beat": "Three scouts meet a giant girl who directs them to her parents' house.",
    "text": "They found his wife, and she was as big as a mountain; they were horrified at her.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (black ship) passes through three-scouts-1 (64 part overlaps)",
+    "the set (black ship) passes through three-scouts-3 (72 part overlaps)"
+   ],
    "camera": {
     "pos": [
      0,
@@ -72,41 +76,92 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (black ship)",
+      "three-scouts-1",
+      64
+     ],
+     [
+      "the set (black ship)",
+      "three-scouts-3",
+      72
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "three-scouts-2": {
      "visible": 1,
-     "size": 0.307,
+     "size": 0.34,
      "inFrame": true,
      "head": [
-      0.47,
-      0.705
+      0.508,
+      0.69
      ],
-     "facing": -0.99,
-     "thirds": 0.038,
-     "headroom": 0.676,
+     "facing": -1,
+     "thirds": 0.023,
+     "headroom": 0.658,
      "box": [
-      0.444,
-      0.495,
-      0.676,
-      0.983
+      0.48,
+      0.537,
+      0.658,
+      0.998
      ],
      "behind": false
     },
     "prop:girl": {
-     "visible": 1,
-     "size": 0.803,
+     "visible": 0.75,
+     "size": 0.774,
      "inFrame": false,
      "head": [
-      0.505,
-      0.497
+      0.509,
+      0.501
      ],
      "facing": 1,
-     "thirds": 0.162,
-     "headroom": 0.276,
+     "thirds": 0.158,
+     "headroom": 0.302,
+     "behind": false
+    }
+   },
+   "others": {
+    "three-scouts-1": {
+     "visible": 0,
+     "size": 0.209,
+     "inFrame": true,
+     "head": [
+      0.49,
+      0.751
+     ],
+     "facing": -1,
+     "thirds": 0.084,
+     "headroom": 0.73,
+     "box": [
+      0.472,
+      0.508,
+      0.73,
+      0.939
+     ],
+     "behind": false
+    },
+    "three-scouts-3": {
+     "visible": 1,
+     "size": 0.262,
+     "inFrame": false,
+     "head": [
+      0.571,
+      0.792
+     ],
+     "facing": -0.99,
+     "thirds": 0.095,
+     "headroom": 0.767,
+     "box": [
+      0.552,
+      0.595,
+      0.767,
+      1.029
+     ],
      "behind": false
     }
    },
@@ -116,8 +171,12 @@
    "id": "K3",
    "beat": "The queen summons Antiphates, who seizes and eats one scout.",
    "text": "Antiphates... raised a cry through the town, which brought thousands of sturdy Laestrygonians running from every quarter: ogres, not men.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:antiphates hidden (0)",
+    "three-scouts-2 hidden (0)",
+    "three-scouts-1 cropped to a headless body"
+   ],
    "camera": {
     "pos": [
      0,
@@ -133,20 +192,20 @@
    },
    "subjects": {
     "prop:antiphates": {
-     "visible": 1,
-     "size": 2.492,
+     "visible": 0,
+     "size": 2.382,
      "inFrame": false,
      "head": [
-      0.481,
-      0.54
+      0.488,
+      0.553
      ],
      "facing": 1,
-     "thirds": 0.127,
-     "headroom": 0.205,
+     "thirds": 0.114,
+     "headroom": 0.238,
      "behind": false
     },
     "three-scouts-2": {
-     "visible": 1,
+     "visible": 0,
      "size": 0.125,
      "inFrame": true,
      "head": [
@@ -161,6 +220,46 @@
       0.527,
       0.226,
       0.352
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "three-scouts-1": {
+     "visible": 1,
+     "size": 6.518,
+     "inFrame": false,
+     "head": [
+      0.42,
+      -0.095
+     ],
+     "facing": 0.83,
+     "thirds": 0.087,
+     "headroom": -0.125,
+     "box": [
+      -1.357,
+      0.546,
+      -0.125,
+      6.393
+     ],
+     "behind": false
+    },
+    "three-scouts-3": {
+     "visible": 0,
+     "size": 0.754,
+     "inFrame": false,
+     "head": [
+      0.678,
+      0.586
+     ],
+     "facing": 0.87,
+     "thirds": 0.011,
+     "headroom": 0.539,
+     "box": [
+      0.643,
+      0.807,
+      0.539,
+      1.293
      ],
      "behind": false
     }
@@ -189,31 +288,32 @@
    "subjects": {
     "prop:g1": {
      "visible": 1,
-     "size": 0.57,
+     "size": 0.613,
      "inFrame": true,
      "head": [
-      0.57,
-      0.304
+      0.579,
+      0.397
      ],
      "facing": 1,
-     "thirds": 0.029,
-     "headroom": 0.104,
+     "thirds": 0.064,
+     "headroom": 0.202,
      "behind": false
     },
     "prop:g2": {
-     "visible": 0.75,
-     "size": 0.525,
+     "visible": 0.5,
+     "size": 0.474,
      "inFrame": true,
      "head": [
-      0.452,
-      0.443
+      0.458,
+      0.446
      ],
      "facing": 1,
-     "thirds": 0.11,
-     "headroom": 0.273,
+     "thirds": 0.113,
+     "headroom": 0.314,
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K4.png"
   },
   {
@@ -238,24 +338,25 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.491,
-     "inFrame": false,
+     "size": 0.465,
+     "inFrame": true,
      "head": [
-      0.448,
-      0.594
+      0.435,
+      0.5
      ],
-     "facing": 1,
-     "thirds": 0.073,
-     "headroom": 0.549,
+     "facing": 0.96,
+     "thirds": 0.102,
+     "headroom": 0.457,
      "box": [
-      0.411,
-      0.482,
-      0.549,
-      1.04
+      0.4,
+      0.467,
+      0.457,
+      0.922
      ],
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B10-S02/K5.png"
   }
  ]

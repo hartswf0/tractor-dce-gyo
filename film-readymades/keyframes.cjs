@@ -82,7 +82,7 @@ for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
     wants one hidden hides it outright, or marks it veiled) */
  for(const [id,m] of Object.entries(r.others||{})){if(m.missing||m.behind||(k.veiled||[]).includes(id))continue;const [u0,u1,v0,v1]=m.box,onScreen=u1>0&&u0<1&&v1>0&&v0<1;if(!onScreen)continue;
   const headIn=m.head[0]>0&&m.head[0]<1&&m.head[1]>0&&m.head[1]<1;
-  if(!headIn)fails.push(`${id} cropped to a headless body`);else if(!(k.lensAllow||[]).includes(id)&&(u0<-0.04||u1>1.04))fails.push(`${id} sliced by the frame edge`);else if(m.visible>0&&m.visible<0.75)fails.push(`${id} peeks from behind (${m.visible})`);}
+  if(!headIn)fails.push(`${id} cropped to a headless body`);else if(!(k.lensAllow||[]).includes(id)&&(u0<-0.04||u1>1.04))fails.push(`${id} sliced by the frame edge`);else if(m.visible>0&&m.visible<0.75&&m.size>0.15)fails.push(`${id} peeks from behind (${m.visible})`);   /* a figure big enough to read as one; a crowd far off is texture */}
  for(const [a,pr] of r.phys.perched||[])fails.push(`${a} stands on ${pr}, not the floor`);
  for(const [a,g] of r.phys.floating)fails.push(`${a} ${g==null?'stands on nothing':g>0?'floats '+g:'is sunk '+(-g)}`);
  if(process.argv.includes('--plan')){console.log('   anchors',JSON.stringify(await p.evaluate(()=>OdysseyFilm.anchors())),'\n   cast',JSON.stringify(await p.evaluate(()=>OdysseyFilm.cast().map(c=>[c.id,c.x,c.y,c.z]))));const plan=await p.evaluate(()=>{const cam=camera.position.clone(),tgt=controls.target.clone(),fov=camera.fov,q=camera.quaternion.clone();
@@ -92,7 +92,7 @@ for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
    scene.remove(mk);scene.remove(ln);scene.fog=fg;camera.position.copy(cam);camera.quaternion.copy(q);camera.fov=fov;camera.updateProjectionMatrix();return png;});
   fs.writeFileSync(path.join(out,k.id+'-plan.png'),Buffer.from(plan.split(',')[1],'base64'));}
  const file=path.join(out,k.id+'.png');fs.writeFileSync(file,Buffer.from(r.png.split(',')[1],'base64'));delete r.png;   /* the frame itself, straight off the renderer: no workspace chrome */
- report.push({id:k.id,beat:k.beat,text:k.text,pass:!fails.length,fails,camera:r.cam,lens:r.lens,physics:r.phys,subjects:r.sc,file:path.relative(process.cwd(),file)});
+ report.push({id:k.id,beat:k.beat,text:k.text,pass:!fails.length,fails,camera:r.cam,lens:r.lens,physics:r.phys,subjects:r.sc,others:r.others,file:path.relative(process.cwd(),file)});
  console.log(`${k.id} ${fails.length?'FAIL':'PASS'}  ${k.beat}${fails.length?'\n    '+fails.join('\n    '):''}`);}
 fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({scene:spec.scene,pass:report.every(r=>r.pass),keys:report},null,1));
 console.log(report.every(r=>r.pass)?'ALL STILLS PASS: the scene may go to film':'GATE CLOSED: '+report.filter(r=>!r.pass).length+' of '+report.length+' stills fail');

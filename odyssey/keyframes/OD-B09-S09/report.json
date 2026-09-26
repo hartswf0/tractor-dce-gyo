@@ -1,6 +1,6 @@
 {
  "scene": "OD-B09-S09",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -10,9 +10,9 @@
    "fails": [],
    "camera": {
     "pos": [
-     -212,
+     -209.6,
      175,
-     4.1
+     2.4
     ]
    },
    "lens": 0,
@@ -37,20 +37,98 @@
     },
     "odysseus": {
      "visible": 1,
+     "size": 0.273,
+     "inFrame": true,
+     "head": [
+      0.838,
+      0.606
+     ],
+     "facing": 0.96,
+     "thirds": 0.061,
+     "headroom": 0.575,
+     "box": [
+      0.81,
+      0.861,
+      0.575,
+      0.848
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "four-stake-bearers-1": {
+     "visible": 0,
      "size": 0.276,
      "inFrame": true,
      "head": [
-      0.847,
-      0.611
+      0.957,
+      0.715
      ],
-     "facing": 0.54,
-     "thirds": 0.056,
-     "headroom": 0.58,
+     "facing": -0.14,
+     "thirds": 0.048,
+     "headroom": 0.683,
      "box": [
-      0.83,
-      0.858,
-      0.58,
-      0.856
+      0.934,
+      0.96,
+      0.683,
+      0.959
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-2": {
+     "visible": 1,
+     "size": 0.21,
+     "inFrame": true,
+     "head": [
+      0.737,
+      0.528
+     ],
+     "facing": 0.9,
+     "thirds": 0.07,
+     "headroom": 0.505,
+     "box": [
+      0.716,
+      0.754,
+      0.505,
+      0.714
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-3": {
+     "visible": 0.75,
+     "size": 0.23,
+     "inFrame": true,
+     "head": [
+      0.937,
+      0.574
+     ],
+     "facing": 0.98,
+     "thirds": 0.093,
+     "headroom": 0.548,
+     "box": [
+      0.906,
+      0.961,
+      0.548,
+      0.778
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-4": {
+     "visible": 0.75,
+     "size": 0.179,
+     "inFrame": true,
+     "head": [
+      0.697,
+      0.545
+     ],
+     "facing": 0.87,
+     "thirds": 0.03,
+     "headroom": 0.525,
+     "box": [
+      0.679,
+      0.711,
+      0.525,
+      0.704
      ],
      "behind": false
     }
@@ -61,8 +139,11 @@
    "id": "K2",
    "beat": "Odysseus heats the stake until it glows and the chosen men drive it into the Cyclops's eye.",
    "text": "When the wood, green though it was, was about to blaze, I drew it out of the fire glowing with heat, and my men gathered round me.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (rocks) passes through four-stake-bearers-3 (184 part overlaps)",
+    "the set (rocks) passes through four-stake-bearers-4 (409 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -73.3,
@@ -72,41 +153,130 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (rocks)",
+      "four-stake-bearers-3",
+      184
+     ],
+     [
+      "the set (rocks)",
+      "four-stake-bearers-4",
+      409
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "odysseus": {
-     "visible": 1,
-     "size": 0.653,
+     "visible": 0.75,
+     "size": 0.641,
      "inFrame": true,
      "head": [
-      0.495,
-      0.239
+      0.497,
+      0.263
      ],
-     "facing": 0.86,
-     "thirds": 0.094,
-     "headroom": 0.164,
+     "facing": 0.77,
+     "thirds": 0.07,
+     "headroom": 0.19,
      "box": [
-      0.449,
-      0.54,
-      0.164,
-      0.817
+      0.456,
+      0.535,
+      0.19,
+      0.831
      ],
      "behind": false
     },
     "prop:ember": {
      "visible": 1,
-     "size": 0.73,
+     "size": 0.714,
      "inFrame": false,
      "head": [
-      0.754,
-      0.648
+      0.718,
+      0.645
      ],
      "facing": 1,
-     "thirds": 0.019,
+     "thirds": 0.022,
      "headroom": 0.529,
+     "behind": false
+    }
+   },
+   "others": {
+    "four-stake-bearers-1": {
+     "visible": 0,
+     "size": 0.401,
+     "inFrame": true,
+     "head": [
+      0.547,
+      0.353
+     ],
+     "facing": 0.71,
+     "thirds": 0.019,
+     "headroom": 0.308,
+     "box": [
+      0.519,
+      0.573,
+      0.308,
+      0.708
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-2": {
+     "visible": 1,
+     "size": 0.352,
+     "inFrame": true,
+     "head": [
+      0.402,
+      0.345
+     ],
+     "facing": 0.85,
+     "thirds": 0.012,
+     "headroom": 0.306,
+     "box": [
+      0.374,
+      0.429,
+      0.306,
+      0.658
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-3": {
+     "visible": 0,
+     "size": 0.268,
+     "inFrame": true,
+     "head": [
+      0.48,
+      0.356
+     ],
+     "facing": 0.78,
+     "thirds": 0.023,
+     "headroom": 0.327,
+     "box": [
+      0.46,
+      0.5,
+      0.327,
+      0.595
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-4": {
+     "visible": 0,
+     "size": 0.242,
+     "inFrame": true,
+     "head": [
+      0.385,
+      0.332
+     ],
+     "facing": 0.87,
+     "thirds": 0.001,
+     "headroom": 0.305,
+     "box": [
+      0.365,
+      0.405,
+      0.305,
+      0.548
+     ],
      "behind": false
     }
    },
@@ -134,34 +304,34 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.485,
+     "size": 0.503,
      "inFrame": true,
      "head": [
-      0.332,
+      0.331,
       0.421
      ],
-     "facing": 0.07,
-     "thirds": 0.001,
-     "headroom": 0.359,
+     "facing": 0.46,
+     "thirds": 0.002,
+     "headroom": 0.356,
      "box": [
-      0.326,
-      0.363,
-      0.359,
-      0.844
+      0.319,
+      0.368,
+      0.356,
+      0.86
      ],
      "behind": false
     },
     "prop:polyphemus": {
      "visible": 1,
-     "size": 2.175,
+     "size": 2.36,
      "inFrame": false,
      "head": [
-      0.734,
-      0.321
+      0.774,
+      0.326
      ],
      "facing": 1,
-     "thirds": 0.012,
-     "headroom": 0.055,
+     "thirds": 0.008,
+     "headroom": 0.043,
      "behind": false
     },
     "four-stake-bearers-2": {
@@ -169,17 +339,57 @@
      "size": 0.331,
      "inFrame": false,
      "head": [
-      0.216,
-      0.805
+      0.265,
+      0.783
      ],
-     "facing": 0.34,
-     "thirds": 0.117,
-     "headroom": 0.764,
+     "facing": 0.6,
+     "thirds": 0.069,
+     "headroom": 0.743,
      "box": [
-      0.21,
-      0.256,
-      0.764,
-      1.095
+      0.253,
+      0.301,
+      0.743,
+      1.074
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "four-stake-bearers-1": {
+     "visible": 0,
+     "size": 0.271,
+     "inFrame": true,
+     "head": [
+      0.35,
+      0.615
+     ],
+     "facing": 0.46,
+     "thirds": 0.017,
+     "headroom": 0.583,
+     "box": [
+      0.343,
+      0.37,
+      0.583,
+      0.854
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-3": {
+     "visible": 0.75,
+     "size": 0.257,
+     "inFrame": true,
+     "head": [
+      0.174,
+      0.596
+     ],
+     "facing": 0.67,
+     "thirds": 0.071,
+     "headroom": 0.565,
+     "box": [
+      0.164,
+      0.208,
+      0.565,
+      0.823
      ],
      "behind": false
     }
@@ -190,8 +400,10 @@
    "id": "K4",
    "beat": "Other Cyclopes call from outside, but leave when he says Nobody is killing him.",
    "text": "Then he gave a loud cry, so that the rocks resounded, and we fled in terror; he drew the beam from his eye all bespattered with blood, and hurled it from him in a frenzy of rage and pain.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "four-stake-bearers-1 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      50.4,
@@ -208,7 +420,7 @@
    "subjects": {
     "prop:polyphemus": {
      "visible": 1,
-     "size": 2.022,
+     "size": 1.501,
      "inFrame": false,
      "head": [
       0.338,
@@ -216,25 +428,103 @@
      ],
      "facing": 1,
      "thirds": 0.004,
-     "headroom": 0.068,
+     "headroom": 0.154,
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.401,
+     "size": 0.38,
      "inFrame": true,
      "head": [
-      0.688,
-      0.557
+      0.699,
+      0.475
      ],
-     "facing": 0.19,
-     "thirds": 0.022,
-     "headroom": 0.525,
+     "facing": 0.8,
+     "thirds": 0.032,
+     "headroom": 0.445,
      "box": [
-      0.679,
-      0.802,
-      0.525,
-      0.926
+      0.688,
+      0.826,
+      0.445,
+      0.825
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "four-stake-bearers-1": {
+     "visible": 0.25,
+     "size": 0.316,
+     "inFrame": true,
+     "head": [
+      0.738,
+      0.692
+     ],
+     "facing": -0.55,
+     "thirds": 0.025,
+     "headroom": 0.664,
+     "box": [
+      0.729,
+      0.834,
+      0.664,
+      0.98
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-2": {
+     "visible": 0,
+     "size": 0.512,
+     "inFrame": false,
+     "head": [
+      -0.022,
+      1.019
+     ],
+     "facing": -0.68,
+     "thirds": 0.352,
+     "headroom": 0.976,
+     "box": [
+      -0.127,
+      -0.012,
+      0.976,
+      1.489
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-3": {
+     "visible": 1,
+     "size": 2.074,
+     "inFrame": false,
+     "head": [
+      -0.728,
+      0.816
+     ],
+     "facing": -0.93,
+     "thirds": 0.149,
+     "headroom": 0.725,
+     "box": [
+      -2.265,
+      -0.658,
+      0.725,
+      2.799
+     ],
+     "behind": false
+    },
+    "four-stake-bearers-4": {
+     "visible": 1,
+     "size": 0.604,
+     "inFrame": false,
+     "head": [
+      1.098,
+      0.062
+     ],
+     "facing": -0.96,
+     "thirds": 0.271,
+     "headroom": -0.004,
+     "box": [
+      1.057,
+      1.778,
+      -0.004,
+      0.6
      ],
      "behind": false
     }
@@ -266,7 +556,7 @@
      "size": 0.051,
      "inFrame": true,
      "head": [
-      0.657,
+      0.658,
       0.658
      ],
      "facing": 0.04,
@@ -274,26 +564,27 @@
      "headroom": 0.606,
      "box": [
       0.372,
-      0.657,
+      0.658,
       0.606,
       0.657
      ],
      "behind": false
     },
     "prop:polyphemus": {
-     "visible": 0.5,
-     "size": 2.861,
+     "visible": 0.75,
+     "size": 3.108,
      "inFrame": false,
      "head": [
-      0.26,
-      0.289
+      0.251,
+      0.284
      ],
      "facing": 1,
-     "thirds": 0.044,
-     "headroom": -0.848,
+     "thirds": 0.05,
+     "headroom": -0.911,
      "behind": false
     }
    },
+   "others": {},
    "file": "odyssey/keyframes/OD-B09-S09/K5.png"
   }
  ]
