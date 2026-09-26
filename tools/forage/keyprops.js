@@ -177,6 +177,8 @@ props.loomHalf = shroud(5);
 props.torch = { parts: [row('3959', 70, L.I12), row('3062b', 57, L.T(0, -24, 0)), row('4589', 46, L.T(0, -44, 0))], anchors: { grip: [0, 10, 0], flame: [0, -40, 0] } };
 props.spade = { parts: [row('3837', 72, L.I12)], anchors: { grip: [0, -20, 0] } };
 props.goldWand = { parts: [row('3957a', 297, L.I12), row('3062b', 297, L.T(0, -96, 0))], anchors: { grip: [0, 0, 0] } };
+/* a sleeping-rug and linen (Homer XIII: "they spread a rug and linen sheet on the deck at the stern, that he might sleep soundly"): red and white plates */
+props.rug = { parts: [row('3020', 5, L.RY(Math.PI / 2)), row('3710', 15, L.mul(L.T(0, -8, -30), L.RY(Math.PI / 2))), row('3710', 5, L.mul(L.T(0, 0, 40), L.RY(Math.PI / 2)))], anchors: { bed: [0, -8, 0] } };
 props.sword = { parts: [row('98370', 71, L.I12)], anchors: { grip: [0, 10, 0] } };
 /* the Wooden Horse (Homer IV, VIII): "the horse of wood, which Epeus made with Minerva's help": a brick build on a plank platform; four
    legs of 2 x 2 bricks, a hollow body of bricks on a floor plate, a neck stepping forward, a head with a sloped muzzle and cone ears, a

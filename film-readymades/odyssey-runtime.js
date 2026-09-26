@@ -156,6 +156,10 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
     const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);
     /* feet on a prop (a loom's foot beam, a seal's back) read as a figure hovering over the floor, unless the still means it (touch) */
     if(h)support.set(kfShort(a.kind),kfPropOf(h.object));
+    /* standing high on scenery (a tree's crown, a rock's top) reads as a figure pasted in: the lowest surface under the feet is the ground,
+       and a figure standing well above it must have been put there on purpose (placed) */
+    if(!a.rig.placed&&h){const all=new THREE.Raycaster(new THREE.Vector3(a.rig.pos.x,a.rig.pos.y+1,a.rig.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true);const low=all.length?all[all.length-1].point.y:a.rig.pos.y,tall=kfHead(kfShort(a.kind)).y-a.rig.pos.y;
+      if(a.rig.pos.y-low>0.5*tall){let o=h.object,n='';for(;o;o=o.parent)if(o.userData&&o.userData.label){n=o.userData.label;break;}perched.push([kfShort(a.kind),(n||'scenery')+' '+Math.round(a.rig.pos.y-low)+' above the ground']);}}
     if(Math.abs(gap)<=3*k&&h){const o=kfPropOf(h.object);if(o&&!a.rig.placed&&!ok(o,kfShort(a.kind)))perched.push([kfShort(a.kind),o]);}}
   /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
      place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip, and the prop a figure stands or sits on is its floor */
