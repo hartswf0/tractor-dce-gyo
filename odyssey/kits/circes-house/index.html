@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circe&#x27;s House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Large · Book X · 2,032 pieces</div>
+  <h1>Circe&#x27;s House</h1>
+  <p class="lede">In the stone house in the forest clearing Circe has struck the men with her wand and they are swine in her sty; wolves and lions fawn at her gate, and Odysseus comes up the path with the moly Hermes gave him, sword drawn.</p>
+  <blockquote>&quot;When they had drunk she turned them into pigs by a stroke of her wand, and shut them up in her pigsties.&quot; (Odyssey X, tr. Samuel Butler)</blockquote>
+  <figure><img src="hero.jpg" alt="A green diorama: a tan stone house with red columns, a grey-walled pen of pink-headed figures and pigs, oak trees, a red-clad minifigure with a sword."><figcaption>The clearing: the stone house and its porch, the swine in the sty, the beasts fawning at the gate, Odysseus come up the path, Hermes behind him.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The swine: sailor minifigures whose heads swap for pig heads (one still half changed, a pig head-cover over his own), penned with three pigs behind a gate that swings open on a hinge brick.</p>
+  <div class="two"><figure><img src="open.jpg" alt="The same diorama with the front wall of the house removed, showing a woman minifigure in the hall, and a lattice gate standing open." loading="lazy"><figcaption>The front and porch lifted away, the sty gate swung open.</figcaption></figure><figure><img src="hall.jpg" alt="Inside the house: a minifigure with a gold wand and cup before a banded web, a hearth of grey round bricks, a brown table and bench." loading="lazy"><figcaption>Circe&#x27;s loom hall: her web on its upright loom, the hearth, the table of drugged food.</figcaption></figure><figure><img src="sty-close.jpg" alt="Close view into a stone pen: minifigures with pig heads among pink pigs, a lattice gate in the wall." loading="lazy"><figcaption>The swine: the men with pig heads, the pigs, the gate in the wall.</figcaption></figure><figure><img src="court.jpg" alt="A red-clad minifigure holding a black stem with a white flower, grey wolves and tan lion cubs round him, a figure in a gold helmet behind." loading="lazy"><figcaption>Wolves and lions fawn round Odysseus; he holds the moly, black root and white flower.</figcaption></figure><figure><img src="sty.jpg" alt="The pen on its own." loading="lazy"><figcaption>Sub-assembly: the sty and the swine.</figcaption></figure><figure><img src="loom-hall.jpg" alt="The house cut open on its own." loading="lazy"><figcaption>Sub-assembly: Circe&#x27;s loom hall.</figcaption></figure><figure><img src="gate.jpg" alt="Odysseus, Hermes and the beasts on a small base." loading="lazy"><figcaption>Sub-assembly: the wolves and lions at the gate.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>A 48 x 32 base of two green baseplates, the line&#x27;s white frame, black-and-gold nameplate and blue tile; grass laid in tiles with turf left in patches for ferns and flowers.</li><li>The house is laid in plate cells: a dressed socle of dark tan and tan ashlar, timber lacing in reddish-brown plates, a fresco band of blue and red, plastered courses, a flat roof inside a parapet with a smoke-pot.</li><li>The front wall and porch are one module that lifts off the baseplate, so the closed and open house are the same parts; both states are checked.</li><li>The porch stands on two red 2 x 2 round-brick columns with black capitals.</li><li>The sty gate is a lattice fence on a 1 x 4 hinge brick; it swings out toward the court.</li><li>The pig heads are minifigure pig heads (67887) on the sailors&#x27; torsos; one man wears a pig head-cover (17351) over his own head, halfway.</li><li>Six oaks with crowns sculpted in plates over solid cores on round-brick trunks, the rest of the forest stock trees.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">283 pieces</div><h3>The sty and the swine</h3><p>The walled pen with its hinged gate, the trough of acorns, three pigs and four pig-headed men.</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">619 pieces</div><h3>Circe&#x27;s loom hall</h3><p>The house without its front: Circe at her loom, the hearth, the table and bench, the smoke-pot on the roof.</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">137 pieces</div><h3>The wolves and lions at the gate</h3><p>Odysseus with sword and moly, Hermes, two wolves and a lion on a 16 x 16 base.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>Circe&#x27;s House</td><td><a href="../../cards/set.circes-house.mpd"><code>set.circes-house</code></a></td><td class="n">2,032</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Circe&#x27;s House (front lifted away, gate open)</td><td><a href="../../cards/set.circes-house-open.mpd"><code>set.circes-house-open</code></a></td><td class="n">1,813</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The sty and the swine</td><td><a href="../../cards/set.circes-house-sty.mpd"><code>set.circes-house-sty</code></a></td><td class="n">283</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Circe&#x27;s loom hall</td><td><a href="../../cards/set.circes-house-loom-hall.mpd"><code>set.circes-house-loom-hall</code></a></td><td class="n">619</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The wolves and lions at the gate</td><td><a href="../../cards/set.circes-house-gate.mpd"><code>set.circes-house-gate</code></a></td><td class="n">137</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B10-S04/sheet.jpg" alt="Keyframes of Circe Transforms The Crew" loading="lazy"><figcaption>OD-B10-S04 · Circe Transforms The Crew</figcaption></figure><figure><img src="../../keyframes/OD-B10-S05/sheet.jpg" alt="Keyframes of Hermes and the Moly" loading="lazy"><figcaption>OD-B10-S05 · Hermes and the Moly</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The red columns are straight 2 x 2 round bricks; they do not taper downward as Minoan columns do.</li><li>The lions are the lion-cub animal part (14734); there is no adult lion in the parts library used.</li><li>The gate hinge and its fence, the figures, the heads and the moly are placed by hand and not checked by the tool; the fence is marked as held by its hinge.</li><li>The smoke is a short column of clear round bricks and a cone; it reads more as glass than as smoke.</li><li>The loom-hall sub-assembly is the house cut from the model without its roof module separated; a real instruction step would build the roof as its own lift-off.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/circes-house.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/location/circes-forest-palace.mjs"><code>/home/user/odyssey-halfworld/assets/location/circes-forest-palace.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/creature/crew-to-swine-variants.mjs"><code>/home/user/odyssey-halfworld/assets/creature/crew-to-swine-variants.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/creature/enchanted-wolves-and-lions.mjs"><code>/home/user/odyssey-halfworld/assets/creature/enchanted-wolves-and-lions.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/prop/moly-plant.mjs"><code>/home/user/odyssey-halfworld/assets/prop/moly-plant.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/scenes/OD-B10-S04.mjs"><code>/home/user/odyssey-halfworld/scenes/OD-B10-S04.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/scenes/OD-B10-S05.mjs"><code>/home/user/odyssey-halfworld/scenes/OD-B10-S05.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/scenes/OD-B10-S06.mjs"><code>/home/user/odyssey-halfworld/scenes/OD-B10-S06.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/scenes/OD-B10-S07.mjs"><code>/home/user/odyssey-halfworld/scenes/OD-B10-S07.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

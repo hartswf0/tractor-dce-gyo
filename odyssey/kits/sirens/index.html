@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sirens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Medium · Book XII · 1,420 pieces</div>
+  <h1>The Sirens</h1>
+  <p class="lede">The wind has died; the black ship rows past the Sirens&#x27; island, the crew&#x27;s ears stopped with wax, Odysseus bound upright at the mast and straining at the ropes while the two Sirens sing in their meadow heaped with bones.</p>
+  <blockquote>&quot;Come hither, as thou farest, renowned Odysseus, great glory of the Achaeans; stay thy ship that thou mayest listen to the voice of us two.&quot; (Odyssey XII, tr. A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A black brick galley with a timber gunwale and oars dipping into a sea of blue and clear tiles, a man in red bound between two posts at the mast, and beside it a grey rock with a green meadow scattered with white bones and red and yellow flowers, two winged women standing on it."><figcaption>The two builds side by side, 48 x 32 studs: the galley rowing past, the Sirens in their meadow of flowers and bones.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The mast: a column of round bricks with the lashing band wound round it in tan, and at its foot the place where he is bound, two posts with a clip at the ankle and at the chest and a rope-bar across him in each pair.</p>
+  <div class="two"><figure><img src="mast.jpg" alt="Close view of a minifigure in red standing against a brown round-brick mast, a tan bar across his hands held by clips on two brown posts, sailors on either side." loading="lazy"><figcaption>The object: Odysseus bound at the mast, the rope-bar across his arms held in two clips, Eurylochus and Perimedes beside him, the rowers at their oars.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The galley is brick-built: a doubled keel of black plates laid crosswise, a side course of black bricks with vermilion cheeks at the bow, ends that sweep up a course to the stem and the stern post, a timber gunwale in tiles.</li><li>The mast is round bricks stepped on the floor, with tan round plates wound into it as the lashing band and the furled sail hung under the yard.</li><li>Odysseus is bound between two posts: a clip-brick at his ankles, a clip-plate at his chest, and a rope-bar across him in each pair of clips.</li><li>Eight rowers at the oars face aft; Eurylochus and Perimedes stand by the ropes; a lump of beeswax lies on the floor by the mast.</li><li>The ship stands afloat on its own 32 x 32 base of sea tiles with its nameplate; white round tiles mark the splash of the blades and the wake.</li><li>The Sirens&#x27; rock is sculpted: a grey crag, a meadow shelf with its studs kept for flowers, bones lying in the grass, and two Sirens with bird-wing arms.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><figure><img src="ship.jpg" alt="The ship and the bound man" loading="lazy"></figure><div><div class="meta">630 pieces</div><h3>The ship and the bound man</h3><p>The galley afloat on its own base of sea, framed and named; displays alone.</p></div></div>
+  <div class="sub-row"><figure><img src="rock.jpg" alt="The Sirens&#x27; rock" loading="lazy"></figure><div><div class="meta">790 pieces</div><h3>The Sirens&#x27; rock</h3><p>The crag, the meadow of flowers and bones, the two Sirens, on 16 x 32.</p></div></div>
+  <div class="sub-row"><figure><img src="galley.jpg" alt="The galley alone" loading="lazy"></figure><div><div class="meta">292 pieces</div><h3>The galley alone</h3><p>Lifted off the sea: every part of the hull and the mast checked to click without the sea to hold it.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The ship passing the Sirens&#x27; rock</td><td><a href="../../cards/set.sirens.mpd"><code>set.sirens</code></a></td><td class="n">1,420</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The ship and the bound man, on its own base of sea</td><td><a href="../../cards/set.sirens-ship.mpd"><code>set.sirens-ship</code></a></td><td class="n">630</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The Sirens&#x27; rock</td><td><a href="../../cards/set.sirens-rock.mpd"><code>set.sirens-rock</code></a></td><td class="n">790</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The galley alone, off its base</td><td><a href="../../cards/set.sirens-galley.mpd"><code>set.sirens-galley</code></a></td><td class="n">292</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B12-S03/sheet.jpg" alt="Keyframes of The Sirens&#x27; Song" loading="lazy"><figcaption>OD-B12-S03 · The Sirens&#x27; Song</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The donor galley (kit-galley.json) was not used: its unitary hull has only a few deck studs, so the brick hull was built instead so that the mast step and the posts click.</li><li>The rope-bars, the clips that hold them, the oars and the figures are placed by hand; the click checker does not see parts off the grid or at an angle.</li><li>The wax in the crew&#x27;s ears cannot be shown at minifigure scale; only the lump of beeswax on the floor tells it.</li><li>Two of the near-side oars cross each other from some angles.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/sirens.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B12-S03.mjs"><code>scenes/OD-B12-S03.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/location/sirens-island.mjs"><code>assets/location/sirens-island.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/prop/mast-ropes-and-beeswax.mjs"><code>assets/prop/mast-ropes-and-beeswax.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

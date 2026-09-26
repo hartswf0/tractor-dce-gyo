@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bag of Winds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Medium · Book X · 867 pieces</div>
+  <h1>The Bag of Winds</h1>
+  <p class="lede">Ten days out from Aeolia, with Ithaca so near the crew can see the watch-fires on its hill, Odysseus has fallen asleep at the steering oar, and his men, sure the ox-hide bag holds gold, loosen its silver cord: every wind in it bursts out at once.</p>
+  <blockquote>&quot;So they spoke, and the evil counsel of my comrades prevailed. They loosed the bag, and all the winds leapt forth.&quot; (Odyssey X, tr. A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A LEGO galley on a tiled blue sea with white wave crests; a crowd of minifigures around a bag erupting in white and clear swirls; behind, a green-topped tan headland with three flames on its summit."><figcaption>The black ship on the breaking sea, its bow to Ithaca, where three watch-fires burn on the hill.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The bag of winds: a fat ox-hide bag, its silver cord slipped, standing on a 4 x 4 turntable in the ship&#x27;s hold with gusts of white and trans-clear bursting from its gaping neck and whirling round it on a 6 x 6 disc; spin the turntable and the winds wheel round the bag.</p>
+  <div class="two"><figure><img src="close.jpg" alt="Close view of the ship: a seated minifigure with head bowed at the stern, four crewmen around an orange-brown bag with a silver band, white and clear flame elements rising from its neck." loading="lazy"><figcaption>In the stern Odysseus sleeps slumped by the steering oar while his men open the bag.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The ship is the line&#x27;s galley, resting as its own root on a sea of tiles laid in patches of blue and dark blue over a 32 x 32 baseplate.</li><li>White and trans-clear curved slopes on medium-blue plates make the crests of a sea already breaking under the loosed winds.</li><li>The bag is a 4 x 4 cone of dark orange for the hide, a pearl-silver 2 x 2 round plate for the cord, and four round bricks for the gaping neck.</li><li>A 4 x 4 turntable and a 6 x 6 round disc over the hold carry the bag and its gusts; the oars beside it are shipped so the disc turns clear.</li><li>Odysseus sits asleep on the stern deck, head fallen forward, by the steering oar; the man who loosed the cord still holds it, coiled.</li><li>Ithaca is a sculpted headland on its own 16 x 16 base, set ahead of the bow: tan and dark tan stone finished in cheese slopes and tiles, three watch-fires and olive trees on studs left for them.</li><li>Both bases are finished in the line&#x27;s white tile frame with a black and gold nameplate.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><figure><img src="ship.jpg" alt="The ship and the bag" loading="lazy"></figure><div><div class="meta">106 pieces</div><h3>The ship and the bag</h3><p>The galley with the plank over its hold, the bag on its turntable, six of the crew and Odysseus asleep.</p></div></div>
+  <div class="sub-row"><figure><img src="bag.jpg" alt="The bag bursting" loading="lazy"></figure><div><div class="meta">23 pieces</div><h3>The bag bursting</h3><p>The play feature on its own: the bag, its slipped silver cord and the winds, on a turntable that spins them round.</p></div></div>
+  <div class="sub-row"><figure><img src="ithaca.jpg" alt="Ithaca" loading="lazy"></figure><div><div class="meta">403 pieces</div><h3>Ithaca</h3><p>The home the men could see and never reached: a headland with three watch-fires, a beach and olive trees.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The Bag of Winds (the ship on its sea, and Ithaca)</td><td><a href="../../cards/set.bag-of-winds.mpd"><code>set.bag-of-winds</code></a></td><td class="n">867</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The ship, the crew and the bag</td><td><a href="../../cards/set.bag-of-winds-ship.mpd"><code>set.bag-of-winds-ship</code></a></td><td class="n">106</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The bag bursting, on its turntable</td><td><a href="../../cards/set.bag-of-winds-bag.mpd"><code>set.bag-of-winds-bag</code></a></td><td class="n">23</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Ithaca, with its watch-fires</td><td><a href="../../cards/set.bag-of-winds-ithaca.mpd"><code>set.bag-of-winds-ithaca</code></a></td><td class="n">403</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B10-S01/sheet.jpg" alt="Keyframes of Aeolus and the Bag of Winds" loading="lazy"><figcaption>OD-B10-S01 · Aeolus and the Bag of Winds</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The sail is the donor galley&#x27;s fixed sail; it does not yet show the wind turning and driving the ship back.</li><li>Odysseus&#x27;s sleep is shown by pose only (seated, head bowed); no closed-eye head print is used.</li><li>The gusts on the disc stand on round bricks; a version with clips that swing up as the bag opens is not built.</li><li>Figures and angled parts (the flames, the spiral, the oars) are placed by hand and are not checked by the click tool.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/bag-of-winds.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/prop/bag-of-winds.mjs"><code>assets/prop/bag-of-winds.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/location/aeolia-floating-island.mjs"><code>assets/location/aeolia-floating-island.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B10-S01.mjs"><code>scenes/OD-B10-S01.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B10-S02.mjs"><code>scenes/OD-B10-S02.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/_artifacts.mjs"><code>scenes/_artifacts.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

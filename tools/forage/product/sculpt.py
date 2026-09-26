@@ -149,7 +149,7 @@ class Form:
     def settle(self, colour, extra=lambda: [], rounds=60, protect=lambda v: False, can_grow=lambda v: True):
         """repair until every part clicks: a step that met the one below only at an edge grows a plate down into it; what nothing near
         holds is taken away (never a cell protect() keeps). Returns the loose parts left (none, when it has settled)."""
-        tmp = os.path.join(tempfile.gettempdir(), 'sculpt-settle.ldr')
+        fd, tmp = tempfile.mkstemp(suffix='.ldr', prefix='sculpt-settle-'); os.close(fd)   # its own file: builds run side by side
         loose, dead = [], set()                   # a cell once taken away is never grown back: the repair cannot cycle
         for _ in range(rounds):
             open(tmp, 'w').write('\n'.join(['0 FILE settle.ldr'] + self.parts(colour) + list(extra())) + '\n')
@@ -166,4 +166,5 @@ class Form:
                     elif not protect(v):
                         del self.vox[v]; dead.add(v); n += 1
             if not n: break
+        os.remove(tmp)
         return loose

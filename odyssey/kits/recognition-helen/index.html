@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helen Knows Him</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Vignette · Book IV · 223 pieces</div>
+  <h1>Helen Knows Him</h1>
+  <p class="lede">In Sparta, at her silver work-basket, Helen tells how she alone knew Odysseus when he came into Troy disguised as a beggar, and bathed him, and kept his secret.</p>
+  <blockquote>&quot;I alone recognized him in this guise, and questioned him; but he in his craftiness sought to avoid me.&quot; (Odyssey IV, tr. A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A LEGO vignette: a woman minifigure seated on a brown chair on a blue and red rug, a gold distaff in her hand, a silver basket on gold wheels heaped with purple beside her; an old bearded beggar with a staff by a silver basin and gold jug; behind, a tan wall with a red and blue band and a red column."><figcaption>Helen in her high chair at the silver basket on wheels, the beggar of her story before her.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The silver work-basket that runs on wheels, its rims finished in gold, heaped with violet wool, with the golden distaff in Helen&#x27;s hand: roll it to her chair.</p>
+  <div class="two"><figure><img src="close.jpg" alt="Close view of the silver round basket on a plate with gold wheels, purple pieces on it, between the beggar and Helen." loading="lazy"><figcaption>The work-basket of silver on its golden wheels, violet wool heaped in it; the golden distaff.</figcaption></figure><figure><img src="lineup.jpg" alt="Three small LEGO scenes on matching square bases with white frames and black nameplates, each with a back wall and minifigures." loading="lazy"><figcaption>The Recognitions in a row: Helen, the Scar, Argos (the Bed, the fourth, is built separately).</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>One of the four Recognitions (Helen, the Scar, Argos, the Bed), Vignettes on matching 16 x 16 baseplates built to one grammar so they stand in a row.</li><li>The work-basket rolls: a plate with wheel pins and four pearl-gold rims under a pearl-silver round brick, violet wool on it.</li><li>The wall of Menelaus&#x27;s hall has a dark red dado, a fresco band of single blue and red bricks and a red frieze; a red column with a black capital stands before it.</li><li>At the wall&#x27;s centre a niche to the bathing-rooms, its curtain of red and dark red, under a tan lintel.</li><li>Helen sits in a high chair on the rug of soft wool Alcippe brought, a footstool at her feet, the golden krater of her drugged wine beside her.</li><li>The line&#x27;s display finish on each base: a ring of white tiles, a black nameplate with a gold stud at each end, one blue tile.</li><li>A back wall two studs deep across the base, six courses high in a running bond, with its one feature at the centre.</li><li>A floor of tiles; plates only where a figure, a chair leg or a vessel stands, so no field of bare studs is left.</li></ul>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>Helen Knows Him</td><td><a href="../../cards/set.recognition-helen.mpd"><code>set.recognition-helen</code></a></td><td class="n">223</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B04-S04/sheet.jpg" alt="Keyframes of The Wooden Horse" loading="lazy"><figcaption>OD-B04-S04 · The Wooden Horse</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The beggar is shown in Sparta beside Helen as the subject of her story; the bathing in Troy is told only by the pitcher and basin.</li><li>The distaff is a gold antenna with a purple cone for the wool, held upright by the hand, not clipped.</li><li>The niche is mostly hidden behind the figures from the front view.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/recognition-helen.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B04-S03.mjs"><code>scenes/OD-B04-S03.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/location/menelauss-palace.mjs"><code>assets/location/menelauss-palace.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/_direction.mjs"><code>scenes/_direction.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scylla and Charybdis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Flagship · Book XII · 2,983 pieces</div>
+  <h1>Scylla and Charybdis</h1>
+  <p class="lede">The black ship rows the narrow strait: from her den high in the sheer cliff Scylla&#x27;s six necks come down and snatch six men off the deck, while across the water, low under the great fig tree, Charybdis sucks the sea down.</p>
+  <blockquote>&quot;We looked toward Charybdis, fearing destruction; and meanwhile Scylla seized from out the hollow ship six of my comrades.&quot; (Odyssey XII, after A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A tall grey brick cliff on the left with a dark den high up; six long green necks with dog-like heads reach down toward a black ship full of minifigures; on the right a whirlpool of white and blue tiles and a fig tree."><figcaption>The strait: Scylla on the left, Charybdis on the right, the ship between.</figcaption></figure>
+  <h2>The object</h2>
+  <p>Scylla: six necks of round bricks, each on its own friction pin in a comb of Technic bricks along the den&#x27;s lip, swing down out of the dark to take a man and up again, and hold where they are left; Charybdis is a disc of foam on a real turntable that turns.</p>
+  <div class="two"><figure><img src="strike.jpg" alt="Close view of two green heads with open red-lined jaws and white fangs coming down over the crew of the ship." loading="lazy"><figcaption>Two heads come down on the deck; Odysseus stands armed on the foredeck.</figcaption></figure><figure><img src="den.jpg" alt="Close view of the dark den in the cliff face with green necks coming out of it, men held crosswise in the jaws." loading="lazy"><figcaption>The den: four heads carry men up across their jaws.</figcaption></figure><figure><img src="open.jpg" alt="The cliff seen from behind with its top removed, showing a row of grey Technic bricks and pins holding the necks." loading="lazy"><figcaption>The crown lifted away: the comb of Technic bricks and the six pivots.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The cliff is sculpted in brick cells from smooth solids: it leans out over the lane and rises 29 courses (some 13 m at minifig scale), hollowed to a skin on pillars, every top finished in tiles and cheese slopes, the den a black hollow high on the face.</li><li>Each neck is a stack of 2 x 2 round bricks on a Technic axle from a cross block; the block turns on a long friction pin through a 1 x 2 Technic brick on the den&#x27;s lip, so the six necks swing one by one and stay where they are put.</li><li>The heads are brick-built: a dark red lower jaw with two fangs, a skull of bricks with side studs for yellow eyes, an upper jaw, a curved snout and cheese-slope ears; a seized man lies across the jaws.</li><li>Charybdis is an 8 x 8 round plate on a 4 x 4 turntable: spiral arms of round tiles and an inverted dish for the throat turn with it, while the arms of the swirl run on out into the sea of tiles and spray stands round the rim.</li><li>The fig tree grows from a low rock on the whirlpool&#x27;s edge, a trunk of round bricks jogging outward, its branch ending over the throat.</li><li>The ship is the line&#x27;s black hull afloat on the tiles, her deck planked in reddish brown; three men row in the well, the helmsman at the stern, Odysseus armed on the foredeck.</li><li>The crown of the cliff behind the den lifts off to show the comb and the pivots.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><figure><img src="scylla.jpg" alt="Scylla" loading="lazy"></figure><div><div class="meta">345 pieces</div><h3>Scylla</h3><p>The six necks stand up on a ledge of rock in the comb of Technic bricks, each on its friction pin: the whole mechanism of the model.</p></div></div>
+  <div class="sub-row"><figure><img src="whirlpool.jpg" alt="Charybdis and the fig tree" loading="lazy"></figure><div><div class="meta">307 pieces</div><h3>Charybdis and the fig tree</h3><p>The turntable and its disc of foam, the spray round it, the fig on its rock with its branch over the throat.</p></div></div>
+  <div class="sub-row"><figure><img src="ship.jpg" alt="The black ship" loading="lazy"></figure><div><div class="meta">238 pieces</div><h3>The black ship</h3><p>The hull, oars and planked deck with the rowers, the helmsman, Odysseus and the two men about to be taken.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The strait (the whole kit)</td><td><a href="../../cards/set.scylla-charybdis.mpd"><code>set.scylla-charybdis</code></a></td><td class="n">2,983</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The crown of the cliff lifted away: the den and the six pivots</td><td><a href="../../cards/set.scylla-charybdis-open.mpd"><code>set.scylla-charybdis-open</code></a></td><td class="n">2,433</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Scylla: the six necks on their pins, standing up</td><td><a href="../../cards/set.scylla-charybdis-scylla.mpd"><code>set.scylla-charybdis-scylla</code></a></td><td class="n">345</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Charybdis on her turntable, and the fig tree</td><td><a href="../../cards/set.scylla-charybdis-whirlpool.mpd"><code>set.scylla-charybdis-whirlpool</code></a></td><td class="n">307</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The black ship and her crew</td><td><a href="../../cards/set.scylla-charybdis-ship.mpd"><code>set.scylla-charybdis-ship</code></a></td><td class="n">238</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B12-S04/sheet.jpg" alt="Keyframes of Between Scylla and Charybdis" loading="lazy"><figcaption>OD-B12-S04 · Between Scylla and Charybdis</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The necks are straight stacks: they read as rigid tubes, not serpents; a second joint (a click hinge) at each head would let them curve.</li><li>The six neck joints, the heads and the men in the jaws are at angles, so kitlib.check() does not see them; they were checked upright in set.scylla-charybdis-scylla and against the rock and hull by sampling points (0 points inside parts), not by the tool.</li><li>A man lies loose across each pair of jaws (a 24 LDU gap for a 20 LDU torso); nothing clips him in.</li><li>The whirlpool is flat: its throat is an inverted dish on the disc, not a funnel below the sea, and it is small beside the cliff.</li><li>The fig tree is thin for &quot;a great fig tree in full leaf&quot;; the sea is a patchwork of 2 x 2 tiles that could use larger tiles and more movement.</li><li>The cliff is closed at the back; a real Ideas model might open it to save parts (the budget did not require it).</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/scylla-charybdis.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/scenes/OD-B12-S04.mjs"><code>/home/user/odyssey-halfworld/scenes/OD-B12-S04.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/location/narrow-monster-strait.mjs"><code>/home/user/odyssey-halfworld/assets/location/narrow-monster-strait.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/creature/scylla.mjs"><code>/home/user/odyssey-halfworld/assets/creature/scylla.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/environment/charybdis.mjs"><code>/home/user/odyssey-halfworld/assets/environment/charybdis.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main//home/user/odyssey-halfworld/assets/set_piece/fig-tree-above-charybdis.mjs"><code>/home/user/odyssey-halfworld/assets/set_piece/fig-tree-above-charybdis.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

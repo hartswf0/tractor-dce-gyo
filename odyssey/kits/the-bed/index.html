@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Large · Book XXIII · 2,232 pieces</div>
+  <h1>The Bed</h1>
+  <p class="lede">Penelope has ordered the bed carried out; Odysseus, stung, tells how he built it round a living olive, and she runs to him: the two embrace beside the bed while old Eurycleia stands in the doorway with the lamp.</p>
+  <blockquote>There was a young olive growing within the precincts of the house, in full vigour, and about as thick as a bearing-post. I built my room round this with strong walls of stone and a roof to cover them. (Odyssey XXIII, tr. Samuel Butler)</blockquote>
+  <figure><img src="inside.jpg" alt="Close view of reddish-brown sculpted roots in a dark cut beneath the chamber floor, the trunk rising above them."><figcaption>The section: the trunk goes down through the paving into the roots, the one part of the bed no one has seen.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The olive: its trunk is the bed&#x27;s near-left post and runs down through the cut-open paving into a mass of roots in the base. The bed&#x27;s rails and straps are laid through courses of the living trunk, so the bed will not lift out of the room: it is clutched to the ground through the floor. The crown rises between the ceiling beams in leaf. The front wall lifts away.</p>
+  <div class="two"><figure><img src="hero.jpg" alt="A square LEGO chamber of tan stone on a dark earth block, an olive tree crown rising over its ceiling beams and roots visible in a cut-away below." loading="lazy"><figcaption>The thalamos closed: ashlar walls laced with timber, the olive in leaf over the beams, the earth cut open beneath.</figcaption></figure><figure><img src="open.jpg" alt="The chamber with its front wall removed, two minifigures embracing beside a bed whose corner post is a tree trunk." loading="lazy"><figcaption>The front wall lifted away: the embrace, the bed on its living post, Eurycleia in the doorway with the lamp.</figcaption></figure><figure><img src="inside-2.jpg" alt="Two minifigures with arms about each other beside a bed with a red and purple coverlet and an inlaid headboard." loading="lazy"><figcaption>She ran straight to him: the embrace by the bed, its headboard inlaid with gold, silver and ivory.</figcaption></figure><figure><img src="bed.jpg" alt="The olive tree with the bed joined to its trunk on a slab of paving." loading="lazy"><figcaption>The bed on its living post, built on its own.</figcaption></figure><figure><img src="roots.jpg" alt="A sculpted mass of brown roots." loading="lazy"><figcaption>The roots, lifted out with the foot of the trunk.</figcaption></figure><figure><img src="embrace.jpg" alt="Odysseus and Penelope embracing on a small paved slab beside a lamp stand." loading="lazy"><figcaption>The embrace, with the lamp.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The olive, its roots and the earth are sculpted as one form in plate cells (tools/forage/product/sculpt.py): bark in reddish brown, dark brown and a little olive, roots reddish brown against dark earth, the crown in sand green and dark green with sprays of leaves.</li><li>The play feature is structural: the bed&#x27;s side and end rails and two of its ox-hide straps pass through courses of the trunk, which is built up from the roots on the baseplate, so lifting the bed lifts nothing.</li><li>The earth block is cut open at the front and left side down to the base, with the dark of the cut behind the roots; the paving is cut open round the flare of the trunk.</li><li>Close-set ashlar in tan and dark tan with embossed masonry bricks, one course of timber laced through the walls, the back corners bonded; the front wall is a separate running-bond panel that lifts off.</li><li>The bed: squared posts, a headboard with a course of gold, silver and white inlay, ox-hide straps with gaps between, fleeces and pillows at the head, a red and purple coverlet.</li><li>The paving is 2 x 4 and 2 x 2 tiles in tan and dark tan; studs are left only where someone or something stands.</li><li>Every card checks clean: every part clicked, no two parts in the same space.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">549 pieces</div><h3>The bed on its living post</h3><p>The trunk with its crown and the bed pegged into it, standing on a slab of paving and made ground.</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">198 pieces</div><h3>The roots</h3><p>The root mass and the foot of the trunk, the sculpted part that lives under the floor.</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">47 pieces</div><h3>The embrace</h3><p>Odysseus and Penelope embracing on a slab of paving, with the lit lamp on its stand.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The Bed (closed)</td><td><a href="../../cards/set.the-bed.mpd"><code>set.the-bed</code></a></td><td class="n">2,232</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The Bed, the front wall lifted away</td><td><a href="../../cards/set.the-bed-open.mpd"><code>set.the-bed-open</code></a></td><td class="n">2,171</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The bed on its living post</td><td><a href="../../cards/set.the-bed-bed.mpd"><code>set.the-bed-bed</code></a></td><td class="n">549</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The roots</td><td><a href="../../cards/set.the-bed-roots.mpd"><code>set.the-bed-roots</code></a></td><td class="n">198</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The embrace</td><td><a href="../../cards/set.the-bed-embrace.mpd"><code>set.the-bed-embrace</code></a></td><td class="n">47</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B23-S04/sheet.jpg" alt="Keyframes of The Olive Bed" loading="lazy"><figcaption>OD-B23-S04 · The Olive Bed</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The crown is a voxel mass with leaf sprays; it reads as a tree from above but not yet as the long-leaved olive of the poem.</li><li>The roots read as a tangle of stepped bricks rather than as tapering roots; a finer cut (plates rather than brick-merged cells) would help.</li><li>Figures, the torch and the angled parts are placed by hand and are not checked by the tool; the embrace arms are re-posed about the shoulder pins.</li><li>Homer sets the recognition itself in the hall (the chamber is the next scene); the kit brings it into the chamber, beside the bed it turns on.</li><li>The closed front wall is plain; it hides the moment, which is only seen from above or with the wall lifted.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/the-bed.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/OD-B23-S04.mjs"><code>odyssey-halfworld/scenes/OD-B23-S04.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/_authored/bed.mjs"><code>odyssey-halfworld/scenes/_authored/bed.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/_direction.mjs"><code>odyssey-halfworld/scenes/_direction.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/prop/olive-tree-marriage-bed.mjs"><code>odyssey-halfworld/assets/prop/olive-tree-marriage-bed.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/location/marriage-chamber.mjs"><code>odyssey-halfworld/assets/location/marriage-chamber.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

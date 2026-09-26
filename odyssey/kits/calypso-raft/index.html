@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calypso&#x27;s Isle and the Raft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Large · Book V · 1,642 pieces</div>
+  <h1>Calypso&#x27;s Isle and the Raft</h1>
+  <p class="lede">On Ogygia, with the gods&#x27; decree just brought by Hermes, Odysseus builds his raft on the shore with the tools Calypso gave him while she watches from the mouth of her cave.</p>
+  <blockquote>&quot;Twenty trees in all did he fell, and trimmed them with the axe; then he cunningly smoothed them all and made them straight to the line.&quot; (Odyssey V, tr. A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A green hill of bricks with a cave mouth hung with vines, Calypso at its mouth, Hermes in a grove of cypress and poplar crossed by clear streams, a beach with slipway runners and a board of tools, and a raft with a square sail on a sea of blue and clear tiles."><figcaption>The island, 48 x 32 studs: the green hill and its cave, the grove and the springs, the beach and the ways, the raft afloat.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The raft: log bricks laid on a keel of plates and lashed with cross-beams, decked with planks, railed, a mast of round bricks with a yard and a square sail, and a steering oar. It comes off its slipway and floats on the tile sea; the second card shows it half built on the ways.</p>
+  <div class="two"><figure><img src="afloat.jpg" alt="Close view of the brown log raft on the tile sea, with a white and tan striped sail, a railing, jars and grey stones, Odysseus on the beach in the foreground." loading="lazy"><figcaption>Afloat: the raft off its ways, the jars of wine and water on the mast beam, ballast stones at the bow, the steering oar trailing.</figcaption></figure><figure><img src="open.jpg" alt="The cave from above with its roof removed: a standing loom with red, grey-blue and gold bands, a ring of grey stones round orange flames, a column of clear round bricks, Calypso at the mouth." loading="lazy"><figcaption>The roof lifted away: the loom at the back of the cave, the hearth, the smoke of cedar rising to the vent.</figcaption></figure><figure><img src="building.jpg" alt="The raft as a flat bed of brown log bricks on two runners, a gap where two logs are missing, logs piled behind, Odysseus beside it." loading="lazy"><figcaption>The second card: the raft half built on the slipway, two logs still to lay, Odysseus at work with the axe.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The raft is really built: eight rows of log bricks on six 2 x 8 plates, lashed by end beams, a deck of planks, a wicker rail, an eleven-brick mast, a yard with the sail hanging from it, and a steering oar in a clip.</li><li>Afloat it rests on smooth tiles, as a boat on water, and lifts off; on the ways it clicks down onto two runners of log bricks.</li><li>The hill is sculpted: brick courses bonded crosswise, patchy greens over tan stone, every top the sky sees finished in tiles or cheese slopes, turf patches keeping their studs for plants.</li><li>The cave roof lifts away to show the loom (posts, beam, a web in three colours, clay weights) and the hearth, whose cedar smoke rises as a column of clear round bricks through a vent in the roof.</li><li>Four springs run in trans-clear and trans-light-blue tiles, turned one this way, one that, through a grove of cypress, poplar and alder.</li><li>The beach carries chips from the adze, shells and pebbles; foam of white round tiles lines the waterline.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><figure><img src="raft.jpg" alt="The raft" loading="lazy"></figure><div><div class="meta">84 pieces</div><h3>The raft</h3><p>The raft alone, complete: stands on its keel plates.</p></div></div>
+  <div class="sub-row"><figure><img src="hearth-loom.jpg" alt="Calypso&#x27;s hearth and loom" loading="lazy"></figure><div><div class="meta">39 pieces</div><h3>Calypso&#x27;s hearth and loom</h3><p>The loom and the hearth on an 8 x 8 plate, with Calypso.</p></div></div>
+  <div class="sub-row"><figure><img src="tools-slipway.jpg" alt="The tools and the slipway" loading="lazy"></figure><div><div class="meta">56 pieces</div><h3>The tools and the slipway</h3><p>The runners, the raft half built on them, the board of tools, Odysseus with the axe.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The island with the raft afloat</td><td><a href="../../cards/set.calypso-raft.mpd"><code>set.calypso-raft</code></a></td><td class="n">1,642</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The raft half built on the slipway</td><td><a href="../../cards/set.calypso-raft-building.mpd"><code>set.calypso-raft-building</code></a></td><td class="n">1,589</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The roof of the cave lifted away</td><td><a href="../../cards/set.calypso-raft-open.mpd"><code>set.calypso-raft-open</code></a></td><td class="n">1,331</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The raft</td><td><a href="../../cards/set.calypso-raft-raft.mpd"><code>set.calypso-raft-raft</code></a></td><td class="n">84</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Calypso&#x27;s hearth and loom</td><td><a href="../../cards/set.calypso-raft-hearth-loom.mpd"><code>set.calypso-raft-hearth-loom</code></a></td><td class="n">39</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The tools and the slipway</td><td><a href="../../cards/set.calypso-raft-tools-slipway.mpd"><code>set.calypso-raft-tools-slipway</code></a></td><td class="n">56</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B05-S04/sheet.jpg" alt="Keyframes of Calypso&#x27;s Raft" loading="lazy"><figcaption>OD-B05-S04 · Calypso&#x27;s Raft</figcaption></figure><figure><img src="../../keyframes/OD-B05-S05/sheet.jpg" alt="Keyframes of Poseidon&#x27;s Storm" loading="lazy"><figcaption>OD-B05-S05 · Poseidon&#x27;s Storm</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The square sail is a flat wall of 1 x 6 bricks; a cloth sail on a yard would read softer.</li><li>The vines over the mouth are curled vines (1997) hung from clip plates; they read as hooks from some angles.</li><li>Figures, the tools laid on the board, the vines and the steering oar are placed by hand and not verified by the click checker.</li><li>The cave interior is only seen well with the roof lifted.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/calypso-raft.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/vehicle/odysseuss-raft.mjs"><code>assets/vehicle/odysseuss-raft.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/location/ogygia-cavern-and-grove.mjs"><code>assets/location/ogygia-cavern-and-grove.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/assets/prop/shipbuilding-tool-set.mjs"><code>assets/prop/shipbuilding-tool-set.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B05-S01.mjs"><code>scenes/OD-B05-S01.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B05-S04.mjs"><code>scenes/OD-B05-S04.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/scenes/OD-B05-S05.mjs"><code>scenes/OD-B05-S05.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>
