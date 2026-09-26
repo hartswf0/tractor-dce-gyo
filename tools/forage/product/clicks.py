@@ -81,11 +81,28 @@ def parts_loose(path):
     return loose(parts(path))
 
 
+def overlaps(P):
+    """pairs of parts on the grid that fill the same space: a stud square they share, their heights crossing (not merely touching)"""
+    cells = defaultdict(list)
+    for n, p in enumerate(P):
+        for c in p['fp']: cells[(p['half'], c)].append(n)
+    out = set()
+    for ns in cells.values():
+        for a in range(len(ns)):
+            for b in range(a + 1, len(ns)):
+                p, q = P[ns[a]], P[ns[b]]
+                if p['top'] < q['bot'] and q['top'] < p['bot']: out.add((min(ns[a], ns[b]), max(ns[a], ns[b])))
+    return [(P[a], P[b]) for a, b in sorted(out)]
+
+
 def check(path):
     P = parts(path); L = loose(P)
     print(f'{path}: {len(P)} parts on the grid, {len(L)} not clicked to the build')
     for p in L[:40]: print('  ', p['line'])
-    return L
+    O = overlaps(P)
+    if O: print(f'{path}: {len(O)} pairs of parts in the same space')
+    for a, b in O[:20]: print('  ', a['line'], ' <> ', b['line'])
+    return L + [a for a, _ in O]
 
 
 if __name__ == '__main__':
