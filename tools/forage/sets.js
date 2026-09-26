@@ -393,6 +393,44 @@ function troy() {
   for (const [x, z] of [[-6, 6], [6, 6], [6, -8]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -8 }, { id: '3062b', col: C.tOrange, x, z, base: -104 }, { id: '4589', col: C.orange, x, z, base: -128 });
   return REAL('troy by night', list);
 }
+/* Troy at the scale of its horse (Homer IV, VIII): the Wooden Horse stands nine minifigures tall, so the city it was dragged into is
+   built to match: a wall of dressed stone two studs thick and twenty-four courses high with its battlements, the Scaean gate under a
+   stone arch between two square towers, houses of the city along both sides with red roofs and lit windows, and the square before the
+   gate paved and lit by torches, room for the horse on its cart and the crowd round it. Authored with the gate at the back (-z). */
+function troyGreat() {
+  const list = [], W = 37.5, ZW = -30.5, H = 24;
+  const towers = [[-12.5, -6.5], [6.5, 12.5]];
+  const skip = towers.map(([a, b]) => [a, b, 0, 99]);
+  /* the wall, two skins in running bond, the gate left open ten studs wide under its arch; battlements on the outer skin */
+  for (const z of [ZW, ZW + 1]) list.push(...coursing(C.tan, -W, W, z, H, { holes: [...skip, [-4.5, 4.5, 0, 8], [-5.5, 5.5, 9, 11]], band: C.dtan }));
+  list.push({ id: '6108', col: C.dtan, x: 0, z: ZW, base: -8 - 24 * 9 }, { id: '6108', col: C.dtan, x: 0, z: ZW + 1, base: -8 - 24 * 9 });
+  for (let x = -W; x <= W; x += 2) if (!towers.some(([a, b]) => x >= a - 0.5 && x <= b + 0.5)) list.push({ id: '3005', col: C.tan, x, z: ZW, base: -8 - 24 * H });
+  /* the towers: hollow squares of stone six studs across, thirty courses, crenellated */
+  for (const [a, b] of towers) {
+    const z0 = ZW - 3, z1 = ZW + 3.0;
+    list.push(...coursing(C.tan, a, b, z0, 30, { band: C.dtan }), ...coursing(C.tan, a, b, z1, 30, { band: C.dtan }));
+    list.push(...coursing(C.tan, z0 + 1, z1 - 1, a, 30, { alongZ: true, band: C.dtan }), ...coursing(C.tan, z0 + 1, z1 - 1, b, 30, { alongZ: true, band: C.dtan }));
+    for (let x = a; x <= b; x += 2) for (const z of [z0, z1]) list.push({ id: '3005', col: C.tan, x, z, base: -8 - 24 * 30 });
+    for (let z = z0 + 2; z <= z1 - 2; z += 2) for (const x of [a, b]) list.push({ id: '3005', col: C.tan, x, z, base: -8 - 24 * 30 });
+    for (let k = 0; k < 3; k++) list.push({ id: '3070b', col: C.tYellow, x: (a + b) / 2, z: z1 + 0.5, base: -8 - 24 * (14 + 5 * k) - 8 });
+  }
+  /* houses: hollow boxes of stone with a lit window, roofed in dark red slopes */
+  for (const [x0, z0, h] of [[-35, -24, 7], [-35, -14, 6], [-35, -4, 8], [-35, 8, 6], [29, -24, 6], [29, -14, 8], [29, -4, 6], [29, 8, 7]]) {
+    const x1 = x0 + 6, z1 = z0 + 7;
+    const win = x0 < 0 ? x1 : x0;
+    list.push(...coursing(C.tan, x0 + 0.5, x1 - 0.5, z0 + 0.5, h), ...coursing(C.tan, x0 + 0.5, x1 - 0.5, z1 - 0.5, h));
+    list.push(...coursing(C.tan, z0 + 1.5, z1 - 1.5, x0 + 0.5, h, { alongZ: true }).filter(p => x0 < 0 || !(Math.abs(p.z - (z0 + 3.5)) < 1.1 && p.base <= -8 - 48 && p.base >= -8 - 72)));
+    list.push(...coursing(C.tan, z0 + 1.5, z1 - 1.5, x1 - 0.5, h, { alongZ: true }).filter(p => x0 > 0 || !(Math.abs(p.z - (z0 + 3.5)) < 1.1 && p.base <= -8 - 48 && p.base >= -8 - 72)));
+    for (const k of [2, 3]) list.push({ id: '3005', col: C.tYellow, x: win - (x0 < 0 ? 0.5 : -0.5), z: z0 + 3.5, base: -8 - 24 * k });
+    for (let z = z0 + 1; z < z1; z += 2) list.push({ id: '3039', col: C.dred, x: x0 + 1, z: z + 0.5, base: -8 - 24 * h, q: 1 }, { id: '3039', col: C.dred, x: x1 - 1, z: z + 0.5, base: -8 - 24 * h, q: 3 },
+      { id: '3040b', col: C.dred, x: x0 + 2.5, z: z + 0.5, base: -8 - 24 * (h + 1), q: 1 }, { id: '3040b', col: C.dred, x: x1 - 2.5, z: z + 0.5, base: -8 - 24 * (h + 1), q: 3 });
+  }
+  /* the square: flagstones under the horse and the crowd, torches on posts round it */
+  for (let x = -21; x <= 21; x += 2) for (let z = -25; z <= 27; z += 2) list.push({ id: '3068b', col: (x * 3 + z * 7 + 400) % 5 ? C.lbg : C.dtan, x, z, base: -8 });
+  for (const [x, z] of [[-18, -20], [18, -20], [-18, 2], [18, 2], [-18, 22], [18, 22]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -16 },
+    { id: '3957a', col: C.rbrown, x, z, base: -16 - 96 }, { id: '3062b', col: C.tOrange, x, z, base: -16 - 192 }, { id: '4589', col: C.orange, x, z, base: -16 - 216 });
+  return REAL('the great troy', list);
+}
 /* the island of Pharos (Homer IV): a beach under a sea cave, the seals hauled out on the sand; the cave of rock panels */
 function sealBeach() {
   const list = [];
@@ -477,6 +515,7 @@ const SETS = {
   hut: () => room("eumaeus's farm", 34, 34, floor(34, 34, C.dtan), [[swineherd(), 0, 0]],
     { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
   troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
+  troyGreat: () => room('troy, the square inside the scaean gate', 76, 64, floor(76, 64, C.dtan), [[troyGreat(), 0, 0]], { horse: M(0, 2, 0, 'the horse in the square'), helen: M(-10, 8, 1, 'Helen'), gate: M(0, -28, 0, 'the gate'), centre: M(0, 6, 0) }),
   phorcys: () => room('the harbour of phorcys on ithaca', 32, 48, shoreFloor(), [[phorcys(), 0, 0], [KIT.galley(), 2, -9], [KIT.rocks(C.dtan), 13, 10], [KIT.swell(5, 0), -10, -20], [KIT.swell(5, 2), 11, -21]],
     { olive: M(-6, -6, 0, 'the olive at the head of the harbour'), cave: M(9, -14, 0, 'the cave of the nymphs'), ship: M(2, 10, 0, 'the ship run up on the sand'), centre: M(0, 0, 0) }),
   pharos: () => room('the seal beach on pharos', 32, 48, shoreFloor(C.dtan), [[sealBeach(), 0, 0], [KIT.swell(5, 1), -8, -16], [KIT.swell(6, 3), 8, -19]],

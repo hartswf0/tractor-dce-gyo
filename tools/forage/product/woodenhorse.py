@@ -3,208 +3,239 @@
 
   python3 tools/forage/product/woodenhorse.py      -> odyssey/cards/set.wooden-horse.mpd and set.wooden-horse-open.mpd
 
-A master builder's sculpture, not a prop: the horse is described as smooth solids (a barrel of a body, an arched neck, a long head, four
-legs, a tail) and filled with real bricks on the stud grid, one brick course at a time, each course laid across the one below (running
-bond, which reads as the planks of a wooden horse), coloured as timber (reddish brown with dark-brown boards). Where a course ends under
-open air a 1 x 1 cheese slope softens the step. The body is a hollow hull with a deck inside: the Greeks stand in it, and a hatch in the
-right flank lifts off whole, the way a display model opens to show its interior (the -open build). The horse stands on a wheeled timber cart, the cart on a display base paved in tan
-and dark tan with a black frame, and the minifigures of the story stand in a row along the front of the base.
+A sculpture, not a stack of boxes. The horse is described as smooth solids blended into one another (barrel, chest, rump, a neck raked
+forward, a long head tapering to the muzzle, slender legs with a bend at the hock, a falling tail) and cut into cells a stud square and a
+plate high, three times finer upward than a brick, so its contours run like the grain of carved wood. Where a cell has its two neighbours
+above it, the three become part of a brick; the rest are plates. Every face that looks up is finished in tiles, so the skin shows no studs;
+the only studs left are the deck where the Greeks stand. Nothing is added for its own sake: the mane and tail and hooves are dark timber,
+the eyes are two black plates set into the head.
+
+It is a model someone can build and play with. Every part stands on the studs of the parts below it or hangs from those above
+(tools/forage/product/clicks.py checks it, and the build props with timber posts any roof brick left over open air). The right flank lifts
+off whole to show the hold, with its deck and five Greeks (the -open build). The horse stands on a timber cart that rolls on four wheels
+on pinned plates, on a paved display base with a nameplate, and the figures of the story stand in a row along its front.
 """
-import math, os, random, re, sys
+import math, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CARDS = os.path.join(ROOT, 'odyssey/cards')
-S, B, P = 20, 24, 8              # a stud, a brick course, a plate (LDU)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import clicks
+
+S, P, B = 20, 8, 24                     # a stud, a plate, a brick (LDU)
 RB, DB, DT, TAN, BLK, DBG = 70, 308, 28, 19, 0, 72
 
-# ── the shape: up is +y here (LDraw's y is negated when written); the horse faces +z ──
-BASE_UP = 32                      # display base: a brick of black frame and a plate of paving
-CART_UP = BASE_UP + 16 + 24 + 8   # the cart: wheels 40 high, their hubs at 20 over the base; deck of a brick and a plate
-Y0 = CART_UP                      # the first brick course of the horse sits on the deck
+BASE_UP = 32                            # the display base: a course of bricks and a plate of paving tiles
+WHEEL_UP = BASE_UP + 24                 # top of the cart's lowest plates; a tyre (radius 18) on a wheel pin 6 below it runs on the paving
+CART_UP = WHEEL_UP + B                  # a course of bricks across them
+Y0 = CART_UP + P                        # a deck of plates; the horse's hooves stand on it
+
+BRICKS = [((2, 4), '3001'), ((2, 3), '3002'), ((2, 2), '3003'), ((1, 8), '3008'), ((1, 6), '3009'), ((1, 4), '3010'), ((1, 3), '3622'),
+          ((1, 2), '3004'), ((1, 1), '3005')]
+PLATES = [((2, 8), '3034'), ((2, 6), '3795'), ((2, 4), '3020'), ((2, 3), '3021'), ((2, 2), '3022'), ((1, 8), '3460'), ((1, 6), '3666'),
+          ((1, 4), '3710'), ((1, 3), '3623'), ((1, 2), '3023'), ((1, 1), '3024')]
+TILES = [((2, 4), '87079'), ((2, 2), '3068b'), ((1, 4), '2431'), ((1, 3), '63864'), ((1, 2), '3069b'), ((1, 1), '3070b')]
 
 
-def capsule(p, a, b, r):
+# ── the shape: up is +y from the horse's ground (the cart deck); the horse faces +z ──
+def seg(p, a, b):
     ax, ay, az = a; bx, by, bz = b; px, py, pz = p
     dx, dy, dz = bx - ax, by - ay, bz - az
     L2 = dx * dx + dy * dy + dz * dz
     t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy + (pz - az) * dz) / L2)) if L2 else 0
-    cx, cy, cz = ax + t * dx, ay + t * dy, az + t * dz
-    return math.dist(p, (cx, cy, cz)) - r
+    return math.dist(p, (ax + t * dx, ay + t * dy, az + t * dz)), t
 
 
-def ellipsoid(p, c, r):
-    return (math.sqrt(sum(((p[i] - c[i]) / r[i]) ** 2 for i in range(3))) - 1) * min(r)
+def cone(p, a, b, ra, rb):                # a capsule whose radius runs from ra to rb
+    d, t = seg(p, a, b)
+    return d - (ra + (rb - ra) * t)
 
 
-BODY = ((0, Y0 + 330, 0), (110, 125, 250))
-def parts_at(p):
-    """distance to each named solid (negative inside)"""
-    x, y, z = p
+def ell(p, c, r):
+    q = [(p[i] - c[i]) / r[i] for i in range(3)]
+    return (math.sqrt(sum(v * v for v in q)) - 1) * min(r)
+
+
+def smin(a, b, k=28):                     # a smooth union: two solids flow into each other instead of meeting at a crease
+    h = max(0, min(1, 0.5 + 0.5 * (b - a) / k))
+    return b + (a - b) * h - k * h * (1 - h)
+
+
+BARREL = ((0, 420, -10), (96, 128, 210))
+EYES = [(s * 38, 712, 360) for s in (-1, 1)]
+NECK = ((0, 470, 170), (0, 700, 300), 82, 46)
+
+
+def anatomy(p):
     d = {}
-    d['body'] = ellipsoid(p, *BODY)
-    d['chest'] = ellipsoid(p, (0, Y0 + 350, 170), (95, 110, 110))
-    d['neck'] = capsule(p, (0, Y0 + 380, 200), (0, Y0 + 590, 300), 72 - 0.12 * max(0, y - Y0 - 380))
-    d['head'] = min(capsule(p, (0, Y0 + 620, 300), (0, Y0 + 540, 430), 50), ellipsoid(p, (0, Y0 + 600, 320), (48, 58, 70)))
-    d['ears'] = min(capsule(p, (s * 26, Y0 + 650, 300), (s * 30, Y0 + 710, 290), 13) for s in (-1, 1))
-    d['legs'] = min(capsule(p, (sx * 58, Y0 + 280, sz), (sx * 58 + sx * 4, Y0 + 20, sz + (12 if sz > 0 else -8)), 34 if y > Y0 + 140 else 30)
-                    for sx in (-1, 1) for sz in (170, -160))
-    d['hooves'] = min(capsule(p, (sx * 60, Y0 + 12, sz), (sx * 60, Y0 + 12, sz), 36) for sx in (-1, 1) for sz in (182, -168))
-    d['tail'] = capsule(p, (0, Y0 + 400, -235), (0, Y0 + 170, -290), 24)
+    d['body'] = smin(smin(ell(p, *BARREL), ell(p, (0, 420, 150), (90, 128, 95)), 40), ell(p, (0, 445, -165), (92, 120, 100)), 40)
+    d['body'] = smin(d['body'], ell(p, (0, 540, 110), (50, 45, 80)), 30)                        # the withers
+    d['neck'] = cone(p, *NECK)
+    d['mane'] = cone(p, (0, 560, 80), (0, 786, 256), 29, 23)                                   # a raised crest of dark timber
+    d['head'] = smin(smin(cone(p, (0, 730, 318), (0, 596, 440), 44, 30), ell(p, (0, 700, 340), (44, 52, 58)), 24),
+                     ell(p, (0, 600, 436), (30, 36, 42)), 20)
+    d['ears'] = min(cone(p, (s * 22, 750, 318), (s * 24, 822, 330), 15, 12) for s in (-1, 1))
+    legs = []
+    for s in (-1, 1):
+        legs += [cone(p, (s * 52, 330, 158), (s * 52, 200, 164), 32, 22), cone(p, (s * 52, 200, 164), (s * 52, 40, 170), 20, 19)]
+        legs += [cone(p, (s * 52, 400, -150), (s * 52, 230, -200), 46, 24), cone(p, (s * 52, 230, -200), (s * 52, 40, -180), 21, 19)]
+    d['legs'] = min(legs)
+    d['hooves'] = min(ell(p, (s * 52, 18, z), (26, 20, 28)) for s in (-1, 1) for z in (172, -178))
+    d['tail'] = min(cone(p, (0, 505, -248), (0, 450, -292), 24, 24), cone(p, (0, 450, -292), (0, 340, -306), 24, 22),
+                    cone(p, (0, 340, -306), (0, 230, -290), 22, 20))
     return d
 
 
 def solid(p):
-    d = parts_at(p)
-    return min(d.values()) <= 0, d
+    d = anatomy(p)
+    f = d['body']
+    for k in ('neck', 'legs'): f = smin(f, d[k], 34)
+    f = smin(f, d['head'], 26)
+    for k in ('ears', 'hooves', 'tail', 'mane'): f = min(f, d[k])
+    for k in ('mane', 'tail', 'hooves', 'ears'):                  # the dark timber wins wherever it is
+        if d[k] <= 0: return f, k
+    return f, min(d, key=d.get)
 
 
-# ── voxels: studs across (i) and along (k), courses up (j) ──
-vox = {}      # (i, j, k) -> colour kind
-I, K = range(-8, 8), range(-17, 25)
-J = range(0, 32)
-for j in J:
-    y = Y0 + j * B + B / 2
+# ── cells: studs across (i) and along (k), plates up (h) ──
+I, K, H = range(-7, 7), range(-20, 27), range(0, 112)
+vox = {}                                  # (i, h, k) -> the part of the horse it belongs to
+for h in H:
     for i in I:
         for k in K:
-            x, z = (i + 0.5) * S, (k + 0.5) * S
-            inside, d = solid((x, y, z))
-            if not inside: continue
-            part = min(d, key=d.get)
-            vox[(i, j, k)] = part
+            f, part = solid(((i + 0.5) * S, (h + 0.5) * P, (k + 0.5) * S))
+            if f <= 0: vox[(i, h, k)] = part
 
-# hollow hull: inside the body far enough from its skin, above the deck, becomes the Greeks' hold
-DECK_J = 10                       # the hold's floor course: a flat floor across the barrel, just above the belly
+for ex, ey, ez in EYES:                   # the eyes: the outermost cell of the head at each eye
+    near = [(i, h, k) for (i, h, k), p in vox.items() if p == 'head' and abs((h + 0.5) * P - ey) < 8 and abs((k + 0.5) * S - ez) < 12
+            and (i + 0.5) * ex > 0]
+    if near: vox[max(near, key=lambda c: abs(c[0] + 0.5))] = 'eye'
+
+# the hold: inside the barrel, a stud and three plates in from its skin, above a flat deck
+DECK_H = 44                               # the deck's studs are at the top of this plate layer (Y0 + 360)
 HOLD = set()
-for (i, j, k), part in list(vox.items()):
-    x, y, z = (i + 0.5) * S, Y0 + j * B + B / 2, (k + 0.5) * S
-    if j > DECK_J and j < 18 and ellipsoid((x, y, z), BODY[0], (BODY[1][0] - 26, BODY[1][1] - 30, BODY[1][2] - 30)) < 0 and abs(k) < 11:
-        HOLD.add((i, j, k)); del vox[(i, j, k)]
-
-# the hatch: the right flank (i > 0) over the hold, a panel 8 studs long and 5 courses high, hinged at its foot
-HATCH = {(i, j, k) for (i, j, k) in vox if i >= 1 and DECK_J + 1 <= j <= DECK_J + 5 and -7 <= k < 7}
-
-
-def colour(i, j, k, part):
-    if part == 'hooves': return DB
-    if part == 'tail': return DB
-    rnd = random.Random(hash((i // 2, j, k // 3)) & 0xffffffff)
-    if j % 4 == 0: return DB                           # a dark board every fourth course
-    return DB if rnd.random() < 0.18 else RB
+inner = {(i, h, k) for (i, h, k) in vox if h > DECK_H and ell(((i + 0.5) * S, (h + 0.5) * P, (k + 0.5) * S), BARREL[0],
+                                                                  (BARREL[1][0] - 26, BARREL[1][1] - 26, BARREL[1][2] - 34)) < 0}
+for (i, k) in {(i, k) for (i, h, k) in inner}:      # straight walls: each column hollow from the deck up to the roof
+    top = max(h for (ii, h, kk) in inner if (ii, kk) == (i, k))
+    for h in range(DECK_H + 1, top + 1):
+        if (i, h, k) in vox: HOLD.add((i, h, k)); del vox[(i, h, k)]
+DECK = {(i, k) for (i, h, k) in HOLD if h == DECK_H + 1 and (i, DECK_H, k) in vox}
+# the flank panel that lifts off: the right side of the hull over the hold, 17 plates high and 14 studs long
+HATCH = {(i, h, k) for (i, h, k) in vox if i >= 0 and DECK_H + 1 <= h <= DECK_H + 17 and -7 <= k < 7}
 
 
-# ── packing: each course filled with the longest bricks that fit, alternate courses laid across ──
-BRICKS = [((2, 4), '3001'), ((2, 3), '3002'), ((2, 2), '3003'), ((1, 8), '3008'), ((1, 6), '3009'), ((1, 4), '3010'), ((1, 3), '3622'), ((1, 2), '3004'), ((1, 1), '3005')]
-rows = []     # (colour, x, y, z, rotY, part) in LDraw units (y down)
+def colour(i, h, k, part):
+    if part in ('mane', 'tail', 'hooves'): return DB
+    if part == 'ears': return RB
+    if part == 'eye': return BLK
+    if part == 'post': return DB
+    return RB
 
 
-def line(col, x, yup, z, part, rot=0, m=None):
+# ── laying the parts ──
+rows = []
+
+
+def line(col, x, yup, z, part, rot=0, m=None, root=False):
     if m is None:
         c, s = round(math.cos(rot), 6), round(math.sin(rot), 6)
         m = (c, 0, s, 0, 1, 0, -s, 0, c)
+    if root: rows.append('0 !FORAGE ROOT')
     rows.append(f"1 {col} {x:g} {-yup:g} {z:g} " + ' '.join(f'{v:g}' for v in m) + f" {part}.dat")
 
 
-def pack(cells, yup_top, colour_of, along_z, strict=lambda q: False):
-    """cells: set of (i, k) in one course; bricks' tops at yup_top. The longest brick that fits is laid and takes the colour of its first
-    cell, as a builder lays a course; only cells where `strict` holds (a hoof, the tail) keep their own colour"""
+def pack(cells, yup_top, colour_of, along_z, sizes):
+    """fill one layer: the longest part that fits and is all one colour, laid along z or along x (LDraw's parts run along x)"""
     left = set(cells)
-    order = sorted(left, key=lambda c: (c[1], c[0]) if along_z else (c[0], c[1]))
-    for c in order:
+    for c in sorted(left, key=lambda c: (c[1], c[0]) if along_z else (c[0], c[1])):
         if c not in left: continue
         i0, k0 = c
         col = colour_of(i0, k0)
-        for (w, l), part in BRICKS:
-            # w across, l along the course direction
+        for (w, l), part in sizes:
             cov = [(i0 + a, k0 + b) if along_z else (i0 + b, k0 + a) for a in range(w) for b in range(l)]
-            if all(q in left and (colour_of(*q) == col or not strict(q)) for q in cov):
+            if all(q in left and colour_of(*q) == col for q in cov):
                 for q in cov: left.discard(q)
                 cx = (i0 + (w if along_z else l) / 2) * S
                 cz = (k0 + (l if along_z else w) / 2) * S
-                # LDraw bricks run their length along x; a course laid along z is turned a quarter
-                line(col, cx, yup_top, cz, part, rot=(math.pi / 2 if along_z else 0) if (w, l) != (1, 1) else 0)
+                line(col, cx, yup_top, cz, part, rot=math.pi / 2 if along_z and (w, l) != (1, 1) and w != l else 0)
                 break
 
 
 def build(open_hatch):
     rows.clear()
-    body = {v: p for v, p in vox.items() if not (open_hatch and v in HATCH)}
-    for j in J:
-        layer = {(i, k): p for (i, jj, k), p in body.items() if jj == j}
-        if not layer: continue
-        top = Y0 + (j + 1) * B
-        pack(set(layer), top, lambda i, k: colour(i, j, k, layer[(i, k)]), along_z=(j % 2 == 0), strict=lambda q: layer[q] in ('hooves', 'tail'))
-        # cheese slopes where this course ends under open air, facing out
-        for (i, k), p in layer.items():
-            if (i, j + 1, k) in body or p in ('hooves',): continue
-            for di, dk, rot in ((1, 0, -math.pi / 2), (-1, 0, math.pi / 2), (0, 1, 0), (0, -1, math.pi)):
-                if (i + di, j, k + dk) not in body and (i + di, j + 1, k + dk) not in body and (i - di, j + 1, k - dk) not in body:
-                    line(RB if p != 'tail' else DB, (i + 0.5) * S, top + 16, (k + 0.5) * S, '54200', rot=rot)
-                    break
-    # the hold's deck: dark tan plates under the Greeks
-    deck = {(i, k) for (i, j, k) in HOLD if j == DECK_J + 1}
-    for (i, k) in deck: line(DT, (i + 0.5) * S, Y0 + (DECK_J + 1) * B + P, (k + 0.5) * S, '3024')
-    # mane: black tooth plates along the crest of the neck, eyes, a bridle
-    for j in J:
-        crest = [(i, k) for (i, jj, k) in vox if jj == j and i in (-1, 0) and vox[(i, jj, k)] in ('neck', 'head') and (i, j + 1, k) not in vox]
-        for (i, k) in crest:
-            if vox.get((i, j, k)) == 'neck': line(DB, (i + 0.5) * S, Y0 + (j + 1) * B + P, (k + 0.5) * S, '49668', rot=math.pi)
-    for s in (-1, 1):
-        line(BLK, s * 50, Y0 + 610, 345, '98138', m=(0, s, 0, -s, 0, 0, 0, 0, 1))
+    cells = {v: p for v, p in vox.items() if not (open_hatch and v in HATCH)}
+    # a tile finishes every cell with nothing above it in the whole horse (panel on), except the deck, which keeps its studs
+    tile = {v for v in vox if (v[0], v[1] + 1, v[2]) not in vox and not (v[1] == DECK_H and (v[0], v[2]) in DECK)}
+    col = {v: colour(*v, p) for v, p in cells.items()}
+    in_brick = set()
+    for c in range(0, max(H) // 3 + 1):
+        hs = (3 * c, 3 * c + 1, 3 * c + 2)
+        full = {(i, k) for (i, h, k) in cells if h == hs[0]
+                and all((i, hh, k) in cells and (i, hh, k) not in tile and col[(i, hh, k)] == col[(i, hs[0], k)] for hh in hs)}
+        pack(full, Y0 + (3 * c + 3) * P, lambda i, k: col[(i, hs[0], k)], c % 2 == 0, BRICKS)
+        in_brick |= {(i, hh, k) for (i, k) in full for hh in hs}
+    for h in H:
+        plates = {(i, k) for (i, hh, k) in cells if hh == h and (i, hh, k) not in in_brick and (i, hh, k) not in tile}
+        tiles = {(i, k) for (i, hh, k) in cells if hh == h and (i, hh, k) in tile}
+        pack(plates, Y0 + (h + 1) * P, lambda i, k: col[(i, h, k)], h % 2 == 1, PLATES)
+        pack(tiles, Y0 + (h + 1) * P, lambda i, k: col[(i, h, k)], h % 2 == 1, TILES)
     return list(rows)
 
 
 def cart():
-    out = []
+    """a timber cart of three layers laid crosswise; wheels on pinned plates at its corners; it rolls"""
     rows.clear()
-    deck_top = CART_UP
-    # three courses laid crosswise so each binds the one below: deck plates across, a course of bricks along, a chassis across it
-    for i in range(-8, 8, 4):
-        for k in range(-18, 24, 2):
-            line(RB if (k // 2) % 2 else DB, (i + 2) * S, deck_top, (k + 1) * S, '3020')
-    for i in range(-8, 8, 2):
-        for k in range(-18, 24, 4):
-            line(DB, (i + 1) * S, deck_top - P, (k + 2) * S, '3001', rot=math.pi / 2)
-    for i in range(-6, 6, 4):          # the chassis stands on the base's own bricks, where the paving leaves them bare
-        for k in range(-18, 24, 2):
-            line(DB, (i + 2) * S, deck_top - P - B, (k + 1) * S, '3001')
-    # wheels: 2 x 2 round bricks on their sides, a round plate for a hub, at the four corners
-    for sx in (-1, 1):
-        for kz in (-15, 20):
-            hub_up = BASE_UP + 20
-            line(DB, sx * 9 * S, hub_up, kz * S, '3941', m=(0, -sx, 0, sx, 0, 0, 0, 0, 1))
-            line(RB, sx * (9 * S + 26), hub_up, kz * S, '4032a', m=(0, -sx, 0, sx, 0, 0, 0, 0, 1))
+    I0, I1, K0, K1 = -7, 7, -18, 24
+    corners = {(sx, kz) for sx in (-1, 1) for kz in (K0 + 1, K1 - 3)}
+    wheel_cells = set()
+    for sx, kz in corners:
+        i0 = 5 if sx > 0 else -7
+        wheel_cells |= {(i0 + a, kz + b) for a in (0, 1) for b in (0, 1)}
+        cx, cz = (i0 + 1) * S, (kz + 1) * S
+        line(DBG, cx, WHEEL_UP, cz, '4600', root=True)
+        wx = cx + sx * 28
+        for part, colr in (('4624', 71), ('3641', 0)):
+            line(colr, wx, WHEEL_UP - 6, cz, part, m=(0, 0, sx, 0, 1, 0, -sx, 0, 0))
+    lower = {(i, k) for i in range(I0, I1) for k in range(K0, K1)} - wheel_cells
+    pack(lower, WHEEL_UP, lambda i, k: DB, False, PLATES)
+    # the bricks in running bond: 2 x 4 along the cart, every other pair of columns started two studs on
+    for i in range(I0, I1, 2):
+        k = K0
+        if (i // 2) % 2: line(DB, (i + 1) * S, CART_UP, (k + 1) * S, '3003'); k += 2
+        while k + 4 <= K1: line(DB, (i + 1) * S, CART_UP, (k + 2) * S, '3001', rot=math.pi / 2); k += 4
+        if k < K1: line(DB, (i + 1) * S, CART_UP, (k + 1) * S, '3003')
+    # the deck: planks across the cart, their joints staggered row by row
+    for k in range(K0, K1):
+        i, col = I0, RB if k % 3 else DB
+        for n in ((6, 8) if k % 2 else (8, 6)):
+            line(col, (i + n / 2) * S, Y0, (k + 0.5) * S, {8: '3460', 6: '3666'}[n]); i += n
     return list(rows)
 
 
 def base():
-    """the display base: a frame of dark grey bricks paved with tan and dark tan tiles, wide enough on the horse's right for the figures
-    to stand in a row in front of it, and a nameplate of black tiles along the front edge"""
+    """the display base: a frame of dark grey bricks paved with tan and dark tan tiles, wide on the horse's right for the figures,
+    and a nameplate of black tiles along the front edge"""
     rows.clear()
-    I0, I1, K0, K1 = -12, 22, -26, 26           # studs; the horse and its cart stand over i -7..7
+    I0, I1, K0, K1 = -12, 22, -26, 26
     for i in range(I0, I1, 2):
         for k in range(K0, K1, 4):
             line(DBG, (i + 1) * S, BASE_UP - P, (k + 2) * S, '3001', rot=math.pi / 2)
-    rnd = random.Random(7)
     for i in range(I0, I1, 2):
         for k in range(K0, K1, 2):
+            if i == I1 - 6 and -8 <= k < 8: continue
             edge = i in (I0, I1 - 2) or k in (K0, K1 - 2)
-            plate = i == I1 - 6 and -8 <= k < 8
-            under_cart = -6 <= i < 6 and -18 <= k < 24
-            if plate or under_cart: continue
-            line(DBG if edge else (TAN if rnd.random() < 0.3 else DT), (i + 1) * S, BASE_UP, (k + 1) * S, '3068b')
-    for k in range(-8, 8, 4):                     # the nameplate: four 2 x 4 black tiles end to end
+            line(DBG if edge else (TAN if (i * 7 + k * 13) % 10 < 3 else DT), (i + 1) * S, BASE_UP, (k + 1) * S, '3068b')
+    for k in range(-8, 8, 4):
         line(BLK, (I1 - 5) * S, BASE_UP, (k + 2) * S, '87079', rot=math.pi / 2)
     return list(rows)
 
 
+# ── the figures ──
 def figure_file(card, sub):
-    """the minifigure's own parts from a character card, as (name, lines) with its feet brought to the origin"""
     text = open(os.path.join(CARDS, card + '.mpd')).read()
-    blocks = re.split(r'(?m)^0 FILE ', text)
-    for bl in blocks:
-        if bl.startswith(f'{card} - {sub}.ldr'):
-            lines = [l for l in bl.splitlines() if l.startswith('1 ')]
-            return lines
+    for bl in re.split(r'(?m)^0 FILE ', text):
+        if bl.startswith(f'{card} - {sub}.ldr'): return [l for l in bl.splitlines() if l.startswith('1 ')]
     return []
 
 
@@ -212,63 +243,116 @@ def minifig(card, sub, x, yup, z, rot, drop=()):
     body = [l for l in figure_file(card, sub) if l.split()[-1].replace('.dat', '') not in drop]
     hip = next((l.split() for l in body if re.search(r' 3815\w*\.dat$', l)), None)
     fx, fy, fz = (-float(hip[2]), -(float(hip[3]) + 40), -float(hip[4])) if hip else (20, 8, -10)   # the feet 40 under the hips
-    out = []
-    c, s = math.cos(rot), math.sin(rot)
+    out, c, s = [], math.cos(rot), math.sin(rot)
+    R = (c, 0, s, 0, 1, 0, -s, 0, c)
     for l in body:
         t = l.split()
-        px, py, pz = float(t[2]) + fx, float(t[3]) + fy, float(t[4]) + fz     # feet to the origin
+        px, py, pz = float(t[2]) + fx, float(t[3]) + fy, float(t[4]) + fz
         m = [float(v) for v in t[5:14]]
-        nx, nz = c * px + s * pz, -s * px + c * pz
-        R = (c, 0, s, 0, 1, 0, -s, 0, c)
         mm = [sum(R[r * 3 + q] * m[q * 3 + cc] for q in range(3)) for r in range(3) for cc in range(3)]
-        out.append(f"1 {t[1]} {x + nx:g} {-yup + py:g} {z + nz:g} " + ' '.join(f'{v:g}' for v in mm) + ' ' + ' '.join(t[14:]))
+        out.append(f"1 {t[1]} {x + c * px + s * pz:g} {-yup + py:g} {z - s * px + c * pz:g} " + ' '.join(f'{v:g}' for v in mm) + ' ' + ' '.join(t[14:]))
     return out
+
+
+def hold_spots(n):
+    """places on the deck for the Greeks: a stud clear of the hull and the posts on every side, near the hatch, spread along it"""
+    ok = [(i, k) for (i, k) in DECK if all((i + a, k + b) in DECK and (i + a, DECK_H + 1, k + b) not in vox
+                                            for a in (-1, 0, 1) for b in (-1, 0, 1)) and -9 <= k < 9]
+    ok.sort(key=lambda c: (-c[0], c[1]))
+    spots = []
+    for c in ok:
+        if all(abs(c[1] - s[1]) >= 3 or abs(c[0] - s[0]) >= 3 for s in spots): spots.append(c)
+        if len(spots) == n: break
+    return sorted(spots, key=lambda c: c[1])
 
 
 def write(name, title, open_hatch):
     horse = build(open_hatch)
-    body = [f'0 FILE {name}.ldr', f'0 {title}', f'0 Name: {name}.ldr', '0 Author: word to world, tools/forage/product/woodenhorse.py', '0 !LDRAW_ORG Unofficial_Model', '']
+    body = [f'0 FILE {name}.ldr', f'0 {title}', f'0 Name: {name}.ldr', '0 Author: word to world, tools/forage/product/woodenhorse.py',
+            '0 !LDRAW_ORG Unofficial_Model', '']
     body += base() + cart() + horse
-    # the Greeks in the hold, and the story's figures along the front of the base
-    hold_up = Y0 + (DECK_J + 1) * B + P
-    inside = [('warrior-1', 35, -105), ('warrior-3', 35, -45), ('warrior-4', 35, 15), ('warrior-5', 35, 75)]
-    if not open_hatch: inside += [('warrior-2', -50, -80)]
-    for sub, x, z in inside:            # the Greeks on the deck of the hold, facing the hatch
-        body += minifig('ensemble.hidden-greek-warriors', sub, x, hold_up, z, -math.pi / 2, drop=('43899', '4497', '3849', '93789'))   # no room for spears under the roof
-    if open_hatch:                      # the first man down, on the cart beside the horse's hooves, looking back up at the hatch
-        body += minifig('ensemble.hidden-greek-warriors', 'warrior-2', 140, CART_UP, 200, math.pi)
+    return body
+
+
+def figures(open_hatch):
+    out = []
+    hold_up = Y0 + (DECK_H + 1) * P
+    greeks = ['warrior-1', 'warrior-3', 'warrior-4', 'warrior-5'] + ([] if open_hatch else ['warrior-2'])
+    for sub, (i, k) in zip(greeks, hold_spots(len(greeks))):          # the Greeks on the deck of the hold, facing the hatch
+        out += minifig('ensemble.hidden-greek-warriors', sub, (i + 0.5) * S, hold_up, (k + 0.5) * S, -math.pi / 2,
+                       drop=('43899', '4497', '3849', '93789'))       # no room for spears under the roof
+    if open_hatch:                                                    # the first man down, on the cart, looking back up at the horse
+        out += minifig('ensemble.hidden-greek-warriors', 'warrior-2', 120, Y0, 290, math.pi)
     front = [('character.demodocus', 'demodocus'), ('character.athena', 'athena'), ('character.odysseus', 'odysseus'),
              ('character.menelaus', 'menelaus'), ('character.helen-at-the-horse', 'helen-at-the-horse')]
-    for n, (card, sub) in enumerate(front):     # the lineup on the apron, facing out of the display toward the viewer
-        body += minifig(card, sub, 12 * S, BASE_UP, (n - (len(front) - 1) / 2) * 4 * S, -math.pi / 2)
+    for n, (card, sub) in enumerate(front):                           # the lineup on the apron, facing out of the display
+        out += minifig(card, sub, 12 * S, BASE_UP, (n - (len(front) - 1) / 2) * 4 * S, -math.pi / 2)
+    return out
+
+
+def save(name, title, open_hatch):
+    body = write(name, title, open_hatch) + figures(open_hatch)
     open(os.path.join(CARDS, name + '.mpd'), 'w').write('\n'.join(body) + '\n')
-    print(name, len([l for l in body if l.startswith('1 ')]), 'pieces')
+    return body
 
 
-def prop_the_roof(name, title, open_hatch):
-    """build, look for bricks that click to nothing (the roof over the hold is laid across open air), and raise a timber post from the
-    deck under each: the hold cell under a loose brick is filled again, and again under that, until the whole horse holds"""
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    import clicks
-    for _ in range(40):
-        write(name, title, open_hatch)
+def settle(name, title, open_hatch):
+    """build and check; a part that clicks to nothing is propped (a post up from the deck under the roof), lifted off with the panel
+    (the lintel over the hatch), thickened (a step of a staircase that met the one below only at an edge grows a plate down into it),
+    or, when nothing is near it, taken away. Again, until everything holds"""
+    for _ in range(60):
+        save(name, title, open_hatch)
         loose = clicks.parts_loose(os.path.join(CARDS, name + '.mpd'))
         n = 0
-        for pid, top, bot, fp, l in loose:
-            j = round((-bot - Y0) / B)                # the course the loose part stands on
-            for (i, k) in fp:
-                if (i, j - 1, k) in HOLD: HOLD.discard((i, j - 1, k)); vox[(i, j - 1, k)] = 'post'; n += 1
-                elif open_hatch and (i, j - 1, k) in HATCH and (i, j, k) in vox and (i, j, k) not in HATCH:
-                    HATCH.add((i, j, k)); n += 1          # the lintel over the hatch lifts off with it
-                elif (i, j, k) not in vox or (i, j - 1, k) in vox: continue
-                elif any((i, j - d, k) in vox for d in (2, 3)): vox[(i, j - 1, k)] = vox[(i, j, k)]; n += 1   # a brick under an ear
-                else: del vox[(i, j, k)]; n += 1
+        for p in loose:
+            h = round((-p['bot'] - Y0) / P)                 # the plate layer the loose part's bottom rests on
+            for (i, k) in p['fp']:
+                if (i, h - 1, k) in HOLD:
+                    for hh in range(DECK_H + 1, h):
+                        if (i, hh, k) in HOLD: HOLD.discard((i, hh, k)); vox[(i, hh, k)] = 'post'; n += 1
+                    DECK.discard((i, k))
+                elif open_hatch and (i, h - 1, k) in HATCH:
+                    for hh in range(h, h + 3):
+                        if (i, hh, k) in vox and (i, hh, k) not in HATCH: HATCH.add((i, hh, k)); n += 1
+                elif (i, h, k) in vox and (i, h - 1, k) not in vox and h > 0 and any(
+                        (i + a, h - 1, k + b) in vox for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    vox[(i, h - 1, k)] = vox[(i, h, k)]; n += 1        # a step that only touches at an edge: grow a plate into it
+                else:
+                    for hh in range(h, h + 3):
+                        if (i, hh, k) in vox and not (open_hatch and (i, hh, k) in HATCH): del vox[(i, hh, k)]; n += 1
         if not n: return loose
 
 
+def export_prop():
+    """the horse on its cart, without the display base or the figures, as a keyframe prop (tools/forage/keyprops.js reads it): parts in
+    LDraw units with the ground (the paving the cart rolls on) at y = 0, and anchors a still can aim at or seat a figure on"""
+    out = {}
+    for key, o in (('horse', False), ('horseOpen', True)):
+        rows_ = cart() + build(o)
+        parts = []
+        for l in rows_:
+            if not l.startswith('1 '): continue
+            t = l.split()
+            m = [float(v) for v in t[2:14]]
+            m[1] += BASE_UP
+            parts.append({'part': t[14], 'color': int(t[1]), 'm': [round(v, 4) for v in m]})
+        deck = sorted(DECK)
+        cx = sum((i + 0.5) * S for i, k in deck) / len(deck); cz = sum((k + 0.5) * S for i, k in deck) / len(deck)
+        floor = -(Y0 + (DECK_H + 1) * P - BASE_UP)
+        out[key] = {'parts': parts, 'anchors': {
+            'floor': [round(cx), floor, round(cz)], 'front': [round(cx), floor, round(cz) + 60], 'back': [round(cx), floor, round(cz) - 60],
+            'hatch': [110, floor - 60, 0], 'head': [0, -(Y0 + 720 - BASE_UP), 360], 'deck': [0, -(Y0 - BASE_UP), 0],
+            'muzzle': [0, -(Y0 + 600 - BASE_UP), 440], 'tail': [0, -(Y0 + 400 - BASE_UP), -300]}}
+    import json
+    json.dump(out, open(os.path.join(ROOT, 'odyssey/keyframes/wooden-horse-prop.json'), 'w'))
+
+
 if __name__ == '__main__':
-    prop_the_roof('set.wooden-horse', 'The Wooden Horse', False)
-    prop_the_roof('set.wooden-horse-open', 'The Wooden Horse (hatch open)', True)
-    print('posts in the hold:', sorted({(i, k) for (i, j, k), p in vox.items() if p == 'post'}))
-    write('set.wooden-horse', 'The Wooden Horse', False)
-    write('set.wooden-horse-open', 'The Wooden Horse (hatch open)', True)
+    for _ in range(8):                    # the two builds share one horse: settle each until neither has a loose part
+        a = settle('set.wooden-horse', 'The Wooden Horse', False)
+        b = settle('set.wooden-horse-open', 'The Wooden Horse (panel off)', True)
+        if not clicks.parts_loose(os.path.join(CARDS, 'set.wooden-horse.mpd')) and not b: break
+    for name, title, o in (('set.wooden-horse', 'The Wooden Horse', False), ('set.wooden-horse-open', 'The Wooden Horse (panel off)', True)):
+        body = save(name, title, o)
+        print(name, sum(l.startswith('1 ') for l in body), 'pieces')
+    export_prop()
