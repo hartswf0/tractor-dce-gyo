@@ -129,7 +129,7 @@ function kfClutter(subject,allow=[]){const d=kfHead(subject).distanceTo(camera.p
   return out;}
 /* the look of a still: a sky graded from zenith to horizon, a haze toward the horizon */
 function kfLook(l={}){const sky=l.sky||['#6fa3d8','#e9dcc0'];const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,sky[0]);gr.addColorStop(1,sky[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
-  const t=new THREE.CanvasTexture(c);scene.background=t;if(l.fog!==false)scene.fog=new THREE.Fog(new THREE.Color(sky[1]),(l.fog||[900,2600])[0],(l.fog||[900,2600])[1]);}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;scene.background=t;if(l.fog!==false)scene.fog=new THREE.Fog(new THREE.Color(sky[1]),(l.fog||[900,2600])[0],(l.fog||[900,2600])[1]);}
 /* ── the body in three dimensions ──
    Every LDraw part of a figure (torso, hips, legs, arms, hands, head, hair, what it holds) as an oriented box: its own local bounds,
    shrunk a little so parts that merely touch pass, carried by the part's world matrix. Two figures collide when any box of one

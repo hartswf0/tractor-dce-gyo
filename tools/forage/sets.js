@@ -393,8 +393,7 @@ function sealBeach() {
   const list = [];
   list.push({ id: '23996', col: C.dbg, x: -10, z: 10, base: -8, q: 3 }, { id: '6082', col: C.dbg, x: -4, z: 14, base: -8 }, { id: '6083', col: C.dbg, x: -4, z: 14, base: -8 - 144 }, { id: '6082', col: C.dbg, x: -14, z: 4, base: -8, q: 1 });
   for (let k = 0; k < 5; k++) list.push({ id: '3009', col: C.black, x: -8, z: 12.5, base: -8 - 24 * k });
-  list.push({ id: '42291', col: C.dbg, x: 13, z: 10 }, { id: '42284', col: C.dbg, x: 13, z: 10, base: -8 - 40 });
-  list.push(R('2417', C.dgreen, -12, 16, -8 - 144), R('6255', C.green, 12, 16), R('2518c01', C.green, 14, 15));
+  list.push(R('3070b', C.dtan, 12, 16));   /* a sand tile where a shrub stood: it keeps the build's footprint, so the rock stays where the stills expect it */
   return REAL('the seal beach', list);
 }
 /* Eumaeus's farm (Homer XIV): "a strong yard, with a wall of stone round it, and a hedge of wild pear; twelve sties"; the hut of logs
