@@ -58,9 +58,11 @@ def rough(p, amp=16, seed=0.0):
 
 
 class Form:
-    def __init__(self, y0=0, keep_studs=(), unit=P):
-        """unit: a cell's height, a plate (8, smooth: the horse) or a brick (24, rock: fewer parts, the classic craggy face)"""
-        self.vox, self.y0, self.keep, self.unit = {}, y0, set(keep_studs), unit
+    def __init__(self, y0=0, keep_studs=(), unit=P, caps=False):
+        """unit: a cell's height, a plate (8, smooth: the horse) or a brick (24, rock: fewer parts, the classic craggy face).
+        caps (brick cells): finish every top the sky sees, as an Ideas model finishes its rockwork, never a field of bare studs: a 1 x 1
+        cheese slope running down off each edge, tiles over the flat between (materials in keep_studs keep theirs: turf, a floor)"""
+        self.vox, self.y0, self.keep, self.unit, self.caps = {}, y0, set(keep_studs), unit, caps
 
     def carve(self, solid, I, H, K):
         for h in H:
@@ -111,6 +113,7 @@ class Form:
             for h in Hs:
                 cells = {(i, k) for (i, hh, k) in vox if hh == h}
                 self._pack(rows, cells, self.y0 + (h + 1) * B, lambda i, k, h=h: col[(i, h, k)], h % 2 == 1, BRICKS)
+            if self.caps: self._caps(rows, col)
             return rows
         in_brick = set()
         for c in range(Hs[0] // 3, Hs[-1] // 3 + 1):
@@ -126,6 +129,22 @@ class Form:
             self._pack(rows, plates, self.y0 + (h + 1) * P, lambda i, k, h=h: col[(i, h, k)], h % 2 == 1, PLATES)
             self._pack(rows, tiles, self.y0 + (h + 1) * P, lambda i, k, h=h: col[(i, h, k)], h % 2 == 1, TILES)
         return rows
+
+    # the cheese slope (54200) has its origin at its underside and runs down toward -z; turned by a, it runs down toward (-sin a, -cos a)
+    FACE = {(0, -1): 0, (1, 0): -math.pi / 2, (-1, 0): math.pi / 2, (0, 1): math.pi}
+
+    def _caps(self, rows, col):
+        vox, flat = self.vox, {}
+        for (i, h, k), m in vox.items():
+            if m in self.keep or (i, h + 1, k) in vox: continue
+            yup = self.y0 + (h + 1) * B
+            edge = [d for d in ((0, 1), (1, 0), (-1, 0), (0, -1)) if (i + d[0], h, k + d[1]) not in vox]
+            if edge:
+                c, s_ = round(math.cos(self.FACE[edge[0]]), 6), round(math.sin(self.FACE[edge[0]]), 6)
+                rows.append(f"1 {col[(i, h, k)]} {(i + 0.5) * S:g} {-yup:g} {(k + 0.5) * S:g} {c:g} 0 {s_:g} 0 1 0 {-s_:g} 0 {c:g} 54200.dat")
+            else: flat.setdefault(h, set()).add((i, k))
+        for h, cells in flat.items():
+            self._pack(rows, cells, self.y0 + (h + 1) * B + P, lambda i, k, h=h: col[(i, h, k)], h % 2 == 1, TILES)   # a tile's origin is its top
 
     def settle(self, colour, extra=lambda: [], rounds=60, protect=lambda v: False, can_grow=lambda v: True):
         """repair until every part clicks: a step that met the one below only at an edge grows a plate down into it; what nothing near
