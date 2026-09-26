@@ -50,6 +50,7 @@ def leaves(sec, key, A, a, color):
 
 def scene(sid):
     text = (REPO / 'odyssey/cards' / (sid + '.mpd')).read_text(); sec = parse(text, sid + '.ldr')
+    G.LITE = text.count('\n1 ') > 6000   # a great set (a city): lighter geometry, so a browser drawing it in software keeps up
     pv = json.loads((REPO / 'odyssey/previs' / (sid + '.json')).read_text())
     main = sid.lower() + '.ldr'; kids = list(world_children(sec, main))
     plate = kids[0]; top = kids[1]; tops = list(world_children(sec, top[0], top[2], top[3]))
