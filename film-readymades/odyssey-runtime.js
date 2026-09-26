@@ -129,7 +129,7 @@ function kfClutter(subject,allow=[]){const d=kfHead(subject).distanceTo(camera.p
   return out;}
 /* the look of a still: a sky graded from zenith to horizon, a haze toward the horizon */
 function kfLook(l={}){const sky=l.sky||['#6fa3d8','#e9dcc0'];const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,sky[0]);gr.addColorStop(1,sky[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
-  const t=new THREE.CanvasTexture(c);scene.background=t;if(l.fog!==false)scene.fog=new THREE.Fog(new THREE.Color(sky[1]),(l.fog||[900,2600])[0],(l.fog||[900,2600])[1]);}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;scene.background=t;if(l.fog!==false)scene.fog=new THREE.Fog(new THREE.Color(sky[1]),(l.fog||[900,2600])[0],(l.fog||[900,2600])[1]);}
 /* ── the body in three dimensions ──
    Every LDraw part of a figure (torso, hips, legs, arms, hands, head, hair, what it holds) as an oriented box: its own local bounds,
    shrunk a little so parts that merely touch pass, carried by the part's world matrix. Two figures collide when any box of one
@@ -148,6 +148,7 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
     let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
   const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
   for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
+    {const r0=new THREE.Raycaster(a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),new THREE.Vector3(0,-1,0));r0.far=60*k;const h0=r0.intersectObjects(meshes,true)[0];if(h0)support.set(kfShort(a.kind),kfPropOf(h0.object));}   /* what is under the feet, even of a figure held off it */
     if(a.rig.air)continue;
     if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
       if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);if(h)support.set(kfShort(a.kind),kfPropOf(h.object));continue;}   /* seated: the hips on the seat, the thighs' own depth above it */

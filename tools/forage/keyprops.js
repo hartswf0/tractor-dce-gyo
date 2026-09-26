@@ -199,10 +199,9 @@ function horse(open) { const W = 28, M = 70, P = [];
 props.horse = horse(false);
 props.horseOpen = horse(true);
 /* a seal (Homer IV: "the seals, the brood of the fair sea-nymph, come up from the grey sea"): two curved slopes back to back, a round head */
-props.seal = { parts: [...[-10, 10].flatMap(x => [row('3666', 72, L.mul(L.T(x, 0, 0), L.RY(Math.PI / 2))), row('11477', 72, L.T(x, -4.5, -20)), row('11477', 72, L.mul(L.T(x, -4.5, 20), L.RY(Math.PI)))]),
-  row('3062b', 72, L.T(0, -24, 44)), row('4073', 72, L.T(0, -32, 44)), row('54200', 72, L.mul(L.T(0, -20, 62), L.RY(Math.PI / 2))),
-  row('3023', 71, L.mul(L.T(-30, 0, 26), L.RY(0.5))), row('3023', 71, L.mul(L.T(30, 0, 26), L.RY(-0.5))), row('3023', 71, L.T(0, 0, -66))], anchors: { back: [0, -24, 0] } };
-props.sealGrey = { ...props.seal, parts: props.seal.parts.map(r => r.part === '11477.dat' || r.part === '3062b.dat' || r.part === '3666.dat' || r.part === '4073.dat' && r.m[5] === 0 ? { ...r, color: 71 } : r) };
+const sealEyes = [-7, 7].map(x => row('98138', 0, L.mul(L.T(x, -15, -31), L.mul(RX(Math.PI / 2), [0, 0, 0, 0.22, 0, 0, 0, 0.22, 0, 0, 0, 0.22]))));   /* two tiny black eyes on the brow */
+props.seal = { parts: [row('3399', 72, L.I12), ...sealEyes], anchors: { back: [0, -22, 0] } };   /* the LEGO seal (3399), body along z, head up */
+props.sealGrey = { parts: [row('3399', 71, L.I12), ...sealEyes], anchors: { back: [0, -22, 0] } };
 props.snake = { parts: [row('30115', 2, L.I12)], anchors: {} };
 props.dog = { parts: [row('92586', 308, L.I12)], anchors: {} };
 props.dogBlack = { parts: [row('92586', 0, L.I12)], anchors: {} };

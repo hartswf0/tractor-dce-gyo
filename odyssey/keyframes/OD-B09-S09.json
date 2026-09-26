@@ -112,8 +112,8 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": 60,
-     "z": -110,
+     "x": 95,
+     "z": -85,
      "y": "floor",
      "face": "@polyphemus.eye",
      "props": false,
@@ -137,8 +137,8 @@
     },
     {
      "id": "four-stake-bearers-1",
-     "x": 40,
-     "z": -60,
+     "x": 70,
+     "z": -40,
      "y": "floor",
      "face": "@polyphemus.eye",
      "props": false
@@ -153,16 +153,16 @@
     },
     {
      "id": "four-stake-bearers-3",
-     "x": 95,
-     "z": -75,
+     "x": 140,
+     "z": -55,
      "y": "floor",
      "face": "@polyphemus.eye",
      "props": false
     },
     {
      "id": "four-stake-bearers-4",
-     "x": 55,
-     "z": -190,
+     "x": 150,
+     "z": -185,
      "y": "floor",
      "face": "@polyphemus.eye",
      "props": false
@@ -501,7 +501,49 @@
     "r": 150,
     "h": 70,
     "fov": 50
-   }
+   },
+   "touch": [
+    [
+     "prop:stake",
+     "odysseus"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-1"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-2"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-3"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-4"
+    ],
+    [
+     "prop:perch",
+     "odysseus"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-1"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-2"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-3"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-4"
+    ]
+   ]
   },
   {
    "id": "K3",
@@ -685,28 +727,15 @@
     },
     {
      "id": "four-stake-bearers-4",
-     "at": "@stake.g5",
-     "off": [
-      33,
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
       0,
       0
      ],
-     "y": "floor",
-     "reach": 30,
-     "face": "@polyphemus.eye",
      "props": false,
-     "pose": {
-      "armRP": [
-       -0.5,
-       0,
-       0
-      ],
-      "armLP": [
-       -0.5,
-       0,
-       0
-      ]
-     }
+     "absent": true
     }
    ],
    "look": {
@@ -808,7 +837,41 @@
     "seed": 5,
     "place": "L"
    },
-   "note": "The Eleusis amphora's staging: the giant slumped back, the beam driven up into his eye by men on the floor, Odysseus at the head of it twisting."
+   "note": "The Eleusis amphora's staging: the giant slumped back, the beam driven up into his eye by men on the floor, Odysseus at the head of it twisting.",
+   "touch": [
+    [
+     "prop:stake",
+     "odysseus"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-1"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-2"
+    ],
+    [
+     "prop:stake",
+     "four-stake-bearers-3"
+    ],
+    [
+     "prop:perch",
+     "odysseus"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-1"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-2"
+    ],
+    [
+     "prop:perch",
+     "four-stake-bearers-3"
+    ]
+   ]
   },
   {
    "id": "K4",
@@ -1135,27 +1198,16 @@
    ],
    "props": [
     {
-     "name": "boulder",
-     "id": "stone",
-     "at": [
-      105,
-      0,
-      165
-     ],
-     "floor": false,
-     "scale": 1.2
-    },
-    {
      "name": "polyphemusSprawl",
      "id": "polyphemus",
      "at": [
-      -10,
+      -40,
       9,
-      122
+      110
      ],
      "rot": [
-      -0.3,
-      3.1416,
+      -0.25,
+      2.2,
       0
      ],
      "scale": 1.25
@@ -1174,45 +1226,65 @@
      "name": "ram",
      "id": "ram1",
      "at": [
-      -75,
+      70,
       0,
-      5
+      -175
      ],
      "floor": true,
-     "scale": 1.4
+     "scale": 1.5,
+     "rot": [
+      0,
+      0,
+      0
+     ]
     },
     {
      "name": "ram",
      "id": "ram2",
      "at": [
-      -15,
+      70,
       0,
-      -20
+      -100
      ],
      "floor": true,
-     "scale": 1.4
+     "scale": 1.5,
+     "rot": [
+      0,
+      0,
+      0
+     ]
     },
     {
      "name": "ram",
      "id": "ram3",
      "at": [
-      60,
+      70,
       0,
-      -5
+      55
      ],
      "floor": true,
-     "scale": 1.4
+     "scale": 2.6,
+     "rot": [
+      0,
+      0,
+      0
+     ]
     },
     {
      "name": "ram",
      "id": "ram4",
      "at": [
-      5,
+      20,
       0,
-      45
+      -110
      ],
      "floor": true,
-     "scale": 1.6
+     "scale": 1.4,
+     "rot": [
+      0,
+      0.2,
+      0
+     ]
     },
     {
      "name": "stakeBloody",
@@ -1233,168 +1305,94 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": 28,
-     "z": 20,
-     "y": "floor",
+     "x": 70,
+     "z": 70,
+     "y": 40,
+     "air": true,
+     "tilt": [
+      -1.45,
+      0
+     ],
      "face": [
-      30,
-      400
+      70,
+      500
      ],
      "props": false,
      "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.3
+      ],
       "legRP": [
-       -0.7,
+       -0.35,
        0,
        0
       ],
       "legLP": [
-       -0.7,
+       -0.35,
        0,
        0
       ],
-      "armRP": [
+      "headP": [
+       0.9,
        -1.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.3,
-       0,
        0
       ]
      }
     },
     {
      "id": "four-stake-bearers-1",
-     "x": -120,
-     "z": -15,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -95,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -0.7,
-       0,
-       0
-      ],
-      "legLP": [
-       -0.7,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.3,
-       0,
-       0
-      ]
-     }
+     "absent": true
     },
     {
      "id": "four-stake-bearers-2",
-     "x": -40,
-     "z": -5,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -35,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -0.7,
-       0,
-       0
-      ],
-      "legLP": [
-       -0.7,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.3,
-       0,
-       0
-      ]
-     }
+     "absent": true
     },
     {
      "id": "four-stake-bearers-3",
-     "x": 85,
-     "z": 5,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      80,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -0.7,
-       0,
-       0
-      ],
-      "legLP": [
-       -0.7,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.3,
-       0,
-       0
-      ]
-     }
+     "absent": true
     },
     {
      "id": "four-stake-bearers-4",
-     "x": -85,
-     "z": 35,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -55,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -0.7,
-       0,
-       0
-      ],
-      "legLP": [
-       -0.7,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.3,
-       0,
-       0
-      ]
-     }
+     "absent": true
     }
    ],
    "look": {
@@ -1441,32 +1439,28 @@
    "camera": {
     "type": "wide",
     "pos": [
-     17.9,
-     69.8,
-     -129.5
+     182,
+     30,
+     75
     ],
     "target": [
-     -10,
-     105,
-     122
+     20,
+     80,
+     20
     ],
-    "fov": 53.7,
-    "subject": "prop:polyphemus",
-    "place": "C",
-    "eye": 0.4
+    "fov": 66
    },
    "subjects": [
     {
      "id": "odysseus",
-     "min": 0.04,
-     "primary": true,
-     "cut": true
+     "min": 0.02,
+     "primary": true
     },
     {
      "id": "prop:polyphemus",
      "soft": true,
-     "min": 0.2,
-     "cut": true
+     "cut": true,
+     "min": 0.1
     }
    ],
    "search": {
@@ -1507,12 +1501,14 @@
     "seed": 8,
     "place": "C"
    },
-   "lensAllow": [
-    "four-stake-bearers-1",
-    "four-stake-bearers-2",
-    "four-stake-bearers-3",
-    "four-stake-bearers-4"
-   ]
+   "lensAllow": [],
+   "touch": [
+    [
+     "prop:ram3",
+     "odysseus"
+    ]
+   ],
+   "veiled": []
   }
  ]
 }
