@@ -427,8 +427,8 @@ if __name__ == '__main__':
     manifest(SLUG, title='Scylla and Charybdis', book='XII', tier='Flagship',
              moment='The black ship rows the narrow strait: from her den high in the sheer cliff Scylla\'s six necks come down and snatch six men '
                     'off the deck, while across the water, low under the great fig tree, Charybdis sucks the sea down.',
-             quote='"While we were taking all this care and looking at Charybdis, Scylla pounced down suddenly upon us and snatched up six of '
-                   'my best men." (Odyssey XII, tr. Samuel Butler)',
+             quote='"We looked toward Charybdis, fearing destruction; and meanwhile Scylla seized from out the hollow ship six of my '
+                   'comrades." (Odyssey XII, after A. T. Murray)',
              object='Scylla: six necks of round bricks, each on its own friction pin in a comb of Technic bricks along the den\'s lip, swing '
                     'down out of the dark to take a man and up again, and hold where they are left; Charybdis is a disc of foam on a real '
                     'turntable that turns.',
@@ -474,5 +474,11 @@ if __name__ == '__main__':
              sources=[HW + 'scenes/OD-B12-S04.mjs', HW + 'assets/location/narrow-monster-strait.mjs', HW + 'assets/creature/scylla.mjs',
                       HW + 'assets/environment/charybdis.mjs', HW + 'assets/set_piece/fig-tree-above-charybdis.mjs'],
              status='Built to the bar',
-             next=[])
+             next=['The necks are straight stacks: they read as rigid tubes, not serpents; a second joint (a click hinge) at each head would let them curve.',
+                   'The six neck joints, the heads and the men in the jaws are at angles, so kitlib.check() does not see them; they were checked '
+                   'upright in set.scylla-charybdis-scylla and against the rock and hull by sampling points (0 points inside parts), not by the tool.',
+                   'A man lies loose across each pair of jaws (a 24 LDU gap for a 20 LDU torso); nothing clips him in.',
+                   'The whirlpool is flat: its throat is an inverted dish on the disc, not a funnel below the sea, and it is small beside the cliff.',
+                   'The fig tree is thin for "a great fig tree in full leaf"; the sea is a patchwork of 2 x 2 tiles that could use larger tiles and more movement.',
+                   'The cliff is closed at the back; a real Ideas model might open it to save parts (the budget did not require it).'])
 

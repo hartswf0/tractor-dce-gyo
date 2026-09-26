@@ -38,10 +38,10 @@ AXLE_C = (HEADS[0] + HEADS[-1]) / 2                   # the arrow's centre (a Te
 HEARTH = (300, 0)    # the round hearth
 COLS = [(140, -160), (140, 160), (460, -160), (460, 160)]
 THRONE_X = 520
-STAIR_I = range(8, 14)   # six steps along the back wall, rising toward +x; the landing at i 14, 15
+STAIR_I = range(-2, 4)   # six steps along the back wall, rising toward the throne end; the landing at i 4, 5
 DOOR_K = range(-4, 4)    # the great doors: z -80..80 in the left wall
 POSTERN_I = (-19, -18)   # the postern to the storeroom passage, in the front wall near the doors
-PEN_I = (14, 15)         # Penelope's door in the back wall, at the stair head
+PEN_I = (4, 5)           # Penelope's door in the back wall, at the stair head
 
 def cx(i): return (i + 0.5) * S
 
@@ -456,9 +456,11 @@ def stair():
             out.append(put(DTAN if (h + j) % 2 else TAN, cx(i), 28 + 24 * h, -220, '3004', RY(math.pi / 2)))
         out.append(put(TAN, cx(i), 4 + 24 * j + 8, -220, '3069b', RY(math.pi / 2)))
         occ |= {(i, -12), (i, -11)}
-    for h in range(6): out.append(put(DTAN if h % 2 else TAN, 300, 28 + 24 * h, -220, '3003'))
-    out.append(put(TAN, 300, 156, -220, '3022'))
-    out.append(put(TAN, 300, 164, -210, '3069b'))                                       # the landing's front row tiled; Penelope on the back
+    lx = (PEN_I[0] + 1) * S
+    for h in range(6): out.append(put(DTAN if h % 2 else TAN, lx, 28 + 24 * h, -220, '3003'))
+    out.append(put(TAN, lx, 156, -220, '3022'))
+    out.append(put(TAN, lx, 164, -210, '3069b'))                                        # the landing's front row tiled; Penelope on the back
+    out += fill({(i, k) for i in PEN_I for k in (-14, -13)}, lambda i, k: TAN, 156)       # the threshold of her door
     occ |= {(i, k) for i in PEN_I for k in (-12, -11)}
     return out, occ
 
@@ -596,8 +598,9 @@ STANDING = [('character.antinous', 'antinous', -150, 110, math.pi / 2),         
             ('ensemble.telemachus-eumaeus-and-philoetius', 'herdsman-3', -360, 250, 0)]                  # Philoetius in the postern
 BACK_TABLES = [(-320, [('ensemble.armed-suitors', 'suitor-1', 0), ('ensemble.armed-suitors', 'suitor-3', 4)]),
                (-140, [('ensemble.suitors', 'suitor-1', 0), ('ensemble.suitors', 'suitor-2', 4)]),
-               (40, [('ensemble.the-suitors', 'suitor-1', 0), ('ensemble.the-suitors', 'suitor-2', 4)])]
-FRONT_TABLES = [(-300, [('ensemble.suitors', 'suitor-3', 0)]), (-40, [('ensemble.the-suitors', 'suitor-3', 2)])]
+               ]
+FRONT_TABLES = [(-300, [('ensemble.suitors', 'suitor-3', 0)]), (-40, [('ensemble.the-suitors', 'suitor-3', 2)]),
+                (260, [('ensemble.the-suitors', 'suitor-1', 0), ('ensemble.the-suitors', 'suitor-2', 4)])]
 
 
 def people():
@@ -606,7 +609,7 @@ def people():
     occ = set(feet(TEL[0], TEL[1], TEL[2]))
     for card, sub, x, z, rot in STANDING:
         out += figure(card, sub, x, 4, z, rot); occ |= feet(x, z, rot)
-    out += figure('character.penelope', 'penelope', 300, 156, -230, math.pi)              # at the stair head, in her door
+    out += figure('character.penelope', 'penelope', (PEN_I[0] + 1) * S, 156, -230, math.pi)              # at the stair head, in her door
     return out, occ
 
 

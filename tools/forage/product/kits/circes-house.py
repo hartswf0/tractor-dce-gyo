@@ -411,3 +411,48 @@ if __name__ == '__main__':
         write(f'set.{SLUG}-{sub}', f"Circe's House: {title}", rows, AUTH)
     print('pieces', n, 'open', n2)
     for c in ['set.' + SLUG, f'set.{SLUG}-open'] + [f'set.{SLUG}-{s}' for s in subs]: check(c)
+    H = '/home/user/odyssey-halfworld/'
+    manifest(SLUG, title="Circe's House", book='X', tier='Large',
+             moment='In the stone house in the forest clearing Circe has struck the men with her wand and they are swine in her sty; wolves '
+                    'and lions fawn at her gate, and Odysseus comes up the path with the moly Hermes gave him, sword drawn.',
+             quote='"When they had drunk she turned them into pigs by a stroke of her wand, and shut them up in her pigsties." '
+                   '(Odyssey X, tr. Samuel Butler)',
+             object='The swine: sailor minifigures whose heads swap for pig heads (one still half changed, a pig head-cover over his own), '
+                    'penned with three pigs behind a gate that swings open on a hinge brick.',
+             builds=[{'card': 'set.' + SLUG, 'title': "Circe's House"},
+                     {'card': f'set.{SLUG}-open', 'title': "Circe's House (front lifted away, gate open)"}] +
+                    [{'card': f'set.{SLUG}-{s}', 'title': t[3]} for s, t in subs.items()],
+             images=[{'file': 'hero.jpg', 'caption': 'The clearing: the stone house and its porch, the swine in the sty, the beasts fawning at the gate, Odysseus come up the path, Hermes behind him.',
+                      'alt': 'A green diorama: a tan stone house with red columns, a grey-walled pen of pink-headed figures and pigs, oak trees, a red-clad minifigure with a sword.'},
+                     {'file': 'open.jpg', 'caption': 'The front and porch lifted away, the sty gate swung open.',
+                      'alt': 'The same diorama with the front wall of the house removed, showing a woman minifigure in the hall, and a lattice gate standing open.'},
+                     {'file': 'hall.jpg', 'caption': "Circe's loom hall: her web on its upright loom, the hearth, the table of drugged food.",
+                      'alt': 'Inside the house: a minifigure with a gold wand and cup before a banded web, a hearth of grey round bricks, a brown table and bench.'},
+                     {'file': 'sty-close.jpg', 'caption': 'The swine: the men with pig heads, the pigs, the gate in the wall.',
+                      'alt': 'Close view into a stone pen: minifigures with pig heads among pink pigs, a lattice gate in the wall.'},
+                     {'file': 'court.jpg', 'caption': 'Wolves and lions fawn round Odysseus; he holds the moly, black root and white flower.',
+                      'alt': 'A red-clad minifigure holding a black stem with a white flower, grey wolves and tan lion cubs round him, a figure in a gold helmet behind.'},
+                     {'file': 'sty.jpg', 'caption': 'Sub-assembly: the sty and the swine.', 'alt': 'The pen on its own.'},
+                     {'file': 'loom-hall.jpg', 'caption': "Sub-assembly: Circe's loom hall.", 'alt': 'The house cut open on its own.'},
+                     {'file': 'gate.jpg', 'caption': 'Sub-assembly: the wolves and lions at the gate.', 'alt': 'Odysseus, Hermes and the beasts on a small base.'}],
+             features=['A 48 x 32 base of two green baseplates, the line\'s white frame, black-and-gold nameplate and blue tile; grass laid in tiles with turf left in patches for ferns and flowers.',
+                       'The house is laid in plate cells: a dressed socle of dark tan and tan ashlar, timber lacing in reddish-brown plates, a fresco band of blue and red, plastered courses, a flat roof inside a parapet with a smoke-pot.',
+                       'The front wall and porch are one module that lifts off the baseplate, so the closed and open house are the same parts; both states are checked.',
+                       'The porch stands on two red 2 x 2 round-brick columns with black capitals.',
+                       'The sty gate is a lattice fence on a 1 x 4 hinge brick; it swings out toward the court.',
+                       'The pig heads are minifigure pig heads (67887) on the sailors\' torsos; one man wears a pig head-cover (17351) over his own head, halfway.',
+                       'Six oaks with crowns sculpted in plates over solid cores on round-brick trunks, the rest of the forest stock trees.'],
+             subs=[{'file': f'set.{SLUG}-{s}.mpd', 'title': t[3], 'pieces': pieces(f'set.{SLUG}-{s}'),
+                    'text': {'sty': 'The walled pen with its hinged gate, the trough of acorns, three pigs and four pig-headed men.',
+                             'loom-hall': 'The house without its front: Circe at her loom, the hearth, the table and bench, the smoke-pot on the roof.',
+                             'gate': 'Odysseus with sword and moly, Hermes, two wolves and a lion on a 16 x 16 base.'}[s]}
+                   for s, t in subs.items()],
+             sources=[H + 'assets/location/circes-forest-palace.mjs', H + 'assets/creature/crew-to-swine-variants.mjs',
+                      H + 'assets/creature/enchanted-wolves-and-lions.mjs', H + 'assets/prop/moly-plant.mjs', H + 'scenes/OD-B10-S04.mjs',
+                      H + 'scenes/OD-B10-S05.mjs', H + 'scenes/OD-B10-S06.mjs', H + 'scenes/OD-B10-S07.mjs'],
+             status='Built to the bar',
+             next=['The red columns are straight 2 x 2 round bricks; they do not taper downward as Minoan columns do.',
+                   'The lions are the lion-cub animal part (14734); there is no adult lion in the parts library used.',
+                   'The gate hinge and its fence, the figures, the heads and the moly are placed by hand and not checked by the tool; the fence is marked as held by its hinge.',
+                   'The smoke is a short column of clear round bricks and a cone; it reads more as glass than as smoke.',
+                   'The loom-hall sub-assembly is the house cut from the model without its roof module separated; a real instruction step would build the roof as its own lift-off.'])
