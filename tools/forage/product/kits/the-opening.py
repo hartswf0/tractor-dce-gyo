@@ -1396,6 +1396,7 @@ if __name__ == '__main__':
     import json
     json.dump({k: v for k, v in res.items()}, open(os.path.join(SCR, 'checks.json'), 'w'))
     HW = 'odyssey-halfworld/'
+    SUBIMG = {'olympus': 'olympus.jpg', 'descent': 'descent.jpg', 'suitors': 'suitors-sub.jpg', 'gate': 'gate-sub.jpg'}
     subs_text = {'olympus': 'The platform of Olympus on its turntable, lifted off the column and set on a short cloud stand: the bronze floor, the '
                             'colonnade and pediment, the snow crest, the thrones of Zeus and of absent Poseidon, the gods on their bench.',
                  'descent': 'The trail of clear, trans-yellow and pearl-gold round bricks, each a course lower and a stud on, with Athena in '
@@ -1441,7 +1442,7 @@ if __name__ == '__main__':
                              'between low stone walls and olive trees on terraces toward a palace.'},
                      {'file': 'turned.jpg', 'caption': 'The play feature: the council turned on its turntable to look down on Ithaca.',
                       'alt': 'The Olympus platform rotated a quarter turn so the gods and thrones face toward the palace below.'}] +
-                    [{'file': f'{s_}.jpg', 'caption': f'Sub-assembly: {t}.', 'alt': subs_text[s_]} for s_, t, _ in SUBS],
+                    [{'file': SUBIMG[s_], 'caption': f'Sub-assembly: {t}.', 'alt': subs_text[s_]} for s_, t, _ in SUBS],
              features=['Olympus is a sculpted column of rock (tools/forage/product/sculpt.py) with three cloud shelves standing well out from '
                        'it: each shelf is a course laid in three plates bonded crosswise (white, clear-and-grey, white) so it can overhang, '
                        'with puffs of round bricks on it and crags jutting between.',
@@ -1460,7 +1461,7 @@ if __name__ == '__main__':
                        'knoll with goats and their herdsman, cypresses and pines on the shoulder of the hill, a black ship at a stone mole.',
                        'Every card checks clean: every part clicked, no two parts in the same space; the nameplate and white tile ring are the '
                        'line\'s display base.'],
-             subs=[{'file': f'{s_}.jpg', 'title': t, 'pieces': pieces(f'set.{SLUG}-{s_}'), 'text': subs_text[s_]} for s_, t, _ in SUBS],
+             subs=[{'file': SUBIMG[s_], 'title': t, 'pieces': pieces(f'set.{SLUG}-{s_}'), 'text': subs_text[s_]} for s_, t, _ in SUBS],
              sources=[HW + 'scenes/OD-B01-S01.mjs', HW + 'scenes/OD-B01-S02.mjs', HW + 'scenes/OD-B01-S03.mjs', HW + 'scenes/OD-B01-S04.mjs',
                       HW + 'scenes/OD-B01-S05.mjs', HW + 'scenes/OD-B01-S06.mjs', HW + 'assets/location/olympian-council-hall.mjs',
                       HW + 'assets/location/olympian-decision-space.mjs', HW + 'assets/location/odysseuss-palace-threshold-and-hall.mjs',
