@@ -227,22 +227,22 @@
    "blocking": [
     {
      "id": "poseidon",
-     "x": 110,
-     "z": -70,
-     "y": -24,
+     "x": -80,
+     "z": -40,
+     "y": -10,
      "face": [
-      20,
-      55
+      -20,
+      160
      ],
      "props": true,
      "pose": {
       "armRP": [
        -2.9,
        0,
-       0.2
+       0
       ],
       "armLP": [
-       -1.0,
+       -2.5,
        0,
        0
       ]
@@ -255,18 +255,18 @@
      "z": 70,
      "y": "surface",
      "face": [
-      179,
-      -248
+      60,
+      -80
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.4,
+       -1.2,
        0,
        0
       ],
       "armLP": [
-       -0.8,
+       -0.6,
        0,
        0
       ]
@@ -290,21 +290,21 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -130,
-     75,
-     90
+     -230,
+     55,
+     200
     ],
     "target": [
-     100,
-     55,
-     -70
+     -25,
+     60,
+     10
     ],
     "fov": 44
    },
    "subjects": [
     {
      "id": "poseidon",
-     "min": 0.06,
+     "min": 0.07,
      "primary": true
     },
     {
@@ -319,6 +319,10 @@
    "touch": [
     [
      "prop:sp1",
+     "poseidon"
+    ],
+    [
+     "set",
      "poseidon"
     ]
    ]
@@ -462,6 +466,16 @@
      "soft": true,
      "cut": true
     }
+   ],
+   "touch": [
+    [
+     "set",
+     "odysseus"
+    ],
+    [
+     "prop:raft",
+     "odysseus"
+    ]
    ]
   },
   {
@@ -516,12 +530,12 @@
    "blocking": [
     {
      "id": "ino-leucothea",
-     "x": 40,
-     "z": 40,
-     "y": "surface",
+     "x": 90,
+     "z": 45,
+     "y": -20,
      "face": [
-      0,
-      80
+      -5,
+      85
      ],
      "props": false,
      "pose": {
@@ -537,7 +551,8 @@
       ]
      },
      "at": "@raft.deck",
-     "reach": -20
+     "reach": -20,
+     "air": true
     },
     {
      "id": "odysseus",
@@ -545,8 +560,8 @@
      "z": 85,
      "y": "surface",
      "face": [
-      40,
-      40
+      90,
+      45
      ],
      "props": false,
      "pose": {
@@ -575,27 +590,35 @@
    "camera": {
     "type": "wide",
     "pos": [
-     160,
      60,
-     150
+     55,
+     230
     ],
     "target": [
-     25,
-     55,
-     55
+     45,
+     50,
+     60
     ],
-    "fov": 42
+    "fov": 44
    },
    "subjects": [
     {
      "id": "ino-leucothea",
-     "min": 0.1,
-     "primary": true
+     "min": 0.05,
+     "primary": true,
+     "face": true
     },
     {
      "id": "odysseus",
-     "min": 0.07
+     "soft": true,
+     "min": 0.05
     }
+   ],
+   "touch": [
+    [
+     "set",
+     "ino-leucothea"
+    ]
    ]
   },
   {
@@ -718,6 +741,12 @@
      "min": 0.03,
      "primary": true
     }
+   ],
+   "touch": [
+    [
+     "set",
+     "odysseus"
+    ]
    ]
   }
  ]

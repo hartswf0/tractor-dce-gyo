@@ -43,148 +43,228 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -20,
-     "z": 75,
+     "x": 0,
+     "z": 20,
      "y": "floor",
      "face": [
-      80,
-      300
+      0,
+      400
      ],
-     "props": true,
+     "props": false,
+     "on": "black ship",
      "pose": {
       "armRP": [
-       -1.6,
+       -2.4,
        0,
-       0.2
+       0
       ]
-     },
-     "on": "black ship"
+     }
     },
     {
      "id": "three-scouts-1",
-     "x": 40,
-     "z": 150,
+     "x": -50,
+     "z": 185,
      "y": "floor",
      "face": [
-      80,
-      400
+      -50,
+      500
      ],
      "props": false,
-     "on": "*"
+     "on": "*",
+     "pose": {
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ],
+      "armRP": [
+       0.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "three-scouts-2",
-     "x": 95,
-     "z": 130,
+     "x": 10,
+     "z": 205,
      "y": "floor",
      "face": [
-      80,
-      400
+      10,
+      500
      ],
      "props": false,
-     "on": "*"
+     "on": "*",
+     "pose": {
+      "legRP": [
+       0.4,
+       0,
+       0
+      ],
+      "legLP": [
+       -0.5,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ],
+      "armLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "three-scouts-3",
-     "x": -10,
-     "z": 125,
+     "x": 70,
+     "z": 180,
      "y": "floor",
      "face": [
-      80,
-      400
+      70,
+      500
      ],
-     "props": false
+     "props": false,
+     "on": "*",
+     "pose": {
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ],
+      "armRP": [
+       0.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "lotus-eaters-1",
-     "x": 56,
-     "z": 215,
+     "x": -150,
+     "z": 260,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      190
      ],
-     "props": false
+     "props": false,
+     "on": "*",
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "lotus-eaters-2",
-     "x": 140,
-     "z": 190,
+     "x": 170,
+     "z": 255,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      190
      ],
      "props": false,
-     "on": "*"
+     "on": "*",
+     "pose": {
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "lotus-eaters-3",
-     "x": -90,
-     "z": 240,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     },
     {
      "id": "lotus-eaters-4",
-     "x": 10,
-     "z": 265,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     },
     {
      "id": "lotus-eaters-5",
-     "x": 180,
-     "z": 250,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     130,
-     140,
-     440
+     25,
+     75,
+     430
     ],
     "target": [
-     0,
-     40,
-     80
+     10,
+     70,
+     110
     ],
     "fov": 42
    },
    "subjects": [
     {
-     "id": "odysseus",
-     "min": 0.03,
-     "primary": true
+     "id": "three-scouts-2",
+     "min": 0.05,
+     "primary": true,
+     "face": true
     },
     {
-     "id": "three-scouts-2",
+     "id": "odysseus",
      "soft": true,
-     "min": 0.03
+     "min": 0.02
     }
    ],
-   "lensAllow": [
-    "lotus-eaters-1",
-    "lotus-eaters-2",
-    "lotus-eaters-3",
-    "lotus-eaters-4",
-    "lotus-eaters-5"
-   ]
+   "lensAllow": []
   },
   {
    "id": "K2",
@@ -195,54 +275,55 @@
    ],
    "props": [
     {
-     "name": "lotus",
+     "name": "lotusHeld",
      "id": "lotus",
-     "at": [
-      40,
-      52,
-      205
-     ],
-     "scale": 1.2
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:lotus-eaters-1:L",
+      "dir": [
+       0,
+       -1,
+       0.3
+      ]
+     },
+     "scale": 0.5
     }
    ],
    "blocking": [
     {
      "id": "lotus-eaters-1",
-     "x": 56,
-     "z": 215,
+     "x": 60,
+     "z": 220,
      "y": "floor",
      "face": [
-      20,
-      190
+      0,
+      220
      ],
      "props": false,
+     "on": "*",
      "pose": {
-      "armRP": [
+      "armLP": [
        -1.4,
        0,
        0
-      ],
-      "armLP": [
-       -0.3,
-       0,
-       0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "three-scouts-1",
-     "x": 22,
-     "z": 190,
+     "x": 0,
+     "z": 220,
      "y": "floor",
      "face": [
-      56,
-      215
+      60,
+      220
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "armRP": [
-       -1.0,
+       -1.3,
        0,
        0
       ]
@@ -250,111 +331,109 @@
     },
     {
      "id": "three-scouts-2",
-     "x": -10,
-     "z": 160,
+     "x": -60,
+     "z": 200,
      "y": "floor",
      "face": [
-      56,
-      215
+      60,
+      220
      ],
      "props": false,
      "on": "*"
     },
     {
-     "id": "three-scouts-3",
-     "x": -20,
-     "z": 225,
-     "y": "floor",
-     "face": [
-      56,
-      215
-     ],
-     "props": false,
-     "pose": {
-      "armLP": [
-       -0.6,
-       0,
-       0
-      ]
-     }
-    },
-    {
      "id": "lotus-eaters-2",
-     "x": 150,
-     "z": 255,
-     "y": "floor",
-     "face": [
-      56,
-      215
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -0.4,
-       0,
-       0
-      ]
-     }
-    },
-    {
-     "id": "lotus-eaters-3",
-     "x": -90,
-     "z": 240,
+     "x": 120,
+     "z": 200,
      "y": "floor",
      "face": [
       0,
-      215
+      220
      ],
-     "props": false
-    },
-    {
-     "id": "lotus-eaters-4",
-     "x": 95,
-     "z": 262,
-     "y": "floor",
-     "face": [
-      56,
-      215
-     ],
-     "props": false
-    },
-    {
-     "id": "lotus-eaters-5",
-     "x": 180,
-     "z": 250,
-     "y": "floor",
-     "face": [
-      56,
-      215
-     ],
-     "props": false
+     "props": false,
+     "on": "*",
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "odysseus",
-     "x": -160,
-     "z": -20,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
       0,
-      150
+      0
      ],
-     "props": true,
-     "on": "black ship"
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-4",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-5",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     215,
-     78,
-     215
+     30,
+     72,
+     400
     ],
     "target": [
-     38,
-     58,
-     205
+     30,
+     70,
+     215
     ],
-    "fov": 42
+    "fov": 40
    },
    "subjects": [
     {
@@ -366,6 +445,11 @@
      "id": "three-scouts-1",
      "min": 0.08,
      "soft": true
+    },
+    {
+     "id": "prop:lotus",
+     "soft": true,
+     "cut": true
     }
    ],
    "turn": {
@@ -378,12 +462,7 @@
     "h": 75,
     "fov": 46
    },
-   "lensAllow": [
-    "lotus-eaters-2",
-    "lotus-eaters-3",
-    "lotus-eaters-4",
-    "lotus-eaters-5"
-   ],
+   "lensAllow": [],
    "touch": [
     [
      "prop:lotus",
@@ -401,14 +480,15 @@
    "blocking": [
     {
      "id": "three-scouts-1",
-     "x": 30,
-     "z": 200,
+     "x": -40,
+     "z": 215,
      "y": "floor",
      "face": [
-      30,
-      -200
+      -40,
+      500
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "legRP": [
        -1.5708,
@@ -421,29 +501,24 @@
        0
       ],
       "armRP": [
-       -1.2,
+       -1.4,
        0,
-       0
-      ],
-      "headP": [
-       0,
-       0.5,
        0
       ]
      },
-     "sit": true,
-     "reach": 10
+     "sit": true
     },
     {
      "id": "three-scouts-2",
-     "x": -20,
+     "x": 20,
      "z": 225,
      "y": "floor",
      "face": [
-      60,
-      -200
+      20,
+      500
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "legRP": [
        -1.5708,
@@ -456,29 +531,24 @@
        0
       ],
       "armLP": [
-       -0.7,
+       -0.6,
        0,
-       0
-      ],
-      "headP": [
-       0,
-       -0.5,
        0
       ]
      },
-     "sit": true,
-     "reach": 10
+     "sit": true
     },
     {
      "id": "three-scouts-3",
      "x": 80,
-     "z": 230,
+     "z": 215,
      "y": "floor",
      "face": [
-      -20,
-      -200
+      80,
+      500
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "legRP": [
        -1.5708,
@@ -489,125 +559,157 @@
        -1.5708,
        0,
        0
-      ],
-      "headP": [
-       0,
-       0.3,
-       0
       ]
      },
-     "sit": true,
-     "reach": 10
+     "sit": true
     },
     {
      "id": "lotus-eaters-1",
-     "x": 140,
-     "z": 195,
+     "x": -110,
+     "z": 250,
      "y": "floor",
      "face": [
-      30,
-      210
+      -40,
+      215
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "armRP": [
        -1.3,
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "lotus-eaters-2",
-     "x": -90,
-     "z": 260,
+     "x": 150,
+     "z": 245,
      "y": "floor",
      "face": [
-      30,
-      210
-     ],
-     "props": false
-    },
-    {
-     "id": "lotus-eaters-3",
-     "x": 20,
-     "z": 280,
-     "y": "floor",
-     "face": [
-      30,
-      210
+      80,
+      215
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "armLP": [
-       -1.0,
+       -1.2,
        0,
        0
       ]
      }
     },
     {
-     "id": "lotus-eaters-4",
-     "x": 120,
-     "z": 270,
-     "y": "floor",
-     "face": [
-      30,
-      210
-     ],
-     "props": false
-    },
-    {
-     "id": "lotus-eaters-5",
-     "x": 180,
-     "z": 240,
-     "y": "floor",
-     "face": [
-      30,
-      210
-     ],
-     "props": false
-    },
-    {
      "id": "odysseus",
-     "x": -160,
-     "z": -20,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
       0,
-      150
+      0
      ],
-     "props": true,
-     "on": "black ship"
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-4",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "lotus-eaters-5",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
      20,
-     55,
-     60
+     58,
+     400
     ],
     "target": [
-     25,
-     40,
-     230
+     20,
+     45,
+     225
     ],
-    "fov": 48
+    "fov": 38
    },
    "subjects": [
     {
-     "id": "three-scouts-1",
-     "min": 0.12,
-     "primary": true
+     "id": "three-scouts-2",
+     "min": 0.08,
+     "primary": true,
+     "face": true
     },
     {
-     "id": "three-scouts-2",
+     "id": "three-scouts-1",
      "soft": true,
      "min": 0.05
     }
-   ]
+   ],
+   "props": [
+    {
+     "name": "lotusHeld",
+     "id": "lotus",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:three-scouts-1:R",
+      "dir": [
+       0,
+       -1,
+       0.3
+      ]
+     },
+     "scale": 0.5
+    },
+    {
+     "name": "lotusHeld",
+     "id": "lotus2",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:lotus-eaters-2:L",
+      "dir": [
+       0,
+       -1,
+       0.3
+      ]
+     },
+     "scale": 0.5
+    }
+   ],
+   "lensAllow": []
   },
   {
    "id": "K4",
@@ -619,153 +721,186 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -10,
-     "z": 50,
+     "x": 0,
+     "z": 130,
      "y": "floor",
      "face": [
-      -30,
-      -100
-     ],
-     "props": true,
-     "pose": {
-      "armLP": [
-       0.9,
-       0,
-       -0.3
-      ],
-      "armRP": [
-       -0.6,
-       0,
-       0
-      ]
-     },
-     "on": "black ship"
-    },
-    {
-     "id": "three-scouts-1",
-     "x": 15,
-     "z": 95,
-     "y": "floor",
-     "face": [
-      -10,
-      50
+      0,
+      -400
      ],
      "props": false,
+     "on": "*",
      "pose": {
-      "armRP": [
-       -1.7,
-       0,
-       0.4
-      ],
       "armLP": [
-       0.3,
+       -0.3,
        0,
        0
       ],
-      "headP": [
+      "armRP": [
+       -1.2,
        0,
+       0
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
        0.4,
+       0,
        0
       ]
      }
     },
     {
-     "id": "three-scouts-2",
-     "x": 50,
-     "z": 120,
+     "id": "three-scouts-1",
+     "x": 30,
+     "z": 180,
      "y": "floor",
      "face": [
-      -10,
-      50
+      0,
+      -400
      ],
      "props": false,
+     "on": "*",
      "pose": {
       "armLP": [
        -1.2,
        0,
        0
       ],
-      "headP": [
+      "armRP": [
+       -2.6,
        0,
+       0
+      ],
+      "legRP": [
+       0.4,
+       0,
+       0
+      ],
+      "legLP": [
        -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-scouts-2",
+     "x": -60,
+     "z": 210,
+     "y": "floor",
+     "face": [
+      -40,
+      500
+     ],
+     "props": false,
+     "on": "*",
+     "pose": {
+      "armLP": [
+       -2.4,
+       0,
+       0
+      ],
+      "armRP": [
+       -2.4,
+       0,
        0
       ]
      }
     },
     {
      "id": "three-scouts-3",
-     "x": -60,
-     "z": 120,
+     "x": 110,
+     "z": 245,
      "y": "floor",
      "face": [
-      -10,
-      50
+      80,
+      500
      ],
      "props": false,
+     "on": "*",
      "pose": {
-      "headP": [
+      "armRP": [
+       -2.0,
        0,
-       0.3,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "lotus-eaters-1",
-     "x": 56,
-     "z": 215,
+     "x": -130,
+     "z": 270,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      130
      ],
-     "props": false
+     "props": false,
+     "on": "*",
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.5,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "lotus-eaters-2",
-     "x": 140,
-     "z": 190,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
      "props": false,
-     "on": "*"
+     "absent": true
     },
     {
      "id": "lotus-eaters-3",
-     "x": -90,
-     "z": 240,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     },
     {
      "id": "lotus-eaters-4",
-     "x": 10,
-     "z": 265,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     },
     {
      "id": "lotus-eaters-5",
-     "x": 180,
-     "z": 250,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      40,
-      160
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     }
    ],
    "look": {
@@ -788,36 +923,33 @@
    "camera": {
     "type": "wide",
     "pos": [
-     150,
-     115,
-     260
+     -30,
+     80,
+     5
     ],
     "target": [
-     -5,
-     50,
-     75
+     10,
+     52,
+     175
     ],
-    "fov": 44
+    "fov": 50
    },
    "subjects": [
     {
      "id": "odysseus",
-     "min": 0.1,
-     "primary": true
+     "min": 0.07,
+     "primary": true,
+     "face": true,
+     "cut": true
     },
     {
-     "id": "three-scouts-1",
-     "min": 0.07
+     "id": "three-scouts-2",
+     "soft": true,
+     "min": 0.04
     }
    ],
-   "lensAllow": [
-    "lotus-eaters-1",
-    "lotus-eaters-2",
-    "lotus-eaters-3",
-    "lotus-eaters-4",
-    "lotus-eaters-5",
-    "three-scouts-2"
-   ]
+   "lensAllow": [],
+   "touch": []
   }
  ]
 }

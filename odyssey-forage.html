@@ -142,7 +142,25 @@
     const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), r = Math.max(size.x, size.y, size.z, 60);
     controls.target.copy(c); const dir = (q.get('view') === 'front' ? new THREE.Vector3(-0.25, 0.18, 1) : new THREE.Vector3(-0.9, 0.85, 1.05)).normalize();   /* ?view=front: eye level, the way a film camera meets a figure */ const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
     camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
+    if (q.get('studio')) studio(model, box, c, r, fit);
     $('#veil').textContent = ''; window.__ready = id;
+  }
+  /* ── studio: product photography for a set, the way a box or an Ideas page shows it. ?studio=dark|light&az=deg&el=deg&zoom=f
+     A seamless backdrop (a vignette that falls to black or to warm paper), a key light from high front-left with soft shadows on the
+     table, a cool rim light behind to lift the silhouette, the camera at the asked azimuth and elevation about the model ── */
+  function studio(model, box, c, r, fit) {
+    const dark = q.get('studio') !== 'light', az = THREE.MathUtils.degToRad(+(q.get('az') || 35)), el = THREE.MathUtils.degToRad(+(q.get('el') || 18)), zoom = +(q.get('zoom') || 1);
+    const cv = document.createElement('canvas'); cv.width = cv.height = 512; const g = cv.getContext('2d'), gr = g.createRadialGradient(256, 230, 30, 256, 256, 360);
+    if (dark) { gr.addColorStop(0, '#3a3530'); gr.addColorStop(0.55, '#1a1714'); gr.addColorStop(1, '#050404'); } else { gr.addColorStop(0, '#f6f1e6'); gr.addColorStop(0.6, '#e2d8c4'); gr.addColorStop(1, '#b9ab90'); }
+    g.fillStyle = gr; g.fillRect(0, 0, 512, 512); const tex = new THREE.CanvasTexture(cv); tex.encoding = THREE.sRGBEncoding; scene.background = tex;
+    scene.children.filter(o => o.isLight).forEach(o => o.intensity *= dark ? 0.35 : 0.6);
+    const ka = az + 0.55, key = new THREE.SpotLight(0xfff1dc, dark ? 0.95 : 0.8, 0, Math.PI / 5, 0.6, 1); key.position.set(c.x + Math.sin(ka) * r * 2.4, c.y + r * 1.7, c.z + Math.cos(ka) * r * 2.4);   /* the key a little to the right of the lens and above */ key.target.position.copy(c); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; scene.add(key, key.target);
+    const rim = new THREE.DirectionalLight(0xdfe6f4, dark ? 0.9 : 0.5); rim.position.set(c.x - Math.sin(az + 0.6) * r * 2, c.y + r * 1.2, c.z - Math.cos(az + 0.6) * r * 2); scene.add(rim);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    const floorM = new THREE.Mesh(new THREE.PlaneGeometry(r * 30, r * 30), new THREE.ShadowMaterial({ opacity: dark ? 0.55 : 0.28 })); floorM.rotation.x = -Math.PI / 2; floorM.position.y = box.min.y - 0.5; floorM.receiveShadow = true; scene.add(floorM);
+    const at = (q.get('at') || '').split(',').map(Number); if (at.length === 3 && at.every(isFinite)) c = new THREE.Vector3(at[0], at[1], at[2]).applyMatrix4(model.matrixWorld);   /* ?at=x,y,z: aim at a point of the build (LDraw units), for a detail shot */
+    const d = (fit + r * 0.35) / zoom, dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+    camera.position.copy(c).addScaledVector(dir, d); controls.target.copy(c); camera.lookAt(c); camera.updateProjectionMatrix(); renderer.toneMappingExposure = dark ? 1.1 : 1.0;
   }
   /* ── previs: the scene's cast blocked on the set, the beats as shots; figures walk between marks, speakers gesture, the camera cuts ── */
   const ploader = new THREE.LDrawLoader(); ploader.setPath('ldraw/'); ploader.setFileMap({}); ploader.smoothNormals = true; ploader.separateObjects = true;

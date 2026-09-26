@@ -73,7 +73,7 @@ function kfSpotAt(c,x,z){const key=x+','+z;if(c.memo.has(key))return c.memo.get(
 function kfSpots(label){const c=kfSpotCtx(label);if(!c)return [];const out=[];for(let x=Math.ceil(c.box[0]/c.h)*c.h;x<=c.box[3];x+=c.h)for(let z=Math.ceil(c.box[2]/c.h)*c.h;z<=c.box[5];z+=c.h){const p=kfSpotAt(c,x,z);if(p)out.push(p);}return out;}
 function kfSpot(label,near,taken,bad=new Set()){const c=kfSpotCtx(label);if(!c)return null;const sc=c.sc,cand=[];
   for(let x=Math.ceil(c.box[0]/c.h)*c.h;x<=c.box[3];x+=c.h)for(let z=Math.ceil(c.box[2]/c.h)*c.h;z<=c.box[5];z+=c.h)cand.push([Math.hypot(x-near[0],z-near[1]),x,z]);
-  cand.sort((a,b)=>a[0]-b[0]);for(const [,x,z] of cand){if(bad.has(x+','+z)||taken.some(t=>Math.hypot(t.x-x,t.z-z)<36*sc))continue;const p=kfSpotAt(c,x,z);if(p){taken.push(p);return p;}}return null;}
+  cand.sort((a,b)=>a[0]-b[0]);for(const [,x,z] of cand){if(bad.has(x+','+z)||taken.some(t=>Math.hypot(t.x-x,t.z-z)<44*sc))continue;const p=kfSpotAt(c,x,z);if(p){taken.push(p);return p;}}return null;}
 /* a figure's real clash with the set and the props (not the floor under its feet): the set's vertices inside the figure's parts */
 function kfSetClash(a){const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ab=kfBoxes(a);if(!ab.length)return 0;
   const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,fb=new THREE.Box3().setFromObject(a.rig.figure),rest=a.rig.sat?kfWorld(a.rig.legRP).y+2*k:fb.min.y+6*k;let n=0;
