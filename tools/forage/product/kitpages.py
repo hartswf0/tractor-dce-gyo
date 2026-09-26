@@ -70,7 +70,7 @@ def load():
         k = json.load(open(f))
         if any(e['slug'] == k['slug'] for e in EARLIER): continue
         for b in k.get('builds', []): b.update(measure(b['card']) or {})
-        k['hero'] = next((i['file'] for i in k.get('images', []) if i['file'].startswith('hero')), (k.get('images') or [{}])[0].get('file', ''))
+        k['hero'] = k.get('hero') or next((i['file'] for i in k.get('images', []) if i['file'].startswith('hero')), (k.get('images') or [{}])[0].get('file', ''))   # a manifest may choose its picture
         kits.append(k)
     for k in kits:
         main = (k.get('builds') or [{}])[0]

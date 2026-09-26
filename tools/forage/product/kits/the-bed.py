@@ -380,7 +380,7 @@ if __name__ == '__main__':
     for sub, title, rows in subs: write(f'set.the-bed-{sub}', f'The Bed: {title.lower()}', rows)
     print('set.the-bed', n, 'pieces; open', n2, '; front wall', n - n2)
     for nm in ['set.the-bed', 'set.the-bed-open'] + [f'set.the-bed-{s_}' for s_, _, _ in subs]: check(nm)
-    manifest(SLUG, title='The Bed', book='XXIII', tier='Large',
+    manifest(SLUG, title='The Bed', hero='inside.jpg', book='XXIII', tier='Large',
              moment='Penelope has ordered the bed carried out; Odysseus, stung, tells how he built it round a living olive, and she runs to him: '
                     'the two embrace beside the bed while old Eurycleia stands in the doorway with the lamp.',
              quote='There was a young olive growing within the precincts of the house, in full vigour, and about as thick as a bearing-post. '

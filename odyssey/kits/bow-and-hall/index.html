@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bow and the Hall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Flagship · Book XXI-XXII · 2,871 pieces</div>
+  <h1>The Bow and the Hall</h1>
+  <p class="lede">The turn: the beggar has strung the bow and stands on the stone sill inside the shut great doors; his arrow has gone through all twelve axe-heads down the spine of the hall and out past the last, and the suitors at their tables have not yet understood.</p>
+  <blockquote>&quot;...and let the arrow fly, and missed not the end of the handle of any of the axes, but clean through and out at the last passed the arrow weighted with bronze.&quot; (Odyssey XXI.421-423, tr. A. T. Murray)</blockquote>
+  <figure><img src="hero.jpg" alt="A long LEGO megaron of tan stone walls on a white-framed base, red columns and a raised square clerestory inside, a porch with two red columns at one end."><figcaption>The hall shut: the great doors, the porch and the court at one end, the clerestory over the hearth, the painted band inside the walls.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The bow and the twelve axes: a Technic axle 32L, the arrow, really runs through the pin holes of twelve Technic bricks 1 x 1 set on one axis in a trench of stamped earth down the floor; it slides back and forth through all twelve, its bronze point (a cone on the axle end) out past the last, its fletching behind the first.</p>
+  <div class="two"><figure><img src="open.jpg" alt="The LEGO hall from above with its front wall removed: a painted floor, a line of dark axe-heads with a rod through them, tables of minifigure suitors, the round hearth between four red columns." loading="lazy"><figcaption>The front wall lifted away: the archer at the doors, the twelve axe-heads down the spine with the arrow through them, the suitors still at their wine.</figcaption></figure><figure><img src="sill.jpg" alt="Close view of minifigures with a bow and a spear on a grey stone sill before two brown doors." loading="lazy"><figcaption>On the sill: the bow strung, the doors shut behind him, Telemachus with his spear.</figcaption></figure><figure><img src="axes.jpg" alt="Twelve dark grey Technic bricks with curved tops in a brown trench, a long axle through their holes." loading="lazy"><figcaption>The twelve heads and the arrow through them.</figcaption></figure><figure><img src="hearth.jpg" alt="A round LEGO hearth of white bricks with red and blue tiles, embers and two flames, between four red columns." loading="lazy"><figcaption>The hearth ringed in painted plaster, the four columns, the smoke hole.</figcaption></figure><figure><img src="throne.jpg" alt="A white LEGO throne on a grey dais before a wall with a red and blue band and tiled panels." loading="lazy"><figcaption>The throne before the end wall, the griffins suggested in tiles either side.</figcaption></figure><figure><img src="table.jpg" alt="Two seated minifigures with goblets at a small reddish-brown table against a frescoed wall." loading="lazy"><figcaption>A suitors&#x27; table: cups raised, meat on the dish.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The hall follows the halfworld megaron plan: the great doors and the stone sill at one end, the postern to the storeroom in the side wall near them, the axe line down the spine, the round hearth between four columns, the stair to Penelope&#x27;s door, the throne at the far end facing the doors.</li><li>The play: the arrow (a Technic axle 32L) threads the pin holes of twelve Technic bricks 1 x 1 in the trench and slides through all twelve; the two great doors (Door 1 x 4 x 6 in frames) swing on their hinges.</li><li>The front wall, with the postern in it, lifts off the base in one piece: its two rows of brick are tied by two-wide plate courses (a timber band and the course under the coping).</li><li>The walls are plastered inside with a dado, then a band of red, blue and red: white swirled plates on the studs of bricks with a stud on one side make a running spiral, and behind the throne two griffins are laid in tiles.</li><li>The floor is painted in squares: a pinwheel of four 1 x 3 tiles round a 2 x 2 tile of red, blue, white or ochre.</li><li>The columns narrow to their feet (an inverted cone plugged into a round stone foot), red with black capitals, and carry the clerestory: beams, short posts with the light between them, a roof round the smoke hole.</li><li>Beyond the doors, the porch with its two columns and the beggar&#x27;s bed of hide and fleeces; beyond it the court, its gate shut, the altar of Zeus of the court.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">309 pieces</div><h3>The bow and the axe line</h3><p>the bow and the axe line: the sill, the trench, the twelve heads, the arrow through them; the archer, his son, the swineherd</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">613 pieces</div><h3>The hearth, the columns and the clerestory</h3><p>the hearth with its four columns and the clerestory over it</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">498 pieces</div><h3>The throne and the griffins</h3><p>the throne on its dais before the end wall, the griffins painted either side of it</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">226 pieces</div><h3>A suitors&#x27; table</h3><p>a suitors&#x27; table against the back wall: the bench, the feast, two suitors at their wine</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>The Bow and the Hall</td><td><a href="../../cards/set.bow-and-hall.mpd"><code>set.bow-and-hall</code></a></td><td class="n">2,871</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The Bow and the Hall, the front wall lifted away</td><td><a href="../../cards/set.bow-and-hall-open.mpd"><code>set.bow-and-hall-open</code></a></td><td class="n">2,481</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The bow and the axe line</td><td><a href="../../cards/set.bow-and-hall-axes.mpd"><code>set.bow-and-hall-axes</code></a></td><td class="n">309</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The hearth, the columns and the clerestory</td><td><a href="../../cards/set.bow-and-hall-hearth.mpd"><code>set.bow-and-hall-hearth</code></a></td><td class="n">613</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The throne and the griffins</td><td><a href="../../cards/set.bow-and-hall-throne.mpd"><code>set.bow-and-hall-throne</code></a></td><td class="n">498</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>A suitors&#x27; table</td><td><a href="../../cards/set.bow-and-hall-table.mpd"><code>set.bow-and-hall-table</code></a></td><td class="n">226</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B21-S07/sheet.jpg" alt="Keyframes of The Bow" loading="lazy"><figcaption>OD-B21-S07 · The Bow</figcaption></figure><figure><img src="../../keyframes/OD-B22-S01/sheet.jpg" alt="Keyframes of Antinous Falls" loading="lazy"><figcaption>OD-B22-S01 · Antinous Falls</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The axe-heads are Technic bricks with a curved top: they read as a row of sockets with an edge above, not as the double-bladed heads of the halfworld prop.</li><li>The arrow is 32 studs long (about 12 m at minifig scale): it stands for the arrow&#x27;s whole flight down the line.</li><li>The griffins behind the throne, at 8 x 5 tiles, read as a pattern more than as griffins.</li><li>From most angles the clerestory hides part of the throne.</li><li>A plate-height gap is left above the door frames (the checker reads the frames&#x27; corner studs as their top); the lintel rests on the wall either side.</li><li>Minifigures, the tiles and plates on side studs, the arrow, the door leaves and the flames are not checked by the tool; they are placed by calculation and looked at in renders.</li><li>The inverted cone&#x27;s foot stud plugs into the axle hole of a 2 x 2 round plate: to be tried in real bricks.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/bow-and-hall.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/_plans/megaron.mjs"><code>odyssey-halfworld/scenes/_plans/megaron.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/OD-B21-S07.mjs"><code>odyssey-halfworld/scenes/OD-B21-S07.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/_direction.mjs"><code>odyssey-halfworld/scenes/_direction.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/location/megaron-hall.mjs"><code>odyssey-halfworld/assets/location/megaron-hall.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/prop/odysseuss-bow.mjs"><code>odyssey-halfworld/assets/prop/odysseuss-bow.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/prop/twelve-axe-heads.mjs"><code>odyssey-halfworld/assets/prop/twelve-axe-heads.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/set_piece/axe-alignment-lane.mjs"><code>odyssey-halfworld/assets/set_piece/axe-alignment-lane.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>
