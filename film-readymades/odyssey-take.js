@@ -208,11 +208,11 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
      comes between it and the walker anywhere along the way */
   for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
     /* a camera that travels with him, or one of the two keys' own marks turning to follow him (the gate's still frames him arriving) */
-    const cands=[];for(const yaw of [0.6,-0.6,0.3,-0.3,1.0,-1.0,0])for(const h of [0.35,0.9])cands.push({yaw,h,cam:{type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42}});
+    const cands=[];for(const yaw of [0.6,-0.6,1.0,-1.0])for(const h of [0.4])cands.push({yaw,h,cam:{type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42}});
     const j=order.indexOf(K);for(const kk of [K.k,order[j-1].k]){const kc=keyCam(kk);if(Array.isArray(kc.pos))cands.push({fixed:true,cam:{type:'wide',pos:kc.pos,target:id,fov:Math.max(kc.fov||40,40),subject:id,eye:0.42}});}
     for(const c of cands){let worst=0;
-      for(const f of [0.2,0.4,0.6,0.8,0.95]){const tt=K.win[0]+(K.win[1]-K.win[0])*f;poseCast(castAt(tt).state,tt);scene.updateMatrixWorld(true);
-        OdysseyFilm.rig(c.cam);const sc=OdysseyFilm.score([{id}])[id];worst=Math.max(worst,frameBlock(id)+(sc&&!sc.behind?1-sc.visible+(sc.facing<0?0.3:0):1));}
+      for(const f of [0.25,0.5,0.75,0.95]){const tt=K.win[0]+(K.win[1]-K.win[0])*f;poseCast(castAt(tt).state,tt);scene.updateMatrixWorld(true);
+        OdysseyFilm.rig(c.cam);const sc=OdysseyFilm.score([{id}])[id],near=camera.position.distanceTo(kfHead(id))<1.6*H?1:0;worst=Math.max(worst,near+frameBlock(id)+(sc&&!sc.behind?1-sc.visible+(sc.facing<0?0.3:0):1));}
       if(!best||worst<best.worst)best={...c,worst};}
     m.follow=best;}}
   /* the shot plan: every shot the clock can reach, its camera found and scored at its key's staging */
