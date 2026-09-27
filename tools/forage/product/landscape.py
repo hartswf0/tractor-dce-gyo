@@ -464,6 +464,9 @@ def outward(i, k, ci, ck):
     return math.atan2(k + .5 - ck, i + .5 - ci)
 
 
+DIRS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+
 def _ik(x, z): return round(x / S), round(z / S)
 
 
