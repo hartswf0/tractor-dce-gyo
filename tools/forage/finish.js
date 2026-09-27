@@ -45,12 +45,12 @@ const hash = s => [...String(s)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >
 const rowOf = l => { const t = l.trim().split(/\s+/); return { part: t[14].toLowerCase().replace(/\.dat$/, ''), col: +t[1], m: t.slice(2, 14).map(Number) }; };
 
 /** Finish the set of a scene: top is the scene's group (its first sub the set, the rest the cast); key the set's name in SETS. */
-function apply(top, key, seed) {
+function apply(top, key, seed, avoid = []) {
   const st = top.subs[0], stage = st.c, Ws = L.mul(st.M, stage.m);
   const kids = stage.subs.map(k => ({ name: k.c.name, W: L.mul(Ws, k.M), k }));
   const flat = kids.map(k => walk(k.k.c, k.W));
   const cast = top.subs.slice(1).flatMap(s => walk(s.c, s.M).map(e => e.row));
-  const input = { profile: profileOf(key), seed: hash(seed || key || 'set'), kids: kids.map((k, j) => ({ name: k.name, rows: flat[j].map(e => e.row) })), cast };
+  const input = { profile: profileOf(key), seed: hash(seed || key || 'set'), kids: kids.map((k, j) => ({ name: k.name, rows: flat[j].map(e => e.row) })), cast, avoid };
   if (process.env.FINISH_DUMP) require('fs').writeFileSync(process.env.FINISH_DUMP, JSON.stringify(input));
   let res;
   try { res = JSON.parse(execFileSync('python3', [PY], { input: JSON.stringify(input), maxBuffer: 1 << 28, encoding: 'utf8' })); }
@@ -63,6 +63,23 @@ function apply(top, key, seed) {
   });
   top.subs[0] = { ...st, c: { ...stage, subs } };
   return res.stats;
+}
+/** Where a scene's keyframe stills (odyssey/keyframes/<id>.json, Film Butter units) stand its figures, in the top's own frame (LDU): the
+    film frames a card as film-readymades/build_odyssey.py does (part origins flipped to y up, centred on their footprint, scaled to fit
+    330 units), and the finish is left out of that frame, so the unfinished card gives the same numbers. */
+function stillsOf(id, card, top) {
+  const f = path.join(L.ROOT, 'odyssey', 'keyframes', id + '.json'); if (!require('fs').existsSync(f)) return [];
+  let spec; try { spec = JSON.parse(require('fs').readFileSync(f, 'utf8')); } catch (e) { return []; }
+  const B = require('./build.js'), rows = B.rowsOf(card);
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const r of rows) { const x = r.m[0], z = -r.m[2]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
+  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, scale = Math.min(1, 330 / (Math.max(x1 - x0, z1 - z0) / 2));
+  const W = L.mul(L.mul(card.m, card.subs[1].M), top.m), Wi = L.inv(W), out = [];
+  for (const blk of [spec.blocking || [], ...(spec.keys || []).map(k => k.blocking || [])]) for (const e of blk) {
+    if (typeof e.x !== 'number' || typeof e.z !== 'number') continue;
+    const X = e.x / scale + cx, Z = -(e.z / scale + cz), p = L.apply(Wi, X, 0, Z); out.push([+p[0].toFixed(1), +p[2].toFixed(1)]);
+  }
+  return out;
 }
 /** The card's own plate: the ring of it round the set, finished in the set's materials (the sea to its edge, the court's earth). */
 function applyPlate(card, key, seed) {
@@ -77,4 +94,4 @@ function applyPlate(card, key, seed) {
   card.subs[0] = { ...pl, c: { ...pl.c, subs: [...pl.c.subs, { c: fin, M: L.inv(MM) }] } };
   return res.stats;
 }
-module.exports = { apply, applyPlate, PROFILES };
+module.exports = { apply, applyPlate, stillsOf, PROFILES };

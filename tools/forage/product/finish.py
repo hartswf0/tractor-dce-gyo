@@ -50,6 +50,7 @@ SKIP_DESC = re.compile(r'Minifig|Animal|Plant|Flower|Leaves|Tree|Rock|Wheel|Tech
                        r'Cone|Dish|Tile|Boat|Hull|Sail|Mast|Ladder|Cylinder|Container|Train|Bracket|Turntable|Jumper|Modified|Grille|'
                        r'Hose|String|Chain|Vine|Stem|Seaweed|Bone|Horse|Brick Curved|Arch 1 x 3|Macaroni|Corner|Wall', re.I)
 TRANS = {int(m.group(1)) for l in open(os.path.join(ldbox.LD, 'LDConfig.ldr'), errors='ignore') if (m := re.search(r'CODE\s+(\d+).*ALPHA\s+(\d+)', l)) and int(m.group(2)) < 255}
+FURNITURE = re.compile(r'table|chair|bench|couch|throne|altar|\bbed\b|loom|shelf|rack|stool|seat|\bpen\b|\bsty\b|fire|hearth|brazier', re.I)   # tops the cast sits at: left studded
 VEHICLE = re.compile(r'ship|raft|galley|boat|hull|wreck', re.I)
 PLAIN_WALLS = re.compile(r'^(walls|the threshold wall)$')
 
@@ -100,8 +101,8 @@ def studs_in(name):
     return tuple(out)
 
 
-def aabb(part, m):
-    b = LS.BODY.get(part) or ldbox.box(part, False)
+def aabb(part, m, studs=False):
+    b = (None if studs else LS.BODY.get(part)) or ldbox.box(part, studs)
     if not b: return None
     lo, hi = b
     xs, ys, zs = [], [], []
@@ -253,6 +254,7 @@ def finish(data):
     prof = data.get('profile') or {}
     seed = int(data.get('seed', 0))
     kids = data['kids']; cast = data.get('cast', [])
+    avoid = [tuple(p) for p in data.get('avoid', [])]      # where the keyframe stills stand figures (x, z in this frame)
     idx = Index()
     allrows = []                                          # (kid, n, row, box)
     boxes = {}
@@ -311,7 +313,7 @@ def finish(data):
     floor_votes = defaultdict(int)
     cand = []
     for ki, n, r, b in allrows:
-        if b is None or VEHICLE.search(kids[ki]['name']): continue
+        if b is None or VEHICLE.search(kids[ki]['name']) or FURNITURE.search(kids[ki]['name']): continue
         m = r['m']
         if abs(m[7] - 1) > 1e-3 or abs(m[4]) > 1e-3 or abs(m[10]) > 1e-3 or abs(m[6]) > 1e-3 or abs(m[8]) > 1e-3: continue
         d = desc(r['part'])
@@ -332,8 +334,15 @@ def finish(data):
     floor_y = max(floor_votes, key=floor_votes.get) if floor_votes else -8
     stats['floor'] = floor_y; stats['off lattice'] = sum(1 for c in cand if (c[2] - floor_y) % 8)
     cand = [c[:5] + ((c[5] in ('base', 'big') or (c[5] == 'plate' and c[2] >= floor_y - 16)),) + c[6:] for c in cand if (c[2] - floor_y) % 8 == 0]
+    # the floor round a table or a bench stays studded two studs out: the diners' feet stand there and their knees go under the top
+    seats = set()
+    for ki, n, r, b in allrows:
+        if b and re.search(r'table|bench|couch', kids[ki]['name'], re.I):
+            for i in range(math.floor(b[0] / S) - 2, math.floor(b[1] / S) + 3):
+                for k in range(math.floor(b[4] / S) - 2, math.floor(b[5] / S) + 3): seats.add((i, k))
     free = []
     for c in cand:
+        if c[5] and (math.floor(c[1] / S), math.floor(c[3] / S)) in seats: stats['kept by the tables'] += 1; continue
         ki, x, y, z = c[:4]
         if idx.hits_fine((x - 9.5, x + 9.5, y - 7.5, y - 0.5, z - 9.5, z + 9.5)): stats['kept'] += 1; continue
         free.append(c)
@@ -381,6 +390,7 @@ def finish(data):
                 cx, cz = (i + w / 2) * S + ox, (k + d / 2) * S + oz
                 if any(math.hypot(cx - ux, cz - uz) < 160 for ux, uz in used): continue
                 if any(b[0] - 70 < cx < b[1] + 70 and b[4] - 70 < cz < b[5] + 70 for b in castb): continue
+                if any(math.hypot(cx - ax, cz - az) < 60 + 20 * max(w, d) / 2 for ax, az in avoid): continue
                 p = LS.shrub(i * S, k * S, -y, seed + i * 7 + k, kind)
                 lines = shift_lines(p.rows, ox, oz)
                 bs = [aabb(q['part'], q['m']) for q in map(parse_line, lines)]
@@ -437,6 +447,8 @@ def finish(data):
         for l, r, b in parsed:
             here = (math.floor(r['m'][0] / 10), math.floor(r['m'][2] / 10))
             if b and b[3] < y - 0.5 and here in gone: stats['dress dropped'] += 1; continue   # its plate was not laid
+            if b and b[3] < y - 0.5 and any(b[0] - 40 < ax < b[1] + 40 and b[4] - 40 < az < b[5] + 40 for ax, az in avoid):
+                stats['dress kept clear of the stills'] += 1; continue     # a tuft where a still stands a figure
             if b and laid.hits((b[0] + .5, b[1] - .5, b[2] + .5, b[3] - .5, b[4] + .5, b[5] - .5)):
                 stats['lattice clash dropped'] += 1
                 for i in range(math.floor(b[0] / 10), math.floor(b[1] / 10) + 1):
@@ -447,6 +459,19 @@ def finish(data):
             kept.append(l)
             if b: laid.add(b)
         out[ki]['add'] += kept
+    # nothing past the set's own bounds in plan: the card's plate and the film's frame are measured from the set as built
+    allb = [b for *_, b in allrows if b] + [b for b in castb]
+    if allb:
+        X0, X1 = min(b[0] for b in allb) - .5, max(b[1] for b in allb) + .5
+        Z0, Z1 = min(b[4] for b in allb) - .5, max(b[5] for b in allb) + .5
+        for o in out:
+            keep = []
+            for l in o['add']:
+                r = parse_line(l); b = aabb(r['part'], r['m'], studs=True)
+                e = 0 if LS.on_grid(l) else 12                # a leaf at an angle measures larger to the forage than its body
+                if b and (b[0] < X0 + e or b[1] > X1 - e or b[4] < Z0 + e or b[5] > Z1 - e): stats['past the edge dropped'] += 1; continue
+                keep.append(l)
+            o['add'] = keep
     stats['added'] = sum(len(o['add']) for o in out)
     return {'kids': out, 'stats': dict(stats), 'floor': floor_y}
 

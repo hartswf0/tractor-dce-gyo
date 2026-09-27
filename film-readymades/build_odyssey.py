@@ -40,12 +40,13 @@ def world_children(sec, key, A=np.eye(3), a=np.zeros(3)):
     for p in placements(sec[key]):
         B, b = mat(p['transform']); yield p['ref'], p['color'], *compose(A, a, B, b)
 
-def leaves(sec, key, A, a, color):
-    """Every leaf part under a placement, in world: (ref, colour, rotation, position)."""
+def leaves(sec, key, A, a, color, bare=False):
+    """Every leaf part under a placement, in world: (ref, colour, rotation, position); bare leaves out the finishing pass's sub-builds."""
     if key in sec and not key.endswith('.dat'):
         for p in placements(sec[key]):
+            if bare and ' - finish' in p['ref']: continue
             B, b = mat(p['transform']); c = color if p['color'] == 16 else p['color']
-            yield from leaves(sec, p['ref'], *compose(A, a, B, b), c)
+            yield from leaves(sec, p['ref'], *compose(A, a, B, b), c, bare)
     else: yield key, color, A, a
 
 def scene(sid):
@@ -61,7 +62,9 @@ def scene(sid):
     allf = []
     tall = []   # each cast member's height, LDU, for framing
     for k, c, A, a in [plate, stage] + cast_places:
-        ys = [(b * flip)[1] for ref, col, B, b in leaves(sec, k, A, a, c)]; allf += [b * flip for ref, col, B, b in leaves(sec, k, A, a, c)]
+        # the frame is the set as built, without its finish (tools/forage/finish.js): tiles laid on it must not move or rescale the
+        # world the stills were blocked in
+        ys = [(b * flip)[1] for ref, col, B, b in leaves(sec, k, A, a, c, bare=True)]; allf += [b * flip for ref, col, B, b in leaves(sec, k, A, a, c, bare=True)]
         tall.append(max(ys) - min(ys) + 24 if ys else 72)
     tall = tall[2:]
     allf = np.array(allf); lo = allf.min(0); hi = allf.max(0)

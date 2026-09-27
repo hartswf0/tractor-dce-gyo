@@ -168,9 +168,11 @@ for (const sc of manifest.scenes) {
   const { list, blocking } = Stage.block(stage, SEA.has(SCENE_SET[sc.id]) ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
   /* the finishing pass: the set's exposed studs tiled by material, plain walls coursed, bare ground planted (tools/forage/finish.js) */
-  const fin = args.includes('--nofinish') ? null : Finish.apply(top, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id);
+  const plateCol = SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19;   /* a sea set's plate is sea to its edge */
+  const stills = args.includes('--nofinish') ? [] : Finish.stillsOf(sc.id, onPlate(sc.title, [top], plateCol, {}).card, top);   /* the card as the film frames it */
+  const fin = args.includes('--nofinish') ? null : Finish.apply(top, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id, stills);
   if (fin && ONLY) console.log('   finish: ' + JSON.stringify(fin));
-  const { card } = onPlate(sc.title, [top], SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
+  const { card } = onPlate(sc.title, [top], plateCol, {});
   if (fin) Finish.applyPlate(card, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id);   /* the plate's ring round the set, finished the same way */
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
   const pv = Stage.previs(sc, blocking, stage.marks);
