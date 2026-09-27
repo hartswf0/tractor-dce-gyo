@@ -131,7 +131,7 @@ for (const a of manifest.assets) {
 }
 /* scenes: the location's set as a stage (a hero set with its marks, or the set at the back of a floor with marks laid on it),
    the cast blocked onto the marks, the beats read into a previs timeline */
-const Stage = require('./forage/stage.js'), Sets = require('./forage/sets.js');
+const Stage = require('./forage/stage.js'), Sets = require('./forage/sets.js'), Finish = require('./forage/finish.js');
 fs.mkdirSync(path.join(OUT, 'previs'), { recursive: true });
 function stageOf(loc, title) {
   if (loc && loc.rec.stage) return loc.rec.stage;
@@ -161,6 +161,9 @@ for (const sc of manifest.scenes) {
   const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: /character|ensemble|creature/.test(p.a.type) ? p.top : crop(p.top, 24, 16, p.a.name) }   /* people and animals are never cut by a window */)).filter(c => rowsOf(c.comp).length);
   const { list, blocking } = Stage.block(stage, SEA.has(SCENE_SET[sc.id]) ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
+  /* the finishing pass: the set's exposed studs tiled by material, plain walls coursed, bare ground planted (tools/forage/finish.js) */
+  const fin = args.includes('--nofinish') ? null : Finish.apply(top, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id);
+  if (fin && ONLY) console.log('   finish: ' + JSON.stringify(fin));
   const { card } = onPlate(sc.title, [top], SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
   const pv = Stage.previs(sc, blocking, stage.marks);

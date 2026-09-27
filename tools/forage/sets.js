@@ -942,7 +942,7 @@ const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
     [walls(36, 30, 6, C.tan, { door: true, doorX: 10, band: C.dred }), 0, 0, 2, -8],
-    [frontWall(36, 6, C.tan, { dw: 6, band: C.dred, lintel: C.dred }), 0, 14.5, 0, -8],
+    [frontWall(34, 6, C.tan, { dw: 6, band: C.dred, lintel: C.dred }), 0, 14, 0, -8],   /* between the side walls, on the front row of studs */
     [FURN.hearth(), 0, -2], [FURN.column(7), -6, -6], [FURN.column(7), 6, -6], [FURN.column(7), -6, 4], [FURN.column(7), 6, 4],
     [FURN.throne(), 0, -12], [FURN.table(), -11, -4], [FURN.table(), -11, 4], [FURN.table(), 11, -4], [FURN.table(), 11, 4],
     [FURN.chair(), -15, -4], [FURN.chair(), -15, 4], [FURN.chair(), 15, -4, 2], [FURN.chair(), 15, 4, 2],
