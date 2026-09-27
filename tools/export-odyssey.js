@@ -62,7 +62,7 @@ function vtt(caps, seconds) { return 'WEBVTT\n\n' + caps.filter(c => c.t0 < seco
   await page.evaluate(() => { document.body.classList.add('kf'); const st = document.createElement('style'); st.textContent = 'body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools{visibility:hidden!important}'; document.head.appendChild(st); });
   await page.waitForTimeout(800);
   const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H });
-  say('take', info.scene, info.mode, info.total.toFixed(2), 's; keys', JSON.stringify(info.keys), '; faces', info.faces.join(','), '; shots', JSON.stringify(info.shots));
+  say('follow', JSON.stringify(info.follow));say('take', info.scene, info.mode, info.total.toFixed(2), 's; keys', JSON.stringify(info.keys), '; faces', info.faces.join(','), '; shots', JSON.stringify(info.shots));
   if (stills) {
     for (const s of stills.split(',').map(Number)) { const r = await page.evaluate(t => OdysseyTake.frame(t, { quality: 0.92 }), s); const f = `${base}-t${s.toFixed(1)}.jpg`; fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', f, r.key, r.shot, 'ms apply/render/encode', r.ms.join('/')); }
     await browser.close(); return; }

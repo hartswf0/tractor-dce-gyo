@@ -107,7 +107,7 @@ function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan
   if(sh.kind==='HEADER'&&P){const a=P.from,b=P.to,v=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur)));
     kfShoot({pos:a.pos.map((x,i)=>lerp(x,b.pos[i],v)),target:a.target.map((x,i)=>lerp(x,b.target[i],v)),fov:lerp(a.fov,b.fov,v)});return;}
   const sub=sh.c&&(sh.kind==='REACT'?sh.c.addressee:sh.c.speaker),mv=T.moving&&T.win&&sub&&T.win.moves[sub];
-  if(mv&&mv.walk&&sh.kind!=='HEADER'){const H=T.H[sub]||60,f=mv.follow||{yaw:0.6,h:0.35};OdysseyFilm.rig({type:'hero',a:sub,yaw:f.yaw,dist:2.9*H,height:f.h*H,fov:40,subject:sub,eye:0.42});return;}   /* a figure crossing the set: a tracking shot that keeps ahead of him */
+  if(mv&&mv.walk&&sh.kind!=='HEADER'){const H=T.H[sub]||60,f=mv.follow||{cam:{type:'hero',a:sub,yaw:0.6,dist:2.9*H,height:0.35*H,fov:40,subject:sub,eye:0.42}};OdysseyFilm.rig(f.cam);return;}   /* a figure crossing the set: a tracking shot that keeps ahead of him */
   const c=P&&P.cam||keyCam(T.keyOf(t));
   if(c.type==='hero'){OdysseyFilm.rig({...c,dist:c.dist*(1-0.08*u)});return;}
   if(c.type==='obj'){const r=rigOf(c.a),hand=kfHand(c.a,'R');if(r&&hand){const aim=hand.clone().lerp(kfHead(c.a),0.35),fwd=new V3(Math.sin(r.heading+c.yaw),0,Math.cos(r.heading+c.yaw)),pos=aim.clone().add(fwd.multiplyScalar(c.dist*(1-0.1*u))).add(new V3(0,c.h,0));kfShoot({pos:pos.toArray(),target:aim.toArray(),fov:32});return;}}
@@ -207,10 +207,13 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   /* the walks: a tracking shot for each figure that crosses the set, its bearing chosen so that nothing (an olive, a column)
      comes between it and the walker anywhere along the way */
   for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
-    for(const yaw of [0.6,-0.6,0.3,-0.3,1.0,-1.0,0])for(const h of [0.35,0.9]){let worst=0;
-      for(const f of [0.3,0.5,0.7,0.9]){const tt=K.win[0]+(K.win[1]-K.win[0])*f;poseCast(castAt(tt).state,tt);scene.updateMatrixWorld(true);
-        OdysseyFilm.rig({type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42});const sc=OdysseyFilm.score([{id}])[id];worst=Math.max(worst,frameBlock(id)+(sc&&!sc.behind?1-sc.visible:1));}
-      if(!best||worst<best.worst)best={yaw,h,worst};}
+    /* a camera that travels with him, or one of the two keys' own marks turning to follow him (the gate's still frames him arriving) */
+    const cands=[];for(const yaw of [0.6,-0.6,0.3,-0.3,1.0,-1.0,0])for(const h of [0.35,0.9])cands.push({yaw,h,cam:{type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42}});
+    const j=order.indexOf(K);for(const kk of [K.k,order[j-1].k]){const kc=keyCam(kk);if(Array.isArray(kc.pos))cands.push({fixed:true,cam:{type:'wide',pos:kc.pos,target:id,fov:Math.max(kc.fov||40,40),subject:id,eye:0.42}});}
+    for(const c of cands){let worst=0;
+      for(const f of [0.2,0.4,0.6,0.8,0.95]){const tt=K.win[0]+(K.win[1]-K.win[0])*f;poseCast(castAt(tt).state,tt);scene.updateMatrixWorld(true);
+        OdysseyFilm.rig(c.cam);const sc=OdysseyFilm.score([{id}])[id];worst=Math.max(worst,frameBlock(id)+(sc&&!sc.behind?1-sc.visible+(sc.facing<0?0.3:0):1));}
+      if(!best||worst<best.worst)best={...c,worst};}
     m.follow=best;}}
   /* the shot plan: every shot the clock can reach, its camera found and scored at its key's staging */
   const ids=new Map();for(let t=0;t<T.total;t+=0.05){const sh=shotAt(t);if(!ids.has(sh.id))ids.set(sh.id,{sh,t});}
@@ -225,7 +228,7 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       else if(sh.kind==='OBJ'&&c.speaker)cam=objFor(c.speaker,K.k);
       T.plan.set(sh.id,{cam,kind:sh.kind,fallback:!cam});const tag=sh.kind+(cam?'':'→key');stats[tag]=(stats[tag]||0)+1;}}
   T.world=null;T.stats=stats;return info();}
-function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify(m.follow))).flat(),scene:T.sid,mode:T.mode,total:T.total,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
+function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
 /* ── one frame at t: the world, the cast, the camera; drawn, then captioned ── */
 function apply(t){const {state,key}=castAt(t);worldFor(key);if(T.env){scene.background=T.env.bg;scene.fog=T.env.fog;renderer.toneMapping=T.env.tone;renderer.toneMappingExposure=T.env.exp;renderer.shadowMap.enabled=T.env.sh;}poseCast(state,t);const sh=shotAt(t);shootAt(sh,t);scene.updateMatrixWorld(true);return sh;}
