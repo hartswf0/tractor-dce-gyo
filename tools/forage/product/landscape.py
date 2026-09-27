@@ -2117,20 +2117,21 @@ def write_manifest(st):
                       'flowers, Hermes and Calypso.'},
                      {'file': 'trees.jpg', 'caption': 'The trees close to: tiers of 6 x 5 and 4 x 3 leaves, round plates with leaves and '
                       'leaf rosettes on round-brick cores.', 'alt': 'LEGO trees of many kinds.'},
-                     {'file': 'road.jpg', 'caption': 'Roads and water close to.', 'alt': 'LEGO road, walls and fountain.'}],
+                     {'file': 'road.jpg', 'caption': 'Sampler plates E and F close to: the built road and its culvert stream, paving, stair and terrace, '
+                      'thresholds, field walls, the threshing floor, the gate, the olive terrace.', 'alt': 'Grey-kerbed road, paved squares, stone steps, a ring of round grey stones round a brown post.'}],
              features=feats,
-             subs=[{'file': 'trees.jpg', 'title': 'The trees (plates A-C)', 'pieces': pieces('set.landscape-trees'),
+             subs=[{'file': 'sub-trees.jpg', 'title': 'The trees (plates A-C)', 'pieces': pieces('set.landscape-trees'),
                     'text': 'Every tree builder, several seeds of the olive and the cypress, the fruit trees.'},
-                   {'file': 'road.jpg', 'title': 'Roads, walls, water and ground (plates E, F, G, I)', 'pieces': pieces('set.landscape-ground'),
+                   {'file': 'sub-ground.jpg', 'title': 'Roads, walls, water and ground (plates E, F, G, I)', 'pieces': pieces('set.landscape-ground'),
                     'text': 'The built road with its culvert, the fountain, springs, streams, beach, quay, walls, floors and the terrain helper.'},
-                   {'file': 'plants.jpg', 'title': 'Shrubs, flowers and cultivation (plates D and H)', 'pieces': pieces('set.landscape-plants'),
+                   {'file': 'sub-plants.jpg', 'title': 'Shrubs, flowers and cultivation (plates D and H)', 'pieces': pieces('set.landscape-plants'),
                     'text': 'Laurel, myrtle, maquis, asphodel, flower patches, reeds, moss, ivy; pergola, vines, fields, orchard.'}],
              sources=['assets/location/ithaca-town-road-and-fountain.mjs', 'assets/location/laertess-orchard.mjs',
                       'assets/location/ogygia-cavern-and-grove.mjs'],
              status='Built to the bar',
              next=['Crowns are stacks of flat tiers: they read as LEGO trees but not as a silhouette with drooping or upswept boughs.',
-                   'The sampler (about 5,400 pieces) takes the software renderer more than ten minutes; look.js times out at ten, so its '
-                   'hero was rendered with a copy of look.js given a longer timeout.',
+                   'The sampler (5,438 pieces) takes odyssey-forage.html longer than its 90-second parse limit in this container, so its hero was '
+                   'rendered by a scratch copy of look.js that serves a copy of the page with a longer limit (the shared files are unchanged).',
                    'Roads run straight along x (turn() gives z); there is no curve or junction piece, and no ramp between heights.',
                    'Water on a green baseplate needs two plates of rise (one blue plate under the clear tile).',
                    'No palm (Delos, Od. VI.163), no cornel or wild-olive thicket builder yet; the town gate is plain.'])
