@@ -244,6 +244,7 @@ def hub(kits, frames):
     out.append('''  <h2>The workshop</h2>
   <ul class="links">
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
+    <li><a href="cut.html">The regulars' cut</a>: the film from 164.6 minutes to 83.9, scene by scene, with nothing longer than four minutes between set pieces</li>
     <li><a href="locations.html">The locations and their dialogue</a>: every scene, who speaks where, the landscapes, and the gaps</li>
     <li><a href="landscape/">The landscape library</a>: trees, roads, walls, water for every set</li>
     <li><a href="wardrobe/">The wardrobe</a>: the cast dressed from the Bronze Age evidence</li>
