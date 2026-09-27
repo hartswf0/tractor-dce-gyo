@@ -2072,7 +2072,66 @@ def main():
         print(name, n, 'pieces'); check(name)
     st = selftest(seeds=(0, 1, 2, 3))
     for k, v in st.items(): print(f'  {k:18s} {v[0]:4d}-{v[1]:<4d} pieces, not clicked {v[2]}, same space {v[3]}, free clashes {v[4]}')
+    write_manifest(st)
     return st
+
+
+def write_manifest(st):
+    feats = [f"{name}: {v[0]}-{v[1]} pieces over four seeds, 0 not clicked, 0 in the same space ({src})"
+             for (name, _, src), v in ((e, st[e[0]]) for e in REGISTRY)]
+    manifest('landscape',
+             title='The Landscape Library', book='I-XXIV', tier='Library',
+             moment='Not one moment but the ground every moment stands on: the trees, plants, roads, walls, water and finished ground '
+                    'of Homer\'s Mediterranean, as seeded, grid-true LEGO builders that every kit and film set of the Odyssey line can call.',
+             quote='"And round about the cave grew a luxuriant wood, alder and poplar and sweet-smelling cypress ... and round about '
+                   'soft meadows of violets and parsley were blooming." (Odyssey V.63-73, tr. A. T. Murray)',
+             object='The library itself, tools/forage/product/landscape.py: forty-odd builders that each return rows, the stud squares '
+                    'they stand on and the squares their crowns shade, varied by a seed, checked by kitlib.check, with ground() to '
+                    'finish a baseplate from a type and height map.',
+             builds=[{'card': 'set.landscape-sampler', 'title': 'The sampler: every builder on nine framed baseplates'},
+                     {'card': 'set.landscape-ithaca-road', 'title': 'The road to Ithaca town (Od. XVII)'},
+                     {'card': 'set.landscape-grove', 'title': "Calypso's grove (Od. V)"},
+                     {'card': 'set.landscape-trees', 'title': 'Sampler plates A-C: the trees'},
+                     {'card': 'set.landscape-ground', 'title': 'Sampler plates E, F, G, I: roads, walls, water, terrain'},
+                     {'card': 'set.landscape-plants', 'title': 'Sampler plates D and H: shrubs, flowers, cultivation'}],
+             images=[{'file': 'hero.jpg', 'caption': 'The sampler: nine framed 32 x 32 baseplates. Back row A trees I (oak, olives, cypresses), '
+                      'B trees II (plane, black and white poplar, fig, willow), C trees III (fir, stone pine, alder, pear, apple, pomegranate, '
+                      'quince); middle row D shrubs and low plants (laurel, myrtle, maquis, asphodel, poppy, violet, parsley, wild flowers, '
+                      'grass, a mossy rock, reeds, an ivy wall), E roads (the built road with a culvert and its stream, cart track, '
+                      'footpath, paving, thresholds, a stair up to a paved terrace), F walls and floors (field walls, threshing floor, '
+                      'town gate, olive terrace, ivy wall, court, steps); front row G water (the fountain, a spring, two streams, a beach), '
+                      'H cultivation (pergola, vine row, ploughed field, grain, young crop, orchard), I the terrain helper and a quay.',
+                      'alt': 'Nine green baseplates framed in white tiles, crowded with LEGO trees, walls, roads, water and fields.'},
+                     {'file': 'ithaca-road.jpg', 'caption': 'The road to Ithaca town: from the sea and the beach steps, the built road passes the '
+                      'fountain under its poplars on a culvert, between olive terraces and a walled field, to the town gate.',
+                      'alt': 'A long diorama: blue sea at one end, a grey-kerbed road, a stone fountain among poplars, silvery olives on '
+                      'terraces, a striped brown field, a tan gate; Eumaeus and the beggar on the road, Melanthius and goats.'},
+                     {'file': 'ithaca-close.jpg', 'caption': 'Close on the road: the kerbs, the culvert channel, the fountain and its altar, the '
+                      'beggar and Eumaeus coming up, Melanthius and his goats coming down.', 'alt': 'Close view of minifigures on the road.'},
+                     {'file': 'grove.jpg', 'caption': "Calypso's grove: four springs under a mossy bank, their brooks turned this way and that "
+                      'through a meadow of violets and parsley, cypress, alder and poplar round about, the vine on its pergola.',
+                      'alt': 'A green baseplate with dark green cypress spires, a stone bank with four small waterfalls, clear-tile brooks, '
+                      'flowers, Hermes and Calypso.'},
+                     {'file': 'trees.jpg', 'caption': 'The trees close to: tiers of 6 x 5 and 4 x 3 leaves, round plates with leaves and '
+                      'leaf rosettes on round-brick cores.', 'alt': 'LEGO trees of many kinds.'},
+                     {'file': 'road.jpg', 'caption': 'Roads and water close to.', 'alt': 'LEGO road, walls and fountain.'}],
+             features=feats,
+             subs=[{'file': 'trees.jpg', 'title': 'The trees (plates A-C)', 'pieces': pieces('set.landscape-trees'),
+                    'text': 'Every tree builder, several seeds of the olive and the cypress, the fruit trees.'},
+                   {'file': 'road.jpg', 'title': 'Roads, walls, water and ground (plates E, F, G, I)', 'pieces': pieces('set.landscape-ground'),
+                    'text': 'The built road with its culvert, the fountain, springs, streams, beach, quay, walls, floors and the terrain helper.'},
+                   {'file': 'plants.jpg', 'title': 'Shrubs, flowers and cultivation (plates D and H)', 'pieces': pieces('set.landscape-plants'),
+                    'text': 'Laurel, myrtle, maquis, asphodel, flower patches, reeds, moss, ivy; pergola, vines, fields, orchard.'}],
+             sources=['assets/location/ithaca-town-road-and-fountain.mjs', 'assets/location/laertess-orchard.mjs',
+                      'assets/location/ogygia-cavern-and-grove.mjs'],
+             status='Built to the bar',
+             next=['Crowns are stacks of flat tiers: they read as LEGO trees but not as a silhouette with drooping or upswept boughs.',
+                   'The sampler (about 5,400 pieces) takes the software renderer more than ten minutes; look.js times out at ten, so its '
+                   'hero was rendered with a copy of look.js given a longer timeout.',
+                   'Roads run straight along x (turn() gives z); there is no curve or junction piece, and no ramp between heights.',
+                   'Water on a green baseplate needs two plates of rise (one blue plate under the clear tile).',
+                   'No palm (Delos, Od. VI.163), no cornel or wild-olive thicket builder yet; the town gate is plain.'])
+
 
 
 if __name__ == '__main__':
