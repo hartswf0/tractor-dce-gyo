@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Left on the Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="index.html">The Odyssey Line</a> · the integration map</div>
+  <h1>Left on the table</h1>
+  <p class="lede">Many experiments in these repositories have pushed toward one film: recorded voices, drawn faces, acting, staging,
+    sound, real places, weather and light. Most of what they learned has never reached the film. Three stacks each hold part of it, and
+    none of them talks to the others. This is the map of the joins that make them one film, and where each stands.</p>
+  <h2>Three stacks</h2>
+  <div class="grid">
+    <div class="card" style="padding:16px"><div class="meta"><b>this line&#x27;s film</b></div><h3>Film Butter</h3><p>The finished sets (sets.js, finish.py, the kits&#x27; standard), the blocking, 31 scenes of gate-checked keyframes, the light rig. Silent: stills only, never exported as video; its sound field is empty and its heads are static prints.</p><p><code>film-readymades/build_odyssey.py, odyssey-runtime.js, keyframes.cjs, odyssey/keyframes/</code></p></div>
+    <div class="card" style="padding:16px"><div class="meta"><b>world/*.js</b></div><h3>The cinerium</h3><p>Everything a performance needs: halfworld faces on minifig heads, lip sync, a named pose library, the sound engine (beds, ducking, cues), sky and weather (sun position, storm, rain, fog, lightning), real terrain at real places, camera moves, and an mp4 exporter. It has made voiced Odyssey films, but on borrowed sets, not these.</p><p><code>world/face.js, cinerium.js, sound.js, sky.js, geo.js, film.js, tools/export-film.js, films/</code></p></div>
+    <div class="card" style="padding:16px"><div class="meta"><b>the film&#x27;s source</b></div><h3>Halfworld</h3><p>The clock: 152 studio recordings timed to the segment, the voice cast, 706 spoken lines with who speaks to whom, the key-beat emotions, the cutting grammar, the music and its mix law. The Regulars&#x27; Cut is written on it.</p><p><code>drive/voice-manifest.json, viewer/spoken-lines.json, performance-turns.json, engine/speech.mjs, _direction.mjs, audio/</code></p></div>
+  </div>
+  <figure style="margin:28px 0"><svg viewBox="0 0 900 200" width="100%" role="img" aria-label="Halfworld feeds the clock and the performance, the cinerium brings the machinery, Film Butter brings the sets and blocking; together they make the film">
+    <style>.b{fill:var(--card);stroke:var(--ink);stroke-width:2}.t{font:600 15px Inter,sans-serif;fill:var(--ink)}.s{font:12px Inter,sans-serif;fill:var(--muted)}.a{stroke:var(--blue);stroke-width:2.5;fill:none;marker-end:url(#h)}.f{fill:var(--ink)}.ft{font:700 16px Inter,sans-serif;fill:var(--paper)}</style>
+    <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--blue)"/></marker></defs>
+    <rect class="b" x="10" y="20" width="230" height="64"/><text class="t" x="24" y="46">Halfworld</text><text class="s" x="24" y="68">clock, lines, faces, cutting, music</text>
+    <rect class="b" x="10" y="116" width="230" height="64"/><text class="t" x="24" y="142">The cinerium</text><text class="s" x="24" y="164">face, sound, sky, geo, export</text>
+    <rect class="b" x="330" y="68" width="230" height="64"/><text class="t" x="344" y="94">Film Butter</text><text class="s" x="344" y="116">sets, blocking, keyframes, light</text>
+    <rect class="f" x="650" y="68" width="240" height="64"/><text class="ft" x="668" y="97">The film, voiced</text><text class="ft" x="668" y="119" style="font-weight:400;font-size:13px">mp4, the Regulars' Cut</text>
+    <path class="a" d="M240 52 C290 52 290 90 328 92"/><path class="a" d="M240 148 C290 148 290 110 328 108"/><path class="a" d="M560 100 L648 100"/>
+  </svg><figcaption>What each brings. Today only the middle box makes anything for this line, and it makes stills.</figcaption></figure>
+  <h2>The joins</h2>
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Join</th><th>From</th><th>Into</th><th>What it unlocks</th><th>Where it stands</th></tr>
+    <tr><td class="n">1</td><td><b>The voice as the clock</b></td><td>Halfworld recordings + the Regulars&#x27; Cut (cut.json)</td><td>Film Butter scene entries (sound, segments, captions)</td><td>The film runs on its own performance: every key, cut and pose sits at a time on the recording, not an invented one.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">2</td><td><b>An Odyssey export</b></td><td>tools/export-film.js (frame-stepped, sound muxed)</td><td>Film Butter in take mode</td><td>The first voiced LEGO Odyssey scenes as mp4, then the whole cut.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">3</td><td><b>Faces on the heads</b></td><td>world/faces/odyssey decals, odyssey-decals.js (24 cast)</td><td>Movieator heads in build_odyssey production()</td><td>The halfworld&#x27;s drawn faces on the minifigures, the same faces as the halftone film.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">4</td><td><b>Lip sync and the listening face</b></td><td>engine/speech.mjs, world/face.js</td><td>The speaking actor and the addressee in a take</td><td>Mouths that say the recorded words; listeners who nod, press their lips, stop blinking when it is loud.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">5</td><td><b>Cutting</b></td><td>syncwatch SHOT, RHYTHM, GRAMMAR, INSERTS</td><td>Film Butter cameras (the gate-approved marks)</td><td>Coverage that cuts on the speaker and the reaction, faster in the monster books, slower on Ogygia; inserts on the bow, the scar, the stake.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">6</td><td><b>Music and mix</b></td><td>Halfworld albums (track = book), build-film-audio mix law, world/sound.js</td><td>The take&#x27;s sound</td><td>The book&#x27;s bed under the voice, ducked from 0.18 to 0.10 while anyone speaks.</td><td class="">building (OD-B01-S03)</td></tr>
+    <tr><td class="n">7</td><td><b>Named acting</b></td><td>world/cinerium.js PHRASES, figure-hero POSES, liveness.mjs</td><td>The 453 raw-radian poses in odyssey/keyframes</td><td>Keys written as &quot;pointing&quot;, &quot;grief&quot;, &quot;offering hand&quot; instead of angles; idle breath between keys.</td><td class="bad">next</td></tr>
+    <tr><td class="n">8</td><td><b>Sky, weather and time of day</b></td><td>world/sky.js, lamps.js (and paintsky, grade on an unmerged branch)</td><td>kfLook / kfLight</td><td>The storm at sea with rain and lightning, dawn on the beach, the hall by firelight, the night of the blinding.</td><td class="bad">next</td></tr>
+    <tr><td class="n">9</td><td><b>Real places</b></td><td>world/geo.js, ground.js; the rehearsals at Voidokilia, Vathy, Culbin, Ait Benhaddou</td><td>Backdrops, horizons and sun direction</td><td>Each set&#x27;s horizon and sun from the real place it was scouted against.</td><td class="bad">next</td></tr>
+    <tr><td class="n">10</td><td><b>The kits, landscape and wardrobe in the film</b></td><td>tools/forage/product (kits, landscape.py, wardrobe.py)</td><td>Scene cards and the cast</td><td>The kits&#x27; sets and the Bronze Age costumes on screen; today they stand beside the film.</td><td class="">partly (landscape in finish.py)</td></tr>
+  </table></div>
+  <h2>The order</h2>
+  <ol>
+    <li><b>One scene through everything</b>, the opening at the gate (OD-B01-S03): voice clock, captions, faces and lip sync, cutting, the bed,
+      exported as an mp4. It proves the joins 1 to 6 work together before they are spread.</li>
+    <li><b>The 31 filmed scenes</b> the same way, then the <a href="cut.html">Regulars' Cut</a> as one film: its edit list already speaks the
+      voice manifest's segment numbers.</li>
+    <li><b>Named acting</b> in place of raw angles, so direction can be written in words and checked against the halfworld's key beats.</li>
+    <li><b>Sky, weather and real places</b>: the storm, the night, the dawns, and each set's horizon from where it was scouted.</li>
+    <li><b>The kits and the wardrobe on screen</b>: the sets and costumes this line built, in the film it came from.</li>
+  </ol>
+  <h2>On other branches</h2>
+  <p class="sub">Work toward the same film that is not on this branch yet. Merging is a decision to make together.</p>
+  <ul><li><code>origin/claude/studio-prompt-context-docs-gxy52t</code>: neural voices (Kokoro), full sound mixes, a painted sky, per-shot grade, stills export</li><li><code>origin/rover/camera-first-odyssey</code>: a performance compiler: why, direction, action, body, carriage, face, speech</li><li><code>origin/codex/director-composer</code>: a director&#x27;s composer for camera moves</li></ul>
+  <footer>Made by <code>tools/forage/product/integration.py</code>. <a href="index.html">The Odyssey Line</a> · <a href="cut.html">The Regulars' Cut</a> · <a href="locations.html">Locations</a></footer>
+</main>
+</body>
+</html>
