@@ -1,6 +1,8 @@
 """odyssey/trailers/build_trailers.py: writes odyssey/trailers/<id>.json and <id>.md from the shot lists below; then run
 tools/forage/product/trailers.py to check them and write the page.
-Every voice clip is cut from a verified segment (vb.clip); every 'at' is summed here so the cut adds up by construction."""
+Every voice clip is cut from a verified segment (vb.clip); every 'at' is summed here so the cut adds up by construction.
+Since the render reviews (odyssey/trailers/<id>.review.md) the JSON files are edited directly and are AHEAD of this script:
+re-running it would undo the revisions; port them here first."""
 import json, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from vb import clip

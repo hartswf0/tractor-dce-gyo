@@ -1,6 +1,6 @@
 # Nobody (teaser)
 
-*Teaser and render test: one idea, one line* · 30.00 s · 6 shots
+*Teaser and render test: one idea, one line* · 30.00 s · 7 shots
 
 ## The idea
 
@@ -31,17 +31,19 @@ Hits placed on cuts:
 | time | picture | sound |
 |---|---|---|
 | 0:00.00 (3.00) | **BLACK** black; firelight flickers on nothing | sfx: fire crackle, a giant breathing, slow |
-| 0:03.00 (9.20) | **OD-B09-S09 K1** · the giant asleep on his back in the firelight; odysseus stands at his shoulder, looking at the face · camera push 0.1 | ODYSSEUS: “Nobody is my name.” (OD-B09-S08 gi 6, 15.11–17.72) · sfx: fire, snore |
-| 0:12.20 (3.70) | **OD-B09-S09 K3** · the four men drive the glowing stake into the eye; steam · camera push 0.06 | sfx: hiss |
-| 0:15.90 (4.70) | **OD-B09-S09 K4** · polyphemus rears up, clutching the eye, roaring | sfx: ROAR |
-| 0:20.60 (4.75) | **OD-B09-S11 K4** · outside, at night, the blinded giant lifts his hands to the sky · camera crane 0.12 | sfx: sea, thunder, far |
+| 0:03.00 (4.60) | **OD-B09-S09 K1** · the giant asleep on his back in the firelight; odysseus alone at his shoulder, small, looking at the face · camera push 0.08 | sfx: fire, snore |
+| 0:07.60 (4.60) | **OD-B09-S09 K1** · over the giant's shoulder: odysseus in the firelight, his shadow huge on the wall behind him, gives his name · camera push 0.2 | ODYSSEUS: “Nobody is my name.” (OD-B09-S08 gi 6, 15.11–17.72) · sfx: fire |
+| 0:12.20 (3.70) | **OD-B09-S09 K3** · the four men drive the glowing stake into the eye; steam · camera push 0.06 | sfx: hiss, fire |
+| 0:15.90 (4.70) | **OD-B09-S09 K4** · polyphemus rears up alone in the firelight, clutching the eye, roaring | sfx: ROAR, single low drum |
+| 0:20.60 (4.75) | **OD-B09-S11 K4** · outside, at night, the blinded giant lifts his hands to the sky · camera zoom -0.08 | sfx: sea, thunder, far |
 | 0:25.35 (4.65) | **CARD** “THE ODYSSEY” | sfx: score hit |
 
 ## Why each shot
 
 1. Sound before picture: the giant is heard before he is seen.
-2. Scale and the one line: a small man beside a sleeping mountain, and his false name in the music's silence.
-3. The act, as the score swells.
-4. The swell peaks on the roar.
-5. The consequence, in the score's silence: he is calling his father.
-6. Title on the hit.
+2. Scale: one small man beside a sleeping mountain, lit by one fire.
+3. The one line, in the music's silence, on the man who says it: a frame within a frame (the giant's arm), his shadow the size of the giant.
+4. The act, as the score swells.
+5. The swell peaks on the roar.
+6. The consequence, in the score's silence: he is calling his father.
+7. Title on the hit.

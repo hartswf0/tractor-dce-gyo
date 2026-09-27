@@ -43,7 +43,7 @@ Hits placed on cuts:
 | 0:25.80 (1.80) | **OD-B09-S09 K3** · the stake goes into the eye | sfx: hiss, ROAR |
 | 0:27.60 (5.00) | **OD-B09-S11 K4** · polyphemus lifts his hands and prays to his father · camera crane 0.12 | POLYPHEMUS: “Hear me, Poseidon, dark-haired shaker of the earth,” (OD-B09-S11 gi 6, 20.46–25.32) · sfx: sea, thunder answering |
 | 0:32.60 (3.90) | **OD-B09-S11 K2** · polyphemus tears off the mountain top and lifts it over his head · camera push 0.08 | sfx: rock tearing, rising rumble |
-| 0:36.50 (6.40) | **OD-B05-S05 K2** · poseidon swings the trident; the water stands up in pillars round the raft · camera push 0.06 | EPIC NARRATOR: “gathers clouds, and strikes the sea with a four-wind storm.” (OD-B05-S05 gi 2, 2.98–9.22) · sfx: storm, wave hit |
+| 0:36.50 (6.40) | **OD-B05-S05 K2** · poseidon swings the trident; the water stands up in pillars round the raft · camera push 0.06 | EPIC NARRATOR: “gathers clouds, and strikes the sea with a four-wind storm.” (OD-B05-S05 gi 2, 2.98–9.22) · sfx: storm, wave hit, thunder crack |
 | 0:42.90 (3.20) | **OD-B10-S01 K4** · the winds burst from the bag; the sail tears | AEOLUS: “the blessed gods themselves hate you.” (OD-B10-S01 gi 6, 7.58–10.52) · sfx: wind howl |
 | 0:46.10 (3.50) | **OD-B10-S02 K4** · the Laestrygonians hurl boulders down on the ships at sunset | sfx: boulders, hulls crushed |
 | 0:49.60 (4.00) | **OD-B10-S02 K5** · odysseus raises his sword and cuts the cable; giants loom on both cliffs · camera push 0.05 | sfx: cable parts, oars |
