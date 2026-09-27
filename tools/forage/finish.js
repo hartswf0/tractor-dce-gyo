@@ -51,6 +51,7 @@ function apply(top, key, seed) {
   const flat = kids.map(k => walk(k.k.c, k.W));
   const cast = top.subs.slice(1).flatMap(s => walk(s.c, s.M).map(e => e.row));
   const input = { profile: profileOf(key), seed: hash(seed || key || 'set'), kids: kids.map((k, j) => ({ name: k.name, rows: flat[j].map(e => e.row) })), cast };
+  if (process.env.FINISH_DUMP) require('fs').writeFileSync(process.env.FINISH_DUMP, JSON.stringify(input));
   let res;
   try { res = JSON.parse(execFileSync('python3', [PY], { input: JSON.stringify(input), maxBuffer: 1 << 28, encoding: 'utf8' })); }
   catch (e) { console.error('finish: ' + e.message.split('\n')[0]); return null; }

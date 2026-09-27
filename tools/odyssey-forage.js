@@ -148,13 +148,19 @@ const SEA = new Set(['sirens', 'strait', 'storm', 'wreck', 'voyage', 'boast', 'l
 const SCENE_CAST = { 'OD-B13-S01': [{ id: 'character.alcinous', type: 'character' }, { id: 'character.arete', type: 'character' }], 'OD-B10-S02': [{ id: 'ensemble.harbour-scouts', name: 'three scouts', type: 'ensemble' }], 'OD-B04-S05': [{ id: 'ensemble.menelaus-men', name: 'three men', type: 'ensemble' }], 'OD-B02-S02': [{ id: 'ensemble.web-suitors', name: 'four suitors', type: 'ensemble' }, { id: 'character.melantho', type: 'character' }], 'OD-B24-S03': [], 'OD-B19-S04': [{ id: 'character.penelope', type: 'character' }], 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }], 'OD-B21-S07': [{ id: 'ensemble.bow-suitors', name: 'six suitors', type: 'ensemble' }] };
 for (const [sid, xs] of Object.entries(SCENE_CAST)) { const sc = manifest.scenes.find(s => s.id === sid); if (!sc) continue; for (const x of xs) { if (!manifest.assets.some(a => a.id === x.id)) manifest.assets.push(x); if (!sc.assets.includes(x.id)) sc.assets.push(x.id); } }
 let prevLoc = {}; const bookLoc = {};   // the first place each book names (through the aliases): where a book's unplaced opening scenes stand
-for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (built.has(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
+/* an asset's build, made when first wanted (with --only, the assets no scene asked for are never built); whether an atlas asset is
+   there is asked of the manifest, so a scene stands on the same place whichever scenes are rebuilt with it */
+const assetOf = id => manifest.assets.find(x => x.id === id);
+const getBuilt = id => built.get(id) || (() => { const a = assetOf(id); if (!a) return null; let rec; try { rec = T.recipe(a); } catch (e) { return null; } const r = onPlate(a.name, rec.comps, rec.base, { maxW: rec.set ? 44 : 24 }); const v = { top: r.top, rec, a }; built.set(id, v); return v; })();
+for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (assetOf(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
+const locIdOf = sc => { const own = sc.assets.find(id => { const a = assetOf(id); return a && a.type === 'location'; }); if (own) return own;
+  const want = sc.assets.find(a => a.startsWith('location.')), alias = want && LOC_ALIAS[want];   // a place the atlas names but has not built, or none: the place it stands for, or the book's last place
+  return alias || (prevLoc.book === sc.book ? prevLoc.id : null) || bookLoc[sc.book] || null; };
 for (const sc of manifest.scenes) {
-  if (ONLY && !ONLY.has(sc.id)) continue;
-  const parts = sc.assets.map(id => built.get(id) || (() => { const a = manifest.assets.find(x => x.id === id); if (!a) return null; const rec = T.recipe(a); const r = onPlate(a.name, rec.comps, rec.base, { maxW: rec.set ? 44 : 24 }); const v = { top: r.top, rec, a }; built.set(id, v); return v; })()).filter(Boolean);
-  let loc = parts.find(p => p.a.type === 'location');
-  if (!loc) { const want = sc.assets.find(a => a.startsWith('location.')), alias = want && LOC_ALIAS[want];   // a place the atlas names but has not built, or none: the place it stands for, or the book's last place
-    const id = alias || (prevLoc.book === sc.book ? prevLoc.id : null) || bookLoc[sc.book]; loc = id ? built.get(id) : null; }
+  if (ONLY && !ONLY.has(sc.id)) { const id = locIdOf(sc); if (id) prevLoc = { book: sc.book, id }; continue; }   /* the place a skipped scene stands on still carries to the next */
+  const parts = sc.assets.map(getBuilt).filter(Boolean);
+  const locId = locIdOf(sc);
+  let loc = locId ? (parts.find(p => p.a.id === locId) || getBuilt(locId)) : null;
   if (loc) prevLoc = { book: sc.book, id: loc.a.id };
   const stage = SCENE_SET[sc.id] ? Sets.SETS[SCENE_SET[sc.id]]() : stageOf(loc, sc.title.toLowerCase());
   const order = ['character', 'ensemble', 'creature', 'wearable', 'prop', 'sound_source', 'set_piece', 'divine_fx', 'environment', 'vehicle'];

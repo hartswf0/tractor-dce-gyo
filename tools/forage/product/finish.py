@@ -48,6 +48,7 @@ MASON = {'3004': [('98283', 2)], '3010': [('15533', 4)], '3008': [('15533', 4), 
 SKIP_DESC = re.compile(r'Minifig|Animal|Plant|Flower|Leaves|Tree|Rock|Wheel|Technic|Hinge|Panel|Door|Window|Fence|Bar |Bar$|Slope|Wedge|'
                        r'Cone|Dish|Tile|Boat|Hull|Sail|Mast|Ladder|Cylinder|Container|Train|Bracket|Turntable|Jumper|Modified|Grille|'
                        r'Hose|String|Chain|Vine|Stem|Seaweed|Bone|Horse|Brick Curved|Arch 1 x 3|Macaroni|Corner|Wall', re.I)
+TRANS = {int(m.group(1)) for l in open(os.path.join(ldbox.LD, 'LDConfig.ldr'), errors='ignore') if (m := re.search(r'CODE\s+(\d+).*ALPHA\s+(\d+)', l)) and int(m.group(2)) < 255}
 VEHICLE = re.compile(r'ship|raft|galley|boat|hull|wreck', re.I)
 PLAIN_WALLS = re.compile(r'^(walls|the threshold wall)$')
 
@@ -67,7 +68,9 @@ def pick(pal, v):
 def desc(pid):
     f = ldbox.find(pid + '.dat')
     if not f: return ''
-    return open(f, errors='ignore').readline()[2:].strip()
+    d = open(f, errors='ignore').readline()[2:].strip()
+    mv = re.match(r'~Moved to\s+(\S+)', d)
+    return desc(mv.group(1).lower().replace('.dat', '')) if mv else re.sub(r'\s+', ' ', d)
 
 
 @functools.lru_cache(maxsize=None)
@@ -116,12 +119,12 @@ class Index:
         for i in range(math.floor(b[0] / S), math.floor(b[1] / S) + 1):
             for k in range(math.floor(b[4] / S), math.floor(b[5] / S) + 1): self.g[(i, k)].append(b)
 
-    def hits(self, q):
+    def hits(self, q, skip=None):
         seen = set()
         for i in range(math.floor(q[0] / S), math.floor(q[1] / S) + 1):
             for k in range(math.floor(q[4] / S), math.floor(q[5] / S) + 1):
                 for b in self.g.get((i, k), ()):
-                    if id(b) in seen: continue
+                    if id(b) in seen or b is skip: continue
                     seen.add(id(b))
                     if b[0] < q[1] and q[0] < b[1] and b[2] < q[3] and q[2] < b[3] and b[4] < q[5] and q[4] < b[5]: return True
         return False
@@ -212,10 +215,11 @@ def finish(data):
     kids = data['kids']; cast = data.get('cast', [])
     idx = Index()
     allrows = []                                          # (kid, n, row, box)
+    boxes = {}
     for ki, kid in enumerate(kids):
         for n, r in enumerate(kid['rows']):
             b = aabb(r['part'], r['m'])
-            allrows.append((ki, n, r, b))
+            allrows.append((ki, n, r, b)); boxes[(ki, n)] = b
             if b: idx.add(b)
     for r in cast:
         b = aabb(r['part'], r['m'])
@@ -235,6 +239,8 @@ def finish(data):
         for n, r in bricks:
             m = r['m']; course = round((low - m[1]) / 24)
             if ncourses < 3 or not r.get('d'): continue
+            b = boxes[(ki, n)]                                # a brick that already fills another's space is left as it was
+            if b is None or idx.hits((b[0] + 1, b[1] - 1, b[2] + 1, b[3] - 1, b[4] + 1, b[5] - 1), skip=b): stats['masonry skipped'] += 1; continue
             L = sum(w for _, w in MASON[r['part']])
             c0 = r['col']; pos = 0
             out[ki]['drop'].append(n)
@@ -262,7 +268,7 @@ def finish(data):
         d = desc(r['part'])
         if not d or d.startswith('~') or SKIP_DESC.search(d) and not d.startswith('Baseplate'): continue
         rnd = 'Round' in d
-        if rnd and not re.search(r'1 x 1', d): continue
+        if rnd and not re.search(r'1 x 1\b', d): continue
         if not (d.startswith('Plate') or d.startswith('Brick') or d.startswith('Baseplate') or d.startswith('Arch')): continue
         big = d.startswith('Baseplate') or (d.startswith('Plate') and (b[1] - b[0]) * (b[5] - b[4]) >= 4 * S * S - 1)
         ground = 'base' if d.startswith('Baseplate') else 'big' if big else 'plate' if d.startswith('Plate') else ''
@@ -271,10 +277,12 @@ def finish(data):
             x = m[0] + m[3] * sx + m[4] * sy + m[5] * sz; y = m[1] + m[6] * sx + m[7] * sy + m[8] * sz; z = m[2] + m[9] * sx + m[10] * sy + m[11] * sz
             if abs(x / 10 - round(x / 10)) > .05 or abs(z / 10 - round(z / 10)) > .05: continue
             col = r['col'] if sc == 16 else sc
+            if col in TRANS or r['col'] in TRANS: continue                 # a flame, a glass: left as it is
             if big: floor_votes[round(y)] += 1
             cand.append((ki, round(x), round(y), round(z), col, ground, rnd, r['part']))
     floor_y = max(floor_votes, key=floor_votes.get) if floor_votes else -8
-    cand = [c[:5] + ((c[5] in ('base', 'big') or (c[5] == 'plate' and c[2] >= floor_y - 16)),) + c[6:] for c in cand]
+    stats['floor'] = floor_y; stats['off lattice'] = sum(1 for c in cand if (c[2] - floor_y) % 8)
+    cand = [c[:5] + ((c[5] in ('base', 'big') or (c[5] == 'plate' and c[2] >= floor_y - 16)),) + c[6:] for c in cand if (c[2] - floor_y) % 8 == 0]
     free = []
     for c in cand:
         ki, x, y, z = c[:4]
@@ -348,7 +356,7 @@ def finish(data):
                 if col in GREENS: bykind[('ground', mat.get('green', 't'))].add(c); continue
                 if col == 18: bykind[('ground', 's')].add(c); continue
                 m = mat.get(str(col))
-                if m: bykind[('ground', m[7:]) if m.startswith('ground:') else (m, col)].add(c); continue
+                if m: bykind[('ground', m[7:]) if m.startswith('ground:') else (m, 0 if m == 'painted' else col)].add(c); continue
                 if col in (DTAN, TAN, LBG, DBG, WHITE, 7, 8):
                     bykind[('ground', {DTAN: 'e', TAN: 's', LBG: 'r', DBG: 'r', 7: 'r', 8: 'r'}[col]) if exterior and col != WHITE else ('pave', col)].add(c); continue
                 bykind[('same', col)].add(c); continue
@@ -377,9 +385,8 @@ def finish(data):
         for l in lines:
             r = parse_line(l); b = aabb(r['part'], r['m'])
             if b and laid.hits((b[0] + .5, b[1] - .5, b[2] + .5, b[3] - .5, b[4] + .5, b[5] - .5)): stats['lattice clash dropped'] += 1; continue
-            if b and b[3] - b[2] > 8.5 and idx.hits((b[0] + 1, b[1] - 1, b[2] + 1, b[3] - 1, b[4] + 1, b[5] - 1)):
-                x, z = r['m'][0], r['m'][2]
-                kept.append(on(LS.GREEN, x, yup, z, '98138')); stats['dress dropped'] += 1; continue
+            if b and b[3] < y - 0.5 and idx.hits((b[0] + 1, b[1] - 1, b[2] + 1, b[3] - 1, b[4] + 1, b[5] - 1)):
+                stats['dress dropped'] += 1; continue          # a plant on its plate under a table or a hull: the plate's stud stays bare
             kept.append(l)
             if b: laid.add(b)
         out[ki]['add'] += kept
@@ -418,9 +425,12 @@ def check(path, tmpdir):
     mine = {r for f, r in rows if ' - finish' in f}
     P_ = clicks.parts(flat); L = clicks.loose(P_); O = clicks.overlaps(P_)
     ml = [p for p in L if p['line'] in mine]
+    by_top = defaultdict(list)
+    for q in P_: by_top[q['top']].append(q)
+    unsup = [p for p in P_ if p['line'] in mine and not any(q is not p and q['studs'] and q['fp'] & p['fp'] and q['half'] == p['half'] for q in by_top[p['bot']])]
     mo = [(a, b) for a, b in O if a['line'] in mine or b['line'] in mine]
     return {'card': os.path.basename(path), 'parts': len(rows), 'grid': len(P_), 'loose': len(L), 'overlap': len(O), 'added': len(mine),
-            'added_grid': sum(1 for p in P_ if p['line'] in mine), 'added_loose': len(ml), 'added_overlap': len(mo),
+            'added_grid': sum(1 for p in P_ if p['line'] in mine), 'added_loose': len(ml), 'added_unclicked': len(unsup), 'added_overlap': len(mo), '_un': [p['line'] for p in unsup[:5]],
             'free_clashes': LS.free_clashes([r for r in mine]) if mine else 0, '_ml': [p['line'] for p in ml[:5]], '_mo': [(a['line'], b['line']) for a, b in mo[:5]]}
 
 
