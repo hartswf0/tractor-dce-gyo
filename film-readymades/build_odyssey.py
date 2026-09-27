@@ -19,6 +19,7 @@ import json, gzip, base64, hashlib, re, sys, math
 import numpy as np
 import geometry_compiler as G
 from catalogue import parse, placements
+import odyssey_take   # the recorded performance joined to the location: voice, cast, bed, the Regulars' Cut
 
 R = Path(__file__).parent; REPO = R.parent; OUT = R / 'production'
 G.ROOT = REPO / 'ldraw'                                   # the whole library, not the donor subset
@@ -126,12 +127,14 @@ def scene(sid):
         else: target = head; dist, rise, want = 250 * scale * big, 30 * scale * big, -0.3
         pos = clear_mark(target, dist, rise, want, solid, subj)
         cams.append(dict(name=f"{s['n']} · {kind} · {s['beat'][:60]}", pos=pos.round(1).tolist(), target=target.round(1).tolist(), fov=38, seconds=round(s['t1'] - s['t0'], 1), purpose=s['beat']))
+    # the take: the halfworld's recording of this scene (voice, segments, speakers resolved to these actors, captions), the book's bed, the cut
+    tk = odyssey_take.take(sid, [k['id'].replace('odyssey-' + sid.lower() + '-', '') for k in kinds])
     src = text; entry = dict(id='odyssey-' + sid.lower(), caseId='odyssey', title=f"Odyssey · {pv['title'].title()}", file=sid + '.mpd', sourceText=src, hash=hashlib.sha256(src.encode()).hexdigest(),
         rows=rows, upgradeRows=rows, upgradeActors=actors, geometry=base64.b64encode(gzip.compress(json.dumps(defs, separators=(',', ':')).encode())).decode(), scale=scale, center=center.tolist(),
         bounds=[[float((lo[0] - center[0]) * scale), 0, float((lo[2] - center[2]) * scale)], [float((hi[0] - center[0]) * scale), float((hi[1] - center[1]) * scale), float((hi[2] - center[2]) * scale)]],
         upgradeExtent=[float((hi[0] - lo[0]) * scale), float((hi[2] - lo[2]) * scale)], cameras=cams, beats=[s['beat'] for s in pv['shots']], shotIdeas=[c['name'] for c in cams],
         brief=f"{pv['title'].title()} (Odyssey {sid}). The forage's draft: {len(stage_kids)} set sub-builds, {len(actors)} walking actors, {len(cams)} camera marks. Move pieces, walk the cast, frame the marks.",
-        acting='Blocked by the forage on the set\'s marks; re-block by hand.', sound='', proof='Forage audit: stud joints and clipping in odyssey/forage.json.', notes='Drafted by tools/odyssey-forage.js; staged here by hand.',
+        acting='Blocked by the forage on the set\'s marks; re-block by hand.', sound=odyssey_take.sound_line(tk), take=tk, proof='Forage audit: stud joints and clipping in odyssey/forage.json.', notes='Drafted by tools/odyssey-forage.js; staged here by hand.',
         warnings=['Actors hold their items on the hand grip; arm poses are the Movieator\'s, not the forage\'s.', 'Pieces are precompiled triangles; edit the forage and rebuild to change a sub-build.'],
         upgradeChanges=['A forage scene card as a Film Butter location.'], colliders=colliders, pages=pages, doors=[], production=kinds)
     return entry, kinds
@@ -235,11 +238,13 @@ if __name__ == '__main__':
     # the Odyssey cast in the character catalogue, their parts in the loader's cache
     need = {p['file'] for k in kinds.values() for p in k['production']['parts']} | {'3815.dat', '3816.dat', '3817.dat', '3818.dat', '3819.dat', '3820.dat'}
     extra = '<script>(function(){const c=window.ButterAssetCatalog;if(c)c.characters.push(...' + json.dumps(list(kinds.values())) + ');Object.assign(window.ButterLDraw.parts,' + json.dumps(pack_texts(need)).replace('</', '<\\/') + ');})();</script>'
-    s = s.replace('<script data-butter-module="movieator">', extra + '<script data-butter-module="movieator">', 1)
+    # the cinerium's face, the halfworld's twelve faces and the performance register, as their own classic scripts on the page's THREE
+    world = ''.join('<script data-odyssey-take="%s">' % f + (REPO / 'world' / f).read_text() + '</script>' for f in ('halfworld-face.js', 'face.js', 'cinerium.js'))
+    s = s.replace('<script data-butter-module="movieator">', extra + world + '<script data-butter-module="movieator">', 1)
     # Film Butter's location layer (walk colliders, assembly pages) for any location that carries colliders; the forage shelf
     rt = (R / 'location-runtime.js').read_text().replace("return filmOf()?.sourceId==='grocer-location';", "return !!filmAsset()?.colliders;")
     anchor = 'window.ButterWorkspace={fork,switchTo,send,capture,restoreReceipt,session,importSession'
-    s = s.replace(anchor, rt + '\n' + (R / 'odyssey-runtime.js').read_text() + '\n' + anchor, 1)
+    s = s.replace(anchor, rt + '\n' + (R / 'odyssey-runtime.js').read_text() + '\n' + '/*[odyssey-take]*/' + (R / 'odyssey-take.js').read_text() + '/*[/odyssey-take]*/\n' + anchor, 1)
     s = s.replace('butter-films-base-v1', 'butter-odyssey-base-v1').replace('butter-films-scenes-v1', 'butter-odyssey-scenes-v1').replace('butter-films-workspace-v1', 'butter-odyssey-workspace-v1')
     s = s.replace('renderer.shadowMap.enabled=true', 'renderer.shadowMap.enabled=false')
     # a keyframe's held pose: the walk cycle leaves a held rig as the keyframe set it
