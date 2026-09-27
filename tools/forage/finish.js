@@ -64,4 +64,17 @@ function apply(top, key, seed) {
   top.subs[0] = { ...st, c: { ...stage, subs } };
   return res.stats;
 }
-module.exports = { apply, PROFILES };
+/** The card's own plate: the ring of it round the set, finished in the set's materials (the sea to its edge, the court's earth). */
+function applyPlate(card, key, seed) {
+  const pl = card.subs[0], rest = card.subs.slice(1);
+  const rows = walk(pl.c, pl.M), cast = rest.flatMap(s => walk(s.c, s.M).map(e => e.row));
+  const input = { profile: { ...profileOf(key), shrubs: 0 }, seed: hash('plate ' + (seed || key)), kids: [{ name: 'plate', rows: rows.map(e => e.row) }], cast };
+  let res;
+  try { res = JSON.parse(execFileSync('python3', [PY], { input: JSON.stringify(input), maxBuffer: 1 << 28, encoding: 'utf8' })); }
+  catch (e) { console.error('finish plate: ' + e.message.split('\n')[0]); return null; }
+  const add = res.kids[0].add; if (!add.length) return res.stats;
+  const MM = L.mul(pl.M, pl.c.m), fin = { name: 'finish', how: 'finish', source: { kit: 'the finishing pass (tools/forage/product/finish.py)' }, local: add.map(rowOf), subs: [], m: L.I12 };
+  card.subs[0] = { ...pl, c: { ...pl.c, subs: [...pl.c.subs, { c: fin, M: L.inv(MM) }] } };
+  return res.stats;
+}
+module.exports = { apply, applyPlate, PROFILES };

@@ -45,6 +45,7 @@ TONE = {TAN: DTAN, DTAN: TAN, LBG: DBG, DBG: LBG, WHITE: WHITE}
 WALLCOLS = {TAN, DTAN, LBG, DBG, WHITE, 7, 8}
 MASON = {'3004': [('98283', 2)], '3010': [('15533', 4)], '3008': [('15533', 4), ('15533', 4)], '3009': [('15533', 4), ('98283', 2)],
          '3622': [('98283', 2), ('3005', 1)]}
+MASON_L = {k: sum(w for _, w in v) for k, v in MASON.items()}
 SKIP_DESC = re.compile(r'Minifig|Animal|Plant|Flower|Leaves|Tree|Rock|Wheel|Technic|Hinge|Panel|Door|Window|Fence|Bar |Bar$|Slope|Wedge|'
                        r'Cone|Dish|Tile|Boat|Hull|Sail|Mast|Ladder|Cylinder|Container|Train|Bracket|Turntable|Jumper|Modified|Grille|'
                        r'Hose|String|Chain|Vine|Stem|Seaweed|Bone|Horse|Brick Curved|Arch 1 x 3|Macaroni|Corner|Wall', re.I)
@@ -111,9 +112,48 @@ def aabb(part, m):
     return (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs))
 
 
+IRREGULAR = re.compile(r'Plant|Tree|Leaves|Leaf|Flower|Minifig|Animal|Seaweed|Vine|Bush|Sail|Cloth|Hose|String|Horse|Pig|Cow|Dog|Bird', re.I)
+_VERTS = {}
+
+
+def slab_hits(part, m, q):
+    """whether the part's own vertices in the height of q (a tile's space) spread over q in plan: a tree's crown over a stud does not
+    take it, its trunk does"""
+    key = (part, tuple(m))
+    if key not in _VERTS:
+        P = ldbox.points(part + '.dat', False)
+        _VERTS[key] = [(m[0] + m[3] * a + m[4] * b + m[5] * c, m[1] + m[6] * a + m[7] * b + m[8] * c, m[2] + m[9] * a + m[10] * b + m[11] * c) for a, b, c in P]
+    xs = [(x, z) for x, y, z in _VERTS[key] if q[2] - .5 <= y <= q[3] + .5]
+    if not xs: return False
+    return min(x for x, _ in xs) < q[1] and q[0] < max(x for x, _ in xs) and min(z for _, z in xs) < q[5] and q[4] < max(z for _, z in xs)
+
+
+def irregular(part, m):
+    """a part the click checker does not see as a box (at an angle, off the grid) or a plant or a figure: refined to its geometry"""
+    if IRREGULAR.search(desc(part)): return True
+    return not LS.on_grid(row(16, m, part))
+
+
 class Index:
     """the boxes of everything placed, by the 20 LDU squares they cover"""
-    def __init__(self): self.g = defaultdict(list)
+    def __init__(self): self.g = defaultdict(list); self.rows = {}
+
+    def add_row(self, b, part, m):
+        self.add(b)
+        if irregular(part, m): self.rows[id(b)] = (part, m)
+
+    def hits_fine(self, q):
+        """hits, but an irregular part (a plant, a figure, a part at an angle) only where its own geometry is in q's height"""
+        seen = set()
+        for i in range(math.floor(q[0] / S), math.floor(q[1] / S) + 1):
+            for k in range(math.floor(q[4] / S), math.floor(q[5] / S) + 1):
+                for b in self.g.get((i, k), ()):
+                    if id(b) in seen: continue
+                    seen.add(id(b))
+                    if b[0] < q[1] and q[0] < b[1] and b[2] < q[3] and q[2] < b[3] and b[4] < q[5] and q[4] < b[5]:
+                        r = self.rows.get(id(b))
+                        if r is None or slab_hits(r[0], r[1], q): return True
+        return False
 
     def add(self, b):
         for i in range(math.floor(b[0] / S), math.floor(b[1] / S) + 1):
@@ -220,13 +260,20 @@ def finish(data):
         for n, r in enumerate(kid['rows']):
             b = aabb(r['part'], r['m'])
             allrows.append((ki, n, r, b)); boxes[(ki, n)] = b
-            if b: idx.add(b)
+            if b: idx.add_row(b, r['part'], r['m'])
     for r in cast:
         b = aabb(r['part'], r['m'])
-        if b: idx.add(b)
+        if b: idx.add_row(b, r['part'], r['m'])
     stats = defaultdict(int)
     out = [{'add': [], 'drop': []} for _ in kids]
 
+    stud_pts = set()                                      # every upward stud of the set, where it stands
+    for ki, n, r, b in allrows:
+        m = r['m']
+        if b is None or abs(m[7] - 1) > 1e-3: continue
+        for sx, sy, sz, v, sc in studs_in(r['part'] + '.dat'):
+            if v[1] < 0.9: continue
+            stud_pts.add((round(m[0] + m[3] * sx + m[4] * sy + m[5] * sz), round(m[1] + m[6] * sx + m[7] * sy + m[8] * sz), round(m[2] + m[9] * sx + m[10] * sy + m[11] * sz)))
     # the walls: 1 x N stone-coloured bricks in walls one stud thick become masonry; the plain walls get a dado, a string course, patches
     for ki, kid in enumerate(kids):
         if VEHICLE.search(kid['name']): continue
@@ -239,6 +286,8 @@ def finish(data):
         for n, r in bricks:
             m = r['m']; course = round((low - m[1]) / 24)
             if ncourses < 3 or not r.get('d'): continue
+            if not any((round(m[0] + m[3] * u), round(m[1] + 24), round(m[2] + m[9] * u)) in stud_pts for u in range(-10 * MASON_L[r['part']] + 10, 10 * MASON_L[r['part']], 20)):
+                stats['masonry skipped'] += 1; continue       # a brick that does not stand on studs is left as it was
             b = boxes[(ki, n)]                                # a brick that already fills another's space is left as it was
             if b is None or idx.hits((b[0] + 1, b[1] - 1, b[2] + 1, b[3] - 1, b[4] + 1, b[5] - 1), skip=b): stats['masonry skipped'] += 1; continue
             L = sum(w for _, w in MASON[r['part']])
@@ -286,7 +335,7 @@ def finish(data):
     free = []
     for c in cand:
         ki, x, y, z = c[:4]
-        if idx.hits((x - 9.5, x + 9.5, y - 7.5, y - 0.5, z - 9.5, z + 9.5)): stats['kept'] += 1; continue
+        if idx.hits_fine((x - 9.5, x + 9.5, y - 7.5, y - 0.5, z - 9.5, z + 9.5)): stats['kept'] += 1; continue
         free.append(c)
     stats['exposed'] = len(free)
 
@@ -381,10 +430,18 @@ def finish(data):
             stats[kind] += len(cs)
         lines = shift_lines(lines, ox, oz)
         # dressing that would fill the space of the set (a tuft under a table) is dropped for a round tile on its stud
-        kept = []
-        for l in lines:
-            r = parse_line(l); b = aabb(r['part'], r['m'])
-            if b and laid.hits((b[0] + .5, b[1] - .5, b[2] + .5, b[3] - .5, b[4] + .5, b[5] - .5)): stats['lattice clash dropped'] += 1; continue
+        kept, gone = [], set()
+        parsed = [(l, parse_line(l)) for l in lines]
+        parsed = [(l, r, aabb(r['part'], r['m'])) for l, r in parsed]
+        parsed.sort(key=lambda q: -(q[2][3] if q[2] else 0))   # what lies on the surface first, then what stands on it
+        for l, r, b in parsed:
+            here = (math.floor(r['m'][0] / 10), math.floor(r['m'][2] / 10))
+            if b and b[3] < y - 0.5 and here in gone: stats['dress dropped'] += 1; continue   # its plate was not laid
+            if b and laid.hits((b[0] + .5, b[1] - .5, b[2] + .5, b[3] - .5, b[4] + .5, b[5] - .5)):
+                stats['lattice clash dropped'] += 1
+                for i in range(math.floor(b[0] / 10), math.floor(b[1] / 10) + 1):
+                    for k in range(math.floor(b[4] / 10), math.floor(b[5] / 10) + 1): gone.add((i, k))
+                continue
             if b and b[3] < y - 0.5 and idx.hits((b[0] + 1, b[1] - 1, b[2] + 1, b[3] - 1, b[4] + 1, b[5] - 1)):
                 stats['dress dropped'] += 1; continue          # a plant on its plate under a table or a hull: the plate's stud stays bare
             kept.append(l)
