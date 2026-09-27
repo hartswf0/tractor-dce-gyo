@@ -6,15 +6,13 @@
    "id": "K1",
    "beat": "Laertes is bathed and anointed inside the farmhouse.",
    "text": "The Sicel woman bathed Laertes and anointed him with oil, and put a good cloak on him.",
-   "pass": false,
-   "fails": [
-    "laertes-restored cut by the frame"
-   ],
+   "pass": true,
+   "fails": [],
    "camera": {
     "pos": [
-     90,
-     70,
-     -20
+     0.7,
+     92.4,
+     -112.8
     ]
    },
    "lens": 0,
@@ -26,20 +24,20 @@
    "subjects": {
     "laertes-restored": {
      "visible": 1,
-     "size": 0.91,
-     "inFrame": false,
+     "size": 0.617,
+     "inFrame": true,
      "head": [
-      0.578,
-      0.206
+      0.6,
+      0.398
      ],
-     "facing": 0.78,
-     "thirds": 0.089,
-     "headroom": 0.106,
+     "facing": 1,
+     "thirds": 0.065,
+     "headroom": 0.33,
      "box": [
-      0.516,
-      0.651,
-      0.106,
-      1.017
+      0.541,
+      0.658,
+      0.33,
+      0.947
      ],
      "behind": false
     }
@@ -69,20 +67,20 @@
    "subjects": {
     "laertes-restored": {
      "visible": 1,
-     "size": 0.75,
+     "size": 0.738,
      "inFrame": true,
      "head": [
       0.526,
-      0.324
+      0.266
      ],
      "facing": 0.77,
-     "thirds": 0.009,
-     "headroom": 0.25,
+     "thirds": 0.067,
+     "headroom": 0.193,
      "box": [
       0.471,
-      0.577,
-      0.25,
-      1
+      0.576,
+      0.193,
+      0.931
      ],
      "behind": false
     }
@@ -96,8 +94,10 @@
    "text": "Dolius came up with both arms outstretched, took Ulysses' hand, and kissed it on the wrist. 'Welcome home,' said he.",
    "pass": false,
    "fails": [
-    "dolius-s-sons-1 peeks from behind (0.25)",
-    "dolius-s-sons-4 cropped to a headless body"
+    "dolius hidden (0)",
+    "dolius passes through dolius-s-sons-3 (2 part overlaps)",
+    "dolius-s-sons-2 passes through dolius-s-sons-4 (3 part overlaps)",
+    "dolius-s-sons-5 peeks from behind (0.25)"
    ],
    "camera": {
     "pos": [
@@ -108,27 +108,38 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "dolius",
+      "dolius-s-sons-3",
+      2
+     ],
+     [
+      "dolius-s-sons-2",
+      "dolius-s-sons-4",
+      3
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "dolius": {
-     "visible": 1,
-     "size": 0.471,
+     "visible": 0,
+     "size": 0.437,
      "inFrame": true,
      "head": [
-      0.548,
-      0.323
+      0.465,
+      0.31
      ],
-     "facing": 0.89,
-     "thirds": 0.01,
-     "headroom": 0.271,
+     "facing": 0.94,
+     "thirds": 0.023,
+     "headroom": 0.262,
      "box": [
-      0.507,
-      0.587,
-      0.271,
-      0.743
+      0.426,
+      0.503,
+      0.262,
+      0.7
      ],
      "behind": false
     }
@@ -136,39 +147,39 @@
    "others": {
     "laertes-restored": {
      "visible": 1,
-     "size": 0.813,
+     "size": 0.82,
      "inFrame": true,
      "head": [
       0.369,
-      0.263
+      0.191
      ],
      "facing": -0.98,
-     "thirds": 0.036,
-     "headroom": 0.171,
+     "thirds": 0.035,
+     "headroom": 0.099,
      "box": [
-      0.291,
+      0.29,
       0.444,
-      0.171,
-      0.985
+      0.099,
+      0.919
      ],
      "behind": false
     },
     "dolius-s-sons-1": {
-     "visible": 0.25,
-     "size": 0.372,
+     "visible": 0,
+     "size": 0.373,
      "inFrame": true,
      "head": [
       0.427,
-      0.341
+      0.324
      ],
      "facing": 0.96,
-     "thirds": 0.007,
-     "headroom": 0.3,
+     "thirds": 0.009,
+     "headroom": 0.284,
      "box": [
-      0.394,
+      0.393,
       0.461,
-      0.3,
-      0.672
+      0.284,
+      0.657
      ],
      "behind": false
     },
@@ -193,58 +204,58 @@
     },
     "dolius-s-sons-3": {
      "visible": 1,
-     "size": 0.591,
-     "inFrame": false,
+     "size": 0.555,
+     "inFrame": true,
      "head": [
-      0.804,
-      -0.532
+      0.49,
+      0.273
      ],
-     "facing": 0.71,
-     "thirds": 0.137,
-     "headroom": -0.597,
+     "facing": 0.93,
+     "thirds": 0.06,
+     "headroom": 0.212,
      "box": [
-      0.764,
-      0.845,
-      -0.597,
-      -0.006
+      0.442,
+      0.536,
+      0.212,
+      0.766
      ],
      "behind": false
     },
     "dolius-s-sons-4": {
-     "visible": 1,
-     "size": 0.277,
-     "inFrame": false,
+     "visible": 0,
+     "size": 0.311,
+     "inFrame": true,
      "head": [
-      0.499,
-      -0.045
+      0.39,
+      0.336
      ],
-     "facing": 0.92,
-     "thirds": 0.165,
-     "headroom": -0.075,
+     "facing": 0.97,
+     "thirds": 0.003,
+     "headroom": 0.302,
      "box": [
-      0.475,
-      0.522,
-      -0.075,
-      0.202
+      0.361,
+      0.418,
+      0.302,
+      0.614
      ],
      "behind": false
     },
     "dolius-s-sons-5": {
-     "visible": 0.75,
-     "size": 0.394,
+     "visible": 0.25,
+     "size": 0.395,
      "inFrame": true,
      "head": [
       0.282,
-      0.325
+      0.309
      ],
      "facing": 1,
-     "thirds": 0.008,
-     "headroom": 0.282,
+     "thirds": 0.024,
+     "headroom": 0.266,
      "box": [
-      0.246,
+      0.245,
       0.319,
-      0.282,
-      0.676
+      0.266,
+      0.66
      ],
      "behind": false
     }
@@ -257,7 +268,8 @@
    "text": "They took their seats in order on the benches and chairs... and began to eat, while Dolius and his sons did the same.",
    "pass": false,
    "fails": [
-    "dolius-s-sons-4 peeks from behind (0.25)"
+    "laertes-restored passes through dolius (3 part overlaps)",
+    "dolius-s-sons-3 peeks from behind (0.25)"
    ],
    "camera": {
     "pos": [
@@ -268,46 +280,52 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "laertes-restored",
+      "dolius",
+      3
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "laertes-restored": {
      "visible": 0.75,
-     "size": 0.37,
+     "size": 0.383,
      "inFrame": true,
      "head": [
-      0.319,
-      0.394
+      0.302,
+      0.384
      ],
-     "facing": 0.64,
-     "thirds": 0.014,
-     "headroom": 0.352,
+     "facing": 0.65,
+     "thirds": 0.031,
+     "headroom": 0.34,
      "box": [
-      0.298,
-      0.345,
-      0.352,
-      0.722
+      0.28,
+      0.33,
+      0.34,
+      0.723
      ],
      "behind": false
     },
     "dolius": {
      "visible": 0.75,
-     "size": 0.442,
+     "size": 0.445,
      "inFrame": true,
      "head": [
-      0.206,
-      0.443
+      0.205,
+      0.422
      ],
      "facing": 0.75,
-     "thirds": 0.109,
-     "headroom": 0.391,
+     "thirds": 0.089,
+     "headroom": 0.37,
      "box": [
-      0.176,
-      0.245,
-      0.391,
-      0.833
+      0.174,
+      0.244,
+      0.37,
+      0.816
      ],
      "behind": false
     }
@@ -315,77 +333,77 @@
    "others": {
     "dolius-s-sons-1": {
      "visible": 0.75,
-     "size": 0.305,
+     "size": 0.307,
      "inFrame": true,
      "head": [
-      0.419,
-      0.351
+      0.418,
+      0.337
      ],
      "facing": 0.52,
-     "thirds": 0.018,
-     "headroom": 0.316,
+     "thirds": 0.004,
+     "headroom": 0.302,
      "box": [
       0.404,
-      0.435,
-      0.316,
-      0.621
+      0.434,
+      0.302,
+      0.609
      ],
      "behind": false
     },
     "dolius-s-sons-2": {
      "visible": 1,
-     "size": 0.578,
+     "size": 0.584,
      "inFrame": false,
      "head": [
-      0.599,
-      0.527
+      0.6,
+      0.501
      ],
      "facing": -0.28,
      "thirds": 0.067,
-     "headroom": 0.457,
+     "headroom": 0.43,
      "box": [
       0.578,
-      0.612,
-      0.457,
-      1.035
+      0.613,
+      0.43,
+      1.014
      ],
      "behind": false
     },
     "dolius-s-sons-3": {
-     "visible": 0,
-     "size": 0.461,
+     "visible": 0.25,
+     "size": 0.451,
      "inFrame": true,
      "head": [
-      0.652,
-      0.447
+      0.659,
+      0.418
      ],
-     "facing": -0.21,
-     "thirds": 0.015,
-     "headroom": 0.393,
+     "facing": -0.2,
+     "thirds": 0.008,
+     "headroom": 0.365,
      "box": [
-      0.637,
-      0.658,
-      0.393,
-      0.855
+      0.645,
+      0.665,
+      0.365,
+      0.816
      ],
      "behind": false
     },
     "dolius-s-sons-4": {
-     "visible": 0.25,
-     "size": 0.358,
+     "visible": 0,
+     "size": 0.352,
      "inFrame": true,
      "head": [
-      0.693,
-      0.384
+      0.698,
+      0.363
      ],
-     "facing": -0.16,
-     "thirds": 0.027,
-     "headroom": 0.343,
+     "facing": -0.15,
+     "thirds": 0.029,
+     "headroom": 0.322,
      "box": [
-      0.68,
-      0.696,
-      0.343,
-      0.702
+      0.685,
+      0.7,
+      0.322,
+      0.674
      ],
      "behind": false
     }

@@ -131,7 +131,7 @@ for (const a of manifest.assets) {
 }
 /* scenes: the location's set as a stage (a hero set with its marks, or the set at the back of a floor with marks laid on it),
    the cast blocked onto the marks, the beats read into a previs timeline */
-const Stage = require('./forage/stage.js'), Sets = require('./forage/sets.js');
+const Stage = require('./forage/stage.js'), Sets = require('./forage/sets.js'), Finish = require('./forage/finish.js');
 fs.mkdirSync(path.join(OUT, 'previs'), { recursive: true });
 function stageOf(loc, title) {
   if (loc && loc.rec.stage) return loc.rec.stage;
@@ -142,26 +142,38 @@ function stageOf(loc, title) {
 }
 const LOC_ALIAS = { 'location.aftermath-hall': 'location.megaron-hall', 'location.cleaned-palace-hall': 'location.megaron-hall', 'location.night-palace-hall': 'location.megaron-hall', 'location.palace-night-interior': 'location.megaron-hall', 'location.festival-ready-hall': 'location.megaron-hall', 'location.recognition-seating': 'location.megaron-hall', 'location.night-hearth-interview': 'location.megaron-hall', 'location.bow-storeroom': 'location.weapon-storeroom', 'location.palace-family-chamber': 'location.upper-chamber-and-stair' };
 /* scenes at sea stand on a sea set whatever island the atlas names for them */
-const SCENE_SET = { 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'phorcys', 'OD-B09-S11': 'boast', 'OD-B17-S03': 'argos', 'OD-B09-S03': 'lotus', 'OD-B05-S04': 'ogygia', 'OD-B12-S06': 'thrinacia', 'OD-B21-S07': 'megaron', 'OD-B06-S03': 'river', 'OD-B11-S01': 'underworld', 'OD-B19-S04': 'megaron', 'OD-B22-S01': 'megaron', 'OD-B23-S04': 'chamber', 'OD-B10-S02': 'harbor', 'OD-B10-S05': 'forest', 'OD-B02-S02': 'megaron', 'OD-B24-S03': 'farm', 'OD-B24-S05': 'farm', 'OD-B04-S04': 'troyCitadel', 'OD-B08-S05': 'trojanShore', 'OD-B04-S05': 'pharos', 'OD-B14-S01': 'hut', 'OD-B16-S03': 'hut' };
+const SCENE_SET = { 'OD-B01-S03': 'threshold', 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'phorcys', 'OD-B09-S11': 'boast', 'OD-B17-S03': 'argos', 'OD-B09-S03': 'lotus', 'OD-B05-S04': 'ogygia', 'OD-B12-S06': 'thrinacia', 'OD-B21-S07': 'megaron', 'OD-B06-S03': 'river', 'OD-B11-S01': 'underworld', 'OD-B19-S04': 'megaron', 'OD-B22-S01': 'megaron', 'OD-B23-S04': 'chamber', 'OD-B10-S02': 'harbor', 'OD-B10-S05': 'forest', 'OD-B02-S02': 'megaron', 'OD-B24-S03': 'farm', 'OD-B24-S05': 'farm', 'OD-B04-S04': 'troyCitadel', 'OD-B08-S05': 'trojanShore', 'OD-B04-S05': 'pharos', 'OD-B14-S01': 'hut', 'OD-B16-S03': 'hut' };
 const SEA = new Set(['sirens', 'strait', 'storm', 'wreck', 'voyage', 'boast', 'lotus', 'ogygia', 'thrinacia', 'river', 'underworld', 'harbor', 'pharos', 'phorcys']);
 /* cast the atlas leaves out but the text needs on stage: Eurylochus's scouts, the men Circe turns (Homer X: "twenty-two men") */
 const SCENE_CAST = { 'OD-B13-S01': [{ id: 'character.alcinous', type: 'character' }, { id: 'character.arete', type: 'character' }], 'OD-B10-S02': [{ id: 'ensemble.harbour-scouts', name: 'three scouts', type: 'ensemble' }], 'OD-B04-S05': [{ id: 'ensemble.menelaus-men', name: 'three men', type: 'ensemble' }], 'OD-B02-S02': [{ id: 'ensemble.web-suitors', name: 'four suitors', type: 'ensemble' }, { id: 'character.melantho', type: 'character' }], 'OD-B24-S03': [], 'OD-B19-S04': [{ id: 'character.penelope', type: 'character' }], 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }], 'OD-B21-S07': [{ id: 'ensemble.bow-suitors', name: 'six suitors', type: 'ensemble' }] };
 for (const [sid, xs] of Object.entries(SCENE_CAST)) { const sc = manifest.scenes.find(s => s.id === sid); if (!sc) continue; for (const x of xs) { if (!manifest.assets.some(a => a.id === x.id)) manifest.assets.push(x); if (!sc.assets.includes(x.id)) sc.assets.push(x.id); } }
 let prevLoc = {}; const bookLoc = {};   // the first place each book names (through the aliases): where a book's unplaced opening scenes stand
-for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (built.has(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
+/* an asset's build, made when first wanted (with --only, the assets no scene asked for are never built); whether an atlas asset is
+   there is asked of the manifest, so a scene stands on the same place whichever scenes are rebuilt with it */
+const assetOf = id => manifest.assets.find(x => x.id === id);
+const getBuilt = id => built.get(id) || (() => { const a = assetOf(id); if (!a) return null; let rec; try { rec = T.recipe(a); } catch (e) { return null; } const r = onPlate(a.name, rec.comps, rec.base, { maxW: rec.set ? 44 : 24 }); const v = { top: r.top, rec, a }; built.set(id, v); return v; })();
+for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (assetOf(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
+const locIdOf = sc => { const own = sc.assets.find(id => { const a = assetOf(id); return a && a.type === 'location'; }); if (own) return own;
+  const want = sc.assets.find(a => a.startsWith('location.')), alias = want && LOC_ALIAS[want];   // a place the atlas names but has not built, or none: the place it stands for, or the book's last place
+  return alias || (prevLoc.book === sc.book ? prevLoc.id : null) || bookLoc[sc.book] || null; };
 for (const sc of manifest.scenes) {
-  if (ONLY && !ONLY.has(sc.id)) continue;
-  const parts = sc.assets.map(id => built.get(id) || (() => { const a = manifest.assets.find(x => x.id === id); if (!a) return null; const rec = T.recipe(a); const r = onPlate(a.name, rec.comps, rec.base, { maxW: rec.set ? 44 : 24 }); const v = { top: r.top, rec, a }; built.set(id, v); return v; })()).filter(Boolean);
-  let loc = parts.find(p => p.a.type === 'location');
-  if (!loc) { const want = sc.assets.find(a => a.startsWith('location.')), alias = want && LOC_ALIAS[want];   // a place the atlas names but has not built, or none: the place it stands for, or the book's last place
-    const id = alias || (prevLoc.book === sc.book ? prevLoc.id : null) || bookLoc[sc.book]; loc = id ? built.get(id) : null; }
+  if (ONLY && !ONLY.has(sc.id)) { const id = locIdOf(sc); if (id) prevLoc = { book: sc.book, id }; continue; }   /* the place a skipped scene stands on still carries to the next */
+  const parts = sc.assets.map(getBuilt).filter(Boolean);
+  const locId = locIdOf(sc);
+  let loc = locId ? (parts.find(p => p.a.id === locId) || getBuilt(locId)) : null;
   if (loc) prevLoc = { book: sc.book, id: loc.a.id };
   const stage = SCENE_SET[sc.id] ? Sets.SETS[SCENE_SET[sc.id]]() : stageOf(loc, sc.title.toLowerCase());
   const order = ['character', 'ensemble', 'creature', 'wearable', 'prop', 'sound_source', 'set_piece', 'divine_fx', 'environment', 'vehicle'];
   const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: /character|ensemble|creature/.test(p.a.type) ? p.top : crop(p.top, 24, 16, p.a.name) }   /* people and animals are never cut by a window */)).filter(c => rowsOf(c.comp).length);
   const { list, blocking } = Stage.block(stage, SEA.has(SCENE_SET[sc.id]) ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
-  const { card } = onPlate(sc.title, [top], SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
+  /* the finishing pass: the set's exposed studs tiled by material, plain walls coursed, bare ground planted (tools/forage/finish.js) */
+  const plateCol = SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19;   /* a sea set's plate is sea to its edge */
+  const stills = args.includes('--nofinish') ? [] : Finish.stillsOf(sc.id, onPlate(sc.title, [top], plateCol, {}).card, top);   /* the card as the film frames it */
+  const fin = args.includes('--nofinish') ? null : Finish.apply(top, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id, stills);
+  if (fin && ONLY) console.log('   finish: ' + JSON.stringify(fin));
+  const { card } = onPlate(sc.title, [top], plateCol, {});
+  if (fin) Finish.applyPlate(card, SCENE_SET[sc.id] || (loc && loc.rec.hero) || null, sc.id);   /* the plate's ring round the set, finished the same way */
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
   const pv = Stage.previs(sc, blocking, stage.marks);
   fs.writeFileSync(path.join(OUT, 'previs', sc.id + '.json'), JSON.stringify({ id: sc.id, title: sc.title, book: sc.book, set: loc ? (loc.rec.hero || loc.a.name) : null, size: stage.size, marks: stage.marks, duration: pv.duration,

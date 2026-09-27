@@ -18,7 +18,7 @@ KITS, CARDS, KEYS = (os.path.join(ROOT, p) for p in ('odyssey/kits', 'odyssey/ca
 HALFWORLD = 'https://github.com/hartswf0/odyssey-halfworld/blob/main/'
 ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX',
          'XXI', 'XXII', 'XXIII', 'XXIV']
-TIERS = ['Flagship', 'Large', 'Medium', 'Vignette', 'Module']
+TIERS = ['Flagship', 'Large', 'Medium', 'Vignette', 'Module', 'Library']
 
 EARLIER = [
     dict(slug='wooden-horse', title='The Wooden Horse', book='IV', tier='Flagship', hero='hero.jpg',
@@ -40,7 +40,7 @@ EARLIER = [
 # the film's scenes each kit is the model of (odyssey/keyframes/<scene>/sheet.jpg)
 SCENES = {'wooden-horse': ['OD-B04-S04', 'OD-B08-S05'], 'cyclops': ['OD-B09-S09', 'OD-B09-S11'], 'troy': ['OD-B04-S04'],
           'ithaca': ['OD-B22-S01'], 'bow-and-hall': ['OD-B21-S07', 'OD-B22-S01'], 'scylla-charybdis': ['OD-B12-S04'],
-          'the-bed': ['OD-B23-S04'], 'penelopes-loom': ['OD-B02-S02'], 'calypso-raft': ['OD-B05-S04', 'OD-B05-S05'], 'sirens': ['OD-B12-S03'],
+          'the-opening': ['OD-B01-S01', 'OD-B01-S03'], 'the-bed': ['OD-B23-S04'], 'penelopes-loom': ['OD-B02-S02'], 'calypso-raft': ['OD-B05-S04', 'OD-B05-S05'], 'sirens': ['OD-B12-S03'],
           'land-of-the-dead': ['OD-B11-S01'], 'circes-house': ['OD-B10-S04', 'OD-B10-S05'], 'bag-of-winds': ['OD-B10-S01'],
           'recognition-argos': ['OD-B17-S03'], 'recognition-scar': ['OD-B19-S04'], 'recognition-helen': ['OD-B04-S04']}
 
@@ -176,11 +176,11 @@ def badge(k):
 def hub(kits, frames):
     by_book = {}
     for k in kits:
-        for n in range(1, 25):
-            if k['n'] == n: by_book.setdefault(n, []).append(k)
+        if k.get('tier') == 'Library': continue   # the libraries serve every book
+        if 1 <= k['n'] <= 24: by_book.setdefault(k['n'], []).append(k)
     film_books = {f['book'] for f in frames}
     new = [k for k in kits if not k.get('earlier')]
-    total = sum(k['pieces'] for k in kits if k.get('tier') != 'Module')
+    total = sum(k['pieces'] for k in kits if k.get('tier') not in ('Module', 'Library'))
     cards = [b for k in kits for b in k.get('builds', []) if 'pieces' in b]
     clean = sum(1 for b in cards if b['loose'] == 0 and b['clash'] == 0)
     out = [HEAD.format(title='The Odyssey Line', style=STYLE)]
@@ -190,7 +190,7 @@ def hub(kits, frames):
     it, built in real parts at minifigure scale and checked by machine: every part must click to the studs below it, and no two parts may
     fill the same space. Beside each kit, the frames of the film it came from.</p>''')
     out.append(f'''  <div class="stats">
-    <div><b>{len([k for k in kits if k.get('tier') != 'Module'])}</b><span>kits</span></div>
+    <div><b>{len([k for k in kits if k.get('tier') not in ('Module', 'Library')])}</b><span>kits</span></div>
     <div><b>{total:,}</b><span>pieces in the kits</span></div>
     <div><b>{clean} / {len(cards)}</b><span>builds that pass the checker</span></div>
     <div><b>{len(frames)}</b><span>film scenes with keyframes</span></div>
@@ -207,7 +207,7 @@ def hub(kits, frames):
     # the kits
     out.append('  <h2>The kits</h2>\n  <p class="sub">Held to the Ideas bar: 200 to 5,000 pieces, one concept, the peak of the story posed, finished surfaces, a play feature that works. <a href="brief.html">The design brief</a> sets it out.</p>')
     out.append('  <div class="filters" role="group" aria-label="Filter kits">' + ''.join(
-        f'<button type="button" data-f="{t}" aria-pressed="{str(t == "All").lower()}">{t if t != "Module" else "Earlier modules"}</button>' for t in ['All'] + TIERS) + '</div>')
+        f'<button type="button" data-f="{t}" aria-pressed="{str(t == "All").lower()}">{ {"Module": "Earlier modules", "Library": "Libraries"}.get(t, t)}</button>' for t in ['All'] + TIERS) + '</div>')
     out.append('  <div class="grid" id="kits">')
     for k in kits:
         img = f'<img src="{k["slug"]}/{k["hero"]}" alt="{E(k["title"])}" loading="lazy">' if k.get('hero') and os.path.exists(os.path.join(KITS, k['slug'], k['hero'])) else '<div class="noimg"></div>'
@@ -244,6 +244,10 @@ def hub(kits, frames):
     out.append('''  <h2>The workshop</h2>
   <ul class="links">
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
+    <li><a href="cut.html">The regulars' cut</a>: the film from 164.6 minutes to 83.9, scene by scene, with nothing longer than four minutes between set pieces</li>
+    <li><a href="locations.html">The locations and their dialogue</a>: every scene, who speaks where, the landscapes, and the gaps</li>
+    <li><a href="landscape/">The landscape library</a>: trees, roads, walls, water for every set</li>
+    <li><a href="wardrobe/">The wardrobe</a>: the cast dressed from the Bronze Age evidence</li>
     <li><a href="https://hartswf0.github.io/odyssey-halfworld/">Odyssey Halfworld</a>: the film this line is drawn from, 24 books, 152 scenes</li>
     <li><a href="../../odyssey-forage.html">The forage viewer</a>: every card in the world, in 3D</li>
     <li><a href="../../odyssey-kit.html">The kit viewer</a></li>

@@ -40,12 +40,13 @@ def world_children(sec, key, A=np.eye(3), a=np.zeros(3)):
     for p in placements(sec[key]):
         B, b = mat(p['transform']); yield p['ref'], p['color'], *compose(A, a, B, b)
 
-def leaves(sec, key, A, a, color):
-    """Every leaf part under a placement, in world: (ref, colour, rotation, position)."""
+def leaves(sec, key, A, a, color, bare=False):
+    """Every leaf part under a placement, in world: (ref, colour, rotation, position); bare leaves out the finishing pass's sub-builds."""
     if key in sec and not key.endswith('.dat'):
         for p in placements(sec[key]):
+            if bare and ' - finish' in p['ref']: continue
             B, b = mat(p['transform']); c = color if p['color'] == 16 else p['color']
-            yield from leaves(sec, p['ref'], *compose(A, a, B, b), c)
+            yield from leaves(sec, p['ref'], *compose(A, a, B, b), c, bare)
     else: yield key, color, A, a
 
 def scene(sid):
@@ -61,7 +62,9 @@ def scene(sid):
     allf = []
     tall = []   # each cast member's height, LDU, for framing
     for k, c, A, a in [plate, stage] + cast_places:
-        ys = [(b * flip)[1] for ref, col, B, b in leaves(sec, k, A, a, c)]; allf += [b * flip for ref, col, B, b in leaves(sec, k, A, a, c)]
+        # the frame is the set as built, without its finish (tools/forage/finish.js): tiles laid on it must not move or rescale the
+        # world the stills were blocked in
+        ys = [(b * flip)[1] for ref, col, B, b in leaves(sec, k, A, a, c, bare=True)]; allf += [b * flip for ref, col, B, b in leaves(sec, k, A, a, c, bare=True)]
         tall.append(max(ys) - min(ys) + 24 if ys else 72)
     tall = tall[2:]
     allf = np.array(allf); lo = allf.min(0); hi = allf.max(0)
@@ -162,8 +165,8 @@ def clear_mark(target, dist, rise, want, boxes, subj):
             if not any(blocked(pos, e, boxes, subj) for e in eyes): return pos
     return target + np.array([math.sin(want) * dist, rise * 3, math.cos(want) * dist])
 
-# the scenes the Odyssey player carries: the Cyclops's cave, then the sea
-SCENES = ['OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
+# the scenes the Odyssey player carries: the opening (the gods in council, the stranger at the gate), the Cyclops's cave, then the sea
+SCENES = ['OD-B01-S01', 'OD-B01-S03', 'OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()

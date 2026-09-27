@@ -77,15 +77,15 @@ blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--bl
     it, built in real parts at minifigure scale and checked by machine: every part must click to the studs below it, and no two parts may
     fill the same space. Beside each kit, the frames of the film it came from.</p>
   <div class="stats">
-    <div><b>14</b><span>kits</span></div>
-    <div><b>22,528</b><span>pieces in the kits</span></div>
-    <div><b>51 / 59</b><span>builds that pass the checker</span></div>
-    <div><b>29</b><span>film scenes with keyframes</span></div>
+    <div><b>15</b><span>kits</span></div>
+    <div><b>25,571</b><span>pieces in the kits</span></div>
+    <div><b>66 / 74</b><span>builds that pass the checker</span></div>
+    <div><b>31</b><span>film scenes with keyframes</span></div>
   </div>
   <h2>The poem, book by book</h2>
   <p class="sub">Twenty-four books. Black: a kit is made from this book. Blue underline: the film has keyframes here.</p>
   <div class="ribbon">
-    <div class="" title="Book I"><i>I</i></div>
+    <a href="#kit-the-opening" class="has film" title="Book I"><i>I</i>Tell Me of the Man</a>
     <a href="#kit-penelopes-loom" class="has film" title="Book II"><i>II</i>Penelope&#x27;s Loom</a>
     <div class="" title="Book III"><i>III</i></div>
     <a href="#kit-wooden-horse" class="has film" title="Book IV"><i>IV</i>Wooden Horse<br>Helen Knows Him</a>
@@ -113,8 +113,17 @@ blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--bl
   <div class="legend"><s style="background:var(--ink)"></s>a kit<s style="box-shadow:inset 0 -4px 0 var(--blue);border:1px solid var(--rule)"></s>film keyframes</div>
   <h2>The kits</h2>
   <p class="sub">Held to the Ideas bar: 200 to 5,000 pieces, one concept, the peak of the story posed, finished surfaces, a play feature that works. <a href="brief.html">The design brief</a> sets it out.</p>
-  <div class="filters" role="group" aria-label="Filter kits"><button type="button" data-f="All" aria-pressed="true">All</button><button type="button" data-f="Flagship" aria-pressed="false">Flagship</button><button type="button" data-f="Large" aria-pressed="false">Large</button><button type="button" data-f="Medium" aria-pressed="false">Medium</button><button type="button" data-f="Vignette" aria-pressed="false">Vignette</button><button type="button" data-f="Module" aria-pressed="false">Earlier modules</button></div>
+  <div class="filters" role="group" aria-label="Filter kits"><button type="button" data-f="All" aria-pressed="true">All</button><button type="button" data-f="Flagship" aria-pressed="false">Flagship</button><button type="button" data-f="Large" aria-pressed="false">Large</button><button type="button" data-f="Medium" aria-pressed="false">Medium</button><button type="button" data-f="Vignette" aria-pressed="false">Vignette</button><button type="button" data-f="Module" aria-pressed="false">Earlier modules</button><button type="button" data-f="Library" aria-pressed="false">Libraries</button></div>
   <div class="grid" id="kits">
+    <a class="card" id="kit-the-opening" data-t="Flagship" href="the-opening/"><img src="the-opening/hero.jpg" alt="Tell Me of the Man" loading="lazy"><div class="body">
+      <div class="meta"><b>Flagship</b> · Book I · 3,043 pieces</div>
+      <h3>Tell Me of the Man</h3><p>While Poseidon is away among the Ethiopians the gods sit in council on Olympus, Zeus on one side and Athena answering him on the other before the sea-god&#x27;s empty throne; Athena binds on her golden sandals and darts down from the peaks, and stands at the outer gate of Odysseus&#x27;s house as Mentes, spear in hand, where the suitors lounge on the hides of the oxen they have killed, playing at draughts, and Telemachus, sitting among them, is the first to see her.</p><p><b>The object:</b> The council turns. The whole platform of Olympus stands on a 4 x 4 turntable (61485c01) on the top of the column: turn it and the hall, thrones, gods and all, comes round from facing the viewer to looking down on Ithaca and the palace (set.the-opening-turned). The poem opens on exactly that turn: with Poseidon away, the gods turn their minds to Odysseus. Poseidon&#x27;s empty throne, marked with his trident, is at the centre of the turn.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
+    <a class="card" id="kit-landscape" data-t="Library" href="landscape/"><img src="landscape/hero.jpg" alt="The Landscape Library" loading="lazy"><div class="body">
+      <div class="meta"><b>Library</b> · Book I-XXIV · 5,438 pieces</div>
+      <h3>The Landscape Library</h3><p>Not one moment but the ground every moment stands on: the trees, plants, roads, walls, water and finished ground of Homer&#x27;s Mediterranean, as seeded, grid-true LEGO builders that every kit and film set of the Odyssey line can call.</p><p><b>The object:</b> The library itself, tools/forage/product/landscape.py: forty-odd builders that each return rows, the stud squares they stand on and the squares their crowns shade, varied by a seed, checked by kitlib.check, with ground() to finish a baseplate from a type and height map.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
+    <a class="card" id="kit-wardrobe" data-t="Library" href="wardrobe/"><img src="wardrobe/hero.jpg" alt="The Wardrobe" loading="lazy"><div class="body">
+      <div class="meta"><b>Library</b> · Book I-XXIV · 836 pieces</div>
+      <h3>The Wardrobe</h3><p>The cast of the Odyssey line as the film has them, each beside the same figure re-dressed from the Late Bronze Age evidence: the palace frescoes of Pylos, Mycenae and Tiryns, the Dendra panoply, the shaft-grave gold, and Homer&#x27;s own descriptions of cloak, robe, veil, rags and arms.</p><p><b>The object:</b> The costume spec: tools/forage/product/wardrobe.py dress(card, sub, costume, x, yup, z, rot) places a cast figure exactly as kitlib.figure does and swaps what it wears and holds by role (gown, kilt, torso, cloak, helmet, held things), without touching the card; COSTUMES holds a spec for every principal.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
     <a class="card" id="kit-penelopes-loom" data-t="Medium" href="penelopes-loom/"><img src="penelopes-loom/hero.jpg" alt="Penelope&#x27;s Loom" loading="lazy"><div class="body">
       <div class="meta"><b>Medium</b> · Book II · 762 pieces</div>
       <h3>Penelope&#x27;s Loom</h3><p>Night in the upper chamber: by torchlight Penelope unpicks the web she wove by day, while a maid at the door at the head of the stair watches her, the maid who will tell the suitors.</p><p><b>The object:</b> The shroud on a warp-weighted loom: two uprights, the cloth-beam across them, and the shroud hung from the beam on a single stud, so it turns: one face the woven linen with its red and gold border, the other the loose warp she has undone. The warp runs down on bars to a row of clay loom-weights that hang free above the floor. The roof lifts off.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
@@ -167,6 +176,8 @@ blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--bl
   <h2>In the film</h2>
   <p class="sub">Keyframes from the film's previs, each checked by the keyframe gate (<code>film-readymades/keyframes.cjs</code>). Where a kit has been made of the scene, it is named.</p>
   <div class="frames">
+    <figure><img src="../keyframes/OD-B01-S01/sheet.jpg" alt="Keyframes of The Gods Consider Odysseus" loading="lazy"><figcaption>OD-B01-S01 · The Gods Consider Odysseus · <a href="the-opening/">Tell Me of the Man</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B01-S03/sheet.jpg" alt="Keyframes of The Stranger at the Threshold" loading="lazy"><figcaption>OD-B01-S03 · The Stranger at the Threshold · <a href="the-opening/">Tell Me of the Man</a></figcaption></figure>
     <figure><img src="../keyframes/OD-B02-S02/sheet.jpg" alt="Keyframes of Penelope&#x27;s Web" loading="lazy"><figcaption>OD-B02-S02 · Penelope&#x27;s Web · <a href="penelopes-loom/">Penelope&#x27;s Loom</a></figcaption></figure>
     <figure><img src="../keyframes/OD-B04-S04/sheet.jpg" alt="Keyframes of The Wooden Horse" loading="lazy"><figcaption>OD-B04-S04 · The Wooden Horse · <a href="troy/">The Citadel of Troy</a></figcaption></figure>
     <figure><img src="../keyframes/OD-B04-S05/sheet.jpg" alt="Keyframes of Menelaus and Proteus" loading="lazy"><figcaption>OD-B04-S05 · Menelaus and Proteus</figcaption></figure>
@@ -209,6 +220,21 @@ blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--bl
   <p class="sub">Every build, measured when this page was made (<code>tools/forage/product/clicks.py</code>). Loose: parts on the grid not clicked to the rest. Clashes: pairs of parts in the same space. The earlier Troy and Ithaca modules predate the strict check and fail it; they are rebuilt as their kits come up.</p>
   <div class="tablewrap"><table>
     <tr><th>Kit</th><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>Tell Me of the Man (the whole kit)</td><td><a href="../cards/set.the-opening.mpd"><code>set.the-opening</code></a></td><td class="n">3,043</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>The council turned toward Ithaca</td><td><a href="../cards/set.the-opening-turned.mpd"><code>set.the-opening-turned</code></a></td><td class="n">3,043</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>Olympus: the council on its turntable</td><td><a href="../cards/set.the-opening-olympus.mpd"><code>set.the-opening-olympus</code></a></td><td class="n">492</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>Athena&#x27;s flight</td><td><a href="../cards/set.the-opening-descent.mpd"><code>set.the-opening-descent</code></a></td><td class="n">183</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>The suitors at draughts on the ox-hides</td><td><a href="../cards/set.the-opening-suitors.mpd"><code>set.the-opening-suitors</code></a></td><td class="n">329</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="the-opening/">Tell Me of the Man</a></td><td>The stranger at the gate</td><td><a href="../cards/set.the-opening-gate.mpd"><code>set.the-opening-gate</code></a></td><td class="n">149</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>The sampler: every builder on nine framed baseplates</td><td><a href="../cards/set.landscape-sampler.mpd"><code>set.landscape-sampler</code></a></td><td class="n">5,438</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>The road to Ithaca town (Od. XVII)</td><td><a href="../cards/set.landscape-ithaca-road.mpd"><code>set.landscape-ithaca-road</code></a></td><td class="n">2,385</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>Calypso&#x27;s grove (Od. V)</td><td><a href="../cards/set.landscape-grove.mpd"><code>set.landscape-grove</code></a></td><td class="n">1,414</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>Sampler plates A-C: the trees</td><td><a href="../cards/set.landscape-trees.mpd"><code>set.landscape-trees</code></a></td><td class="n">1,962</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>Sampler plates E, F, G, I: roads, walls, water, terrain</td><td><a href="../cards/set.landscape-ground.mpd"><code>set.landscape-ground</code></a></td><td class="n">2,456</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="landscape/">The Landscape Library</a></td><td>Sampler plates D and H: shrubs, flowers, cultivation</td><td><a href="../cards/set.landscape-plants.mpd"><code>set.landscape-plants</code></a></td><td class="n">1,020</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="wardrobe/">The Wardrobe</a></td><td>Ithaca: the household and the suitors</td><td><a href="../cards/set.wardrobe-ithaca.mpd"><code>set.wardrobe-ithaca</code></a></td><td class="n">836</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="wardrobe/">The Wardrobe</a></td><td>The Olympians and the guises of Athena</td><td><a href="../cards/set.wardrobe-gods.mpd"><code>set.wardrobe-gods</code></a></td><td class="n">644</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="wardrobe/">The Wardrobe</a></td><td>Odysseus&#x27;s guises, the crew, the nymphs, the Phaeacians, and Sparta</td><td><a href="../cards/set.wardrobe-voyage.mpd"><code>set.wardrobe-voyage</code></a></td><td class="n">861</td><td class="n ok">0</td><td class="n ok">0</td></tr>
     <tr><td><a href="penelopes-loom/">Penelope&#x27;s Loom</a></td><td>Penelope&#x27;s Loom</td><td><a href="../cards/set.penelopes-loom.mpd"><code>set.penelopes-loom</code></a></td><td class="n">762</td><td class="n ok">0</td><td class="n ok">0</td></tr>
     <tr><td><a href="penelopes-loom/">Penelope&#x27;s Loom</a></td><td>The roof lifted off, the shroud turned to its undone face</td><td><a href="../cards/set.penelopes-loom-open.mpd"><code>set.penelopes-loom-open</code></a></td><td class="n">678</td><td class="n ok">0</td><td class="n ok">0</td></tr>
     <tr><td><a href="penelopes-loom/">Penelope&#x27;s Loom</a></td><td>The loom with its shroud</td><td><a href="../cards/set.penelopes-loom-loom.mpd"><code>set.penelopes-loom-loom</code></a></td><td class="n">72</td><td class="n ok">0</td><td class="n ok">0</td></tr>
@@ -272,6 +298,10 @@ blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--bl
   <h2>The workshop</h2>
   <ul class="links">
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
+    <li><a href="cut.html">The regulars' cut</a>: the film from 164.6 minutes to 83.9, scene by scene, with nothing longer than four minutes between set pieces</li>
+    <li><a href="locations.html">The locations and their dialogue</a>: every scene, who speaks where, the landscapes, and the gaps</li>
+    <li><a href="landscape/">The landscape library</a>: trees, roads, walls, water for every set</li>
+    <li><a href="wardrobe/">The wardrobe</a>: the cast dressed from the Bronze Age evidence</li>
     <li><a href="https://hartswf0.github.io/odyssey-halfworld/">Odyssey Halfworld</a>: the film this line is drawn from, 24 books, 152 scenes</li>
     <li><a href="../../odyssey-forage.html">The forage viewer</a>: every card in the world, in 3D</li>
     <li><a href="../../odyssey-kit.html">The kit viewer</a></li>
