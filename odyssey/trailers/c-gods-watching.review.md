@@ -130,3 +130,74 @@ but the whole mix drops 4 dB as it starts, which reads as a step down just where
 - Scylla (12): exposure 0.8 → 0.95.
 - Voice: the verdict (22) +2 dB with the duck -9 (was -11): the line sits higher instead of the score falling away; the storm
   narration (8) +2 dB (7.6 dB clear); the opening line (2) +2 dB; the threshold line (18) +1.5 dB.
+
+---
+
+## Round 3 (final): `films/trailers/c-gods-watching-r3.mp4` = `films/trailers/c-gods-watching.mp4`
+
+1280x720, **12 fps** (1320 frames), 27.5 MB, 110.0 s. **Why 12, not 24:** the first 24 fps attempt ran at 11-13 s a frame
+(three full trailer renders were sharing the 4 cores, load 12-13), an 8-hour projection; it was stopped after 11 min and its 110
+even-numbered frames were reused as the 12 fps frames (`--resume`). The 12 fps render then took 156 min (8077 s of scene frames at
+5-11 s each under contention, 91 s of location loads, 885 s for the kit's 9 true renders of the stepped push).
+
+**Sound.** -14.1 LUFS integrated, true peak -1.3 dBTP, LRA 6.2 LU (stems at the master gain: music -19.1, voice -14.1, effects
+-21.3). The hits, momentary loudness before → after each cut:
+
+| trailer | what | before → after |
+|---|---|---|
+| 4.20 | the score enters, Olympus (drum) | -19.7 → -12.0 |
+| 36.50 | the big hit, Poseidon's storm (0.55 s hole, drum, crack) | -29 in the hole → -9.6 (round 1: -11.5 → -10.3) |
+| 67.00 | drop to silence, the dead | -19.3 → -32.2 |
+| 74.80 | the return, the ship home (drum) | -43.6 → -11.5 (round 1: -43.5 → -35.3) |
+| 102.90 | the dip to black | -22.6 → -21.0 (the bowstring creak) |
+| 106.35 | the slam, the title | -32.7 → -11.1 |
+
+Every line is clear of its bed (voice stem against music + effects under the line: +7.6 to +22 dB; the verdict +17.7 dB at
+-14 LUFS, now louder than the second before it instead of 4 dB under it). All 13 lines are single, verified clips, one per shot, none
+crossing a cut.
+
+**Frames at every shot and every hit** (`tools/trailer-review.py`: the start, middle and end of every moving shot, both sides of
+every hit). Every hit falls on its cut to the frame. What is on screen matches the edit list shot for shot; the round-2 revisions
+all rendered: the kit pushes in visibly on the column (zoom 1.2 → 1.44 in eight steps), the storm is a shade darker, Scylla's cliff
+reads, the hall is warm night throughout.
+
+**Verdict against the cut's rules.**
+
+| rule | kept? |
+|---|---|
+| Cut between above and below | yes: Olympus 1-4, the god's son praying 6, Poseidon 8, Aeolus's line 9, Zeus's bolt 13, Athena 15, the thunder 17, Athena and Zeus 22 |
+| Only Olympus is sunlit | yes (round 1: failed in 7, 12, 16-21) |
+| Escalate: one giant, many, six heads, the bolt | yes, and Scylla is now a scale shot (the one tiny man under the cliff) |
+| Every monster a god's instrument, said aloud | yes (the curse, "the blessed gods themselves hate you", "he does not forget") |
+| Cut on the score | yes: six hits on cuts; the big hit now hits (a made hole in the riff, not the track's own shape) |
+| The bow and the hall answered by thunder | yes (17) |
+| Silence before the drop, title on the slam | yes (3.45 s of black, the slam +21 dB) |
+| One line per shot, none across a cut | yes |
+
+**Beside the reference frames, honestly.** Four frames would sit beside the studio trailer's in grammar (not in finish): the rock
+against the blue night (7, like 40), the Laestrygonians' boulders against the sunset (10, like 57's backlight), the torn sail in
+spray on black (9, like 88), and the tiny man under Scylla's cliff (12, like 68.5 / 75.5). The dead (14) are now spectral, but the
+frame is Odysseus's back, not the dead. Olympus (2-4, 22) is correct for the thesis (bright, the only daylight) but it is a set of
+white bricks under a flat blue sky: sunlit without a sun, no shadow direction, no haze; it looks like a toy on a table more than any
+other location in the cut. The kit opening is a product shot on a black sweep, clear about "gods above, men below" but not cinema.
+The storm (8) is still the weakest light (the sea plates read as a pool). The hall (18-21) is warm night, but evenly lit; the
+reference's one-source darkness is not there.
+
+**Not fixed in round 3, and why.** None of the remaining problems is a mistake that a cheap re-render would correct: each is a
+look or a key the sets impose (Olympus's flat sky, the pool-blue sea, the cluttered convoy ship, the hall's width), and a shot
+re-render costs 5-11 s a frame on the shared machine. They are the next pass's work:
+1. Olympus: a low warm sun from behind the thrones (`key` from "behind, low", elev 15) and a hazier sky would give the marble a
+   direction and the gods silhouettes; try with `--stills` on 2-4 and 22.
+2. The storm (8): a darker, desaturated sea (`fog` near, 120-500, colour off the sky) or a reframe on Poseidon against the black.
+3. The kit: the studio lights it, not the look; a warm top light and a haze pass (or a letterboxed crop in post) would put it in
+   the same world as the rest.
+4. The convoy ship (15) and the hall (20-21): `stage.hide_actors` and a tighter override for each, checked with `--stills`.
+5. 24 fps when the machine is free (~2 h at 2.6 s a frame; the 12 fps frames are every other frame of it, so `--resume` into a
+   24 fps folder after renaming them would save half).
+
+**Final verdict.** The trailer now does what its idea says: the gods argue in daylight, the monsters come in the dark in order of
+size, each one named as a god's weapon, the score falls away for the dead and comes back on a drum, and Zeus's verdict is heard
+over the score before black and the slam. The sound is finished work (on target, every line clear, every hit a hit). The picture
+is a strong animatic-grade film: the light rules hold everywhere and four frames have the reference's grammar, but Olympus and the
+opening kit, the two images that carry the thesis, are the least cinematic in the cut. Ship it as the round-3 cut of C; the next
+pass should spend its time on those two.
