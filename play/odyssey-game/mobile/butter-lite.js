@@ -95,6 +95,6 @@ async function bootBank() {
   window.OG_BANK = header;
 }
 function resize() { const r = $('#stage').getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (w < 1 || h < 1 || (resize.w === w && resize.h === h)) return; resize.w = w; resize.h = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
-function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } renderer.render(scene, camera); }
+function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } if (window.OdysseyRenderGate && !OdysseyRenderGate(now)) return; renderer.render(scene, camera); }
 Object.assign(window, { WagWorkshop, ButterCast, ButterPerformer, ButterScenes, ButterRepository, ButterSpatialRuntime });   // the workspace's modules are window properties there too
 window.ButterLite = { ready: bootBank().then(() => { S.ready = true; requestAnimationFrame(animate); }) };

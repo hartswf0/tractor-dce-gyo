@@ -40,6 +40,7 @@ G.boot = async function () {
   if (Q.get('speed')) E.timeScale = Math.max(0.25, Math.min(12, +Q.get('speed')));
   if (Q.has('mute')) A.setMuted(true);
   OG.ST.noStage = Q.has('nostage');
+  if (Q.get('render')) { const every = +Q.get('render'); let last = 0; window.OdysseyRenderGate = now => { if (now - last < every) return false; last = now; return true; }; }
   await E.ready(); E.setup(); H.loading(false); H.total(OG.ST.kleos());
   G.phase = 'chart';
   const want = Q.get('level'), book = +Q.get('book');

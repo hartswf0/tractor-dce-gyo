@@ -48,7 +48,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const key = { press: k => page.keyboard.press(k), down: k => page.keyboard.down(k), up: k => page.keyboard.up(k) };
 
   log('booting play/odyssey-game.html (Hand Butter engine, 29 MB)…');
-  await page.goto(`http://localhost:8899/play/odyssey-game.html?lite&speed=${SPEED}`, { waitUntil: 'load' });
+  await page.goto(`http://localhost:8899/play/odyssey-game.html?lite&speed=${SPEED}&render=${opt('render', 700)}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.OdysseyGame && OdysseyGame.G.ready, null, { timeout: 300000 });
   const api = await page.evaluate(() => ({ processHands: typeof WagWorkshop.processHands, gesture: typeof WagWorkshop.gesture, handState: typeof WagWorkshop.handState, tracker: typeof WagWorkshop.tracker, hook: typeof OdysseyHands.take, books: OG.ST.story.books.length, levels: OG.G.order.length }));
   check(api.processHands === 'function' && api.gesture === 'function' && api.hook === 'function', 'Hand Butter API: processHands, gesture, handState, tracker; the game hook on the tracks', JSON.stringify(api));
@@ -154,7 +154,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const list = opt('frame-scenes') ? opt('frame-scenes').split(',') : ids;
     let curId = ''; if (has('frame-shots')) await page.exposeFunction('__shotEach', i => shot('frame-' + curId + '-' + i));
     for (const id of list) { curId = id;
-      const r = await page.evaluate(async id => { OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
+      const r = await page.evaluate(async id => { window.OdysseyRenderGate = null; OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
         const st = await OG.C.load(item); OG.C.st = st; const plan = OG.C.plan(item, st), out = []; const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); if (window.__shotEach) await window.__shotEach(out.length); const hs = sh.head ? OG.E.toScreen(sh.head) : null; out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.look.y), head: hs ? [+hs.x.toFixed(2), +hs.y.toFixed(2), hs.behind] : null }); }
         return out; }, id);

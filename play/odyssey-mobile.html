@@ -450,7 +450,7 @@ async function bootBank() {
   window.OG_BANK = header;
 }
 function resize() { const r = $('#stage').getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (w < 1 || h < 1 || (resize.w === w && resize.h === h)) return; resize.w = w; resize.h = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
-function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } renderer.render(scene, camera); }
+function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } if (window.OdysseyRenderGate && !OdysseyRenderGate(now)) return; renderer.render(scene, camera); }
 Object.assign(window, { WagWorkshop, ButterCast, ButterPerformer, ButterScenes, ButterRepository, ButterSpatialRuntime });   // the workspace's modules are window properties there too
 window.ButterLite = { ready: bootBank().then(() => { S.ready = true; requestAnimationFrame(animate); }) };
 </script>
@@ -2304,7 +2304,6 @@ E.frame = function (now) {
   ROOM.group.visible = !!E.view.room; if (ROOM.video) ROOM.video.visible = false;
   floor.visible = E.view.floor != null; if (E.view.floor != null) { floor.material.color.setHex(E.view.floor); floor.material.opacity = 1; }
   grid.visible = !!E.view.grid;
-  if (!E.view.guides) for (const o of ButterSpatialRuntime.plate.children) if (o.isLine || o.isLineSegments || o === hoverBox) o.visible = false;
   // the camera
   const c = E.cam; if (c.t < 1) c.t = Math.min(1, c.t + dtReal / Math.max(0.01, c.dur));
   const u = smooth(c.t), f = c.from || { pos: c.pos, look: c.look, fov: c.fov };
@@ -2317,6 +2316,8 @@ E.frame = function (now) {
   for (const a of E.actors) E.poseActor(a, dt, now);
   for (const fn of E.tickers) fn(dt, now);
   if (OG.G) OG.G.frame(dt, dtReal, now);
+  if (!E.view.guides) for (const o of ButterSpatialRuntime.plate.children) if (o.isLine || o.isLineSegments || o === hoverBox) o.visible = false;
+
 };
 
 /* ── projection: plate/world points to stage fractions and back ── */
@@ -2370,8 +2371,8 @@ E.cardGroup = async function (id, { budget, only } = {}) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1);
   for (const [k, list] of groups) { const d = catalog.get(list[0].part), mesh = new THREE.InstancedMesh(d.geometry, E.mat(list[0].color), list.length);
     list.forEach((p, i) => { if (p.q) q.set(...p.q); else q.setFromAxisAngle(V3(0, 1, 0), (p.r || 0) * Math.PI / 2); m4.compose(V3(p.x, p.y, p.z), q, one); mesh.setMatrixAt(i, m4); });
-    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; g.add(mesh);
-    if (d.fixGeometry) { const fm = new THREE.InstancedMesh(d.fixGeometry, E.fixMat(), list.length); for (let i = 0; i < list.length; i++) { mesh.getMatrixAt(i, m4); fm.setMatrixAt(i, m4); } fm.instanceMatrix.needsUpdate = true; g.add(fm); } }
+    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; mesh.userData.rows = list; g.add(mesh);
+    if (d.fixGeometry) { const fm = new THREE.InstancedMesh(d.fixGeometry, E.fixMat(), list.length); for (let i = 0; i < list.length; i++) { mesh.getMatrixAt(i, m4); fm.setMatrixAt(i, m4); } fm.instanceMatrix.needsUpdate = true; fm.userData.rows = list; g.add(fm); } }
   g.userData = { rows, drawn: n, missing: [...miss], heads: rows.filter(p => /^3626/.test(p.part)) };
   return g;
 };
@@ -2556,7 +2557,7 @@ window.OdysseySynth = { hand, local, play, hold, toImage, toStage, POSES };
 const OG = window.OG = window.OG || {};
 const now = () => performance.now();
 const In = OG.In = { hands: [], lastHand: 0, mouse: { x: .5, y: .5, down: false, seen: 0, pressAt: null, downAt: 0 }, key: { x: .5, y: .5, down: false, seen: 0, held: new Set() },
-  source: 'mouse', pressPose: 'pinch', handDown: new Map(), presses: [], hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
+  source: 'mouse', pressPose: 'pinch', handDown: new Map(), presses: [], releases: [], hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
 const HIST_MS = 2600;
 function push(id, s) { let h = In.hist.get(id); if (!h) In.hist.set(id, h = []); h.push(s); while (h.length && s.t - h[0].t > HIST_MS) h.shift(); }
 function span(m) { return (Math.hypot(m[5].x - m[17].x, m[5].y - m[17].y) + Math.hypot(m[0].x - m[9].x, m[0].y - m[9].y)) / 2; }
@@ -2568,7 +2569,7 @@ window.OdysseyHands = {
     In.hands = [...tracks].sort((a, b) => a.id - b.id).map(k => { let pose = 'open'; try { pose = gestureOf(k); } catch (e) { } return { id: 'h' + k.id, x: k.point.x, y: k.point.y, px: k.palm.x, py: k.palm.y, pose, closed: !!k.closed, span: span(k.marks), marks: k.visualMarks || k.marks, t }; });
     In.lastHand = t; if (tracks.length) In.source = 'hand';
     for (const h of In.hands) push(h.id, { t, x: h.x, y: h.y, px: h.px, py: h.py, pose: h.pose, span: h.span, down: h.pose === 'pinch' || h.closed });
-    for (const h of In.hands) { const down = h.pose === 'pinch' || h.pose === 'fist', was = In.handDown.get(h.id) || false; if (down !== was) { In.handDown.set(h.id, down); if (down) In.presses.push({ id: h.id, src: 'hand', x: h.x, y: h.y, t }); emit(down ? 'press' : 'release', h.id); } }
+    for (const h of In.hands) { const down = h.pose === 'pinch' || h.pose === 'fist', was = In.handDown.get(h.id) || false; if (down !== was) { In.handDown.set(h.id, down); if (down) In.presses.push({ id: h.id, src: 'hand', x: h.x, y: h.y, t }); else In.releases.push({ id: h.id, src: 'hand', x: h.x, y: h.y, t }); emit(down ? 'press' : 'release', h.id); } }
     for (const fn of In.listeners) try { fn('hands', In.hands, t); } catch (e) { console.error(e); }
     return true;   // the game owns the hands; Butter's own grip does not also act on them
   },
@@ -2588,7 +2589,7 @@ In.attach = function (layer) {
   layer.addEventListener('pointermove', e => { if (e.pointerType === 'touch' && In.touches.size >= 2) touchMove(e); }, true);
   layer.addEventListener('pointermove', e => { const p = pos(e); Object.assign(In.mouse, p, { seen: now() }); if (now() - In.lastHand > 400) In.source = 'mouse'; push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.mouse.down ? In.pressPose : 'open', span: 0, down: In.mouse.down }); });
   layer.addEventListener('pointerdown', e => { if (e.target.closest('button,a,input,select')) return; const p = pos(e); Object.assign(In.mouse, p, { down: true, seen: now(), pressAt: { ...p, t: now() }, downAt: now() }); In.source = 'mouse'; In.presses.push({ id: 'm', src: 'mouse', x: p.x, y: p.y, t: now() }); try { layer.setPointerCapture(e.pointerId); } catch (_) { } push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.pressPose, span: 0, down: true }); emit('press', 'm'); });
-  const up = e => { if (!In.mouse.down) return; In.mouse.down = false; In.mouse.seen = now(); push('m', { t: now(), x: In.mouse.x, y: In.mouse.y, px: In.mouse.x, py: In.mouse.y, pose: 'open', span: 0, down: false }); emit('release', 'm'); };
+  const up = e => { if (!In.mouse.down) return; In.mouse.down = false; { const p = pos(e); In.releases.push({ id: 'm', src: 'mouse', x: p.x, y: p.y, t: now() }); } In.mouse.seen = now(); push('m', { t: now(), x: In.mouse.x, y: In.mouse.y, px: In.mouse.x, py: In.mouse.y, pose: 'open', span: 0, down: false }); emit('release', 'm'); };
   layer.addEventListener('pointerup', up); layer.addEventListener('pointercancel', up);
   // keys: window capture, ahead of Hand Butter's own document handlers (Space would otherwise release its held brick)
   window.addEventListener('keydown', e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (!OG.G || !OG.G.active) return;
@@ -2622,7 +2623,9 @@ In.primary = () => In.cursors()[0];
 In.history = id => In.hist.get(id) || [];
 /** the latest press (a pinch closing, a pointer going down) since the last call, with where it happened: an edge a slow frame cannot miss */
 In.takePress = function () { const p = In.presses.pop(); In.presses.length = 0; return p && now() - p.t < 3000 ? p : null; };
-In.reset = function () { In.presses.length = 0; if (In.touches) In.touches.clear(); In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
+/** the latest letting-go since the last call, with where the hand or pointer was */
+In.takeRelease = function () { const p = In.releases.pop(); In.releases.length = 0; return p && now() - p.t < 3000 ? p : null; };
+In.reset = function () { In.presses.length = 0; In.releases.length = 0; if (In.touches) In.touches.clear(); In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
 
 /* ── recognisers ── */
 const R = In.R = {};
@@ -2981,8 +2984,12 @@ C.dress = async function (item, group) {
   const heads = group.userData.heads.map(p => ({ p, used: false })), out = [], want = [];
   for (const c of pv.cast) { const m = /^character\.([a-z]+)/.exec(c.who || ''); if (!m || !TWELVE.includes(m[1]) || !Array.isArray(c.at)) continue; want.push({ who: m[1], x: c.at[0], z: -c.at[2] }); }
   const pairs = []; for (const w of want) heads.forEach((h, i) => pairs.push({ w, i, d: Math.hypot(h.p.x - w.x, h.p.z - w.z) })); pairs.sort((a, b) => a.d - b.d);
-  const done = new Set();
+  const done = new Set(); try { await OG.E.ensureParts(['3626b']); } catch (e) { }
+  const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   for (const { w, i, d } of pairs) { if (d > 50 || done.has(w) || heads[i].used) continue; done.add(w); heads[i].used = true; const h = heads[i].p;
+    /* the printed head of the card makes way for a plain one, so the halfworld's face is the only face */
+    if (catalog.has('3626b')) { for (const m of group.children) if (m.isInstancedMesh && m.userData.rows) { const k = m.userData.rows.indexOf(h); if (k >= 0) { m.setMatrixAt(k, zero); m.instanceMatrix.needsUpdate = true; } }
+      const plain = OG.E.brick('3626b', 14, h.x, h.y, h.z, h.r || 0); if (h.q) plain.quaternion.set(...h.q); group.add(plain); }
     const slot = new THREE.Object3D(); slot.position.set(h.x, h.y + 21, h.z); if (h.q) slot.quaternion.set(...h.q); else slot.rotation.y = (h.r || 0) * Math.PI / 2; const flip = new THREE.Object3D(); flip.scale.set(1, -1, -1); slot.add(flip); group.add(slot);
     const face = Face.attach({ slots: { head: flip }, def: { hat: null } }, 'halfworld:' + w.who, THREE); if (face) out.push({ who: w.who, face, blinkAt: 1 + Math.random() * 3, last: 0 }); }
   return out;
@@ -3219,6 +3226,7 @@ G.boot = async function () {
   if (Q.get('speed')) E.timeScale = Math.max(0.25, Math.min(12, +Q.get('speed')));
   if (Q.has('mute')) A.setMuted(true);
   OG.ST.noStage = Q.has('nostage');
+  if (Q.get('render')) { const every = +Q.get('render'); let last = 0; window.OdysseyRenderGate = now => { if (now - last < every) return false; last = now; return true; }; }
   await E.ready(); E.setup(); H.loading(false); H.total(OG.ST.kleos());
   G.phase = 'chart';
   const want = Q.get('level'), book = +Q.get('book');
@@ -3417,11 +3425,12 @@ OG.level({
     if (ctx.stage === 'build') {
       // the carry
       if (E.carry.id) {
-        const held = E.part(E.carry.id), at = E.floorAt(c.x, c.y, 20);
+        const rel = c.src === 'key' ? null : In.takeRelease(), p0 = rel || c;
+        const held = E.part(E.carry.id), at = E.floorAt(p0.x, p0.y, 20);
         let x = at ? at.x : held.x, z = at ? at.z : held.z; const sl = s.slots.find(q => !s.filled.has(q.id) && q.part === held.part && (q.part !== '3003' || logsDone) && Math.hypot(q.x - x, q.z - z) < 50);
         if (sl) { x = sl.x; z = sl.z; const q = E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)); H.ring(q.x, q.y, 18, '#7fe07a', { width: 3 }); }
         E.carryAt(x, z);
-        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : c.src === 'touch' ? false : false;
+        const release = !!rel || (c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : false);
         if (release) this.drop(ctx);
       } else { const pr = In.takePress(); if (pr && pr.src !== 'key') this.tryGrab(ctx, pr); }
       s.wasDown = c.down;
@@ -3453,7 +3462,7 @@ OG.level({
     const E = ctx.E, s = ctx.s; let best = null, bd = 0.075;
     for (const p of S.parts) { if (!/^log|^step/.test(p.id)) continue; if (s.slots.some(sl => s.filled.has(sl.id) && sl.part === p.part && Math.abs(p.x - sl.x) < 4 && Math.abs(p.z - sl.z) < 4 && Math.abs(p.y - sl.y) < 3)) continue;
       const q = E.toScreen(E.partCenter(p.id)), d = Math.hypot((c.x - q.x) * 1.6, c.y - q.y); if (d < bd) { bd = d; best = p.id; } }
-    if (best && E.grab(best, c.x, c.y)) { ctx.A.sfx('stud', { gain: .6 }); ctx.s.grabbed = best; }
+    if (best && E.grab(best, c.x, c.y)) { ctx.In.releases.length = 0; ctx.A.sfx('stud', { gain: .6 }); ctx.s.grabbed = best; }
   },
   drop(ctx) { const fail = S.tx ? validate() : null, mag = S.tx && S.tx.magnet ? S.tx.magnet.key : null; const r = ctx.E.drop(); if (!r) return; ctx.s.lastDrop = { ...r, fail, mag, links: [...PH.links.keys()] }; if (r.bonds.length) ctx.H.flash('CLICK', 'good'); else ctx.A.sfx('thud', { gain: .5 }); },
   onKey(ctx, code) {
@@ -3556,11 +3565,11 @@ OG.level({
     } else if (ctx.stage === 'rams') {
       // carrying men
       const pickable = s.men.filter(m => m.state === 'free');
-      const pr = In.takePress(); if (!s.carry && ((pr && pr.src !== 'key') || s.keyGrab)) { const at = pr && pr.src !== 'key' ? pr : c; s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((at.x - q.x) * 1.6, at.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; A.sfx('stud', { gain: .5 }); } }
-      if (s.carry && s.carry !== 'stake') { const m = s.carry, at = E.floorAt(c.x, c.y, 0); if (at) { m.rig.pos.set(E.clamp(at.x, -380, 380), 24, E.clamp(at.z, -380, 380)); }
+      const pr = In.takePress(); if (!s.carry && ((pr && pr.src !== 'key') || s.keyGrab)) { const at = pr && pr.src !== 'key' ? pr : c; s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((at.x - q.x) * 1.6, at.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; In.releases.length = 0; A.sfx('stud', { gain: .5 }); } }
+      if (s.carry && s.carry !== 'stake') { const rel = c.src === 'key' ? null : In.takeRelease(), p0 = rel || c; const m = s.carry, at = E.floorAt(p0.x, p0.y, 0); if (at) { m.rig.pos.set(E.clamp(at.x, -380, 380), 24, E.clamp(at.z, -380, 380)); }
         const ram = s.rams.filter(r => !r.man).sort((a, b) => a.g.position.distanceTo(m.rig.pos) - b.g.position.distanceTo(m.rig.pos))[0];
         if (ram) { const q = E.toScreen(ram.g.position.clone().add(new THREE.Vector3(0, 30, 0))); if (ram.g.position.distanceTo(new THREE.Vector3(m.rig.pos.x, 0, m.rig.pos.z)) < 70) H.ring(q.x, q.y, 20, '#7fe07a', { width: 3, label: 'UNDER THE RAM' }); }
-        const release = c.src === 'key' ? s.keyDrop : !c.down; if (release) { s.keyDrop = false; this.dropMan(ctx, m, ram); } }
+        const release = c.src === 'key' ? s.keyDrop : (!!rel || !c.down); if (release) { s.keyDrop = false; this.dropMan(ctx, m, ram); } }
       s.wasDown = c.down;
       // the sweep: a lane darkens, then the hand crosses it
       s.nextSweep -= dt;

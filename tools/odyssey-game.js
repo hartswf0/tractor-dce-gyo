@@ -26,6 +26,9 @@ const swap = (from, to, what) => { if (!html.includes(from)) throw new Error('th
 swap("const tracks=trackHands(marks,now),r=$('#stage').getBoundingClientRect();",
   "const tracks=trackHands(marks,now),r=$('#stage').getBoundingClientRect();if(window.OdysseyHands&&OdysseyHands.take(tracks,now))return;",
   'processHands track step');
+/* 1b. a render gate: a starved page (headless tests on a busy CPU) may render less often, so the hand tracker's frames keep
+   their pace (Butter forgets a track unseen for 750 ms); off unless the game sets OdysseyRenderGate */
+swap("runFrameStep('scene-render',()=>renderer.render(scene,camera));", "runFrameStep('scene-render',()=>{if(window.OdysseyRenderGate&&!OdysseyRenderGate(now))return;renderer.render(scene,camera);});", 'render step');
 /* 2. the game keeps its own scene and workshop stores */
 swap("const key='wag-butter16-scenes-v1';", "const key='odyssey-game-scenes-v1';", 'scene store key');
 swap("const STORE='wag-hand-butter-16';", "const STORE='odyssey-game-workshop-v1';", 'workshop store key');

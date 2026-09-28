@@ -49,7 +49,6 @@ E.frame = function (now) {
   ROOM.group.visible = !!E.view.room; if (ROOM.video) ROOM.video.visible = false;
   floor.visible = E.view.floor != null; if (E.view.floor != null) { floor.material.color.setHex(E.view.floor); floor.material.opacity = 1; }
   grid.visible = !!E.view.grid;
-  if (!E.view.guides) for (const o of ButterSpatialRuntime.plate.children) if (o.isLine || o.isLineSegments || o === hoverBox) o.visible = false;
   // the camera
   const c = E.cam; if (c.t < 1) c.t = Math.min(1, c.t + dtReal / Math.max(0.01, c.dur));
   const u = smooth(c.t), f = c.from || { pos: c.pos, look: c.look, fov: c.fov };
@@ -62,6 +61,8 @@ E.frame = function (now) {
   for (const a of E.actors) E.poseActor(a, dt, now);
   for (const fn of E.tickers) fn(dt, now);
   if (OG.G) OG.G.frame(dt, dtReal, now);
+  if (!E.view.guides) for (const o of ButterSpatialRuntime.plate.children) if (o.isLine || o.isLineSegments || o === hoverBox) o.visible = false;
+
 };
 
 /* ── projection: plate/world points to stage fractions and back ── */
@@ -115,8 +116,8 @@ E.cardGroup = async function (id, { budget, only } = {}) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1);
   for (const [k, list] of groups) { const d = catalog.get(list[0].part), mesh = new THREE.InstancedMesh(d.geometry, E.mat(list[0].color), list.length);
     list.forEach((p, i) => { if (p.q) q.set(...p.q); else q.setFromAxisAngle(V3(0, 1, 0), (p.r || 0) * Math.PI / 2); m4.compose(V3(p.x, p.y, p.z), q, one); mesh.setMatrixAt(i, m4); });
-    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; g.add(mesh);
-    if (d.fixGeometry) { const fm = new THREE.InstancedMesh(d.fixGeometry, E.fixMat(), list.length); for (let i = 0; i < list.length; i++) { mesh.getMatrixAt(i, m4); fm.setMatrixAt(i, m4); } fm.instanceMatrix.needsUpdate = true; g.add(fm); } }
+    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; mesh.userData.rows = list; g.add(mesh);
+    if (d.fixGeometry) { const fm = new THREE.InstancedMesh(d.fixGeometry, E.fixMat(), list.length); for (let i = 0; i < list.length; i++) { mesh.getMatrixAt(i, m4); fm.setMatrixAt(i, m4); } fm.instanceMatrix.needsUpdate = true; fm.userData.rows = list; g.add(fm); } }
   g.userData = { rows, drawn: n, missing: [...miss], heads: rows.filter(p => /^3626/.test(p.part)) };
   return g;
 };

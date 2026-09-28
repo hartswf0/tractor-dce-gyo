@@ -49,8 +49,12 @@ C.dress = async function (item, group) {
   const heads = group.userData.heads.map(p => ({ p, used: false })), out = [], want = [];
   for (const c of pv.cast) { const m = /^character\.([a-z]+)/.exec(c.who || ''); if (!m || !TWELVE.includes(m[1]) || !Array.isArray(c.at)) continue; want.push({ who: m[1], x: c.at[0], z: -c.at[2] }); }
   const pairs = []; for (const w of want) heads.forEach((h, i) => pairs.push({ w, i, d: Math.hypot(h.p.x - w.x, h.p.z - w.z) })); pairs.sort((a, b) => a.d - b.d);
-  const done = new Set();
+  const done = new Set(); try { await OG.E.ensureParts(['3626b']); } catch (e) { }
+  const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   for (const { w, i, d } of pairs) { if (d > 50 || done.has(w) || heads[i].used) continue; done.add(w); heads[i].used = true; const h = heads[i].p;
+    /* the printed head of the card makes way for a plain one, so the halfworld's face is the only face */
+    if (catalog.has('3626b')) { for (const m of group.children) if (m.isInstancedMesh && m.userData.rows) { const k = m.userData.rows.indexOf(h); if (k >= 0) { m.setMatrixAt(k, zero); m.instanceMatrix.needsUpdate = true; } }
+      const plain = OG.E.brick('3626b', 14, h.x, h.y, h.z, h.r || 0); if (h.q) plain.quaternion.set(...h.q); group.add(plain); }
     const slot = new THREE.Object3D(); slot.position.set(h.x, h.y + 21, h.z); if (h.q) slot.quaternion.set(...h.q); else slot.rotation.y = (h.r || 0) * Math.PI / 2; const flip = new THREE.Object3D(); flip.scale.set(1, -1, -1); slot.add(flip); group.add(slot);
     const face = Face.attach({ slots: { head: flip }, def: { hat: null } }, 'halfworld:' + w.who, THREE); if (face) out.push({ who: w.who, face, blinkAt: 1 + Math.random() * 3, last: 0 }); }
   return out;
