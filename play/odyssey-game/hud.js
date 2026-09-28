@@ -44,11 +44,12 @@ H.build = function () {
   <div id="og-input" aria-label="Play area"></div>
   <div id="og-top"><div class="og-brand"><b>NOBODY'S HANDS</b><span>the Odyssey, played by hand · Hand Butter</span></div>
     <div id="og-level"></div>
-    <div id="og-kleos"><span class="k">κλέος</span><b id="og-k">—</b><span id="og-time">0:00</span></div>
-    <div id="og-nav"><button id="og-chart" title="Voyage chart (M)">Chart</button><button id="og-replay" title="Replay the level (R)">Replay</button><button id="og-hands" title="Play with your hands: the camera">Hands</button><button id="og-sound" title="Sound">Sound</button></div></div>
+    <div id="og-kleos"><span class="k">κλέος</span><b id="og-k">—</b><span id="og-time">0:00</span><span class="k" title="the whole poem">Σ</span><b id="og-total">0</b></div>
+    <div id="og-nav"><button id="og-chart" title="Voyage chart (M)">Chart</button><button id="og-skip" title="Skip this scene (S)">Skip ⟶</button><button id="og-replay" title="Replay the level (R)">Replay</button><button id="og-hands" title="Play with your hands: the camera">Hands</button><button id="og-sound" title="Sound">Sound</button></div></div>
   <div id="og-meters"></div>
   <div id="og-cue" hidden><div id="og-cue-icon"></div><div><b id="og-cue-verb"></b><span id="og-cue-text"></span></div></div>
   <div id="og-caption" hidden><b></b><span></span></div>
+  <div id="og-progress" hidden><i></i></div>
   <div id="og-banner" hidden></div>
   <div id="og-flash"></div>
   <div id="og-chartlayer" hidden><canvas id="og-map"></canvas><div id="og-mapinfo"></div></div>
@@ -61,6 +62,10 @@ H.$ = s => H.root.querySelector(s);
 H.level = function (d) { H.$('#og-level').innerHTML = d ? `<span>BOOK ${roman(d.book)} · ${d.island.toUpperCase()}</span><b>${d.n}. ${d.title}</b>` : ''; };
 const roman = n => { const r = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]; let s = ''; for (const [v, c] of r) while (n >= v) { s += c; n -= v; } return s; };
 H.roman = roman;
+/** the cinema's header: the book and the scene now playing */
+H.scene = function (book, item) { const e = H.$('#og-level'); if (!book) { H.$('#og-progress').hidden = true; H.$('#og-skip').hidden = true; return; } H.$('#og-skip').hidden = false; e.innerHTML = `<span>BOOK ${book.roman} · ${book.title.toUpperCase()}</span><b>${item ? item.title : book.place}</b>`; H.$('#og-progress').hidden = !item; };
+H.progress = u => { H.$('#og-progress i').style.width = Math.round(Math.max(0, Math.min(1, u)) * 100) + '%'; };
+H.total = k => { H.$('#og-total').textContent = k; };
 /** the cue: a drawing of the verb and the sentence for the input in use */
 H.cue = function (icon, verb, text) { const c = H.$('#og-cue'); if (!icon) { c.hidden = true; return; } c.hidden = false; H.$('#og-cue-icon').innerHTML = H.icon(icon); H.$('#og-cue-verb').textContent = verb || ''; H.$('#og-cue-text').textContent = text || ''; c.dataset.icon = icon; };
 H.cueText = function (cue) { if (!cue) return ''; if (typeof cue === 'string') return cue; const src = OG.In.source; return src === 'hand' ? cue.hand : src === 'key' ? (cue.keys || cue.mouse) : (cue.mouse || cue.hand); };

@@ -33,7 +33,7 @@ swap("const STORE='wag-hand-butter-16';", "const STORE='odyssey-game-workshop-v1
 html = html.replace(/<title>[^<]*<\/title>/, "<title>Nobody's Hands · the Odyssey played by hand</title>\n<script>try{localStorage.removeItem('odyssey-game-scenes-v1');localStorage.removeItem('odyssey-game-workshop-v1');}catch(e){}</script>");
 
 /* the game layer, loaded after the engine */
-const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'game'];
+const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'cinema', 'story', 'game'];
 const levels = fs.readdirSync(path.join(root, 'play/odyssey-game/levels')).filter(f => /^\d\d-.*\.js$/.test(f)).sort();
 const tags = ['<link rel="stylesheet" href="odyssey-game/game.css">',
   '<script src="../world/halfworld-face.js"></script>', '<script src="../world/face.js"></script>',

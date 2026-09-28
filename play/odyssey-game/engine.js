@@ -48,6 +48,7 @@ E.frame = function (now) {
   ROOM.group.visible = !!E.view.room; if (ROOM.video) ROOM.video.visible = false;
   floor.visible = E.view.floor != null; if (E.view.floor != null) { floor.material.color.setHex(E.view.floor); floor.material.opacity = 1; }
   grid.visible = !!E.view.grid;
+  if (!E.view.guides) for (const o of ButterSpatialRuntime.plate.children) if (o.isLine || o.isLineSegments || o === hoverBox) o.visible = false;
   // the camera
   const c = E.cam; if (c.t < 1) c.t = Math.min(1, c.t + dtReal / Math.max(0.01, c.dur));
   const u = smooth(c.t), f = c.from || { pos: c.pos, look: c.look, fov: c.fov };
@@ -113,6 +114,13 @@ E.cardGroup = async function (id, { budget, only } = {}) {
   g.userData = { rows, drawn: n, missing: [...miss], heads: rows.filter(p => /^3626/.test(p.part)) };
   return g;
 };
+/** a small burst of 1x1 plates from a point: the answer to a touch */
+E.burst = function (at, { n = 14, colors = [14, 25, 4, 15, 1] } = {}) {
+  const parts = []; for (let i = 0; i < n; i++) { const m = E.brick(catalog.has('3024') ? '3024' : '3005', colors[i % colors.length], at.x, at.y + 10, at.z, 0, { shadow: false }); const a = Math.random() * 6.28, sp = 60 + Math.random() * 90; m.userData.v = V3(Math.cos(a) * sp, 140 + Math.random() * 120, Math.sin(a) * sp); E.add(m); parts.push(m); }
+  let life = 0; const tick = dt => { life += dt; for (const m of parts) { m.userData.v.y -= 420 * dt; m.position.addScaledVector(m.userData.v, dt); m.rotation.x += dt * 5; m.rotation.z += dt * 3; } if (life > 1.6) { parts.forEach(m => m.parent && m.parent.remove(m)); E.tickers.delete(tick); } }; E.tickers.add(tick);
+};
+/** the workshop emptied: no parts, no bonds (a cinematic or a card between levels) */
+E.clearParts = function () { if (S.tx) finish(false); if (S.parts.length) { restore([]); S.history.length = 0; } PH.pinned = new Set(); };
 E.clearProps = function () { for (const o of [...E.root.children]) { E.root.remove(o); } E.tickers.clear(); E.glow.intensity = 0; E.hemi.intensity = 0.35; };
 
 /* ── the stage set as Hand Butter parts: ButterScenes.load; every part pinned (static) until a hand frees it ── */
@@ -134,7 +142,7 @@ E.bondsOf = id => [...PH.links.keys()].filter(k => k.split('|').includes(id)).ma
 /* ── the carry: a pinch picks a workshop part, the hand moves it over the floor, opening releases it.
    The move is Butter's transaction: begin → propose (its stud magnet captures within 30 LDU) → finish(true), which audits
    the seated stud contacts with Beaver's exact handshake and bonds them. Source 'game': no throw, no hand-safety takeover. ── */
-const carry = E.carry = { id: null, grab: null, lift: 24, hover: 0, clicks: 0, misses: 0 };
+const carry = E.carry = { id: null, grab: null, lift: 10, hover: 0, clicks: 0, misses: 0 };
 E.grab = function (id, sx, sy) {
   if (S.tx || !E.part(id)) return false; choose(id, false); if (!begin('game')) return false;
   S.tx.noThrow = true; S.tx.plane = 'xyz'; const b = bounds(E.part(id)); carry.id = id; carry.baseY = b.min.y;
@@ -142,9 +150,10 @@ E.grab = function (id, sx, sy) {
   feedback('grab'); return true;
 };
 /** move the carried part so it follows the stage point, hovering `lift` above whatever lies under it (so the magnet can seat it) */
-E.carryTo = function (sx, sy) {
-  if (!S.tx || carry.id == null) return null; const p = E.part(carry.id);
-  const at = E.floorAt(sx, sy, carry.baseY + 12) || carry.grab; const bb = bounds(p), size = bb.getSize(V3());
+E.carryTo = function (sx, sy) { if (!S.tx || carry.id == null) return null; const at = E.floorAt(sx, sy, carry.baseY + 12) || carry.grab; return E.carryAt(at.x + carry.offset.x, at.z + carry.offset.z); };
+/** carry the held part so its centre stands over (x, z) */
+E.carryAt = function (x, z) {
+  if (!S.tx || carry.id == null) return null; const p = E.part(carry.id); const at = { x: x - carry.offset.x, z: z - carry.offset.z }; const bb = bounds(p), size = bb.getSize(V3());
   const cx = clamp(at.x + carry.offset.x, -390 + size.x / 2, 390 - size.x / 2), cz = clamp(at.z + carry.offset.z, -390 + size.z / 2, 390 - size.z / 2);
   // what is under the footprint: the highest top among other parts
   let support = 0; const foot = new THREE.Box3(V3(cx - size.x / 2 + 1, -1, cz - size.z / 2 + 1), V3(cx + size.x / 2 - 1, 800, cz + size.z / 2 - 1));
@@ -156,7 +165,7 @@ E.drop = function () {
   if (!S.tx || carry.id == null) return null; const id = carry.id; carry.id = null;
   const snapped = !!S.tx.magnet; if (!snapped) { // lower it onto what is under it
     const p = E.part(id), b = bounds(p), dy = (carry.support || 0) - b.min.y; propose(S.tx.rawDelta.clone().add(V3(0, dy, 0))); }
-  finish(true); const bonds = E.bondsOf(id); if (bonds.length) carry.clicks++; else carry.misses++;
+  finish(true); const bonds = E.bondsOf(id); if (bonds.length) { carry.clicks++; E.pin(id, true); } else carry.misses++;   // a seated part stands with the set (static), as a scene's parts do
   choose(null, false); return { id, snapped, bonds };
 };
 E.cancelCarry = () => { if (S.tx) finish(false); carry.id = null; choose(null, false); };

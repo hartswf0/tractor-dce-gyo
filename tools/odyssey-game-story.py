@@ -135,7 +135,7 @@ def main(argv):
         books.append(book)
         print('Book %2d %-38s %2d items: %s' % (n, book['title'][:38], len(book['items']), ' '.join(i['type'][0] + ('*' if i.get('touch') else '') for i in book['items'])))
     story = dict(title="The Odyssey — the Regulars' Cut, played by hand", source='odyssey/kits/cut.json', runtime_min=cut['totals']['runtime_min'],
-                 scenes=sum(1 for b in books for i in b['items'] for _ in ([i] if i['type'] == 'scene' else i.get('covers', []))), books=books)
+                 scenes=sum(1 if i['type'] == 'scene' else len(i['covers']) if i['type'] == 'level' else 0 for b in books for i in b['items']), books=books)
     json.dump(story, open(os.path.join(GAME, 'story.json'), 'w'), indent=1, ensure_ascii=False)
     print('story.json:', len(books), 'books,', story['scenes'], 'scenes,', sum(1 for b in books for i in b['items'] if i['type'] == 'level'), 'levels,',
           sum(1 for b in books for i in b['items'] if i.get('touch')), 'touches')
