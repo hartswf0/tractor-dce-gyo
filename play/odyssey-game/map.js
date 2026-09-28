@@ -33,7 +33,7 @@ M.pick = function (i) {
   const trials = b.items.filter(x => x.type === 'level').map(x => OG.G.data[x.id]).filter(Boolean), touches = b.items.filter(x => x.touch).map(x => x.touch.thing), scenes = b.items.filter(x => x.type === 'scene').length + trials.reduce((a, d) => a + (d.scenes || []).length, 0);
   M.info.innerHTML = `<span>BOOK ${b.roman} · ${b.place.toUpperCase()}${S.done[b.n] ? ' · SAILED' : ''}</span><b>${b.title}</b><span>${scenes} scenes · ${b.minutes ? b.minutes.toFixed(1) + ' min of the cut' : ''}${trials.length ? ' · trial: ' + trials.map(d => d.title).join(', ') : ''}${touches.length ? ' · touch: ' + touches.join(', ') : ''}</span>
     <div class="row" style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="primary" id="og-playbook">Play book ${b.roman} (Enter)</button>${at && (at.book > 1 || at.item > 0) ? `<button id="og-continue">Continue · Book ${M.books()[at.book - 1].roman}: ${OG.ST.label(M.books()[at.book - 1], at.item)} (C)</button>` : ''}</div>
-    ${window.OG_MOBILE ? '<span style="font-size:11px;opacity:.75">Scene sets, voices and music stream from the site as you play: keep a connection.</span>' : ''}<div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
+    ${window.OG_MOBILE ? '<span class="og-note" style="font-size:11px;opacity:.75">' + (window.OG_BANK ? 'Every scene and voice is in this file; only the music streams (offline, the books play without it).' : 'Scene sets, voices and music stream from the site as you play: keep a connection.') + '</span>' : ''}<div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
   M.info.querySelector('#og-playbook').onclick = () => M.go(); const c = M.info.querySelector('#og-continue'); if (c) c.onclick = () => M.cont();
   M.info.querySelectorAll('[data-level]').forEach(el => el.onclick = () => OG.G.start(el.dataset.level));
 };
@@ -54,18 +54,19 @@ M.frame = function (dt, t) {
   g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillStyle = '#f3ecd8'; g.fillText('TROY', troy.x - 24, troy.y + 4); g.fillText('ITHACA', fb.x0 + .79 * fb.w, fb.y0 + .9 * fb.h);
   const c = OG.In.primary(), h = M.at(c); if (h != null && h !== M.sel) { M.pick(h); M.dwell = 0; }
   if (h != null && c.src === 'hand' && c.pose === 'point') M.dwell += dt; else M.dwell = 0; if (M.dwell > 1.4) { M.dwell = 0; M.go(); }
-  const cur = S.at ? S.at.book : 1;
+  const cur = S.at ? S.at.book : 1; let late = null;
   books.forEach((b, i) => { const p = M.pos(b), sel = i === M.sel, done = S.done[b.n], lv = b.items.some(x => x.type === 'level'), R = W < 700 ? (sel ? 14 : 11) : (sel ? 17 : 14);
     g.save(); g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(p.x + 2, p.y + 4, R, 0, 7); g.fill();
     g.fillStyle = done ? '#e8c55a' : '#f3ecd8'; g.strokeStyle = lv ? '#d2452f' : '#10151b'; g.lineWidth = lv ? 4 : 2.5; g.beginPath(); g.arc(p.x, p.y, R, 0, 7); g.fill(); g.stroke();
     if (b.n === cur) { g.strokeStyle = '#7fe07a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 6 + Math.sin(t * 4) * 2, 0, 7); g.stroke(); }
     if (sel) { g.strokeStyle = '#ffe28a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 11, 0, 7); g.stroke(); if (M.dwell > 0) { g.lineWidth = 5; g.strokeStyle = '#7fe07a'; g.beginPath(); g.arc(p.x, p.y, R + 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * M.dwell / 1.4); g.stroke(); } }
     g.fillStyle = '#10151b'; g.font = `700 ${W < 700 ? (b.n > 9 ? 9 : 11) : (b.n > 9 ? 12 : 14)}px Georgia, serif`; g.textAlign = 'center'; g.fillText(b.roman, p.x, p.y + 5);
-    if (sel) { g.font = '700 12px ui-monospace, Menlo, monospace'; const label = b.title.toUpperCase(), w = g.measureText(label).width + 12; g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(p.x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, p.x, p.y - R - 16); }
+    if (sel) late = () => { g.save(); g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; const label = b.title.toUpperCase(), w = Math.min(W - 8, g.measureText(label).width + 12), x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, p.x)); g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, x, p.y - R - 16, w - 8); g.restore(); };
     g.restore(); });
+  if (late) late();   // the chosen book's name on top of the other books' rings, and kept on the screen
   const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 6, narrow = W < 700 || (Hh < 500 && W > Hh);
   const shortL = Hh < 500 && W > Hh; g.fillStyle = 'rgba(12,20,28,.55)'; g.fillRect(0, top, shortL ? W * .56 : Math.min(W, narrow ? W : 760), narrow || shortL ? 44 : 50);
-  g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24)); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
-  g.fillText(narrow ? '24 books. Red ring: a trial of the hand. Gold: sailed. Tap a book.' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42));
+  g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24), (shortL ? W * .56 : W) - 24); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
+  g.fillText(narrow ? '24 books · red ring: a trial · gold: sailed · tap a book' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42), (shortL ? W * .56 : W) - 24);   // squeezed, never cut, on a narrow screen
 };
 })();

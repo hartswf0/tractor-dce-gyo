@@ -50,11 +50,12 @@ OG.level({
     if (ctx.stage === 'build') {
       // the carry
       if (E.carry.id) {
-        const held = E.part(E.carry.id), at = E.floorAt(c.x, c.y, 20);
+        const rel = c.src === 'key' ? null : In.takeRelease(), p0 = rel || c;
+        const held = E.part(E.carry.id), at = E.floorAt(p0.x, p0.y, 20);
         let x = at ? at.x : held.x, z = at ? at.z : held.z; const sl = s.slots.find(q => !s.filled.has(q.id) && q.part === held.part && (q.part !== '3003' || logsDone) && Math.hypot(q.x - x, q.z - z) < 50);
         if (sl) { x = sl.x; z = sl.z; const q = E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)); H.ring(q.x, q.y, 18, '#7fe07a', { width: 3 }); }
         E.carryAt(x, z);
-        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : c.src === 'touch' ? false : false;
+        const release = !!rel || (c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : false);
         if (release) this.drop(ctx);
       } else { const pr = In.takePress(); if (pr && pr.src !== 'key') this.tryGrab(ctx, pr); }
       s.wasDown = c.down;
@@ -86,7 +87,7 @@ OG.level({
     const E = ctx.E, s = ctx.s; let best = null, bd = 0.075;
     for (const p of S.parts) { if (!/^log|^step/.test(p.id)) continue; if (s.slots.some(sl => s.filled.has(sl.id) && sl.part === p.part && Math.abs(p.x - sl.x) < 4 && Math.abs(p.z - sl.z) < 4 && Math.abs(p.y - sl.y) < 3)) continue;
       const q = E.toScreen(E.partCenter(p.id)), d = Math.hypot((c.x - q.x) * 1.6, c.y - q.y); if (d < bd) { bd = d; best = p.id; } }
-    if (best && E.grab(best, c.x, c.y)) { ctx.A.sfx('stud', { gain: .6 }); ctx.s.grabbed = best; }
+    if (best && E.grab(best, c.x, c.y)) { ctx.In.releases.length = 0; ctx.A.sfx('stud', { gain: .6 }); ctx.s.grabbed = best; }
   },
   drop(ctx) { const fail = S.tx ? validate() : null, mag = S.tx && S.tx.magnet ? S.tx.magnet.key : null; const r = ctx.E.drop(); if (!r) return; ctx.s.lastDrop = { ...r, fail, mag, links: [...PH.links.keys()] }; if (r.bonds.length) ctx.H.flash('CLICK', 'good'); else ctx.A.sfx('thud', { gain: .5 }); },
   onKey(ctx, code) {

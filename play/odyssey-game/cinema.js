@@ -49,8 +49,12 @@ C.dress = async function (item, group) {
   const heads = group.userData.heads.map(p => ({ p, used: false })), out = [], want = [];
   for (const c of pv.cast) { const m = /^character\.([a-z]+)/.exec(c.who || ''); if (!m || !TWELVE.includes(m[1]) || !Array.isArray(c.at)) continue; want.push({ who: m[1], x: c.at[0], z: -c.at[2] }); }
   const pairs = []; for (const w of want) heads.forEach((h, i) => pairs.push({ w, i, d: Math.hypot(h.p.x - w.x, h.p.z - w.z) })); pairs.sort((a, b) => a.d - b.d);
-  const done = new Set();
+  const done = new Set(); try { await OG.E.ensureParts(['3626b']); } catch (e) { }
+  const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   for (const { w, i, d } of pairs) { if (d > 50 || done.has(w) || heads[i].used) continue; done.add(w); heads[i].used = true; const h = heads[i].p;
+    /* the printed head of the card makes way for a plain one, so the halfworld's face is the only face */
+    if (catalog.has('3626b')) { for (const m of group.children) if (m.isInstancedMesh && m.userData.rows) { const k = m.userData.rows.indexOf(h); if (k >= 0) { m.setMatrixAt(k, zero); m.instanceMatrix.needsUpdate = true; } }
+      const plain = OG.E.brick('3626b', 14, h.x, h.y, h.z, h.r || 0); if (h.q) plain.quaternion.set(...h.q); group.add(plain); }
     const slot = new THREE.Object3D(); slot.position.set(h.x, h.y + 21, h.z); if (h.q) slot.quaternion.set(...h.q); else slot.rotation.y = (h.r || 0) * Math.PI / 2; const flip = new THREE.Object3D(); flip.scale.set(1, -1, -1); slot.add(flip); group.add(slot);
     const face = Face.attach({ slots: { head: flip }, def: { hat: null } }, 'halfworld:' + w.who, THREE); if (face) out.push({ who: w.who, face, blinkAt: 1 + Math.random() * 3, last: 0 }); }
   return out;
@@ -64,6 +68,8 @@ C.paintFaces = function (now) {
 /** occlusion by the set, from the card's own rows: a part's centre within `r` of the sight line (short of the subject) blocks it */
 function blocked(pts, cam, target, r = 20) {
   const d = target.clone().sub(cam), L = d.length(); d.normalize(); let hits = 0;
+  /* a big part (a sail, a wall) whose centre is far off can still fill the lens: nothing of the set within 30 LDU along the sight line */
+  if (SOLID && SOLID(cam, d, Math.min(30, L - 45))) return true;
   for (const p of pts) { const v = p.clone().sub(cam), u = v.dot(d); if (u < -10 || u > L - 45) continue; const off = v.addScaledVector(d, -u).length(); if (u < 70 && off < 16 + u * .45) return true; /* a figure or a column right at the lens fills the frame */ if (off < r) { hits++; if (hits > 1) return true; } }
   return false;
 }
@@ -108,7 +114,13 @@ C.plan = function (item, st) {
 /** a shot on a person: the head on the upper third of the frame (the look point dropped below it), the head kept for the tests */
 function headroom(pos, head, fov) { if (head.face) { const rel = pos.clone().sub(head), k = rel.dot(head.face); if (k < 0) pos = head.clone().add(rel.addScaledVector(head.face, -2 * k)); /* the camera goes round to the face: a baked figure may face the other way from the film's restaged one */ }
   const d = pos.distanceTo(head), look = head.clone().add(V3(0, -d * Math.tan(fov * Math.PI / 360) * .33, 0)); const h = head.clone(); h.face = head.face; return { pos, look, fov, head: h }; }
-function centres(st) { return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
+let SOLID = null;
+/** a ray from the lens into the card's own meshes: does a surface of the set lie within `far` of the camera? */
+function solids(st) {
+  const g = st.group; if (!g) return null; const ray = new THREE.Raycaster(); g.updateMatrixWorld(true);
+  return (cam, dir, far) => { if (far <= 0) return false; ray.set(cam, dir); ray.near = 0; ray.far = far; try { return ray.intersectObject(g, true).length > 0; } catch (e) { return false; } };
+}
+function centres(st) { SOLID = solids(st); return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
 function resolveKey(k, st) {
   const c = k.camera; if (!c) return null;
   const heads = st.group ? st.group.userData.heads : [];

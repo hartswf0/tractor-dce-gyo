@@ -46,7 +46,7 @@ function bankGeometry(rec, g, ldraw) {
 const EMPTY = new THREE.BufferGeometry();
 function bankPart(id) {
   if (catalog.has(id)) return catalog.get(id); const rec = BANK.index.get(id); if (!rec) return null;
-  const entry = { id, name: id, h: Math.max(.1, rec.h), offsetY: rec.offY, bounds: rec.b, geometry: rec.main ? bankGeometry(rec, rec.main, false) : EMPTY, fixGeometry: rec.fix ? bankGeometry(rec, rec.fix, false) : null, rec };
+  const entry = { id, name: id, h: Math.max(.1, (typeof BUTTER_CORE_H !== 'undefined' && BUTTER_CORE_H[id]) || rec.h), offsetY: rec.offY, bounds: rec.b, geometry: rec.main ? bankGeometry(rec, rec.main, false) : EMPTY, fixGeometry: rec.fix ? bankGeometry(rec, rec.fix, false) : null, rec };
   catalog.set(id, entry); return entry;
 }
 const FIXMAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35, side: THREE.DoubleSide });
@@ -93,8 +93,10 @@ async function bootBank() {
   const len = new DataView(buf).getUint32(0, true), header = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, len))), pad = (4 - ((4 + len) % 4)) % 4, data = buf.slice(4 + len + pad);
   BANK.header = header; BANK.buf = data; BANK.index = new Map(header.parts.map(p => [p.id, p])); COLORS = header.ldc.map(([code, hex]) => ({ code, hex }));
   window.OG_BANK = header;
+  /* Hand Butter's built-in bricks are always in its catalog (a level may place one without asking for it): so here too */
+  if (typeof BUTTER_CORE_H !== 'undefined') for (const id of Object.keys(BUTTER_CORE_H)) bankPart(id);
 }
 function resize() { const r = $('#stage').getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (w < 1 || h < 1 || (resize.w === w && resize.h === h)) return; resize.w = w; resize.h = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
-function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } renderer.render(scene, camera); }
+function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } if (window.OdysseyRenderGate && !OdysseyRenderGate(now)) return; renderer.render(scene, camera); }
 Object.assign(window, { WagWorkshop, ButterCast, ButterPerformer, ButterScenes, ButterRepository, ButterSpatialRuntime });   // the workspace's modules are window properties there too
 window.ButterLite = { ready: bootBank().then(() => { S.ready = true; requestAnimationFrame(animate); }) };

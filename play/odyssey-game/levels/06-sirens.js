@@ -36,17 +36,31 @@ OG.level({
     if (phase !== 'play') return;
     const c = In.primary();
     if (ctx.stage === 'bind') {
-      const turns = Math.abs(In.R.turns(c.id, { since: s.since, win: 1e9, needDown: c.src === 'mouse' })) + (s.keyTurns || 0);
+      /* the turns are counted round the mast as the path arrives and kept (the history holds only 2.6 s: three circles
+         inside it were too fast for a finger, and for a phone's frame rate); a pointer counts only while pressed */
+      const mc = E.toScreen(new THREE.Vector3(0, 70, -10));
+      if (s.turnId !== c.id) { s.turnId = c.id; s.prevA = null; }
+      for (const q of In.history(c.id)) { if (q.t <= (s.lastT || s.since)) continue; s.lastT = q.t;
+        if ((c.src === 'mouse' && !q.down) || Math.hypot((q.x - mc.x) * 1.6, q.y - mc.y) < .02) { s.prevA = null; continue; }
+        const a = Math.atan2(q.y - mc.y, (q.x - mc.x) * 1.6); if (s.prevA != null) { const dA = Math.atan2(Math.sin(a - s.prevA), Math.cos(a - s.prevA)); if (Math.abs(dA) < 1.5) s.acc = (s.acc || 0) + dA; } s.prevA = a; }
+      const turns = Math.abs(s.acc || 0) / (2 * Math.PI) + (s.keyTurns || 0);
       if (turns > s.turns) { const before = Math.floor(s.turns * 2); s.turns = Math.min(d.turns, turns); for (let k = before; k < Math.floor(s.turns * 2); k++) { const coil = new THREE.Mesh(new THREE.TorusGeometry(26, 2.6, 8, 26), new THREE.MeshStandardMaterial({ color: 0xc9b27a, roughness: .8 })); coil.rotation.x = Math.PI / 2; coil.position.set(0, 40 + k * 12, -12); E.add(coil); s.coils.push(coil); A.sfx('creak', { gain: .5 }); } }
       H.meters([{ id: 'rope', label: 'The rope', value: s.turns / d.turns, color: '#c9b27a', text: s.turns.toFixed(1) + ' / ' + d.turns + ' turns' }]);
       const ms = E.toScreen(new THREE.Vector3(0, 70, -10)); H.ring(ms.x, ms.y, 60, 'rgba(201,178,122,.8)', { width: 3, dash: [8, 6], label: 'CIRCLE HERE' });
       if (s.turns >= d.turns) { ctx.setStage('row'); A.sfx('studs-final'); H.flash('Bound fast', 'good'); ctx.say('bind'); ctx.cue('row', 'pump', 'ROW'); s.rowSince = performance.now(); s.lastStrokes = 0; A.loop('oars', { gain: .0 }); A.drone(0); s.odys.emotion = 'resolve'; }
     } else if (ctx.stage === 'row') {
-      const n = c.src === 'key' ? (s.keyStrokes || 0) : In.R.strokes(c.id, { since: s.rowSince, needDown: c.src === 'mouse', amp: .06 });
-      const newStrokes = Math.max(0, n - s.lastStrokes); s.lastStrokes = Math.max(s.lastStrokes, n);
-      if (newStrokes) { s.strokes += newStrokes; s.v = Math.min(3, s.v + .9 * newStrokes); s.x = Math.min(.2, s.x + .1 * newStrokes); s.stroke = (s.stroke || 0) + Math.PI * newStrokes; A.sfx('splash-small', { gain: .5 }); }
+      /* strokes are counted as the path arrives (R.strokes' reversals of at least 0.06, kept across frames): read over the 2.6 s
+         history alone, a steady rowing rate never beat its own first count and the oars stopped counting */
+      let newStrokes = 0;   // each stroke is worth 0.18 of the channel: a steady pump at a human pace (one stroke each way a second) outrows the song
+      if (c.src === 'key') { const n = s.keyStrokes || 0; newStrokes = Math.max(0, n - s.lastStrokes); s.lastStrokes = Math.max(s.lastStrokes, n); }
+      else { if (s.rowId !== c.id) { s.rowId = c.id; s.rdir = 0; s.rext = null; }
+        for (const q of In.history(c.id)) { if (q.t <= (s.rowT || s.rowSince)) continue; s.rowT = q.t; if (c.src === 'mouse' && !q.down) continue; const v = q.py;
+          if (s.rext == null) { s.rext = v; continue; }
+          if (s.rdir >= 0 && v < s.rext - .06) { if (s.rdir > 0) newStrokes++; s.rdir = -1; s.rext = v; } else if (s.rdir <= 0 && v > s.rext + .06) { if (s.rdir < 0) newStrokes++; s.rdir = 1; s.rext = v; }
+          else if ((s.rdir > 0 && v > s.rext) || (s.rdir < 0 && v < s.rext) || s.rdir === 0) s.rext = v; } }
+      if (newStrokes) { s.strokes += newStrokes; s.v = Math.min(3, s.v + .9 * newStrokes); s.x = Math.min(.2, s.x + .18 * newStrokes); s.stroke = (s.stroke || 0) + Math.PI * newStrokes; A.sfx('splash-small', { gain: .5 }); }
       s.v = Math.max(0, s.v - dt * .55); s.prog += dt * (1.2 + s.v * 2.1);
-      const abeam = Math.exp(-Math.pow((s.prog / d.course - .5) / .22, 2)), song = .08 + .5 * abeam; s.x -= dt * song * .55;
+      const abeam = Math.exp(-Math.pow((s.prog / d.course - .5) / .22, 2)), song = .08 + .5 * abeam; s.x -= dt * song * .45;
       A.drone(.05 + abeam * .22); A.loopGain('oars', Math.min(.5, s.v * .2));
       if (!s.sang && s.prog > d.course * .3) { s.sang = true; ctx.say('song'); s.odys.emotion = 'desperation'; }
       if (!s.struggled && s.prog > d.course * .5) { s.struggled = true; ctx.say('struggle'); }

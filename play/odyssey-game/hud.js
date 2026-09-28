@@ -68,7 +68,7 @@ H.progress = u => { H.$('#og-progress i').style.width = Math.round(Math.max(0, M
 H.total = k => { H.$('#og-total').textContent = k; };
 /** the cue: a drawing of the verb and the sentence for the input in use */
 H.cue = function (icon, verb, text) { const c = H.$('#og-cue'); if (!icon) { c.hidden = true; return; } c.hidden = false; H.$('#og-cue-icon').innerHTML = H.icon(icon); H.$('#og-cue-verb').textContent = verb || ''; H.$('#og-cue-text').textContent = text || ''; c.dataset.icon = icon; };
-H.cueText = function (cue) { if (!cue) return ''; if (typeof cue === 'string') return cue; const src = OG.In.source, touch = matchMedia('(pointer: coarse)').matches; const t = src === 'hand' ? cue.hand : src === 'key' ? (cue.keys || cue.mouse) : (cue.mouse || cue.hand); return touch && src !== 'hand' && t ? t.replace(/the mouse button/gi, 'your finger').replace(/Hold the mouse/gi, 'Hold a finger').replace(/\bmouse\b/gi, 'finger').replace(/\bclick\b/gi, 'tap').replace(/Press and drag/gi, 'Two fingers apart, or drag').replace(/pointer/gi, 'finger') : t; };
+H.cueText = function (cue) { if (!cue) return ''; if (typeof cue === 'string') return cue; const src = OG.In.source, touch = matchMedia('(pointer: coarse)').matches; const t = src === 'hand' ? cue.hand : src === 'key' ? (cue.keys || cue.mouse) : (cue.mouse || cue.hand); return touch && src !== 'hand' && t ? t.replace(/the mouse button/gi, 'your finger').replace(/Hold the mouse/gi, 'Hold a finger').replace(/with the button held/gi, 'with a finger held down').replace(/Let go of the button/gi, 'Lift your finger').replace(/\bmouse\b/gi, 'finger').replace(/\bclick\b/gi, 'tap').replace(/Press and drag/gi, 'Two fingers apart, or drag').replace(/pointer/gi, 'finger') : t; };
 H.caption = function (speaker, text, isLine) { const c = H.$('#og-caption'); if (!speaker) { c.hidden = true; return; } c.hidden = false; c.classList.toggle('narr', !isLine); c.querySelector('b').textContent = isLine ? speaker.toUpperCase() : ''; c.querySelector('span').textContent = text; };
 /** meters: {id: {label, value 0..1, color, warn}} */
 H.meters = function (list) { const m = H.$('#og-meters'); m.innerHTML = (list || []).map(x => `<div class="og-meter ${x.warn ? 'warn' : ''}" data-id="${x.id}"><span>${x.label}</span><i><em style="width:${Math.round(Math.max(0, Math.min(1, x.value)) * 100)}%;background:${x.color || '#e8c55a'}"></em></i>${x.text ? `<small>${x.text}</small>` : ''}</div>`).join(''); };
@@ -91,6 +91,7 @@ H.text = function (x, y, s, color = '#fff', size = 14, align = 'center') { const
 const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [0, 17], [17, 18], [18, 19], [19, 20]];
 const POSE_COL = { pinch: '#7fe07a', fist: '#ff8f6b', point: '#ffe28a', open: '#9fd4ff', V: '#d6a8ff', up: '#9fd4ff', down: '#9fd4ff' };
 /** every cursor: a hand as its skeleton (mapped onto the stage exactly as Hand Butter maps it), a pointer as a ring */
+const COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
 H.hands = function (cursors) {
   const g = H.ctx;
   for (const c of cursors) {
@@ -101,6 +102,7 @@ H.hands = function (cursors) {
       g.strokeStyle = col; g.lineWidth = 3; g.beginPath(); for (const [a, b] of BONES) { g.moveTo(...P[a]); g.lineTo(...P[b]); } g.stroke();
       g.fillStyle = col; for (const [x, y] of P) { g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); } g.restore();
       H.ring(c.x, c.y, c.down ? 9 : 14, col, { width: 3 }); H.text(c.x, c.y - 28 / H.Hh, c.pose.toUpperCase(), col, 12);
+    } else if (c.src === 'mouse' && (!OG.In.mouse.seen || (!c.down && COARSE && performance.now() - OG.In.mouse.seen > 1500))) { /* no pointer yet, or a lifted finger: no ring left in the middle of the picture */
     } else { H.ring(c.x, c.y, c.down ? 10 : 16, col, { width: 3, fill: c.down ? 'rgba(127,224,122,.25)' : null }); }
   }
 };

@@ -81,16 +81,18 @@ OG.level({
     } else if (ctx.stage === 'blinded') {
       if (ctx.phaseT > 3.2) { // he stands at the door, blind; the flock gathers there
         const g = s.giant; g.rig.figure.rotation.z = 0; g.rig.pos.set(330, 0, -80); g.heading = -Math.PI / 2; g.rig.heading = -Math.PI / 2; g.arms = [-1.2, -1.2];
-        s.stake.visible = false; ctx.setStage('rams'); s.nextSweep = 2.5; s.sweep = null; ctx.cue('rams', 'pinch', 'TUCK UNDER THE RAMS');
+        s.stake.visible = false; s.carry = null; ctx.setStage('rams'); s.nextSweep = 4.5;   // the stake is left in the eye: the hand is free for the men
+        // the men scatter in the dark, one to a lane: a sweep of the blind hand can find one man, not the whole huddle by the fire
+        s.men.forEach((m, i) => { if (m.state === 'free') m.rig.pos.set(-170 + i * 50, 0, -160 + i * 115); }); s.sweep = null; ctx.cue('rams', 'pinch', 'TUCK UNDER THE RAMS');
         E.setCamera([20, 600, 380], [40, 0, 0], { fov: 44, dur: 1.4 }); ctx.say('outside').then(() => ctx.stage === 'rams' && ctx.say('rams')); }
     } else if (ctx.stage === 'rams') {
       // carrying men
       const pickable = s.men.filter(m => m.state === 'free');
-      const pr = In.takePress(); if (!s.carry && ((pr && pr.src !== 'key') || s.keyGrab)) { const at = pr && pr.src !== 'key' ? pr : c; s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((at.x - q.x) * 1.6, at.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; A.sfx('stud', { gain: .5 }); } }
-      if (s.carry && s.carry !== 'stake') { const m = s.carry, at = E.floorAt(c.x, c.y, 0); if (at) { m.rig.pos.set(E.clamp(at.x, -380, 380), 24, E.clamp(at.z, -380, 380)); }
+      const pr = In.takePress(); if (!s.carry && ((pr && pr.src !== 'key') || s.keyGrab)) { const at = pr && pr.src !== 'key' ? pr : c; s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((at.x - q.x) * 1.6, at.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; In.releases.length = 0; A.sfx('stud', { gain: .5 }); } }
+      if (s.carry && s.carry !== 'stake') { const rel = c.src === 'key' ? null : In.takeRelease(), p0 = rel || c; const m = s.carry, at = E.floorAt(p0.x, p0.y, 0); if (at) { m.rig.pos.set(E.clamp(at.x, -380, 380), 24, E.clamp(at.z, -380, 380)); }
         const ram = s.rams.filter(r => !r.man).sort((a, b) => a.g.position.distanceTo(m.rig.pos) - b.g.position.distanceTo(m.rig.pos))[0];
         if (ram) { const q = E.toScreen(ram.g.position.clone().add(new THREE.Vector3(0, 30, 0))); if (ram.g.position.distanceTo(new THREE.Vector3(m.rig.pos.x, 0, m.rig.pos.z)) < 70) H.ring(q.x, q.y, 20, '#7fe07a', { width: 3, label: 'UNDER THE RAM' }); }
-        const release = c.src === 'key' ? s.keyDrop : !c.down; if (release) { s.keyDrop = false; this.dropMan(ctx, m, ram); } }
+        const release = c.src === 'key' ? s.keyDrop : (!!rel || !c.down); if (release) { s.keyDrop = false; this.dropMan(ctx, m, ram); } }
       s.wasDown = c.down;
       // the sweep: a lane darkens, then the hand crosses it
       s.nextSweep -= dt;

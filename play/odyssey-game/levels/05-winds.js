@@ -30,7 +30,7 @@ OG.level({
     // the reaches: spread across the voyage, each by a different man
     const n = d.reaches, T = d.voyage; s.reaches = []; for (let i = 0; i < n; i++) s.reaches.push({ at: 6 + i * (T - 14) / (n - 1) + ((i * 37) % 5 - 2) * .6, who: (i * 3 + 1) % 4, dur: 2.6, state: 'wait' });
     s.grip = d.grip; s.holdT = 0; s.wasteT = 0; s.blocked = 0; s.slip = false;
-    ctx.A.loop('sea', { gain: .45 }); ctx.A.loop('wind-low', { gain: .25 }); ctx.setStage('voyage');
+    ctx.A.loop('sea', { gain: .45 }); ctx.A.loop('wind', { gain: .15 });   /* the low wind: sfx/ has no wind-low render */ ctx.setStage('voyage');
   },
   intro(ctx) { ctx.say('intro'); },
   begin(ctx) { ctx.cue(null, 'fist'); ctx.In.pressPose = 'fist'; },
