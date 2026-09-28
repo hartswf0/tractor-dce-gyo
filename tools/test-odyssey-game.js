@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
 const ROOT = path.join(__dirname, '..'), SHOTS = path.join(ROOT, 'play/odyssey-game/shots');
 const A = process.argv.slice(2), opt = (k, d) => { const i = A.indexOf('--' + k); return i >= 0 ? A[i + 1] : d; }, has = k => A.includes('--' + k);
 const LEVELS = ['01-opening', '02-raft', '03-cyclops', '04-bow', '05-winds', '06-sirens', '07-scylla', '08-bed'];
-const only = opt('only') ? opt('only').split(',') : LEVELS, MODE = opt('mode', 'both'), SPEED = +opt('speed', 3);
+const only = opt('only') ? opt('only').split(',') : LEVELS, MODE = opt('mode', 'both'), SPEED = +opt('speed', 1);
 const doLevels = has('levels') || !has('spine'), doSpine = has('spine') || !has('levels');
 const [B0, B1] = (opt('books', '1-24')).split('-').map(Number);
 const W = 960, VH = 600;
@@ -69,7 +69,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const raftHand = async () => { for (let k = 0; k < 14; k++) { const d = await dbg(); if (d.stage !== 'build') break; const id = d.info.next; if (!id) { await sleep(800); continue; } const pc = d.info.pieces.find(p => p.id === id), part = id === 'step' ? '3003' : '3009'; const sl = d.info.slots.find(s => s.part === part && !d.info.filled.includes(s.id)); if (!pc || !sl) break;
       await hold([HD('open', pc)], .5); await hold([HD('pinch', pc)], .7); await move([HD('pinch', pc)], [HD('pinch', sl)], 1.6); { const pr = hold([HD('pinch', sl)], 2.2); if (k === 1) { await sleep(1300); await shot('02-raft-hand-carry'); } await pr; } await hold([HD('open', sl)], 1.2); await sleep(600); } };
-  HAND['02-raft'] = async () => { await raftHand(); await until(d => d.stage === 'launch', { what: 'launch' }); await shot('02-raft-hand-built'); const k = (await dbg()).info.keel; await move([HD('open', { x: k.x - .15, y: k.y }, { anchor: 'palm' })], [HD('open', { x: k.x + .2, y: k.y }, { anchor: 'palm' })], .6); await hold([HD('open', { x: k.x + .2, y: k.y }, { anchor: 'palm' })], .5); };
+  HAND['02-raft'] = async () => { await raftHand(); await until(d => d.stage === 'launch', { what: 'launch' }); await shot('02-raft-hand-built'); const k = (await dbg()).info.keel; for (let i = 0; i < 4 && (await dbg()).stage === 'launch' && !(await dbg()).info.launching; i++) { await move([HD('open', { x: k.x - .15, y: k.y }, { anchor: 'palm' })], [HD('open', { x: k.x + .2, y: k.y }, { anchor: 'palm' })], .8); await hold([HD('open', { x: k.x + .2, y: k.y }, { anchor: 'palm' })], 1.2); } };
   MOUSE['02-raft'] = async () => { for (let k = 0; k < 14; k++) { const d = await dbg(); if (d.stage !== 'build') break; const id = d.info.next; if (!id) { await sleep(800); continue; } const pc = d.info.pieces.find(p => p.id === id), part = id === 'step' ? '3003' : '3009'; const sl = d.info.slots.find(s => s.part === part && !d.info.filled.includes(s.id)); if (!pc || !sl) break; await mouse.drag(pc, sl, { hold: 2000 }); await sleep(900); }
     await until(d => d.stage === 'launch', { what: 'launch' }); const k = (await dbg()).info.keel; await mouse.drag(k, { x: k.x + .25, y: k.y }, { hold: 300 }); };
   LOSE['02-raft'] = async () => { await page.evaluate(() => OG.E.timeScale = 12); };

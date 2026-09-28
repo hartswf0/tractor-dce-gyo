@@ -40,6 +40,13 @@ In.handsFresh = () => now() - In.lastHand < 400 && In.hands.length > 0;
 In.attach = function (layer) {
   In.layer = layer;
   const pos = e => { const r = layer.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; };
+  /* touch: the first finger is the pointer; a second finger makes two cursors (the two-hand verbs: pull, embrace) */
+  In.touches = new Map();
+  const touchMove = e => { const t = In.touches.get(e.pointerId); if (!t) return false; const p = pos(e); Object.assign(t, p); push('t' + e.pointerId, { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.pressPose, span: 0, down: true }); return true; };
+  layer.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch') return; const p = pos(e); In.touches.set(e.pointerId, { id: e.pointerId, ...p, x0: p.x, y0: p.y }); if (In.touches.size >= 2) In.source = 'touch2'; }, true);
+  const tEnd = e => { if (In.touches.delete(e.pointerId) && In.touches.size < 2 && In.source === 'touch2') In.source = 'mouse'; };
+  layer.addEventListener('pointerup', tEnd, true); layer.addEventListener('pointercancel', tEnd, true);
+  layer.addEventListener('pointermove', e => { if (e.pointerType === 'touch' && In.touches.size >= 2) touchMove(e); }, true);
   layer.addEventListener('pointermove', e => { const p = pos(e); Object.assign(In.mouse, p, { seen: now() }); if (now() - In.lastHand > 400) In.source = 'mouse'; push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.mouse.down ? In.pressPose : 'open', span: 0, down: In.mouse.down }); });
   layer.addEventListener('pointerdown', e => { if (e.target.closest('button,a,input,select')) return; const p = pos(e); Object.assign(In.mouse, p, { down: true, seen: now(), pressAt: { ...p, t: now() }, downAt: now() }); In.source = 'mouse'; try { layer.setPointerCapture(e.pointerId); } catch (_) { } push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.pressPose, span: 0, down: true }); emit('press', 'm'); });
   const up = e => { if (!In.mouse.down) return; In.mouse.down = false; In.mouse.seen = now(); push('m', { t: now(), x: In.mouse.x, y: In.mouse.y, px: In.mouse.x, py: In.mouse.y, pose: 'open', span: 0, down: false }); emit('release', 'm'); };
@@ -67,13 +74,14 @@ In.keyMoving = () => ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].some(c 
 In.cursors = function () {
   const out = [];
   if (In.handsFresh()) for (const h of In.hands) out.push({ id: h.id, src: 'hand', x: h.x, y: h.y, px: h.px, py: h.py, pose: h.pose, down: h.pose === 'pinch' || (h.closed && h.pose !== 'open'), span: h.span, marks: h.marks });
+  if (!out.length && In.touches && In.touches.size >= 2) for (const t of [...In.touches.values()].slice(0, 2)) out.push({ id: 't' + t.id, src: 'touch', x: t.x, y: t.y, px: t.x, py: t.y, pose: In.pressPose, down: true, span: 0 });
   if (!out.length) { if (In.source === 'key') out.push({ id: 'k', src: 'key', x: In.key.x, y: In.key.y, px: In.key.x, py: In.key.y, pose: In.key.down ? In.pressPose : 'open', down: In.key.down });
     else out.push({ id: 'm', src: 'mouse', x: In.mouse.x, y: In.mouse.y, px: In.mouse.x, py: In.mouse.y, pose: In.mouse.down ? In.pressPose : 'open', down: In.mouse.down }); }
   return out;
 };
 In.primary = () => In.cursors()[0];
 In.history = id => In.hist.get(id) || [];
-In.reset = function () { In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
+In.reset = function () { if (In.touches) In.touches.clear(); In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
 
 /* ── recognisers ── */
 const R = In.R = {};
@@ -102,7 +110,7 @@ R.strokes = function (id, { amp = 0.07, since = 0, key = 'py', needDown = false 
 /** pull: two pinched hands — their separation; a pressed pointer — its distance from the press point */
 R.pull = function () {
   const cs = In.cursors();
-  if (cs.length >= 2 && cs[0].src === 'hand') { const [a, b] = cs; return { two: true, both: a.down && b.down, d: Math.hypot(a.x - b.x, a.y - b.y), a, b }; }
+  if (cs.length >= 2 && (cs[0].src === 'hand' || cs[0].src === 'touch')) { const [a, b] = cs; return { two: true, both: a.down && b.down, d: Math.hypot(a.x - b.x, a.y - b.y), a, b }; }
   const c = cs[0]; if (c.src === 'mouse' && In.mouse.down && In.mouse.pressAt) return { two: false, both: true, d: Math.hypot(c.x - In.mouse.pressAt.x, c.y - In.mouse.pressAt.y), a: c };
   if (c.src === 'key') return { two: false, both: In.key.down, d: null, a: c, keyHold: In.key.down ? now() - (In.key.downSince || (In.key.downSince = now())) : (In.key.downSince = 0) };
   return { two: false, both: false, d: 0, a: c };

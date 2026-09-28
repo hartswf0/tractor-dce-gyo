@@ -65,7 +65,7 @@ OG.level({
       const ids = ['keel', ...s.slots.map(sl => sl.pid).filter(Boolean)];
       if (!s.launching) {
         let push = false; const h = In.history(c.id), now = performance.now();
-        if (c.src === 'hand') { const w = h.filter(q => now - q.t < 900 && q.pose === 'open'); if (w.length > 2 && w[w.length - 1].px - Math.min(...w.map(q => q.px)) > 0.16) push = true; }
+        if (c.src === 'hand') { const w = h.filter(q => now - q.t < 1800 && q.pose === 'open'); if (w.length > 2 && w[w.length - 1].px - Math.min(...w.map(q => q.px)) > 0.12) push = true; }
         else if (c.src === 'mouse') { if (In.mouse.down && In.mouse.pressAt && c.x - In.mouse.pressAt.x > .12) push = true; }
         if (s.keyPush) push = true;
         const q = E.toScreen(new THREE.Vector3(ctx.data.keel.x + 150, 20, ctx.data.keel.z)); H.ring(q.x, q.y, 20, '#9fd4ff', { width: 3, label: 'THE SEA ⟶' });
@@ -95,6 +95,6 @@ OG.level({
     if ((code === 'ArrowRight' || code === 'Space') && ctx.stage === 'launch') s.keyPush = true;
   },
   teardown(ctx) { if (ctx.E.carry.id) ctx.E.cancelCarry(); },
-  debug(ctx) { const E = ctx.E, s = ctx.s; return { stage: ctx.stage, filled: [...s.filled], carrying: E.carry.id, next: this.nextPiece(ctx),
+  debug(ctx) { const E = ctx.E, s = ctx.s; return { stage: ctx.stage, launching: !!s.launching, filled: [...s.filled], carrying: E.carry.id, next: this.nextPiece(ctx),
     pieces: S.parts.filter(p => /^log|^step/.test(p.id)).map(p => ({ id: p.id, ...E.toScreen(E.partCenter(p.id)) })), slots: s.slots.map(sl => ({ id: sl.id, part: sl.part, ...E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)) })), keel: E.toScreen(new THREE.Vector3(ctx.data.keel.x, 10, ctx.data.keel.z)), clicks: E.carry.clicks, misses: E.carry.misses, lastDrop: s.lastDrop || null }; },
 });
