@@ -64,7 +64,7 @@ C.paintFaces = function (now) {
 /** occlusion by the set, from the card's own rows: a part's centre within `r` of the sight line (short of the subject) blocks it */
 function blocked(pts, cam, target, r = 20) {
   const d = target.clone().sub(cam), L = d.length(); d.normalize(); let hits = 0;
-  for (const p of pts) { const v = p.clone().sub(cam), u = v.dot(d); if (u < -10 || u > L - 45) continue; const off = v.addScaledVector(d, -u).length(); if (off < r) { hits++; if (hits > 1) return true; } }
+  for (const p of pts) { const v = p.clone().sub(cam), u = v.dot(d); if (u < -10 || u > L - 45) continue; const off = v.addScaledVector(d, -u).length(); if (u < 70 && off < 16 + u * .45) return true; /* a figure or a column right at the lens fills the frame */ if (off < r) { hits++; if (hits > 1) return true; } }
   return false;
 }
 /** the nearest clear camera to `pos` looking at `target`: turn about the subject, rise, pull back */
@@ -81,9 +81,9 @@ C.plan = function (item, st) {
   const shots = [], segs = item.segs.length ? item.segs : [{ at: 0, dur: item.seconds }], n = segs.length;
   const edges = segs.map((s, i) => [i ? s.at - 0.2 : 0, i < n - 1 ? segs[i + 1].at - 0.2 : item.seconds + 1]);
   if (st.kf && st.kf.keys && st.kf.keys.length) {
-    const keys = st.kf.keys.map(k => resolveKey(k, st)).filter(Boolean); if (keys.length && keys.length < st.kf.keys.length) { const auto = C.plan(item, { ...st, kf: null }); let j = 0; return segs.map((sg, i) => { const k0 = st.kf.keys[Math.min(st.kf.keys.length - 1, Math.floor(i * st.kf.keys.length / n))], k = resolveKey(k0, st); if (!k) return auto[i]; const pts = centres(st), pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(.05), [t0, t1] = edges[i]; return { t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key' }; }); }
+    const keys = st.kf.keys.map(k => resolveKey(k, st)).filter(Boolean); if (keys.length && keys.length < st.kf.keys.length) { const auto = C.plan(item, { ...st, kf: null }); let j = 0; return segs.map((sg, i) => { const k0 = st.kf.keys[Math.min(st.kf.keys.length - 1, Math.floor(i * st.kf.keys.length / n))], k = resolveKey(k0, st); if (!k) return auto[i]; const pts = centres(st), pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(.05), [t0, t1] = edges[i]; return { t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key', head: k.head || null }; }); }
     if (keys.length === st.kf.keys.length) { const pts = centres(st); segs.forEach((s, i) => { const k = keys[Math.min(keys.length - 1, Math.floor(i * keys.length / n))], [t0, t1] = edges[i];
-      const pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(0.05); shots.push({ t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key' }); }); return shots; }
+      const pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(0.05); shots.push({ t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key', head: k.head || null }); }); return shots; }
   }
   const g = st.group, box = new THREE.Box3(V3(-300, 0, -300), V3(300, 120, 300));
   if (g && g.userData.rows.length) { box.makeEmpty(); for (const p of g.userData.rows) box.expandByPoint(V3(p.x, p.y, p.z)); box.max.y += 24; }
@@ -99,20 +99,26 @@ C.plan = function (item, st) {
     if (kind === 'WIDE') { target = V3(c.x, Math.min(60, c.y), c.z); dist = R * 1.0 / Math.tan(fov * Math.PI / 360); elev = .6; az = az0; }
     else if (kind === 'MID') { target = cast.clone().add(V3(0, 6, 0)); dist = Math.max(260, R * .9); elev = .38; }
     else { target = pick(i).clone(); dist = 150; elev = .16; }
-    const pc = clear(pts, at(target, dist, elev, az), target), rel = pc.clone().sub(target), p0 = target.clone().add(rel.clone().multiplyScalar(1.04)), p1 = target.clone().add(rel.clone().multiplyScalar(.96));
-    shots.push({ t0, t1, from: { pos: p0, look: target, fov: kind === 'CLOSE' ? 34 : fov }, to: { pos: p1, look: target, fov: kind === 'CLOSE' ? 34 : fov }, kind });
+    const pc = clear(pts, at(target, dist, elev, az), target), rel = pc.clone().sub(target), p0 = target.clone().add(rel.clone().multiplyScalar(1.04)), p1 = target.clone().add(rel.clone().multiplyScalar(.96)), f = kind === 'CLOSE' ? 34 : fov;
+    const look = kind === 'CLOSE' ? headroom(pc, target, f).look : target;
+    shots.push({ t0, t1, from: { pos: p0, look, fov: f }, to: { pos: p1, look, fov: f }, kind, head: kind === 'CLOSE' && heads.length ? target.clone() : null });
   });
   C.cast = cast; return shots;
 };
+/** a shot on a person: the head on the upper third of the frame (the look point dropped below it), the head kept for the tests */
+function headroom(pos, head, fov) { if (head.face) { const rel = pos.clone().sub(head), k = rel.dot(head.face); if (k < 0) pos = head.clone().add(rel.addScaledVector(head.face, -2 * k)); /* the camera goes round to the face: a baked figure may face the other way from the film's restaged one */ }
+  const d = pos.distanceTo(head), look = head.clone().add(V3(0, -d * Math.tan(fov * Math.PI / 360) * .33, 0)); const h = head.clone(); h.face = head.face; return { pos, look, fov, head: h }; }
 function centres(st) { return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
 function resolveKey(k, st) {
   const c = k.camera; if (!c) return null;
-  const find = ref => { if (!ref) return null; const name = String(ref).replace(/^@/, '').split('.')[0]; const pr = (k.props || []).find(p => p.id === name || p.name === name); if (pr && Array.isArray(pr.at)) return V3(pr.at[0], (pr.at[1] || 0) + 40, pr.at[2]); const b = (k.blocking || []).find(b => b.id === name); if (b) return V3(b.x, 45, b.z); const h = (st.kf.keys || []).flatMap(x => x.blocking || []).find(b => b.id === name); if (h) return V3(h.x, 45, h.z); return null; };
+  const heads = st.group ? st.group.userData.heads : [];
+  const atHead = (x, z) => { let best = null, bd = 70; for (const h of heads) { const d = Math.hypot(h.x - x, h.z - z); if (d < bd) { bd = d; best = h; } } if (!best) return null; const v = V3(best.x, best.y + 14, best.z), q = best.q ? new THREE.Quaternion(...best.q) : new THREE.Quaternion().setFromAxisAngle(V3(0, 1, 0), (best.r || 0) * Math.PI / 2); v.face = V3(0, 0, 1).applyQuaternion(q).setY(0).normalize(); return v; };
+  const find = ref => { if (!ref) return null; const name = String(ref).replace(/^@/, '').split('.')[0]; const pr = (k.props || []).find(p => p.id === name || p.name === name); if (pr && Array.isArray(pr.at)) return atHead(pr.at[0], pr.at[2]) || V3(pr.at[0], (pr.at[1] || 0) + 40, pr.at[2]); const b = (k.blocking || []).find(b => b.id === name) || (st.kf.keys || []).flatMap(x => x.blocking || []).find(b => b.id === name); if (b) { const h = atHead(b.x, b.z); if (h) { h.head = true; return h; } return V3(b.x, 62, b.z); } return null; };
 
   const ok = v => v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
-  if (c.type === 'wide' && Array.isArray(c.pos)) { const look = Array.isArray(c.target) ? V3(...c.target) : find(c.target || c.subject); if (!ok(look)) return null; const pos = V3(...c.pos); return ok(pos) ? { pos, look, fov: c.fov || 40 } : null; }
+  if (c.type === 'wide' && Array.isArray(c.pos)) { const named = !Array.isArray(c.target); const look = named ? find(c.target || c.subject) : V3(...c.target); if (!ok(look)) return null; const pos = V3(...c.pos); if (!ok(pos)) return null; return named ? headroom(pos, look, c.fov || 40) : { pos, look, fov: c.fov || 40 }; }
   if (c.type === 'orbit') { const a = find(c.around); if (!a) return null; return { pos: a.clone().add(V3(Math.sin(c.az) * c.r, c.h, Math.cos(c.az) * c.r)), look: a, fov: c.fov || 45 }; }
-  if (c.type === 'hero') { const a = find(c.a); if (!a) return null; return { pos: a.clone().add(V3(Math.sin(c.yaw || 0) * c.dist, c.height || 40, Math.cos(c.yaw || 0) * c.dist)), look: a.clone().add(V3(0, (c.height || 40) * .5, 0)), fov: c.fov || 35 }; }
+  if (c.type === 'hero') { const a = find(c.a); if (!a) return null; return headroom(a.clone().add(V3(Math.sin(c.yaw || 0) * c.dist, 10, Math.cos(c.yaw || 0) * c.dist)), a, c.fov || 35); }
   return null;
 }
 /** play one scene item; resolves {skipped, touched} */

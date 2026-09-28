@@ -56,8 +56,9 @@ function play(keys, { every = 33, feed } = {}) {
   const send = feed || ((marks, now) => window.WagWorkshop.processHands(marks, now));
   const t0 = performance.now(), end = keys[keys.length - 1].t;
   return new Promise(resolve => {
+    let ticks = 0;
     const tick = () => {
-      const t = (performance.now() - t0) / 1000; let i = 0; while (i < keys.length - 1 && keys[i + 1].t <= t) i++;
+      ticks++; const t = Math.min((performance.now() - t0) / 1000, ticks * 0.1); let i = 0;   // on a starved page every 0.1 s of the performance still gets a frame of landmarks while (i < keys.length - 1 && keys[i + 1].t <= t) i++;
       const a = keys[i], b = keys[Math.min(keys.length - 1, i + 1)], u = b.t > a.t ? Math.max(0, Math.min(1, (t - a.t) / (b.t - a.t))) : 1;
       const marks = (a.hands || []).map((h, k) => { const g = (b.hands || [])[k] || h; return hand({ ...h, x: lerp(h.x ?? .5, g.x ?? .5, u), y: lerp(h.y ?? .5, g.y ?? .5, u), scale: lerp(h.scale || .14, g.scale || .14, u), rot: lerp(h.rot || 0, g.rot || 0, u) }); });
       try { send(marks, performance.now()); } catch (e) { console.error('[synth-hand]', e); }
