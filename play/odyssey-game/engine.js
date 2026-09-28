@@ -165,7 +165,7 @@ E.drop = function () {
   if (!S.tx || carry.id == null) return null; const id = carry.id; carry.id = null;
   const snapped = !!S.tx.magnet; if (!snapped) { // lower it onto what is under it
     const p = E.part(id), b = bounds(p), dy = (carry.support || 0) - b.min.y; propose(S.tx.rawDelta.clone().add(V3(0, dy, 0))); }
-  finish(true); const bonds = E.bondsOf(id); if (bonds.length) carry.clicks++; else carry.misses++;
+  finish(true); const bonds = E.bondsOf(id); if (bonds.length) { carry.clicks++; E.pin(id, true); } else carry.misses++;   // a seated part stands with the set (static), as a scene's parts do
   choose(null, false); return { id, snapped, bonds };
 };
 E.cancelCarry = () => { if (S.tx) finish(false); carry.id = null; choose(null, false); };
