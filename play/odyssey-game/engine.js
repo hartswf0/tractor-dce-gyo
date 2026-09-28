@@ -16,7 +16,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, u) => a + 
 const E = OG.E = { V3, clamp, lerp, smooth, actors: [], tickers: new Set(), time: 0, timeScale: 1 };
 
 /* ── boot: wait for the workshop, the cast and the performer ── */
-E.ready = () => new Promise(resolve => { const poll = () => { try { if (window.WagWorkshop && WagWorkshop.ready() && window.ButterCast && ButterCast.cast.length && window.ButterPerformer && ButterPerformer.state.rig && window.ButterScenes && !ButterScenes.busy) return resolve(); } catch (e) { } setTimeout(poll, 120); }; poll(); });
+E.ready = () => new Promise(resolve => { const poll = () => { try { if (window.WagWorkshop && WagWorkshop.ready() && window.ButterCast && ButterCast.cast.length && window.ButterPerformer && (ButterPerformer.state.rig || window.ButterLite) && window.ButterScenes && !ButterScenes.busy) return resolve(); } catch (e) { } setTimeout(poll, 120); }; poll(); });
 E.setup = function () {
   // the performer (the workshop's own citizen) steps off stage; the game casts its own figures
   const st = ButterPerformer.state; st.on = false; if (st.rig) st.rig.figure.visible = false;
@@ -72,11 +72,13 @@ E.rayAt = function (sx, sy) { const ray = new THREE.Raycaster(); ray.setFromCame
 /* ── props: meshes made of the catalog's brick geometry (not workshop parts: no picking, no physics) ── */
 const mats = new Map();
 E.mat = function (color, o = {}) { const k = color + JSON.stringify(o); if (!mats.has(k)) { const m = material(color); Object.assign(m, o); if (o.opacity != null) m.transparent = true; mats.set(k, m); } return mats.get(k); };
+E.fixMat = () => E._fix || (E._fix = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35, side: THREE.DoubleSide }));
 E.ensureParts = async ids => { for (const id of new Set(ids)) if (!catalog.has(id)) await ButterRepository.load(id); };
 /** one brick: part id, LDraw colour, position (LDU, y up = Butter's frame), quarter turns r */
 E.brick = function (part, color, x = 0, y = 0, z = 0, r = 0, o = {}) {
   const d = catalog.get(part); if (!d) throw Error('part not in the catalog: ' + part);
   const m = new THREE.Mesh(d.geometry, d.repository && o.vertex ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35 }) : E.mat(color, o.mat));
+  if (d.fixGeometry) m.add(new THREE.Mesh(d.fixGeometry, E.fixMat()));
   m.position.set(x, y, z); m.rotation.y = r * Math.PI / 2; m.castShadow = o.shadow !== false; m.receiveShadow = true; return m;
 };
 /** a group of bricks from rows [{part,color,x,y,z,r}] (the Butter scene rows of the forage cards) */
@@ -111,7 +113,8 @@ E.cardGroup = async function (id, { budget, only } = {}) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1);
   for (const [k, list] of groups) { const d = catalog.get(list[0].part), mesh = new THREE.InstancedMesh(d.geometry, E.mat(list[0].color), list.length);
     list.forEach((p, i) => { if (p.q) q.set(...p.q); else q.setFromAxisAngle(V3(0, 1, 0), (p.r || 0) * Math.PI / 2); m4.compose(V3(p.x, p.y, p.z), q, one); mesh.setMatrixAt(i, m4); });
-    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; g.add(mesh); }
+    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; g.add(mesh);
+    if (d.fixGeometry) { const fm = new THREE.InstancedMesh(d.fixGeometry, E.fixMat(), list.length); for (let i = 0; i < list.length; i++) { mesh.getMatrixAt(i, m4); fm.setMatrixAt(i, m4); } fm.instanceMatrix.needsUpdate = true; g.add(fm); } }
   g.userData = { rows, drawn: n, missing: [...miss], heads: rows.filter(p => /^3626/.test(p.part)) };
   return g;
 };

@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, '..'), SHOTS = path.join(ROOT, 'play/odyssey-g
 const A = process.argv.slice(2), opt = (k, d) => { const i = A.indexOf('--' + k); return i >= 0 ? A[i + 1] : d; }, has = k => A.includes('--' + k);
 const LEVELS = ['01-opening', '02-raft', '03-cyclops', '04-bow', '05-winds', '06-sirens', '07-scylla', '08-bed'];
 const only = opt('only') ? opt('only').split(',') : LEVELS, MODE = opt('mode', 'both'), SPEED = +opt('speed', 1);
-const doLevels = has('levels') || !has('spine'), doSpine = has('spine') || !has('levels');
+const doLevels = has('levels') || (!has('spine') && !has('frames')), doSpine = has('spine') || (!has('levels') && !has('frames'));
 const [B0, B1] = (opt('books', '1-24')).split('-').map(Number);
 const W = 960, VH = 600;
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -146,6 +146,22 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (errors.length) { log('page errors:', errors.splice(0).join(' | ').slice(0, 600)); }
   };
   if (doLevels) for (const id of only) { for (const m of MODE === 'both' ? ['hand', 'mouse'] : [MODE]) await playLevel(id, m); if (!has('no-loss')) await playLevel(id, 'lose'); }
+
+  /* ─────────────── the cinematics' frames: every shot of the keyframed scenes and of each book's first scene ─────────────── */
+  if (has('frames') || doSpine) {
+    const ids = await page.evaluate(() => { const out = []; for (const b of OG.ST.story.books) { const sc = b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : []); sc.forEach((it, k) => { if (k === 0 || it.keyframes) out.push(it.id); }); } return [...new Set(out)]; });
+    let flat = 0, shots = 0; const bad = [];
+    const list = opt('frame-scenes') ? opt('frame-scenes').split(',') : ids;
+    for (const id of list) {
+      const r = await page.evaluate(async id => { OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
+        const st = await OG.C.load(item); OG.C.st = st; const plan = OG.C.plan(item, st), out = []; const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.look.y) }); }
+        return out; }, id);
+      shots += r.length; for (const [i, x] of r.entries()) if (x.u > .9 || !x.finite) { flat++; bad.push(`${id}#${i}(${x.kind} ${x.u})`); await shot('flat-' + id + '-' + i); }
+    }
+    check(flat === 0, `cinema: no near-uniform frame across ${shots} shots of ${list.length} scenes (>90% of pixels one colour)`, bad.slice(0, 12).join(' '));
+    await page.evaluate(() => OdysseyGame.chart());
+  }
 
   /* ─────────────── the whole poem ─────────────── */
   if (doSpine) {
