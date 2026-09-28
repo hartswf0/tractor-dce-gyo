@@ -31,7 +31,7 @@ OG.level({
     s.next = 1; s.onT = 0; s.moveT = 0; s.path = P.map(([x, z]) => new THREE.Vector3(x, 0, z));
     ctx.setStage('guide');
   },
-  intro(ctx) { ctx.say('intro', ctx.s.athena); },
+  intro(ctx) { ctx.say('intro'); },
   begin(ctx) { ctx.cue(null, 'point'); },
   heightAt(ctx, x, z) { const [ox, oz] = ctx.data.olympus.at, r = Math.max(Math.abs(x - ox), Math.abs(z - oz)); return ctx.s.peak * Math.max(0, Math.min(1, 1 - (r - 30) / 190)); },
   update(dt, ctx, phase) {

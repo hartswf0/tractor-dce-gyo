@@ -95,6 +95,24 @@ E.sea = function ({ color = '#1f5f8f', size = 5000, y = -1, studs = true } = {})
   const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(size / 80, size / 80); tex.encoding = THREE.sRGBEncoding;
   const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({ map: tex, roughness: .55, metalness: .05 })); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; m.userData.tex = tex; return m;
 };
+/** a whole scene card as scenery: every row of odyssey/butter/<id>.json drawn with Hand Butter's part geometry (catalog, or
+    fetched through ButterRepository), one InstancedMesh per (part, colour) so a 1200-piece set is a few dozen draws; parts the
+    repository cannot give are left out and counted. Not workshop parts: no picking, no physics — the set of a cinematic. */
+E.ensurePartsSoft = async function (ids, { budget = 1e9 } = {}) { const miss = [], t0 = performance.now(); const want = [...new Set(ids)].filter(id => !catalog.has(id));
+  const queue = want.slice(); const worker = async () => { while (queue.length) { const id = queue.shift(); if (performance.now() - t0 > budget) { miss.push(id); continue; } try { await ButterRepository.load(id); } catch (e) { miss.push(id); } } };
+  await Promise.all([worker(), worker(), worker(), worker()]); return miss; };
+E.cardGroup = async function (id, { budget, only } = {}) {
+  let rows = await E.card(id); if (only) rows = rows.filter(only);
+  const miss = new Set(await E.ensurePartsSoft(rows.map(p => p.part), { budget }));
+  const groups = new Map(), g = new THREE.Group(); g.name = 'card:' + id; let n = 0;
+  for (const p of rows) { if (miss.has(p.part) || !catalog.has(p.part)) continue; const k = p.part + '|' + p.color; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); n++; }
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1);
+  for (const [k, list] of groups) { const d = catalog.get(list[0].part), mesh = new THREE.InstancedMesh(d.geometry, E.mat(list[0].color), list.length);
+    list.forEach((p, i) => { if (p.q) q.set(...p.q); else q.setFromAxisAngle(V3(0, 1, 0), (p.r || 0) * Math.PI / 2); m4.compose(V3(p.x, p.y, p.z), q, one); mesh.setMatrixAt(i, m4); });
+    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = !E.lite; mesh.receiveShadow = true; mesh.userData.part = list[0].part; g.add(mesh); }
+  g.userData = { rows, drawn: n, missing: [...miss], heads: rows.filter(p => /^3626/.test(p.part)) };
+  return g;
+};
 E.clearProps = function () { for (const o of [...E.root.children]) { E.root.remove(o); } E.tickers.clear(); E.glow.intensity = 0; E.hemi.intensity = 0.35; };
 
 /* ── the stage set as Hand Butter parts: ButterScenes.load; every part pinned (static) until a hand frees it ── */
