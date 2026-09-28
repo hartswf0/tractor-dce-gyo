@@ -47,7 +47,7 @@ OG.level({
       if (active) { const t = E.floorAt(c.x, c.y, 0); if (t) { t.x = E.clamp(t.x, -380, 380); t.z = E.clamp(t.z, -380, 380); E.walkTo(a, t.x, t.z); const ts = E.toScreen(t), as = E.toScreen(pos); H.line(as, ts, 'rgba(255,226,138,.8)', 2, [6, 6]); H.ring(ts.x, ts.y, 10, '#ffe28a', { width: 2 }); } }
       else a.target = null;
       if (a.target) { s.moveT += dt; if (distToPath(here, P) < 70) s.onT += dt; }
-      const nx = P[s.next]; if (nx && here.distanceTo(nx) < 48) { s.next++; ctx.A.sfx('stud', { gain: .9 }); if (s.next < P.length) H.flash(s.next - 1 + ' / ' + (P.length - 1), 'good'); }
+      const nx = P[s.next]; if (nx && here.distanceTo(nx) < 48) { s.next++; ctx.A.sfx('stud', { gain: .9 }); if (s.next === 3) ctx.say('mid'); if (s.next < P.length) H.flash(s.next - 1 + ' / ' + (P.length - 1), 'good'); }
       if (s.next >= P.length) { ctx.setStage('welcome'); a.target = null; s.landed = true; ctx.A.sfx('studs-final'); H.flash('Ithaca', 'good'); H.cue(null);
         const tp = s.tel.rig.pos; E.walkTo(s.tel, (tp.x + pos.x) / 2 + 20, (tp.z + pos.z) / 2 + 10, 60); s.tel.emotion = 'appeal'; a.emotion = 'resolve';
         E.setCamera([pos.x + 120, 190, pos.z + 260], [pos.x, 50, pos.z], { fov: 36, dur: 2.2 });

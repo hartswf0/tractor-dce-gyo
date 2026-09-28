@@ -16,10 +16,11 @@ body.og #view { width: 100% !important; height: 100% !important; }
 #og-top { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 18px; padding: 10px 14px; z-index: 5; background: linear-gradient(to bottom, rgba(10,14,18,.78), rgba(10,14,18,0)); }
 .og-brand b { display: block; font-size: 15px; letter-spacing: .32em; color: var(--og-gold); }
 .og-brand span { font-size: 10px; letter-spacing: .12em; opacity: .75; }
-#og-level { flex: 1; text-align: center; } #og-level span { display: block; font-size: 10px; letter-spacing: .28em; opacity: .8; } #og-level b { font-size: 18px; letter-spacing: .06em; }
+#og-level { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); text-align: center; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 4px rgba(0,0,0,.8); } #og-level span { display: block; font-size: 10px; letter-spacing: .28em; opacity: .85; } #og-level b { font-size: 18px; letter-spacing: .06em; }
+.og-brand { flex: 1; }
 #og-kleos { display: flex; align-items: baseline; gap: 8px; } #og-kleos .k { font-size: 12px; opacity: .8; font-family: Georgia, serif; } #og-kleos b { font-size: 22px; color: var(--og-gold); min-width: 3ch; text-align: right; } #og-time { font-size: 13px; opacity: .85; }
 #og-nav { display: flex; gap: 6px; }
-#og-meters { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 5; min-width: 300px; }
+#og-meters { position: absolute; top: 104px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 5; min-width: 300px; }
 .og-meter { display: grid; grid-template-columns: 118px 1fr auto; align-items: center; gap: 8px; background: var(--og-dim); padding: 5px 9px; border-radius: 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 .og-meter i { display: block; height: 10px; background: rgba(255,255,255,.14); border-radius: 5px; overflow: hidden; } .og-meter em { display: block; height: 100%; border-radius: 5px; transition: width .12s; }
 .og-meter small { font-size: 11px; opacity: .85; } .og-meter.warn { box-shadow: 0 0 0 2px var(--og-red); animation: ogPulse .6s infinite alternate; }
@@ -47,3 +48,9 @@ body.og #view { width: 100% !important; height: 100% !important; }
 #og-mapinfo b { font: 700 20px Georgia, serif; display: block; } #og-mapinfo span { font-size: 13px; display: block; margin: 4px 0; }
 #og-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(8,12,16,.72); z-index: 9; gap: 8px; } #og-loading b { font: 700 22px Georgia, serif; }
 @media (max-width: 720px) { .og-brand span, #og-level span { display: none; } #og-nav button { padding: 5px 7px; font-size: 10px; } #og-meters { min-width: 240px; top: 92px; } #og-top { flex-wrap: wrap; } }
+#og-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.12); z-index: 5; } #og-progress i { display: block; height: 100%; width: 0; background: var(--og-gold); }
+#og-trials { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; align-items: center; } #og-trials span { width: 100%; font-size: 10px; letter-spacing: .3em; opacity: .7; margin: 0; }
+#og-trials button { font-size: 10px !important; padding: 4px 7px !important; }
+#og-banner.chapter { background: rgba(16,21,27,.9); color: var(--og-paper); border-color: var(--og-gold); } #og-banner.chapter h1 { color: var(--og-gold); font-size: 36px; } #og-banner.chapter h2 { opacity: .85; }
+#og-banner.bridge { background: rgba(16,21,27,.82); color: var(--og-paper); border-color: rgba(243,236,216,.5); pointer-events: none; }
+#og-kleos #og-total { font-size: 16px; min-width: 2ch; }
