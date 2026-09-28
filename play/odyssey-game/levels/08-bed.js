@@ -55,7 +55,7 @@ OG.level({
       const P = In.R.pull(), ps = E.toScreen(s.pen.rig.pos.clone().add(new THREE.Vector3(0, 50, 0))), os = E.toScreen(s.odys.rig.pos.clone().add(new THREE.Vector3(0, 50, 0)));
       H.ring(ps.x, ps.y, 18, '#ffe28a', { width: 2, label: 'PENELOPE' }); H.ring(os.x, os.y, 18, '#ffe28a', { width: 2, label: 'ODYSSEUS' });
       let done = false;
-      if (P.two) { const [a, b] = In.cursors(); const open = a.pose === 'open' && b.pose === 'open'; if (open) { s.maxD = Math.max(s.maxD || 0, P.d); if (s.maxD > .25 && P.d < .1) done = true; H.line(a, b, '#ffb3c8', 3, [4, 6]); } }
+      if (P.two) { const [a, b] = In.cursors(); const open = (a.pose === 'open' || a.src === 'touch') && (b.pose === 'open' || b.src === 'touch'); if (open) { s.maxD = Math.max(s.maxD || 0, P.d); if (s.maxD > .25 && P.d < .1) done = true; H.line(a, b, '#ffb3c8', 3, [4, 6]); } }
       else if (c.src === 'mouse') { if (In.mouse.down && In.mouse.pressAt && Math.hypot((In.mouse.pressAt.x - ps.x) * 1.6, In.mouse.pressAt.y - ps.y) < .08) { H.line(ps, c, '#ffb3c8', 3, [4, 6]); if (Math.hypot((c.x - os.x) * 1.6, c.y - os.y) < .07) done = true; } }
       else if (c.src === 'key') { s.hug = In.key.down ? s.hug + dt : 0; if (s.hug > 1.5) done = true; }
       if (done) { ctx.setStage('together'); const mx = (s.pen.rig.pos.x + s.odys.rig.pos.x) / 2, mz = (s.pen.rig.pos.z + s.odys.rig.pos.z) / 2 + 20; E.walkTo(s.pen, mx - 14, mz, 90); E.walkTo(s.odys, mx + 14, mz, 60); s.pen.emotion = 'joy'; s.odys.emotion = 'tenderness'; A.sfx('breath'); ctx.say('runs').then(() => ctx.stage === 'together' && ctx.say('fear', s.pen)); }

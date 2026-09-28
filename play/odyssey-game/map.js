@@ -25,8 +25,9 @@ M.show = function () {
     if (type === 'key') { const n = M.books().length; if (arg === 'Tab' || arg === 'ArrowRight' || arg === 'ArrowDown') M.pick((M.sel + 1) % n); if (arg === 'ArrowLeft' || arg === 'ArrowUp') M.pick((M.sel + n - 1) % n); if (arg === 'Enter' || arg === 'Space') M.go(); if (arg === 'KeyC') M.cont(); } });
 };
 M.hide = function () { M.open = false; OG.H.$('#og-chartlayer').hidden = true; };
-M.pos = b => { const r = OG.E.stageRect(); return { x: b.chart[0] * r.width, y: (0.1 + b.chart[1] * 0.74) * r.height }; };
-M.at = function (c) { if (!c) return null; const r = OG.E.stageRect(); let best = null, bd = 1e9; M.books().forEach((b, i) => { const p = M.pos(b), d = Math.hypot(p.x - c.x * r.width, p.y - c.y * r.height); if (d < bd) { bd = d; best = i; } }); return bd < 30 ? best : null; };
+M.pos = b => { const r = OG.E.stageRect(), f = M.frameBox(); return { x: f.x0 + b.chart[0] * f.w, y: f.y0 + b.chart[1] * f.h }; };
+M.frameBox = function () { const r = OG.E.stageRect(), top = OG.H.$('#og-top').getBoundingClientRect().bottom + 56, info = M.info && !M.info.hidden ? M.info.getBoundingClientRect() : null, narrow = r.width < 760, bottom = narrow && info ? info.top - 16 : r.height * .94; return { x0: narrow ? 18 : 0, w: narrow ? r.width - 36 : r.width, y0: narrow ? top : r.height * .1, h: Math.max(120, (narrow ? bottom - top : r.height * .74)) }; };
+M.at = function (c) { if (!c) return null; const r = OG.E.stageRect(); let best = null, bd = 1e9; M.books().forEach((b, i) => { const p = M.pos(b), d = Math.hypot(p.x - c.x * r.width, p.y - c.y * r.height); if (d < bd) { bd = d; best = i; } }); return bd < (r.width < 760 ? 26 : 30) ? best : null; };
 M.pick = function (i) {
   M.sel = i; const b = M.books()[i]; if (!b) return; const S = OG.ST.save, at = S.at;
   const trials = b.items.filter(x => x.type === 'level').map(x => OG.G.data[x.id]).filter(Boolean), touches = b.items.filter(x => x.touch).map(x => x.touch.thing), scenes = b.items.filter(x => x.type === 'scene').length + trials.reduce((a, d) => a + (d.scenes || []).length, 0);
@@ -43,26 +44,28 @@ M.frame = function (dt, t) {
   const g = M.g, W = cv.width, Hh = cv.height, S = OG.ST.save;
   g.fillStyle = '#1b567f'; g.fillRect(0, 0, W, Hh);
   for (let y = STUD / 2; y < Hh; y += STUD) for (let x = STUD / 2; x < W; x += STUD) { g.fillStyle = 'rgba(0,0,0,.16)'; g.beginPath(); g.arc(x + 1.2, y + 1.6, 6.2, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.08)'; g.beginPath(); g.arc(x, y, 6.2, 0, 7); g.fill(); }
-  const brick = (x, y, w, h, c, top) => { const X = Math.round(x * W / STUD) * STUD, Y = Math.round((0.1 + y * .74) * Hh / STUD) * STUD, BW = Math.max(STUD, Math.round(w * W / STUD) * STUD), BH = Math.max(STUD, Math.round(h * .74 * Hh / STUD) * STUD);
+  const fb = M.frameBox(); const brick = (x, y, w, h, c, top) => { const X = Math.round((fb.x0 + x * fb.w) / STUD) * STUD, Y = Math.round((fb.y0 + y * fb.h) / STUD) * STUD, BW = Math.max(STUD, Math.round(w * fb.w / STUD) * STUD), BH = Math.max(STUD, Math.round(h * fb.h / STUD) * STUD);
     g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(X + 4, Y + 6, BW, BH); g.fillStyle = c; g.fillRect(X, Y, BW, BH);
     for (let yy = Y + STUD / 2; yy < Y + BH; yy += STUD) for (let xx = X + STUD / 2; xx < X + BW; xx += STUD) { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.arc(xx + 1, yy + 1.5, 6.5, 0, 7); g.fill(); g.fillStyle = top; g.beginPath(); g.arc(xx, yy, 6.5, 0, 7); g.fill(); } };
   for (const l of LAND) for (const [x, y, w, h] of l.cells) brick(x, y, w, h, l.c, l.top);
   const books = M.books(), P = n => M.pos(books[n - 1]);
   const route = (list, col, dash, from) => { g.save(); g.setLineDash(dash); g.lineWidth = 4; g.strokeStyle = col; g.lineDashOffset = -t * 18; g.beginPath(); if (from) g.moveTo(from.x, from.y); list.forEach((n, i) => { const p = P(n); if (i || from) g.lineTo(p.x, p.y); else g.moveTo(p.x, p.y); }); g.stroke(); g.restore(); };
   const troy = { x: .97 * W, y: .06 * Hh }; route(VOYAGE, 'rgba(243,236,216,.9)', [10, 8], troy); route(ROAD, 'rgba(255,214,120,.8)', [4, 7]); route(HOME, 'rgba(243,236,216,.55)', [3, 6]);
-  g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillStyle = '#f3ecd8'; g.fillText('TROY', troy.x - 24, troy.y + 4); g.fillText('ITHACA', .79 * W, (0.1 + .9 * .74) * Hh);
+  g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillStyle = '#f3ecd8'; g.fillText('TROY', troy.x - 24, troy.y + 4); g.fillText('ITHACA', fb.x0 + .79 * fb.w, fb.y0 + .9 * fb.h);
   const c = OG.In.primary(), h = M.at(c); if (h != null && h !== M.sel) { M.pick(h); M.dwell = 0; }
   if (h != null && c.src === 'hand' && c.pose === 'point') M.dwell += dt; else M.dwell = 0; if (M.dwell > 1.4) { M.dwell = 0; M.go(); }
   const cur = S.at ? S.at.book : 1;
-  books.forEach((b, i) => { const p = M.pos(b), sel = i === M.sel, done = S.done[b.n], lv = b.items.some(x => x.type === 'level'), R = sel ? 17 : 14;
+  books.forEach((b, i) => { const p = M.pos(b), sel = i === M.sel, done = S.done[b.n], lv = b.items.some(x => x.type === 'level'), R = W < 700 ? (sel ? 14 : 11) : (sel ? 17 : 14);
     g.save(); g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(p.x + 2, p.y + 4, R, 0, 7); g.fill();
     g.fillStyle = done ? '#e8c55a' : '#f3ecd8'; g.strokeStyle = lv ? '#d2452f' : '#10151b'; g.lineWidth = lv ? 4 : 2.5; g.beginPath(); g.arc(p.x, p.y, R, 0, 7); g.fill(); g.stroke();
     if (b.n === cur) { g.strokeStyle = '#7fe07a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 6 + Math.sin(t * 4) * 2, 0, 7); g.stroke(); }
     if (sel) { g.strokeStyle = '#ffe28a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 11, 0, 7); g.stroke(); if (M.dwell > 0) { g.lineWidth = 5; g.strokeStyle = '#7fe07a'; g.beginPath(); g.arc(p.x, p.y, R + 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * M.dwell / 1.4); g.stroke(); } }
-    g.fillStyle = '#10151b'; g.font = `700 ${b.n > 9 ? 12 : 14}px Georgia, serif`; g.textAlign = 'center'; g.fillText(b.roman, p.x, p.y + 5);
+    g.fillStyle = '#10151b'; g.font = `700 ${W < 700 ? (b.n > 9 ? 9 : 11) : (b.n > 9 ? 12 : 14)}px Georgia, serif`; g.textAlign = 'center'; g.fillText(b.roman, p.x, p.y + 5);
     if (sel) { g.font = '700 12px ui-monospace, Menlo, monospace'; const label = b.title.toUpperCase(), w = g.measureText(label).width + 12; g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(p.x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, p.x, p.y - R - 16); }
     g.restore(); });
-  g.font = '700 24px Georgia, serif'; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 20, 88); g.font = '12px ui-monospace, Menlo, monospace'; g.fillStyle = 'rgba(243,236,216,.85)';
-  g.fillText('24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 20, 108);
+  const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 6, narrow = W < 700;
+  g.fillStyle = 'rgba(12,20,28,.55)'; g.fillRect(0, top, Math.min(W, narrow ? W : 760), narrow ? 44 : 50);
+  g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24)); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
+  g.fillText(narrow ? '24 books. Red ring: a trial of the hand. Gold: sailed. Tap a book.' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42));
 };
 })();
