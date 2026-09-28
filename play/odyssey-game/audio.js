@@ -12,6 +12,7 @@
 (function () {
 'use strict';
 const OG = window.OG = window.OG || {};
+const U = p => (window.OG_URL ? window.OG_URL(p) : p);
 const A = OG.A = { ctx: null, lines: {}, buffers: new Map(), loops: new Map(), bedEl: null, voiceEl: null, open: 0.36, duckRatio: 0.10 / 0.18, muted: false, speaking: null, log: [], failures: 0 };
 A.load = async function () { try { const r = await fetch('odyssey-game/voice/lines.json'); A.lines = await r.json(); } catch (e) { A.lines = {}; console.warn('[audio] no lines.json'); } };
 A.unlock = function () {
@@ -33,12 +34,12 @@ function ramp(param, to, sec = 0.15) { if (!A.ctx) return; const t = A.ctx.curre
 /** the book's bed: bronze-council-NN.ogg from odyssey/take/bed */
 A.bed = function (file, { gain, at } = {}) {
   A.unlock(); if (!A.bedEl) return; const src = '../odyssey/take/bed/' + file;
-  if (!A.bedEl.src.endsWith(src.replace('..', ''))) { A.bedEl.src = src; A.bedEl.currentTime = at || 0; } else if (at != null) A.bedEl.currentTime = at;
+  if (A.bedFile !== file) { A.bedFile = file; A.bedEl.src = U(src); A.bedEl.currentTime = at || 0; } else if (at != null) A.bedEl.currentTime = at;
   A.bedEl.play().catch(() => A.failures++); A.bedOpen = gain ?? A.open; ramp(A.bedGain.gain, A.speaking ? A.bedOpen * A.duckRatio : A.bedOpen, 1.2); A.log.push(['bed', file]);
 };
 A.stopBed = function (sec = 1) { if (!A.bedEl) return; ramp(A.bedGain.gain, 0, sec); setTimeout(() => { if (A.bedGain.gain.value < .01) A.bedEl.pause(); }, sec * 1000 + 50); };
 /** a scene's kept segments as one clip (cinema); the bed ducks per segment through A.duck */
-A.scene = function (file) { A.unlock(); A.sceneOn = !!file; if (!file || !A.sceneEl) return; A.sceneEl.src = 'odyssey-game/' + file; A.sceneEl.currentTime = 0; A.sceneEl.play().catch(() => A.failures++); A.log.push(['scene', file]); };
+A.scene = function (file) { A.unlock(); A.sceneOn = !!file; if (!file || !A.sceneEl) return; A.sceneEl.src = U('odyssey-game/' + file); A.sceneEl.currentTime = 0; A.sceneEl.play().catch(() => A.failures++); A.log.push(['scene', file]); };
 A.sceneStop = function () { A.sceneOn = false; if (A.sceneEl) A.sceneEl.pause(); A.duck(false); };
 A.sceneClock = () => A.sceneOn && A.sceneEl && !A.sceneEl.paused && A.sceneEl.readyState >= 2 ? A.sceneEl.currentTime : null;
 A.duck = function (on) { if (!A.bedGain || A.ducked === on) return; A.ducked = on; ramp(A.bedGain.gain, (A.bedOpen ?? A.open) * (on ? A.duckRatio : 1), 0.15); };
@@ -50,7 +51,7 @@ A.say = function (id, { actor, caption = true } = {}) {
   const me = A.speaking = { id, actor, t0: performance.now() }; if (actor) actor.speaking = true;
   if (A.bedGain) ramp(A.bedGain.gain, (A.bedOpen ?? A.open) * A.duckRatio, 0.15);
   if (caption && OG.H) OG.H.caption(L.speaker, L.caption, L.isLine);
-  if (A.voiceEl) { A.voiceEl.src = 'odyssey-game/' + L.file; A.voiceEl.currentTime = 0; A.voiceEl.play().catch(() => A.failures++); }
+  if (A.voiceEl) { A.voiceEl.src = U('odyssey-game/' + L.file); A.voiceEl.currentTime = 0; A.voiceEl.play().catch(() => A.failures++); }
   return new Promise(resolve => {
     const done = () => { if (A.speaking !== me) return resolve(false); A.speaking = null; if (actor) actor.speaking = false; if (A.bedGain) ramp(A.bedGain.gain, A.bedOpen ?? A.open, 0.15); if (OG.H) OG.H.caption(null); resolve(true); };
     setTimeout(done, dur * 1000 / Math.max(0.25, (OG.E && OG.E.timeScale) || 1) + 250);

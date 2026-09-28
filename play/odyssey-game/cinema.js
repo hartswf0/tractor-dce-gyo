@@ -81,8 +81,8 @@ C.plan = function (item, st) {
   const shots = [], segs = item.segs.length ? item.segs : [{ at: 0, dur: item.seconds }], n = segs.length;
   const edges = segs.map((s, i) => [i ? s.at - 0.2 : 0, i < n - 1 ? segs[i + 1].at - 0.2 : item.seconds + 1]);
   if (st.kf && st.kf.keys && st.kf.keys.length) {
-    const keys = st.kf.keys.map(k => resolveKey(k, st)).filter(Boolean);
-    if (keys.length) { const pts = centres(st); segs.forEach((s, i) => { const k = keys[Math.min(keys.length - 1, Math.floor(i * keys.length / n))], [t0, t1] = edges[i];
+    const keys = st.kf.keys.map(k => resolveKey(k, st)).filter(Boolean); if (keys.length && keys.length < st.kf.keys.length) { const auto = C.plan(item, { ...st, kf: null }); let j = 0; return segs.map((sg, i) => { const k0 = st.kf.keys[Math.min(st.kf.keys.length - 1, Math.floor(i * st.kf.keys.length / n))], k = resolveKey(k0, st); if (!k) return auto[i]; const pts = centres(st), pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(.05), [t0, t1] = edges[i]; return { t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key' }; }); }
+    if (keys.length === st.kf.keys.length) { const pts = centres(st); segs.forEach((s, i) => { const k = keys[Math.min(keys.length - 1, Math.floor(i * keys.length / n))], [t0, t1] = edges[i];
       const pos = clear(pts, k.pos, k.look), back = pos.clone().sub(k.look).multiplyScalar(0.05); shots.push({ t0, t1, from: { pos: pos.clone().add(back), look: k.look, fov: k.fov }, to: { pos: pos.clone().sub(back), look: k.look, fov: k.fov }, kind: 'key' }); }); return shots; }
   }
   const g = st.group, box = new THREE.Box3(V3(-300, 0, -300), V3(300, 120, 300));
@@ -107,10 +107,12 @@ C.plan = function (item, st) {
 function centres(st) { return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
 function resolveKey(k, st) {
   const c = k.camera; if (!c) return null;
-  if (c.type === 'wide' && c.pos) return { pos: V3(...c.pos), look: V3(...(c.target || [0, 40, 0])), fov: c.fov || 40 };
-  const find = ref => { if (!ref) return null; const name = String(ref).replace(/^@/, '').split('.')[0]; const pr = (k.props || []).find(p => p.id === name || p.name === name); if (pr && Array.isArray(pr.at)) return V3(pr.at[0], (pr.at[1] || 0) + 40, pr.at[2]); const b = (k.blocking || []).find(b => b.id === name); if (b) return V3(b.x, 45, b.z); return null; };
-  if (c.type === 'orbit') { const a = find(c.around) || V3(0, 40, 0); return { pos: a.clone().add(V3(Math.sin(c.az) * c.r, c.h, Math.cos(c.az) * c.r)), look: a, fov: c.fov || 45 }; }
-  if (c.type === 'hero') { const a = find(c.a) || V3(0, 40, 0); return { pos: a.clone().add(V3(Math.sin(c.yaw || 0) * c.dist, c.height || 40, Math.cos(c.yaw || 0) * c.dist)), look: a.clone().add(V3(0, (c.height || 40) * .5, 0)), fov: c.fov || 35 }; }
+  const find = ref => { if (!ref) return null; const name = String(ref).replace(/^@/, '').split('.')[0]; const pr = (k.props || []).find(p => p.id === name || p.name === name); if (pr && Array.isArray(pr.at)) return V3(pr.at[0], (pr.at[1] || 0) + 40, pr.at[2]); const b = (k.blocking || []).find(b => b.id === name); if (b) return V3(b.x, 45, b.z); const h = (st.kf.keys || []).flatMap(x => x.blocking || []).find(b => b.id === name); if (h) return V3(h.x, 45, h.z); return null; };
+
+  const ok = v => v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
+  if (c.type === 'wide' && Array.isArray(c.pos)) { const look = Array.isArray(c.target) ? V3(...c.target) : find(c.target || c.subject); if (!ok(look)) return null; const pos = V3(...c.pos); return ok(pos) ? { pos, look, fov: c.fov || 40 } : null; }
+  if (c.type === 'orbit') { const a = find(c.around); if (!a) return null; return { pos: a.clone().add(V3(Math.sin(c.az) * c.r, c.h, Math.cos(c.az) * c.r)), look: a, fov: c.fov || 45 }; }
+  if (c.type === 'hero') { const a = find(c.a); if (!a) return null; return { pos: a.clone().add(V3(Math.sin(c.yaw || 0) * c.dist, c.height || 40, Math.cos(c.yaw || 0) * c.dist)), look: a.clone().add(V3(0, (c.height || 40) * .5, 0)), fov: c.fov || 35 }; }
   return null;
 }
 /** play one scene item; resolves {skipped, touched} */
@@ -123,6 +125,9 @@ C.play = async function (item, book) {
   const fast = E.timeScale > 1.5; A.scene(fast ? null : item.file);
   return new Promise(resolve => { C.done = resolve; });
 };
+/** the tests' eye: how much of the rendered frame is one flat colour (0..1); an empty sky or a wall in the lens reads near 1 */
+C.uniformity = function () { const src = renderer.domElement, c = C._cv || (C._cv = document.createElement('canvas')); c.width = 96; c.height = 60; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 0, 0, 96, 60); const d = g.getImageData(0, 0, 96, 60).data, bins = new Map(); for (let i = 0; i < d.length; i += 4) { const k = (d[i] >> 4) + ',' + (d[i + 1] >> 4) + ',' + (d[i + 2] >> 4); bins.set(k, (bins.get(k) || 0) + 1); } return Math.max(...bins.values()) / (d.length / 4); };
+C.seek = function (t) { C.t = t; };
 C.end = function (skipped) {
   if (!C.playing) return; C.playing = false; OG.A.sceneStop(); OG.H.caption(null); OG.H.cue(null); OG.H.meters([]); const r = { skipped: !!skipped, touched: C.touched, id: C.item.id };
   const d = C.done; C.done = null; if (d) d(r);
@@ -133,7 +138,8 @@ C.frame = function (dt) {
   if (C.skip) return C.end(true);
   // the shot
   let si = C.shots.findIndex(s => t >= s.t0 && t < s.t1); if (si < 0) si = C.shots.length - 1;
-  const s = C.shots[si]; if (s) { const u = E.smooth((t - s.t0) / Math.max(.1, s.t1 - s.t0)); const pos = s.from.pos.clone().lerp(s.to.pos, u); E.setCamera(pos.toArray(), s.from.look.toArray(), { fov: s.from.fov }); C.shot = si; }
+  const s = C.shots[si]; if (s && !(Number.isFinite(s.from.pos.x + s.from.pos.y + s.from.pos.z + s.from.look.x + s.from.look.y + s.from.look.z))) { C.shots[si] = C.shots.find(x => x.kind === 'WIDE') || C.plan(item, { ...C.st, kf: null })[0]; }
+  if (s) { const u = E.smooth((t - s.t0) / Math.max(.1, s.t1 - s.t0)); const pos = s.from.pos.clone().lerp(s.to.pos, u); E.setCamera(pos.toArray(), s.from.look.toArray(), { fov: s.from.fov }); C.shot = si; }
   // the segment: caption, duck
   const segi = item.segs.findIndex(g => t >= g.at && t < g.at + g.dur);
   if (segi !== C.segi) { C.segi = segi; if (segi >= 0) { const g = item.segs[segi]; H.caption(g.speaker, g.caption, g.isLine); A.duck(true); } else { H.caption(null); A.duck(false); } }

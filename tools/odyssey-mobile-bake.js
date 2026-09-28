@@ -85,7 +85,7 @@ const addJSON = (key, file) => { if (fs.existsSync(file)) files[key] = JSON.pars
 addJSON('odyssey-game/story.json', path.join(GAME, 'story.json')); addJSON('odyssey-game/voice/lines.json', path.join(GAME, 'voice/lines.json'));
 for (const f of fs.readdirSync(path.join(GAME, 'levels'))) if (f.endsWith('.json')) addJSON('odyssey-game/levels/' + f, path.join(GAME, 'levels', f));
 for (const id of sceneIds) { addJSON('../odyssey/keyframes/' + id + '.json', path.join(ROOT, 'odyssey/keyframes', id + '.json')); addJSON('../odyssey/previs/' + id + '.json', path.join(ROOT, 'odyssey/previs', id + '.json')); }
-const header = Buffer.from(JSON.stringify({ version: 1, q: Q, palette, parts, cards: compact, files }), 'utf8');
+const header = Buffer.from(JSON.stringify({ version: 1, q: Q, palette, ldc: Object.entries(LDC).map(([c, h]) => [+c, h]), parts, cards: compact, files }), 'utf8');
 const lenBuf = Buffer.alloc(4); lenBuf.writeUInt32LE(header.length); const pad = (4 - ((4 + header.length) % 4)) % 4;
 const bin = Buffer.concat([lenBuf, header, Buffer.alloc(pad), ...chunks]);
 const gz = zlib.gzipSync(bin, { level: 9 });
