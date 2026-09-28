@@ -297,23 +297,28 @@
    "look": {
     "time": "late afternoon",
     "sky": [
-     "#c9c3b2",
-     "#efe6d0"
+     "#1e1a14",
+     "#6a5a42"
     ],
     "fog": [
-     180,
-     900
+     380,
+     1100
     ],
-    "exposure": 0.8,
+    "exposure": 0.55,
     "key": {
      "from": "low right",
-     "elev_deg": 12,
-     "color": "#ffd9a0",
-     "intensity": 1.8,
+     "elev_deg": 8,
+     "color": "#ffc27a",
+     "intensity": 2.0,
      "shadow": true
     },
-    "note": "haze over the primaries; the gods as a distant bright room; round 1: darker, hazier, Olympus as a distant bright room, not a white box",
-    "dim": 0.6
+    "note": "haze over the primaries; the gods as a distant bright room; round 1: darker, hazier, Olympus as a distant bright room, not a white box; round 2: still a white box in the stills (exposure 0.8, the set's lights 60%, the key's daylight fill at full): now the fill down to 0.15, the set's lights 25%, exposure 0.55, a low gold key and close warm haze; round 2 animatic: fog 120-650 hid the gods (they stand ~500 LDU off): haze moved to 380-1100",
+    "dim": 0.25,
+    "fill": {
+     "sky": "#3a3a44",
+     "ground": "#15100c",
+     "intensity": 0.15
+    }
    },
    "voice": {
     "scene": "OD-B01-S01",
@@ -331,7 +336,8 @@
     },
     "len": 3.78,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 1.0
+    "at": 1.0,
+    "gain": 5
    },
    "sfx": [
     "high wind",
@@ -339,7 +345,7 @@
    ],
    "card": null,
    "why": "Someone remembers him: the gods, far off and bright, and the first spoken line.",
-   "duck_db": -11
+   "duck_db": -14
   },
   {
    "n": 7,
@@ -355,6 +361,20 @@
      "type": "push",
      "amount": 0.04,
      "ease": "inOut"
+    },
+    "override": {
+     "pos": [
+      -190,
+      60,
+      320
+     ],
+     "target": [
+      30,
+      30,
+      -60
+     ],
+     "fov": 40,
+     "note": "round 2: K1 from further back and aimed lower: the whole man small on the raft, the sea around him (checked with --stills; not gate-scored)"
     }
    },
    "action": "odysseus at the steering oar of the raft under the stars; the sail barely moves",
@@ -372,14 +392,14 @@
      380,
      1700
     ],
-    "exposure": 0.8,
+    "exposure": 0.62,
     "key": {
      "from": "moon, high left",
      "color": "#9fb4ff",
      "intensity": 0.9,
      "shadow": true
     },
-    "note": "blue night, one warm practical if the set has one"
+    "note": "blue night, one warm practical if the set has one; round 2: the white sail dominated and the letterbox cut him at the waist: reframed wider and lower, exposure 0.62"
    },
    "voice": {
     "scene": "OD-B01-S01",
@@ -401,10 +421,12 @@
    },
    "sfx": [
     "water on logs",
-    "rope creak"
+    "rope creak",
+    "single low drum"
    ],
    "card": null,
-   "why": "Held against his will: the raft on a black sea, a man steering by the stars."
+   "why": "Held against his will: the raft on a black sea, a man steering by the stars.",
+   "duck_db": -12
   },
   {
    "n": 8,
@@ -470,7 +492,8 @@
     "distant fire"
    ],
    "card": null,
-   "why": "The thing he longs for is in the frame and he is asleep: memory and loss in one image."
+   "why": "The thing he longs for is in the frame and he is asleep: memory and loss in one image.",
+   "duck_db": -12
   },
   {
    "n": 9,
@@ -505,15 +528,20 @@
      300,
      1400
     ],
-    "exposure": 0.8,
-    "dim": 0.35,
+    "exposure": 0.7,
+    "dim": 0.15,
     "key": {
      "from": "low, behind the subject (backlight)",
      "elev_deg": 6,
      "color": "#ffb070",
      "intensity": 2.2
     },
-    "note": "round 1: was late-afternoon haze, which rendered as flat daylight"
+    "note": "round 1: was late-afternoon haze, which rendered as flat daylight; round 2: still saturated green (the key's daylight fill at full); fill down to 0.12 so the island goes to silhouette against the dusk",
+    "fill": {
+     "sky": "#2a3350",
+     "ground": "#140e0a",
+     "intensity": 0.12
+    }
    },
    "voice": {
     "scene": "OD-B05-S03",
@@ -538,7 +566,8 @@
     "tree fall, soft"
    ],
    "card": null,
-   "why": "Sincerity: the longing said plainly, over a man building his own way home."
+   "why": "Sincerity: the longing said plainly, over a man building his own way home.",
+   "duck_db": -12
   },
   {
    "n": 10,
@@ -604,7 +633,8 @@
     "far thunder"
    ],
    "card": null,
-   "why": "The curse that makes the way long: a giant against the sky, the camera rising with his prayer."
+   "why": "The curse that makes the way long: a giant against the sky, the camera rising with his prayer.",
+   "duck_db": -12
   },
   {
    "n": 11,
@@ -663,7 +693,8 @@
     },
     "len": 3.84,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.3
+    "at": 0.3,
+    "gain": 2
    },
    "sfx": [
     "thunder crack",
@@ -671,7 +702,7 @@
    ],
    "card": null,
    "why": "The curse answered, one image per clause.",
-   "duck_db": -11
+   "duck_db": -14
   },
   {
    "n": 12,
@@ -688,6 +719,15 @@
      "amount": 0.08,
      "ease": "inOut",
      "note": "up with the taken men"
+    },
+    "override": {
+     "target": [
+      70,
+      110,
+      -110
+     ],
+     "fov": 52,
+     "note": "round 2: Scylla's six heads were in full; the aim lowered so the necks leave the top of the frame, Odysseus and his bow centred, one taken man above him (checked with --stills; not gate-scored)"
     }
    },
    "action": "the six men are lifted up the cliff; odysseus, below, raises his bow and cannot shoot",
@@ -731,14 +771,15 @@
     },
     "len": 3.83,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.3
+    "at": 0.3,
+    "gain": 1
    },
    "sfx": [
     "the men calling his name, far"
    ],
    "card": null,
    "why": "All his comrades lost: seen from below, the way he saw it.",
-   "duck_db": -11
+   "duck_db": -12
   },
   {
    "n": 13,
@@ -770,18 +811,23 @@
      "#1a2230"
     ],
     "fog": [
-     60,
-     420
+     20,
+     240
     ],
-    "exposure": 0.65,
+    "exposure": 0.5,
     "key": {
-     "from": "moon, high left",
-     "color": "#9fb4ff",
-     "intensity": 0.9,
+     "from": "moon, behind, high",
+     "color": "#8fa6e0",
+     "intensity": 1.2,
      "shadow": true
     },
-    "note": "blue night, one warm practical if the set has one; round 1: the dead read as smiling pink toys in clear light; close fog makes them shapes behind him",
-    "dim": 0.15
+    "note": "blue night, one warm practical if the set has one; round 1: the dead read as smiling pink toys in clear light; close fog makes them shapes behind him; round 2: close fog did not reach the near shades (still pink toys with smiles); the moon moved behind them, the fill nearly off: rims and shapes",
+    "dim": 0.08,
+    "fill": {
+     "sky": "#1a2233",
+     "ground": "#050608",
+     "intensity": 0.08
+    }
    },
    "voice": {
     "scene": "OD-B11-S03",
@@ -799,7 +845,8 @@
     },
     "len": 7.08,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.3
+    "at": 0.3,
+    "gain": 3
    },
    "sfx": [
     "the dead, a whisper chorus",
@@ -807,7 +854,7 @@
    ],
    "card": null,
    "why": "The prophecy spoken in the land of the dead: a quiet line, a still image.",
-   "duck_db": -11
+   "duck_db": -14
   },
   {
    "n": 14,
@@ -866,7 +913,8 @@
     },
     "len": 6.92,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.3
+    "at": 0.3,
+    "gain": 2
    },
    "sfx": [
     "oars",
@@ -874,7 +922,7 @@
    ],
    "card": null,
    "why": "Endurance, and memory as consolation: the line the whole cut turns on.",
-   "duck_db": -11
+   "duck_db": -12
   },
   {
    "n": 15,
@@ -981,7 +1029,7 @@
      300,
      1400
     ],
-    "exposure": 0.85,
+    "exposure": 0.75,
     "key": {
      "from": "low, behind the subject (backlight)",
      "elev_deg": 6,
@@ -989,7 +1037,13 @@
      "intensity": 2.2,
      "shadow": true
     },
-    "note": "hard low sun, long shadows, figures to silhouette"
+    "note": "hard low sun, long shadows, figures to silhouette; round 2: flat frontal light on a white wall: fill to 0.12, the set's lights to 20%, exposure 0.75: Argos and the beggar go to silhouette against the dusk",
+    "dim": 0.2,
+    "fill": {
+     "sky": "#2a3350",
+     "ground": "#140e0a",
+     "intensity": 0.12
+    }
    },
    "voice": {
     "scene": "OD-B17-S03",
@@ -1007,7 +1061,8 @@
     },
     "len": 2.75,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 1.6
+    "at": 1.6,
+    "gain": 5
    },
    "sfx": [
     "wind in the gate",
@@ -1015,7 +1070,7 @@
    ],
    "card": null,
    "why": "Twenty years measured by a dog: the most sincere image in the poem.",
-   "duck_db": -11
+   "duck_db": -14
   },
   {
    "n": 18,
@@ -1040,20 +1095,46 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. Her torch at her right; the key's torch behind the loom kept.",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       110,
+       85,
+       70
+      ],
+      "color": "#ff8a36",
+      "intensity": 2.4,
+      "distance": 260,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ]
    },
    "voice": {
     "scene": "OD-B02-S02",
@@ -1071,14 +1152,16 @@
     },
     "len": 5.74,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.2
+    "at": 0.2,
+    "gain": 4
    },
    "sfx": [
     "thread drawn",
     "torch"
    ],
    "card": null,
-   "why": "The one who waited: her work is unmaking time."
+   "why": "The one who waited: her work is unmaking time.",
+   "duck_db": -14
   },
   {
    "n": 19,
@@ -1104,20 +1187,46 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. The hearth, low, beside the basin; the spec's two lamps kept.",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       -70,
+       35,
+       150
+      ],
+      "color": "#ff8a36",
+      "intensity": 2.8,
+      "distance": 300,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ]
    },
    "voice": {
     "scene": "OD-B23-S01",
@@ -1135,14 +1244,15 @@
     },
     "len": 4.68,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.2
+    "at": 0.2,
+    "gain": 2
    },
    "sfx": [
     "water in the basin"
    ],
    "card": null,
    "why": "Recognition, in the words of the one who recognises him.",
-   "duck_db": -11
+   "duck_db": -14
   },
   {
    "n": 20,
@@ -1234,20 +1344,57 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. A torch at the door beside him and an ember glow low in the hall.",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       45,
+       95,
+       215
+      ],
+      "color": "#ff8a36",
+      "intensity": 3.0,
+      "distance": 320,
+      "decay": 1.3,
+      "shadow": true
+     },
+     {
+      "at": [
+       -60,
+       40,
+       160
+      ],
+      "color": "#ff8a36",
+      "intensity": 1.6,
+      "distance": 260,
+      "decay": 1.3
+     }
+    ]
    },
    "voice": null,
    "sfx": [
@@ -1270,6 +1417,20 @@
      "type": "hold",
      "amount": 0.0,
      "ease": "inOut"
+    },
+    "override": {
+     "pos": [
+      -80,
+      95,
+      400
+     ],
+     "target": [
+      -4,
+      62,
+      60
+     ],
+     "fov": 32,
+     "note": "round 2: a busy wide; now over the archer's shoulder down the row of axe-heads (Telemachus cleared), one readable thing (checked with --stills; not gate-scored)"
     }
    },
    "action": "the arrow goes through the twelve axe-heads",
@@ -1280,27 +1441,58 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. One torch beside the archer.",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       40,
+       70,
+       190
+      ],
+      "color": "#ff8a36",
+      "intensity": 2.6,
+      "distance": 300,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ]
    },
    "voice": null,
    "sfx": [
     "arrow through iron, twelve ticks"
    ],
    "card": null,
-   "why": "The feat, one image."
+   "why": "The feat, one image.",
+   "stage": {
+    "hide_actors": [
+     "telemachus"
+    ]
+   }
   },
   {
    "n": 24,
@@ -1316,6 +1508,20 @@
      "type": "hold",
      "amount": 0.0,
      "ease": "inOut"
+    },
+    "override": {
+     "pos": [
+      85,
+      72,
+      45
+     ],
+     "target": [
+      198,
+      58,
+      -120
+     ],
+     "fov": 36,
+     "note": "round 2: a busy high wide; now Antinous alone lifting the cup, from Odysseus's side (checked with --stills; not gate-scored)"
     }
    },
    "action": "antinous lifts the cup; the arrow takes him",
@@ -1326,20 +1532,46 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. One lamp at Antinous's table.",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       150,
+       80,
+       -60
+      ],
+      "color": "#ff8a36",
+      "intensity": 2.6,
+      "distance": 260,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ]
    },
    "voice": null,
    "sfx": [
@@ -1362,6 +1594,20 @@
      "type": "push",
      "amount": 0.05,
      "ease": "inOut"
+    },
+    "override": {
+     "pos": [
+      0,
+      112,
+      130
+     ],
+     "target": [
+      0,
+      88,
+      -80
+     ],
+     "fov": 37,
+     "note": "round 2: a toy room from above; now level, the two in profile holding each other, the lamp at left, the wall falling to dark (checked with --stills; not gate-scored)"
     }
    },
    "action": "husband and wife hold each other by the bed built round the olive; the lamp; dawn held back",
@@ -1372,20 +1618,58 @@
    ],
    "look": {
     "time": "night interior",
-    "exposure": 0.75,
+    "exposure": 0.95,
     "key": {
-     "from": "the lamp/torch practical",
-     "color": "#ff9a4a",
-     "intensity": 1.6,
-     "shadow": true
+     "dir": [
+      0.25,
+      0.9,
+      0.35
+     ],
+     "color": "#3a4a78",
+     "intensity": 0.1,
+     "from": "faint moon through the open roof"
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.1
+     "sky": "#1c2438",
+     "ground": "#0c0806",
+     "intensity": 0.06
     },
-    "note": "one warm source, the rest falls to black; round 1: dim and fill set, the interiors rendered as daylight",
-    "dim": 0.1
+    "note": "one warm source, the rest falls to black. Round 2: the round-1 `key` (\"the lamp/torch practical\") was a warm DIRECTIONAL light and lit the open-topped set like the sun; now a faint cool moon and point-light practicals placed at the lamp/torch/hearth. One lamp beside the bed; a cool breath from the window (dawn held back).",
+    "dim": 0.04,
+    "sky": [
+     "#010102",
+     "#05070c"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "lights": [
+     {
+      "at": [
+       -45,
+       100,
+       -20
+      ],
+      "color": "#ff8a36",
+      "intensity": 2.4,
+      "distance": 260,
+      "decay": 1.3,
+      "shadow": true
+     },
+     {
+      "at": [
+       200,
+       260,
+       300
+      ],
+      "color": "#4a5f9a",
+      "intensity": 0.5,
+      "distance": 800,
+      "decay": 1.0
+     }
+    ],
+    "no_lights": true
    },
    "voice": {
     "scene": "OD-B05-S01",

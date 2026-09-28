@@ -100,18 +100,23 @@
      "type": "orbit",
      "amount": 0.12,
      "ease": "inOut",
-     "stepped": 12,
-     "note": "stop-motion: the camera moves on twos, 12 positions a second"
+     "stepped": 2,
+     "note": "stop-motion time-lapse: the tripod moves twice a second (each step a true kit render)"
     },
     "kit_view": {
      "card": "set.the-opening",
-     "az": -20,
-     "el": 25,
-     "zoom": 1.9,
-     "note": "round 1: the kit filled a third of the frame"
+     "az": -32,
+     "el": 20,
+     "zoom": 2.4,
+     "at": [
+      300,
+      -540,
+      -200
+     ],
+     "note": "round 2: aimed at the council on its cloud column (the gods readable); round 3: aim raised and lens a little wider so the pediment clears the top of the frame"
     }
    },
-   "action": "Olympus on its column of cloud bricks over Ithaca; the camera circles it like a photographer moving a tripod a stud at a time",
+   "action": "Olympus on its column of cloud bricks, the gods on their thrones; the camera circles it like a photographer moving a tripod a stud at a time",
    "actors": [],
    "look": null,
    "voice": {
@@ -137,7 +142,8 @@
     "a stud clicks as the camera steps"
    ],
    "card": null,
-   "why": "Open grand and completely sincere, on a real model: the joke needs something true to push against."
+   "why": "Open grand and completely sincere, on a real model: the joke needs something true to push against.",
+   "duck_db": -10
   },
   {
    "n": 2,
@@ -185,7 +191,7 @@
    ],
    "card": null,
    "why": "The king of the gods complaining about people: the first laugh is a character line, not a gag.",
-   "duck_db": -11
+   "duck_db": -16
   },
   {
    "n": 3,
@@ -202,7 +208,7 @@
     "plates snapping on"
    ],
    "card": {
-    "text": "MEANWHILE, DOWN HERE",
+    "text": "MEANWHILE,\nDOWN HERE",
     "style": "brick",
     "type": "letters built from 1x2 plates that snap on stud by stud (12 fps), primary colours",
     "color": "red/yellow/blue plates on #000",
@@ -214,7 +220,7 @@
   {
    "n": 4,
    "at": 15.0,
-   "dur": 3.3,
+   "dur": 3.05,
    "kind": "SCENE",
    "scene": "OD-B10-S01",
    "key": "K2",
@@ -252,25 +258,24 @@
     },
     "len": 2.63,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.4
+    "at": 0.2
    },
    "sfx": [
     "wind straining inside a bag"
    ],
    "card": null,
    "why": "Plant: the bag, and that it is shut.",
-   "duck_db": -11
+   "duck_db": -16
   },
   {
    "n": 5,
-   "at": 18.3,
-   "dur": 6.2,
-   "kind": "KIT",
-   "kit": "set.bag-of-winds",
-   "key": null,
-   "still": "../kits/bag-of-winds/close.jpg",
+   "at": 18.05,
+   "dur": 6.45,
+   "kind": "SCENE",
+   "key": "K3",
+   "still": "../keyframes/OD-B10-S01/K3.png",
    "camera": {
-    "kit_still": "bag-of-winds/close.jpg",
+    "from": "K3",
     "move": {
      "type": "push",
      "amount": 0.08,
@@ -279,8 +284,11 @@
      "note": "stop-motion: the camera moves on twos, 12 positions a second"
     }
    },
-   "action": "in the stern odysseus sleeps against the steering oar; behind him the crew lean over the bag and start on the knot",
-   "actors": [],
+   "action": "dusk, Ithaca in sight: odysseus dozes on deck by the mast, the knotted bag at his feet",
+   "actors": [
+    "odysseus",
+    "bag"
+   ],
    "look": null,
    "voice": {
     "scene": "OD-B10-S01",
@@ -305,7 +313,12 @@
     "a knot creaks"
    ],
    "card": null,
-   "why": "Set-up: the narrator says it perfectly straight, which is the joke."
+   "why": "Set-up: the narrator says it perfectly straight over the sleeping hero and the bag, which is the joke; round 2: the filmed key (dusk into the next shot's night) replaces the kit, whose boat sat small on a black sweep",
+   "duck_db": -14,
+   "sfx_gain": {
+    "snore": -6
+   },
+   "scene": "OD-B10-S01"
   },
   {
    "n": 6,
@@ -384,7 +397,7 @@
    ],
    "card": null,
    "why": "Wit: the host throws them out in one breath.",
-   "duck_db": -11
+   "duck_db": -16
   },
   {
    "n": 8,
@@ -435,7 +448,7 @@
    ],
    "card": null,
    "why": "Pigs-for-heads: the minifig head swapped for a pig head is the gag, played deadpan.",
-   "duck_db": -11
+   "duck_db": -16
   },
   {
    "n": 9,
@@ -448,18 +461,58 @@
    "camera": {
     "from": "K1",
     "move": {
-     "type": "hold",
-     "amount": 0.0,
-     "ease": "inOut"
+     "type": "push",
+     "amount": 0.12,
+     "ease": "inOut",
+     "stepped": 12
+    },
+    "override": {
+     "type": "orbit",
+     "around": "@polyphemus.brow",
+     "az": 5.35,
+     "r": 150,
+     "h": 120,
+     "target": [
+      35,
+      70,
+      -150
+     ],
+     "fov": 42,
+     "note": "the teaser's shot 3: over the giant's arm to the small man, who says his name to our face"
     }
    },
-   "action": "odysseus, tiny, looks up at the drunk giant and answers him",
+   "action": "over the sleeping giant's arm: odysseus, small, lit by the fire, gives his name",
    "actors": [
     "odysseus",
     "polyphemus",
     "bowl"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the teaser's cave look: the fire the only source (set lights 12%, one low warm point at the hearth, a dark cool fill)"
+   },
    "voice": {
     "scene": "OD-B09-S08",
     "gi": 6,
@@ -483,7 +536,24 @@
     "giant breathing"
    ],
    "card": null,
-   "why": "The name that is the whole trick, said plainly."
+   "why": "The name that is the whole trick, said plainly.",
+   "grade": {
+    "vignette": 0.35,
+    "note": "the cave keeps the full 16:9 frame (the LEGO Movie register), with the teaser's vignette"
+   },
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4"
+    ]
+   },
+   "duck_db": -18,
+   "sfx_gain": {
+    "fire": -6,
+    "giant breathing": -8
+   }
   },
   {
    "n": 10,
@@ -499,17 +569,50 @@
      "type": "push",
      "amount": 0.1,
      "ease": "inOut",
-     "stepped": 12,
-     "note": "stop-motion: the camera moves on twos, 12 positions a second"
+     "stepped": 12
+    },
+    "override": {
+     "type": "orbit",
+     "around": "@polyphemus.brow",
+     "az": 5.9,
+     "r": 120,
+     "h": 150,
+     "fov": 42,
+     "note": "round 2: the giant's face, one eye in the firelight, makes his promise (checked with --stills)"
     }
    },
-   "action": "polyphemus raises the bowl, promises, and topples backwards asleep; the bowl rolls",
+   "action": "close on the drunk giant's face, one eye in the firelight: he makes his promise and starts to snore",
    "actors": [
     "polyphemus",
     "bowl",
     "wine"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the teaser's cave look: the fire the only source (set lights 12%, one low warm point at the hearth, a dark cool fill)"
+   },
    "voice": {
     "scene": "OD-B09-S09",
     "gi": 2,
@@ -535,7 +638,24 @@
    ],
    "card": null,
    "why": "The giant's generosity, then the fall: timing.",
-   "duck_db": -11
+   "duck_db": -18,
+   "grade": {
+    "vignette": 0.35,
+    "note": "the cave keeps the full 16:9 frame (the LEGO Movie register), with the teaser's vignette"
+   },
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4"
+    ]
+   },
+   "speaker_actor": "polyphemus",
+   "sfx_at": {
+    "snore": 5.75,
+    "bowl clatters": 5.6
+   }
   },
   {
    "n": 11,
@@ -560,14 +680,44 @@
     "four-stake-bearers-1",
     "polyphemus"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the teaser's cave look: the fire the only source (set lights 12%, one low warm point at the hearth, a dark cool fill)"
+   },
    "voice": null,
    "sfx": [
     "sizzle",
     "squelch (a brick sound, not a wet one)"
    ],
    "card": null,
-   "why": "The blinding in one beat, no lingering."
+   "why": "The blinding in one beat, no lingering.",
+   "grade": {
+    "vignette": 0.35,
+    "note": "the cave keeps the full 16:9 frame (the LEGO Movie register), with the teaser's vignette"
+   },
+   "stage": null
   },
   {
    "n": 12,
@@ -591,13 +741,55 @@
     "blood",
     "odysseus"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the teaser's cave look: the fire the only source (set lights 12%, one low warm point at the hearth, a dark cool fill)"
+   },
    "voice": null,
    "sfx": [
-    "ROAR"
+    "ROAR",
+    "single low drum"
    ],
    "card": null,
-   "why": "The roar that brings the neighbours."
+   "why": "The roar that brings the neighbours.",
+   "grade": {
+    "vignette": 0.35,
+    "note": "the cave keeps the full 16:9 frame (the LEGO Movie register), with the teaser's vignette"
+   },
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4",
+     "odysseus"
+    ]
+   },
+   "sfx_gain": {
+    "ROAR": 3
+   }
   },
   {
    "n": 13,
@@ -612,7 +804,9 @@
     "move": {
      "type": "hold",
      "amount": 0.0,
-     "ease": "inOut"
+     "ease": "inOut",
+     "stepped": 0.1,
+     "note": "one true kit render held (stepped 0.1: no step inside the shot)"
     }
    },
    "action": "the cave mouth from outside at night; the other Cyclopes gather at the stone and call in",
@@ -634,7 +828,8 @@
     },
     "len": 6.38,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 0.08
+    "at": 0.08,
+    "gain": 2
    },
    "sfx": [
     "crickets",
@@ -642,7 +837,11 @@
    ],
    "card": null,
    "why": "The Nobody gag lands in their mouths: they believe him.",
-   "duck_db": -11
+   "duck_db": -20,
+   "sfx_gain": {
+    "crickets": -6,
+    "giant footsteps": -6
+   }
   },
   {
    "n": 14,
@@ -658,20 +857,62 @@
      "type": "hold",
      "amount": 0.0,
      "ease": "inOut"
+    },
+    "override": {
+     "fov": 40,
+     "note": "round 2: tighter than shot 12, a jump in, so the beat after the joke is his, not a repeat"
     }
    },
    "action": "hold on polyphemus: he opens his mouth to explain, and does not",
    "actors": [
     "polyphemus"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the teaser's cave look: the fire the only source (set lights 12%, one low warm point at the hearth, a dark cool fill)"
+   },
    "voice": null,
    "sfx": [
     "record scratch into silence"
    ],
    "card": null,
    "why": "The beat after the joke: the music dies with his argument.",
-   "silence": true
+   "silence": true,
+   "grade": {
+    "vignette": 0.35,
+    "note": "the cave keeps the full 16:9 frame (the LEGO Movie register), with the teaser's vignette"
+   },
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4",
+     "odysseus"
+    ]
+   }
   },
   {
    "n": 15,
@@ -798,26 +1039,29 @@
      "ease": "inOut"
     }
    },
-   "action": "penelope at the loom in the sunlit hall, weaving, not looking at the suitors",
+   "action": "penelope at the loom as the day ends, weaving, not looking at the suitors",
    "actors": [
     "penelope-at-the-loom",
     "loom"
    ],
    "look": {
-    "time": "night interior",
-    "exposure": 0.8,
-    "dim": 0.12,
+    "time": "dusk",
+    "exposure": 0.88,
+    "sky": [
+     "#3a3a5a",
+     "#f2a863"
+    ],
     "key": {
-     "from": "the torch, low left",
-     "color": "#ff9a4a",
-     "intensity": 1.6
+     "from": "left, low",
+     "color": "#ffb766",
+     "intensity": 1.5
     },
     "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.12
+     "sky": "#5a5a78",
+     "ground": "#2a1c12",
+     "intensity": 0.3
     },
-    "note": "round 1: the sincere turn by torchlight, as the action says; the comedy stays in bright daylight"
+    "note": "round 2: the day's end, low amber sun, so the cut to shot 19's torchlight is day to night (wove by day, unravelled by night)"
    },
    "voice": {
     "scene": "OD-B02-S02",
@@ -841,7 +1085,8 @@
     "shuttle"
    ],
    "card": null,
-   "why": "The heart: the other half of the story, still funny (she is out-tricking them) and sincere."
+   "why": "The heart: the other half of the story, still funny (she is out-tricking them) and sincere.",
+   "duck_db": -9
   },
   {
    "n": 19,
@@ -859,27 +1104,12 @@
      "ease": "inOut"
     }
    },
-   "action": "night: penelope pulls the day's threads out, alone",
+   "action": "night: penelope alone at the loom by torchlight, pulling the day's threads out (the key's own night look)",
    "actors": [
     "penelope-at-the-loom",
     "loom"
    ],
-   "look": {
-    "time": "night interior",
-    "exposure": 0.8,
-    "dim": 0.12,
-    "key": {
-     "from": "the torch, low left",
-     "color": "#ff9a4a",
-     "intensity": 1.6
-    },
-    "fill": {
-     "sky": "#223044",
-     "ground": "#140f0b",
-     "intensity": 0.12
-    },
-    "note": "round 1: the sincere turn by torchlight, as the action says; the comedy stays in bright daylight"
-   },
+   "look": null,
    "voice": {
     "scene": "OD-B02-S02",
     "gi": 3,
@@ -926,7 +1156,25 @@
     "argos",
     "odysseus-as-beggar"
    ],
-   "look": null,
+   "look": {
+    "time": "dusk",
+    "exposure": 0.95,
+    "sky": [
+     "#2b3350",
+     "#f0a45c"
+    ],
+    "key": {
+     "from": "behind left, low",
+     "color": "#ffb35c",
+     "intensity": 1.6
+    },
+    "fill": {
+     "sky": "#4a5270",
+     "ground": "#2a1c12",
+     "intensity": 0.3
+    },
+    "note": "round 2: the heart's own light: a low gold sun behind the old dog, the day ending"
+   },
    "voice": {
     "scene": "OD-B17-S03",
     "gi": 2,
@@ -972,7 +1220,25 @@
     "odysseus-as-beggar",
     "eumaeus"
    ],
-   "look": null,
+   "look": {
+    "time": "dusk",
+    "exposure": 0.95,
+    "sky": [
+     "#2b3350",
+     "#f0a45c"
+    ],
+    "key": {
+     "from": "behind left, low",
+     "color": "#ffb35c",
+     "intensity": 1.6
+    },
+    "fill": {
+     "sky": "#4a5270",
+     "ground": "#2a1c12",
+     "intensity": 0.3
+    },
+    "note": "round 2: the heart's own light: a low gold sun behind the old dog, the day ending"
+   },
    "voice": null,
    "sfx": [
     "room tone"
@@ -1255,7 +1521,7 @@
     "final click"
    ],
    "card": {
-    "text": "THE ODYSSEY",
+    "text": "THE\nODYSSEY",
     "style": "brick",
     "type": "letters built from 1x2 plates that snap on stud by stud (12 fps), primary colours",
     "color": "red/yellow/blue plates on #000",
@@ -1275,12 +1541,27 @@
    "camera": {
     "from": "K3",
     "move": {
-     "type": "hold",
-     "amount": 0.0,
-     "ease": "inOut"
+     "type": "push",
+     "amount": 0.05,
+     "ease": "in",
+     "stepped": 12
+    },
+    "override": {
+     "pos": [
+      -120,
+      100,
+      210
+     ],
+     "target": [
+      0,
+      35,
+      60
+     ],
+     "fov": 36,
+     "note": "round 2: close behind him, the raft's deck swinging up over his head"
     }
    },
-   "action": "the raft tips; odysseus, arms up, goes over",
+   "action": "close behind odysseus, arms up, as the raft rolls up over him",
    "actors": [
     "odysseus",
     "raft"
