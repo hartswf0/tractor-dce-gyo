@@ -132,3 +132,84 @@ Picture, shot by shot, against the reference frames:
 - Voices: 6 and 17 +5 dB with a -14 dB duck, 18 +4 dB (-14), 14 +2 dB. Remixed and measured (the WAV only): -14.1 LUFS, -1.6 dBTP;
   every line now +1.8 to +27.6 dB over the second before it (6 +2.4, 7 +1.8, 11 +2.7, 14 +2.5, 17 +2.0, 18 +2.1), with the score
   12-14 dB down under each.
+
+---
+
+## Round 3 (final) — `films/trailers/a-long-way-home-r3.mp4` = `films/trailers/a-long-way-home.mp4`
+
+1280x720, **12 fps**, 1440 frames, 25.5 MB, letterboxed 2.39:1. **Why 12 and not 24:** the machine was shared with two other
+full renders, and swiftshader drew 6-12 s a frame instead of the 2.6 s the teaser saw. A 24 fps start drew shot 2 at ~10 s a frame
+(18 min for 300 frames), a projected 6.5 h more. So it was stopped, its even frames were kept as the 12 fps frames (t = 2k/24 = k/12,
+identical), and the render resumed at 12 fps. Times: 18.2 min (24 fps start, reused) + 158.9 min (12 fps, 1140 frames) + 18.4 min
+(shots 6-7 re-rendered, see below) + 1.9 min (re-encode and mix) ≈ 3 h 17 min.
+
+**Sound (ebur128 on the muxed AAC).** -14.1 LUFS integrated, true peak -1.4 dBTP, LRA 10.1 LU: on spec. Stems at the master gain:
+music -14.9, voice -14.4, effects -23.4 LUFS.
+
+| hit | before → after (momentary LUFS) | the frames either side |
+|---|---|---|
+| 1.20 drum 1 | -41.4 → -17.0 | black → the horse: on the frame |
+| 6.00 drum 2 | -33.9 → -15.2 | the horse → TEN YEARS AT WAR. |
+| 11.00 drum 3 | -41.3 → -13.6 | card → the man on the fig tree |
+| 16.00 drum 4 | -31.2 → -12.5 | fig tree → TEN YEARS AT SEA. |
+| 26.05 the raft | -17.3 → -12.4 | Olympus → the raft (the added drum carries it) |
+| 101.00 peak ends | -10.6 → silence | the bow → black: a true stop |
+| 102.85 slam | -42.7 → -15.5 | black → the threshold (+27 dB) |
+
+Lines against the second before them: 6 +2.4, 7 +1.8, 8 +11.8, 9 +4.7, 10 +10.7, 11 +2.7, 12 +4.0, 13 +4.0, 14 +2.5, 17 +2.0,
+18 +2.1, 19 +5.7, 25 +27.7 dB. The score is ducked 12-14 dB under every line of the build, so each line sits well above the bed
+beneath it. The +2 dB readings compare the line with the unducked score just before it, which is loud because King of Ithaca is
+climbing the whole time. They are clear but not dominant, which suits the register: the lines are carried by the build, not
+spoken over a gap.
+
+**Review of the frames** (a frame at the start, middle and end of every shot, both sides of every hit, the middle of every line):
+no black or broken frames, every cut where the edit list puts it, the letterbox on every SCENE frame, the cards clean.
+
+**The one fix made after the full render.** Shots 6 and 7, back to back in the first minute, were the two frames that could not sit
+beside the reference: Olympus was still a bright checkerboard, and the raft sat on a bright blue floor with a specular hotspot in
+the middle of the frame. Both were relit (6: fill 0.08, set lights 15%, exposure 0.42; 7: moon 0.55, exposure 0.5, fog 250-950),
+checked with two stills, and re-rendered with `--shots 6,7` (138 frames, 18.4 min), then the film was re-encoded with `--resume`.
+Olympus is now a dim gold hall with the ring of gods lit low from the side, and the raft is a deep blue night with the hotspot
+halved.
+
+### Final verdict
+
+**What now meets the bar** (it would sit beside the reference frames, or it is the reference's idea honestly made in bricks):
+
+- **The opening minute's grammar:** black, four drums and four cuts, each drum falling to silence, the cards small, tracked and on the
+  drum. The horse alone on the dusk shore (2) and the man on the fig tree over black (4) are the trailer's best frames: one idea,
+  a small figure, vast dark (16.5, 51, 68.5).
+- **The night interiors, which were the round-1 failure:** Penelope by one torch (18), the threshold by one torch with the doorway
+  black (22), the row of axe-heads over the archer's shoulder (23), Antinous alone with his cup (24) and the embrace by one lamp
+  (25). The palace sets no longer read as a sunny courtyard. The ending is what the reference ends on: two people touching in warm
+  dark, one line, then the title on a drum.
+- **Restraint:** Scylla is off the top of the frame (12), the giant is a shape against the night (10), the dead are grey shapes
+  behind a dark back (13).
+- **Argos (17)** is now a silhouette against the dusk, the sincere image it was meant to be.
+- **Sound:** on spec; every hit lands on its cut; the drop is the only loud passage and it is framed by true silences; every line is
+  above its bed.
+- **The arc:** war, sea, the gods, the curse, the dead, the long way, home, recognition, the drop, touch. It plays in order and
+  the tempo change at the drop (2.4 s shots after 5-7 s holds) is felt.
+
+**What still does not, and why:**
+
+1. **Olympus (6) is still the least Nolan frame.** It is dimmer and hazier, but K1 is a busy high wide of a white-and-gold room with a
+   green boulder in the foreground. Relighting cannot give it the reference's single shape in haze (40). It needs a new key (the
+   ring of gods as a small bright room seen far off from below), put through the gate.
+2. **The sea is a floor of blue plates** (4, 7, 8, 14, 16). At night it is dark enough, but it still reads as a baseplate, not water.
+   The reference's sea (47, 51, 94.5) is black with one light. The fix is a set change (darker, transparent water plates, or fog down
+   to the waterline), not a look.
+3. **The build's holds are long and nearly still.** Pushes of 4-6% over 5-7.5 s barely read. At 12 fps they step visibly, which
+   passes as the stop-motion camera the LEGO Movie uses but was not chosen for it. 13 and 14 go slack in their last two seconds. A
+   24 fps render on a quiet machine (~80-90 min alone) would smooth the moves. Stronger moves or trims of 1-1.5 s on 13 and 14
+   would tighten the middle.
+4. **The recognition (19)** is warm and dark, but the beggar's back fills the left half and the nurse's hands on the scar, the
+   subject of the shot, are not visible. A re-staged key (her hands and the leg in the light) is needed; a camera override from the
+   one angle tried would put the lamp behind them.
+5. **Faces are small.** No line of the build lands on a legible speaking face (Athena, the giant, Tiresias and the nurse are wides or
+   backs). This is deliberate (the voices of the story over images), but the reference keeps its few words on faces (42.5, 44, 71).
+6. **Reframes not gate-scored.** 7, 12, 23, 24 and 25 are `camera.override`s checked by eye with `--stills`, not by the keyframe gate.
+7. **The effects are synthesised,** as in the teaser: they sit under the score and read as their events, but they are not foley.
+
+On balance the trailer now holds its register from the first drum to the title. Its opening and its last minute are at the
+teaser's standard. Its middle (the sea shots and Olympus) is limited by the sets, not the grade.
