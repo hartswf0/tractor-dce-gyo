@@ -7,7 +7,28 @@ The whole *Odyssey* is played as voiced LEGO cinema on the Regulars' Cut (`odyss
 | `play/odyssey-game.html` | The desktop game. It is the Hand Butter 26 workspace (`play/hand-butter-odyssey.html`) with the game layer injected by `tools/odyssey-game.js`. It is 29 MB, and scene cards, parts and audio load by URL. |
 | `play/odyssey-mobile.html` | The phone game in **one file** (about 20 MB), built by `tools/odyssey-mobile.js`. It holds all code, a baked geometry bank for every part the game shows (`tools/odyssey-mobile-bake.js`), and every voice line of the cut. Only the music beds stream, from `odyssey/take/bed/`. On GitHub Pages: `https://hartswf0.github.io/tractor-dce-gyo/play/odyssey-mobile.html` |
 
-URL options: `?book=9` starts the poem at Book IX. `?level=03-cyclops` plays one trial. `?speed=3` runs the game clock faster (used by the tests). `?lite` turns shadows off. `?mute` starts silent.
+URL options: `?book=9` starts the poem at Book IX. `?level=03-cyclops` plays one trial. `?speed=3` runs the game clock faster (used by the tests). `?lite` turns shadows off. `?mute` starts silent. `?render=ms` (tests only) draws the 3D view at most that often, so a starved software-GL page keeps the game's clock and Butter's hand tracks alive; the tests force a frame before every screenshot.
+
+## Playing on a phone
+
+Open **https://hartswf0.github.io/tractor-dce-gyo/play/odyssey-mobile.html** in the phone's browser (Safari on iPhone, Chrome on Android), portrait or landscape. It is one 20 MB page: once it has loaded, every scene, part and voice line is on the phone, and only the music beds stream (without a connection the books play without music). Phones start sound only after a touch: if a scene is silent, tap **Sound**.
+
+1. The **chart** opens: the 24 books on the Aegean. Tap a book to see its card, then **Play book**; or tap one of the eight **Trials of the hand** to play it alone. Gold books are sailed; a red ring marks a book with a trial.
+2. In a **cinematic**, **Skip** jumps to the next scene, **Chart** goes back, **Sound** mutes.
+3. At a **trial**, read the card and tap **Begin**. The gestures with fingers:
+
+| Trial | With a finger (or two) |
+|---|---|
+| 1 · The Opening | touch and hold where Athena should go; move the finger along the waymarks |
+| 2 · Calypso's Isle | drag each timber from the pile onto its green ghost on the keel and let go (it clicks when its studs seat); then drag the keel toward the sea |
+| 3 · The Cyclops | drag the stake's point into the fire and hold until it glows; with the finger down below the eye, flick up into it; then drag each man under a ram before the lane darkens and the hand sweeps it |
+| 4 · The Bow | put two fingers down and spread them to string the bow (or drag one finger away); then press, bring the swaying sight onto the line of rings, and lift to loose |
+| 5 · The Bag of Winds | when a crewman reaches (a red ring fills), hold a finger on the bag; lift between reaches to rest your grip |
+| 6 · The Sirens | circle a finger round the mast three times to bind him; then swipe up and down to row |
+| 7 · Scylla and Charybdis | hold a finger and steer left and right through the strait |
+| 8 · The Bed | drag the bed up (it will not move); hold on the root; drag Penelope to Odysseus |
+
+**Hands** turns on the camera and MediaPipe (fetched from its CDN only then): the poses below then work on a phone as on a computer.
 
 ## How to play
 
@@ -120,30 +141,34 @@ The voyage chart is the Aegean as a studded blue baseplate, with the land in bri
 The http server must be running on :8899, serving the repository.
 
 ```
-NODE_PATH=…/node_modules node tools/test-odyssey-game.js --levels         # every trial: synthetic hands, mouse/keyboard, and a loss
-NODE_PATH=…/node_modules node tools/test-odyssey-game.js --frames         # every shot of the keyframed scenes and each book's first scene
-NODE_PATH=…/node_modules node tools/test-odyssey-game.js --spine          # the whole poem, fast, trials solved with synthetic hands
-NODE_PATH=…/node_modules node tools/test-odyssey-mobile.js                # the one-file mobile build on Pixel 7 and iPhone 13, by touch
+node tools/odyssey-game.js && node tools/odyssey-mobile.js                                   # build both pages first
+NODE_PATH=…/node_modules node tools/test-odyssey-game.js --levels --render 600000            # every trial: synthetic hands, mouse/keyboard, and a loss
+NODE_PATH=…/node_modules node tools/test-odyssey-game.js --frames                            # every shot of the keyframed scenes and each book's first scene
+NODE_PATH=…/node_modules node tools/test-odyssey-game.js --spine --render 600000             # the whole poem, fast, trials solved with synthetic hands (--no-frames skips the frames pass it starts with)
+NODE_PATH=…/node_modules node tools/test-odyssey-mobile.js --speed 1 --render 600000 --frames --no-spine   # the phone file, see below
+NODE_PATH=…/node_modules node tools/test-odyssey-mobile.js --devices "Pixel 7" --orient portrait --speed 1 --render 600000 --no-trials   # + the spine by touch
 ```
 
+- **`--render`**: on this machine one frame of a trial's scene takes 0.4–2.3 s of software GL, which starves the game clock and lets Hand Butter forget a hand track (it drops a track unseen for 750 ms). With `--render 600000` the game's logic runs every animation frame but the 3D view is drawn only when a test takes a screenshot; frame times, the cinematic check and the frames test always draw every frame.
 - **Synthetic hands** are 21 MediaPipe landmarks per hand in the poses above. They are fed to Hand Butter's own `WagWorkshop.processHands`, so Butter's tracking, pinch hysteresis and `gestureOf` do the reading. The test first checks that Butter classifies all five poses correctly.
+- **The phone test** (`tools/test-odyssey-mobile.js`) loads the one file under Playwright's `Pixel 7` and `iPhone 13` descriptors (viewport, pixel ratio, touch, mobile user agent; in Chromium, the only browser here), in portrait and in landscape. On each: the load to the chart, JS heap and frame time; nothing on the chart off the screen; a book card opened by tapping and a cinematic played; each of the eight trials played by touch (Chrome DevTools touch events: one finger, or two for the bow) to a win and again to a loss; no page errors; and nothing over the network but the music beds. `--frames` then sets up every shot of **every one of the 102 kept scenes** on the phone build and fails on a near-uniform frame, a broken camera, or a shot on a person whose head is off screen or below the middle.
 - **The frames test** fails on a near-uniform frame (over 90% of pixels one colour) and on a person shot whose head is off-screen or below the middle of the frame.
-- **Screenshots** go to `play/odyssey-game/shots/` and `shots/mobile/`, with results in `results.json`.
-
-Results of the last runs are listed in RESULTS below.
+- **Screenshots** go to `play/odyssey-game/shots/` and `shots/mobile/`, with results in `results*.json`.
 
 ## What is and is not verified
 
 - **Verified here (headless Chromium, software GL, a shared and very busy CPU):**
-  - Every level is played to a win with synthetic landmark sequences and with mouse/keyboard, and to a loss.
-  - The spine is walked book by book.
-  - Cinematic frames are checked for flatness and head placement.
-  - The mobile file is exercised under Pixel 7 and iPhone 13 emulation by touch.
+  - Desktop: every trial played to a win with synthetic hands (Butter's `processHands`) and with mouse/keyboard, and to a loss.
+  - Desktop: the spine walked from Book I to Book XXIV with every trial solved by synthetic hands.
+  - Phone file, Pixel 7 and iPhone 13, portrait and landscape: loads to the chart, a book opened by tapping, a cinematic, and all eight trials won and lost by touch; the whole spine by touch on Pixel 7 portrait (all 24 books sailed).
+  - Phone file: every shot of all 102 kept scenes set up and rendered (flat frames, broken cameras, heads off screen or low).
+- **Measured (software GL, so only relative):** the phone file reaches the chart in 1.1–2.2 s from localhost with a JS heap of about 43 MB; the chart draws at 17 ms a frame; a trial's scene at 0.4–1.8 s and a cinematic at 2–3 s a frame at the phones' full pixel ratio, on a CPU rasteriser shared with three other browsers. A phone's GPU is not measured here.
+- **Not verified: a real phone.** Emulation is Chromium with a phone's viewport, pixel ratio, touch and user agent: not Safari/WebKit, not a phone GPU, not a phone's memory limit, not real fingers (touches are exact CDP events).
 - **Not verified: a live camera.** Headless Chromium has no camera, so MediaPipe's real landmarks were never seen here. Real hands are noisier than the synthetic ones, and the thresholds (pinch hysteresis, thrust = 1.3× growth in 0.5 s, stroke amplitude 0.06–0.07, circle turns) may need tuning on a real camera and in real light.
 - **Not heard: sound.** Voice, beds and effects are wired and logged, but nobody listened here. Voice clips are Opus/Vorbis in `.ogg`, which older Safari may not play.
-- **Timing.** Frame rates here were 0.5–7 fps, so test timings mean nothing for real devices. Measured load times and heap on emulated phones are in RESULTS.
+- **Timing.** Frame times here are a CPU rasteriser's; the trials are tested with the game clock at 1 and the 3D view drawn only for screenshots (`?render`), so they say whether the logic and the gestures work, not whether a phone keeps 60 fps. The per-run numbers are in `shots/mobile/results*.json` and the test logs.
 - **Visual gaps:**
-  - Halfworld faces are decals on the baked minifig heads the previs names; a figure that is one of the twelve but not in the previs keeps its printed head.
+  - Halfworld faces go on the baked minifig heads the previs names: the card's printed head is hidden and a plain head carries the halfworld face, so there is one face, not two. A figure that is one of the twelve but not in the previs keeps its printed head.
   - Key cameras come from the film's staging, where cast were restaged. They are corrected here: named targets go to the baked head, and the camera turns to the face and around occluders. A few may still frame imperfectly.
   - The mobile bank is LITE: 8-segment curves, no stud logos, no underside tubes.
   - Some printed parts in the desktop build draw in a single colour, because the desktop cards use one material per part.

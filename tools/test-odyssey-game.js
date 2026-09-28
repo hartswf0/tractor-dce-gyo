@@ -35,7 +35,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const errors = []; page.on('pageerror', e => errors.push(e.message.slice(0, 240))); page.on('console', m => { if (m.type() === 'error' && !/404|Failed to load resource/.test(m.text())) errors.push(m.text().slice(0, 240)); });
   const dbg = () => page.evaluate(() => OdysseyGame.debug());
   const until = async (pred, { timeout = 240000, every = 400, what = 'condition' } = {}) => { const end = Date.now() + timeout; let d; while (Date.now() < end) { d = await dbg(); if (pred(d)) return d; await sleep(every); } throw new Error('timed out waiting for ' + what + ' · ' + JSON.stringify(d).slice(0, 400)); };
-  const shot = async name => { await page.screenshot({ path: path.join(SHOTS, name + '.png') }); };
+  const shot = async name => { await page.evaluate(() => new Promise(r => { window.OdysseyRenderNow = 2; requestAnimationFrame(() => requestAnimationFrame(r)); })).catch(() => {}); await page.screenshot({ path: path.join(SHOTS, name + '.png') }); };
   /* synthetic hands: a key-framed performance fed to Hand Butter's processHands in the page, at the tracker's rate */
   const perform = keys => page.evaluate(k => OdysseySynth.play(k), keys);
   const hold = (hands, sec) => perform([{ t: 0, hands }, { t: sec, hands }]);
@@ -86,7 +86,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   MOUSE['03-cyclops'] = async () => {
     let d = await dbg(); await mouse.at(d.info.stake); await sleep(300); await mouse.down(); await sleep(400); await page.mouse.move(d.info.fire.x * W, d.info.fire.y * VH, { steps: 10 });
     await until(d => d.stage !== 'fire', { what: 'glow' }); await mouse.up(); await sleep(2500); d = await dbg(); const eye = d.info.eye;
-    await mouse.at({ x: eye.x, y: eye.y + .1 }); await mouse.down(); await sleep(300); await page.mouse.move(eye.x * W, eye.y * VH, { steps: 2 }); await sleep(900); await mouse.up();
+    await mouse.at({ x: eye.x, y: eye.y + .16 }); await mouse.down();   // a flick of at least 0.12 of the screen (R.thrust)
+     await sleep(300); await page.mouse.move(eye.x * W, eye.y * VH, { steps: 2 }); await until(d => d.stage !== 'eye', { what: 'thrust read', timeout: 6000, every: 200 }).catch(() => null); await mouse.up();
     await until(d => d.stage === 'rams', { what: 'rams' }); await sleep(1500);
     for (let k = 0; k < 16; k++) { d = await dbg(); if (d.stage !== 'rams') break; const m = d.info.men.find(m => m.state === 'free'), r = d.info.rams.find(r => !r.taken); if (!m || !r) { await sleep(600); continue; } await mouse.drag(m, r, { hold: 900, steps: 6 }); } };
   LOSE['03-cyclops'] = async () => { // keys: take the stake to the fire, then thrust wide of the eye three times
@@ -102,7 +103,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await feed(`(() => { let on = 0, open = 0; return (d, t) => { const p = d.info.aimAt; if (d.info.stage !== 'aim') return null; if (d.info.aligned && d.info.drawn) on++; else on = 0; if (on >= 3 || open) { open++; return open > 12 ? null : [{ pose: 'open', x: p.x, y: p.y, anchor: 'tip' }]; } return [{ pose: 'pinch', x: p.x, y: p.y, anchor: 'tip' }]; }; })()`, 25); if (shotP) await shotP;
       const d = await until(x => x.stage !== 'aim' || x.phase !== 'play', { what: 'loosed', timeout: 30000 }).catch(() => null); if (!d) continue; await sleep(1500); if ((await dbg()).phase === 'end') break; } };
   MOUSE['04-bow'] = async () => { await mouse.drag({ x: .5, y: .6 }, { x: .85, y: .6 }, { hold: 1500 }); await until(d => d.stage === 'aim', { what: 'strung' });
-    for (let arrow = 0; arrow < 3; arrow++) { await until(d => d.stage === 'aim', { what: 'aim' }); let d = await dbg(); await mouse.at(d.info.aimAt); await mouse.down(); let on = 0;
+    for (let arrow = 0; arrow < 3; arrow++) { if ((await until(d => d.stage === 'aim' || d.phase !== 'play', { what: 'aim' })).phase !== 'play') break; let d = await dbg(); await mouse.at(d.info.aimAt); await mouse.down(); let on = 0;
       for (let i = 0; i < 80; i++) { d = await dbg(); await page.mouse.move(d.info.aimAt.x * W, d.info.aimAt.y * VH); if (d.info.aligned && d.info.drawn) { if (++on >= 2) break; } else on = 0; await sleep(120); }
       await mouse.up(); await sleep(2500); if ((await dbg()).phase === 'end') break; } };
   LOSE['04-bow'] = async () => { await key.down('Space'); await sleep(3500); await key.up('Space'); await until(d => d.stage === 'aim', { what: 'strung (keys)' });
@@ -148,7 +149,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   if (doLevels) for (const id of only) { for (const m of MODE === 'both' ? ['hand', 'mouse'] : [MODE]) await playLevel(id, m); if (!has('no-loss')) await playLevel(id, 'lose'); }
 
   /* ─────────────── the cinematics' frames: every shot of the keyframed scenes and of each book's first scene ─────────────── */
-  if (has('frames') || doSpine) {
+  if ((has('frames') || doSpine) && !has('no-frames')) {
     const ids = await page.evaluate(() => { const out = []; for (const b of OG.ST.story.books) { const sc = b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : []); sc.forEach((it, k) => { if (k === 0 || it.keyframes) out.push(it.id); }); } return [...new Set(out)]; });
     let flat = 0, shots = 0, faces = 0; const bad = [], faceBad = [];
     const list = opt('frame-scenes') ? opt('frame-scenes').split(',') : ids;
@@ -168,18 +169,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   /* ─────────────── the whole poem ─────────────── */
   if (doSpine) {
-    await page.evaluate(() => { OdysseyGame.chart(); OG.ST.noStage = true; OG.E.timeScale = 6; });
+    await page.evaluate(() => { OdysseyGame.chart(); OG.ST.noStage = false; OG.E.timeScale = 6; });   // every scene staged (a book can begin without its card, so its first scene must already be on its set)
     await page.evaluate(b => OdysseyGame.book(b), B0);
     const seenBooks = new Set(), shotBooks = new Set(), levelsSolved = []; let lastKey = '';
     for (let guard = 0; guard < 4000; guard++) {
       const d = await dbg(); const s = d.story; if (s.book) seenBooks.add(s.book);
       if (!s.playing && d.phase !== 'intro' && d.phase !== 'play' && d.phase !== 'end' && d.phase !== 'loading') { if (s.done.includes(B1) || (s.book === B1 && !s.playing)) break; }
-      if (d.phase === 'intro' && d.level) { log('spine: trial', d.level, 'in book', s.book); await begin(); await sleep(800); try { await HAND[d.level](); } catch (e) { log('solver', d.level, e.message.slice(0, 200)); } const e = await ended(d.level + ' (spine)').catch(() => null); const r = e && e.result; levelsSolved.push([d.level, r && r.won]); check(!!(r && r.won), `spine: ${d.level} solved by hand inside book ${s.book}`); await sleep(1800); await key.press('KeyN'); await sleep(1500); continue; }
+      if (d.phase === 'intro' && d.level) { log('spine: trial', d.level, 'in book', s.book); await page.evaluate(sp => { OG.E.timeScale = sp; }, SPEED); await begin();   /* the trial at the trials' speed (the fast clock is for the cinematics) */ await sleep(800); try { await HAND[d.level](); } catch (e) { log('solver', d.level, e.message.slice(0, 200)); } const e = await ended(d.level + ' (spine)').catch(() => null); const r = e && e.result; levelsSolved.push([d.level, r && r.won]); check(!!(r && r.won), `spine: ${d.level} solved by hand inside book ${s.book}`, r ? `kleos ${r.kleos}` : ''); await page.evaluate(() => { OG.E.timeScale = 6; }); await sleep(1800); await key.press('KeyN'); await sleep(1500); continue; }
       if (d.phase === 'end' && d.level) { await key.press(d.result && d.result.won ? 'KeyN' : 'KeyW'); await sleep(1200); continue; }
       if (s.card) { if (!shotBooks.has(s.book)) await page.evaluate(() => { OG.ST.noStage = false; }); await key.press('Space'); await sleep(500); continue; }
       if (s.scene) {
-        const k = s.book + ':' + s.scene; if (k !== lastKey) { lastKey = k; if (!shotBooks.has(s.book) && !(await page.evaluate(() => OG.ST.noStage))) { await sleep(2500); await shot('book-' + String(s.book).padStart(2, '0')); shotBooks.add(s.book); log('spine: book', s.book, s.scene, 'photographed'); await page.evaluate(() => { OG.ST.noStage = true; }); } }
-        await page.evaluate(() => OdysseyGame.skip()); await sleep(300); continue; }
+        const k = s.book + ':' + s.scene; if (k !== lastKey) { lastKey = k; if (!shotBooks.has(s.book) && !(await page.evaluate(() => OG.ST.noStage))) { await sleep(2500); await shot('book-' + String(s.book).padStart(2, '0')); shotBooks.add(s.book); log('spine: book', s.book, s.scene, 'photographed'); } }
+        await page.evaluate(() => { if (OG.G.phase === 'story') OdysseyGame.skip(); }); await sleep(300); continue; }   // only a scene: a skip that lands on a trial's card would watch the scene instead of playing it
       if (s.book > B1) break;
       await sleep(400);
     }
@@ -192,4 +193,4 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   fs.writeFileSync(path.join(SHOTS, 'results.json'), JSON.stringify({ when: new Date().toISOString(), results }, null, 1));
   log(`${results.filter(r => r.ok).length} passed, ${failures} failed`);
   await browser.close(); process.exitCode = failures ? 1 : 0;
-})().catch(e => { console.error('CRASH', e.stack || e.message); process.exitCode = 2; });
+})().catch(e => { console.error('CRASH', e.stack || e.message); process.exit(2); });   // exit: an open browser would keep the process alive

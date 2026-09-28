@@ -34,8 +34,20 @@ function fn(name) { const i = engine.indexOf('\nfunction ' + name + '('); if (i 
   return engine.slice(i + 1, k + 1); }
 const beaver = block('const Beaver=(()=>{', 'return {physicalHandshake,transformPoint};})();');
 const ports = (() => { const i = engine.indexOf('const PORTS={'), e = engine.indexOf('\n', i); return engine.slice(i, e); })();
+/* the stud ports Hand Butter derives at start for its catalog's stud-grid parts (the 1 x 6 and 1 x 8 bricks, the plates…) and
+   its explicit layouts for the round bricks: the same code, run on the same list, so the phone's magnet seats a raft's logs */
+const gridParts = [...engine.matchAll(/\{"id":"([^"]+)","name":"[^"]*","h":([\d.]+),"bounds":\[([^\]]+)\],"studGrid":\s*true/g)].map(m => ({ id: m[1], h: +m[2], bounds: m[3].split(',').map(Number), studGrid: true }))
+  .filter((p, i, a) => a.findIndex(q => q.id === p.id) === i);
+if (!gridParts.some(p => p.id === '3009')) throw Error('engine catalog: no stud-grid 3009');
+const gridPorts = (() => { const i = engine.indexOf('for(const part of ButterAssetCatalog.parts){if(PORTS[part.id]||!part.studGrid)continue;'), e = engine.indexOf('PORTS[part.id]=ports;}', i); if (i < 0 || e < 0) throw Error('engine has no stud-grid port derivation');
+  return engine.slice(i, e + 'PORTS[part.id]=ports;}'.length).replace('ButterAssetCatalog.parts', JSON.stringify(gridParts)); })();
+const roundPorts = (() => { const i = engine.indexOf("for(const [id,sites,height,top] of [['3941'"), e = engine.indexOf('\n}', i); if (i < 0 || e < 0) throw Error('engine has no explicit connector layouts'); return engine.slice(i, e + 2); })();
+/* the heights of Hand Butter's built-in bricks and plates (the body, without the studs): its bounds, magnet and overlap test use
+   these, where the bank's height of a part is its whole box, studs and all (a log would 'overlap' the keel it seats on) */
+const coreH = {}; for (const m of engine.matchAll(/\{"id":"([^"]+)","name":"[^"]*","h":([\d.]+),"(?:vertices|bounds)"/g)) if (!(m[1] in coreH)) coreH[m[1]] = +m[2];
+if (coreH['3009'] !== 24 || coreH['3032'] !== 8) throw Error('engine: built-in part heights not found');
 const hands = ['handPoint', 'palm', 'distance', 'metric', 'pinchRatio', 'trackHands', 'gestureOf', 'imagePoint', 'makeHandWorker'].map(fn).join('\n');
-const lite = read('odyssey-game/mobile/butter-lite.js').replace('/*@BUTTER_EXTRACT@*/', `/* ── cut verbatim from play/hand-butter-odyssey.html by tools/odyssey-mobile.js ── */\n${beaver}\n${ports}\n${hands}\n`);
+const lite = read('odyssey-game/mobile/butter-lite.js').replace('/*@BUTTER_EXTRACT@*/', `/* ── cut verbatim from play/hand-butter-odyssey.html by tools/odyssey-mobile.js ── */\n${beaver}\n${ports}\nconst BUTTER_CORE_H=${JSON.stringify(coreH)};\n${gridPorts}\n${roundPorts}\n${hands}\n`);
 
 /* ── the bank ── */
 const bankFile = path.join(os.tmpdir(), 'odyssey-mobile-bank.bin.gz');

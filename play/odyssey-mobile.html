@@ -87,6 +87,14 @@ body.og { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-
   #og-caption span { font-size: 14px; } #og-cue { bottom: 58px; max-width: 46vw; right: auto; } #og-meters { top: 64px; bottom: auto; width: auto; min-width: 260px; }
   #og-mapinfo { left: auto; right: 8px; bottom: 8px; width: 42vw; max-width: 42vw; min-width: 0; max-height: calc(100% - 64px); overflow: auto; border-radius: 12px; border-width: 2px; padding: 8px 10px; } #og-mapinfo b { font-size: 17px; } #og-mapinfo span { font-size: 11px; } #og-trials button { min-height: 32px !important; }
   #og-top { background: rgba(10,14,18,.86); } #og-banner { max-height: calc(100% - 60px); overflow: auto; }
+  /* a phone on its side: the four buttons in one row, so the bar stays thin, and the meters below it, never over the score */
+  #og-nav { flex-wrap: nowrap; flex: 0 0 auto; gap: 4px; } #og-nav button { padding: 4px 6px; font-size: 10px; }
+  #og-level { top: calc(var(--og-top-h, 50px) + 2px); } #og-level b { font-size: 14px; } #og-meters { top: calc(var(--og-top-h, 50px) + 28px); left: auto; right: 8px; transform: none; min-width: 0; width: 40vw; } .og-meter { font-size: 10px; }
+  #og-cue { top: calc(var(--og-top-h, 50px) + 6px); bottom: auto; left: 8px; right: auto; max-width: 32vw; } #og-cue span { font-size: 11px; } #og-cue .og-icon { width: 34px; height: 34px; }   /* the gesture card top left, clear of the captions below and the meters in the middle */
+  /* a phone on its side: the book card sits under the top bar and the eight trials in two columns, all on the screen */
+  #og-mapinfo { top: calc(var(--og-top-h, 64px) + 4px); bottom: 6px; max-height: none; padding: 6px 8px; } #og-mapinfo b { font-size: 15px; } #og-mapinfo .og-note { display: none; }
+  #og-trials { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 4px; } #og-trials span { grid-column: 1 / -1; }
+  #og-trials button { min-height: 26px !important; padding: 2px 4px !important; font-size: 9px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 @media (max-width: 760px) and (orientation: portrait) {
   #og-cue { top: calc(var(--og-top-h, 150px) + 6px); bottom: auto; }
@@ -339,6 +347,11 @@ function physicalHandshake(parentInst,parentPort,childInst,childPort,connection,
 
 return {physicalHandshake,transformPoint};})();
 const PORTS={"3001":[{"id":"top-0","type":"stud","gender":"male","p":[-30,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-1","type":"stud","gender":"male","p":[-10,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-2","type":"stud","gender":"male","p":[10,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-3","type":"stud","gender":"male","p":[30,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-4","type":"stud","gender":"male","p":[-30,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-5","type":"stud","gender":"male","p":[-10,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-6","type":"stud","gender":"male","p":[10,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-7","type":"stud","gender":"male","p":[30,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-0","type":"stud","gender":"female","p":[-30,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-1","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-2","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-3","type":"stud","gender":"female","p":[30,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-4","type":"stud","gender":"female","p":[-30,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-5","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-6","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-7","type":"stud","gender":"female","p":[30,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3003":[{"id":"top-nw","type":"stud","gender":"male","p":[-10,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-ne","type":"stud","gender":"male","p":[10,24,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-sw","type":"stud","gender":"male","p":[-10,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-se","type":"stud","gender":"male","p":[10,24,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-nw","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-ne","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-sw","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-se","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3004":[{"id":"top-l","type":"stud","gender":"male","p":[-10,24,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-r","type":"stud","gender":"male","p":[10,24,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-l","type":"stud","gender":"female","p":[-10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-r","type":"stud","gender":"female","p":[10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3005":[{"id":"top","type":"stud","gender":"male","p":[0,24,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom","type":"stud","gender":"female","p":[0,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3010":[{"id":"female:-30:0","type":"stud","gender":"female","p":[-30,0,0],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-30:0","type":"stud","gender":"male","p":[-30,24,0],"n":[0,1,0],"confidence":"exact"},{"id":"female:-10:0","type":"stud","gender":"female","p":[-10,0,0],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-10:0","type":"stud","gender":"male","p":[-10,24,0],"n":[0,1,0],"confidence":"exact"},{"id":"female:10:0","type":"stud","gender":"female","p":[10,0,0],"n":[0,-1,0],"confidence":"exact"},{"id":"male:10:0","type":"stud","gender":"male","p":[10,24,0],"n":[0,1,0],"confidence":"exact"},{"id":"female:30:0","type":"stud","gender":"female","p":[30,0,0],"n":[0,-1,0],"confidence":"exact"},{"id":"male:30:0","type":"stud","gender":"male","p":[30,24,0],"n":[0,1,0],"confidence":"exact"}],"3020":[{"id":"top-0","type":"stud","gender":"male","p":[-30,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-1","type":"stud","gender":"male","p":[-10,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-2","type":"stud","gender":"male","p":[10,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-3","type":"stud","gender":"male","p":[30,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-4","type":"stud","gender":"male","p":[-30,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-5","type":"stud","gender":"male","p":[-10,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-6","type":"stud","gender":"male","p":[10,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-7","type":"stud","gender":"male","p":[30,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-0","type":"stud","gender":"female","p":[-30,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-1","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-2","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-3","type":"stud","gender":"female","p":[30,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-4","type":"stud","gender":"female","p":[-30,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-5","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-6","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-7","type":"stud","gender":"female","p":[30,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3022":[{"id":"top-nw","type":"stud","gender":"male","p":[-10,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-ne","type":"stud","gender":"male","p":[10,8,10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-sw","type":"stud","gender":"male","p":[-10,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"top-se","type":"stud","gender":"male","p":[10,8,-10],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-nw","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-ne","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-sw","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"},{"id":"bottom-se","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact"}],"3032":[{"id":"female:-50:-30","type":"stud","gender":"female","p":[-50,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-50:-30","type":"stud","gender":"male","p":[-50,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:-50:-10","type":"stud","gender":"female","p":[-50,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-50:-10","type":"stud","gender":"male","p":[-50,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-50:10","type":"stud","gender":"female","p":[-50,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-50:10","type":"stud","gender":"male","p":[-50,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-50:30","type":"stud","gender":"female","p":[-50,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-50:30","type":"stud","gender":"male","p":[-50,8,30],"n":[0,1,0],"confidence":"exact"},{"id":"female:-30:-30","type":"stud","gender":"female","p":[-30,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-30:-30","type":"stud","gender":"male","p":[-30,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:-30:-10","type":"stud","gender":"female","p":[-30,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-30:-10","type":"stud","gender":"male","p":[-30,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-30:10","type":"stud","gender":"female","p":[-30,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-30:10","type":"stud","gender":"male","p":[-30,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-30:30","type":"stud","gender":"female","p":[-30,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-30:30","type":"stud","gender":"male","p":[-30,8,30],"n":[0,1,0],"confidence":"exact"},{"id":"female:-10:-30","type":"stud","gender":"female","p":[-10,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-10:-30","type":"stud","gender":"male","p":[-10,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:-10:-10","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-10:-10","type":"stud","gender":"male","p":[-10,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-10:10","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-10:10","type":"stud","gender":"male","p":[-10,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:-10:30","type":"stud","gender":"female","p":[-10,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:-10:30","type":"stud","gender":"male","p":[-10,8,30],"n":[0,1,0],"confidence":"exact"},{"id":"female:10:-30","type":"stud","gender":"female","p":[10,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:10:-30","type":"stud","gender":"male","p":[10,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:10:-10","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:10:-10","type":"stud","gender":"male","p":[10,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:10:10","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:10:10","type":"stud","gender":"male","p":[10,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:10:30","type":"stud","gender":"female","p":[10,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:10:30","type":"stud","gender":"male","p":[10,8,30],"n":[0,1,0],"confidence":"exact"},{"id":"female:30:-30","type":"stud","gender":"female","p":[30,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:30:-30","type":"stud","gender":"male","p":[30,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:30:-10","type":"stud","gender":"female","p":[30,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:30:-10","type":"stud","gender":"male","p":[30,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:30:10","type":"stud","gender":"female","p":[30,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:30:10","type":"stud","gender":"male","p":[30,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:30:30","type":"stud","gender":"female","p":[30,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:30:30","type":"stud","gender":"male","p":[30,8,30],"n":[0,1,0],"confidence":"exact"},{"id":"female:50:-30","type":"stud","gender":"female","p":[50,0,-30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:50:-30","type":"stud","gender":"male","p":[50,8,-30],"n":[0,1,0],"confidence":"exact"},{"id":"female:50:-10","type":"stud","gender":"female","p":[50,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:50:-10","type":"stud","gender":"male","p":[50,8,-10],"n":[0,1,0],"confidence":"exact"},{"id":"female:50:10","type":"stud","gender":"female","p":[50,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"male:50:10","type":"stud","gender":"male","p":[50,8,10],"n":[0,1,0],"confidence":"exact"},{"id":"female:50:30","type":"stud","gender":"female","p":[50,0,30],"n":[0,-1,0],"confidence":"exact"},{"id":"male:50:30","type":"stud","gender":"male","p":[50,8,30],"n":[0,1,0],"confidence":"exact"}],"3068b":[{"id":"female:-10:-10","type":"stud","gender":"female","p":[-10,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"female:-10:10","type":"stud","gender":"female","p":[-10,0,10],"n":[0,-1,0],"confidence":"exact"},{"id":"female:10:-10","type":"stud","gender":"female","p":[10,0,-10],"n":[0,-1,0],"confidence":"exact"},{"id":"female:10:10","type":"stud","gender":"female","p":[10,0,10],"n":[0,-1,0],"confidence":"exact"}]};
+const BUTTER_CORE_H={"3001":24,"3002":24,"3003":24,"3004":24,"3005":24,"3008":24,"3009":24,"3010":24,"3020":8,"3021":8,"3022":8,"3023":8,"3024":8,"3032":8,"3039":24,"3941":24,"87621":44,"3068b":8,"3062b":24};
+for(const part of [{"id":"3008","h":24,"bounds":[-80,80,-10,10],"studGrid":true},{"id":"3009","h":24,"bounds":[-60,60,-10,10],"studGrid":true},{"id":"3002","h":24,"bounds":[-30,30,-20,20],"studGrid":true},{"id":"3021","h":8,"bounds":[-30,30,-20,20],"studGrid":true},{"id":"3023","h":8,"bounds":[-20,20,-10,10],"studGrid":true},{"id":"3024","h":8,"bounds":[-10,10,-10,10],"studGrid":true}]){if(PORTS[part.id]||!part.studGrid)continue;const ports=[];for(let x=part.bounds[0]+10;x<part.bounds[1];x+=20)for(let z=part.bounds[2]+10;z<part.bounds[3];z+=20)for(const gender of ['male','female'])ports.push({id:gender+':'+x+':'+z,type:'stud',gender,p:[x,gender==='male'?part.h:0,z],n:[0,gender==='male'?1:-1,0],confidence:'exact'});PORTS[part.id]=ports;}
+for(const [id,sites,height,top] of [['3941',[[-10,-10],[-10,10],[10,-10],[10,10]],24,true],['3062b',[[0,0]],24,true],['3068b',[[-10,-10],[-10,10],[10,-10],[10,10]],8,false]]){
+ if(PORTS[id])continue;PORTS[id]=sites.flatMap(([x,z],i)=>(top?['female','male']:['female']).map(gender=>({id:gender+'-'+i,type:'stud',gender,p:[x,gender==='male'?height:0,z],n:[0,gender==='male'?1:-1,0],confidence:'exact'})));
+}
 function handPoint(h){return imagePoint(h[8]);}
 function palm(h){return imagePoint({x:(h[0].x+h[5].x+h[9].x+h[17].x)/4,y:(h[0].y+h[5].y+h[9].y+h[17].y)/4});}
 function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
@@ -401,7 +414,7 @@ function bankGeometry(rec, g, ldraw) {
 const EMPTY = new THREE.BufferGeometry();
 function bankPart(id) {
   if (catalog.has(id)) return catalog.get(id); const rec = BANK.index.get(id); if (!rec) return null;
-  const entry = { id, name: id, h: Math.max(.1, rec.h), offsetY: rec.offY, bounds: rec.b, geometry: rec.main ? bankGeometry(rec, rec.main, false) : EMPTY, fixGeometry: rec.fix ? bankGeometry(rec, rec.fix, false) : null, rec };
+  const entry = { id, name: id, h: Math.max(.1, (typeof BUTTER_CORE_H !== 'undefined' && BUTTER_CORE_H[id]) || rec.h), offsetY: rec.offY, bounds: rec.b, geometry: rec.main ? bankGeometry(rec, rec.main, false) : EMPTY, fixGeometry: rec.fix ? bankGeometry(rec, rec.fix, false) : null, rec };
   catalog.set(id, entry); return entry;
 }
 const FIXMAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35, side: THREE.DoubleSide });
@@ -448,6 +461,8 @@ async function bootBank() {
   const len = new DataView(buf).getUint32(0, true), header = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, len))), pad = (4 - ((4 + len) % 4)) % 4, data = buf.slice(4 + len + pad);
   BANK.header = header; BANK.buf = data; BANK.index = new Map(header.parts.map(p => [p.id, p])); COLORS = header.ldc.map(([code, hex]) => ({ code, hex }));
   window.OG_BANK = header;
+  /* Hand Butter's built-in bricks are always in its catalog (a level may place one without asking for it): so here too */
+  if (typeof BUTTER_CORE_H !== 'undefined') for (const id of Object.keys(BUTTER_CORE_H)) bankPart(id);
 }
 function resize() { const r = $('#stage').getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (w < 1 || h < 1 || (resize.w === w && resize.h === h)) return; resize.w = w; resize.h = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } if (window.OdysseyRenderGate && !OdysseyRenderGate(now)) return; renderer.render(scene, camera); }
@@ -2524,7 +2539,8 @@ function play(keys, { every = 33, feed } = {}) {
   return new Promise(resolve => {
     let ticks = 0;
     const tick = () => {
-      ticks++; const t = Math.min((performance.now() - t0) / 1000, ticks * 0.1); let i = 0;   // on a starved page every 0.1 s of the performance still gets a frame of landmarks while (i < keys.length - 1 && keys[i + 1].t <= t) i++;
+      ticks++; const t = Math.min((performance.now() - t0) / 1000, ticks * 0.1); let i = 0;   // on a starved page every 0.1 s of the performance still gets a frame of landmarks
+      while (i < keys.length - 1 && keys[i + 1].t <= t) i++;
       const a = keys[i], b = keys[Math.min(keys.length - 1, i + 1)], u = b.t > a.t ? Math.max(0, Math.min(1, (t - a.t) / (b.t - a.t))) : 1;
       const marks = (a.hands || []).map((h, k) => { const g = (b.hands || [])[k] || h; return hand({ ...h, x: lerp(h.x ?? .5, g.x ?? .5, u), y: lerp(h.y ?? .5, g.y ?? .5, u), scale: lerp(h.scale || .14, g.scale || .14, u), rot: lerp(h.rot || 0, g.rot || 0, u) }); });
       try { send(marks, performance.now()); } catch (e) { console.error('[synth-hand]', e); }
@@ -2823,7 +2839,7 @@ H.progress = u => { H.$('#og-progress i').style.width = Math.round(Math.max(0, M
 H.total = k => { H.$('#og-total').textContent = k; };
 /** the cue: a drawing of the verb and the sentence for the input in use */
 H.cue = function (icon, verb, text) { const c = H.$('#og-cue'); if (!icon) { c.hidden = true; return; } c.hidden = false; H.$('#og-cue-icon').innerHTML = H.icon(icon); H.$('#og-cue-verb').textContent = verb || ''; H.$('#og-cue-text').textContent = text || ''; c.dataset.icon = icon; };
-H.cueText = function (cue) { if (!cue) return ''; if (typeof cue === 'string') return cue; const src = OG.In.source, touch = matchMedia('(pointer: coarse)').matches; const t = src === 'hand' ? cue.hand : src === 'key' ? (cue.keys || cue.mouse) : (cue.mouse || cue.hand); return touch && src !== 'hand' && t ? t.replace(/the mouse button/gi, 'your finger').replace(/Hold the mouse/gi, 'Hold a finger').replace(/\bmouse\b/gi, 'finger').replace(/\bclick\b/gi, 'tap').replace(/Press and drag/gi, 'Two fingers apart, or drag').replace(/pointer/gi, 'finger') : t; };
+H.cueText = function (cue) { if (!cue) return ''; if (typeof cue === 'string') return cue; const src = OG.In.source, touch = matchMedia('(pointer: coarse)').matches; const t = src === 'hand' ? cue.hand : src === 'key' ? (cue.keys || cue.mouse) : (cue.mouse || cue.hand); return touch && src !== 'hand' && t ? t.replace(/the mouse button/gi, 'your finger').replace(/Hold the mouse/gi, 'Hold a finger').replace(/with the button held/gi, 'with a finger held down').replace(/Let go of the button/gi, 'Lift your finger').replace(/\bmouse\b/gi, 'finger').replace(/\bclick\b/gi, 'tap').replace(/Press and drag/gi, 'Two fingers apart, or drag').replace(/pointer/gi, 'finger') : t; };
 H.caption = function (speaker, text, isLine) { const c = H.$('#og-caption'); if (!speaker) { c.hidden = true; return; } c.hidden = false; c.classList.toggle('narr', !isLine); c.querySelector('b').textContent = isLine ? speaker.toUpperCase() : ''; c.querySelector('span').textContent = text; };
 /** meters: {id: {label, value 0..1, color, warn}} */
 H.meters = function (list) { const m = H.$('#og-meters'); m.innerHTML = (list || []).map(x => `<div class="og-meter ${x.warn ? 'warn' : ''}" data-id="${x.id}"><span>${x.label}</span><i><em style="width:${Math.round(Math.max(0, Math.min(1, x.value)) * 100)}%;background:${x.color || '#e8c55a'}"></em></i>${x.text ? `<small>${x.text}</small>` : ''}</div>`).join(''); };
@@ -2846,6 +2862,7 @@ H.text = function (x, y, s, color = '#fff', size = 14, align = 'center') { const
 const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [0, 17], [17, 18], [18, 19], [19, 20]];
 const POSE_COL = { pinch: '#7fe07a', fist: '#ff8f6b', point: '#ffe28a', open: '#9fd4ff', V: '#d6a8ff', up: '#9fd4ff', down: '#9fd4ff' };
 /** every cursor: a hand as its skeleton (mapped onto the stage exactly as Hand Butter maps it), a pointer as a ring */
+const COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
 H.hands = function (cursors) {
   const g = H.ctx;
   for (const c of cursors) {
@@ -2856,6 +2873,7 @@ H.hands = function (cursors) {
       g.strokeStyle = col; g.lineWidth = 3; g.beginPath(); for (const [a, b] of BONES) { g.moveTo(...P[a]); g.lineTo(...P[b]); } g.stroke();
       g.fillStyle = col; for (const [x, y] of P) { g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); } g.restore();
       H.ring(c.x, c.y, c.down ? 9 : 14, col, { width: 3 }); H.text(c.x, c.y - 28 / H.Hh, c.pose.toUpperCase(), col, 12);
+    } else if (c.src === 'mouse' && (!OG.In.mouse.seen || (!c.down && COARSE && performance.now() - OG.In.mouse.seen > 1500))) { /* no pointer yet, or a lifted finger: no ring left in the middle of the picture */
     } else { H.ring(c.x, c.y, c.down ? 10 : 16, col, { width: 3, fill: c.down ? 'rgba(127,224,122,.25)' : null }); }
   }
 };
@@ -2896,7 +2914,7 @@ M.pick = function (i) {
   const trials = b.items.filter(x => x.type === 'level').map(x => OG.G.data[x.id]).filter(Boolean), touches = b.items.filter(x => x.touch).map(x => x.touch.thing), scenes = b.items.filter(x => x.type === 'scene').length + trials.reduce((a, d) => a + (d.scenes || []).length, 0);
   M.info.innerHTML = `<span>BOOK ${b.roman} · ${b.place.toUpperCase()}${S.done[b.n] ? ' · SAILED' : ''}</span><b>${b.title}</b><span>${scenes} scenes · ${b.minutes ? b.minutes.toFixed(1) + ' min of the cut' : ''}${trials.length ? ' · trial: ' + trials.map(d => d.title).join(', ') : ''}${touches.length ? ' · touch: ' + touches.join(', ') : ''}</span>
     <div class="row" style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="primary" id="og-playbook">Play book ${b.roman} (Enter)</button>${at && (at.book > 1 || at.item > 0) ? `<button id="og-continue">Continue · Book ${M.books()[at.book - 1].roman}: ${OG.ST.label(M.books()[at.book - 1], at.item)} (C)</button>` : ''}</div>
-    ${window.OG_MOBILE ? '<span style="font-size:11px;opacity:.75">Scene sets, voices and music stream from the site as you play: keep a connection.</span>' : ''}<div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
+    ${window.OG_MOBILE ? '<span class="og-note" style="font-size:11px;opacity:.75">' + (window.OG_BANK ? 'Every scene and voice is in this file; only the music streams (offline, the books play without it).' : 'Scene sets, voices and music stream from the site as you play: keep a connection.') + '</span>' : ''}<div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
   M.info.querySelector('#og-playbook').onclick = () => M.go(); const c = M.info.querySelector('#og-continue'); if (c) c.onclick = () => M.cont();
   M.info.querySelectorAll('[data-level]').forEach(el => el.onclick = () => OG.G.start(el.dataset.level));
 };
@@ -2917,19 +2935,20 @@ M.frame = function (dt, t) {
   g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillStyle = '#f3ecd8'; g.fillText('TROY', troy.x - 24, troy.y + 4); g.fillText('ITHACA', fb.x0 + .79 * fb.w, fb.y0 + .9 * fb.h);
   const c = OG.In.primary(), h = M.at(c); if (h != null && h !== M.sel) { M.pick(h); M.dwell = 0; }
   if (h != null && c.src === 'hand' && c.pose === 'point') M.dwell += dt; else M.dwell = 0; if (M.dwell > 1.4) { M.dwell = 0; M.go(); }
-  const cur = S.at ? S.at.book : 1;
+  const cur = S.at ? S.at.book : 1; let late = null;
   books.forEach((b, i) => { const p = M.pos(b), sel = i === M.sel, done = S.done[b.n], lv = b.items.some(x => x.type === 'level'), R = W < 700 ? (sel ? 14 : 11) : (sel ? 17 : 14);
     g.save(); g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(p.x + 2, p.y + 4, R, 0, 7); g.fill();
     g.fillStyle = done ? '#e8c55a' : '#f3ecd8'; g.strokeStyle = lv ? '#d2452f' : '#10151b'; g.lineWidth = lv ? 4 : 2.5; g.beginPath(); g.arc(p.x, p.y, R, 0, 7); g.fill(); g.stroke();
     if (b.n === cur) { g.strokeStyle = '#7fe07a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 6 + Math.sin(t * 4) * 2, 0, 7); g.stroke(); }
     if (sel) { g.strokeStyle = '#ffe28a'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, R + 11, 0, 7); g.stroke(); if (M.dwell > 0) { g.lineWidth = 5; g.strokeStyle = '#7fe07a'; g.beginPath(); g.arc(p.x, p.y, R + 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * M.dwell / 1.4); g.stroke(); } }
     g.fillStyle = '#10151b'; g.font = `700 ${W < 700 ? (b.n > 9 ? 9 : 11) : (b.n > 9 ? 12 : 14)}px Georgia, serif`; g.textAlign = 'center'; g.fillText(b.roman, p.x, p.y + 5);
-    if (sel) { g.font = '700 12px ui-monospace, Menlo, monospace'; const label = b.title.toUpperCase(), w = g.measureText(label).width + 12; g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(p.x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, p.x, p.y - R - 16); }
+    if (sel) late = () => { g.save(); g.font = '700 12px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; const label = b.title.toUpperCase(), w = Math.min(W - 8, g.measureText(label).width + 12), x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, p.x)); g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, x, p.y - R - 16, w - 8); g.restore(); };
     g.restore(); });
+  if (late) late();   // the chosen book's name on top of the other books' rings, and kept on the screen
   const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 6, narrow = W < 700 || (Hh < 500 && W > Hh);
   const shortL = Hh < 500 && W > Hh; g.fillStyle = 'rgba(12,20,28,.55)'; g.fillRect(0, top, shortL ? W * .56 : Math.min(W, narrow ? W : 760), narrow || shortL ? 44 : 50);
-  g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24)); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
-  g.fillText(narrow ? '24 books. Red ring: a trial of the hand. Gold: sailed. Tap a book.' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42));
+  g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24), (shortL ? W * .56 : W) - 24); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
+  g.fillText(narrow ? '24 books · red ring: a trial · gold: sailed · tap a book' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42), (shortL ? W * .56 : W) - 24);   // squeezed, never cut, on a narrow screen
 };
 })();
 </script>
@@ -3003,6 +3022,8 @@ C.paintFaces = function (now) {
 /** occlusion by the set, from the card's own rows: a part's centre within `r` of the sight line (short of the subject) blocks it */
 function blocked(pts, cam, target, r = 20) {
   const d = target.clone().sub(cam), L = d.length(); d.normalize(); let hits = 0;
+  /* a big part (a sail, a wall) whose centre is far off can still fill the lens: nothing of the set within 30 LDU along the sight line */
+  if (SOLID && SOLID(cam, d, Math.min(30, L - 45))) return true;
   for (const p of pts) { const v = p.clone().sub(cam), u = v.dot(d); if (u < -10 || u > L - 45) continue; const off = v.addScaledVector(d, -u).length(); if (u < 70 && off < 16 + u * .45) return true; /* a figure or a column right at the lens fills the frame */ if (off < r) { hits++; if (hits > 1) return true; } }
   return false;
 }
@@ -3047,7 +3068,13 @@ C.plan = function (item, st) {
 /** a shot on a person: the head on the upper third of the frame (the look point dropped below it), the head kept for the tests */
 function headroom(pos, head, fov) { if (head.face) { const rel = pos.clone().sub(head), k = rel.dot(head.face); if (k < 0) pos = head.clone().add(rel.addScaledVector(head.face, -2 * k)); /* the camera goes round to the face: a baked figure may face the other way from the film's restaged one */ }
   const d = pos.distanceTo(head), look = head.clone().add(V3(0, -d * Math.tan(fov * Math.PI / 360) * .33, 0)); const h = head.clone(); h.face = head.face; return { pos, look, fov, head: h }; }
-function centres(st) { return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
+let SOLID = null;
+/** a ray from the lens into the card's own meshes: does a surface of the set lie within `far` of the camera? */
+function solids(st) {
+  const g = st.group; if (!g) return null; const ray = new THREE.Raycaster(); g.updateMatrixWorld(true);
+  return (cam, dir, far) => { if (far <= 0) return false; ray.set(cam, dir); ray.near = 0; ray.far = far; try { return ray.intersectObject(g, true).length > 0; } catch (e) { return false; } };
+}
+function centres(st) { SOLID = solids(st); return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
 function resolveKey(k, st) {
   const c = k.camera; if (!c) return null;
   const heads = st.group ? st.group.userData.heads : [];
@@ -3226,7 +3253,7 @@ G.boot = async function () {
   if (Q.get('speed')) E.timeScale = Math.max(0.25, Math.min(12, +Q.get('speed')));
   if (Q.has('mute')) A.setMuted(true);
   OG.ST.noStage = Q.has('nostage');
-  if (Q.get('render')) { const every = +Q.get('render'); let last = 0; window.OdysseyRenderGate = now => { if (now - last < every) return false; last = now; return true; }; }
+  if (Q.get('render')) { const every = +Q.get('render'); let last = 0; window.OdysseyRenderGate = now => { if (window.OdysseyRenderNow) { window.OdysseyRenderNow--; last = now; return true; } if (now - last < every) return false; last = now; return true; }; }   // tests only: ?render=ms renders at most that often (OdysseyRenderNow = n forces the next n frames, for a screenshot)
   await E.ready(); E.setup(); H.loading(false); H.total(OG.ST.kleos());
   G.phase = 'chart';
   const want = Q.get('level'), book = +Q.get('book');
@@ -3560,7 +3587,9 @@ OG.level({
     } else if (ctx.stage === 'blinded') {
       if (ctx.phaseT > 3.2) { // he stands at the door, blind; the flock gathers there
         const g = s.giant; g.rig.figure.rotation.z = 0; g.rig.pos.set(330, 0, -80); g.heading = -Math.PI / 2; g.rig.heading = -Math.PI / 2; g.arms = [-1.2, -1.2];
-        s.stake.visible = false; ctx.setStage('rams'); s.nextSweep = 2.5; s.sweep = null; ctx.cue('rams', 'pinch', 'TUCK UNDER THE RAMS');
+        s.stake.visible = false; s.carry = null; ctx.setStage('rams'); s.nextSweep = 4.5;   // the stake is left in the eye: the hand is free for the men
+        // the men scatter in the dark, one to a lane: a sweep of the blind hand can find one man, not the whole huddle by the fire
+        s.men.forEach((m, i) => { if (m.state === 'free') m.rig.pos.set(-170 + i * 50, 0, -160 + i * 115); }); s.sweep = null; ctx.cue('rams', 'pinch', 'TUCK UNDER THE RAMS');
         E.setCamera([20, 600, 380], [40, 0, 0], { fov: 44, dur: 1.4 }); ctx.say('outside').then(() => ctx.stage === 'rams' && ctx.say('rams')); }
     } else if (ctx.stage === 'rams') {
       // carrying men
@@ -3732,7 +3761,7 @@ OG.level({
     // the reaches: spread across the voyage, each by a different man
     const n = d.reaches, T = d.voyage; s.reaches = []; for (let i = 0; i < n; i++) s.reaches.push({ at: 6 + i * (T - 14) / (n - 1) + ((i * 37) % 5 - 2) * .6, who: (i * 3 + 1) % 4, dur: 2.6, state: 'wait' });
     s.grip = d.grip; s.holdT = 0; s.wasteT = 0; s.blocked = 0; s.slip = false;
-    ctx.A.loop('sea', { gain: .45 }); ctx.A.loop('wind-low', { gain: .25 }); ctx.setStage('voyage');
+    ctx.A.loop('sea', { gain: .45 }); ctx.A.loop('wind', { gain: .15 });   /* the low wind: sfx/ has no wind-low render */ ctx.setStage('voyage');
   },
   intro(ctx) { ctx.say('intro'); },
   begin(ctx) { ctx.cue(null, 'fist'); ctx.In.pressPose = 'fist'; },
@@ -3811,17 +3840,31 @@ OG.level({
     if (phase !== 'play') return;
     const c = In.primary();
     if (ctx.stage === 'bind') {
-      const turns = Math.abs(In.R.turns(c.id, { since: s.since, win: 1e9, needDown: c.src === 'mouse' })) + (s.keyTurns || 0);
+      /* the turns are counted round the mast as the path arrives and kept (the history holds only 2.6 s: three circles
+         inside it were too fast for a finger, and for a phone's frame rate); a pointer counts only while pressed */
+      const mc = E.toScreen(new THREE.Vector3(0, 70, -10));
+      if (s.turnId !== c.id) { s.turnId = c.id; s.prevA = null; }
+      for (const q of In.history(c.id)) { if (q.t <= (s.lastT || s.since)) continue; s.lastT = q.t;
+        if ((c.src === 'mouse' && !q.down) || Math.hypot((q.x - mc.x) * 1.6, q.y - mc.y) < .02) { s.prevA = null; continue; }
+        const a = Math.atan2(q.y - mc.y, (q.x - mc.x) * 1.6); if (s.prevA != null) { const dA = Math.atan2(Math.sin(a - s.prevA), Math.cos(a - s.prevA)); if (Math.abs(dA) < 1.5) s.acc = (s.acc || 0) + dA; } s.prevA = a; }
+      const turns = Math.abs(s.acc || 0) / (2 * Math.PI) + (s.keyTurns || 0);
       if (turns > s.turns) { const before = Math.floor(s.turns * 2); s.turns = Math.min(d.turns, turns); for (let k = before; k < Math.floor(s.turns * 2); k++) { const coil = new THREE.Mesh(new THREE.TorusGeometry(26, 2.6, 8, 26), new THREE.MeshStandardMaterial({ color: 0xc9b27a, roughness: .8 })); coil.rotation.x = Math.PI / 2; coil.position.set(0, 40 + k * 12, -12); E.add(coil); s.coils.push(coil); A.sfx('creak', { gain: .5 }); } }
       H.meters([{ id: 'rope', label: 'The rope', value: s.turns / d.turns, color: '#c9b27a', text: s.turns.toFixed(1) + ' / ' + d.turns + ' turns' }]);
       const ms = E.toScreen(new THREE.Vector3(0, 70, -10)); H.ring(ms.x, ms.y, 60, 'rgba(201,178,122,.8)', { width: 3, dash: [8, 6], label: 'CIRCLE HERE' });
       if (s.turns >= d.turns) { ctx.setStage('row'); A.sfx('studs-final'); H.flash('Bound fast', 'good'); ctx.say('bind'); ctx.cue('row', 'pump', 'ROW'); s.rowSince = performance.now(); s.lastStrokes = 0; A.loop('oars', { gain: .0 }); A.drone(0); s.odys.emotion = 'resolve'; }
     } else if (ctx.stage === 'row') {
-      const n = c.src === 'key' ? (s.keyStrokes || 0) : In.R.strokes(c.id, { since: s.rowSince, needDown: c.src === 'mouse', amp: .06 });
-      const newStrokes = Math.max(0, n - s.lastStrokes); s.lastStrokes = Math.max(s.lastStrokes, n);
-      if (newStrokes) { s.strokes += newStrokes; s.v = Math.min(3, s.v + .9 * newStrokes); s.x = Math.min(.2, s.x + .1 * newStrokes); s.stroke = (s.stroke || 0) + Math.PI * newStrokes; A.sfx('splash-small', { gain: .5 }); }
+      /* strokes are counted as the path arrives (R.strokes' reversals of at least 0.06, kept across frames): read over the 2.6 s
+         history alone, a steady rowing rate never beat its own first count and the oars stopped counting */
+      let newStrokes = 0;   // each stroke is worth 0.18 of the channel: a steady pump at a human pace (one stroke each way a second) outrows the song
+      if (c.src === 'key') { const n = s.keyStrokes || 0; newStrokes = Math.max(0, n - s.lastStrokes); s.lastStrokes = Math.max(s.lastStrokes, n); }
+      else { if (s.rowId !== c.id) { s.rowId = c.id; s.rdir = 0; s.rext = null; }
+        for (const q of In.history(c.id)) { if (q.t <= (s.rowT || s.rowSince)) continue; s.rowT = q.t; if (c.src === 'mouse' && !q.down) continue; const v = q.py;
+          if (s.rext == null) { s.rext = v; continue; }
+          if (s.rdir >= 0 && v < s.rext - .06) { if (s.rdir > 0) newStrokes++; s.rdir = -1; s.rext = v; } else if (s.rdir <= 0 && v > s.rext + .06) { if (s.rdir < 0) newStrokes++; s.rdir = 1; s.rext = v; }
+          else if ((s.rdir > 0 && v > s.rext) || (s.rdir < 0 && v < s.rext) || s.rdir === 0) s.rext = v; } }
+      if (newStrokes) { s.strokes += newStrokes; s.v = Math.min(3, s.v + .9 * newStrokes); s.x = Math.min(.2, s.x + .18 * newStrokes); s.stroke = (s.stroke || 0) + Math.PI * newStrokes; A.sfx('splash-small', { gain: .5 }); }
       s.v = Math.max(0, s.v - dt * .55); s.prog += dt * (1.2 + s.v * 2.1);
-      const abeam = Math.exp(-Math.pow((s.prog / d.course - .5) / .22, 2)), song = .08 + .5 * abeam; s.x -= dt * song * .55;
+      const abeam = Math.exp(-Math.pow((s.prog / d.course - .5) / .22, 2)), song = .08 + .5 * abeam; s.x -= dt * song * .45;
       A.drone(.05 + abeam * .22); A.loopGain('oars', Math.min(.5, s.v * .2));
       if (!s.sang && s.prog > d.course * .3) { s.sang = true; ctx.say('song'); s.odys.emotion = 'desperation'; }
       if (!s.struggled && s.prog > d.course * .5) { s.struggled = true; ctx.say('struggle'); }

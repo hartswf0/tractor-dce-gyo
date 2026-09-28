@@ -68,6 +68,8 @@ C.paintFaces = function (now) {
 /** occlusion by the set, from the card's own rows: a part's centre within `r` of the sight line (short of the subject) blocks it */
 function blocked(pts, cam, target, r = 20) {
   const d = target.clone().sub(cam), L = d.length(); d.normalize(); let hits = 0;
+  /* a big part (a sail, a wall) whose centre is far off can still fill the lens: nothing of the set within 30 LDU along the sight line */
+  if (SOLID && SOLID(cam, d, Math.min(30, L - 45))) return true;
   for (const p of pts) { const v = p.clone().sub(cam), u = v.dot(d); if (u < -10 || u > L - 45) continue; const off = v.addScaledVector(d, -u).length(); if (u < 70 && off < 16 + u * .45) return true; /* a figure or a column right at the lens fills the frame */ if (off < r) { hits++; if (hits > 1) return true; } }
   return false;
 }
@@ -112,7 +114,13 @@ C.plan = function (item, st) {
 /** a shot on a person: the head on the upper third of the frame (the look point dropped below it), the head kept for the tests */
 function headroom(pos, head, fov) { if (head.face) { const rel = pos.clone().sub(head), k = rel.dot(head.face); if (k < 0) pos = head.clone().add(rel.addScaledVector(head.face, -2 * k)); /* the camera goes round to the face: a baked figure may face the other way from the film's restaged one */ }
   const d = pos.distanceTo(head), look = head.clone().add(V3(0, -d * Math.tan(fov * Math.PI / 360) * .33, 0)); const h = head.clone(); h.face = head.face; return { pos, look, fov, head: h }; }
-function centres(st) { return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
+let SOLID = null;
+/** a ray from the lens into the card's own meshes: does a surface of the set lie within `far` of the camera? */
+function solids(st) {
+  const g = st.group; if (!g) return null; const ray = new THREE.Raycaster(); g.updateMatrixWorld(true);
+  return (cam, dir, far) => { if (far <= 0) return false; ray.set(cam, dir); ray.near = 0; ray.far = far; try { return ray.intersectObject(g, true).length > 0; } catch (e) { return false; } };
+}
+function centres(st) { SOLID = solids(st); return st.group ? st.group.userData.rows.filter(p => p.y > 2 || !/^(3032|3031|3036|3035|3034|3033|3030|3958|3811|3867|4186|3068b|3070b|3069b|2431|6636|4162|3024|3023|3022|3020|3021|3710|3666|3460|3795|3832|2445|41539|91405|92438|3865)$/.test(p.part)).map(p => V3(p.x, p.y + 12, p.z)) : []; }
 function resolveKey(k, st) {
   const c = k.camera; if (!c) return null;
   const heads = st.group ? st.group.userData.heads : [];
