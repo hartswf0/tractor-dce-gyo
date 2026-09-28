@@ -123,3 +123,61 @@ Shots 9 and 10 were the same static wide (K1, the giant already asleep) for 8.8 
 
 **Revised for round 3 (validated: 0 errors, 7/7 rules).** Only the opening kit's aim (`at` raised to y -540, zoom 2.6 → 2.4) so
 the pediment clears the frame; the full render re-renders every kit step anyway, so it costs nothing extra.
+
+---
+
+## Round 3 (final) — `films/trailers/b-nobody-r3.mp4` = `films/trailers/b-nobody.mp4`
+
+1280x720, **12 fps** (1200 frames, 1059 drawn: 14 true kit renders are held across their steps), 33 MB, **157.4 min** to render:
+7658 s of scene frames, 98 s of location loads, 1348 s for 14 kit renders (97-108 s each), 2 s of cards. Three full trailers were
+rendering on the same four cores at once (load 11-13), so a frame took 5-16 s instead of 2.6. Why 12 and not 24: at the measured
+contended rate a 24 fps pass would have been about five hours; and every camera move in this cut is already stepped at 12 positions a
+second (`stepped: 12`, the stop-motion rule) and the kit orbit at 2, so 24 fps would have drawn every position twice. 12 fps is the
+LEGO Movie's own "on twos", not a compromise the eye can see here. The cuts fall on the 1/12 s grid (24.5, 54.9 and 83.5 are frames
+294, 659 and 1002; the montage's return at 83.55 is 0.05 s after its cut, inside the 0.06 rule).
+
+**Sound.** -14.1 LUFS integrated, true peak -1.5 dBTP (on the muxed AAC; -1.6 on the WAV), LRA 4.7 LU. Every line 11-15 dB over
+its bed (table in round 2; the mix is unchanged). The hits: the bag bursts on the score's phrase hit (-30 → -11.5 LUFS momentary
+across 24.5, 18 dB); the drop at 54.9 goes to silence (-105 LUFS by 56.0) and the boast comes in dry at 56.5; the return at 83.5
+lifts the montage 9 dB (-21.7 → -12.3). The tag plays dry after the title's button.
+
+**Frames at every shot (start, middle, end) and either side of every hit.** Everything the round-2 animatic showed is in the film:
+the council readable on its column with the pediment clear (the aim raised in round 2 worked; the top-right third is black studio
+sweep, which reads as sky over Olympus); the two-line brick cards built by 72% and held; dusk on the ship cut to night for the
+burst; the cave in firelight, one idea a shot; day to torchlight on the loom; gold dusk on Argos; a bright, fast montage ending on
+two embraces; THE ODYSSEY in plates a quarter of the frame high; the raft's deck swinging over his head for the tag. No frame is
+broken, no figure sliced by an edge that matters, no shot reads as another film.
+
+**Nothing serious was left that was cheap to fix, so no shot was re-rendered.** What remains, honestly:
+
+1. **Shot 10 (“I eat Nobody last”) is an abstraction.** The giant's white eye fills a firelit frame: it reads as the Cyclops's eye
+   once you know, and as a white disc if you don't. A gate-checked close key of his face (awake, with the bowl) would be better;
+   it needs a new key, not a trailer override.
+2. **Shot 13 (the neighbours) is the longest hold in the comic section (6.5 s) on a product shot** with the voices off screen. It
+   works as a listening shot and it is the only exterior of the cave, but the LEGO Movie would have shown the neighbours. They exist
+   only as hidden actors in OD-B09-S09; staging them outside needs blocking the trailer path cannot do.
+3. **The tag is a still gag.** The raft's deck is over his head, but one key has one pose, so it does not roll: the narrator's
+   deadpan carries it. A second key (the raft upside down, him on top) would make the button physical.
+4. **The camera moves are small.** Pushes of 4-12% over a few seconds on twos read as life, not as a move; that suits the
+   photographer rule but gives the comic section fewer visual accelerations than the LEGO Movie's.
+5. **Effects are synthesised** (as in the teaser): WHOOMPH, roar, splash and the record scratch read as their events under the score
+   but are not foley.
+
+### Verdict
+
+| rule of this cut | kept? |
+|---|---|
+| The brick as brick | yes: the pig-head minifig, the winds as white studs, the splash in white studs, the title snapping on in plates |
+| Stop-motion camera | yes: every move on twos (12 a second), the opening orbit as a two-a-second time-lapse |
+| Pace (comic ≤4 s mean, ≤7 s max; montage ≤1.25 s) | yes: 3.9 s mean, 6.9 s max; the montage 1.0-1.2 s |
+| Every joke set up straight and paid off on picture | yes: seven pay-offs, each on a cut, each line 11-15 dB clear of the music |
+| The Nobody gag as spine | yes: name (to his face), promise (to the eye), stake, roar, neighbours, silence |
+| Sincerity under the jokes | yes: the light turns (day to torchlight, gold dusk) before the words do; no gag, no hit over 18-21 |
+| Designed brick sound | partly: clicks and snaps under the cards; the big effects are synthesised |
+| Huge final montage on the music's return, ending on an embrace, the title built | yes |
+| A tag after the title | yes, dry; it reads, but it does not move (above) |
+
+Round 1 was a well-shaped edit whose jokes could not be heard. Rounds 2 and 3 made it a trailer: every punchline is audible and lands
+on a cut, the Nobody sequence carries the teaser's firelight and puts each line on a face or an eye, and the heart has its own light.
+The LEGO Movie's editors would keep the structure, the pig, the boast, the silence, the loom cut and the title; they would re-shoot
+the giant's close-up and the neighbours. It is a finished, releasable brick trailer with two shots below the rest.
