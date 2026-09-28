@@ -42,10 +42,10 @@ H.build = function () {
   root.innerHTML = `
   <canvas id="og-overlay"></canvas>
   <div id="og-input" aria-label="Play area"></div>
-  <header id="og-top"><div class="og-brand"><b>NOBODY'S HANDS</b><span>the Odyssey, played by hand · Hand Butter</span></div>
+  <div id="og-top"><div class="og-brand"><b>NOBODY'S HANDS</b><span>the Odyssey, played by hand · Hand Butter</span></div>
     <div id="og-level"></div>
     <div id="og-kleos"><span class="k">κλέος</span><b id="og-k">—</b><span id="og-time">0:00</span></div>
-    <nav id="og-nav"><button id="og-chart" title="Voyage chart (M)">Chart</button><button id="og-replay" title="Replay the level (R)">Replay</button><button id="og-hands" title="Play with your hands: the camera">Hands</button><button id="og-sound" title="Sound">Sound</button></nav></header>
+    <div id="og-nav"><button id="og-chart" title="Voyage chart (M)">Chart</button><button id="og-replay" title="Replay the level (R)">Replay</button><button id="og-hands" title="Play with your hands: the camera">Hands</button><button id="og-sound" title="Sound">Sound</button></div></div>
   <div id="og-meters"></div>
   <div id="og-cue" hidden><div id="og-cue-icon"></div><div><b id="og-cue-verb"></b><span id="og-cue-text"></span></div></div>
   <div id="og-caption" hidden><b></b><span></span></div>

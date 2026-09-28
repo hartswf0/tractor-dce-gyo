@@ -22,8 +22,9 @@ E.setup = function () {
   const st = ButterPerformer.state; st.on = false; if (st.rig) st.rig.figure.visible = false;
   try { renderer.setPixelRatio(1); } catch (e) { }
   try { sun.shadow.mapSize.set(1024, 1024); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } } catch (e) { }
+  if (new URLSearchParams(location.search).has('lite')) { try { renderer.shadowMap.enabled = false; sun.castShadow = false; } catch (e) { } E.lite = true; }
   E.root = new THREE.Group(); E.root.name = 'odyssey-game'; scene.add(E.root);
-  E.hemi = new THREE.HemisphereLight(0xfff4dd, 0x223344, 0.0); scene.add(E.hemi);
+  E.hemi = new THREE.HemisphereLight(0xfff4dd, 0x223344, 0.35); scene.add(E.hemi);
   E.glow = new THREE.PointLight(0xff8a2a, 0, 600, 1.6); scene.add(E.glow);
   const prior = ButterSpatialRuntime.frame;
   ButterSpatialRuntime.frame = function (now) { prior(now); try { E.frame(now); } catch (e) { console.error('[odyssey frame]', e); } };
@@ -40,7 +41,7 @@ E.setCamera = function (pos, look, { fov, dur = 0 } = {}) {
 E.shake = s => { E.cam.shake = Math.max(E.cam.shake, s); };
 let last = 0;
 E.frame = function (now) {
-  const dtReal = last ? Math.min(0.1, (now - last) / 1000) : 0.016; last = now;
+  const dtReal = last ? Math.min(0.25, (now - last) / 1000) : 0.016; last = now; E.fps = E.fps ? E.fps * .9 + .1 / Math.max(1e-3, (now - (E._pn || now - 16)) / 1000) : 30; E._pn = now;
   const dt = dtReal * E.timeScale; E.time += dt;
   // the room of the workshop goes; the level's sky and ground stay
   scene.background = new THREE.Color(E.view.bg);
@@ -73,7 +74,7 @@ E.ensureParts = async ids => { for (const id of new Set(ids)) if (!catalog.has(i
 /** one brick: part id, LDraw colour, position (LDU, y up = Butter's frame), quarter turns r */
 E.brick = function (part, color, x = 0, y = 0, z = 0, r = 0, o = {}) {
   const d = catalog.get(part); if (!d) throw Error('part not in the catalog: ' + part);
-  const m = new THREE.Mesh(d.geometry, d.repository ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35 }) : E.mat(color, o.mat));
+  const m = new THREE.Mesh(d.geometry, d.repository && o.vertex ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35 }) : E.mat(color, o.mat));
   m.position.set(x, y, z); m.rotation.y = r * Math.PI / 2; m.castShadow = o.shadow !== false; m.receiveShadow = true; return m;
 };
 /** a group of bricks from rows [{part,color,x,y,z,r}] (the Butter scene rows of the forage cards) */
@@ -94,7 +95,7 @@ E.sea = function ({ color = '#1f5f8f', size = 5000, y = -1, studs = true } = {})
   const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(size / 80, size / 80); tex.encoding = THREE.sRGBEncoding;
   const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({ map: tex, roughness: .55, metalness: .05 })); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; m.userData.tex = tex; return m;
 };
-E.clearProps = function () { for (const o of [...E.root.children]) { E.root.remove(o); } E.tickers.clear(); E.glow.intensity = 0; E.hemi.intensity = 0; };
+E.clearProps = function () { for (const o of [...E.root.children]) { E.root.remove(o); } E.tickers.clear(); E.glow.intensity = 0; E.hemi.intensity = 0.35; };
 
 /* ── the stage set as Hand Butter parts: ButterScenes.load; every part pinned (static) until a hand frees it ── */
 E.stage = async function (rows, { free = [] } = {}) {
@@ -104,6 +105,7 @@ E.stage = async function (rows, { free = [] } = {}) {
   PH.pinned = new Set(rows.map(p => p.id).filter(id => !free.includes(id))); markPhysics(); S.history.length = 0; choose(null, false);
   return S.parts.length;
 };
+E.rid = 0; E.row = (part, color, x, y, z, r = 0) => ({ id: 's' + (E.rid++), part, color, x, y, z, r });
 E.part = id => S.parts.find(p => p.id === id);
 E.partCenter = id => { const p = E.part(id); return p ? bounds(p).getCenter(V3()) : null; };
 E.movePart = function (id, x, y, z, r) { const p = E.part(id); if (!p) return; p.x = x; p.y = y; p.z = z; if (r != null) { p.r = r; delete p.q; } sync(p); const b = PH.bodies.get(id); if (b) { poseToBody(p, b); b.velocity.setZero(); b.angularVelocity.setZero(); } };
@@ -147,7 +149,7 @@ E.actor = async function (o) {
   const def = { name: o.name || 'Figure', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null, cape: null, collar: null, ...o.def };
   if (o.printed) def.parts = [['legR', '3816', def.legs], ['legL', '3817', def.legs], ['hips', '3815', def.hips], ['torso', '973', def.torso], ['armR', '3818', def.arms], ['armL', '3819', def.arms], ['handR', '3820', def.hands], ['handL', '3820', def.hands], ['head', o.printed, def.head], ...(def.hat ? [['hat', def.hat[0], def.hat[1]]] : []), ...(def.weapon ? [['weaponR', def.weapon[1], def.weapon[2]]] : []), ...(def.cape ? [['cape', def.cape[0], def.cape[1]]] : [])];
   const rig = await ButterPerformer.makeActor(def);
-  rig.figure.scale.setScalar(o.scale || 1.65); rig.pos.set(o.at ? o.at[0] : 0, o.at && o.at.length > 2 ? o.at[1] : 0, o.at ? o.at[o.at.length - 1] : 0); rig.heading = o.heading || 0; rig.figure.rotation.y = rig.heading;
+  rig.figure.scale.setScalar(o.scale || 1.0); rig.pos.set(o.at ? o.at[0] : 0, o.at && o.at.length > 2 ? o.at[1] : 0, o.at ? o.at[o.at.length - 1] : 0); rig.heading = o.heading || 0; rig.figure.rotation.y = rig.heading;
   const a = { name: o.name, rig, who: o.face, face: null, emotion: o.emotion || null, mouth: 0, gait: 0, phase: Math.random() * 6, target: null, speed: o.speed || 70, blinkAt: 2 + Math.random() * 3, arms: null, extra: o.extra, lastPaint: 0, visible: true };
   if (o.face && HW_FACES.includes(o.face) && window.Face && window.HalfFace) { try { a.face = Face.attach(rig, 'halfworld:' + o.face, THREE); } catch (e) { console.warn('[face]', e); } }
   E.actors.push(a); return a;

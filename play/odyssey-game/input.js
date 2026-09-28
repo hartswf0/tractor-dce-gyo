@@ -17,7 +17,7 @@
 const OG = window.OG = window.OG || {};
 const now = () => performance.now();
 const In = OG.In = { hands: [], lastHand: 0, mouse: { x: .5, y: .5, down: false, seen: 0, pressAt: null, downAt: 0 }, key: { x: .5, y: .5, down: false, seen: 0, held: new Set() },
-  source: 'mouse', pressPose: 'pinch', hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
+  source: 'mouse', pressPose: 'pinch', handDown: new Map(), hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
 const HIST_MS = 2600;
 function push(id, s) { let h = In.hist.get(id); if (!h) In.hist.set(id, h = []); h.push(s); while (h.length && s.t - h[0].t > HIST_MS) h.shift(); }
 function span(m) { return (Math.hypot(m[5].x - m[17].x, m[5].y - m[17].y) + Math.hypot(m[0].x - m[9].x, m[0].y - m[9].y)) / 2; }
@@ -29,6 +29,7 @@ window.OdysseyHands = {
     In.hands = [...tracks].sort((a, b) => a.id - b.id).map(k => { let pose = 'open'; try { pose = gestureOf(k); } catch (e) { } return { id: 'h' + k.id, x: k.point.x, y: k.point.y, px: k.palm.x, py: k.palm.y, pose, closed: !!k.closed, span: span(k.marks), marks: k.visualMarks || k.marks, t }; });
     In.lastHand = t; if (tracks.length) In.source = 'hand';
     for (const h of In.hands) push(h.id, { t, x: h.x, y: h.y, px: h.px, py: h.py, pose: h.pose, span: h.span, down: h.pose === 'pinch' || h.closed });
+    for (const h of In.hands) { const down = h.pose === 'pinch' || h.pose === 'fist', was = In.handDown.get(h.id) || false; if (down !== was) { In.handDown.set(h.id, down); emit(down ? 'press' : 'release', h.id); } }
     for (const fn of In.listeners) try { fn('hands', In.hands, t); } catch (e) { console.error(e); }
     return true;   // the game owns the hands; Butter's own grip does not also act on them
   },
