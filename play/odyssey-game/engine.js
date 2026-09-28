@@ -55,7 +55,9 @@ E.frame = function (now) {
   const u = smooth(c.t), f = c.from || { pos: c.pos, look: c.look, fov: c.fov };
   camera.position.lerpVectors(f.pos, c.pos, u); const look = f.look.clone().lerp(c.look, u);
   if (c.shake > 0.01) { camera.position.x += (Math.random() - .5) * c.shake * 14; camera.position.y += (Math.random() - .5) * c.shake * 10; c.shake *= Math.exp(-dtReal * 5); } else c.shake = 0;
-  camera.up.set(0, 1, 0); camera.lookAt(look); const fov = lerp(f.fov, c.fov, u); if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  camera.up.set(0, 1, 0); camera.lookAt(look); let fov = lerp(f.fov, c.fov, u);
+  // shots are composed for a 16:10 frame; on a tall screen keep their width: widen the vertical angle (a phone held upright sees the same set)
+  const aspect = camera.aspect || 1.6; if (aspect < 1.5) fov = Math.min(92, 2 * Math.atan(Math.tan(fov * Math.PI / 360) * 1.6 / aspect) * 180 / Math.PI); if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
   camera.updateMatrixWorld(true);
   for (const a of E.actors) E.poseActor(a, dt, now);
   for (const fn of E.tickers) fn(dt, now);

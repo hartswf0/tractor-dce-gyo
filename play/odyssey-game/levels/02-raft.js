@@ -34,7 +34,9 @@ OG.level({
     s.filled = new Set(); s.next = 0; s.launch = 0; ctx.setStage('build');
   },
   intro(ctx) { ctx.say('intro', ctx.s.calypso); },
-  begin(ctx) { ctx.cue(null, 'pinch'); ctx.In.pressPose = 'pinch'; },
+  begin(ctx) { ctx.cue(null, 'pinch'); ctx.In.pressPose = 'pinch';
+    // the launch sweep is read as the landmarks arrive, not once a frame: a slow phone still sees the whole gesture
+    ctx.s.unsub = ctx.In.on((type, hands, t) => { if (type !== 'hands' || ctx.stage !== 'launch') return; for (const h of hands) { const w = ctx.In.history(h.id).filter(q => t - q.t < 1800 && q.pose === 'open'); if (w.length > 2 && w[w.length - 1].px - Math.min(...w.map(q => q.px)) > 0.12) ctx.s.handPush = true; } }); },
   freeSlot(ctx, id) { const s = ctx.s, part = ctx.E.part(id); return s.slots.find(sl => !s.filled.has(sl.id) && sl.part === part.part && (sl.id === id || sl.part === '3009')); },
   update(dt, ctx, phase) {
     const E = ctx.E, In = ctx.In, H = ctx.H, s = ctx.s;
@@ -52,9 +54,9 @@ OG.level({
         let x = at ? at.x : held.x, z = at ? at.z : held.z; const sl = s.slots.find(q => !s.filled.has(q.id) && q.part === held.part && (q.part !== '3003' || logsDone) && Math.hypot(q.x - x, q.z - z) < 50);
         if (sl) { x = sl.x; z = sl.z; const q = E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)); H.ring(q.x, q.y, 18, '#7fe07a', { width: 3 }); }
         E.carryAt(x, z);
-        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : false;
+        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : c.src === 'touch' ? false : false;
         if (release) this.drop(ctx);
-      } else if (c.down && !s.wasDown && c.src !== 'key') this.tryGrab(ctx, c);
+      } else { const pr = In.takePress(); if (pr && pr.src !== 'key') this.tryGrab(ctx, pr); }
       s.wasDown = c.down;
       // labels: the next place, the pile
       for (const p of S.parts) if (/^log|^step/.test(p.id) && !s.filled.has(p.id) && p.id !== E.carry.id) { const q = E.toScreen(E.partCenter(p.id)); const near = Math.hypot((c.x - q.x) * 1.6, c.y - q.y) < .07; if (near || p.id === this.nextPiece(ctx)) H.ring(q.x, q.y, near ? 16 : 11, near ? '#ffe28a' : 'rgba(255,226,138,.7)', { width: 2, label: near ? (p.part === '3003' ? 'MAST STEP' : 'TIMBER') : null }); }
@@ -67,7 +69,7 @@ OG.level({
         let push = false; const h = In.history(c.id), now = performance.now();
         if (c.src === 'hand') { const w = h.filter(q => now - q.t < 1800 && q.pose === 'open'); if (w.length > 2 && w[w.length - 1].px - Math.min(...w.map(q => q.px)) > 0.12) push = true; }
         else if (c.src === 'mouse') { if (In.mouse.down && In.mouse.pressAt && c.x - In.mouse.pressAt.x > .12) push = true; }
-        if (s.keyPush) push = true;
+        if (s.keyPush || s.handPush) push = true;
         const q = E.toScreen(new THREE.Vector3(ctx.data.keel.x + 150, 20, ctx.data.keel.z)); H.ring(q.x, q.y, 20, '#9fd4ff', { width: 3, label: 'THE SEA ⟶' });
         if (push) { s.launching = true; ids.forEach(id => E.pin(id, true)); ctx.A.sfx('whoosh'); ctx.A.sfx('splash', { gain: .7 }); s.base = ids.map(id => { const p = E.part(id); return { id, x: p.x, y: p.y, z: p.z }; }); s.lt = 0; H.cue(null); }
       } else {
@@ -94,7 +96,7 @@ OG.level({
     if (code === 'Space' && ctx.stage === 'build') { if (E.carry.id) this.drop(ctx); else this.tryGrab(ctx, { x: In.key.x, y: In.key.y }); }
     if ((code === 'ArrowRight' || code === 'Space') && ctx.stage === 'launch') s.keyPush = true;
   },
-  teardown(ctx) { if (ctx.E.carry.id) ctx.E.cancelCarry(); },
+  teardown(ctx) { if (ctx.E.carry.id) ctx.E.cancelCarry(); if (ctx.s.unsub) ctx.s.unsub(); },
   debug(ctx) { const E = ctx.E, s = ctx.s; return { stage: ctx.stage, launching: !!s.launching, filled: [...s.filled], carrying: E.carry.id, next: this.nextPiece(ctx),
     pieces: S.parts.filter(p => /^log|^step/.test(p.id)).map(p => ({ id: p.id, ...E.toScreen(E.partCenter(p.id)) })), slots: s.slots.map(sl => ({ id: sl.id, part: sl.part, ...E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)) })), keel: E.toScreen(new THREE.Vector3(ctx.data.keel.x, 10, ctx.data.keel.z)), clicks: E.carry.clicks, misses: E.carry.misses, lastDrop: s.lastDrop || null }; },
 });

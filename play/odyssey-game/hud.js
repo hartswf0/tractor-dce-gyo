@@ -78,7 +78,7 @@ H.banner = function (html, cls = '') { const b = H.$('#og-banner'); if (!html) {
 H.loading = (on, text = '') => { const l = H.$('#og-loading'); l.hidden = !on; l.querySelector('span').textContent = text; };
 
 /* ── the overlay: hands, cursors, targets; cleared and redrawn every frame ── */
-H.begin = function () { const r = OG.E.stageRect(), c = H.overlay; if (c.width !== Math.round(r.width) || c.height !== Math.round(r.height)) { c.width = Math.round(r.width); c.height = Math.round(r.height); } H.ctx.clearRect(0, 0, c.width, c.height); H.W = c.width; H.Hh = c.height; };
+H.begin = function () { const tb = H.$('#og-top').getBoundingClientRect().bottom; if (tb !== H._tb) { H._tb = tb; H.root.style.setProperty('--og-top-h', Math.round(tb) + 'px'); } const r = OG.E.stageRect(), c = H.overlay; if (c.width !== Math.round(r.width) || c.height !== Math.round(r.height)) { c.width = Math.round(r.width); c.height = Math.round(r.height); } H.ctx.clearRect(0, 0, c.width, c.height); H.W = c.width; H.Hh = c.height; };
 H.ring = function (x, y, r, color = '#ffe28a', { width = 3, fill, label, dash, progress } = {}) {
   const g = H.ctx, X = x * H.W, Y = y * H.Hh; g.save(); g.lineWidth = width; g.strokeStyle = color; if (dash) g.setLineDash(dash);
   g.beginPath(); g.arc(X, Y, r, 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } g.stroke(); g.setLineDash([]);
