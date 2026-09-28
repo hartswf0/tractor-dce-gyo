@@ -22,6 +22,7 @@ E.setup = function () {
   const st = ButterPerformer.state; st.on = false; if (st.rig) st.rig.figure.visible = false;
   try { renderer.setPixelRatio(1); } catch (e) { }
   try { sun.shadow.mapSize.set(1024, 1024); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } } catch (e) { }
+  if (window.OG_MOBILE || matchMedia('(pointer: coarse)').matches) { try { renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = false; sun.castShadow = false; } catch (e) { } E.lite = true; E.mobile = true; }
   if (new URLSearchParams(location.search).has('lite')) { try { renderer.shadowMap.enabled = false; sun.castShadow = false; } catch (e) { } E.lite = true; }
   E.root = new THREE.Group(); E.root.name = 'odyssey-game'; scene.add(E.root);
   E.hemi = new THREE.HemisphereLight(0xfff4dd, 0x223344, 0.35); scene.add(E.hemi);

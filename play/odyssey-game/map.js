@@ -26,14 +26,14 @@ M.show = function () {
 };
 M.hide = function () { M.open = false; OG.H.$('#og-chartlayer').hidden = true; };
 M.pos = b => { const r = OG.E.stageRect(), f = M.frameBox(); return { x: f.x0 + b.chart[0] * f.w, y: f.y0 + b.chart[1] * f.h }; };
-M.frameBox = function () { const r = OG.E.stageRect(), top = OG.H.$('#og-top').getBoundingClientRect().bottom + 56, info = M.info && !M.info.hidden ? M.info.getBoundingClientRect() : null, narrow = r.width < 760, bottom = narrow && info ? info.top - 16 : r.height * .94; return { x0: narrow ? 18 : 0, w: narrow ? r.width - 36 : r.width, y0: narrow ? top : r.height * .1, h: Math.max(120, (narrow ? bottom - top : r.height * .74)) }; };
+M.frameBox = function () { const r0 = OG.E.stageRect(); if (r0.height < 500 && r0.width > r0.height) { const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 50; return { x0: 14, w: r0.width * .56 - 20, y0: top, h: r0.height - top - 26 }; } const r = r0, top = OG.H.$('#og-top').getBoundingClientRect().bottom + 56, info = M.info && !M.info.hidden ? M.info.getBoundingClientRect() : null, narrow = r.width < 760, bottom = narrow && info ? info.top - 16 : r.height * .94; return { x0: narrow ? 18 : 0, w: narrow ? r.width - 36 : r.width, y0: narrow ? top : r.height * .1, h: Math.max(120, (narrow ? bottom - top : r.height * .74)) }; };
 M.at = function (c) { if (!c) return null; const r = OG.E.stageRect(); let best = null, bd = 1e9; M.books().forEach((b, i) => { const p = M.pos(b), d = Math.hypot(p.x - c.x * r.width, p.y - c.y * r.height); if (d < bd) { bd = d; best = i; } }); return bd < (r.width < 760 ? 26 : 30) ? best : null; };
 M.pick = function (i) {
   M.sel = i; const b = M.books()[i]; if (!b) return; const S = OG.ST.save, at = S.at;
   const trials = b.items.filter(x => x.type === 'level').map(x => OG.G.data[x.id]).filter(Boolean), touches = b.items.filter(x => x.touch).map(x => x.touch.thing), scenes = b.items.filter(x => x.type === 'scene').length + trials.reduce((a, d) => a + (d.scenes || []).length, 0);
   M.info.innerHTML = `<span>BOOK ${b.roman} · ${b.place.toUpperCase()}${S.done[b.n] ? ' · SAILED' : ''}</span><b>${b.title}</b><span>${scenes} scenes · ${b.minutes ? b.minutes.toFixed(1) + ' min of the cut' : ''}${trials.length ? ' · trial: ' + trials.map(d => d.title).join(', ') : ''}${touches.length ? ' · touch: ' + touches.join(', ') : ''}</span>
     <div class="row" style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="primary" id="og-playbook">Play book ${b.roman} (Enter)</button>${at && (at.book > 1 || at.item > 0) ? `<button id="og-continue">Continue · Book ${M.books()[at.book - 1].roman}: ${OG.ST.label(M.books()[at.book - 1], at.item)} (C)</button>` : ''}</div>
-    <div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
+    ${window.OG_MOBILE ? '<span style="font-size:11px;opacity:.75">Scene sets, voices and music stream from the site as you play: keep a connection.</span>' : ''}<div id="og-trials"><span>TRIALS OF THE HAND</span>${OG.G.order.map(id => { const d = OG.G.data[id], l = S.levels[id]; return `<button data-level="${id}" title="${d.sub}">${d.n}. ${d.title}${l ? ' ' + '★'.repeat(l.stars) : ''}</button>`; }).join('')}</div>`;
   M.info.querySelector('#og-playbook').onclick = () => M.go(); const c = M.info.querySelector('#og-continue'); if (c) c.onclick = () => M.cont();
   M.info.querySelectorAll('[data-level]').forEach(el => el.onclick = () => OG.G.start(el.dataset.level));
 };
@@ -63,8 +63,8 @@ M.frame = function (dt, t) {
     g.fillStyle = '#10151b'; g.font = `700 ${W < 700 ? (b.n > 9 ? 9 : 11) : (b.n > 9 ? 12 : 14)}px Georgia, serif`; g.textAlign = 'center'; g.fillText(b.roman, p.x, p.y + 5);
     if (sel) { g.font = '700 12px ui-monospace, Menlo, monospace'; const label = b.title.toUpperCase(), w = g.measureText(label).width + 12; g.fillStyle = 'rgba(16,21,27,.85)'; g.fillRect(p.x - w / 2, p.y - R - 30, w, 19); g.fillStyle = '#ffe28a'; g.fillText(label, p.x, p.y - R - 16); }
     g.restore(); });
-  const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 6, narrow = W < 700;
-  g.fillStyle = 'rgba(12,20,28,.55)'; g.fillRect(0, top, Math.min(W, narrow ? W : 760), narrow ? 44 : 50);
+  const top = OG.H.$('#og-top').getBoundingClientRect().bottom + 6, narrow = W < 700 || (Hh < 500 && W > Hh);
+  const shortL = Hh < 500 && W > Hh; g.fillStyle = 'rgba(12,20,28,.55)'; g.fillRect(0, top, shortL ? W * .56 : Math.min(W, narrow ? W : 760), narrow || shortL ? 44 : 50);
   g.font = `700 ${narrow ? 18 : 24}px Georgia, serif`; g.textAlign = 'left'; g.fillStyle = '#f3ecd8'; g.fillText('The voyage chart · the whole Odyssey', 14, top + (narrow ? 20 : 24)); g.font = `${narrow ? 10 : 12}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(243,236,216,.85)';
   g.fillText(narrow ? '24 books. Red ring: a trial of the hand. Gold: sailed. Tap a book.' : '24 books on the Regulars\' Cut. Red rings: a trial of the hand. Gold: sailed. Point and hold, pinch, click, or Tab and Enter.', 14, top + (narrow ? 36 : 42));
 };
