@@ -16,7 +16,7 @@ OG.level({
     s.sea = E.add(E.sea({ color: '#1d4a6e' }));
     await E.ensureParts(['10169', '64647', '2542', '2435']);
     // the bag: the ox-hide sack, its silver cord
-    s.bag = new THREE.Group(); const sack = E.brick('10169', 28, 0, 0, 0, 0); sack.scale.setScalar(3.2); s.bag.add(sack); s.cord = new THREE.Mesh(new THREE.TorusGeometry(16, 2, 8, 24), new THREE.MeshStandardMaterial({ color: 0xd8d8e0, metalness: .9, roughness: .2 })); s.cord.rotation.x = Math.PI / 2; s.cord.position.y = 58; s.bag.add(s.cord); s.bag.position.set(0, 8, 20); E.add(s.bag);
+    s.bag = new THREE.Group(); const sack = E.brick('10169', 28, 0, 0, 0, 0); sack.scale.setScalar(2.0); s.bag.add(sack); s.cord = new THREE.Mesh(new THREE.TorusGeometry(16, 2, 8, 24), new THREE.MeshStandardMaterial({ color: 0xd8d8e0, metalness: .9, roughness: .2 })); s.cord.rotation.x = Math.PI / 2; s.cord.position.y = 36; s.bag.add(s.cord); s.bag.position.set(0, 8, 20); E.add(s.bag);
     s.ringMat = null;
     // Ithaca on the horizon: a green hill of bricks with its watch-fires
     s.ithaca = new THREE.Group(); for (let i = 0; i < 9; i++) for (let k = 0; k < 4 - Math.abs(i - 4) / 1.5; k++) s.ithaca.add(E.brick('3001', k > 1 ? 2 : 28, (i - 4) * 80, k * 24, (k % 2) * 20, 0));
@@ -26,7 +26,7 @@ OG.level({
     s.crew = []; const spots = [[-120, -40, Math.PI / 2], [120, -30, -Math.PI / 2], [-110, 110, Math.PI * .75], [110, 120, -Math.PI * .75]];
     for (let i = 0; i < 4; i++) { const [x, z, h] = spots[i]; const a = await E.actor({ name: 'Eurylochus', printed: i % 2 ? '3626bp35' : '3626bp01', def: { legs: [70, 28, 72, 19][i], hips: [70, 28, 72, 19][i], torso: [4, 19, 2, 15][i], arms: [4, 19, 2, 15][i], hands: 14, head: 14, hat: i % 2 ? null : ['3901', 6] }, at: [x, 8, z], heading: h }); a.fly = 8; a.arms = [0, 0]; s.crew.push(a); }
     s.odys = await E.actor({ name: 'Odysseus', face: 'odysseus', def: { legs: 70, hips: 70, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 70] }, at: [40, 8, 215], heading: Math.PI, emotion: 'weariness' }); s.odys.fly = 8; s.odys.sit = true;
-    const oar = E.brick('2542', 70, 70, 20, 250, 0); oar.scale.setScalar(2.5); E.add(oar);
+    const oar = E.brick('2542', 70, 150, 30, 200, 0); oar.scale.setScalar(2.2); oar.rotation.z = Math.PI / 2; E.add(oar);
     // the reaches: spread across the voyage, each by a different man
     const n = d.reaches, T = d.voyage; s.reaches = []; for (let i = 0; i < n; i++) s.reaches.push({ at: 6 + i * (T - 14) / (n - 1) + ((i * 37) % 5 - 2) * .6, who: (i * 3 + 1) % 4, dur: 2.6, state: 'wait' });
     s.grip = d.grip; s.holdT = 0; s.wasteT = 0; s.blocked = 0; s.slip = false;

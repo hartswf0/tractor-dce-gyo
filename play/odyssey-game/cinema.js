@@ -35,7 +35,31 @@ C.load = async function (item) {
   E.add(E.sea({ color: look.sea }));
   let group = null;
   if (!OG.ST || !OG.ST.noStage) { group = await E.cardGroup(item.id, { budget: 20000 }); E.add(group); }
-  return { kf, look, group };
+  const st = { kf, look, group }; C.faces = [];
+  if (group && window.Face && window.HalfFace) try { C.faces = await C.dress(item, group); } catch (e) { console.warn('[cinema faces]', e); }
+  return st;
+};
+/* the halfworld faces on the baked cast: the previs (odyssey/previs/<id>.json) says where each figure of the card stands; a
+   figure who is one of the twelve (Odysseus, Athena, Penelope, Telemachus, Polyphemus…) gets the halfworld's own drawing of
+   that face as a decal on its head, the nearest head of the card to where the previs puts it (each head taken once). */
+const TWELVE = ['odysseus', 'athena', 'penelope', 'telemachus', 'nestor', 'eumaeus', 'circe', 'nausicaa', 'helen', 'eurycleia', 'alcinous', 'polyphemus'];
+C.dress = async function (item, group) {
+  let pv = null; try { const r = await fetch('../odyssey/previs/' + item.id + '.json'); if (r.ok) pv = await r.json(); } catch (e) { }
+  if (!pv || !pv.cast) return [];
+  const heads = group.userData.heads.map(p => ({ p, used: false })), out = [], want = [];
+  for (const c of pv.cast) { const m = /^character\.([a-z]+)/.exec(c.who || ''); if (!m || !TWELVE.includes(m[1]) || !Array.isArray(c.at)) continue; want.push({ who: m[1], x: c.at[0], z: -c.at[2] }); }
+  const pairs = []; for (const w of want) heads.forEach((h, i) => pairs.push({ w, i, d: Math.hypot(h.p.x - w.x, h.p.z - w.z) })); pairs.sort((a, b) => a.d - b.d);
+  const done = new Set();
+  for (const { w, i, d } of pairs) { if (d > 50 || done.has(w) || heads[i].used) continue; done.add(w); heads[i].used = true; const h = heads[i].p;
+    const slot = new THREE.Object3D(); slot.position.set(h.x, h.y + 21, h.z); if (h.q) slot.quaternion.set(...h.q); else slot.rotation.y = (h.r || 0) * Math.PI / 2; const flip = new THREE.Object3D(); flip.scale.set(1, -1, -1); slot.add(flip); group.add(slot);
+    const face = Face.attach({ slots: { head: flip }, def: { hat: null } }, 'halfworld:' + w.who, THREE); if (face) out.push({ who: w.who, face, blinkAt: 1 + Math.random() * 3, last: 0 }); }
+  return out;
+};
+C.paintFaces = function (now) {
+  const item = C.item, seg = item && item.segs[C.segi]; const speaker = seg && seg.isLine ? String(seg.speaker || '').toLowerCase() : '';
+  for (const f of C.faces || []) { if (now - f.last < 100) continue; f.last = now; const v = {}, t = now / 1000; if (t > f.blinkAt) { v.blink = 1; if (t > f.blinkAt + .14) f.blinkAt = t + 2.5 + Math.random() * 3; }
+    if (speaker && speaker.includes(f.who)) { const m = OG.A.level(); if (m > .04) { v['mouth.jaw'] = Math.round(Math.min(1, m * 1.4) * 10) / 10; v['mouth.wide'] = .2; } }
+    try { Face.paint(f.face, v); } catch (e) { } }
 };
 /** occlusion by the set, from the card's own rows: a part's centre within `r` of the sight line (short of the subject) blocks it */
 function blocked(pts, cam, target, r = 20) {
@@ -115,6 +139,7 @@ C.frame = function (dt) {
   if (segi !== C.segi) { C.segi = segi; if (segi >= 0) { const g = item.segs[segi]; H.caption(g.speaker, g.caption, g.isLine); A.duck(true); } else { H.caption(null); A.duck(false); } }
   // the touch
   const T = C.touch; if (T) C.touchFrame(T, dt);
+  C.paintFaces(performance.now());
   H.progress(t / item.seconds);
   if (t >= item.seconds) C.end(false);
 };

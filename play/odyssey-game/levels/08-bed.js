@@ -19,12 +19,12 @@ OG.level({
     const walls = new THREE.Group(); for (let x = -300; x <= 300; x += 80) for (let k = 0; k < 7; k++) walls.add(E.brick('3001', k % 2 ? 19 : 28, x, k * 24, -330, 0)); for (let z = -300; z <= 200; z += 80) for (let k = 0; k < 7; k++) walls.add(E.brick('3001', k % 2 ? 28 : 19, -340, k * 24, z, 1)); E.add(walls);
     const lamp = E.brick('64647', 25, -160, 60, -120, 0); lamp.scale.setScalar(1.6); E.add(lamp); E.add(E.brick('3941', 72, -160, 0, -120, 0)); E.add(E.brick('3941', 72, -160, 24, -120, 0));
     // the olive: its trunk up through the bed, its crown above; and below the floor, the root (hidden until the floor opens)
-    const tx = s.bedC.x, tz = s.bedC.z - 30; s.trunk = new THREE.Group(); for (let k = 0; k < 9; k++) s.trunk.add(E.brick('3941', 6, tx, 8 + k * 24, tz, 0)); for (let i = 0; i < 5; i++) s.trunk.add(E.brick(i % 2 ? '2417' : '2423', 2, tx + (i - 2) * 40, 210 + (i % 2) * 20, tz + (i % 3 - 1) * 30, i)); E.add(s.trunk);
+    const tx = s.bedC.x, tz = s.bedBox.min.z + 12; s.trunk = new THREE.Group(); for (let k = 0; k < 9; k++) s.trunk.add(E.brick('3941', 6, tx, 8 + k * 24, tz, 0)); for (let i = 0; i < 5; i++) s.trunk.add(E.brick(i % 2 ? '2417' : '2423', 2, tx + (i - 2) * 40, 210 + (i % 2) * 20, tz + (i % 3 - 1) * 30, i)); E.add(s.trunk);
     s.root = new THREE.Group(); for (let k = 1; k <= 7; k++) s.root.add(E.brick('3941', 6, tx, -k * 24, tz, 0)); for (const [dx, dz, r] of [[-50, 0, 0], [50, 10, 0], [0, -50, 1], [10, 50, 1]]) for (let k = 0; k < 3; k++) s.root.add(E.brick('3009', 6, tx + dx * (1 + k * .6), -100 - k * 26, tz + dz * (1 + k * .6), r)); s.root.visible = false; E.add(s.root);
     s.floorMask = E.plane(700, 700, 0x2a1f16, { y: -1.2 }); E.add(s.floorMask); s.rootAt = new THREE.Vector3(tx, -90, tz);
     s.pen = await E.actor({ name: 'Penelope', face: 'penelope', def: { legs: 15, hips: 15, torso: 22, arms: 22, hands: 14, head: 14, hat: null }, at: [-190, 0, 60], heading: Math.PI * .7, emotion: 'guarded' });
     s.odys = await E.actor({ name: 'Odysseus', face: 'odysseus', def: { legs: 70, hips: 70, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 70] }, at: [190, 0, 60], heading: -Math.PI * .7, emotion: 'resolve' });
-    s.eury = await E.actor({ name: 'Eurycleia', face: 'eurycleia', def: { legs: 72, hips: 72, torso: 72, arms: 72, hands: 14, head: 14, hat: null }, at: [-80, 0, 200], heading: Math.PI, emotion: 'concern' });
+    s.eury = await E.actor({ name: 'Eurycleia', face: 'eurycleia', def: { legs: 72, hips: 72, torso: 72, arms: 72, hands: 14, head: 14, hat: null }, at: [-250, 0, -60], heading: Math.PI / 2, emotion: 'concern' });
     s.tries = 0; s.strain = 0; ctx.setStage('lift');
   },
   intro(ctx) { ctx.say('intro', ctx.s.pen); },

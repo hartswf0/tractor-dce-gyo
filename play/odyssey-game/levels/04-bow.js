@@ -23,7 +23,7 @@ OG.level({
     for (const [x, z] of [[-300, -300], [300, -300], [-300, 100], [300, 100]]) { const f = E.brick('64647', 25, x, 70, z, 0); f.scale.setScalar(2); E.add(f); E.add(E.brick('3941', 72, x, 0, z, 0)); E.add(E.brick('3941', 72, x, 24, z, 0)); E.add(E.brick('3941', 72, x, 48, z, 0)); }
     // the suitors at their tables, Telemachus by the door-post
     s.suitors = []; for (let i = 0; i < 4; i++) s.suitors.push(await E.actor({ name: 'Suitor', printed: i % 2 ? '3626bp35' : '3626bp01', def: { legs: [1, 4, 2, 6][i], hips: 0, torso: [4, 1, 14, 2][i], arms: [4, 1, 14, 2][i], hands: 14, head: 14, hat: i % 2 ? null : ['3901', 6] }, at: [i < 2 ? -170 : 170, 0, -200 + (i % 2) * 160], heading: i < 2 ? Math.PI / 2 : -Math.PI / 2 }));
-    s.tel = await E.actor({ name: 'Telemachus', face: 'telemachus', def: { legs: 70, hips: 70, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 70], weapon: ['spear', '4497', 71] }, at: [110, 0, 250], heading: Math.PI });
+    s.tel = await E.actor({ name: 'Telemachus', face: 'telemachus', def: { legs: 70, hips: 70, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 70], weapon: ['spear', '4497', 71] }, at: [215, 0, 120], heading: -Math.PI / 2 });
     s.arrows = ctx.data.arrows; s.pull = 0; s.shots = 0; s.arrow = null;
     ctx.setStage('string');
   },

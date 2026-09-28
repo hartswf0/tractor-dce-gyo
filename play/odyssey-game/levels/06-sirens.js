@@ -21,7 +21,7 @@ OG.level({
     s.sirens = []; for (let i = 0; i < 3; i++) { const a = await E.actor({ name: 'Siren', printed: '3626bp40', def: { legs: 26, hips: 26, torso: 15, arms: 15, hands: 14, head: 14, hat: null }, at: [0, 48, 0], heading: Math.PI / 2 }); a.fly = 48; a.arms = [-2.4, -2.4]; s.sirens.push(a); }
     // Odysseus against the mast; the crew at the oars, wax in their ears
     s.odys = await E.actor({ name: 'Odysseus', face: 'odysseus', def: { legs: 70, hips: 70, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 70] }, at: [0, 8, 5], heading: 0, emotion: 'resolve' }); s.odys.fly = 8;
-    s.crew = []; for (let i = 0; i < 4; i++) { const x = i % 2 ? 95 : -95, z = -90 + Math.floor(i / 2) * 150; const a = await E.actor({ name: 'Oarsman', printed: '3626bp35', def: { legs: [28, 72, 19, 70][i], hips: 0, torso: [4, 2, 15, 19][i], arms: [4, 2, 15, 19][i], hands: 14, head: 14, hat: null }, at: [x, 8, z], heading: 0 }); a.fly = 8; a.sit = true; const oar = E.brick('2542', 70, x + (i % 2 ? 60 : -60), 20, z, 1); oar.scale.setScalar(2.2); E.add(oar); a.oar = oar; s.crew.push(a); }
+    s.crew = []; for (let i = 0; i < 4; i++) { const x = i % 2 ? 95 : -95, z = -90 + Math.floor(i / 2) * 150; const a = await E.actor({ name: 'Oarsman', printed: '3626bp35', def: { legs: [28, 72, 19, 70][i], hips: 0, torso: [4, 2, 15, 19][i], arms: [4, 2, 15, 19][i], hands: 14, head: 14, hat: null }, at: [x, 8, z], heading: 0 }); a.fly = 8; a.sit = true; const oar = new THREE.Group(), om = E.brick('2542', 70, 0, 0, 0, 0); om.scale.setScalar(2.2); om.rotation.z = Math.PI / 2 * (i % 2 ? -1 : 1); oar.add(om); oar.position.set(x + (i % 2 ? 40 : -40), 34, z); E.add(oar); a.oar = oar; s.crew.push(a); }
     s.coils = []; s.turns = 0; s.x = 0; s.v = 0; s.prog = 0; s.strokes = 0;
     ctx.A.loop('sea-calm', { gain: .4 }); ctx.setStage('bind');
   },
@@ -32,7 +32,7 @@ OG.level({
     s.sea.userData.tex.offset.y += dt * (.05 + s.v * .02);
     const isleZ = -900 + (s.prog / d.course) * 1700; s.isle.position.set(-420 + s.x * 160, 0, isleZ);
     s.sirens.forEach((a, i) => { a.rig.pos.set(s.isle.position.x - 100 - (i % 2) * 50, 48, isleZ - 120 + i * 120); a.heading = Math.PI / 2; });
-    s.crew.forEach((a, i) => { if (a.oar) a.oar.rotation.y = Math.PI / 2 + Math.sin(s.stroke || 0) * .35 * (i % 2 ? 1 : -1); });
+    s.crew.forEach((a, i) => { if (a.oar) a.oar.rotation.y = Math.sin(s.stroke || 0) * .35 * (i % 2 ? 1 : -1); });
     if (phase !== 'play') return;
     const c = In.primary();
     if (ctx.stage === 'bind') {

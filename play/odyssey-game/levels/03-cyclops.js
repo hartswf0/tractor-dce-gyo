@@ -18,7 +18,7 @@ OG.level({
     E.setView({ bg: 0x0a0c10, floor: null, fog: [0x0a0c10, 700, 1700] }); E.hemi.intensity = .16;
     E.add(E.plane(900, 900, 0x3b352d, { y: -0.6 }));
     // cave walls: a ring of dark bricks
-    const walls = new THREE.Group(); for (let a = 0; a < 40; a++) { const t = a / 40 * Math.PI * 2, r = 470; if (Math.cos(t) > .82 && Math.sin(t) < 0) continue; for (let k = 0; k < 6; k++) walls.add(E.brick('3001', k % 2 ? 72 : 0, Math.cos(t) * r, k * 24, Math.sin(t) * r, 0)); } E.add(walls);
+    const walls = new THREE.Group(); for (let a = 0; a < 40; a++) { const t = a / 40 * Math.PI * 2, r = 470; if (Math.cos(t) > .82 && Math.sin(t) < 0) continue; if (Math.sin(t) > .55) continue; for (let k = 0; k < 5; k++) walls.add(E.brick('3001', k % 2 ? 72 : 0, Math.cos(t) * r, k * 24, Math.sin(t) * r, 0)); } E.add(walls);
     // the fire (the forage card environment.fire-and-dry-logs) and its light
     const fire = await E.card('environment.fire-and-dry-logs'); await E.ensureParts(fire.map(p => p.part)); const fg = E.bricks(fire), fb = new THREE.Box3().setFromObject(fg), fc = fb.getCenter(V(0, 0, 0));
     fg.position.set(-60 - fc.x, 0, 20 - fc.z); E.add(fg); s.fire = V(-60, 20, 20);
@@ -35,7 +35,7 @@ OG.level({
     const heads = [null, '3626bp35', '3626bp01', '3626bp35'];
     s.men = [];
     for (let i = 0; i < 4; i++) { const a = await E.actor({ name: i ? 'Companion' : 'Odysseus', face: i ? null : 'odysseus', printed: heads[i], def: { legs: [70, 28, 19, 72][i], hips: [70, 28, 19, 72][i], torso: [19, 4, 2, 6][i], arms: [19, 4, 2, 6][i], hands: 14, head: 14, hat: i === 2 ? ['3901', 6] : i ? null : ['3901', 70] }, at: [-150 + i * 60, 0, 130 + (i % 2) * 40], heading: Math.PI + .3 }); a.home = a.rig.pos.clone(); a.state = 'free'; s.men.push(a); }
-    s.rams = []; for (let i = 0; i < 4; i++) { const g = new THREE.Group(), m = E.brick('95341', 15, 0, 0, 0, 1); m.scale.setScalar(2.3); g.add(m); g.position.set(220 + (i % 2) * 70, 0, -20 + i * 55); E.add(g); s.rams.push({ g, man: null }); }
+    s.rams = []; for (let i = 0; i < 4; i++) { const g = new THREE.Group(), m = E.brick('95341', 15, 0, 0, 0, 1); m.scale.setScalar(1.35); g.add(m); g.position.set(220 + (i % 2) * 70, 0, -20 + i * 55); E.add(g); s.rams.push({ g, man: null }); }
     // the giant's hand for the sweep: a palm and four fingers of skin bricks
     s.hand = new THREE.Group(); s.hand.add(E.brick('3001', 14, 0, 0, 0, 0), E.brick('3001', 14, 0, 0, 40, 0)); for (let f = 0; f < 4; f++) s.hand.add(E.brick('3010', 14, 70, 4, -30 + f * 20, 0)); s.hand.add(E.brick('3004', 14, -10, 4, 80, 1)); s.hand.scale.setScalar(1.6); s.hand.visible = false; E.add(s.hand);
     s.lane = E.plane(760, 90, 0x7a0f08, { y: 0.8, opacity: 0 }); E.add(s.lane);
@@ -81,7 +81,7 @@ OG.level({
       if (ctx.phaseT > 3.2) { // he stands at the door, blind; the flock gathers there
         const g = s.giant; g.rig.figure.rotation.z = 0; g.rig.pos.set(330, 0, -80); g.heading = -Math.PI / 2; g.rig.heading = -Math.PI / 2; g.arms = [-1.2, -1.2];
         s.stake.visible = false; ctx.setStage('rams'); s.nextSweep = 2.5; s.sweep = null; ctx.cue('rams', 'pinch', 'TUCK UNDER THE RAMS');
-        E.setCamera([20, 640, 470], [30, 0, 30], { fov: 42, dur: 1.4 }); ctx.say('outside').then(() => ctx.stage === 'rams' && ctx.say('rams')); }
+        E.setCamera([20, 600, 380], [40, 0, 0], { fov: 44, dur: 1.4 }); ctx.say('outside').then(() => ctx.stage === 'rams' && ctx.say('rams')); }
     } else if (ctx.stage === 'rams') {
       // carrying men
       const pickable = s.men.filter(m => m.state === 'free');

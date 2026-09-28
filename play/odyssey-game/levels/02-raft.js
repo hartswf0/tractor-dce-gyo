@@ -86,7 +86,7 @@ OG.level({
       const q = E.toScreen(E.partCenter(p.id)), d = Math.hypot((c.x - q.x) * 1.6, c.y - q.y); if (d < bd) { bd = d; best = p.id; } }
     if (best && E.grab(best, c.x, c.y)) { ctx.A.sfx('stud', { gain: .6 }); ctx.s.grabbed = best; }
   },
-  drop(ctx) { const r = ctx.E.drop(); if (!r) return; if (r.bonds.length) ctx.H.flash('CLICK', 'good'); else ctx.A.sfx('thud', { gain: .5 }); },
+  drop(ctx) { const fail = S.tx ? validate() : null, mag = S.tx && S.tx.magnet ? S.tx.magnet.key : null; const r = ctx.E.drop(); if (!r) return; ctx.s.lastDrop = { ...r, fail, mag, links: [...PH.links.keys()] }; if (r.bonds.length) ctx.H.flash('CLICK', 'good'); else ctx.A.sfx('thud', { gain: .5 }); },
   onKey(ctx, code) {
     const E = ctx.E, s = ctx.s, In = ctx.In;
     if (code === 'Tab') { let p = null; if (E.carry.id) { const held = E.part(E.carry.id), logsDone = s.slots.slice(0, 4).every(sl => s.filled.has(sl.id)); const sl = s.slots.find(q => !s.filled.has(q.id) && q.part === held.part && (q.part !== '3003' || logsDone)); if (sl) p = new THREE.Vector3(sl.x, sl.y + 10, sl.z); } else { const id = this.nextPiece(ctx); if (id) p = E.partCenter(id); }
@@ -96,5 +96,5 @@ OG.level({
   },
   teardown(ctx) { if (ctx.E.carry.id) ctx.E.cancelCarry(); },
   debug(ctx) { const E = ctx.E, s = ctx.s; return { stage: ctx.stage, filled: [...s.filled], carrying: E.carry.id, next: this.nextPiece(ctx),
-    pieces: S.parts.filter(p => /^log|^step/.test(p.id)).map(p => ({ id: p.id, ...E.toScreen(E.partCenter(p.id)) })), slots: s.slots.map(sl => ({ id: sl.id, part: sl.part, ...E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)) })), keel: E.toScreen(new THREE.Vector3(ctx.data.keel.x, 10, ctx.data.keel.z)), clicks: E.carry.clicks, misses: E.carry.misses }; },
+    pieces: S.parts.filter(p => /^log|^step/.test(p.id)).map(p => ({ id: p.id, ...E.toScreen(E.partCenter(p.id)) })), slots: s.slots.map(sl => ({ id: sl.id, part: sl.part, ...E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)) })), keel: E.toScreen(new THREE.Vector3(ctx.data.keel.x, 10, ctx.data.keel.z)), clicks: E.carry.clicks, misses: E.carry.misses, lastDrop: s.lastDrop || null }; },
 });
