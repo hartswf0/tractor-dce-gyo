@@ -150,15 +150,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   /* ─────────────── the cinematics' frames: every shot of the keyframed scenes and of each book's first scene ─────────────── */
   if (has('frames') || doSpine) {
     const ids = await page.evaluate(() => { const out = []; for (const b of OG.ST.story.books) { const sc = b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : []); sc.forEach((it, k) => { if (k === 0 || it.keyframes) out.push(it.id); }); } return [...new Set(out)]; });
-    let flat = 0, shots = 0; const bad = [];
+    let flat = 0, shots = 0, faces = 0; const bad = [], faceBad = [];
     const list = opt('frame-scenes') ? opt('frame-scenes').split(',') : ids;
-    for (const id of list) {
+    let curId = ''; if (has('frame-shots')) await page.exposeFunction('__shotEach', i => shot('frame-' + curId + '-' + i));
+    for (const id of list) { curId = id;
       const r = await page.evaluate(async id => { OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
         const st = await OG.C.load(item); OG.C.st = st; const plan = OG.C.plan(item, st), out = []; const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.look.y) }); }
+        for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); if (window.__shotEach) await window.__shotEach(out.length); const hs = sh.head ? OG.E.toScreen(sh.head) : null; out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.look.y), head: hs ? [+hs.x.toFixed(2), +hs.y.toFixed(2), hs.behind] : null }); }
         return out; }, id);
-      shots += r.length; for (const [i, x] of r.entries()) if (x.u > .9 || !x.finite) { flat++; bad.push(`${id}#${i}(${x.kind} ${x.u})`); await shot('flat-' + id + '-' + i); }
+      shots += r.length; for (const [i, x] of r.entries()) { if (x.u > .9 || !x.finite) { flat++; bad.push(`${id}#${i}(${x.kind} ${x.u})`); await shot('flat-' + id + '-' + i); }
+        if (x.head) { faces++; const [hx, hy, behind] = x.head; if (behind || hx < 0 || hx > 1 || hy < 0 || hy > .5) { faceBad.push(`${id}#${i}(${x.kind} head ${hx},${hy})`); } } }
     }
+    check(faceBad.length === 0, `cinema: in every shot on a person (${faces}) the head is on screen and in the upper half`, faceBad.slice(0, 12).join(' '));
     check(flat === 0, `cinema: no near-uniform frame across ${shots} shots of ${list.length} scenes (>90% of pixels one colour)`, bad.slice(0, 12).join(' '));
     await page.evaluate(() => OdysseyGame.chart());
   }
