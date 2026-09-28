@@ -17,7 +17,7 @@
 const OG = window.OG = window.OG || {};
 const now = () => performance.now();
 const In = OG.In = { hands: [], lastHand: 0, mouse: { x: .5, y: .5, down: false, seen: 0, pressAt: null, downAt: 0 }, key: { x: .5, y: .5, down: false, seen: 0, held: new Set() },
-  source: 'mouse', pressPose: 'pinch', handDown: new Map(), hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
+  source: 'mouse', pressPose: 'pinch', handDown: new Map(), presses: [], hist: new Map(), listeners: new Set(), enabled: true, frames: 0 };
 const HIST_MS = 2600;
 function push(id, s) { let h = In.hist.get(id); if (!h) In.hist.set(id, h = []); h.push(s); while (h.length && s.t - h[0].t > HIST_MS) h.shift(); }
 function span(m) { return (Math.hypot(m[5].x - m[17].x, m[5].y - m[17].y) + Math.hypot(m[0].x - m[9].x, m[0].y - m[9].y)) / 2; }
@@ -29,12 +29,12 @@ window.OdysseyHands = {
     In.hands = [...tracks].sort((a, b) => a.id - b.id).map(k => { let pose = 'open'; try { pose = gestureOf(k); } catch (e) { } return { id: 'h' + k.id, x: k.point.x, y: k.point.y, px: k.palm.x, py: k.palm.y, pose, closed: !!k.closed, span: span(k.marks), marks: k.visualMarks || k.marks, t }; });
     In.lastHand = t; if (tracks.length) In.source = 'hand';
     for (const h of In.hands) push(h.id, { t, x: h.x, y: h.y, px: h.px, py: h.py, pose: h.pose, span: h.span, down: h.pose === 'pinch' || h.closed });
-    for (const h of In.hands) { const down = h.pose === 'pinch' || h.pose === 'fist', was = In.handDown.get(h.id) || false; if (down !== was) { In.handDown.set(h.id, down); emit(down ? 'press' : 'release', h.id); } }
+    for (const h of In.hands) { const down = h.pose === 'pinch' || h.pose === 'fist', was = In.handDown.get(h.id) || false; if (down !== was) { In.handDown.set(h.id, down); if (down) In.presses.push({ id: h.id, src: 'hand', x: h.x, y: h.y, t }); emit(down ? 'press' : 'release', h.id); } }
     for (const fn of In.listeners) try { fn('hands', In.hands, t); } catch (e) { console.error(e); }
     return true;   // the game owns the hands; Butter's own grip does not also act on them
   },
 };
-In.handsFresh = () => now() - In.lastHand < 400 && In.hands.length > 0;
+In.handsFresh = () => now() - In.lastHand < 1200 && In.hands.length > 0;   // a lost hand keeps its place a moment, as Butter's grip does
 
 /* the pointer */
 In.attach = function (layer) {
@@ -48,7 +48,7 @@ In.attach = function (layer) {
   layer.addEventListener('pointerup', tEnd, true); layer.addEventListener('pointercancel', tEnd, true);
   layer.addEventListener('pointermove', e => { if (e.pointerType === 'touch' && In.touches.size >= 2) touchMove(e); }, true);
   layer.addEventListener('pointermove', e => { const p = pos(e); Object.assign(In.mouse, p, { seen: now() }); if (now() - In.lastHand > 400) In.source = 'mouse'; push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.mouse.down ? In.pressPose : 'open', span: 0, down: In.mouse.down }); });
-  layer.addEventListener('pointerdown', e => { if (e.target.closest('button,a,input,select')) return; const p = pos(e); Object.assign(In.mouse, p, { down: true, seen: now(), pressAt: { ...p, t: now() }, downAt: now() }); In.source = 'mouse'; try { layer.setPointerCapture(e.pointerId); } catch (_) { } push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.pressPose, span: 0, down: true }); emit('press', 'm'); });
+  layer.addEventListener('pointerdown', e => { if (e.target.closest('button,a,input,select')) return; const p = pos(e); Object.assign(In.mouse, p, { down: true, seen: now(), pressAt: { ...p, t: now() }, downAt: now() }); In.source = 'mouse'; In.presses.push({ id: 'm', src: 'mouse', x: p.x, y: p.y, t: now() }); try { layer.setPointerCapture(e.pointerId); } catch (_) { } push('m', { t: now(), x: p.x, y: p.y, px: p.x, py: p.y, pose: In.pressPose, span: 0, down: true }); emit('press', 'm'); });
   const up = e => { if (!In.mouse.down) return; In.mouse.down = false; In.mouse.seen = now(); push('m', { t: now(), x: In.mouse.x, y: In.mouse.y, px: In.mouse.x, py: In.mouse.y, pose: 'open', span: 0, down: false }); emit('release', 'm'); };
   layer.addEventListener('pointerup', up); layer.addEventListener('pointercancel', up);
   // keys: window capture, ahead of Hand Butter's own document handlers (Space would otherwise release its held brick)
@@ -81,7 +81,9 @@ In.cursors = function () {
 };
 In.primary = () => In.cursors()[0];
 In.history = id => In.hist.get(id) || [];
-In.reset = function () { if (In.touches) In.touches.clear(); In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
+/** the latest press (a pinch closing, a pointer going down) since the last call, with where it happened: an edge a slow frame cannot miss */
+In.takePress = function () { const p = In.presses.pop(); In.presses.length = 0; return p && now() - p.t < 3000 ? p : null; };
+In.reset = function () { In.presses.length = 0; if (In.touches) In.touches.clear(); In.hist.clear(); In.hands = []; In.lastHand = 0; In.mouse.down = false; In.key.down = false; In.key.held.clear(); };
 
 /* ── recognisers ── */
 const R = In.R = {};

@@ -20,7 +20,7 @@ const scene = new THREE.Scene();
 let camera = new THREE.PerspectiveCamera(38, 1, 2, 6000); camera.position.set(0, 420, 620);
 const renderer = new THREE.WebGLRenderer({ canvas: $('#view'), antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.outputEncoding = THREE.sRGBEncoding; renderer.shadowMap.enabled = false;
-const hemi0 = new THREE.HemisphereLight(0xd8efff, 0x5a6258, .8); scene.add(hemi0);
+const hemi0 = new THREE.HemisphereLight(0xd8efff, 0x5a6258, .55); scene.add(hemi0);
 const sun = new THREE.DirectionalLight(0xfff2d7, 1.2); sun.position.set(-200, 520, 260); scene.add(sun);
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshStandardMaterial({ color: 0x253035, roughness: .94 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -.25; floor.visible = false;
 const grid = new THREE.GridHelper(800, 40, 0x708076, 0x3b4b4e); grid.visible = false;
@@ -96,4 +96,5 @@ async function bootBank() {
 }
 function resize() { const r = $('#stage').getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (w < 1 || h < 1 || (resize.w === w && resize.h === h)) return; resize.w = w; resize.h = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 function animate(now) { requestAnimationFrame(animate); if (document.hidden) return; resize(); pumpHands(now); try { ButterSpatialRuntime.frame(now); } catch (e) { console.error(e); } renderer.render(scene, camera); }
+Object.assign(window, { WagWorkshop, ButterCast, ButterPerformer, ButterScenes, ButterRepository, ButterSpatialRuntime });   // the workspace's modules are window properties there too
 window.ButterLite = { ready: bootBank().then(() => { S.ready = true; requestAnimationFrame(animate); }) };

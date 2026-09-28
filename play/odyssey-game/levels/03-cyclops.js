@@ -54,7 +54,8 @@ OG.level({
     const c = In.primary(), now = performance.now();
     if (ctx.stage === 'fire') {
       const sp = E.toScreen(this.tipWorld(ctx)); const near = Math.hypot((c.x - sp.x) * 1.6, c.y - sp.y) < .08;
-      if (!s.carry && ((c.src !== 'key' && c.down && !s.wasDown && near) || s.keyGrab)) { s.carry = 'stake'; s.keyGrab = false; A.sfx('stud', { gain: .6 }); }
+      const pr = In.takePress(), prNear = pr && pr.src !== 'key' && Math.hypot((pr.x - sp.x) * 1.6, pr.y - sp.y) < .08;
+      if (!s.carry && (prNear || s.keyGrab)) { s.carry = 'stake'; s.keyGrab = false; A.sfx('stud', { gain: .6 }); }
       if (s.carry === 'stake' && c.src !== 'key' && !c.down) s.carry = null;
       if (s.carry === 'stake') { const at = E.floorAt(c.x, c.y, 14); if (at) { s.stake.position.set(at.x, 14, at.z); s.stake.rotation.y = Math.atan2(-(at.z - 400), at.x - (-400)) * 0 - 0.4; } }
       const tip = this.tipWorld(ctx), inFire = Math.hypot(tip.x - s.fire.x, tip.z - s.fire.z) < 55;
@@ -85,7 +86,7 @@ OG.level({
     } else if (ctx.stage === 'rams') {
       // carrying men
       const pickable = s.men.filter(m => m.state === 'free');
-      if (!s.carry && ((c.src !== 'key' && c.down && !s.wasDown) || s.keyGrab)) { s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((c.x - q.x) * 1.6, c.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; A.sfx('stud', { gain: .5 }); } }
+      const pr = In.takePress(); if (!s.carry && ((pr && pr.src !== 'key') || s.keyGrab)) { const at = pr && pr.src !== 'key' ? pr : c; s.keyGrab = false; let best = null, bd = .08; for (const m of pickable) { const q = E.toScreen(m.rig.pos.clone().add(new THREE.Vector3(0, 40, 0))); const dd = Math.hypot((at.x - q.x) * 1.6, at.y - q.y); if (dd < bd) { bd = dd; best = m; } } if (best) { s.carry = best; best.state = 'carried'; A.sfx('stud', { gain: .5 }); } }
       if (s.carry && s.carry !== 'stake') { const m = s.carry, at = E.floorAt(c.x, c.y, 0); if (at) { m.rig.pos.set(E.clamp(at.x, -380, 380), 24, E.clamp(at.z, -380, 380)); }
         const ram = s.rams.filter(r => !r.man).sort((a, b) => a.g.position.distanceTo(m.rig.pos) - b.g.position.distanceTo(m.rig.pos))[0];
         if (ram) { const q = E.toScreen(ram.g.position.clone().add(new THREE.Vector3(0, 30, 0))); if (ram.g.position.distanceTo(new THREE.Vector3(m.rig.pos.x, 0, m.rig.pos.z)) < 70) H.ring(q.x, q.y, 20, '#7fe07a', { width: 3, label: 'UNDER THE RAM' }); }

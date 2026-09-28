@@ -54,9 +54,9 @@ OG.level({
         let x = at ? at.x : held.x, z = at ? at.z : held.z; const sl = s.slots.find(q => !s.filled.has(q.id) && q.part === held.part && (q.part !== '3003' || logsDone) && Math.hypot(q.x - x, q.z - z) < 50);
         if (sl) { x = sl.x; z = sl.z; const q = E.toScreen(new THREE.Vector3(sl.x, sl.y + 12, sl.z)); H.ring(q.x, q.y, 18, '#7fe07a', { width: 3 }); }
         E.carryAt(x, z);
-        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : false;
+        const release = c.src === 'hand' ? !c.down : c.src === 'mouse' ? !In.mouse.down : c.src === 'touch' ? false : false;
         if (release) this.drop(ctx);
-      } else if (c.down && !s.wasDown && c.src !== 'key') this.tryGrab(ctx, c);
+      } else { const pr = In.takePress(); if (pr && pr.src !== 'key') this.tryGrab(ctx, pr); }
       s.wasDown = c.down;
       // labels: the next place, the pile
       for (const p of S.parts) if (/^log|^step/.test(p.id) && !s.filled.has(p.id) && p.id !== E.carry.id) { const q = E.toScreen(E.partCenter(p.id)); const near = Math.hypot((c.x - q.x) * 1.6, c.y - q.y) < .07; if (near || p.id === this.nextPiece(ctx)) H.ring(q.x, q.y, near ? 16 : 11, near ? '#ffe28a' : 'rgba(255,226,138,.7)', { width: 2, label: near ? (p.part === '3003' ? 'MAST STEP' : 'TIMBER') : null }); }
