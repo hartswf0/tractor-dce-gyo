@@ -44,7 +44,7 @@
  "shots": [
   {
    "n": 1,
-   "at": 0.0,
+   "at": 0,
    "dur": 3.0,
    "kind": "BLACK",
    "key": null,
@@ -63,7 +63,7 @@
   {
    "n": 2,
    "at": 3.0,
-   "dur": 9.2,
+   "dur": 4.6,
    "kind": "SCENE",
    "scene": "OD-B09-S09",
    "key": "K1",
@@ -72,18 +72,120 @@
     "from": "K1",
     "move": {
      "type": "push",
-     "amount": 0.1,
+     "amount": 0.08,
      "ease": "inOut"
     }
    },
-   "action": "the giant asleep on his back in the firelight; odysseus stands at his shoulder, looking at the face",
+   "action": "the giant asleep on his back in the firelight; odysseus alone at his shoulder, small, looking at the face",
    "actors": [
     "polyphemus",
     "odysseus",
-    "four-stake-bearers-2",
     "bowl"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the fire the only source: the set's own lights down to 12%, the key's lamps replaced by one low warm point at the hearth"
+   },
+   "voice": null,
+   "sfx": [
+    "fire",
+    "snore"
+   ],
+   "card": null,
+   "why": "Scale: one small man beside a sleeping mountain, lit by one fire.",
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4"
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "at": 7.6,
+   "dur": 4.6,
+   "kind": "SCENE",
+   "scene": "OD-B09-S09",
+   "key": "K1",
+   "still": "../keyframes/OD-B09-S09/K1.png",
+   "camera": {
+    "from": "K1",
+    "move": {
+     "type": "push",
+     "amount": 0.2,
+     "ease": "inOut",
+     "note": "a steady creep in to his face through the line"
+    },
+    "override": {
+     "type": "orbit",
+     "around": "@polyphemus.brow",
+     "az": 5.35,
+     "r": 150,
+     "h": 120,
+     "target": [
+      35,
+      70,
+      -150
+     ],
+     "fov": 42,
+     "note": "not the gate's camera: K1 re-shot over the giant's shoulder (checked with --stills, round 2)"
+    }
+   },
+   "action": "over the giant's shoulder: odysseus in the firelight, his shadow huge on the wall behind him, gives his name",
+   "actors": [
+    "polyphemus",
+    "odysseus"
+   ],
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the fire the only source: the set's own lights down to 12%, the key's lamps replaced by one low warm point at the hearth"
+   },
    "voice": {
     "scene": "OD-B09-S08",
     "gi": 6,
@@ -100,17 +202,24 @@
     },
     "len": 2.61,
     "verified": "pocketsphinx forced alignment of the segment audio; free decode agrees with this text over the alternative",
-    "at": 5.9
+    "at": 1.3
    },
    "sfx": [
-    "fire",
-    "snore"
+    "fire"
    ],
    "card": null,
-   "why": "Scale and the one line: a small man beside a sleeping mountain, and his false name in the music's silence."
+   "why": "The one line, in the music's silence, on the man who says it: a frame within a frame (the giant's arm), his shadow the size of the giant.",
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4"
+    ]
+   }
   },
   {
-   "n": 3,
+   "n": 4,
    "at": 12.2,
    "dur": 3.7,
    "kind": "SCENE",
@@ -123,6 +232,14 @@
      "type": "push",
      "amount": 0.06,
      "ease": "inOut"
+    },
+    "override": {
+     "target": [
+      -23,
+      142,
+      -150
+     ],
+     "note": "K3 tilted up 22 LDU so the eye and the stake tip clear the letterbox"
     }
    },
    "action": "the four men drive the glowing stake into the eye; steam",
@@ -132,16 +249,42 @@
     "four-stake-bearers-1",
     "polyphemus"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the fire the only source: the set's own lights down to 12%, the key's lamps replaced by one low warm point at the hearth"
+   },
    "voice": null,
    "sfx": [
-    "hiss"
+    "hiss",
+    "fire"
    ],
    "card": null,
    "why": "The act, as the score swells."
   },
   {
-   "n": 4,
+   "n": 5,
    "at": 15.9,
    "dur": 4.7,
    "kind": "SCENE",
@@ -156,21 +299,59 @@
      "ease": "inOut"
     }
    },
-   "action": "polyphemus rears up, clutching the eye, roaring",
+   "action": "polyphemus rears up alone in the firelight, clutching the eye, roaring",
    "actors": [
     "polyphemus",
     "blood"
    ],
-   "look": null,
+   "look": {
+    "time": "night, firelight",
+    "dim": 0.12,
+    "exposure": 0.9,
+    "fill": {
+     "sky": "#26314a",
+     "ground": "#100a07",
+     "intensity": 0.16
+    },
+    "no_lights": true,
+    "lights": [
+     {
+      "at": [
+       -57,
+       45,
+       -28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ],
+    "note": "the fire the only source: the set's own lights down to 12%, the key's lamps replaced by one low warm point at the hearth"
+   },
    "voice": null,
    "sfx": [
-    "ROAR"
+    "ROAR",
+    "single low drum"
    ],
    "card": null,
-   "why": "The swell peaks on the roar."
+   "why": "The swell peaks on the roar.",
+   "stage": {
+    "hide_actors": [
+     "four-stake-bearers-1",
+     "four-stake-bearers-2",
+     "four-stake-bearers-3",
+     "four-stake-bearers-4",
+     "odysseus"
+    ]
+   },
+   "sfx_gain": {
+    "ROAR": 3
+   }
   },
   {
-   "n": 5,
+   "n": 6,
    "at": 20.6,
    "dur": 4.75,
    "kind": "SCENE",
@@ -180,10 +361,24 @@
    "camera": {
     "from": "K4",
     "move": {
-     "type": "crane",
-     "amount": 0.12,
-     "ease": "inOut",
-     "note": "up, past the giant into the night"
+     "type": "zoom",
+     "amount": -0.08,
+     "ease": "inOut"
+    },
+    "override": {
+     "type": "wide",
+     "pos": [
+      140,
+      30,
+      -40
+     ],
+     "target": [
+      -50,
+      165,
+      -190
+     ],
+     "fov": 70,
+     "note": "K4 from its own mark on a wider lens aimed higher: more night above him"
     }
    },
    "action": "outside, at night, the blinded giant lifts his hands to the sky",
@@ -215,10 +410,15 @@
     "thunder, far"
    ],
    "card": null,
-   "why": "The consequence, in the score's silence: he is calling his father."
+   "why": "The consequence, in the score's silence: he is calling his father.",
+   "stage": {
+    "hide_actors": [
+     "odysseus"
+    ]
+   }
   },
   {
-   "n": 6,
+   "n": 7,
    "at": 25.35,
    "dur": 4.65,
    "kind": "CARD",
@@ -263,5 +463,10 @@
   "voice": "odyssey-halfworld/drive/voice-manifest.json + drive/voice/<scene>.m4a (gi = index into drive-script.json scene segments)",
   "words": "the recorded words, verified per clip by forced alignment (see lines.json); DIALOGUE turns are spoken-lines.json unless the recording is the drive-script summary",
   "music": "odyssey-halfworld/audio/<album>/<file>; in/out in track seconds, at in trailer seconds; hit times measured from 10 ms RMS (see REFERENCE.md, music method)"
+ },
+ "grade": {
+  "letterbox": 2.39,
+  "vignette": 0.35,
+  "note": "the studio trailer is 2.39:1; the bars also take the cave set's open top and the floor clutter out of the frame"
  }
 }

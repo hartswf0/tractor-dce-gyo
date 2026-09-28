@@ -38,25 +38,26 @@ Hits placed on cuts:
 
 | time | picture | sound |
 |---|---|---|
-| 0:00.00 (6.30) | **KIT set.the-opening** · Olympus on its column of cloud bricks over Ithaca; the camera circles it like a photographer moving a tripod a stud at a time · camera orbit 0.12 | EPIC NARRATOR: “The gods take their places in a widening ring.” (OD-B01-S01 gi 1, 0.21–6.05) · sfx: choir swell (the score), a stud clicks as the camera steps |
+| 0:00.00 (6.30) | **KIT set.the-opening** · Olympus on its column of cloud bricks, the gods on their thrones; the camera circles it like a photographer moving a tripod a stud at a time · camera orbit 0.12 | EPIC NARRATOR: “The gods take their places in a widening ring.” (OD-B01-S01 gi 1, 0.21–6.05) · sfx: choir swell (the score), a stud clicks as the camera steps |
 | 0:06.30 (6.90) | **OD-B01-S01 K2** · zeus on his throne, lightning bolt raised, lectures the room · camera push 0.06 | ZEUS: “How mortals love to blame the gods for their sorrows.” (OD-B01-S01 gi 3, 0.13–6.57) · sfx: thunder, small and polite |
-| 0:13.20 (1.80) | **CARD** “MEANWHILE, DOWN HERE” | sfx: plates snapping on |
-| 0:15.00 (3.30) | **OD-B10-S01 K2** · aeolus holds out the knotted bag; odysseus takes it in both hands · camera push 0.05 | AEOLUS: “sewn shut with silver wire.” (OD-B10-S01 gi 3, 6.89–9.52) · sfx: wind straining inside a bag |
-| 0:18.30 (6.20) | **KIT set.bag-of-winds** · in the stern odysseus sleeps against the steering oar; behind him the crew lean over the bag and start on the knot · camera push 0.08 | EPIC NARRATOR: “The crew opens the bag, believing it contains treasure,” (OD-B10-S01 gi 5, 0.13–6.20) · sfx: snore, a knot creaks |
+| 0:13.20 (1.80) | **CARD** “MEANWHILE,
+DOWN HERE” | sfx: plates snapping on |
+| 0:15.00 (3.05) | **OD-B10-S01 K2** · aeolus holds out the knotted bag; odysseus takes it in both hands · camera push 0.05 | AEOLUS: “sewn shut with silver wire.” (OD-B10-S01 gi 3, 6.89–9.52) · sfx: wind straining inside a bag |
+| 0:18.05 (6.45) | **OD-B10-S01 K3** · dusk, Ithaca in sight: odysseus dozes on deck by the mast, the knotted bag at his feet · camera push 0.08 | EPIC NARRATOR: “The crew opens the bag, believing it contains treasure,” (OD-B10-S01 gi 5, 0.13–6.20) · sfx: snore, a knot creaks |
 | 0:24.50 (1.50) | **OD-B10-S01 K4** · the bag bursts: the winds come out as white flame elements, the sail tears | sfx: WHOOMPH, sail rips, crew yell |
 | 0:26.00 (4.80) | **OD-B10-S01 K1** · aeolus, on his floating island, points them away; odysseus at the rail, bedraggled | AEOLUS: “Out of my island — out, worst of living men!” (OD-B10-S01 gi 6, 0.15–4.83) · sfx: wind dying down |
 | 0:30.80 (6.10) | **OD-B10-S04 K3** · a scout with a pig's head raises both hands in horror; the pig beside him turns to look at him · camera push 0.04 | EPIC NARRATOR: “The men become pigs in body while retaining human minds.” (OD-B10-S04 gi 4, 0.13–6.17) · sfx: one oink, the scout's hands clack |
-| 0:36.90 (2.80) | **OD-B09-S09 K1** · odysseus, tiny, looks up at the drunk giant and answers him | ODYSSEUS: “Nobody is my name.” (OD-B09-S08 gi 6, 15.11–17.72) · sfx: fire, giant breathing |
-| 0:39.70 (6.00) | **OD-B09-S09 K1** · polyphemus raises the bowl, promises, and topples backwards asleep; the bowl rolls · camera push 0.1 | POLYPHEMUS: “I eat Nobody last, after all his friends.” (OD-B09-S09 gi 2, 13.21–19.10) · sfx: bowl clatters, THUD, snore |
+| 0:36.90 (2.80) | **OD-B09-S09 K1** · over the sleeping giant's arm: odysseus, small, lit by the fire, gives his name · camera push 0.12 | ODYSSEUS: “Nobody is my name.” (OD-B09-S08 gi 6, 15.11–17.72) · sfx: fire, giant breathing |
+| 0:39.70 (6.00) | **OD-B09-S09 K1** · close on the drunk giant's face, one eye in the firelight: he makes his promise and starts to snore · camera push 0.1 | POLYPHEMUS: “I eat Nobody last, after all his friends.” (OD-B09-S09 gi 2, 13.21–19.10) · sfx: bowl clatters, THUD, snore |
 | 0:45.70 (1.20) | **OD-B09-S09 K3** · the four men drive the stake into the eye | sfx: sizzle, squelch (a brick sound, not a wet one) |
-| 0:46.90 (1.50) | **OD-B09-S09 K4** · polyphemus rears up clutching his eye | sfx: ROAR |
+| 0:46.90 (1.50) | **OD-B09-S09 K4** · polyphemus rears up clutching his eye | sfx: ROAR, single low drum |
 | 0:48.40 (6.50) | **KIT set.cyclops-cave-headland** · the cave mouth from outside at night; the other Cyclopes gather at the stone and call in | CYCLOPES OUTSIDE: “If Nobody harms you, alone as you are, it is sickness sent by Zeus,” (OD-B09-S09 gi 7, 14.06–20.44) · sfx: crickets, giant footsteps |
 | 0:54.90 (1.60) | **OD-B09-S09 K4** · hold on polyphemus: he opens his mouth to explain, and does not | sfx: record scratch into silence · *no music* |
 | 0:56.50 (6.60) | **OD-B09-S11 K3** · odysseus on the stern, arm up, shouting; the crew behind him wave their hands at him to stop · camera push 0.05 | ODYSSEUS: “tell him this: it was Odysseus, sacker of cities, who blinded you” (OD-B09-S11 gi 4, 7.18–13.71) · sfx: waves, crew: "shhh" |
 | 1:03.10 (1.60) | **OD-B09-S11 K2** · polyphemus lifts the top off the mountain | sfx: rock tearing |
 | 1:04.70 (1.80) | **OD-B09-S11 K5** · the rock lands beside the ship; the splash stands up in white studs | sfx: SPLASH, crew scream |
-| 1:06.50 (3.40) | **OD-B02-S02 K2** · penelope at the loom in the sunlit hall, weaving, not looking at the suitors · camera push 0.04 | ANTINOUS: “All day she wove at that web,” (OD-B02-S02 gi 3, 15.08–18.22) · sfx: shuttle |
-| 1:09.90 (5.80) | **OD-B02-S02 K3** · night: penelope pulls the day's threads out, alone · camera push 0.04 | ANTINOUS: “she unraveled it thread by thread.” (OD-B02-S02 gi 3, 22.53–28.27) · sfx: thread drawn, torch |
+| 1:06.50 (3.40) | **OD-B02-S02 K2** · penelope at the loom as the day ends, weaving, not looking at the suitors · camera push 0.04 | ANTINOUS: “All day she wove at that web,” (OD-B02-S02 gi 3, 15.08–18.22) · sfx: shuttle |
+| 1:09.90 (5.80) | **OD-B02-S02 K3** · night: penelope alone at the loom by torchlight, pulling the day's threads out (the key's own night look) · camera push 0.04 | ANTINOUS: “she unraveled it thread by thread.” (OD-B02-S02 gi 3, 22.53–28.27) · sfx: thread drawn, torch |
 | 1:15.70 (5.20) | **OD-B17-S03 K2** · argos lifts his head on the pots; his ears drop; his tail thumps · camera push 0.05 | EPIC NARRATOR: “Argos lifts his head, drops his ears,” (OD-B17-S03 gi 2, 0.14–4.93) · sfx: tail thump on terracotta |
 | 1:20.90 (2.60) | **OD-B17-S03 K3** · the beggar turns aside and wipes his eye with the back of his hand | sfx: room tone |
 | 1:23.50 (1.20) | **OD-B21-S07 K4** · the arrow through the twelve axes | sfx: twelve ticks |
@@ -68,8 +69,9 @@ Hits placed on cuts:
 | 1:29.70 (1.00) | **OD-B22-S01 K3** · the table goes over, cups and all | sfx: clatter |
 | 1:30.70 (1.10) | **OD-B23-S04 K3** · penelope runs into his arms | — |
 | 1:31.80 (1.20) | **OD-B16-S03 K5** · father and son hug | — |
-| 1:33.00 (3.50) | **CARD** “THE ODYSSEY” | sfx: bricks snapping on, final click |
-| 1:36.50 (3.50) | **OD-B05-S05 K3** · the raft tips; odysseus, arms up, goes over | EPIC NARRATOR: “The raft rolls.” (OD-B05-S05 gi 3, 0.09–2.72) · sfx: splash, small · *no music* |
+| 1:33.00 (3.50) | **CARD** “THE
+ODYSSEY” | sfx: bricks snapping on, final click |
+| 1:36.50 (3.50) | **OD-B05-S05 K3** · close behind odysseus, arms up, as the raft rolls up over him · camera push 0.05 | EPIC NARRATOR: “The raft rolls.” (OD-B05-S05 gi 3, 0.09–2.72) · sfx: splash, small · *no music* |
 
 ## Why each shot
 
@@ -77,7 +79,7 @@ Hits placed on cuts:
 2. The king of the gods complaining about people: the first laugh is a character line, not a gag.
 3. A LEGO Movie card: the bricks build the words.
 4. Plant: the bag, and that it is shut.
-5. Set-up: the narrator says it perfectly straight, which is the joke.
+5. Set-up: the narrator says it perfectly straight over the sleeping hero and the bag, which is the joke; round 2: the filmed key (dusk into the next shot's night) replaces the kit, whose boat sat small on a black sweep
 6. Pay-off on the score's phrase hit.
 7. Wit: the host throws them out in one breath.
 8. Pigs-for-heads: the minifig head swapped for a pig head is the gag, played deadpan.
