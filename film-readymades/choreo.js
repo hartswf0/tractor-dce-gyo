@@ -136,7 +136,7 @@ function within(ch, base, v) { const c = CLAMP[ch]; if (!c) return v; const lo =
 function addRig(THREE, r, v, base) {
   const g = k => v[k] || 0;
   if (g('root.x') || g('root.y') || g('root.z')) { r.pos.set(r.pos.x + g('root.x'), r.pos.y + g('root.y'), r.pos.z + g('root.z')); r.figure.position.copy(r.pos); }
-  if (g('root.h') || g('root.pitch') || g('root.roll')) { const e = new THREE.Euler().setFromQuaternion(r.figure.quaternion, 'YXZ'); r.heading = e.y + g('root.h'); r.figure.rotation.set(e.x + g('root.pitch'), r.heading, e.z + g('root.roll'), 'YXZ'); }
+  if (g('root.h') || g('root.pitch') || g('root.roll')) { const e = new THREE.Euler().setFromQuaternion(r.figure.quaternion, 'YXZ'); r.figure.rotation.set(e.x + g('root.pitch'), e.y + g('root.h'), e.z + g('root.roll'), 'YXZ'); }   /* r.heading stays the blocking's: the cameras frame a figure by it, and a turn of the feet in the acting must not swing the camera */
   if (v['hips.dy'] != null && base.hipsY != null) r.hipsP.position.y = base.hipsY - v['hips.dy'];
   const T = r.torsoP.rotation; T.set(within('torso.lean', T.x, T.x + g('torso.lean')), -within('torso.twist', -T.y, -T.y + g('torso.twist')), -within('torso.roll', -T.z, -T.z + g('torso.roll')));
   const Hd = r.headP.rotation; Hd.set(within('head.pitch', Hd.x, Hd.x + g('head.pitch')), -within('head.yaw', -Hd.y, -Hd.y + g('head.yaw')), Hd.z);
