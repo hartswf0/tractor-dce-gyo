@@ -61,7 +61,10 @@ function Sheet() {
     for (const m of M) { const start = new Map(), ks = m.keys.map((k, i) => ({ k, i })).sort((a, b) => a.k.t - b.k.t || a.i - b.i).map(x => x.k);
       for (const { id, layer, t, vals, ease } of ks) for (const [ch, v0] of Object.entries(vals)) {
         if (v0 == null) continue; const L = lane(id, ch, layer);
-        let v = v0; if (typeof v0 === 'object') { const nm = id + ch + layer; if (!start.has(nm)) start.set(nm, valueAt(L, m.t0)); v = start.get(nm) + v0.rel; }
+        const nm = id + ch + layer;
+        if (!start.has(nm)) { const s0 = valueAt(L, m.t0); start.set(nm, s0);   /* the move takes the lane from where it is at the move's start */
+          while (L.length && L[L.length - 1][0] > m.t0 + 1e-6) L.pop(); if (!L.length || L[L.length - 1][0] < m.t0 - 1e-6) { if (!L.length && m.t0 > 0) L.push([0, 0]); L.push([m.t0, r3(s0)]); } }
+        let v = v0; if (typeof v0 === 'object') v = start.get(nm) + v0.rel;
         if (!isFinite(v)) continue;
         while (L.length && L[L.length - 1][0] > t + 1e-6) L.pop();
         const kk = ease && ease !== 'inOut' ? [t, r3(v), ease] : [t, r3(v)];
