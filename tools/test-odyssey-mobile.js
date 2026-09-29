@@ -99,11 +99,13 @@ async function frames(S, tag) {
   const ids = await S.page.evaluate(() => [...new Set(OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).map(i => i.id))]);
   check(ids.length === 102, `${tag} frames: the cut has 102 kept scenes`, ids.length + ' scenes');
   let flat = 0, shots = 0, faces = 0; const bad = [], faceBad = [], errs = [];
-  for (const id of ids) {
-    let r; try { r = await S.page.evaluate(async id => { window.OdysseyRenderGate = null; OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
+  const TMO = +opt('scene-timeout', 240) * 1000; let sn = 0;   /* a scene that does not plan and render within this fails fast instead of hanging the run */
+  for (const id of ids) { const ts = Date.now(); sn++;
+    let r; try { r = await Promise.race([S.page.evaluate(async id => { window.OdysseyRenderGate = null; OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
       const st = await OG.C.load(item); OG.C.st = st; const plan = OG.C.plan(item, st), out = []; const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); const hs = sh.head ? OG.E.toScreen(sh.head) : null; out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.pos.y + sh.from.pos.z + sh.from.look.x + sh.from.look.y + sh.from.look.z), head: hs ? [+hs.x.toFixed(2), +hs.y.toFixed(2), hs.behind] : null }); }
-      return out; }, id); } catch (e) { errs.push(id + ': ' + e.message.slice(0, 120)); continue; }
+      return out; }, id), sleep(TMO).then(() => { throw new Error('timed out after ' + TMO / 1000 + ' s'); })]); } catch (e) { errs.push(id + ': ' + e.message.slice(0, 120)); log(tag, 'frames:', sn + '/' + ids.length, id, 'FAILED', e.message.slice(0, 80)); continue; }
+    log(tag, 'frames:', sn + '/' + ids.length, id, r.length, 'shots', ((Date.now() - ts) / 1000).toFixed(1) + 's');
     if (!r.length) errs.push(id + ': no shots');
     shots += r.length; for (const [i, x] of r.entries()) { let why = null;
       if (x.u > .9 || !x.finite) { flat++; bad.push(`${id}#${i}(${x.kind} ${x.u})`); why = 'flat'; }
