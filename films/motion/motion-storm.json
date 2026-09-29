@@ -1,0 +1,80 @@
+{
+ "id": "motion-storm",
+ "title": "Poseidon's storm",
+ "register": "motion test (film-readymades/motion.js)",
+ "runtime": 4.0,
+ "idea": "Rank 25 (the storm at human scale), rank 2 (storm sea), rain and lightning fields.",
+ "music": [],
+ "silences": [],
+ "hits": [],
+ "shots": [
+  {
+   "dur": 4.0,
+   "scene": "OD-B05-S05",
+   "key": "K2",
+   "camera": {
+    "override": {
+     "type": "wide",
+     "pos": [
+      -260,
+      120,
+      300
+     ],
+     "target": [
+      10,
+      40,
+      40
+     ],
+     "fov": 46
+    },
+    "move": {
+     "type": "hold",
+     "wobble": 2
+    }
+   },
+   "action": "the raft in a storm: the sea at storm height with crests, rain in streaks splashing, Poseidon strikes and the lightning answers, Odysseus reels",
+   "motion": [
+    {
+     "actor": "poseidon",
+     "clip": "strike",
+     "at": 0.0,
+     "shake": false
+    },
+    {
+     "actor": "odysseus",
+     "clip": "reel-back-in-fear",
+     "at": 0.95
+    }
+   ],
+   "fields": [
+    {
+     "type": "sea",
+     "state": "storm",
+     "ride": [
+      {
+       "page": "raft",
+       "pitch": 8,
+       "heave": 0.8
+      }
+     ]
+    },
+    {
+     "type": "rain",
+     "count": 520
+    },
+    {
+     "type": "lightning",
+     "at": [
+      0.84,
+      2.6
+     ]
+    }
+   ],
+   "n": 1,
+   "at": 0,
+   "kind": "SCENE",
+   "voice": null,
+   "look": null
+  }
+ ]
+}

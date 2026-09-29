@@ -44,7 +44,7 @@ async function enter(sid){if(S&&S.sid===sid&&ButterFilms.current?.sourceId===S.l
       old.visible=false;r.headP.add(plain);S.heads.push({old,plain});
       const f=Face.attach(r,'halfworld:'+who,THREE);if(f){f.mesh.castShadow=false;f.mesh.receiveShadow=false;f.mesh.material.fog=true;S.faces.set(id,f);P.face=f;}}catch(e){console.warn('[trailer] no face for',id,e);}}
   return info();}
-function endScene(){if(!S)return;for(const h of S.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of S.faces.values())Face.detach(f);for(const a of ButterCast.cast)if(S.hips.has(a.rig))a.rig.hipsP.position.y=S.hips.get(a.rig);S=null;SH=null;}
+function endScene(){if(!S)return;/*[motion]*/if(SH&&SH.motion){SH.motion.dispose();SH.motion=null;}/*[/motion]*/for(const h of S.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of S.faces.values())Face.detach(f);for(const a of ButterCast.cast)if(S.hips.has(a.rig))a.rig.hipsP.position.y=S.hips.get(a.rig);S=null;SH=null;}
 function info(){return S&&{scene:S.sid,loc:S.loc,faces:[...S.faces.keys()],cast:ButterCast.cast.map(a=>short(a.kind)),keys:S.spec.keys.map(k=>k.id)};}
 
 /* ── the look: the key's, with the trailer's override laid over it ── */
@@ -61,7 +61,7 @@ function lookFor(k,ov,cam){const L=Object.assign({},S.spec.look||{},k.look||{});
 
 /* ── a shot: staged once, snapshotted; the camera's start read from the key's own rig ── */
 function snap(){const out=new Map();for(const a of ButterCast.cast){const r=a.rig,f=r.figure;out.set(a,{vis:f.visible,p:r.pos.clone(),h:r.heading,rot:f.rotation.clone(),j:Object.fromEntries(JOINTS.map(k=>[k,r[k].rotation.clone()]))});}return out;}
-async function shot(sh,o={}){if(!S)throw Error('no location');const k=S.spec.keys.find(q=>q.id===sh.key);if(!k)throw Error(S.sid+' has no key '+sh.key);const spec=S.spec;
+async function shot(sh,o={}){if(!S)throw Error('no location');/*[motion]*/if(SH&&SH.motion){SH.motion.dispose();SH.motion=null;}/*[/motion]*/const k=S.spec.keys.find(q=>q.id===sh.key);if(!k)throw Error(S.sid+' has no key '+sh.key);const spec=S.spec;
   const m0=performance.now();for(const a of S.hidden||[]){a.rig.figure.visible=true;a.rig.absent=false;}S.hidden=[];
   OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(spec.props||[]),...(k.props||[])]);OdysseyFilm.block(spec.blocking||[]);if(spec.spread)OdysseyFilm.spread(spec.spread);OdysseyFilm.block(k.blocking||[]);
   OdysseyFilm.propsAfter([...(spec.props||[]),...(k.props||[])]);
@@ -83,6 +83,8 @@ async function shot(sh,o={}){if(!S)throw Error('no location');const k=S.spec.key
   /* the move */
   const mv=(sh.camera&&sh.camera.move)||{type:'hold',amount:0,ease:'inOut'};
   SH={sh,k,cam,mv,pose,flick,speaker,env:{bg:scene.background,fog:scene.fog,tone:renderer.toneMapping,exp:renderer.toneMappingExposure,sh:renderer.shadowMap.enabled},fi:0};
+  /*[motion]*/ /* a shot that names motion, fields, swaps or optics (film-readymades/motion.js): staged on the snapshot, run every frame */
+  if(window.OdysseyMotion&&OdysseyMotion.named(sh))SH.motion=await OdysseyMotion.stage(sh,{scene,actorOf:id=>actorOf(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>short(a.kind)),scale:OdysseyFilm.asset().scale,cam,pieces:()=>OdysseyFilm.pieces(),host:'trailer'});/*[/motion]*/
   return {key:k.id,speaker,cam:{pos:cam.pos.toArray().map(v=>+v.toFixed(1)),target:cam.target.toArray().map(v=>+v.toFixed(1)),fov:+cam.fov.toFixed(1)},look:L,flicker:flick.length,ms:Math.round(performance.now()-m0)};}
 
 const EASE={linear:u=>u,in:u=>u*u,out:u=>1-(1-u)*(1-u),inOut:sm};
@@ -106,13 +108,15 @@ function pose(u){for(const a of ButterCast.cast){const s=SH.pose.get(a);if(!s)co
     const saved=r.seated;r.seated=true;   /* the blocking keeps the body; the performance plays on the face and the head */
     const v=Perform.apply(P,u);r.seated=saved;if(v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}}
 
-function frame(u,{quality=0.9}={}){if(!SH)throw Error('no shot');const m0=performance.now();const e=SH.env;scene.background=e.bg;scene.fog=e.fog;renderer.toneMapping=e.tone;renderer.toneMappingExposure=e.exp;renderer.shadowMap.enabled=e.sh;
+function frame(u,{quality=0.9}={}){if(!SH)throw Error('no shot');const m0=performance.now();/*[motion]*/const MO=SH.motion;if(MO)u=MO.time(u);let OV=null;/*[/motion]*/const e=SH.env;scene.background=e.bg;scene.fog=e.fog;renderer.toneMapping=e.tone;renderer.toneMappingExposure=e.exp;renderer.shadowMap.enabled=e.sh;
   pose(u);for(const F of SH.flick){const t=u*9+F.seed;F.l.intensity=F.i0*(1+0.10*Math.sin(t)*Math.sin(t*0.37+1)+0.06*Math.sin(t*2.3+F.seed));}
-  const c=camAt(u);OdysseyFilm.shoot({pos:c.pos.toArray(),target:c.target.toArray(),fov:c.fov});scene.updateMatrixWorld(true);
-  renderer.shadowMap.autoUpdate=false;if(SH.fi++===0)renderer.shadowMap.needsUpdate=true;
+  /*[motion]*/if(MO)OV=MO.frame(u);/*[/motion]*/
+  const c=camAt(u);/*[motion]*/if(OV&&OV.shake){const k=Math.floor(u*12);c.pos.add(new V3(Math.sin(k*12.9898)*OV.shake,Math.sin(k*78.233)*OV.shake*0.6,0));}/*[/motion]*/OdysseyFilm.shoot({pos:c.pos.toArray(),target:c.target.toArray(),fov:c.fov});scene.updateMatrixWorld(true);
+  renderer.shadowMap.autoUpdate=false;if(SH.fi++===0/*[motion]*/||MO/*[/motion]*/)renderer.shadowMap.needsUpdate=true;
   const m1=performance.now();orig(scene,camera);renderer.getContext().finish();const m2=performance.now();
   if(!comp)comp=document.createElement('canvas');comp.width=W;comp.height=H;const g=comp.getContext('2d');g.drawImage(renderer.domElement,0,0);
   const G=Object.assign({},TR.grade||{},SH.sh.grade||{});if(Object.keys(G).length)grade(g,G);
+  /*[motion]*/if(OV)OdysseyMotion.overlay(g,W,H,OV);/*[/motion]*/
   return {jpeg:comp.toDataURL('image/jpeg',quality).split(',')[1],ms:[m1-m0,m2-m1,performance.now()-m2].map(Math.round)};}
 /* an optional grade drawn over the frame: a vignette (0..1) and a colour wash, for a shot that asks */
 function grade(g,G){if(G.vignette){const r=g.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,H*0.95);r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,'+G.vignette+')');g.fillStyle=r;g.fillRect(0,0,W,H);}

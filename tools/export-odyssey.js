@@ -10,6 +10,9 @@
    node tools/export-odyssey.js OD-B01-S03 [--mode full|cut] [--fps 24] [--size 1280x720] [--out films/odyssey] [--crf 20]
         [--from s] [--to s] [--stills 5,20.5,44] [--chromium path] [--ffmpeg path]
    --stills renders only those times, as <out>/<scene>[-cut]-t<time>.jpg, for checking a take before a whole render.
+   --plan p.json  motion for the take (film-readymades/motion.js; the player must carry motion.js and the take's [motion] hooks,
+        film-readymades/patch_motion.py): {keys: {K2: {motion, fields, swaps, optical}}, transitions: [{type: fade|fade-out|dissolve|
+        double|past, at, dur}]}; a dissolve in a take crossfades from the frame held just before `at` (the take has one clock).
 
    Needs the repository served on :8899 (python3 -m http.server 8899), playwright on NODE_PATH, an ffmpeg with libx264 and aac
    (imageio-ffmpeg's). Writes <out>/<scene>[-cut].mp4, .jpg (poster), .vtt (captions), .json (the take's plan and timings). */
@@ -19,6 +22,7 @@ const args = process.argv.slice(2), sid = args.find(a => !a.startsWith('--') && 
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const mode = opt('mode', 'full'), fps = +opt('fps', 24), [W, H] = opt('size', '1280x720').split('x').map(Number), outDir = opt('out', 'films/odyssey'), crf = opt('crf', '20');
 const from = +opt('from', 0), to = opt('to', null), stills = opt('stills', null);
+/*[motion]*/ const plan = opt('plan', null) ? JSON.parse(fs.readFileSync(opt('plan'), 'utf8')) : null; /*[/motion]*/
 const ROOT = path.resolve(__dirname, '..'), URL_ = 'http://localhost:' + (process.env.PORT || 8899) + '/film-readymades/production/Film-Butter-Odyssey.html';
 const chromiumPath = opt('chromium', process.env.CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome');
 function ffmpegPath() { const o = opt('ffmpeg', process.env.FFMPEG); if (o) return o; try { return execFileSync('python3', ['-c', 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim(); } catch (e) { return 'ffmpeg'; } }
@@ -47,6 +51,18 @@ function renderSound(log, seconds) {
 const stamp = s => { const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = (s % 60).toFixed(3).padStart(6, '0'); return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + x; };
 function vtt(caps, seconds) { return 'WEBVTT\n\n' + caps.filter(c => c.t0 < seconds).map((c, i) => `${i + 1}\n${stamp(Math.max(0, c.t0))} --> ${stamp(Math.min(seconds, c.t1 + 0.4))}\n${c.name ? `<v ${c.name}>` : ''}${c.isLine ? '' : '<i>'}${c.text}${c.isLine ? '' : '</i>'}\n`).join('\n'); }
 
+/*[motion]*/ /* the take's optics: a frame inside a plan transition composited in the page (OdysseyMotion.composite) */
+const held = new Map();
+async function optics(page, t, jpeg) {
+  for (const tr of plan.transitions) { const a = tr.at || 0, d = tr.dur || 0.5, x = (t - a) / d, e = v => v * v * (3 - 2 * v); if (t < a || t >= a + d) continue;
+    if (tr.type === 'fade') jpeg = await page.evaluate(o => OdysseyMotion.composite(o), { op: 'fade', w: 1 - e(x), a: jpeg });
+    else if (tr.type === 'fade-out') jpeg = await page.evaluate(o => OdysseyMotion.composite(o), { op: 'fade', w: e(x), a: jpeg });
+    else if (tr.type === 'past') jpeg = await page.evaluate(o => OdysseyMotion.composite(o), { op: 'past', w: tr.amount ?? 1, a: jpeg });
+    else if (tr.type === 'dissolve' || tr.type === 'double') { if (!held.has(tr)) held.set(tr, (await page.evaluate(t => OdysseyTake.frame(t), a - 1 / fps)).jpeg);
+      jpeg = await page.evaluate(o => OdysseyMotion.composite(o), { op: tr.type, w: e(x), a: held.get(tr), b: jpeg, strength: tr.strength }); } }
+  return jpeg;
+}
+/*[/motion]*/
 (async () => {
   const { chromium } = require('playwright');
   const browser = await chromium.launch({ executablePath: chromiumPath, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--mute-audio', '--autoplay-policy=no-user-gesture-required'] });
@@ -61,7 +77,8 @@ function vtt(caps, seconds) { return 'WEBVTT\n\n' + caps.filter(c => c.t0 < seco
   say('location', loc, 'loaded');
   await page.evaluate(() => { document.body.classList.add('kf'); const st = document.createElement('style'); st.textContent = 'body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools{visibility:hidden!important}'; document.head.appendChild(st); });
   await page.waitForTimeout(800);
-  const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H });
+  /*[motion]*/ if (plan) { if (!(await page.evaluate(() => !!window.OdysseyMotion))) await page.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/motion.js'), 'utf8') }); } /*[/motion]*/
+  const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H, /*[motion]*/ motion: plan || undefined /*[/motion]*/ });
   say('follow', JSON.stringify(info.follow));say('take', info.scene, info.mode, info.total.toFixed(2), 's; keys', JSON.stringify(info.keys), '; faces', info.faces.join(','), '; shots', JSON.stringify(info.shots));
   if (stills) {
     for (const s of stills.split(',').map(Number)) { const r = await page.evaluate(t => OdysseyTake.frame(t, { quality: 0.92 }), s); const f = `${base}-t${s.toFixed(1)}.jpg`; fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', f, r.key, r.shot, 'ms apply/render/encode', r.ms.join('/')); }
@@ -71,7 +88,7 @@ function vtt(caps, seconds) { return 'WEBVTT\n\n' + caps.filter(c => c.t0 < seco
   const ff = spawn(FF, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-r', String(fps), '-movflags', '+faststart', video], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = '', drawn = 0; const shots = [];
   for (let i = 0; i < frames; i++) {
-    const t = from + i / fps, r = await page.evaluate(t => OdysseyTake.frame(t), t), buf = Buffer.from(r.jpeg, 'base64');
+    const t = from + i / fps, r = await page.evaluate(t => OdysseyTake.frame(t), t); /*[motion]*/ if (plan && plan.transitions) r.jpeg = await optics(page, t, r.jpeg); /*[/motion]*/ const buf = Buffer.from(r.jpeg, 'base64');
     if (!ff.stdin.write(buf)) await new Promise(res => ff.stdin.once('drain', res)); drawn++;
     if (r.shot !== last) { last = r.shot; shots.push({ t: +t.toFixed(3), shot: r.shot, kind: r.kind, key: r.key }); }
     if (i % 48 === 0) say('frame', i, 'of', frames, 't', t.toFixed(2), r.key, r.shot, 'wall', ((Date.now() - t0) / 60000).toFixed(1), 'min');
