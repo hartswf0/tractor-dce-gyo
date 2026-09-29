@@ -155,6 +155,7 @@ const WORDGEST = [[/^(give|hand|take)$/, 'reach'], [/^(come|follow|enter|welcome
 
 /* ═══════════════ the choreographer ═══════════════ */
 function generate(M, prev) {
+  const sid = M.scene;
   const S = Sheet(), B = Blocking(M), T = M.total, ids = B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis));
   const H = id => M.H[id] || 60, scale = M.scale || 1, notes = [], cues = [], props = [], rigs = {};
   const clips = M.clips.filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
@@ -519,6 +520,7 @@ async function probe(id, { marks = true } = {}) {
   return { before, after };
 }
 
+if (require.main !== module) { module.exports = { generate, density, loadClips, Blocking, voiceOf, THRESH }; return; }
 (async () => {
   if (!sid || !['probe', 'gen', 'density'].includes(cmd)) { console.log('node tools/choreograph.js probe|gen|density OD-Bxx-Syy [--mode cut]'); process.exit(1); }
   if (cmd === 'gen') { loadClips(); const M = JSON.parse(fs.readFileSync(path.join(OUT, 'marks', sid + '.json'), 'utf8')), f = path.join(OUT, sid + '.json');
