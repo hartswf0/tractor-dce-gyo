@@ -45,20 +45,29 @@ const pick = (R, a) => a[Math.floor(R() * a.length) % a.length];
 
 /* ═══════════════ the sheet being written: lanes of keys, one per channel@layer ═══════════════ */
 function Sheet() {
-  const actors = {};
+  /* the keys are gathered as moves (one gesture, one look, one nod: a call of a move below) and written at the end in the order the
+     moves start, so a move that starts later truncates what an earlier move left on the same lane after it (a gesture interrupted
+     is how a chain of gestures reads), whatever order the choreographer thought of them in. A value may be {rel: d}: the lane's own
+     value where the move starts, plus d (a move that starts from wherever the channel is). */
+  const actors = {}, moves = [], stack = [];
   const lane = (id, ch, layer) => { const A = actors[id] || (actors[id] = { channels: {} }), k = ch + '@' + layer; return A.channels[k] || (A.channels[k] = []); };
-  /* a key at t: a later-scheduled key earlier than what is written truncates it (the new move starts from wherever the old one
-     had got to: a gesture interrupted is how a chain of gestures reads) */
-  function key(id, layer, t, vals, ease) {
-    t = Math.max(0, q(t));
-    for (const [ch, v] of Object.entries(vals)) { if (v == null || !isFinite(v)) continue; const L = lane(id, ch, layer);
-      while (L.length && L[L.length - 1][0] > t + 1e-6) L.pop();
-      const k = ease && ease !== 'inOut' ? [t, r3(v), ease] : [t, r3(v)];
-      if (L.length && Math.abs(L[L.length - 1][0] - t) < 1e-6) L[L.length - 1] = k; else { if (!L.length && t > 0) L.push([0, 0]); L.push(k); } }
-  }
-  /* the value a lane holds at t (for a move that must start from where the lane is) */
-  function at(id, ch, layer, t) { const A = actors[id]; const L = A && A.channels[ch + '@' + layer]; return L ? (Choreo.sampleKeys(L, t, ch) || 0) : 0; }
-  return { actors, key, at, lane };
+  function key(id, layer, t, vals, ease) { t = Math.max(0, q(t)); const k = { id, layer, t, vals, ease };
+    if (stack.length) stack[stack.length - 1].keys.push(k); else moves.push({ keys: [k], n: moves.length }); }
+  const begin = () => { const m = { keys: [], n: moves.length }; moves.push(m); stack.push(m); }, end = () => stack.pop();
+  const rel = d => ({ rel: d || 0 }), at = () => rel(0);
+  function valueAt(L, t) { return L.length ? Choreo.sampleKeys(L, t, '') : 0; }
+  function write() {
+    const M = moves.filter(m => m.keys.length).map(m => ({ ...m, t0: Math.min(...m.keys.map(k => k.t)) })).sort((a, b) => a.t0 - b.t0 || a.n - b.n);
+    for (const m of M) { const start = new Map(), ks = m.keys.map((k, i) => ({ k, i })).sort((a, b) => a.k.t - b.k.t || a.i - b.i).map(x => x.k);
+      for (const { id, layer, t, vals, ease } of ks) for (const [ch, v0] of Object.entries(vals)) {
+        if (v0 == null) continue; const L = lane(id, ch, layer);
+        let v = v0; if (typeof v0 === 'object') { const nm = id + ch + layer; if (!start.has(nm)) start.set(nm, valueAt(L, m.t0)); v = start.get(nm) + v0.rel; }
+        if (!isFinite(v)) continue;
+        while (L.length && L[L.length - 1][0] > t + 1e-6) L.pop();
+        const kk = ease && ease !== 'inOut' ? [t, r3(v), ease] : [t, r3(v)];
+        if (L.length && Math.abs(L[L.length - 1][0] - t) < 1e-6) L[L.length - 1] = kk; else { if (!L.length && t > 0) L.push([0, 0]); L.push(kk); } } }
+    moves.length = 0; }
+  return { actors, key, at, rel, begin, end, write, lane };
 }
 
 /* ═══════════════ the take as the page reads it (marks): the blocking at any t ═══════════════ */
@@ -75,7 +84,7 @@ function Blocking(M) {
     const u = cl((t - w.win[0]) / (w.win[1] - w.win[0]), 0, 1);
     if (!m) { const s = u < 0.5 ? (A || B) : B; return { ...s, walk: 0, moving: false, key: w.id }; }
     const a = A || B, H = M.H[id] || 60, r0 = a.sat ? 0.22 : 0, s0 = B.sat ? 0.22 : 0, span = Math.max(0.05, 1 - r0 - s0);
-    const out = { vis: u < 0.5 ? a.vis : B.vis, sat: false, rot: [lerp(a.rot[0], B.rot[0], u), lerp(a.rot[1], B.rot[1], u)], j: B.j, walk: 0, moving: true, key: w.id, u, win: w.win };
+    const out = { vis: u < 0.5 ? a.vis : B.vis, sat: !!(a.sat && B.sat && !m.walk), rot: [lerp(a.rot[0], B.rot[0], u), lerp(a.rot[1], B.rot[1], u)], j: B.j, walk: 0, moving: true, key: w.id, u, win: w.win };
     if (u < r0) { out.p = a.p; out.h = a.h; out.sat = true; }
     else if (u > 1 - s0) { out.p = B.p; out.h = B.h; out.sat = true; }
     else { const v = (u - r0) / span, e = m.walk ? v * v * (3 - 2 * v) * 0.25 + v * 0.75 : sm(v);
@@ -158,6 +167,10 @@ function generate(M, prev) {
   const heldR = id => (M.held[id] || {}).R > 0, heldL = id => (M.held[id] || {}).L > 0;
   const name = id => id.replace(/-\d+$/, '');
   const verbsOf = txt => String(txt || '').toLowerCase();
+  /* every move below is one move of the sheet (see Sheet) */
+  const W = f => (...a) => { S.begin(); try { return f(...a); } finally { S.end(); } };
+  look = W(look); glance = W(glance); nod = W(nod); gesture = W(gesture); beat = W(beat); reach = W(reach); loopClip = W(loopClip); singLoop = W(singLoop);
+  waiting = W(waiting); doubleTake = W(doubleTake); strain = W(strain); waxing = W(waxing); pullRope = W(pullRope); search = W(search); drink = W(drink); laugh = W(laugh); hit = W(hit); leap = W(leap); walk = W(walk); dice = W(dice);
 
   /* ── 1. breath: the whole scene, every figure; the phases staggered so a crowd does not breathe as one ── */
   for (const id of ids) { const R = rng(sid + id + 'breath'), P = 3.0 + R() * 1.3; let t = R() * P, up = true;
@@ -184,7 +197,7 @@ function generate(M, prev) {
     const wordAt = new Map(); for (const w of V.words) for (const [re, g] of WORDGEST) if (re.test(w.w)) { const st = V.stresses.find(s => Math.abs(s.t - w.t) < 0.45); wordAt.set(q(st ? st.t : w.t), { g, w: w.w }); break; }
     for (const p of V.phrases) {
       const st = V.stresses.filter(s => s.t >= p.t0 - 0.05 && s.t <= p.t1 + 0.05); if (!st.length) st.push({ t: p.t0 + 0.2, v: 0.6 });
-      st.forEach((s, k) => { if (used.some(u => Math.abs(u - s.t) < 0.5)) return; used.push(s.t);
+      st.forEach((s, k) => { if (used.some(u => Math.abs(u - s.t) < 0.5)) return; if (busy[id].some(([a, b, w]) => w === 'reach' && s.t > a && s.t < b)) { nod(id, s.t, 0.05); return; } used.push(s.t);
         const w = [...wordAt.entries()].find(([t]) => Math.abs(t - s.t) < 0.3);
         if (w && w[1].g === 'reach') { reach(id, ad, s.t, 1.4); cue(s.t, id, '"' + w[1].w + '": reach'); return; }
         if (w && GEST[w[1].g] && !(w[1].g === 'point' && emo === 'tenderness')) { gesture(id, w[1].g, s.t, side, 0.9, 0.5 + 0.3 * R(), ad); cue(s.t, id, '"' + w[1].w + '": ' + w[1].g); return; }
@@ -239,8 +252,7 @@ function generate(M, prev) {
     S.key(id, layer, t0 + 2 / F + dur, { 'torso.twist': twist }, 'inOut');
     if (!lying && !sat) { S.key(id, layer, t0 + 4 / F, { 'root.h': S.at(id, 'root.h', layer, t0 + 4 / F) }, 'inOut'); S.key(id, layer, t0 + 4 / F + dur + 0.2, { 'root.h': turnFeet * 0.95 }, 'inOut'); }
   }
-  function glance(id, t, aw, hold) { const s = B.at(id, t); if (!s || !s.vis || (s.moving && s.walk > 0.2)) return; const h0 = S.at(id, 'head.yaw', 'look', t);
-    S.key(id, 'look', t, { 'head.yaw': h0 }, 'inOut'); S.key(id, 'look', t + 0.25, { 'head.yaw': h0 + aw, 'head.pitch': 0.05 }, 'out'); S.key(id, 'look', t + 0.25 + Math.max(0.2, hold - 0.3), { 'head.yaw': h0 + aw * 0.8, 'head.pitch': 0.03 }, 'linear'); }
+  function glance(id, t, aw, hold) { const s = B.at(id, t); if (!s || !s.vis || (s.moving && s.walk > 0.2)) return; S.key(id, 'look', t, { 'head.yaw': S.rel(0) }, 'inOut'); S.key(id, 'look', t + 0.25, { 'head.yaw': S.rel(aw), 'head.pitch': 0.05 }, 'out'); S.key(id, 'look', t + 0.25 + Math.max(0.2, hold - 0.3), { 'head.yaw': S.rel(aw * 0.8), 'head.pitch': 0.03 }, 'linear'); }
   function nod(id, t, a, dbl) { const s = B.at(id, t); if (!s || !s.vis) return;
     S.key(id, 'react', t - 1 / F, { 'head.pitch': -0.03 }, 'out'); S.key(id, 'react', t + 2 / F, { 'head.pitch': a }, 'out'); S.key(id, 'react', t + 5 / F, { 'head.pitch': dbl ? 0.01 : 0 }, 'inOut');
     if (dbl) { S.key(id, 'react', t + 7 / F, { 'head.pitch': a * 0.7 }, 'out'); S.key(id, 'react', t + 10 / F, { 'head.pitch': 0 }, 'inOut'); } }
@@ -259,7 +271,7 @@ function generate(M, prev) {
     S.key(id, L, t0 + 1 / F, Object.fromEntries(sides.map(x => [ch(x) + '.pitch', 0.18 * a]).concat([['torso.lean', -0.04 * a], ['head.pitch', -0.03]])), 'out');
     /* head leads */
     S.key(id, L, t - 1 / F, { 'head.pitch': G.hp * a }, 'out');
-    if (G.turn) S.key(id, 'look', t, { 'head.yaw': S.at(id, 'head.yaw', 'look', t) + G.turn }, 'out');
+    if (G.turn) S.key(id, 'look', t, { 'head.yaw': S.rel(G.turn) }, 'out');
     /* the strike */
     for (const x of sides) { const pv = Math.max(cap, G.arm.pitch * a), ov = G.arm.out * a * (cap > -1 ? 1.4 : 1);
       S.key(id, L, tp, { [ch(x) + '.pitch']: pv, [ch(x) + '.out']: ov }, G.ease || 'out');
@@ -279,8 +291,8 @@ function generate(M, prev) {
     for (const x of sides) S.key(id, L, tr + 3 / F, { ['hand.' + x + '.roll']: 0 }, 'inOut');
   }
   /* a small beat: the hand bounces on a stress, the head with it */
-  function beat(id, t, side, a) { const s = B.at(id, t); if (!s || !s.vis || B.lying(s) || (s.moving && s.walk > 0.2)) return; const L = 'beat', c = 'arm.' + side + '.pitch', v = S.at(id, c, L, t - 2 / F);
-    S.key(id, L, t - 2 / F, { [c]: v - 0.12 * a }, 'out'); S.key(id, L, t + 1 / F, { [c]: v + 0.22 * a, 'head.pitch': 0.05 * a }, 'in'); S.key(id, L, t + 4 / F, { [c]: v, 'head.pitch': 0 }, 'out'); }
+  function beat(id, t, side, a) { const s = B.at(id, t); if (!s || !s.vis || B.lying(s) || (s.moving && s.walk > 0.2)) return; const L = 'beat', c = 'arm.' + side + '.pitch';
+    S.key(id, L, t - 2 / F, { [c]: S.rel(-0.12 * a) }, 'out'); S.key(id, L, t + 1 / F, { [c]: S.rel(0.22 * a), 'head.pitch': 0.05 * a }, 'in'); S.key(id, L, t + 4 / F, { [c]: S.rel(0), 'head.pitch': 0 }, 'out'); }
   /* a reach toward someone (give me your spear): the arm out to the partner at the shoulder's height, held, back */
   function reach(id, to, t, hold) { const s = B.at(id, t); if (!s || !s.vis) return; const side = heldL(id) ? 'R' : 'L';
     look(id, to, t - 0.3, 'look', {});
@@ -310,11 +322,11 @@ function generate(M, prev) {
     const ez = e => e === 'hold' ? 'step' : e === 'snap' ? 'step' : e === 'smear' ? 'in' : (e || 'inOut');
     let t = t0 + (o.phase || 0) % len; const first = C.keys[0];
     S.key(id, 'act', Math.max(0, t0 - 0.3), Object.fromEntries(Object.keys(val(0, first.pose, first.root)).map(k => [k, 0])), 'inOut');
-    let n = 0; const prevVals = {};
+    let n = 0; const prevVals = {}, wrote = new Set();
     do { for (const k of C.keys) { const tk = t + k.f / 12; if (tk > until + 0.01) break; const v = val(k, Object.assign(prevVals.pose || {}, k.pose), Object.assign(prevVals.root || {}, k.root));
-        prevVals.pose = Object.assign({}, prevVals.pose, k.pose); prevVals.root = Object.assign({}, prevVals.root, k.root); S.key(id, 'act', tk, v, ez(k.ease)); }
+        prevVals.pose = Object.assign({}, prevVals.pose, k.pose); prevVals.root = Object.assign({}, prevVals.root, k.root); Object.keys(v).forEach(x => wrote.add(x)); S.key(id, 'act', tk, v, ez(k.ease)); }
       t += len; n++; } while (C.loop && t < until && n < 400);
-    if (o.release !== false) { const zero = {}; for (const L of Object.keys(S.actors[id].channels)) if (L.endsWith('@act')) zero[L.split('@')[0]] = 0; S.key(id, 'act', Math.min(T, until + 0.5), zero, 'inOut'); }
+    if (o.release !== false) { const zero = {}; for (const x of wrote) zero[x] = 0; S.key(id, 'act', Math.min(T, until + 0.5), zero, 'inOut'); }
     occupy(id, t0, until, nameC); cue(t0, id, o.why || nameC); return true; }
   /* the sirens sing: a slow sway from the hips, the arms opening and closing on the long notes, the heads tilting toward the ship */
   function singLoop(id, t0, t1) { const R = rng(sid + id + 'sing'), P = 2.2 + R() * 0.8; let t = t0 + R() * P, k = 0;
@@ -419,10 +431,10 @@ function generate(M, prev) {
       if (!s || !s.vis || B.lying(s) || (s.moving && s.walk > 0.1) || isBusy(id, t, t + len)) { t += 0.5; continue; }
       const sat = s.sat, nb = near(id, t, 6)[0], k = Math.floor(R() * 4);
       if (/suitor/.test(n) && sat) { if (k === 0) drink(id, t); else if (k === 1) laugh(id, t); else if (nb) { look(id, nb, t, 'look', {}); gesture(id, pick(R, ['open', 'chop', 'dismiss']), t + 0.5, 'R', 0.7, 0.6, nb); look(id, null, t + len - 0.3, 'look', {}); } else drink(id, t); }
-      else if (/servant|maid|herald|handmaid/.test(n)) { const u = k % 2 ? 1 : -1;   /* work: the jar lifted, poured, set down; a turn to the next table */
+      else if (/servant|maid|herald|handmaid/.test(n)) { const u = k % 2 ? 1 : -1; S.begin();   /* work: the jar lifted, poured, set down; a turn to the next table */
         S.key(id, 'work', t, { 'arm.R.pitch': S.at(id, 'arm.R.pitch', 'work', t), 'torso.lean': S.at(id, 'torso.lean', 'work', t), 'root.h': S.at(id, 'root.h', 'work', t) }, 'inOut');
         S.key(id, 'work', t + 0.5, { 'arm.R.pitch': -0.9, 'arm.L.pitch': -0.7, 'torso.lean': 0.16 }, 'inOut'); S.key(id, 'work', t + 1.1, { 'arm.R.pitch': -1.3, 'arm.L.pitch': -0.9, 'torso.lean': 0.06, 'hand.R.roll': 0.5 * u }, 'inOut');
-        S.key(id, 'work', t + 1.7, { 'arm.R.pitch': -0.4, 'arm.L.pitch': -0.3, 'torso.lean': 0.02, 'hand.R.roll': 0, 'root.h': 0.35 * u }, 'inOut'); S.key(id, 'work', t + len, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'root.h': 0.25 * u }, 'inOut'); }
+        S.key(id, 'work', t + 1.7, { 'arm.R.pitch': -0.4, 'arm.L.pitch': -0.3, 'torso.lean': 0.02, 'hand.R.roll': 0, 'root.h': 0.35 * u }, 'inOut'); S.key(id, 'work', t + len, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'root.h': 0.25 * u }, 'inOut'); S.end(); }
       else if (/crew|oars/.test(n)) { /* rowing covers them; else they talk to the next man */ if (nb) { look(id, nb, t, 'look', {}); beat(id, t + 0.5, 'L', 0.8); look(id, null, t + len - 0.3, 'look', {}); } }
       else { /* the principals between their lines, and anyone else: a look round, a word to the nearest, the weight moved */
         if (nb && k < 2) { look(id, nb, t, 'look', {}); if (!sat) gesture(id, 'open', t + 0.6, heldR(id) ? 'L' : 'R', 0.55, 0.5, nb); look(id, null, t + len - 0.4, 'look', {}); }
@@ -443,6 +455,7 @@ function generate(M, prev) {
     notes.push('the ship ' + ship.label + ' pitches, rolls and heaves; its riders go with it'); }
 
   /* the sheet */
+  S.write();
   const actors = {}; for (const id of ids) { const A = S.actors[id]; if (!A) continue; const ch = {};
     for (const [k, L] of Object.entries(A.channels).sort()) { const keys = L.filter((x, i) => i === 0 || x[0] > L[i - 1][0] - 1e-9); if (keys.length > 1 || (keys[0] && keys[0][1] !== 0)) ch[k] = keys; }
     actors[id] = { channels: ch, H: r3(H(id)) }; }

@@ -181,6 +181,12 @@ WATCH = [
      "Nobody's Hands, with your hands", 'The same game played with Hand Butter: your hands on the camera, or mouse and keys.'),
     ('../../films/odyssey/OD-B01-S03-cut.mp4', '../../films/odyssey/OD-B01-S03-cut.jpg', 'Film · voiced scene',
      'Athena at the gate', 'The first voiced scene of the LEGO film, 44 seconds: Telemachus welcomes the stranger. The halfworld recordings, faces, lip sync, cutting and the book\'s music.'),
+    ('../../films/odyssey/OD-B01-S03-acted.mp4', '../../films/odyssey/OD-B01-S03-acted.jpg', 'Film · acted scene',
+     'Athena at the gate, acted', 'The same cut with the choreography: Telemachus sees her, rises, crosses, welcomes her and takes her spear; everyone else feasts, pours and watches.'),
+    ('../../films/odyssey/OD-B22-S01-acted.mp4', '../../films/odyssey/OD-B22-S01-acted.jpg', 'Film · acted scene',
+     'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
+    ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
+     'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
     ('../../films/odyssey/OD-B01-S03.mp4', '../../films/odyssey/OD-B01-S03.jpg', 'Film · voiced scene',
      'Athena at the gate, the long take', 'The same scene before the cut.'),
     ('../../films/trailers/teaser.mp4', '../../films/trailers/teaser.jpg', 'Teaser', 'Nobody (teaser)', 'Thirty seconds, one idea, one line.'),
@@ -276,6 +282,7 @@ def hub(kits, frames):
   <ul class="links">
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
     <li><a href="../trailers/index.html">The trailers</a>: three options and a teaser with voice and sound (films/trailers/*.mp4), each through three rounds of review</li>
+    <li><a href="../choreo/index.html">The dope sheet</a>: every figure's servos keyed on the voice clock (tools/choreograph.js), over the rendered scene, with the acting density before and after</li>
     <li><a href="cineosis.html">Cineosis</a>: every scene of the cut read by Deleuze's cinematic signs, and the moving images the film still has to master</li>
     <li><a href="integration.html">Left on the table</a>: the three film stacks that do not yet talk, and the joins that make them one film</li>
     <li><a href="cut.html">The regulars' cut</a>: the film from 164.6 minutes to 83.9, scene by scene, with nothing longer than four minutes between set pieces</li>
