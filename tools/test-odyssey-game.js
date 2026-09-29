@@ -9,7 +9,8 @@
            (each book's first scene staged on its Butter card and photographed first), every trial solved with synthetic
            hands, bridges passed; asserts every book is reached and marked sailed.
    Usage: node tools/test-odyssey-game.js [--levels] [--spine] [--only 03-cyclops,04-bow] [--mode hand|mouse|both] [--no-loss]
-          [--books 1-24] [--speed 3]
+          [--books 1-24] [--speed 3] [--frames] [--frame-scenes id,...] [--scene-timeout 240]  (frames: one log line per scene; a scene
+          that does not plan and render within the timeout fails instead of holding the run)
    Needs: the http server on :8899 serving this repository; chromium at /opt/pw-browsers/chromium-1194; playwright (NODE_PATH). */
 'use strict';
 const path = require('path'), fs = require('fs');
@@ -154,11 +155,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     let flat = 0, shots = 0, faces = 0; const bad = [], faceBad = [];
     const list = opt('frame-scenes') ? opt('frame-scenes').split(',') : ids;
     let curId = ''; if (has('frame-shots')) await page.exposeFunction('__shotEach', i => shot('frame-' + curId + '-' + i));
-    for (const id of list) { curId = id;
-      const r = await page.evaluate(async id => { window.OdysseyRenderGate = null; OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
+    const TMO = +opt('scene-timeout', 240) * 1000; let sn = 0;   /* a scene that does not plan and render within this fails fast instead of hanging the run */
+    for (const id of list) { curId = id; const ts = Date.now(); sn++;
+      const r = await Promise.race([page.evaluate(async id => { window.OdysseyRenderGate = null; OdysseyGame.chart(); OG.M.hide(); OG.G.phase = 'probe'; const item = OG.ST.story.books.flatMap(b => b.items.flatMap(i => i.type === 'scene' ? [i] : i.type === 'level' ? i.covers : [])).find(i => i.id === id);
         const st = await OG.C.load(item); OG.C.st = st; const plan = OG.C.plan(item, st), out = []; const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         for (const sh of plan) { OG.E.setCamera(sh.from.pos.toArray(), sh.from.look.toArray(), { fov: sh.from.fov }); await frame(); await frame(); if (window.__shotEach) await window.__shotEach(out.length); const hs = sh.head ? OG.E.toScreen(sh.head) : null; out.push({ kind: sh.kind, u: +OG.C.uniformity().toFixed(3), finite: Number.isFinite(sh.from.pos.x + sh.from.look.y), head: hs ? [+hs.x.toFixed(2), +hs.y.toFixed(2), hs.behind] : null }); }
-        return out; }, id);
+        return out; }, id), sleep(TMO).then(() => null)]);
+      if (!r) { flat++; bad.push(`${id}(timed out after ${TMO / 1000}s)`); log('frames:', sn + '/' + list.length, id, 'TIMED OUT'); continue; }
+      log('frames:', sn + '/' + list.length, id, r.length, 'shots', ((Date.now() - ts) / 1000).toFixed(1) + 's');
       shots += r.length; for (const [i, x] of r.entries()) { if (x.u > .9 || !x.finite) { flat++; bad.push(`${id}#${i}(${x.kind} ${x.u})`); await shot('flat-' + id + '-' + i); }
         if (x.head) { faces++; const [hx, hy, behind] = x.head; if (behind || hx < 0 || hx > 1 || hy < 0 || hy > .5) { faceBad.push(`${id}#${i}(${x.kind} head ${hx},${hy})`); } } }
     }

@@ -59,7 +59,39 @@ else if (mode === 'animatic') {
   const N = Math.round(doc.runtime * fps);
   for (let i = 0; i < N; i++) { const t = i / fps, s = shotAt(t + 1e-6); if (onlyShots && !onlyShots.has(s.n)) continue; jobs.push({ i, t, shot: s, u: t - s.at, file: path.join(frames, `f${String(i).padStart(5, '0')}.jpg`) }); }
 }
-const todo = jobs.filter(j => !(resume && fs.existsSync(j.file)));
+/*[motion]*/ /* optics (film-readymades/motion.js): a shot's `transition` {type: dissolve|double|fade, dur} in from the shot before, and its
+   `transition_out` {type: fade, dur} to black. A frame inside one is drawn as layers (the outgoing shot run on past its end, the
+   incoming at its head) into <frames>/layers and composited after; a film that names no optics draws exactly the jobs it did. */
+const { draws, comps } = optics(jobs);
+function optics(jobs) {
+  if (mode === 'animatic' || !doc.shots.some(s => s.transition || s.transition_out)) return { draws: jobs, comps: [] };
+  const byAt = [...doc.shots].sort((a, b) => a.at - b.at), prevOf = s => byAt[byAt.indexOf(s) - 1] || null, L = path.join(frames, 'layers'); fs.mkdirSync(L, { recursive: true });
+  const nOf = tr => Math.max(1, Math.round(tr.frames || (tr.dur || 0.5) * fps)), ease = x => x * x * (3 - 2 * x), wAt = (k, n) => ease((k + 0.5) / n);
+  const draws = [], comps = [];
+  for (const j of jobs) {
+    const s = j.shot, tr = s.transition, to = s.transition_out, prev = prevOf(s), layer = (sh, u, tag) => ({ t: j.t, i: j.i, shot: sh, u, file: path.join(L, path.basename(j.file).replace(/\.jpg$/, '-' + tag + '.jpg')), final: j.file });
+    let c = null;
+    if (tr && (tr.type === 'dissolve' || tr.type === 'double') && prev && prev.kind !== 'KIT' && s.kind !== 'KIT') { const n = nOf(tr), k = Math.floor(j.u * fps + 1e-6);
+      if (k < n) c = { job: j, op: tr.type, w: wAt(k, n), strength: tr.strength, resolve: tr.resolve, a: layer(prev, j.t - prev.at, 'out'), b: layer(s, j.u, 'in') }; }
+    if (!c && tr && (tr.type === 'fade' || tr.type === 'black')) { const n = nOf(tr), k = Math.floor(j.u * fps + 1e-6); if (k < n) c = { job: j, op: 'fade', w: 1 - wAt(k, n), a: layer(s, j.u, 'in') }; }
+    if (!c && to && (to.type === 'fade' || to.type === 'black')) { const n = nOf(to), k = Math.floor((s.dur - j.u) * fps - 1e-6); if (k < n) c = { job: j, op: 'fade', w: 1 - wAt(k, n), a: layer(s, j.u, 'in') }; }
+    if (!c) { draws.push(j); continue; }
+    comps.push(c); draws.push(c.a); if (c.b) draws.push(c.b);
+  }
+  say('optics:', comps.length, 'frames composited');
+  return { draws, comps };
+}
+async function composite(browser) {
+  if (!comps.length) return;
+  const cp = await browser.newPage(); const THREE_DIR = path.dirname(require.resolve('three/package.json'));
+  await cp.addScriptTag({ path: path.join(THREE_DIR, 'build/three.min.js') }); await cp.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/motion.js'), 'utf8') });
+  for (const c of comps) { if (resume && fs.existsSync(c.job.file) && !fs.existsSync(c.a.file)) continue; const rd = f => fs.readFileSync(f).toString('base64');
+    const out = await cp.evaluate(o => OdysseyMotion.composite(o), { op: c.op, w: c.w, strength: c.strength, resolve: c.resolve, a: rd(c.a.file), b: c.b ? rd(c.b.file) : null, quality: 0.92 });
+    fs.writeFileSync(c.job.file, Buffer.from(out, 'base64')); }
+  await cp.close(); say('composited', comps.length, 'frames');
+}
+/*[/motion]*/
+const todo = draws.filter(j => !(resume && fs.existsSync(j.final || j.file)));
 say(tid, mode, `${W}x${H}`, mode === 'full' ? fps + ' fps' : '', jobs.length, 'frames,', todo.length, 'to draw');
 
 /* the voice clip's envelope (world/face.js envelopeOf: 50 Hz RMS, normalised to its 95th percentile) for the lips */
@@ -87,6 +119,7 @@ async function main() {
     await page.evaluate(() => { document.body.classList.add('kf'); const st = document.createElement('style'); st.textContent = 'body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools{visibility:hidden!important}'; document.head.appendChild(st); });
     /* the runtime from the working tree, so an edit needs no re-patch of the player */
     await page.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/odyssey-trailer.js'), 'utf8') });
+    /*[motion]*/ if (fs.existsSync(path.join(ROOT, 'film-readymades/motion.js'))) await page.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/motion.js'), 'utf8') }); /*[/motion]*/
     await page.evaluate(o => OdysseyTrailer.start(o), { w: W, h: H, grade: doc.grade || null });
     say('player ready');
     const put = (j, r) => { fs.writeFileSync(j.file, Buffer.from(r.jpeg, 'base64')); timing.frames++; };
@@ -135,6 +168,7 @@ async function main() {
     }
     await kp.close();
   }
+  /*[motion]*/ await composite(browser); /*[/motion]*/
   await browser.close();
   say('drawn', timing.frames, 'frames; scene', (timing.scene / 1000).toFixed(0), 's, locations', (timing.loads / 1000).toFixed(0), 's, kits', (timing.kit / 1000).toFixed(0), 's, cards', (timing.card / 1000).toFixed(0), 's');
   fs.writeFileSync(path.join(frames, 'jobs.json'), JSON.stringify({ tid, mode, fps, size: [W, H], runtime: doc.runtime, timing, jobs: jobs.map(j => ({ file: path.basename(j.file), t: j.t, u: j.u, n: j.shot.n, kind: j.shot.kind, at: j.shot.at, dur: j.shot.dur, j: j.j, of: j.of })) }, null, 1));
@@ -147,8 +181,8 @@ async function main() {
   } else {
     const v = out.replace(/\.mp4$/, '.video.mp4');
     execFileSync(FF, ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(frames, 'f%05d.jpg'), '-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-pix_fmt', 'yuv420p', '-r', String(fps), v]);
-    execFileSync(FF, ['-y', '-loglevel', 'error', '-i', v, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-t', doc.runtime.toFixed(3), '-movflags', '+faststart', out]);
-    fs.unlinkSync(v);
+    /*[motion]*/ if (args.includes('--no-sound') || !fs.existsSync(wav)) fs.renameSync(v, out); else /*[/motion]*/ { execFileSync(FF, ['-y', '-loglevel', 'error', '-i', v, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-t', doc.runtime.toFixed(3), '-movflags', '+faststart', out]);
+    fs.unlinkSync(v); }
   }
   say('done:', out, (fs.statSync(out).size / 1048576).toFixed(1), 'MB in', ((Date.now() - t0) / 60000).toFixed(1), 'min');
 }

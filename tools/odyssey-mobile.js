@@ -20,7 +20,8 @@ const root = path.join(__dirname, '..'), args = process.argv.slice(2), has = k =
 const out = opt('out', 'play/odyssey-mobile.html'), playDir = path.join(root, 'play'), GAME = path.join(playDir, 'odyssey-game');
 const read = rel => fs.readFileSync(path.join(playDir, rel), 'utf8');
 const safe = s => s.replace(/<\/script/gi, '<\\/script');
-const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'cinema', 'story', 'game'];
+require('./odyssey-directions').write();   /* the sign score's directions (odyssey/cineosis/score.json) → play/odyssey-game/directions.js, read by cinema.js */
+const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'directions', 'cinema', 'story', 'game'];
 const levels = fs.readdirSync(path.join(GAME, 'levels')).filter(f => /^\d\d-.*\.js$/.test(f)).sort();
 
 if (has('engine')) { buildEngine(); process.exit(0); }

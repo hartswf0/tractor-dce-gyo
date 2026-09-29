@@ -1,0 +1,135 @@
+{
+ "id": "motion-scar",
+ "title": "The scar: a dissolve into the past",
+ "register": "motion test (film-readymades/motion.js)",
+ "runtime": 8.0,
+ "idea": "Rank 4 (optical transitions): a fade in, a dissolve into a marked flashback and back out, a fade to black.",
+ "music": [],
+ "silences": [],
+ "hits": [],
+ "shots": [
+  {
+   "dur": 2.6,
+   "scene": "OD-B19-S04",
+   "key": "K3",
+   "camera": {
+    "move": {
+     "type": "push",
+     "amount": 0.12,
+     "ease": "in"
+    }
+   },
+   "transition": {
+    "type": "fade",
+    "dur": 0.5
+   },
+   "action": "the nurse's hands on the old scar (present)",
+   "n": 1,
+   "at": 0,
+   "kind": "SCENE",
+   "voice": null,
+   "look": null
+  },
+  {
+   "dur": 3.0,
+   "scene": "OD-B14-S01",
+   "key": "K1",
+   "camera": {
+    "override": {
+     "type": "wide",
+     "pos": [
+      280,
+      130,
+      190
+     ],
+     "target": [
+      -50,
+      92,
+      105
+     ],
+     "fov": 34
+    },
+    "move": {
+     "type": "hold"
+    }
+   },
+   "transition": {
+    "type": "dissolve",
+    "dur": 0.75
+   },
+   "action": "the marked past: the boy on Parnassus with his spear, the boar; warm, desaturated, held on threes",
+   "optical": {
+    "grade": "past",
+    "hold": 3
+   },
+   "swaps": [
+    {
+     "type": "transform",
+     "actor": "odysseus-as-beggar",
+     "to": "young",
+     "at": 0,
+     "flash": false
+    }
+   ],
+   "motion": [
+    {
+     "actor": "odysseus-as-beggar",
+     "clip": "spear-thrust",
+     "at": 0.55,
+     "mark": [
+      -40,
+      52,
+      140
+     ],
+     "heading": 3.14159
+    },
+    {
+     "actor": "odysseus-as-beggar",
+     "clip": "reel-back-in-fear",
+     "at": 1.8
+    }
+   ],
+   "n": 2,
+   "at": 2.6,
+   "kind": "SCENE",
+   "voice": null,
+   "look": null
+  },
+  {
+   "dur": 2.4,
+   "scene": "OD-B19-S04",
+   "key": "K4",
+   "camera": {
+    "move": {
+     "type": "hold",
+     "wobble": 1
+    }
+   },
+   "transition": {
+    "type": "dissolve",
+    "dur": 0.6
+   },
+   "transition_out": {
+    "type": "fade",
+    "dur": 0.6
+   },
+   "action": "back in the hall: she lets the foot fall",
+   "motion": [
+    {
+     "actor": "eurycleia",
+     "clip": "reel-back-in-fear",
+     "at": 0.5,
+     "keep": [
+      "legRP",
+      "legLP"
+     ]
+    }
+   ],
+   "n": 3,
+   "at": 5.6,
+   "kind": "SCENE",
+   "voice": null,
+   "look": null
+  }
+ ]
+}
