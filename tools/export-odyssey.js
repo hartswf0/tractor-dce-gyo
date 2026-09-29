@@ -8,7 +8,11 @@
    law) is rendered here into a WAV of exactly the video's length and muxed in. Also writes a poster and a WebVTT caption file.
 
    node tools/export-odyssey.js OD-B01-S03 [--mode full|cut] [--fps 24] [--size 1280x720] [--out films/odyssey] [--crf 20]
-        [--from s] [--to s] [--stills 5,20.5,44] [--chromium path] [--ffmpeg path]
+        [--from s] [--to s] [--stills 5,20.5,44] [--chromium path] [--ffmpeg path] [--suffix acted] [--choreo off|sheet.json]
+   --choreo: the take plays odyssey/choreo/<scene>.json (tools/choreograph.js) when there is one; off renders without it.
+   --suffix: the files are <scene>-<suffix>.* instead of <scene>[-cut].*
+   --density measures the acting density with and without the sheet first (odyssey/choreo/density/<scene>.json).
+   Frames are kept in <out>/<name>.frames/ while drawing: run the same command again after an interruption and it resumes.
    --stills renders only those times, as <out>/<scene>[-cut]-t<time>.jpg, for checking a take before a whole render.
    --plan p.json  motion for the take (film-readymades/motion.js; the player must carry motion.js and the take's [motion] hooks,
         film-readymades/patch_motion.py): {keys: {K2: {motion, fields, swaps, optical}}, transitions: [{type: fade|fade-out|dissolve|
@@ -27,7 +31,9 @@ const ROOT = path.resolve(__dirname, '..'), URL_ = 'http://localhost:' + (proces
 const chromiumPath = opt('chromium', process.env.CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome');
 function ffmpegPath() { const o = opt('ffmpeg', process.env.FFMPEG); if (o) return o; try { return execFileSync('python3', ['-c', 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim(); } catch (e) { return 'ffmpeg'; } }
 const FF = ffmpegPath(); fs.mkdirSync(outDir, { recursive: true });
-const base = path.join(outDir, sid + (mode === 'cut' ? '-cut' : ''));
+/*[choreo]*/ /* --suffix acted writes <scene>-acted.*; --choreo off renders the take without its sheet (odyssey/choreo/<scene>.json is read by default), --choreo p.json another sheet */
+const suffix = opt('suffix', null), choreoOpt = opt('choreo', null), choreo = choreoOpt === 'off' ? false : choreoOpt ? JSON.parse(fs.readFileSync(choreoOpt, 'utf8')) : undefined; /*[/choreo]*/
+const base = path.join(outDir, sid + (suffix ? '-' + suffix : mode === 'cut' ? '-cut' : ''));
 const t0 = Date.now(), say = (...a) => console.log(((Date.now() - t0) / 1000).toFixed(0).padStart(5) + 's', ...a);
 const SR = 48000;
 
@@ -78,33 +84,47 @@ async function optics(page, t, jpeg) {
   await page.evaluate(() => { document.body.classList.add('kf'); const st = document.createElement('style'); st.textContent = 'body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools{visibility:hidden!important}'; document.head.appendChild(st); });
   await page.waitForTimeout(800);
   /*[motion]*/ if (plan) { if (!(await page.evaluate(() => !!window.OdysseyMotion))) await page.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/motion.js'), 'utf8') }); } /*[/motion]*/
-  const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H, /*[motion]*/ motion: plan || undefined /*[/motion]*/ });
+  const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H, /*[motion]*/ motion: plan || undefined /*[/motion]*/, /*[choreo]*/ choreo /*[/choreo]*/ });
   say('follow', JSON.stringify(info.follow));say('take', info.scene, info.mode, info.total.toFixed(2), 's; keys', JSON.stringify(info.keys), '; faces', info.faces.join(','), '; shots', JSON.stringify(info.shots));
   if (stills) {
     for (const s of stills.split(',').map(Number)) { const r = await page.evaluate(t => OdysseyTake.frame(t, { quality: 0.92 }), s); const f = `${base}-t${s.toFixed(1)}.jpg`; fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', f, r.key, r.shot, 'ms apply/render/encode', r.ms.join('/')); }
     await browser.close(); return; }
   const end = to != null ? Math.min(+to, info.total) : info.total, frames = Math.round((end - from) * fps), seconds = frames / fps;
-  const video = base + '.video.mp4';
-  const ff = spawn(FF, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-r', String(fps), '-movflags', '+faststart', video], { stdio: ['pipe', 'inherit', 'inherit'] });
-  let last = '', drawn = 0; const shots = [];
+  /*[choreo]*/ /* --density: the acting density of the take without its sheet and with it (tools/choreograph.js density), measured in
+     this page before the frames are drawn -> odyssey/choreo/density/<scene>.json */
+  if (args.includes('--density')) { const Ch = require(path.join(ROOT, 'tools/choreograph.js')), C = await page.evaluate(() => OdysseyTake.choreo), probe = async () => { const P = []; for (let t = 0; t < info.total - 1e-6; t += 1 / 12) P.push(await page.evaluate(t => OdysseyTake.pose(t), t)); return Ch.density(P, (C && C.holds) || []); };
+    if (C) { await page.evaluate(() => OdysseyTake.useChoreo(null)); const before = await probe(); await page.evaluate(C => OdysseyTake.useChoreo(C), C); const after = await probe();
+      const dd = path.join(ROOT, 'odyssey/choreo/density'); fs.mkdirSync(dd, { recursive: true });
+      fs.writeFileSync(path.join(dd, sid + '.json'), JSON.stringify({ scene: sid, mode, measured: new Date().toISOString().slice(0, 10), rule: 'per drawing (12 a second), per figure in frame: moving if any of seven body points (face, crown, chest, hands, feet) moved more than ' + Ch.THRESH * 100 + '% of its height since the drawing before', before, after }, null, 1));
+      say('density before', before.mean, 'worst frozen', before.worstFrozen, 's; after', after.mean, 'worst frozen', after.worstFrozen, 's'); } } /*[/choreo]*/
+  /* the frames are kept in <base>.frames/ as they are drawn, so a render stopped part way resumes where it stopped (the take is
+     a pure function of t: a frame drawn again is the same frame) */
+  const video = base + '.video.mp4', FD = base + '.frames'; fs.mkdirSync(FD, { recursive: true });
+  const metaF = path.join(FD, 'meta.jsonl'), meta = new Map(); if (fs.existsSync(metaF)) for (const l of fs.readFileSync(metaF, 'utf8').split('\n')) { try { const m = JSON.parse(l); meta.set(m.i, m); } catch (e) {} }
+  const fname = i => path.join(FD, String(i).padStart(5, '0') + '.jpg');
+  let last = '', drawn = 0, kept = 0; const shots = [];
   for (let i = 0; i < frames; i++) {
-    const t = from + i / fps, r = await page.evaluate(t => OdysseyTake.frame(t), t); /*[motion]*/ if (plan && plan.transitions) r.jpeg = await optics(page, t, r.jpeg); /*[/motion]*/ const buf = Buffer.from(r.jpeg, 'base64');
-    if (!ff.stdin.write(buf)) await new Promise(res => ff.stdin.once('drain', res)); drawn++;
-    if (r.shot !== last) { last = r.shot; shots.push({ t: +t.toFixed(3), shot: r.shot, kind: r.kind, key: r.key }); }
-    if (i % 48 === 0) say('frame', i, 'of', frames, 't', t.toFixed(2), r.key, r.shot, 'wall', ((Date.now() - t0) / 60000).toFixed(1), 'min');
+    const t = from + i / fps; let m = meta.get(i);
+    if (m && fs.existsSync(fname(i)) && fs.statSync(fname(i)).size > 0) kept++;
+    else { const r = await page.evaluate(t => OdysseyTake.frame(t), t); /*[motion]*/ if (plan && plan.transitions) r.jpeg = await optics(page, t, r.jpeg); /*[/motion]*/
+      fs.writeFileSync(fname(i) + '.tmp', Buffer.from(r.jpeg, 'base64')); fs.renameSync(fname(i) + '.tmp', fname(i)); m = { i, t: +t.toFixed(3), shot: r.shot, kind: r.kind, key: r.key }; fs.appendFileSync(metaF, JSON.stringify(m) + '\n'); drawn++;
+      if (drawn % 24 === 1) say('frame', i, 'of', frames, 't', t.toFixed(2), r.key, r.shot, 'wall', ((Date.now() - t0) / 60000).toFixed(1), 'min', kept ? '(' + kept + ' kept from before)' : ''); }
+    if (m.shot !== last) { last = m.shot; shots.push({ t: m.t, shot: m.shot, kind: m.kind, key: m.key }); }
   }
-  ff.stdin.end(); await new Promise(res => ff.on('close', res)); say('video', drawn, 'frames');
+  execFileSync(FF, ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(FD, '%05d.jpg'), '-frames:v', String(frames), '-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-r', String(fps), '-movflags', '+faststart', video]);
+  say('video', frames, 'frames (' + drawn + ' drawn now, ' + kept + ' kept)');
   // the poster: the key beat, a third of the way into its line
   const pt = await page.evaluate(() => { const i = OdysseyTake.info(), k = i.clips.find(c => c.gi === OdysseyTake.take.keyGi) || i.clips[Math.floor(i.clips.length / 2)]; return k.at + k.dur * 0.33; });
   fs.writeFileSync(base + '.jpg', Buffer.from((await page.evaluate(t => OdysseyTake.frame(t, { quality: 0.92 }), Math.min(end - 0.1, Math.max(from, pt)))).jpeg, 'base64'));
   const log = await page.evaluate(() => OdysseyTake.soundLog()), caps = await page.evaluate(() => OdysseyTake.captions());
+  /*[choreo]*/ const ch = await page.evaluate(() => { const C = OdysseyTake.choreo; return C ? { format: C.format, layer: C.layer, actors: Object.keys(C.actors || {}).length, cues: (C.cues || []).length, generated: C.generated } : null; }); /*[/choreo]*/
   await browser.close();
   // the sound: rendered to the video's own length, so the two end together
   const snd = renderSound(from ? { ...log, voice: { ...log.voice, clips: log.voice.clips.map(c => ({ ...c, at: c.at - from })) }, spans: log.spans.map(c => ({ ...c, at: c.at - from })), bed: { ...log.bed, offset: (log.bed.offset || 0) + from } } : log, seconds);
   const wav = base + '.wav'; fs.writeFileSync(wav, snd.buf); say('sound', (snd.samples / SR).toFixed(3), 's, peak', snd.peak.toFixed(2));
   execFileSync(FF, ['-y', '-loglevel', 'error', '-i', video, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', seconds.toFixed(3), '-movflags', '+faststart', base + '.mp4']);
-  fs.unlinkSync(video); fs.unlinkSync(wav);
+  fs.unlinkSync(video); fs.unlinkSync(wav); if (!args.includes('--keep-frames')) fs.rmSync(FD, { recursive: true, force: true });
   fs.writeFileSync(base + '.vtt', vtt(caps.map(c => ({ ...c, t0: c.t0 - from, t1: c.t1 - from })).filter(c => c.t1 > 0), seconds));
-  fs.writeFileSync(base + '.json', JSON.stringify({ scene: sid, mode, fps, size: [W, H], seconds, frames, from, take: info, shots, sound: log }, null, 1));
+  fs.writeFileSync(base + '.json', JSON.stringify({ scene: sid, mode, fps, size: [W, H], seconds, frames, from, take: info, shots, sound: log, /*[choreo]*/ choreo: ch /*[/choreo]*/ }, null, 1));
   say('done:', base + '.mp4', (fs.statSync(base + '.mp4').size / 1048576).toFixed(1), 'MB,', seconds.toFixed(2), 's at', fps, 'fps, in', ((Date.now() - t0) / 60000).toFixed(1), 'min');
 })().catch(e => { console.error(e); process.exit(1); });
