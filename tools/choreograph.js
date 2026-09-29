@@ -130,7 +130,7 @@ function voiceOf(M, c) {
 const GEST = {
   open:    { arm: { pitch: -0.95, out: 0.32 }, hand: 0.5, lean: 0.05, hp: -0.05 },               /* the open hand: welcome, offer, explain */
   offer:   { both: true, arm: { pitch: -1.05, out: 0.22 }, hand: 0.55, lean: 0.08, hp: -0.04 },  /* both hands forward, palms up */
-  chest:   { arm: { pitch: -1.35, out: -0.12 }, hand: -0.4, lean: -0.02, hp: 0.06 },             /* the hand to the heart: I, my, we */
+  chest:   { arm: { pitch: -1.3, out: -0.04 }, hand: -0.4, lean: -0.02, hp: 0.06 },             /* the hand to the heart: I, my, we */
   point:   { arm: { pitch: -1.55, out: 0.05 }, hand: 0, lean: 0.1, hp: -0.07, ease: 'back' },     /* command, accuse, direct */
   chop:    { arm: { pitch: -1.2, out: 0.08 }, hand: -0.2, lean: 0.08, hp: 0.05, ease: 'back', down: 0.55 }, /* a beat that lands */
   fist:    { arm: { pitch: -0.8, out: 0.12 }, hand: 0, lean: 0.14, hp: 0.08, ease: 'back' },      /* anger held in */
@@ -465,7 +465,7 @@ function generate(M, prev) {
     struck[tgt] = tr + 1 / F; const w = fallWindow(tgt, tr), until = w ? w[0] : tr + 3.5;
     const L = 'act'; S.begin();
     S.key(tgt, L, tr, { 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'arm.L.out': 0, 'root.pitch': 0, 'hips.dy': 0 }, 'inOut');
-    S.key(tgt, L, tr + 2 / F, { 'torso.lean': -0.26, 'head.pitch': -0.2, 'arm.R.pitch': 1.0, 'arm.L.pitch': -2.35, 'arm.L.out': -0.15, 'root.pitch': -0.1, 'hips.dy': 1.2 }, 'out');   /* the jolt: the cup arm drops, the hand flies to the throat */
+    S.key(tgt, L, tr + 2 / F, { 'torso.lean': -0.26, 'head.pitch': -0.2, 'arm.R.pitch': 1.0, 'arm.L.pitch': -2.2, 'arm.L.out': -0.04, 'root.pitch': -0.1, 'hips.dy': 1.2 }, 'out');   /* the jolt: the cup arm drops, the hand flies to the throat */
     S.key(tgt, L, tr + 0.45, { 'torso.lean': -0.18, 'head.pitch': -0.14, 'arm.R.pitch': 0.8, 'root.pitch': -0.06, 'hips.dy': -1.5 }, 'inOut');
     let t = tr + 0.45, k = 0; while (t < until - 0.4) { const u = k % 2 ? 1 : -1; t += 0.32 + 0.12 * (k % 3);   /* he staggers on the spot, the other hand groping */
       S.key(tgt, L, t, { 'root.roll': 0.06 * u, 'torso.roll': -0.08 * u, 'arm.R.pitch': 0.5 - 0.5 * (k % 2), 'arm.R.out': 0.25 * (k % 2), 'head.pitch': -0.1 + 0.08 * (k % 2), 'hips.dy': -1.5 - 1.0 * (k % 2) }, 'inOut'); k++; }
