@@ -360,6 +360,8 @@ function generate(M, prev) {
   /* the sirens sing: a slow sway from the hips, the arms opening and closing on the long notes, the heads tilting toward the ship */
   function singLoop(id, t0, t1) { const R = rng(sid + id + 'sing'), P = 2.2 + R() * 0.8; let t = t0 + R() * P, k = 0;
     while (t < t1) { const u = k % 2 ? 1 : -1; S.key(id, 'act', t, { 'torso.roll': 0.11 * u, 'root.roll': 0.04 * u, 'head.pitch': -0.08 + 0.04 * u, 'arm.R.pitch': -1.1 - 0.35 * (k % 4 === 1), 'arm.L.pitch': -1.1 - 0.35 * (k % 4 === 3), 'arm.R.out': 0.25 + 0.15 * u, 'arm.L.out': 0.25 - 0.15 * u, 'head.yaw': 0.18 * u }, 'inOut'); t += P / 2; k++; }
+    /* the head on its own, slower period (the song's phrase, not its beat), so the turn of one never rests with the other */
+    t = t0 + R() * 1.7; k = 0; while (t < t1) { S.key(id, 'song', t, { 'head.yaw': 0.16 * (k % 2 ? 1 : -1), 'head.pitch': 0.05 * (k % 2 ? -1 : 1) }, 'inOut'); t += 0.85 + R() * 0.3; k++; }
     occupy(id, t0, t1, 'sing'); cue(t0 + 0.1, id, 'sings'); }
   /* an action line's verbs, done by its subject */
   function act(id, c, txt) {
@@ -532,8 +534,41 @@ function generate(M, prev) {
     rigs.ship = { type: 'ship', piece: ship.label, pivot: piv.map(r3), channels: ch, riders: ids.filter(id => { const s = B.at(id, 0); return s && s.p[0] >= b[0] && s.p[0] <= b[3] && s.p[2] >= b[2] && s.p[2] <= b[5] && !/siren/.test(id); }) };
     notes.push('the ship ' + ship.label + ' pitches, rolls and heaves; its riders go with it'); }
 
-  /* the sheet */
   S.write();
+  /* ── 8. the animator's last pass: nothing holds dead. Every figure's motion is estimated drawing by drawing from the sheet as
+     written (each channel's change times its lever: an arm swings a hand a quarter of the figure's height, the waist tips the
+     head half of it) plus the blocking's own travel; wherever a figure in the scene, standing or seated and not lying still,
+     would sit under the visible threshold for more than about half a second, it is given a piece of business of its own on the
+     'fill' layer (a weight shift with a look, a hand to the belt, the grip shifted, a word and a nod to the nearest, a lean back),
+     never the same twice running. Twice, since a fill can leave a slow tail of its own. ── */
+  const LEVER = { 'arm.R.pitch': 0.3, 'arm.L.pitch': 0.3, 'arm.R.out': 0.3, 'arm.L.out': 0.3, 'torso.lean': 0.5, 'torso.twist': 0.25, 'torso.roll': 0.5, 'head.yaw': 0.12, 'head.pitch': 0.12,
+    'root.h': 0.2, 'root.pitch': 0.8, 'root.roll': 0.8, 'leg.R.pitch': 0.3, 'leg.L.pitch': 0.3, 'hand.R.roll': 0.05, 'hand.L.roll': 0.05 };
+  function motionOf(id) { const A = S.actors[id], out = []; if (!A) return out; const lanes = Object.entries(A.channels).map(([k, L]) => [k.split('@')[0], L]);
+    let prev = null, pb = null;
+    for (let t = 0; t < T; t += 1 / F) { const v = {}; for (const [ch, L] of lanes) v[ch] = (v[ch] || 0) + Choreo.sampleKeys(L, t, ch); const b = B.at(id, t);
+      let d = 0; if (prev && b && pb) { for (const ch in v) d = Math.max(d, Math.abs(v[ch] - (prev[ch] || 0)) * (LEVER[ch] != null ? LEVER[ch] * H(id) : ch === 'hips.dy' ? scale : 1));
+        d = Math.max(d, dist2(b.p, pb.p), Math.abs(b.p[1] - pb.p[1]), Math.abs(wrap(b.h - pb.h)) * 0.2 * H(id)); for (const jn of B.JN) if (b.j[jn] && pb.j[jn]) d = Math.max(d, Math.abs(b.j[jn][0] - pb.j[jn][0]) * 0.3 * H(id)); }
+      out.push({ t, d: d / H(id), s: b }); prev = v; pb = b; }
+    return out; }
+  const FILL = ['shift', 'belt', 'grip', 'word', 'lean', 'shift', 'look'];
+  function fillMove(id, t, len, kind) { const s = B.at(id, t), R = rng(sid + id + 'fill' + t), u = R() < 0.5 ? 1 : -1, sd = heldR(id) && !heldL(id) ? 'L' : 'R', L = 'fill', e = Math.min(len, 1.6);
+    const z = o => { const x = {}; for (const k of Object.keys(o)) x[k] = 0; return x; }; let peak;
+    if (kind === 'shift' && !s.sat) peak = { 'root.roll': 0.05 * u, 'torso.roll': -0.08 * u, 'head.yaw': 0.35 * u, 'hips.dy': -1.2, ['arm.' + sd + '.pitch']: -0.25 };
+    else if (kind === 'belt') peak = { ['arm.' + sd + '.pitch']: -0.55, ['arm.' + sd + '.out']: 0.22, 'torso.lean': 0.05, 'head.pitch': 0.08 };
+    else if (kind === 'grip') peak = { 'arm.R.pitch': -0.4, 'hand.R.roll': 0.7 * u, 'head.pitch': 0.1, 'torso.twist': 0.12 * u };
+    else if (kind === 'word') { const nb = near(id, t, 8)[0]; if (nb) { look(id, nb, t, 'fill', {}); nod(id, t + 0.5, 0.1); } peak = { ['arm.' + sd + '.pitch']: -0.7, ['arm.' + sd + '.out']: 0.3, 'hand.R.roll': sd === 'R' ? 0.5 : 0, 'torso.lean': 0.06 }; }
+    else if (kind === 'lean') peak = { 'torso.lean': s.sat ? -0.14 : 0.14, 'head.pitch': -0.12, 'arm.R.out': 0.2, 'arm.L.out': 0.2 };
+    else peak = { 'head.yaw': 0.55 * u, 'torso.twist': 0.18 * u, 'torso.lean': 0.04, ['arm.' + sd + '.pitch']: -0.2 };
+    S.begin(); S.key(id, L, t, Object.fromEntries(Object.keys(peak).map(k => [k, S.rel(0)])), 'inOut'); S.key(id, L, t + 0.45 * e, peak, 'out');
+    S.key(id, L, t + 0.7 * e, Object.fromEntries(Object.entries(peak).map(([k, v]) => [k, v * 0.75])), 'inOut'); S.key(id, L, t + e + 0.2, z(peak), 'inOut'); S.end(); }
+  for (let pass = 0; pass < 2; pass++) { for (const id of ids) { const mo = motionOf(id); let run = null, n = 0, last = '';
+      const quiet = x => x.s && x.s.vis && !B.lying(x.s) && !isDead(id, x.t) && x.d < THRESH * 1.8;
+      for (let i = 0; i <= mo.length; i++) { const x = mo[i]; if (x && quiet(x)) { if (!run) run = i; continue; }
+        if (run != null && i - run >= 5) { let t = mo[run].t + 0.1; const t1 = mo[i - 1].t;
+          while (t < t1 - 0.3) { let k = FILL[(hash32(id + t) + n++) % FILL.length]; if (k === last) k = FILL[(FILL.indexOf(k) + 1) % FILL.length]; last = k; const len = Math.min(1.6, Math.max(0.8, t1 - t)); fillMove(id, t, len, k); t += len + 0.05; } }
+        run = null; } }
+    S.write(); }
+  /* the sheet */
   const actors = {}; for (const id of ids) { const A = S.actors[id]; if (!A) continue; const ch = {};
     for (const [k, L] of Object.entries(A.channels).sort()) { const keys = L.filter((x, i) => i === 0 || x[0] > L[i - 1][0] - 1e-9); if (keys.length > 1 || (keys[0] && keys[0][1] !== 0)) ch[k] = keys; }
     actors[id] = { channels: ch, H: r3(H(id)) }; }
