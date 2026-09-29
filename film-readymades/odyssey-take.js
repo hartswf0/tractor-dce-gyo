@@ -148,6 +148,7 @@ function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan
   if(sh.kind==='HEADER'&&P){const a=P.from,b=P.to,v=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur)));
     kfShoot({pos:a.pos.map((x,i)=>lerp(x,b.pos[i],v)),target:a.target.map((x,i)=>lerp(x,b.target[i],v)),fov:lerp(a.fov,b.fov,v)});return;}
   const sub=sh.c&&(sh.kind==='REACT'?sh.c.addressee:sh.c.speaker),mv=T.moving&&T.win&&sub&&T.win.moves[sub];
+  /*[choreo]*/if(!(mv&&mv.walk)&&T.choreo&&sub&&sh.kind!=='HEADER'&&sh.kind!=='WIDE'&&T.choreo.walking(sub,t)){const H=T.H[sub]||60,prev=T.keys.map(k=>k.moves&&k.moves[sub]&&k.moves[sub].follow).filter(Boolean)[0];OdysseyFilm.rig(prev?prev.cam:{type:'hero',a:sub,yaw:0.6,dist:2.9*H,height:0.35*H,fov:40,subject:sub,eye:0.42});return;}/*[/choreo]*/
   if(mv&&mv.walk&&sh.kind!=='HEADER'){const H=T.H[sub]||60,f=mv.follow||{cam:{type:'hero',a:sub,yaw:0.6,dist:2.9*H,height:0.35*H,fov:40,subject:sub,eye:0.42}};OdysseyFilm.rig(f.cam);return;}   /* a figure crossing the set: a tracking shot that keeps ahead of him */
   const c=P&&P.cam||keyCam(T.keyOf(t));
   /* the move: the sign score's (push, pull, orbit, crane, track, hold); without a direction the old slow push */
@@ -197,7 +198,8 @@ function poseCast(st,t){for(const a of ButterCast.cast){const id=kfShort(a.kind)
     Object.assign(P.base,{'torso.lean':L.pitch*0.8,'head.yaw':P.base['head.yaw']+L.yaw,'torso.roll':L.roll,'brow.up':L.brow*0.5,'mouth.press':L.press});P.blinkGate=L.blinkGate;}else P.blinkGate=1;
   P.last=null;const saveSeated=r.seated;r.seated=s.sat||s.walk>0.1;   /* a seated or walking body keeps the blocking's legs; the performance keeps to the face and the head */
   const v=Perform.apply(P,t);r.seated=saveSeated;
-  if(r.seated&&v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}}
+  if(r.seated&&v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}
+  /*[choreo]*/if(T.choreo)T.choreo.apply(t);/*[/choreo]*/}
 /* the key's world beyond the cast: props, the hidden pieces, the light and the sky, re-staged only when the key changes */
 function worldFor(key){if(T.world===key.id)return;T.world=key.id;const k=key.k,spec=T.spec;
   OdysseyFilm.hide(k.hide||[]);const pl=JSON.stringify([...(spec.props||[]),...(k.props||[])]);if(pl!==T.propsNow){T.propsNow=pl;OdysseyFilm.props(JSON.parse(pl));OdysseyFilm.propsAfter(JSON.parse(pl));}
@@ -277,21 +279,43 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       else if(sh.kind==='INSERT'&&T.dir&&!INSERTS[T.sid])cam=kfActor(sh.ins.on)?heroFor(sh.ins.on,'CLOSE',K.k):c&&c.speaker?objFor(c.speaker,K.k):null;   /* the score's insert: on the thing if it is cast, else the hands that hold it */
       T.plan.set(sh.id,{cam,kind:sh.kind,fallback:!cam});const tag=sh.kind+(cam?'':'→key');stats[tag]=(stats[tag]||0)+1;}}
   T.world=null;T.stats=stats;
+  /*[choreo]*/ /* the choreography (odyssey/choreo/<scene>.json, film-readymades/choreo.js): every servo of every actor on the voice clock, over the blocking; o.choreo an object, false for none */
+  if(window.OdysseyChoreo&&o.choreo!==false){let C=typeof o.choreo==='object'?o.choreo:null;if(!C)try{const r=await fetch(root+'odyssey/choreo/'+sid+'.json',{cache:'no-store'});if(r.ok)C=await r.json();}catch(e){}
+    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);}/*[/choreo]*/
   /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
   if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
   return info();}
 function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
+/*[choreo]*/ /* the set pieces a sheet's rig names (a ship), as motion.js finds them: the mesh whose box is the piece's box */
+function choreoPieces(label){const want=OdysseyFilm.pieces().filter(p=>p.box&&(p.label===label||p.label.toLowerCase().includes(String(label).toLowerCase())));const out=[];const cands=[];scene.traverse(o=>{if(o.isMesh&&o.userData&&o.userData.partId!=null)cands.push(o);});
+  for(const p of want){let best=null,bd=1e9;for(const m of cands){const b=new THREE.Box3().setFromObject(m),d=Math.abs(b.min.x-p.box[0])+Math.abs(b.min.y-p.box[1])+Math.abs(b.min.z-p.box[2])+Math.abs(b.max.x-p.box[3])+Math.abs(b.max.y-p.box[4])+Math.abs(b.max.z-p.box[5]);if(d<bd){bd=d;best=m;}}if(best&&bd<12)out.push(best);}return out;}
+/* what the choreographer reads (tools/choreograph.js): the keys on the clock with each actor's staged mark, the figures' heights,
+   what each hand holds, the set pieces, the clips with their words, the beat and the envelope */
+function marks(){const r2=v=>Array.isArray(v)?v.map(r2):typeof v==='number'?+v.toFixed(4):v;
+  const held={};for(const a of ButterCast.cast){const id=kfShort(a.kind),r=a.rig;held[id]={R:r.armRP.children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot')).length-2,L:r.armLP.children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot')).length-2,hipsY:T.hips.get(r),scale:r.figure.scale.x};}
+  return {scene:T.sid,mode:T.mode,total:T.total,scale:filmAsset().scale||1,H:T.H,held,keys:T.keys.map(k=>({id:k.id,t:k.t,win:k.win||null,beat:k.k.beat||'',snap:r2(k.snap),moves:k.moves?Object.fromEntries(Object.entries(k.moves).map(([i,m])=>[i,{d:r2(m.d),walk:m.walk,dir:r2(m.dir)}])):null})),
+    pieces:OdysseyFilm.pieces().filter(p=>p.box).map(p=>({label:p.label,box:r2(p.box)})),clips:T.clips.map(c=>({gi:c.gi,at:c.at,start:c.start,dur:c.dur,kind:c.kind,key:c.key,voice:c.voice,speaker:c.speaker,addressee:c.addressee,caption:c.caption,isLine:c.isLine,act:c.act,delivery:c.delivery})),
+    beat:T.tk.beat,keyGi:T.tk.keyGi,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,env:T.tk.voice.env,hz:T.tk.voice.hz,cut:T.cutList?T.cutList.map(q=>({t0:q.t0,dur:q.dur,kind:q.kind})):null};}
+/* the acting-density probe: the cast at t as points on the body in the world, whether each figure is in the frame, the camera */
+function pose(t){const sh=apply(t);scene.updateMatrixWorld(true);const out={t,shot:sh.id,kind:sh.kind,actors:{}},V=new V3();
+  const pts=[['headP',[0,-12,-11]],['headP',[0,-26,0]],['torsoP',[0,10,-10]],['armRP',[-8,22,-10]],['armLP',[8,22,-10]],['legRP',[-6,26,-6]],['legLP',[6,26,-6]]];
+  for(const a of ButterCast.cast){const id=kfShort(a.kind),r=a.rig;if(r.figure.visible===false||r.absent)continue;
+    const P=pts.map(([k,l])=>r[k].localToWorld(V.set(...l)).toArray().map(v=>+v.toFixed(3)));const H=T.H[id]||60;
+    let on=false;for(const q of [r.headP.getWorldPosition(new V3()),r.hipsP.getWorldPosition(new V3())]){const c=q.clone().applyMatrix4(camera.matrixWorldInverse);if(c.z>=0)continue;const p=q.clone().project(camera);if(Math.abs(p.x)<=1&&Math.abs(p.y)<=1)on=true;}
+    out.actors[id]={on,H:+H.toFixed(2),p:P,j:JOINTS.map(k=>[r[k].rotation.x,r[k].rotation.y,r[k].rotation.z].map(v=>+v.toFixed(4))),root:[r.figure.position.x,r.figure.position.y,r.figure.position.z,r.figure.rotation.x,r.figure.rotation.y,r.figure.rotation.z].map(v=>+v.toFixed(4))};}
+  return out;}
+/*[/choreo]*/
 /* ── one frame at t: the world, the cast, the camera; drawn, then captioned ── */
 function apply(t){const {state,key}=castAt(t);worldFor(key);if(T.env){scene.background=T.env.bg;scene.fog=T.env.fog;renderer.toneMapping=T.env.tone;renderer.toneMappingExposure=T.env.exp;renderer.shadowMap.enabled=T.env.sh;}poseCast(state,t);/*[motion]*/if(T.motion){T.motion.frame(t,key);renderer.shadowMap.needsUpdate=true;}/*[/motion]*/const sh=shotAt(t);shootAt(sh,t);scene.updateMatrixWorld(true);return sh;}
 let comp=null;
-function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prepared');const m0=performance.now(),sh=apply(t),m1=performance.now();if(T.render){renderer.shadowMap.autoUpdate=false;T.fi=(T.fi||0)+1;if(T.moving||sh.id!==T.lastShot||T.fi%4===0)renderer.shadowMap.needsUpdate=true;T.lastShot=sh.id;}(T.render||renderer.render.bind(renderer))(scene,camera);renderer.getContext().finish();const m2=performance.now();
+function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prepared');const m0=performance.now(),sh=apply(t),m1=performance.now();if(T.render){renderer.shadowMap.autoUpdate=false;T.fi=(T.fi||0)+1;if(T.moving||T.choreo||sh.id!==T.lastShot||T.fi%4===0)renderer.shadowMap.needsUpdate=true;T.lastShot=sh.id;}(T.render||renderer.render.bind(renderer))(scene,camera);renderer.getContext().finish();const m2=performance.now();
   const W=renderer.domElement.width,H=renderer.domElement.height;if(!comp){comp=document.createElement('canvas');}comp.width=W;comp.height=H;const g=comp.getContext('2d');g.drawImage(renderer.domElement,0,0);/*[motion]*/if(T.motion&&T.motion.ov)OdysseyMotion.overlay(g,W,H,T.motion.ov);/*[/motion]*/if(captions)drawCaption(g,W,H,t);
   const jpeg=comp.toDataURL('image/jpeg',quality).split(',')[1];return {jpeg,shot:sh.id,kind:sh.kind,key:T.keyOf(t).id,ms:[m1-m0,m2-m1,performance.now()-m2].map(v=>Math.round(v))};}
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
 function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
 function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
-function end(){if(!T)return;stop();/*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
+function end(){if(!T)return;stop();/*[choreo]*/if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the
    page draws it, and the caption sits over the picture ── */
@@ -310,7 +334,7 @@ function play(o={}){return prepare(o).then(inf=>{const orig=renderer.render.bind
 function stop(){if(!live)return;renderer.render=live.orig;live.voice.pause();live.bed.pause();live.cap.remove();live=null;}
 /* the export: the page's own drawing stopped (as the keyframe gate stops it); frames drawn only on request */
 function exportStart(o={}){const orig=renderer.render.bind(renderer);renderer.render=()=>{};renderer.setPixelRatio(1);renderer.setSize(o.w||1280,o.h||720,false);camera.aspect=(o.w||1280)/(o.h||720);camera.updateProjectionMatrix();return prepare(o).then(inf=>{T.render=orig;return inf;});}
-window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,info:()=>T&&info(),shotAt:t=>T&&shotAt(t),get take(){return filmAsset()?.take||null;}};
+window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/marks:()=>T&&marks(),pose:t=>T&&pose(t),get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),get take(){return filmAsset()?.take||null;}};
 /* a Take button beside the forage shelf; ?take (or ?take=cut) plays the current location's scene on load */
 {const b=document.createElement('button');b.id='takeOpen';b.textContent='Take';b.title='Play this scene on its recorded performance (voice, faces, captions, cut)';b.onclick=()=>{if(live){stop();return;}play({mode:new URLSearchParams(location.search).get('take')==='cut'?'cut':'full'}).catch(e=>alert(e.message));};
  (document.getElementById('filmWorldTools')||document.body).appendChild(b);if(b.parentElement===document.body)Object.assign(b.style,{position:'fixed',right:'12px',top:'12px',zIndex:61});}

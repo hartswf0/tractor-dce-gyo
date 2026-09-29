@@ -240,6 +240,8 @@ if __name__ == '__main__':
     extra = '<script>(function(){const c=window.ButterAssetCatalog;if(c)c.characters.push(...' + json.dumps(list(kinds.values())) + ');Object.assign(window.ButterLDraw.parts,' + json.dumps(pack_texts(need)).replace('</', '<\\/') + ');})();</script>'
     # the cinerium's face, the halfworld's twelve faces and the performance register, as their own classic scripts on the page's THREE
     world = ''.join('<script data-odyssey-take="%s">' % f + (REPO / 'world' / f).read_text() + '</script>' for f in ('halfworld-face.js', 'face.js', 'cinerium.js'))
+    # the choreography player (film-readymades/choreo.js): the take's [choreo] hooks read odyssey/choreo/<scene>.json through it
+    world += '<script data-odyssey-choreo>' + (R / 'choreo.js').read_text() + '</script><!--/odyssey-choreo-->'
     s = s.replace('<script data-butter-module="movieator">', extra + world + '<script data-butter-module="movieator">', 1)
     # Film Butter's location layer (walk colliders, assembly pages) for any location that carries colliders; the forage shelf
     rt = (R / 'location-runtime.js').read_text().replace("return filmOf()?.sourceId==='grocer-location';", "return !!filmAsset()?.colliders;")
