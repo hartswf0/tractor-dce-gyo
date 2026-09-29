@@ -11,13 +11,16 @@
                (walks, rises, sits) from one key's marks to the next across the seam
      camera    the keyframe cameras are the shot list; the syncwatch grammar (RHYTHM by book, GRAMMAR SPK/REACT/OBJ/WIDE by
                hash32(sceneId:gi), shotFor WIDE/MID/CLOSE) cuts inside each segment onto its speaker (the turn's true
-               subject) and addressee; every generated framing is scored with the gate's own measures before it is used
+               subject) and addressee; every generated framing is scored with the gate's own measures before it is used; where
+               the cineosis sign score gives the scene a direction (odyssey/cineosis/WIRING.md), that cuts it instead: rhythm,
+               floor, kinds, move, insert, and the sound-forward cut off the seams
      faces     the twelve halfworld faces as decals on plain heads (Face.attach 'halfworld:<who>'), lips on the viseme track
                gated by the voice's envelope, the listener's carriage on the addressee, the key beat played on its
                _direction.mjs emotion (Perform.phrase), idle life and blinks (Perform)
      captions  the syncwatch set: the name in heavy tracked capitals, the recorded line in roman, narration in grey italic
      sound     the voice, and under it the book's BRONZE COUNCIL track at 0.18, ducked to 0.10 under every voice segment
-               with 150 ms raised-cosine edges; the page reports it as a sound log for the exporter to render */
+               with 150 ms raised-cosine edges (not ducked where the sign score says sound forward); the page reports it as a
+               sound log for the exporter to render */
 (function(){
 const root=new URL('../../',location.href).href,V3=THREE.Vector3;
 const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);},cl01=v=>Math.max(0,Math.min(1,v)),lerp=(a,b,u)=>a+(b-a)*u;
@@ -51,29 +54,67 @@ function clipsOf(tk,mode){const byGi=new Map(tk.voice.segments.map(s=>[s.gi,s]))
 /* which clip is SOUNDING at t; in a gap, the one that just ended (syncwatch segAt) */
 function clipAt(t){let cur=null;for(const c of T.clips){if(t>=c.at&&t<c.at+c.dur)return c;if(c.at<=t)cur=c;}return cur||T.clips[0];}
 /* the bed's gain at t: open, ducked under every voice span with raised-cosine edges (harness/build-film-audio.mjs) */
-function bedGain(t){const b=T.tk.bed,r=b.ramp;let w=0;for(const c of T.voiceSpans){const a=c.at,e=c.at+c.dur;let x=0;if(t>=a&&t<=e)x=1;else if(t>a-r&&t<a)x=0.5-0.5*Math.cos(Math.PI*(t-(a-r))/r);else if(t>e&&t<e+r)x=0.5+0.5*Math.cos(Math.PI*(t-e)/r);w=Math.max(w,x);}return b.open-(b.open-b.duck)*w;}
+function bedGain(t){const b=T.tk.bed,r=b.ramp;if(T.dir&&T.dir.d.sound_forward)return b.open;   /* the sign score's sound_forward: the sound carries the scene, the bed is not ducked */
+  let w=0;for(const c of T.voiceSpans){const a=c.at,e=c.at+c.dur;let x=0;if(t>=a&&t<=e)x=1;else if(t>a-r&&t<a)x=0.5-0.5*Math.cos(Math.PI*(t-(a-r))/r);else if(t>e&&t<e+r)x=0.5+0.5*Math.cos(Math.PI*(t-e)/r);w=Math.max(w,x);}return b.open-(b.open-b.duck)*w;}
 
 /* ── the shot plan: a pure function of t ── */
-function tempoOf(){const b=T.tk.book;return FAST.has(b)?'fast':SLOW.has(b)?'slow':'mid';}
-function cutAt(c,t){const R=RHYTHM[tempoOf()],seed=hash32(T.sid+':'+c.gi),t0=c.at,end=t0+Math.max(.8,c.dur);let x=t0,i=0;
+/* THE SIGN SCORE (odyssey/cineosis/score.json, WIRING.md): where the take carries a direction (tk.direction, attached by
+   odyssey_take.py; else read from the score in prepare), it cuts the scene: cut_rhythm is the tempo, hold_min_s the floor of every
+   shot (a shorter one merges into its neighbour, so the cut skips that seam), shot_bias draws each kind (WIDE→WIDE, MID→SPK,
+   CLOSE→REACT or a close SPK, OBJ→OBJ), sound_forward lays one grid on the scene clock whose cuts avoid the lines' starts, and in
+   a tempo conflict the book's rhythm cuts the entry and the exit shot (the sign governs inside). Mk/Dm cut a matched series
+   (Dm broken by its last shot). Without a direction the syncwatch grammar below runs as it always did. */
+const EDGE={fast:3.0,mid:4.4,slow:7.0};
+function bookTempo(){const b=T.tk.book;return FAST.has(b)?'fast':SLOW.has(b)?'slow':'mid';}
+function tempoOf(){return (T.dir&&RHYTHM[T.dir.d.cut_rhythm]&&T.dir.d.cut_rhythm)||bookTempo();}
+function rand32(seed){return ()=>{seed=(seed+0x6D2B79F5)>>>0;let t=seed;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
+function cutList(){if(T.cutList)return T.cutList;const D=T.dir.d,R=RHYTHM[tempoOf()],floor=Math.max(1,D.hold_min_s||0),fwd=!!D.sound_forward;
+  const cl=T.clips.filter(c=>c.kind!=='SCENE_HEADER'),a0=cl.length?cl[0].at:0,starts=cl.slice(1).map(c=>c.at);
+  const blocks=fwd?[[a0,T.total,'fwd']]:cl.map((c,i)=>[c.at,i<cl.length-1?cl[i+1].at:T.total,c.gi]);let L=[];
+  for(const [a,b,k] of blocks){const r=rand32(hash32(T.sid+':'+k));let x=a;while(x<b-0.01){let d=Math.max(floor,R[Math.floor(r()*R.length)]);if(b-(x+d)<floor)d=b-x;L.push({t0:x,t1:x+d});x+=d;}}
+  if(fwd){for(const s of L.slice(1)){const m=starts.find(m=>Math.abs(s.t0-m)<0.9);if(m!=null)s.t0=m+1.2;}for(let i=1;i<L.length;i++)L[i-1].t1=L[i].t0;}
+  for(let i=0;i<L.length&&L.length>1;i++){const s=L[i];if(s.t1-s.t0>=floor-1e-6)continue;if(i===0)L[1].t0=s.t0;else L[i-1].t1=s.t1;L.splice(i,1);i--;}
+  if(D.tempo_conflict&&EDGE[D.book_tempo]&&L.length){const e=EDGE[D.book_tempo],f=L[0];
+    if(f.t1-f.t0>e+0.5){if(f.t1-f.t0>=e+floor||!L[1])L.splice(1,0,{t0:f.t0+e,t1:f.t1});else L[1].t0=f.t0+e;f.t1=f.t0+e;}f.edge='in';
+    const z=L[L.length-1];if(L.length>1&&z.t1-z.t0>e+0.5){const c=z.t1-e;if(c-z.t0>=floor){L.push({t0:c,t1:z.t1});z.t1=c;}else{L[L.length-2].t1=c;z.t0=c;}}L[L.length-1].edge='out';}
+  const B=D.shot_bias||{WIDE:.3,MID:.4,CLOSE:.3},W=['WIDE','MID','CLOSE','OBJ'].map(k=>[k,B[k]||0]),sum=W.reduce((a,[,w])=>a+w,0)||1;
+  const draw=r=>{let u=r()*sum;for(const [k,w] of W)if((u-=w)<0)return k;return 'MID';},MAP={WIDE:'WIDE',MID:'SPK',CLOSE:'REACT',OBJ:'OBJ'};
+  L.forEach((s,i)=>{s.i=i;s.dur=s.t1-s.t0;const c=clipAt(s.t0+0.01);s.gi=c?c.gi:-1;const r=rand32(hash32(T.sid+':'+s.gi+':'+i));let k=draw(r);if(i&&k===L[i-1].sign)k=draw(r);s.sign=k;s.kind=MAP[k];s.close=k==='CLOSE';});
+  if(L.length){L[0].sign='WIDE';L[0].kind='WIDE';L[0].close=false;}
+  /* a series (Mk, Dm): one set-up and one length every time; a demark's break in the same set-up, held two lengths */
+  const P=T.dir.p;if((P==='Mk'||P==='Dm')&&L.length>2){const sk=(B.MID||0)>=(B.WIDE||0)?'SPK':'WIDE',L0=Math.max(floor,R.reduce((a,b)=>a+b,0)/R.length),tail=L[L.length-1].edge==='out'?L.pop():null;
+    const a=L[1].t0,b=L[L.length-1].t1,brk=P==='Dm'?Math.min(2*L0,(b-a)/2):0,m=Math.max(1,Math.round((b-a-brk)/L0)),w=(b-a-brk)/m;L.length=1;
+    for(let j=0;j<m;j++)L.push({t0:a+j*w,t1:a+(j+1)*w,kind:sk,series:true});if(brk)L.push({t0:b-brk,t1:b,kind:sk,series:true,brk:true});if(tail)L.push(tail);
+    L.forEach((s,i)=>{s.i=i;s.dur=s.t1-s.t0;const c=clipAt(s.t0+0.01);s.gi=c?c.gi:-1;});}
+  return T.cutList=L;}
+/* the scene's direction: the take's own (odyssey_take.py attaches it), else the score's; {d: direction, p: primary sign, s: secondaries} */
+async function directionOf(tk){if(tk.direction)return {d:tk.direction,p:(tk.signs||[])[0]||null,s:(tk.signs||[]).slice(1)};
+  try{const sc=(await (await fetch(root+'odyssey/cineosis/score.json')).json()).scenes.find(s=>s.id===tk.scene);if(sc&&sc.direction)return {d:sc.direction,p:sc.primary&&sc.primary.symbol,s:(sc.secondary||[]).map(x=>x.symbol)};}catch(e){console.warn('[take] no sign score',e);}return null;}
+function cutAt(c,t){if(T.dir){const L=cutList();const q=L.find(s=>t>=s.t0&&t<s.t1)||L[L.length-1];return q;}
+  const R=RHYTHM[tempoOf()],seed=hash32(T.sid+':'+c.gi),t0=c.at,end=t0+Math.max(.8,c.dur);let x=t0,i=0;
   while(x<end&&i<64){const d=R[(seed+i*7)%R.length];if(t>=x&&t<x+d)return {i,t0:x,dur:d,kind:GRAMMAR[(seed+i*3)%GRAMMAR.length]};x+=d;i++;}
   return {i:Math.max(0,i-1),t0:x,dur:2,kind:'SPK',hold:true};}
 function sizeOf(c,t){if(t<2||!c||c.kind==='SCENE_HEADER'||!c.speaker)return 'WIDE';if(T.tk.keyGi>=0&&c.gi===T.tk.keyGi)return 'CLOSE';return 'MID';}
-function insertAt(t){const L=INSERTS[T.sid];if(!L)return null;for(const x of L){const t0=x.at*T.total;if(t>=t0&&t<t0+(x.hold||2.5))return x;}return null;}
-function shotAt(t){const c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
+/* the authored inserts; where a scene has none, the sign score's insert_object: one insert, seeded between 40% and 60% of the scene, held the floor */
+function insertAt(t){const D=T.dir&&T.dir.d,L=INSERTS[T.sid]||(D&&D.insert_object?(T.insDir||(T.insDir=[{at:0.4+0.2*(hash32(T.sid+':insert')%1000)/1000,on:String(D.insert_object).toLowerCase().split(/[^a-z]+/).filter(w=>w.length>2).pop()||'thing',what:D.insert_object,fill:0.8,hold:Math.max(2.6,D.hold_min_s||0)}])):null);if(!L)return null;for(const x of L){const t0=x.at*T.total;if(t>=t0&&t<t0+(x.hold||2.5))return x;}return null;}
+function shotAt(t){let c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
   if(c.kind==='SCENE_HEADER'){const nx=T.clips[T.clips.indexOf(c)+1];return {id:'header:'+c.gi,kind:'HEADER',t0:c.at,dur:(nx?nx.at:c.at+c.dur)-c.at,c};}
   const ins=insertAt(t);if(ins)return {id:'insert:'+ins.on,kind:'INSERT',ins,t0:ins.at*T.total,dur:ins.hold,c};
   /* the syncwatch's resolution of a cut: no addressee, the speaker; no speaker, the wide; the key beat holds the speaker (its
      inserts aside); a reaction is a close-up of the one addressed */
-  const q=cutAt(c,t),isKey=T.tk.keyGi>=0&&c.gi===T.tk.keyGi;let kind=q.kind;
+  const q=cutAt(c,t);if(T.dir){const c0=clipAt(q.t0+0.01);if(c0&&c0.kind!=='SCENE_HEADER')c=c0;
+    /* narration names no one: the score's subject is whom its close and insert shots are on */
+    if(T.subj===undefined){const w=T.dir.d.subject;T.subj=(w&&Object.keys(T.tk.cast||{}).find(id=>T.tk.cast[id]===w&&kfActor(id)))||null;}
+    if(!c.speaker&&T.subj&&q.kind!=='WIDE')c={...c,speaker:T.subj,addressee:null};}   /* a directed shot keeps the clip it began on: under sound_forward or a merge it runs over the seam */
+  const isKey=T.tk.keyGi>=0&&c.gi===T.tk.keyGi;let kind=q.kind;
   if(kind==='REACT'&&!c.addressee)kind='SPK';if(kind==='SPK'&&!c.speaker)kind='WIDE';if(isKey&&kind!=='OBJ')kind='SPK';if(kind==='OBJ'&&!c.speaker)kind='WIDE';
-  const size=kind==='REACT'?'CLOSE':kind==='WIDE'?'WIDE':kind==='OBJ'?'INSERT':sizeOf(c,t);if(kind==='SPK'&&size==='WIDE')kind='WIDE';
-  return {id:c.gi+':'+q.i+':'+kind+':'+size,kind,size,t0:q.t0,dur:q.dur,c,cut:q};}
+  let size=kind==='REACT'?'CLOSE':kind==='WIDE'?'WIDE':kind==='OBJ'?'INSERT':sizeOf(c,t);if(T.dir&&q.close&&kind==='SPK')size='CLOSE';if(T.dir&&q.series&&kind==='SPK')size='MID';if(kind==='SPK'&&size==='WIDE')kind='WIDE';
+  return {id:(T.dir?'d':c.gi)+':'+q.i+':'+kind+':'+size,kind,size,t0:q.t0,dur:q.dur,c,cut:q};}
 
 /* ── cameras: the key's own (gate-approved) framing, and framings on the speaker, the addressee and the thing held, each
    scored with the gate's measures (odyssey-runtime.js kfScore, kfLens, kfClutter) at the key's staging before it is used ── */
 function keyCam(k){return Object.assign({},k.camera);}
-function resolved(spec){OdysseyFilm.rig(spec);const d=camera.getWorldDirection(new V3()),p=camera.position.clone();const tg=typeof spec.target==='string'?kfHead(spec.target):new V3(...spec.target);return {pos:p.toArray(),target:p.clone().add(d.multiplyScalar(p.distanceTo(tg))).toArray(),fov:camera.fov};}
+function resolved(spec){OdysseyFilm.rig(spec);const d=camera.getWorldDirection(new V3()),p=camera.position.clone();const tg=typeof spec.target==='string'?kfHead(spec.target):Array.isArray(spec.target)?new V3(...spec.target):spec.a&&kfActor(spec.a)?kfHead(spec.a):p.clone().add(d.clone().multiplyScalar(100));   /* a hero or orbit key names its subject, not a target */return {pos:p.toArray(),target:p.clone().add(d.multiplyScalar(p.distanceTo(tg))).toArray(),fov:camera.fov};}
 function judge(spec,subject,k,{face=false,soft=false,whole=true}={}){OdysseyFilm.rig(spec);const allow=[...(k.lensAllow||[])];if(!kfActor(subject))return {ok:true};
   const s=OdysseyFilm.score([{id:subject}])[subject];if(!s||s.missing||s.behind)return {ok:false,why:'behind'};const why=[];
   if(s.visible<(soft?0.5:0.75))why.push('hidden');if(whole&&!s.inFrame)why.push('cut');if(!(s.head[0]>0.04&&s.head[0]<0.96&&s.head[1]>0.04&&s.head[1]<0.9))why.push('headout');if(face&&s.facing<0.35)why.push('face');
@@ -109,10 +150,16 @@ function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan
   const sub=sh.c&&(sh.kind==='REACT'?sh.c.addressee:sh.c.speaker),mv=T.moving&&T.win&&sub&&T.win.moves[sub];
   if(mv&&mv.walk&&sh.kind!=='HEADER'){const H=T.H[sub]||60,f=mv.follow||{cam:{type:'hero',a:sub,yaw:0.6,dist:2.9*H,height:0.35*H,fov:40,subject:sub,eye:0.42}};OdysseyFilm.rig(f.cam);return;}   /* a figure crossing the set: a tracking shot that keeps ahead of him */
   const c=P&&P.cam||keyCam(T.keyOf(t));
-  if(c.type==='hero'){OdysseyFilm.rig({...c,dist:c.dist*(1-0.08*u)});return;}
-  if(c.type==='obj'){const r=rigOf(c.a),hand=kfHand(c.a,'R');if(r&&hand){const aim=hand.clone().lerp(kfHead(c.a),0.35),fwd=new V3(Math.sin(r.heading+c.yaw),0,Math.cos(r.heading+c.yaw)),pos=aim.clone().add(fwd.multiplyScalar(c.dist*(1-0.1*u))).add(new V3(0,c.h,0));kfShoot({pos:pos.toArray(),target:aim.toArray(),fov:32});return;}}
-  /* a fixed mark: a slow push toward its target (4%), the target followed if it is an actor */
-  const tg=typeof c.target==='string'?kfHead(c.target):new V3(...c.target),pos=new V3(...c.pos).lerp(tg,0.04*u);OdysseyFilm.rig({...c,pos:pos.toArray()});}
+  /* the move: the sign score's (push, pull, orbit, crane, track, hold); without a direction the old slow push */
+  const M=T.dir&&T.dir.d.move||'push',v=u-0.5,k=M==='push'?1-(T.dir?0.12:0.08)*u:M==='pull'?1+0.1*u:1,yaw=M==='orbit'?0.25*v:M==='track'?0.12*v:0,lift=M==='crane'?0.3*v:0;
+  if(c.type==='hero'){const H=T.H[c.a]||60;OdysseyFilm.rig({...c,dist:c.dist*k,yaw:(c.yaw||0)+yaw,height:(c.height||0)+lift*H});return;}
+  if(c.type==='obj'){const r=rigOf(c.a),hand=kfHand(c.a,'R');if(r&&hand){const kk=M==='push'?1-0.1*u:k,aim=hand.clone().lerp(kfHead(c.a),0.35),fwd=new V3(Math.sin(r.heading+c.yaw+yaw),0,Math.cos(r.heading+c.yaw+yaw)),pos=aim.clone().add(fwd.multiplyScalar(c.dist*kk)).add(new V3(0,c.h+lift*c.dist*0.5,0));kfShoot({pos:pos.toArray(),target:aim.toArray(),fov:32});return;}}
+  /* a fixed mark: moved about its target (push 4% by default), the target followed if it is an actor */
+  const tg=typeof c.target==='string'?kfHead(c.target):new V3(...c.target),p0=new V3(...c.pos),rel=p0.clone().sub(tg),dd=rel.length();let pos;
+  if(M==='push')pos=p0.clone().lerp(tg,(T.dir?0.06:0.04)*u);else if(M==='pull')pos=tg.clone().add(rel.multiplyScalar(1+0.06*u));
+  else if(M==='orbit'||M==='track'){const a=M==='orbit'?0.12*v:0,side=new V3(rel.z,0,-rel.x).normalize();pos=tg.clone().add(new V3(rel.x*Math.cos(a)+rel.z*Math.sin(a),rel.y,-rel.x*Math.sin(a)+rel.z*Math.cos(a)));if(M==='track')pos.addScaledVector(side,dd*0.06*v);}
+  else if(M==='crane')pos=p0.clone().add(new V3(0,dd*0.08*v,0));else pos=p0;
+  OdysseyFilm.rig({...c,pos:pos.toArray()});}
 
 /* ── the cast at t: each key's snapshot, eased across the seams; walking where the marks are apart ── */
 function keyIndexAt(t){let i=0;for(let j=0;j<T.keys.length;j++)if(T.keys[j].t<=t)i=j;return i;}
@@ -177,6 +224,7 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   if(T)end();const sid=tk.scene,mode=o.mode==='cut'?'cut':'full';if(mode==='cut'&&!tk.cut.segments.length)throw Error(sid+' is not in the Regulars\' Cut');
   const spec=await (await fetch(root+'odyssey/keyframes/'+sid+'.json')).json();await OdysseyFilm.loadProps();
   const {clips,total,audio}=clipsOf(tk,mode);T={sid,mode,tk,spec,clips,total,audio,voiceSpans:clips,plan:new Map(),perf:new Map(),faces:new Map(),heads:[],hips:new Map(),world:null,propsNow:null,lookNow:null};
+  T.dir=o.grammar?null:await directionOf(tk);   /* the sign score's direction cuts the take (o.grammar: the syncwatch grammar alone) */
   for(const a of ButterCast.cast)T.hips.set(a.rig,a.rig.hipsP.position.y);T.H={};
   /* the keys on the clock: a key begins where the first segment of its turn begins */
   const kById=new Map(spec.keys.map(k=>[k.id,k])),first=new Map();for(const c of clips)if(c.key&&!first.has(c.key))first.set(c.key,c.at);
@@ -226,20 +274,24 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       else if(sh.kind==='SPK'){const who=c.speaker;if(who===prim&&sh.size==='MID'&&judge(kc,who,K.k,{face:true,whole:false}).ok)cam=null;else if(who)cam=heroFor(who,sh.size,K.k,c.addressee,c.addressee?sideOf(resolved(kc).pos,who,c.addressee):0);}
       else if(sh.kind==='REACT'&&c.addressee)cam=heroFor(c.addressee,'REACT',K.k,c.speaker,sideOf(resolved(kc).pos,c.speaker,c.addressee));
       else if(sh.kind==='OBJ'&&c.speaker)cam=objFor(c.speaker,K.k);
+      else if(sh.kind==='INSERT'&&T.dir&&!INSERTS[T.sid])cam=kfActor(sh.ins.on)?heroFor(sh.ins.on,'CLOSE',K.k):c&&c.speaker?objFor(c.speaker,K.k):null;   /* the score's insert: on the thing if it is cast, else the hands that hold it */
       T.plan.set(sh.id,{cam,kind:sh.kind,fallback:!cam});const tag=sh.kind+(cam?'':'→key');stats[tag]=(stats[tag]||0)+1;}}
-  T.world=null;T.stats=stats;return info();}
-function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
+  T.world=null;T.stats=stats;
+  /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
+  if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
+  return info();}
+function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
 /* ── one frame at t: the world, the cast, the camera; drawn, then captioned ── */
-function apply(t){const {state,key}=castAt(t);worldFor(key);if(T.env){scene.background=T.env.bg;scene.fog=T.env.fog;renderer.toneMapping=T.env.tone;renderer.toneMappingExposure=T.env.exp;renderer.shadowMap.enabled=T.env.sh;}poseCast(state,t);const sh=shotAt(t);shootAt(sh,t);scene.updateMatrixWorld(true);return sh;}
+function apply(t){const {state,key}=castAt(t);worldFor(key);if(T.env){scene.background=T.env.bg;scene.fog=T.env.fog;renderer.toneMapping=T.env.tone;renderer.toneMappingExposure=T.env.exp;renderer.shadowMap.enabled=T.env.sh;}poseCast(state,t);/*[motion]*/if(T.motion){T.motion.frame(t,key);renderer.shadowMap.needsUpdate=true;}/*[/motion]*/const sh=shotAt(t);shootAt(sh,t);scene.updateMatrixWorld(true);return sh;}
 let comp=null;
 function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prepared');const m0=performance.now(),sh=apply(t),m1=performance.now();if(T.render){renderer.shadowMap.autoUpdate=false;T.fi=(T.fi||0)+1;if(T.moving||sh.id!==T.lastShot||T.fi%4===0)renderer.shadowMap.needsUpdate=true;T.lastShot=sh.id;}(T.render||renderer.render.bind(renderer))(scene,camera);renderer.getContext().finish();const m2=performance.now();
-  const W=renderer.domElement.width,H=renderer.domElement.height;if(!comp){comp=document.createElement('canvas');}comp.width=W;comp.height=H;const g=comp.getContext('2d');g.drawImage(renderer.domElement,0,0);if(captions)drawCaption(g,W,H,t);
+  const W=renderer.domElement.width,H=renderer.domElement.height;if(!comp){comp=document.createElement('canvas');}comp.width=W;comp.height=H;const g=comp.getContext('2d');g.drawImage(renderer.domElement,0,0);/*[motion]*/if(T.motion&&T.motion.ov)OdysseyMotion.overlay(g,W,H,T.motion.ov);/*[/motion]*/if(captions)drawCaption(g,W,H,t);
   const jpeg=comp.toDataURL('image/jpeg',quality).split(',')[1];return {jpeg,shot:sh.id,kind:sh.kind,key:T.keyOf(t).id,ms:[m1-m0,m2-m1,performance.now()-m2].map(v=>Math.round(v))};}
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
-function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},spans:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}
+function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
 function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
-function end(){if(!T)return;stop();for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
+function end(){if(!T)return;stop();/*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the
    page draws it, and the caption sits over the picture ── */

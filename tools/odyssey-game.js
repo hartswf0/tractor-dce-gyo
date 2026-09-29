@@ -4,7 +4,8 @@
    Reads play/hand-butter-odyssey.html (WAG / HAND BUTTER 26 with the Odyssey forage, itself made by tools/butter-odyssey.js)
    and writes play/odyssey-game.html: the same engine (three.js, cannon, the embedded LDraw library, the MediaPipe hand worker,
    the track/pinch/gesture model, stud snapping and bonds, the Movieator minifig rigs), with the game layer injected:
-     play/odyssey-game/game.css and play/odyssey-game/*.js (engine bridge, input, synthetic hands, audio, HUD, map, runner),
+     play/odyssey-game/game.css and play/odyssey-game/*.js (engine bridge, input, synthetic hands, audio, HUD, map, runner;
+       directions.js, the cineosis sign score's direction per scene, written here first by tools/odyssey-directions.js),
      play/odyssey-game/levels/*.js (the eight levels; their data in levels/*.json, fetched at run time),
      ../world/halfworld-face.js and ../world/face.js (the halfworld faces as decals on the minifig heads).
    Patches, each asserted so a changed engine fails loudly:
@@ -36,7 +37,8 @@ swap("const STORE='wag-hand-butter-16';", "const STORE='odyssey-game-workshop-v1
 html = html.replace(/<title>[^<]*<\/title>/, "<title>Nobody's Hands · the Odyssey played by hand</title>\n<script>try{localStorage.removeItem('odyssey-game-scenes-v1');localStorage.removeItem('odyssey-game-workshop-v1');}catch(e){}</script>");
 
 /* the game layer, loaded after the engine */
-const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'cinema', 'story', 'game'];
+require('./odyssey-directions').write();   /* the sign score's directions (odyssey/cineosis/score.json) → play/odyssey-game/directions.js, read by cinema.js */
+const LAYER = ['engine', 'synth-hand', 'input', 'audio', 'hud', 'map', 'directions', 'cinema', 'story', 'game'];
 const levels = fs.readdirSync(path.join(root, 'play/odyssey-game/levels')).filter(f => /^\d\d-.*\.js$/.test(f)).sort();
 const tags = ['<link rel="stylesheet" href="odyssey-game/game.css">',
   '<script src="../world/halfworld-face.js"></script>', '<script src="../world/face.js"></script>',

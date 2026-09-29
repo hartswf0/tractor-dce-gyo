@@ -92,6 +92,7 @@ details.mv .body b { font-weight: 600; } details.mv .rk { font: 700 20px/1 'Corm
 .find { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; } .find ul { padding-left: 18px; } .find li { margin: 6px 0; font-size: 14px; }
 .prop { background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--blue); padding: 10px 14px; margin: 10px 0; font-size: 14px; }
 .prop p { margin: 4px 0; } .prop .why { color: var(--muted); }
+.wired img { width: 100%; height: auto; display: block; margin: 4px 0; border: 1px solid var(--rule); }
 pre.hook { background: var(--card); border: 1px solid var(--rule); padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
 table.sc td { font-size: 13px; } table.sc td.sg { white-space: nowrap; }
 .pad { overflow-x: auto; padding-bottom: 6px; }
@@ -261,6 +262,21 @@ RULES = [
 ]
 
 
+def wired():
+    """the before/after of tools/odyssey-wired.js: shot counts and the contact sheets, where they have been made"""
+    d = os.path.join(ROOT, 'odyssey/cineosis/wired'); out = []
+    if not os.path.isdir(d): return ''
+    for f in sorted(os.listdir(d)):
+        if not f.endswith('.json'): continue
+        w = json.load(open(os.path.join(d, f))); sid = w['scene']
+        def summary(L): return f"{len(L)} shots, {sum(x['dur'] for x in L) / max(1, len(L)):.1f} s mean"
+        out.append(f'''<div class="wired"><h3>{E(sid)} · {E(w['title'])} <span class="sub">({E(w['direction'].get('cut_rhythm',''))}, hold ≥ {w['direction'].get('hold_min_s')} s, {E(w['direction'].get('move',''))})</span></h3>
+    <p class="sub">before: {summary(w['before'])} · after: {summary(w['after'])} — {E(' · '.join(x['kind'] + ('*' if (x.get('why') or '').startswith('series') else '') for x in w['after']))}</p>
+    <img loading="lazy" src="../cineosis/wired/{sid}-before.jpg" alt="{E(sid)} before"><img loading="lazy" src="../cineosis/wired/{sid}-after.jpg" alt="{E(sid)} after"></div>''')
+    if not out: return ''
+    return '  <h3>Before and after, on the phone build (Pixel 7)</h3>\n  ' + '\n  '.join(out)
+
+
 def page():
     M = SCORE['monotony']; K = MOTION['kinds']
     conf = sum(1 for r in SC if r['direction']['tempo_conflict'])
@@ -319,23 +335,21 @@ def page():
   <h2>How the edit uses it</h2>
   <ol class="rules">{"".join(f'<li><b>{E(t)}</b> {b.format(conf=conf)}</li>' for t, b in RULES)}</ol>
 
-  <h2>The direction hook</h2>
+  <h2>The direction, wired</h2>
   <p class="sub">Each scene in <code>odyssey/cineosis/score.json</code> carries a <code>direction</code> block derived from its signs' operations (the primary at 0.6, the secondaries sharing 0.4).
-    It is not wired into the renderers yet. This is where it would go:</p>
+    It now cuts the game's cinema and the film take; the full account is <code>odyssey/cineosis/WIRING.md</code>. The Sirens' block:</p>
   <pre class="hook">{E(json.dumps(next(r for r in SC if r["id"] == "OD-B12-S03")["direction"], indent=1))}</pre>
   <ul class="checks">
-    <li><b><code>play/odyssey-game/cinema.js</code>, <code>C.plan(item, st)</code>:</b> the automatic coverage picks <code>GRAMMAR[(i + h % 3) % 8]</code>; it would pick WIDE/MID/CLOSE by a
-      hash-seeded draw from <code>shot_bias</code> (OBJ aimed at <code>insert_object</code>'s prop), merge segments shorter than <code>hold_min_s</code> into one shot, and replace the 4% drift
-      (<code>p0</code>/<code>p1</code> at 1.04/0.96) with <code>move</code>. <code>C.load</code> fetches the scene's block with the keyframes; <code>empty_frame</code> adds one WIDE on the card's
-      bounding box with the cast out of frame.</li>
-    <li><b><code>film-readymades/odyssey-take.js</code>:</b> <code>tempoOf()</code> returns <code>cut_rhythm</code> instead of the book's FAST/SLOW; <code>cutAt()</code> draws its kind from
-      <code>shot_bias</code> mapped onto the syncwatch's SPK/REACT/OBJ/WIDE and floors each <code>d</code> at <code>hold_min_s</code>; <code>insertAt()</code> falls back to
-      <code>insert_object</code> where INSERTS has nothing; <code>shootAt()</code> uses <code>move</code> for its 4% push; <code>bedGain()</code> keeps the bed open (no duck) where
-      <code>sound_forward</code>, and <code>shotAt()</code> suppresses cuts on segment seams there.</li>
-    <li><b><code>film-readymades/odyssey-trailer.js</code>, <code>shot()</code>:</b> when a trailer shot gives no <code>camera.move</code>, default to the scene's <code>move</code> with
-      <code>stepped: 12</code>.</li>
+    <li><b><code>play/odyssey-game/cinema.js</code> (desktop and the one-file phone build, which carries the block inline as <code>directions.js</code>):</b> <code>C.cut</code> draws shot lengths from
+      <code>cut_rhythm</code> floored at <code>hold_min_s</code> (shorter shots merge across the seam) and each shot's kind from <code>shot_bias</code>, seeded by scene and segment; CLOSE is on the
+      <code>subject</code>'s head, OBJ on the <code>insert_object</code> found in the previs; every shot moves by <code>move</code> on twos; <code>empty_frame</code> (or an any-space-whatever) opens on the
+      set with no figure in any phone's frame; <code>sound_forward</code> cuts off the line seams and leaves the bed open. A mark cuts a matched series, a demark breaks it with its last shot.</li>
+    <li><b><code>film-readymades/odyssey-take.js</code>:</b> <code>tempoOf()</code> is <code>cut_rhythm</code>; <code>cutAt()</code> draws SPK/REACT/OBJ/WIDE from <code>shot_bias</code> and floors at
+      <code>hold_min_s</code>; <code>insertAt()</code> falls back to <code>insert_object</code>; <code>shootAt()</code> moves by <code>move</code>; <code>bedGain()</code> and the exporter's sound log do not duck
+      where <code>sound_forward</code>, and <code>shotAt()</code> no longer cuts on the seams there. <code>odyssey_take.py</code> attaches the block to each take.</li>
+    <li><b>The tempo rule ({conf} conflicts):</b> the sign wins inside its scene; the book's rhythm governs the transitions (the entry and exit shots are cut at the book's length).</li>
   </ul>
-
+{wired()}
   <h2>Every scene</h2>
   <p class="sub">The score as a table: the primary and secondary signs of every kept scene and its direction block (rhythm, move, minimum hold, shot bias).</p>
   {scene_table()}

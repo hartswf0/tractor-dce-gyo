@@ -11,6 +11,8 @@ For one scene id this reads, from the halfworld clone (read-only):
 and from this repository:
   odyssey/kits/cut.json       the Regulars' Cut: the segments kept for the scene, on the scene's own cut clock
   odyssey/keyframes/<id>.json the keyframe stills: each key is tied to the turn whose beat it stills
+  odyssey/cineosis/score.json the sign score: the scene's direction block and its signs, attached as take.direction and
+                              take.signs (odyssey-take.js cuts by them; odyssey/cineosis/WIRING.md)
 
 take(sid, actor_ids) returns the dict the player reads as filmAsset().take. The voice and the bed are copied into
 odyssey/take/ so the player (served from the repository root) loads them over http; nothing is inlined but the 50 Hz
@@ -125,6 +127,7 @@ def take(sid, actor_ids):
     off_full = sum(vman[i]['total'] for i in sorted(vman) if i < sid and book_of.get(i) == ds['book'])
     off_cut = (cut['at'] - min(c['at'] for c in cuts if c['book'] == ds['book'])) if cut else 0.0
     b = beats().get(sid)
+    sc = next((x for x in _j(REPO / 'odyssey/cineosis/score.json')['scenes'] if x['id'] == sid), None)   # the sign score: how the scene is cut
     return dict(scene=sid, book=ds['book'], bookTitle=ds.get('bookTitle'), title=ds.get('title'),
         voice=dict(file='odyssey/take/voice/%s.m4a' % sid, total=vm['total'], seconds=round(real, 3), hz=50, env=env, segments=segs),
         keyGi=key_gi, beat=dict(emotion=b[0], note=b[1]) if b else None,
@@ -132,7 +135,9 @@ def take(sid, actor_ids):
         bed=dict(file='odyssey/take/bed/' + bdst.name, album=a['name'], title=t['title'], num=t['num'], offsetFull=round(off_full, 3), offsetCut=round(off_cut, 3), open=BED_OPEN, duck=BED_DUCK, ramp=RAMP),
         cut=dict(status=cut['status'], seconds=cut['seconds'], segments=[dict(gi=g['gi'], start=g['start'], dur=g['dur'], at=round(g['at'] - cut['at'], 3)) for g in cut['segments']],
                  dropped=[dict(gi=g['gi'], why=g['why']) for g in cut.get('dropped_segments', [])], why=cut.get('why', [])) if cut else dict(status='dropped', seconds=0, segments=[], dropped=[], why=[]),
-        keys=korder)
+        keys=korder,
+        direction=sc.get('direction') if sc else None,
+        signs=[sc['primary']['symbol']] + [x['symbol'] for x in sc.get('secondary', [])] if sc and sc.get('primary') else [])
 
 def sound_line(tk):
     """The words for the location card's sound field: what the take plays."""

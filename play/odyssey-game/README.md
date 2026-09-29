@@ -65,7 +65,7 @@ The poses are the ones Hand Butter's own classifier (`gestureOf`) reads:
 - the kept voice segments as one clip, and captions from the halfworld's spoken lines;
 - the book's BRONZE COUNCIL bed, ducked under the voice (0.18 falling to 0.10, with 150 ms ramps);
 - halfworld faces put on the baked figures of the twelve, where the previs places them;
-- the gate-checked key cameras for the 31 keyframed scenes, and automatic coverage (wide, mid, close) for the rest. All shots avoid parts that block the view and put a person's head on the upper third of the frame.
+- the cut by the **cineosis sign score** (`odyssey/cineosis/score.json`; the wiring is `odyssey/cineosis/WIRING.md`). Each scene's direction block, carried in `directions.js` (generated from the score by `tools/odyssey-directions.js`, inlined in the one-file mobile build), decides the shots: their lengths (`cut_rhythm`, never shorter than `hold_min_s`), their kinds (a seeded draw from `shot_bias` over wide, mid, close and insert), the close-ups' subject and the inserts' object, the camera move of every shot (`move`, played on twos), an opening with no figure in frame (`empty_frame`, or an any-space-whatever sign), and in a sound-forward scene cuts that leave the line seams while the bed stays open. A mark or demark sign cuts a series of matched frames (a demark broken by its held last shot). Where a sign's tempo fights the book's, the sign rules inside the scene and the book cuts the entry and exit shots. The keyframed scenes keep their gate-checked key cameras for the mid shots. `?grammar` plays the old coverage (one shot per segment, fixed drift) for comparison. All shots avoid parts that block the view and put a person's head on the upper third of the frame.
 
 **Trials** are the hand levels. A trial replaces its scene or scenes, which remain the fallback: *Watch the scene instead*. **Touches** are small hand actions inside a scene. They light up for the length of their segment, add 30 kleos, and never hold the story.
 
@@ -128,12 +128,13 @@ The voyage chart is the Aegean as a studded blue baseplate, with the land in bri
 
 - `tools/odyssey-game.js` is the desktop builder. It adds a hook in `processHands` that hands Butter's smoothed tracks to `OdysseyHands.take`, gives the game its own store keys, and adds the script tags.
 - `tools/odyssey-mobile.js` builds the one-file mobile page, and `tools/odyssey-mobile-bake.js` bakes its geometry bank.
+- `tools/odyssey-directions.js` writes `directions.js` from the sign score (both builds run it first); `tools/odyssey-wired.js` draws the before/after shot lists and contact sheets of `odyssey/cineosis/wired/` on the phone build.
 - `tools/odyssey-game-story.py` builds `story.json` and the cut audio; `tools/odyssey-game-audio.py` builds the level lines and effects.
 - `play/odyssey-game/*.js` is the game layer:
   - `engine.js` is the bridge to Butter: camera, props, card staging, actors and faces, and the carry built on Butter's transaction.
   - `input.js` holds the hand hook, mouse, touch and keys, and the recognisers.
   - `synth-hand.js` builds synthetic landmarks.
-  - `audio.js`, `hud.js`, `map.js`, `cinema.js`, `story.js` and `game.js` handle sound, the HUD, the chart, the cinematics, the poem runner and the level runner.
+  - `directions.js` (generated: the sign score's direction per scene), `audio.js`, `hud.js`, `map.js`, `cinema.js`, `story.js` and `game.js` handle sound, the HUD, the chart, the cinematics, the poem runner and the level runner.
   - `levels/*.js` and `levels/*.json` are the trials; `mobile/butter-lite.js` is the phone's cut of Hand Butter.
 
 ## Tests
