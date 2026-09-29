@@ -220,13 +220,29 @@ function generate(M, prev) {
   }
 
   /* ── 3. the action lines: the narrator describes what the subject does; the subject does it ── */
-  for (const c of narr) { const id = c.speaker; if (!id || !ids.includes(id)) continue;
-    const txt = verbsOf(c.caption) + ' ' + verbsOf((M.keys.find(k => k.id === c.key) || {}).beat);
+  for (const c of narr) {
+    /* the key's beat is read with the line that opens the key only (a later line in the same key is its own action) */
+    const K = M.keys.find(k => k.id === c.key), opens = K && Math.abs(K.t - c.at) < 0.3, txt = verbsOf(c.caption) + ' ' + (opens ? verbsOf(K.beat) : '');
+    let id = c.speaker;
+    /* a narration with no subject named ("The men bind him to the mast"): the ones who do it are the crew nearest the one it
+       is done to (the addressee), and the addressee answers */
+    if (!id || !ids.includes(id)) { const obj = c.addressee && ids.includes(c.addressee) ? c.addressee : null;
+      if (obj && /(bind|tighten|rope|lash|seize|hold)/.test(txt)) { const t0 = c.at + 0.4, t1 = c.at + c.dur, so = B.at(obj, t0);
+        const crew = ids.filter(o => o !== obj && /crew|oars|men|companions/.test(name(o)) && B.visible(o, t0)).sort((a, b) => dist2(B.at(a, t0).p, so.p) - dist2(B.at(b, t0).p, so.p)).slice(0, 2);
+        for (const o of crew) { look(o, obj, t0 - 0.3, 'look', {}); pullRope(o, t0 + rng(o + c.gi)() * 0.4, Math.min(t1, t0 + 5)); }
+        if (/odysseus/.test(obj) && /(tighten|song|fades)/.test(txt)) { strain(obj, t0, Math.min(t1 - 1.5, t0 + 4)); cue(t0, obj, 'fights the ropes as they tighten, then sags'); }
+        else if (/odysseus/.test(obj)) { S.key(obj, 'act', t0, { 'torso.lean': 0, 'head.pitch': 0 }, 'inOut'); S.key(obj, 'act', t0 + 0.8, { 'torso.lean': -0.06, 'head.pitch': -0.1, 'root.roll': 0.03 }, 'out'); S.key(obj, 'act', t0 + 3.5, { 'torso.lean': -0.03, 'head.pitch': -0.05, 'root.roll': -0.02 }, 'linear'); S.key(obj, 'act', t0 + 4.5, { 'torso.lean': 0, 'head.pitch': 0, 'root.roll': 0 }, 'inOut'); cue(t0, obj, 'bound: braces against the mast'); }
+        cue(t0, crew.join(', '), 'haul the ropes about ' + obj); }
+      continue; }
     act(id, c, txt); }
   /* the ensemble's verbs: figures whose names or the scene's text say what they do all through (rowers row, sirens sing) */
   const all = clips.map(c => verbsOf(c.caption)).join(' ') + ' ' + M.keys.map(k => verbsOf(k.beat)).join(' ');
   for (const id of ids) { const n = name(id);
-    if (/oars|rower|crew/.test(n) && /row|oar|ship|sail/.test(all)) loopClip(id, 'row', 0, T, { amp: 1, phase: rng(sid + id)() * 1.1, why: 'rows' });
+    if (/oars|rower|crew/.test(n) && /row|oar|ship|sail/.test(all)) {
+      /* they row in every stretch they are not walking or doing something else, and take the stroke up again after */
+      const gaps = [], stops = busy[id].map(([a, b]) => [a - 0.4, b + 0.3]).concat(M.keys.filter(k => k.win && k.moves && k.moves[id]).map(k => [k.win[0] - 0.4, k.win[1] + 0.3])).sort((a, b) => a[0] - b[0]);
+      let t = 0; for (const [a, b] of stops) { if (a - t > 1.5) gaps.push([t, a]); t = Math.max(t, b); } if (T - t > 1.5) gaps.push([t, T]);
+      gaps.forEach(([a, b], i) => loopClip(id, 'row', a, b, { amp: 1, phase: rng(sid + id)() * 1.1, why: i ? 'rows again' : 'rows' })); }
     else if (/siren/.test(n)) singLoop(id, 0, T); }
 
   /* ── 4. walks: the take walks a figure between two marks; the body goes with it (bob, lean, the head looking where it goes) ── */
@@ -366,6 +382,12 @@ function generate(M, prev) {
     if (/(erupt|panic|scatter|flee)/.test(txt)) { for (const o of others) if (!seated(o, t0)) loopClip(o, 'reel-back-in-fear', t0 + rng(o)() * 0.6, t0 + 2, { amp: 0.8, why: 'reel back' }); return; }
     if (/(pour|libation|wine|cups? are filled)/.test(txt)) { for (const o of others.filter(o => /servant|maid|herald/.test(o)).slice(0, 3)) loopClip(o, 'pour-libation', t0 + rng(o)() * 1.5, t0 + 4, { amp: 0.9, why: 'pours' }); }
     if (/(dice|gamble)/.test(txt)) { for (const o of [id, ...others.filter(o => name(o) === name(id))]) dice(o, t0, t1); did('the dice, the cups'); return; }
+    if (/siren/.test(id) && /(promise|call|sing|song|knowledge)/.test(txt)) { const tgt = c.addressee && ids.includes(c.addressee) ? c.addressee : null;
+      for (const o of [id, ...others.filter(o => /siren/.test(o))]) { const Ro = rng(sid + o + c.gi); let t = t0 + Ro() * 0.4; if (tgt) look(o, tgt, t - 0.2, 'look', {});
+        while (t < t1 - 0.6) { S.key(o, 'beat', t, { 'torso.lean': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut'); S.key(o, 'beat', t + 0.5, { 'torso.lean': 0.16, 'arm.R.pitch': -0.5, 'arm.L.pitch': -0.35, 'hand.R.roll': 0.6, 'head.pitch': -0.1 }, 'out');
+          S.key(o, 'beat', t + 1.1, { 'torso.lean': 0.1, 'arm.R.pitch': 0.25, 'arm.L.pitch': 0.2, 'hand.R.roll': 0.2, 'head.pitch': -0.04 }, 'inOut'); t += 1.3 + Ro() * 0.4; }
+        S.key(o, 'beat', t1 + 0.3, { 'torso.lean': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'hand.R.roll': 0, 'head.pitch': 0 }, 'inOut'); }
+      did('the Sirens lean out to him and beckon, all together'); return; }
     if (/(weave|loom)/.test(txt)) { loopClip(id, 'weave', t0, t1, { why: 'weaves' }); return; }
     if (/(embrace|hug|clasp)/.test(txt)) { gesture(id, 'offer', t0, 'R', 1, t1 - t0 - 1); did('embraces'); return; }
     if (/(weep|tears|grieve|mourn)/.test(txt)) { loopClip(id, 'weep', t0, t1, { why: 'weeps' }); return; }
@@ -483,7 +505,7 @@ function generate(M, prev) {
     occupy(id, w0, w1 + 0.3, 'walk'); cue(w0, id, 'walks to the next mark'); }
   /* business: what a figure does when the scene is not about him: by his role and whether he sits */
   function business(id) { const R = rng(sid + id + 'work'), n = name(id); let t = R() * 1.2;
-    while (t < T) { const s = B.at(id, t); const len = 2.2 + R() * 1.6;
+    while (t < T) { const s = B.at(id, t); const len = 1.7 + R() * 1.2;
       if (!s || !s.vis || B.lying(s) || (s.moving && s.walk > 0.1) || isBusy(id, t, t + len)) { t += 0.5; continue; }
       const sat = s.sat, nb = near(id, t, 6)[0], k = Math.floor(R() * 4);
       if (/suitor/.test(n) && sat) { if (k === 0) drink(id, t); else if (k === 1) laugh(id, t); else if (nb) { look(id, nb, t, 'look', {}); gesture(id, pick(R, ['open', 'chop', 'dismiss']), t + 0.5, 'R', 0.7, 0.6, nb); look(id, null, t + len - 0.3, 'look', {}); } else drink(id, t); }
@@ -495,7 +517,7 @@ function generate(M, prev) {
       else { /* the principals between their lines, and anyone else: a look round, a word to the nearest, the weight moved */
         if (nb && k < 2) { look(id, nb, t, 'look', {}); if (!sat) gesture(id, 'open', t + 0.6, heldR(id) ? 'L' : 'R', 0.55, 0.5, nb); look(id, null, t + len - 0.4, 'look', {}); }
         else glance(id, t, (R() - 0.5) * 1.4, len * 0.6); }
-      t += len + 0.2 + R() * 0.8; } }
+      t += len + 0.1 + R() * 0.4; } }
   /* weight shifts: in every stretch the feet are still, the weight goes from one hip to the other and settles (a hold that breathes) */
   function shifts(id) { const R = rng(sid + id + 'shift'); let t = 0.5 + R() * 2, u = R() < 0.5 ? 1 : -1;
     while (t < T) { const s = B.at(id, t); if (!s || !s.vis || B.lying(s) || (s.moving && s.walk > 0.1)) { t += 0.5; continue; }
