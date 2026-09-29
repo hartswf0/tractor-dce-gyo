@@ -9,7 +9,8 @@
            (each book's first scene staged on its Butter card and photographed first), every trial solved with synthetic
            hands, bridges passed; asserts every book is reached and marked sailed.
    Usage: node tools/test-odyssey-game.js [--levels] [--spine] [--only 03-cyclops,04-bow] [--mode hand|mouse|both] [--no-loss]
-          [--books 1-24] [--speed 3]
+          [--books 1-24] [--speed 3] [--frames] [--frame-scenes id,...] [--scene-timeout 240]  (frames: one log line per scene; a scene
+          that does not plan and render within the timeout fails instead of holding the run)
    Needs: the http server on :8899 serving this repository; chromium at /opt/pw-browsers/chromium-1194; playwright (NODE_PATH). */
 'use strict';
 const path = require('path'), fs = require('fs');

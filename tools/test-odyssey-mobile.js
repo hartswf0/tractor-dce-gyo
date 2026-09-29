@@ -11,7 +11,7 @@
    FRAMES  (--frames) every shot of EVERY kept scene of the cut (102), each camera set and rendered on the phone build:
            fails on a near-uniform frame, a non-finite camera, or a shot on a person whose head is off screen or low.
    Usage: node tools/test-odyssey-mobile.js [--devices "Pixel 7,iPhone 13"] [--orient portrait,landscape] [--no-spine]
-          [--no-trials] [--only 03-cyclops,04-bow] [--frames] [--frame-configs pixel7-portrait,...] [--books 1-24] [--speed 4]
+          [--no-trials] [--only 03-cyclops,04-bow] [--frames] [--frame-configs pixel7-portrait,...] [--books 1-24] [--speed 4] [--scene-timeout 240]
           [--render 1500]  (render at most every N ms: the game's logic keeps its pace on a starved software-GL CPU;
                             frame time, the cinematic check and the frames test always render every frame) */
 'use strict';
