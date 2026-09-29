@@ -149,7 +149,7 @@ code { font-size: 13px; }
 blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
 .sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
 @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
-  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+  .ribbon { grid-template-columns: repeat(8, minmax(0, 1fr)); } .ribbon a, .ribbon div { min-width: 0; overflow-wrap: anywhere; } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
 '''
 HEAD = '''<!doctype html>
 <html lang="en">
@@ -171,6 +171,31 @@ def badge(k):
     if k['clean']: return '<span class="badge ok">every part clicks · no clashes</span>'
     L = sum(b.get('loose', 0) for b in k['builds']); C = sum(b.get('clash', 0) for b in k['builds'])
     return f'<span class="badge bad">{L:,} loose · {C:,} clashes: to rebuild</span>'
+
+
+# (href, poster, kind, title, text): paths from odyssey/kits/
+WATCH = [
+    ('../../play/odyssey-mobile.html', '../../play/odyssey-game/shots/chart.png', 'Game · phone',
+     "Nobody's Hands, on a phone", 'The whole Odyssey to play by touch: 24 books, the film between, eight trials. One file.'),
+    ('../../play/odyssey-game.html', '../../play/odyssey-game/shots/04-bow-intro.png', 'Game · desktop',
+     "Nobody's Hands, with your hands", 'The same game played with Hand Butter: your hands on the camera, or mouse and keys.'),
+    ('../../films/odyssey/OD-B01-S03-cut.mp4', '../../films/odyssey/OD-B01-S03-cut.jpg', 'Film · voiced scene',
+     'Athena at the gate', 'The first voiced scene of the LEGO film, 44 seconds: Telemachus welcomes the stranger. The halfworld recordings, faces, lip sync, cutting and the book\'s music.'),
+    ('../../films/odyssey/OD-B01-S03.mp4', '../../films/odyssey/OD-B01-S03.jpg', 'Film · voiced scene',
+     'Athena at the gate, the long take', 'The same scene before the cut.'),
+    ('../../films/trailers/teaser.mp4', '../../films/trailers/teaser.jpg', 'Teaser', 'Nobody (teaser)', 'Thirty seconds, one idea, one line.'),
+    ('../../films/trailers/a-long-way-home.mp4', '../../films/trailers/a-long-way-home.jpg', 'Trailer A', 'The Long Way Home', 'Vast and grave: time and memory. Two minutes, with voice and sound.'),
+    ('../../films/trailers/b-nobody.mp4', '../../films/trailers/b-nobody.jpg', 'Trailer B', 'Nobody', 'Wit and pace, the brick as brick, a sincere heart.'),
+    ('../../films/trailers/c-gods-watching.mp4', '../../films/trailers/c-gods-watching.jpg', 'Trailer C', 'The Gods Are Watching', 'Mythic spectacle: Olympus above, men below.'),
+    ('../../films/motion/motion-row.mp4', '../../films/motion/motion-row.jpg', 'Motion test', 'Rowing and the whirlpool', 'Oars on twos, the sea and Charybdis as brick fields.'),
+    ('../../films/motion/motion-storm.mp4', '../../films/motion/motion-storm.jpg', 'Motion test', 'The storm', 'Rain, smoke and lightning over the raft.'),
+    ('../../films/motion/motion-combat.mp4', '../../films/motion/motion-combat.jpg', 'Motion test', 'Combat in the hall', 'A spear thrust and a fall.'),
+    ('../../films/motion/motion-fall.mp4', '../../films/motion/motion-fall.jpg', 'Motion test', 'Antinous falls', 'The first arrow.'),
+    ('../../films/motion/motion-embrace.mp4', '../../films/motion/motion-embrace.jpg', 'Motion test', 'The embrace', 'Penelope and Odysseus at the bed.'),
+    ('../../films/motion/motion-circe.mp4', '../../films/motion/motion-circe.jpg', 'Motion test', 'Circe\'s wand', 'A man replaced by a pig, part by part.'),
+    ('../../films/motion/motion-scar.mp4', '../../films/motion/motion-scar.jpg', 'Motion test', 'The scar', 'The boar hunt remembered: a double exposure in the past\'s grade.'),
+    ('../../film-readymades/production/Film-Butter-Odyssey.html', None, 'Film build', 'The film build', 'Every Odyssey location as a playable film set (large download).'),
+]
 
 
 def hub(kits, frames):
@@ -195,6 +220,12 @@ def hub(kits, frames):
     <div><b>{clean} / {len(cards)}</b><span>builds that pass the checker</span></div>
     <div><b>{len(frames)}</b><span>film scenes with keyframes</span></div>
   </div>''')
+    # what there is to watch and play
+    out.append('  <h2>Watch and play</h2>\n  <p class="sub">The film so far, its trailers, the game of the whole poem, and the tests of the moving images the film has to master.</p>\n  <div class="grid" id="watch">')
+    for href, poster, kind, title, text in WATCH:
+        img = f'<img src="{poster}" alt="{E(title)}" loading="lazy">' if poster and os.path.exists(os.path.join(KITS, poster)) else '<div class="noimg"></div>'
+        out.append(f'    <a class="card" href="{href}">{img}<div class="body"><div class="meta"><b>{E(kind)}</b></div><h3>{E(title)}</h3><p>{E(text)}</p></div></a>')
+    out.append('  </div>')
     # the ribbon of books
     out.append('  <h2>The poem, book by book</h2>\n  <p class="sub">Twenty-four books. Black: a kit is made from this book. Blue underline: the film has keyframes here.</p>\n  <div class="ribbon">')
     for n in range(1, 25):
