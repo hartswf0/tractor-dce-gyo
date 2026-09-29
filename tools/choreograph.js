@@ -288,6 +288,8 @@ function generate(M, prev) {
   /* a gesture: anticipation (the arm dips the other way, the weight goes back), the strike (eased out, or overshooting), a hold
      that keeps drifting, the release; the head leads it by a drawing, the torso follows, the hand trails the arm */
   function gesture(id, g, t, side, amp, hold, toward) {
+    /* a hand that holds a weapon does not come to the chest (the blade would cross the face): the free hand does, or it opens */
+    if ((g === 'chest' || g === 'grief') && ((M.held[id] || {})[side] > 0)) { const other = side === 'R' ? 'L' : 'R'; if (!((M.held[id] || {})[other] > 0) && g === 'chest') side = other; else g = 'open'; }
     const G = GEST[g]; if (!G) return; const s = B.at(id, t); if (!s || !s.vis || B.lying(s)) return;
     if (s.moving && s.walk > 0.2) return;
     let a = amp; const sides = G.both ? ['R', 'L'] : [side];
