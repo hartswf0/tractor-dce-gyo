@@ -229,6 +229,7 @@ def hub(kits, frames):
     # what there is to watch and play
     out.append('  <h2>Watch and play</h2>\n  <p class="sub">The film so far, its trailers, the game of the whole poem, and the tests of the moving images the film has to master.</p>\n  <div class="grid" id="watch">')
     for href, poster, kind, title, text in WATCH:
+        if href.startswith('../../films/') and not os.path.exists(os.path.join(KITS, href)): continue   # a film not yet rendered: no card
         img = f'<img src="{poster}" alt="{E(title)}" loading="lazy">' if poster and os.path.exists(os.path.join(KITS, poster)) else '<div class="noimg"></div>'
         out.append(f'    <a class="card" href="{href}">{img}<div class="body"><div class="meta"><b>{E(kind)}</b></div><h3>{E(title)}</h3><p>{E(text)}</p></div></a>')
     out.append('  </div>')
