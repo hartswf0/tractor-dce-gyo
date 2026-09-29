@@ -183,7 +183,8 @@ function player(C, ctx) {
       applyProps(THREE, C, t, ctx, S);
     },
     /* whether an actor is travelling at t (the take's camera tracks a walker) */
-    walking(id, t) { const a = sampleActor(C, id, t, { stepped: false }), b = sampleActor(C, id, t + 0.25, { stepped: false }); if (!a || a['root.x'] == null) return false; return Math.hypot(b['root.x'] - a['root.x'], b['root.z'] - a['root.z']) > 2.5; },
+    walking(id, t) { if ((C.layer || 'abs') === 'add') return false;   /* an acting layer's root offsets (a step back, a lean) are not walks: the take's own walks are the blocking's */
+      const a = sampleActor(C, id, t, { stepped: false }), b = sampleActor(C, id, t + 0.25, { stepped: false }); if (!a || a['root.x'] == null) return false; return Math.hypot(b['root.x'] - a['root.x'], b['root.z'] - a['root.z']) > 2.5; },
     dispose() { restoreProps(S); restoreShip(S); }
   };
 }
