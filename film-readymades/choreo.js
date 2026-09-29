@@ -18,6 +18,11 @@
      arm.R.out arm.L.out    the shoulder's roll away from the body
      hand.R.roll hand.L.roll  the wrist's turn (and what the hand holds turns with it)
      leg.R.pitch leg.L.pitch  the hip joints (negative forward: a stride, a sit at -1.57, a kneel)
+   Layer: `layer: 'abs'` (the default) writes each channel as the servo's position; `layer: 'add'` (what tools/choreograph.js
+   generates) lays each channel over the pose the take has already given the figure this frame (the blocking, its walks between
+   the keys, the performance's head and face), as an acting layer over the layout pass: root.* are then offsets from the mark,
+   the joints offsets from the blocked pose (hand.*.roll and hips.dy are values either way).
+   Layers of keys: a channel may be keyed several times as 'channel@layer' (arm.R.pitch@life, arm.R.pitch@beat, ...): the layers sum.
    Overrides: `overrides[actor][channel]` are a director's hand keys: inside their span they replace the generated keys, which the
    choreographer never rewrites (tools/choreograph.js keeps them across regenerations).
    Props: [{t, op:'give', from:'actor:R', to:'actor:R'} | {t, op:'hide'|'show', what:'actor:R'|'prop:<id>'}], evaluated as state
@@ -36,7 +41,7 @@ const CLAMP = { 'torso.lean': [-0.3, 0.38], 'torso.twist': [-0.55, 0.55], 'torso
 const cl01 = v => Math.max(0, Math.min(1, v)), sm = u => u * u * (3 - 2 * u);
 const EASE = { linear: u => u, in: u => u * u, out: u => 1 - (1 - u) * (1 - u), inOut: sm, step: u => (u >= 1 ? 1 : 0), hold: u => (u >= 1 ? 1 : 0),
   back: u => { const s = 1.4; u -= 1; return u * u * ((s + 1) * u + s) + 1; } };
-const isAng = ch => ch === 'root.h';
+const isAng = ch => String(ch).split('@')[0] === 'root.h';
 function wrapTo(a, ref) { while (a - ref > Math.PI) a -= 2 * Math.PI; while (a - ref < -Math.PI) a += 2 * Math.PI; return a; }
 /* the drawing a time falls in: twelve a second on twos */
 function drawT(t, step) { const f = step === 'ones' ? 24 : step === 'threes' ? 8 : 12; return Math.floor(t * f + 1e-6) / f; }
@@ -72,7 +77,10 @@ function compile(C) {
 /* every channel of an actor at t (on the sheet's step): {ch: value}; channels without keys are absent */
 function sampleActor(C, id, t, { stepped = true } = {}) {
   const X = compile(C), A = X.actors[id]; if (!A) return null; const tq = stepped ? drawT(t, X.step) : t, v = {};
-  for (const [ch, K] of Object.entries(A)) { const x = sampleKeys(K, tq, ch); if (x != null) v[ch] = clamp(ch, x); }
+  /* a channel may be keyed on several layers, 'arm.R.pitch@beat', 'arm.R.pitch@life': the layers sum (an acting layer over a
+     breathing layer), and the sum is the channel */
+  for (const [key, K] of Object.entries(A)) { const x = sampleKeys(K, tq, key); if (x == null) continue; const ch = key.split('@')[0]; v[ch] = (v[ch] || 0) + x; }
+  if ((C.layer || 'abs') === 'abs') for (const ch in v) v[ch] = clamp(ch, v[ch]);
   return v;
 }
 function sampleRig(C, id, t, { stepped = true } = {}) {
@@ -107,6 +115,7 @@ function rollHand(THREE, r, side, roll) {
 /* one actor's pose written into its rig: absolute where the sheet has the channel, the blocking's pose where it has not */
 function applyRig(THREE, r, v, base) {
   if (!v) return;
+  if (base && base.layer === 'add') return addRig(THREE, r, v, base);
   const x = v['root.x'] ?? r.pos.x, y = v['root.y'] ?? r.pos.y, z = v['root.z'] ?? r.pos.z, h = v['root.h'] ?? r.heading;
   r.pos.set(x, y, z); r.heading = h; r.figure.position.copy(r.pos);
   const e = new THREE.Euler().setFromQuaternion(r.figure.quaternion, 'YXZ');
@@ -117,6 +126,23 @@ function applyRig(THREE, r, v, base) {
   for (const s of ['R', 'L']) { const A = r['arm' + s + 'P'].rotation, out = v['arm.' + s + '.out'];
     A.set(v['arm.' + s + '.pitch'] ?? A.x, A.y, out != null ? (s === 'R' ? -out : out) : A.z);
     const L = r['leg' + s + 'P'].rotation; if (v['leg.' + s + '.pitch'] != null) L.set(v['leg.' + s + '.pitch'], 0, 0); }
+  for (const s of ['R', 'L']) if (v['hand.' + s + '.roll'] != null) rollHand(THREE, r, s, v['hand.' + s + '.roll']);
+}
+/* the additive layer (a sheet's layer 'add', what tools/choreograph.js writes): every channel is an offset laid over the pose the
+   take has already given the figure this frame (the blocking eased between its keys, the walk, the performance's head and face),
+   as an animator's acting layer sits over the layout pass; the sum is held inside CLAMP, but never pulled back past where the
+   blocking itself put the joint. hand.*.roll and hips.dy have no pose under them and are the value itself. */
+function within(ch, base, v) { const c = CLAMP[ch]; if (!c) return v; const lo = Math.min(c[0], base), hi = Math.max(c[1], base); return Math.max(lo, Math.min(hi, v)); }
+function addRig(THREE, r, v, base) {
+  const g = k => v[k] || 0;
+  if (g('root.x') || g('root.y') || g('root.z')) { r.pos.set(r.pos.x + g('root.x'), r.pos.y + g('root.y'), r.pos.z + g('root.z')); r.figure.position.copy(r.pos); }
+  if (g('root.h') || g('root.pitch') || g('root.roll')) { const e = new THREE.Euler().setFromQuaternion(r.figure.quaternion, 'YXZ'); r.heading = e.y + g('root.h'); r.figure.rotation.set(e.x + g('root.pitch'), r.heading, e.z + g('root.roll'), 'YXZ'); }
+  if (v['hips.dy'] != null && base.hipsY != null) r.hipsP.position.y = base.hipsY - v['hips.dy'];
+  const T = r.torsoP.rotation; T.set(within('torso.lean', T.x, T.x + g('torso.lean')), -within('torso.twist', -T.y, -T.y + g('torso.twist')), -within('torso.roll', -T.z, -T.z + g('torso.roll')));
+  const Hd = r.headP.rotation; Hd.set(within('head.pitch', Hd.x, Hd.x + g('head.pitch')), -within('head.yaw', -Hd.y, -Hd.y + g('head.yaw')), Hd.z);
+  for (const s of ['R', 'L']) { const A = r['arm' + s + 'P'].rotation, sg = s === 'R' ? -1 : 1, o0 = A.z * sg;
+    A.set(within('arm.' + s + '.pitch', A.x, A.x + g('arm.' + s + '.pitch')), A.y, sg * within('arm.' + s + '.out', o0, o0 + g('arm.' + s + '.out')));
+    const L = r['leg' + s + 'P'].rotation; if (g('leg.' + s + '.pitch')) L.x = within('leg.' + s + '.pitch', L.x, L.x + g('leg.' + s + '.pitch')); }
   for (const s of ['R', 'L']) if (v['hand.' + s + '.roll'] != null) rollHand(THREE, r, s, v['hand.' + s + '.roll']);
 }
 /* the props at t: held parts moved between hands (their local matrix kept: both are right hands of the same toy), hidden, shown */
@@ -152,7 +178,7 @@ function player(C, ctx) {
     C, has: id => !!X.actors[id],
     /* after the take has posed the blocking and the face: the sheet's servos for every actor it names, then the rigs, the props */
     apply(t) {
-      for (const id of Object.keys(X.actors)) { const r = ctx.rigOf(id); if (!r || r.figure.visible === false || r.absent) continue; applyRig(THREE, r, sampleActor(C, id, t), { hipsY: ctx.hipsOf(r) }); }
+      for (const id of Object.keys(X.actors)) { const r = ctx.rigOf(id); if (!r || r.figure.visible === false || r.absent) continue; applyRig(THREE, r, sampleActor(C, id, t), { hipsY: ctx.hipsOf(r), layer: C.layer || 'abs' }); }
       for (const [id, R] of Object.entries(X.rigs)) if (R.type === 'ship' || id === 'ship') applyShip(THREE, R, sampleRig(C, id, t), ctx, S);
       applyProps(THREE, C, t, ctx, S);
     },
