@@ -298,7 +298,7 @@ function marks(){const r2=v=>Array.isArray(v)?v.map(r2):typeof v==='number'?+v.t
     pieces:OdysseyFilm.pieces().filter(p=>p.box).map(p=>({label:p.label,box:r2(p.box)})),clips:T.clips.map(c=>({gi:c.gi,at:c.at,start:c.start,dur:c.dur,kind:c.kind,key:c.key,voice:c.voice,speaker:c.speaker,addressee:c.addressee,caption:c.caption,isLine:c.isLine,act:c.act,delivery:c.delivery})),
     beat:T.tk.beat,keyGi:T.tk.keyGi,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,env:T.tk.voice.env,hz:T.tk.voice.hz,cut:T.cutList?T.cutList.map(q=>({t0:q.t0,dur:q.dur,kind:q.kind})):null};}
 /* the acting-density probe: the cast at t as points on the body in the world, whether each figure is in the frame, the camera */
-function pose(t){const sh=apply(t);scene.updateMatrixWorld(true);const out={t,shot:sh.id,kind:sh.kind,actors:{}},V=new V3();
+function pose(t){const sh=apply(t);scene.updateMatrixWorld(true);camera.updateMatrixWorld();camera.matrixWorldInverse.copy(camera.matrixWorld).invert();const out={t,shot:sh.id,kind:sh.kind,actors:{}},V=new V3();
   const pts=[['headP',[0,-12,-11]],['headP',[0,-26,0]],['torsoP',[0,10,-10]],['armRP',[-8,22,-10]],['armLP',[8,22,-10]],['legRP',[-6,26,-6]],['legLP',[6,26,-6]]];
   for(const a of ButterCast.cast){const id=kfShort(a.kind),r=a.rig;if(r.figure.visible===false||r.absent)continue;
     const P=pts.map(([k,l])=>r[k].localToWorld(V.set(...l)).toArray().map(v=>+v.toFixed(3)));const H=T.H[id]||60;

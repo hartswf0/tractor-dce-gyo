@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Dope Sheet</title>
+<meta name="description" content="The Odyssey film's choreography: every figure's channels keyed on the voice clock, over the rendered scene.">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e;
+  --l-breath: #8a8a80; --l-shift: #7a5c2e; --l-look: #0033cc; --l-beat: #b3261e; --l-react: #1d6b3a; --l-work: #a8801e; --l-act: #7b2d8e; --l-walk: #0b7a86;
+  --voice: rgba(0, 51, 204, .16); --voice-key: rgba(179, 38, 30, .22); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80;
+  --l-breath: #9d9d92; --l-shift: #c9a46a; --l-look: #6f8cff; --l-beat: #ff8a80; --l-react: #6fcf8f; --l-work: #d8b25a; --l-act: #d38be6; --l-walk: #5fd0dc; --voice: rgba(111, 140, 255, .2); --voice-key: rgba(255, 138, 128, .24); } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80;
+  --l-breath: #9d9d92; --l-shift: #c9a46a; --l-look: #6f8cff; --l-beat: #ff8a80; --l-react: #6fcf8f; --l-work: #d8b25a; --l-act: #d38be6; --l-walk: #5fd0dc; --voice: rgba(111, 140, 255, .2); --voice-key: rgba(255, 138, 128, .24); }
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 64px; }
+h1, h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(36px, 7vw, 68px); line-height: .98; }
+h2 { font-size: 26px; margin: 34px 0 6px; padding-top: 10px; border-top: 3px solid var(--ink); }
+a { color: var(--blue); }
+code { font: 13px ui-monospace, Menlo, monospace; }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { color: var(--muted); max-width: 820px; margin: 12px 0 16px; font-size: 16.5px; }
+.scenes { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+button { font: 600 13px Inter, system-ui, sans-serif; padding: 7px 11px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; min-height: 36px; }
+button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.stage { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+video { width: 100%; display: block; background: #000; aspect-ratio: 16 / 9; }
+.vbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.vbar .t { font: 600 13px ui-monospace, Menlo, monospace; margin-left: auto; }
+.panel { border: 1.5px solid var(--rule); background: var(--card); padding: 10px 12px; min-width: 0; }
+.panel h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; }
+.now { font-size: 14px; }
+.now .cap { color: var(--muted); font-style: italic; }
+.cues { max-height: 260px; overflow-y: auto; font-size: 13px; margin: 0; padding: 0; list-style: none; }
+.cues li { padding: 3px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 6px; cursor: pointer; }
+.cues li.on { background: var(--voice); }
+.cues b { font-weight: 600; }
+.tl { position: relative; margin-top: 14px; touch-action: pan-y; }
+canvas { display: block; width: 100%; }
+.row { border-top: 1px solid var(--rule); }
+.row > .hd { display: flex; align-items: baseline; gap: 8px; padding: 6px 0 2px; cursor: pointer; flex-wrap: wrap; }
+.row > .hd b { font-size: 14px; }
+.row > .hd span { font-size: 12px; color: var(--muted); }
+.row > .hd .d { margin-left: auto; font: 600 12px ui-monospace, Menlo, monospace; }
+.d .bad { color: var(--bad); } .d .ok { color: var(--ok); }
+.lanes { display: none; } .row.open .lanes { display: block; }
+.lane { display: grid; grid-template-columns: 124px minmax(0, 1fr); align-items: center; }
+.lane .nm { font: 11px ui-monospace, Menlo, monospace; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 6px; }
+@media (max-width: 480px) { .lane { grid-template-columns: minmax(0, 1fr); } .lane .nm { padding-top: 4px; } }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin: 8px 0; }
+.legend i { display: inline-block; width: 18px; height: 3px; vertical-align: 3px; margin-right: 5px; }
+.zoom { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--rule); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--muted); font-style: italic; }
+footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">The Odyssey in LEGO · motion control</div>
+  <h1>The dope sheet</h1>
+  <p class="lede">The film's figures used to hold still between the keyframes while only their faces moved. Each scene now carries a
+    choreography: every figure's servos (root, hips, torso, head, arms, hands, legs) keyed on the voice clock, the way a
+    motion-control programmer drives a practical rig from a timeline. <code>tools/choreograph.js</code> writes the rough pass from the
+    recorded voice, the scene's emotion, the blocking and the action in the text; <code>film-readymades/choreo.js</code> plays it in the
+    take, on twos, as layers over the blocking. Scrub the timeline to see the rendered frame; open a figure to see its channels.</p>
+  <div class="scenes" id="scenes" role="group" aria-label="Scene"></div>
+  <div class="stage">
+    <div>
+      <video id="v" controls playsinline preload="metadata"></video>
+      <div class="vbar"><span id="which"></span><span class="t" id="clock">0.00 s</span></div>
+    </div>
+    <div class="panel">
+      <h3>Now</h3>
+      <div class="now" id="now"></div>
+      <h3 style="margin-top:12px">Cues</h3>
+      <ul class="cues" id="cues"></ul>
+    </div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="zoom"><span>View</span><button type="button" data-z="1" aria-pressed="true">Whole scene</button><button type="button" data-z="3" aria-pressed="false">10 s</button><button type="button" data-z="8" aria-pressed="false">4 s</button></div>
+  <div class="tl" id="tl">
+    <canvas id="top" height="96" aria-label="The scene's timeline: cuts, voice segments and keys"></canvas>
+    <div id="rows"></div>
+  </div>
+  <h2>Acting density</h2>
+  <p class="lede" id="drule">Per drawn frame (12 a second) and per figure in frame: did any of seven points on the body move a visible amount since the drawing before? Measured in the take without the sheet (before) and with it (after).</p>
+  <div class="tablewrap" id="dens"></div>
+  <footer>Sheets: <code>odyssey/choreo/&lt;scene&gt;.json</code> (format odyssey-choreo/1). Generated by <code>tools/choreograph.js</code>; a director's hand keys go in the sheet's <code>overrides</code> and survive regeneration. Films: <code>films/odyssey/&lt;scene&gt;-acted.mp4</code> beside the earlier <code>-cut.mp4</code>.</footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const SCENES = [
+    { id: 'OD-B01-S03', title: 'Athena at the gate', before: '../../films/odyssey/OD-B01-S03-cut.mp4' },
+    { id: 'OD-B22-S01', title: 'Antinous falls' },
+    { id: 'OD-B12-S03', title: 'The Sirens' },
+  ];
+  const LAYERS = ['breath', 'shift', 'look', 'beat', 'react', 'work', 'act', 'walk'];
+  const $ = s => document.querySelector(s), css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let C = null, D = null, sc = null, zoom = 1, view = [0, 1], opened = new Set(), drag = false;
+  const v = $('#v');
+  /* the choreography player's own sampling, for drawing curves (a subset of film-readymades/choreo.js) */
+  const sm = u => u * u * (3 - 2 * u), cl01 = x => Math.max(0, Math.min(1, x));
+  const EASE = { linear: u => u, in: u => u * u, out: u => 1 - (1 - u) * (1 - u), inOut: sm, step: u => (u >= 1 ? 1 : 0), hold: u => (u >= 1 ? 1 : 0), back: u => { const s = 1.4; u -= 1; return u * u * ((s + 1) * u + s) + 1; } };
+  function sample(K, t) { if (!K.length) return 0; if (t <= K[0][0]) return K[0][1]; const n = K.length; if (t >= K[n - 1][0]) return K[n - 1][1];
+    let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (K[m][0] <= t) lo = m; else hi = m; }
+    const a = K[lo], b = K[hi], u = (t - a[0]) / Math.max(1e-6, b[0] - a[0]); return a[1] + (b[1] - a[1]) * (EASE[b[2] || 'inOut'] || sm)(cl01(u)); }
+  const layerOf = k => k.split('@')[1] || 'act', colorOf = k => css('--l-' + layerOf(k)) || css('--ink');
+  function legend() { $('#legend').innerHTML = LAYERS.map(l => `<span><i style="background:var(--l-${l})"></i>@${l}</span>`).join('') + '<span><i style="background:var(--voice);height:10px"></i>voice</span><span><i style="background:var(--voice-key);height:10px"></i>the key beat</span>'; }
+  function sceneButtons() { $('#scenes').innerHTML = SCENES.map(s => `<button type="button" data-s="${s.id}" aria-pressed="false">${s.id} · ${s.title}</button>`).join('');
+    $('#scenes').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); }; }
+  async function load(id) {
+    sc = SCENES.find(s => s.id === id); for (const b of document.querySelectorAll('#scenes button')) b.setAttribute('aria-pressed', String(b.dataset.s === id));
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    C = null; D = null; $('#rows').innerHTML = '<p class="empty">Loading the sheet...</p>';
+    try { C = await (await fetch(id + '.json', { cache: 'no-store' })).json(); } catch (e) { $('#rows').innerHTML = '<p class="empty">No sheet for this scene yet.</p>'; }
+    try { D = await (await fetch('density/' + id + '.json', { cache: 'no-store' })).json(); } catch (e) { D = null; }
+    setVideo('acted'); view = [0, C ? C.total : 1]; zoom = 1; zoomButtons(); rows(); densTable(); cues(); draw();
+  }
+  function setVideo(which) {
+    const src = which === 'before' && sc.before ? sc.before : '../../films/odyssey/' + sc.id + '-acted.mp4';
+    v.src = src; v.poster = src.replace(/\.mp4$/, '.jpg');
+    $('#which').innerHTML = `<button type="button" id="wa" aria-pressed="${which !== 'before'}">With the sheet</button>` + (sc.before ? ` <button type="button" id="wb" aria-pressed="${which === 'before'}">Before</button>` : '');
+    $('#wa').onclick = () => { const t = v.currentTime; setVideo('acted'); v.currentTime = t; };
+    if (sc.before) $('#wb').onclick = () => { const t = v.currentTime; setVideo('before'); v.currentTime = t; };
+  }
+  function zoomButtons() { for (const b of document.querySelectorAll('.zoom button')) b.setAttribute('aria-pressed', String(+b.dataset.z === zoom)); }
+  document.querySelector('.zoom').onclick = e => { const b = e.target.closest('button'); if (!b || !C) return; zoom = +b.dataset.z; zoomButtons(); fitView(); draw(); };
+  function fitView() { if (!C) return; const w = C.total / zoom, t = v.currentTime || 0; let a = Math.max(0, Math.min(C.total - w, t - w / 2)); view = [a, a + w]; }
+  function rows() {
+    if (!C) return; const A = Object.entries(C.actors || {});
+    const dens = id => { if (!D) return ''; const b = D.before.actors[id], a = D.after.actors[id]; if (!a && !b) return '<span class="d">off screen</span>';
+      const f = x => x ? `${Math.round(x.moving * 100)}%` : 'n/a', cls = x => x && x.moving > 0.8 ? 'ok' : 'bad';
+      return `<span class="d">moving <span class="${cls(b)}">${f(b)}</span> to <span class="${cls(a)}">${f(a)}</span></span>`; };
+    $('#rows').innerHTML = A.map(([id, X]) => { const ks = Object.keys(X.channels).sort((a, b) => LAYERS.indexOf(layerOf(a)) - LAYERS.indexOf(layerOf(b)) || a.localeCompare(b));
+      const n = ks.reduce((s, k) => s + X.channels[k].length, 0);
+      return `<div class="row${opened.has(id) ? ' open' : ''}" data-id="${id}"><div class="hd" role="button" tabindex="0" aria-expanded="${opened.has(id)}"><b>${id}</b><span>${ks.length} channels · ${n} keys</span>${dens(id)}</div>
+        <canvas class="act" height="26" data-id="${id}" aria-label="How much ${id} moves over the scene"></canvas>
+        <div class="lanes">${ks.map(k => `<div class="lane"><div class="nm" title="${k}">${k}</div><canvas class="ln" height="34" data-id="${id}" data-k="${k}"></canvas></div>`).join('')}</div></div>`; }).join('');
+    for (const h of document.querySelectorAll('.row > .hd')) { const tog = () => { const r = h.parentElement, id = r.dataset.id; if (opened.has(id)) opened.delete(id); else opened.add(id); r.classList.toggle('open'); h.setAttribute('aria-expanded', String(opened.has(id))); draw(); };
+      h.onclick = tog; h.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } }; }
+  }
+  function cues() { const L = $('#cues'); if (!C) { L.innerHTML = ''; return; }
+    L.innerHTML = (C.cues || []).map((c, i) => `<li data-t="${c.t}"><span>${c.t.toFixed(1)} s</span><span><b>${c.actor}</b> ${c.what}</span></li>`).join('') || '<li class="empty">No cues.</li>';
+    L.onclick = e => { const li = e.target.closest('li[data-t]'); if (li) seek(+li.dataset.t); }; }
+  function densTable() { const el = $('#dens'); if (!D) { el.innerHTML = '<p class="empty">Not measured yet for this scene.</p>'; return; }
+    $('#drule').textContent = 'Per drawn frame (12 a second) and per figure in frame: ' + D.rule.split(': ')[1] + '. Before: the take without the sheet. After: with it. Target: more than 80% of drawings moving, no frozen stretch over 1.5 s.';
+    const ids = [...new Set([...Object.keys(D.before.actors), ...Object.keys(D.after.actors)])];
+    const cell = (x, k) => x ? (k === 'moving' ? `<span class="${x.moving > 0.8 ? 'ok' : 'bad'}" style="color:var(--${x.moving > 0.8 ? 'ok' : 'bad'})">${Math.round(x.moving * 100)}%</span>` : `<span style="color:var(--${x.longestFrozen > 1.5 ? 'bad' : 'ok'})">${x.longestFrozen.toFixed(1)} s</span>`) : '';
+    el.innerHTML = `<table><tr><th>Figure</th><th class="n">In frame</th><th class="n">Moving before</th><th class="n">after</th><th class="n">Longest still before</th><th class="n">after</th></tr>` +
+      ids.map(id => { const b = D.before.actors[id], a = D.after.actors[id]; return `<tr><td>${id}</td><td class="n">${((a || b).frames / 12).toFixed(1)} s</td><td class="n">${cell(b, 'moving')}</td><td class="n">${cell(a, 'moving')}</td><td class="n">${cell(b, 'f')}</td><td class="n">${cell(a, 'f')}</td></tr>`; }).join('') +
+      `<tr><th>Mean</th><th></th><th class="n">${Math.round(D.before.mean * 100)}%</th><th class="n">${Math.round(D.after.mean * 100)}%</th><th class="n">${D.before.worstFrozen.toFixed(1)} s</th><th class="n">${D.after.worstFrozen.toFixed(1)} s</th></tr></table>`; }
+  /* ── drawing ── */
+  function fit(cv) { const r = window.devicePixelRatio || 1, w = cv.clientWidth, h = +cv.getAttribute('height'); if (cv.width !== Math.round(w * r)) { cv.width = Math.round(w * r); cv.height = Math.round(h * r); cv.style.height = h + 'px'; } const g = cv.getContext('2d'); g.setTransform(r, 0, 0, r, 0, 0); return [g, w, h]; }
+  const X = (t, w) => (t - view[0]) / (view[1] - view[0]) * w;
+  function playhead(g, w, h) { const x = X(v.currentTime || 0, w); g.fillStyle = css('--bad'); g.fillRect(Math.round(x) - 1, 0, 2, h); }
+  function drawTop() { const [g, w, h] = fit($('#top')); g.clearRect(0, 0, w, h); if (!C) return;
+    g.font = '11px ui-monospace, Menlo, monospace'; g.textBaseline = 'middle';
+    /* the cut */
+    (C.cut || []).forEach((q, i) => { const a = X(q.t0, w), b = X(q.t0 + q.dur, w); g.fillStyle = i % 2 ? css('--rule') : css('--card'); g.fillRect(a, 2, b - a, 20); g.fillStyle = css('--muted'); if (b - a > 34) g.fillText(q.kind, a + 3, 12); g.fillStyle = css('--ink'); g.fillRect(a, 2, 1, 20); });
+    /* the voice */
+    for (const c of C.voice || []) { const a = X(c.at, w), b = X(c.at + c.dur, w); g.fillStyle = c.key ? css('--voice-key') : css('--voice'); g.fillRect(a, 26, b - a, 26); g.fillStyle = css('--ink');
+      const who = c.voice || ('narrator: ' + (c.speaker || '')); if (b - a > 50) { g.save(); g.beginPath(); g.rect(a, 26, b - a, 26); g.clip(); g.fillText(who + (c.addressee ? ' to ' + c.addressee : ''), a + 4, 39); g.restore(); } }
+    /* the keys and the walks between them */
+    for (const k of C.keys || []) { if (k.win) { const a = X(k.win[0], w), b = X(k.win[1], w); g.fillStyle = css('--l-walk'); g.globalAlpha = .35; g.fillRect(a, 56, b - a, 14); g.globalAlpha = 1; }
+      const x = X(k.t, w); g.fillStyle = css('--ink'); g.fillRect(x, 56, 2, 14); g.fillText(k.id, x + 4, 63); }
+    /* the ruler */
+    const span = view[1] - view[0], step = span > 30 ? 5 : span > 8 ? 1 : 0.5; g.fillStyle = css('--muted');
+    for (let t = Math.ceil(view[0] / step) * step; t <= view[1]; t += step) { const x = X(t, w); g.fillRect(x, 76, 1, 5); if (step >= 1 || Math.abs(t % 1) < 1e-6) g.fillText(t.toFixed(0), x + 2, 88); }
+    playhead(g, w, h); }
+  const actCache = new Map();
+  function activity(id) { if (actCache.has(C.scene + id)) return actCache.get(C.scene + id); const A = C.actors[id], N = Math.ceil(C.total * 12), out = new Float32Array(N);
+    const ks = Object.keys(A.channels).filter(k => !k.startsWith('root.x') && !k.startsWith('root.z') && !k.startsWith('root.y') && !k.startsWith('hips'));
+    let prev = ks.map(k => sample(A.channels[k], 0)); for (let i = 1; i < N; i++) { const now = ks.map(k => sample(A.channels[k], i / 12)); let s = 0; now.forEach((x, j) => s += Math.abs(x - prev[j])); out[i] = s; prev = now; }
+    actCache.set(C.scene + id, out); return out; }
+  function drawRows() { if (!C) return;
+    for (const cv of document.querySelectorAll('canvas.act')) { const [g, w, h] = fit(cv); g.clearRect(0, 0, w, h); const a = activity(cv.dataset.id); g.fillStyle = css('--ink');
+      for (let x = 0; x < w; x++) { const t0 = view[0] + x / w * (view[1] - view[0]), t1 = view[0] + (x + 1) / w * (view[1] - view[0]); let m = 0; for (let i = Math.floor(t0 * 12); i <= Math.floor(t1 * 12) && i < a.length; i++) m = Math.max(m, a[i] || 0); const y = Math.min(1, m / 0.25) * (h - 4); g.globalAlpha = .75; g.fillRect(x, h - 2 - y, 1, y); }
+      g.globalAlpha = 1; for (const c of C.voice || []) if (c.voice === cv.dataset.id) { g.fillStyle = css('--blue'); g.fillRect(X(c.at, w), h - 2, X(c.at + c.dur, w) - X(c.at, w), 2); } playhead(g, w, h); }
+    for (const cv of document.querySelectorAll('.row.open canvas.ln')) { const [g, w, h] = fit(cv); g.clearRect(0, 0, w, h); const K = C.actors[cv.dataset.id].channels[cv.dataset.k]; let lo = Infinity, hi = -Infinity;
+      for (const k of K) { lo = Math.min(lo, k[1]); hi = Math.max(hi, k[1]); } if (hi - lo < 1e-3) { hi += 0.05; lo -= 0.05; } const Y = y => h - 4 - (y - lo) / (hi - lo) * (h - 8);
+      g.strokeStyle = css('--rule'); g.beginPath(); g.moveTo(0, Y(0) + .5); g.lineTo(w, Y(0) + .5); g.stroke();
+      g.strokeStyle = colorOf(cv.dataset.k); g.lineWidth = 1.5; g.beginPath(); for (let x = 0; x <= w; x++) { const t = view[0] + x / w * (view[1] - view[0]), y = Y(sample(K, Math.floor(t * 12) / 12)); if (x) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      g.fillStyle = colorOf(cv.dataset.k); for (const k of K) { const x = X(k[0], w); if (x < -2 || x > w + 2) continue; g.fillRect(x - 1.5, Y(k[1]) - 1.5, 3, 3); } playhead(g, w, h); } }
+  function nowPanel() { if (!C) return; const t = v.currentTime || 0; $('#clock').textContent = t.toFixed(2) + ' s';
+    const c = (C.voice || []).find(c => t >= c.at && t <= c.at + c.dur), q = (C.cut || []).find(q => t >= q.t0 && t < q.t0 + q.dur);
+    $('#now').innerHTML = (q ? `<div><b>Shot</b> ${q.kind}</div>` : '') + (c ? `<div><b>${c.voice || 'The narrator'}</b>${c.addressee ? ' to ' + c.addressee : ''}</div><div class="cap">${c.caption}</div>` : '<div class="cap">No voice.</div>');
+    for (const li of document.querySelectorAll('#cues li[data-t]')) { const on = Math.abs(+li.dataset.t - t) < 0.8; li.classList.toggle('on', on); } }
+  let raf = 0; function draw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { drawTop(); drawRows(); nowPanel(); }); }
+  function seek(t) { if (!C) return; t = Math.max(0, Math.min(C.total, t)); try { v.currentTime = t; } catch (e) {} if (t < view[0] || t > view[1]) fitView(); draw(); }
+  /* scrub: drag on any timeline canvas */
+  const tl = $('#tl'); const tAt = e => { const cv = e.target.closest('canvas'); if (!cv) return null; const r = cv.getBoundingClientRect(); return view[0] + (e.clientX - r.left) / r.width * (view[1] - view[0]); };
+  tl.addEventListener('pointerdown', e => { const t = tAt(e); if (t == null) return; drag = true; v.pause(); seek(t); });
+  tl.addEventListener('pointermove', e => { if (!drag) return; const t = tAt(e); if (t != null) { v.currentTime = Math.max(0, t); draw(); } });
+  addEventListener('pointerup', () => { drag = false; });
+  v.addEventListener('timeupdate', () => { if (zoom > 1 && (v.currentTime > view[1] || v.currentTime < view[0])) fitView(); draw(); });
+  v.addEventListener('seeked', draw);
+  let tick = 0; const loop = () => { if (!v.paused) { if (zoom > 1 && v.currentTime > view[1] - (view[1] - view[0]) * 0.1) fitView(); draw(); } tick = requestAnimationFrame(loop); }; loop();
+  addEventListener('resize', draw);
+  legend(); sceneButtons(); load((location.hash || '').slice(1) && SCENES.some(s => s.id === location.hash.slice(1)) ? location.hash.slice(1) : SCENES[0].id);
+})();
+</script>
+</body>
+</html>
