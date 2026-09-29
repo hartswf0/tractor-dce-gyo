@@ -92,7 +92,7 @@ async function optics(page, t, jpeg) {
   const end = to != null ? Math.min(+to, info.total) : info.total, frames = Math.round((end - from) * fps), seconds = frames / fps;
   /*[choreo]*/ /* --density: the acting density of the take without its sheet and with it (tools/choreograph.js density), measured in
      this page before the frames are drawn -> odyssey/choreo/density/<scene>.json */
-  if (args.includes('--density')) { const Ch = require(path.join(ROOT, 'tools/choreograph.js')), C = await page.evaluate(() => OdysseyTake.choreo), probe = async () => { const P = []; for (let t = 0; t < info.total - 1e-6; t += 1 / 12) P.push(await page.evaluate(t => OdysseyTake.pose(t), t)); return Ch.density(P); };
+  if (args.includes('--density')) { const Ch = require(path.join(ROOT, 'tools/choreograph.js')), C = await page.evaluate(() => OdysseyTake.choreo), probe = async () => { const P = []; for (let t = 0; t < info.total - 1e-6; t += 1 / 12) P.push(await page.evaluate(t => OdysseyTake.pose(t), t)); return Ch.density(P, (C && C.holds) || []); };
     if (C) { await page.evaluate(() => OdysseyTake.useChoreo(null)); const before = await probe(); await page.evaluate(C => OdysseyTake.useChoreo(C), C); const after = await probe();
       const dd = path.join(ROOT, 'odyssey/choreo/density'); fs.mkdirSync(dd, { recursive: true });
       fs.writeFileSync(path.join(dd, sid + '.json'), JSON.stringify({ scene: sid, mode, measured: new Date().toISOString().slice(0, 10), rule: 'per drawing (12 a second), per figure in frame: moving if any of seven body points (face, crown, chest, hands, feet) moved more than ' + Ch.THRESH * 100 + '% of its height since the drawing before', before, after }, null, 1));

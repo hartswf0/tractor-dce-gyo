@@ -160,7 +160,10 @@ function generate(M, prev) {
   const H = id => M.H[id] || 60, scale = M.scale || 1, notes = [], cues = [], props = [], rigs = {};
   const clips = M.clips.filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
   const sceneEmo = (M.beat && M.beat.emotion) || 'neutral';
-  const busy = {}; ids.forEach(id => busy[id] = []);   /* spans where an actor's arms are taken by an action or a line */
+  const busy = {}; ids.forEach(id => busy[id] = []);
+  const struck = {}, shooters = new Set(), holds = [];
+  const walkingAt = (id, t) => { const s = B.at(id, t); return !!(s && s.moving && s.walk > 0.1); };
+  const isDead = (id, t) => holds.some(h => h.actor === id && t >= h.t0 - 1);   /* who has been hit (and when), who shot, the deliberate stillnesses (the dead) */   /* spans where an actor's arms are taken by an action or a line */
   const occupy = (id, a, b, what) => { busy[id].push([a, b, what]); };
   const isBusy = (id, a, b) => busy[id].some(([x, y]) => a < y && b > x);
   const cue = (t, id, what) => cues.push({ t: r3(q(t)), actor: id, what });
@@ -174,13 +177,7 @@ function generate(M, prev) {
   /* every move below is one move of the sheet (see Sheet) */
   const W = f => (...a) => { S.begin(); try { return f(...a); } finally { S.end(); } };
   look = W(look); glance = W(glance); nod = W(nod); gesture = W(gesture); beat = W(beat); reach = W(reach); loopClip = W(loopClip); singLoop = W(singLoop);
-  waiting = W(waiting); doubleTake = W(doubleTake); strain = W(strain); waxing = W(waxing); pullRope = W(pullRope); search = W(search); drink = W(drink); laugh = W(laugh); hit = W(hit); leap = W(leap); walk = W(walk); dice = W(dice);
-
-  /* ── 1. breath: the whole scene, every figure; the phases staggered so a crowd does not breathe as one ── */
-  for (const id of ids) { const R = rng(sid + id + 'breath'), P = 3.0 + R() * 1.3; let t = R() * P, up = true;
-    while (t < T + P) { const s = B.at(id, Math.min(T, t)); if (s) { const st = !s.sat && !B.lying(s), k = up ? 1 : 0;
-        S.key(id, 'breath', t, { 'torso.lean': -0.035 * k, 'arm.R.out': 0.05 * k, 'arm.L.out': 0.05 * k, 'head.pitch': -0.03 * k, 'hips.dy': st ? 0.9 * k : 0 }, 'inOut'); }
-      t += up ? P * 0.42 : P * 0.58; up = !up; } }
+  waiting = W(waiting); doubleTake = W(doubleTake); strain = W(strain); waxing = W(waxing); pullRope = W(pullRope); search = W(search); drink = W(drink); laugh = W(laugh); hit = W(hit); leap = W(leap); walk = W(walk); dice = W(dice); shoot = W(shoot); collapse = W(collapse);
 
   /* ── 2. the lines: who speaks when, to whom; the speaker's beats and the listeners' answers ── */
   const talk = clips.filter(c => c.kind === 'DIALOGUE' && c.voice);
@@ -189,13 +186,18 @@ function generate(M, prev) {
     const id = c.voice; if (!ids.includes(id)) continue;
     const V = voiceOf(M, c), R = rng(sid + c.gi + id), isKey = c.gi === M.keyGi;
     const emo = isKey ? sceneEmo : (ACT_EMO[c.act] || sceneEmo), voc = VOCAB[emo] || VOCAB.neutral;
-    const ad = c.addressee && ids.includes(c.addressee) ? c.addressee : near(id, c.at, 12)[0];
+    /* to whom: the one addressed; a line to no one in particular goes to the crowd (the largest group of like figures in the
+       room), and the speaker's eyes go round them, one face a phrase */
+    let crowd = null; if (!(c.addressee && ids.includes(c.addressee))) { const g = {}; for (const o of ids) if (o !== id && B.visible(o, c.at) && !isDead(o, c.at)) (g[name(o)] = g[name(o)] || []).push(o);
+      const big = Object.values(g).filter(x => x.length >= 2).sort((a, b) => b.length - a.length)[0]; if (big) { const s0 = B.at(id, c.at); crowd = big.sort((a, b) => relBearing(s0, B.at(a, c.at).p) - relBearing(s0, B.at(b, c.at).p)); } }
+    const ad = c.addressee && ids.includes(c.addressee) ? c.addressee : crowd ? crowd[Math.floor(crowd.length / 2)] : near(id, c.at, 12)[0];
     occupy(id, c.at - 0.4, c.at + c.dur + 0.5, 'line');
     cue(c.at, id, 'line (' + emo + ')' + (ad ? ' to ' + ad : ''));
     /* the look: at the one addressed through the line; away on a phrase's end (the thought), back on the next start */
     look(id, ad, c.at - 0.35, 'look', { lead: true });
     V.phrases.forEach((p, i) => { if (i > 0 && ad && p.t0 - V.phrases[i - 1].t1 > 0.3) { const aw = (R() < 0.5 ? -1 : 1) * (0.25 + 0.2 * R());
-      glance(id, V.phrases[i - 1].t1 + 0.05, aw, Math.min(0.9, p.t0 - V.phrases[i - 1].t1)); look(id, ad, p.t0 - 0.12, 'look', {}); } });
+      glance(id, V.phrases[i - 1].t1 + 0.05, aw, Math.min(0.9, p.t0 - V.phrases[i - 1].t1)); look(id, crowd ? crowd[(i * 2 + 1) % crowd.length] : ad, p.t0 - 0.12, 'look', {}); }
+      else if (i > 0 && crowd) look(id, crowd[(i * 2 + 1) % crowd.length], p.t0 - 0.2, 'look', {}); });
     /* the gestures: a big one on each phrase's first stress, small beats on the rest; the words that are gestures of their own */
     let side = heldR(id) && !heldL(id) ? 'L' : 'R', gi = 0; const used = [];
     const wordAt = new Map(); for (const w of V.words) for (const [re, g] of WORDGEST) if (re.test(w.w)) { const st = V.stresses.find(s => Math.abs(s.t - w.t) < 0.45); wordAt.set(q(st ? st.t : w.t), { g, w: w.w }); break; }
@@ -229,13 +231,20 @@ function generate(M, prev) {
 
   /* ── 4. walks: the take walks a figure between two marks; the body goes with it (bob, lean, the head looking where it goes) ── */
   for (let j = 1; j < M.keys.length; j++) { const K = M.keys[j]; if (!K.win || !K.moves) continue;
-    for (const [id, m] of Object.entries(K.moves)) { if (!m.walk || !ids.includes(id)) continue; walk(id, K); } }
+    for (const [id, m] of Object.entries(K.moves)) { if (!m.walk || !ids.includes(id) || (K.snap[id] && B.lying(K.snap[id]))) continue; walk(id, K); } }
 
   /* ── 5. business: everyone, wherever they are not otherwise acting, has something to do ── */
   for (const id of ids) business(id);
 
   /* ── 6. weight shifts through every hold (a hold that still breathes) ── */
   for (const id of ids) shifts(id);
+
+  /* ── 7. breath (written last, when the dead are known): the whole scene, every figure; the phases staggered so a crowd does not breathe as one ── */
+  for (const id of ids) { const R = rng(sid + id + 'breath'), P = 3.0 + R() * 1.3; let t = R() * P, up = true;
+    while (t < T + P) { const s = B.at(id, Math.min(T, t)); if (s && !isDead(id, t)) { const st = !s.sat && !B.lying(s), k = up ? 1 : 0;
+        S.key(id, 'breath', t, { 'torso.lean': -0.035 * k, 'arm.R.out': 0.05 * k, 'arm.L.out': 0.05 * k, 'head.pitch': -0.03 * k, 'hips.dy': st ? 0.9 * k : 0 }, 'inOut'); }
+      t += up ? P * 0.42 : P * 0.58; up = !up; } }
+
 
   /* ═════ the moves ═════ */
   /* a look at another actor (or back to the blocked front, who=null): the head leads, the torso follows two drawings later, the
@@ -345,11 +354,16 @@ function generate(M, prev) {
     if (/(struggl|strain|strug|signal|free|bound|mast)/.test(txt) && /odysseus/.test(id)) { strain(id, t0, t1); did('strains at the mast'); return; }
     if (/(wax|ears|seal)/.test(txt)) { waxing(id, t0, t1, others); did('softens the wax, seals their ears'); return; }
     if (/(bind|tighten|rope|lash)/.test(txt)) { for (const o of [id, ...others.filter(o => /crew|oars/.test(o))].slice(0, 3)) pullRope(o, t0 + R() * 0.4, Math.min(t1, t0 + 6)); did('bind, pull the ropes tight'); return; }
-    if (/(shoot|shoots|arrow|bow|string)/.test(txt) && !/antinous/.test(id)) { if (!loopClip(id, 'draw-bow', t0, t0 + 2.6, { release: true, why: 'draws the bow, looses' })) gesture(id, 'point', t0, 'L', 1, 1); occupy(id, t0, t0 + 2.6, 'bow'); return; }
-    if (/(falls|fall|dies|throat|slump|topple)/.test(txt)) { hit(id, t0); did('is hit: the jolt, the fall'); for (const o of others) { const Ro = rng(sid + o + 'reel'); look(o, id, t0 + 0.2 + Ro() * 0.4, 'look', {}); if (Ro() < 0.6 && !seated(o, t0)) loopClip(o, 'reel-back-in-fear', t0 + 0.3 + Ro() * 0.5, t0 + 1.9, { amp: 0.7, why: 'reels back' }); } return; }
+    if (/(strip|rags|leap|threshold)/.test(txt) && /odysseus/.test(id)) { leap(id, t0); did('strips off the rags, leaps to the threshold'); if (/pour|arrows/.test(txt)) loopClip(id, 'pour-libation', t0 + 2.2, t0 + 5.5, { amp: 0.8, why: 'pours out the arrows' }); return; }
+    if (/(shoot|shoots|arrow|bow|string)/.test(txt) && !/antinous/.test(id)) { shoot(id, c, t0, txt); return; }
+    if (/(falls|fall|dies|throat|slump|topple)/.test(txt)) { const w = fallWindow(id, c.at);
+      if (struck[id]) { if (w) collapse(id, w); did('falls: the knees go, across the table'); } else { hit(id, t0); did('is hit: the jolt, the fall'); }
+      const tf = w ? w[0] + 0.3 : t0;
+      for (const o of others) { if (shooters.has(o)) continue; const Ro = rng(sid + o + 'reel'); look(o, id, tf + 0.2 + Ro() * 0.4, 'look', {}); if (Ro() < 0.7 && !seated(o, tf) && !walkingAt(o, tf + 0.5)) loopClip(o, 'reel-back-in-fear', tf + 0.3 + Ro() * 0.5, tf + 1.9, { amp: 0.7, why: 'reels back' }); }
+      for (const o of shooters) if (o !== id && others.includes(o)) { look(o, id, tf + 0.1, 'look', {}); S.key(o, 'act', tf + 0.2, { 'torso.lean': 0.06, 'head.pitch': 0.06 }, 'inOut'); S.key(o, 'act', tf + 2.2, { 'torso.lean': 0.02, 'head.pitch': 0.02 }, 'linear'); S.key(o, 'act', tf + 3, { 'torso.lean': 0, 'head.pitch': 0 }, 'inOut'); cue(tf + 0.1, o, 'watches him go down, unmoved'); }
+      return; }
     if (/(search|weapons|look for)/.test(txt)) { for (const o of [id, ...others.filter(o => name(o) === name(id))]) search(o, t0, t1); did('search for their weapons'); return; }
     if (/(erupt|panic|scatter|flee)/.test(txt)) { for (const o of others) if (!seated(o, t0)) loopClip(o, 'reel-back-in-fear', t0 + rng(o)() * 0.6, t0 + 2, { amp: 0.8, why: 'reel back' }); return; }
-    if (/(strip|rags|leap|threshold)/.test(txt) && /odysseus/.test(id)) { leap(id, t0); did('strips off the rags, leaps to the threshold'); if (/pour|arrows/.test(txt)) loopClip(id, 'pour-libation', t0 + 2.2, t0 + 5.5, { amp: 0.8, why: 'pours out the arrows' }); return; }
     if (/(pour|libation|wine|cups? are filled)/.test(txt)) { for (const o of others.filter(o => /servant|maid|herald/.test(o)).slice(0, 3)) loopClip(o, 'pour-libation', t0 + rng(o)() * 1.5, t0 + 4, { amp: 0.9, why: 'pours' }); }
     if (/(dice|gamble)/.test(txt)) { for (const o of [id, ...others.filter(o => name(o) === name(id))]) dice(o, t0, t1); did('the dice, the cups'); return; }
     if (/(weave|loom)/.test(txt)) { loopClip(id, 'weave', t0, t1, { why: 'weaves' }); return; }
@@ -408,6 +422,44 @@ function generate(M, prev) {
   function laugh(id, t) { S.key(id, 'work', t, { 'torso.lean': S.at(id, 'torso.lean', 'work', t) }, 'inOut'); S.key(id, 'work', t + 0.25, { 'torso.lean': -0.16, 'head.pitch': -0.15 }, 'out');
     for (let k = 0; k < 3; k++) { S.key(id, 'work', t + 0.4 + k * 0.25, { 'torso.lean': -0.06 }, 'inOut'); S.key(id, 'work', t + 0.52 + k * 0.25, { 'torso.lean': -0.14 }, 'inOut'); }
     S.key(id, 'work', t + 1.4, { 'torso.lean': 0.1, 'head.pitch': 0.06 }, 'inOut'); S.key(id, 'work', t + 1.9, { 'torso.lean': 0, 'head.pitch': 0 }, 'inOut'); }
+  /* the key window in which the blocking lays a figure down (standing at one key, lying at the next): the fall itself */
+  function fallWindow(id, t) { for (let j = 1; j < M.keys.length; j++) { const K = M.keys[j]; if (!K.win || !K.moves || !K.moves[id]) continue; const a = M.keys[j - 1].snap[id], b = K.snap[id];
+      if (a && b && !B.lying(a) && B.lying(b) && K.win[1] > t - 4 && K.win[0] < t + 4) return K.win; } return null; }
+  /* the shot: the bow drawn (motion.js draw-bow: the nock, the draw, the hold at full draw trembling, the loose, the follow
+     through), and the one shot at takes it a drawing after the loose; everyone else starts at the sound */
+  function shoot(id, c, t0, txt) {
+    shooters.add(id); const tgt = c.addressee && ids.includes(c.addressee) && c.addressee !== id ? c.addressee : null;
+    if (tgt) look(id, tgt, t0 - 0.4, 'look', {});
+    if (!loopClip(id, 'draw-bow', t0, t0 + 2.6, { release: true, why: 'draws the bow, holds, looses' })) { gesture(id, 'point', t0, 'L', 1, 1); return; }
+    const tr = t0 + 21 / 12;
+    for (let k = 0; k < 8; k++) S.key(id, 'beat', t0 + 1.0 + k / F, { 'arm.R.pitch': (k % 2 ? 0.035 : -0.035), 'head.pitch': (k % 2 ? 0.015 : -0.01) }, 'linear');   /* the full draw trembles */
+    S.key(id, 'beat', tr, { 'arm.R.pitch': 0, 'head.pitch': 0 }, 'inOut');
+    S.key(id, 'act', tr + 1 / F, { 'torso.lean': -0.06, 'hips.dy': -0.8 }, 'out'); S.key(id, 'act', tr + 0.5, { 'torso.lean': 0, 'hips.dy': 0 }, 'inOut');   /* the recoil of the loose */
+    occupy(id, t0 - 0.4, t0 + 3, 'bow');
+    if (!tgt) return;
+    if (/cup|drink|wine/.test(txt)) { S.key(tgt, 'work', tr - 1.6, { 'torso.lean': 0, 'head.pitch': 0 }, 'inOut'); S.key(tgt, 'work', tr - 1.0, { 'torso.lean': -0.1, 'head.pitch': -0.14 }, 'inOut'); S.key(tgt, 'work', tr, { 'torso.lean': -0.12, 'head.pitch': -0.18 }, 'linear'); cue(tr - 1.6, tgt, 'lifts the cup to drink'); }
+    struck[tgt] = tr + 1 / F; const w = fallWindow(tgt, tr), until = w ? w[0] : tr + 3.5;
+    const L = 'act'; S.begin();
+    S.key(tgt, L, tr, { 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'arm.L.out': 0, 'root.pitch': 0, 'hips.dy': 0 }, 'inOut');
+    S.key(tgt, L, tr + 2 / F, { 'torso.lean': -0.26, 'head.pitch': -0.2, 'arm.R.pitch': 1.0, 'arm.L.pitch': -2.35, 'arm.L.out': -0.15, 'root.pitch': -0.1, 'hips.dy': 1.2 }, 'out');   /* the jolt: the cup arm drops, the hand flies to the throat */
+    S.key(tgt, L, tr + 0.45, { 'torso.lean': -0.18, 'head.pitch': -0.14, 'arm.R.pitch': 0.8, 'root.pitch': -0.06, 'hips.dy': -1.5 }, 'inOut');
+    let t = tr + 0.45, k = 0; while (t < until - 0.4) { const u = k % 2 ? 1 : -1; t += 0.32 + 0.12 * (k % 3);   /* he staggers on the spot, the other hand groping */
+      S.key(tgt, L, t, { 'root.roll': 0.06 * u, 'torso.roll': -0.08 * u, 'arm.R.pitch': 0.5 - 0.5 * (k % 2), 'arm.R.out': 0.25 * (k % 2), 'head.pitch': -0.1 + 0.08 * (k % 2), 'hips.dy': -1.5 - 1.0 * (k % 2) }, 'inOut'); k++; }
+    S.key(tgt, L, until + 0.4, { 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'arm.L.out': 0, 'arm.R.out': 0, 'root.pitch': 0, 'root.roll': 0, 'torso.roll': 0, 'hips.dy': 0 }, 'inOut'); S.end();
+    occupy(tgt, tr - 1.6, until + 0.4, 'struck'); cue(tr, id, 'looses'); cue(tr + 1 / F, tgt, 'the arrow: the jolt, the hand to the throat, the stagger');
+    for (const o of ids) { if (o === id || o === tgt || !B.visible(o, tr)) continue; const Ro = rng(sid + o + 'startle'), ts = tr + 0.15 + Ro() * 0.35;
+      look(o, tgt, ts, 'look', {}); S.key(o, 'react', ts, { 'torso.lean': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut'); S.key(o, 'react', ts + 2 / F, { 'torso.lean': -0.1, 'arm.R.pitch': -0.5, 'arm.L.pitch': -0.4, 'hips.dy': 1.0 }, 'out');
+      S.key(o, 'react', ts + 1.2, { 'torso.lean': -0.05, 'arm.R.pitch': -0.3, 'arm.L.pitch': -0.25, 'hips.dy': 0 }, 'linear'); S.key(o, 'react', ts + 2.0, { 'torso.lean': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut'); occupy(o, ts, ts + 2, 'startle'); }
+  }
+  /* the fall the blocking lays down (standing to lying across its window): the knees go first, the arms fly, the body follows;
+     then he is still: a deliberate stillness, not a frozen actor */
+  function collapse(id, w) { const [w0, w1] = w;
+    S.key(id, 'act', w0 - 0.1, { 'hips.dy': 0, 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut');
+    S.key(id, 'act', w0 + 0.35, { 'hips.dy': -3.5, 'torso.lean': 0.2, 'head.pitch': -0.15, 'arm.R.pitch': -0.6, 'arm.L.pitch': -0.3 }, 'in');
+    S.key(id, 'act', lerp(w0, w1, 0.6), { 'hips.dy': -2, 'torso.lean': 0.3, 'head.pitch': 0.18, 'arm.R.pitch': 0.4, 'arm.L.pitch': 0.5 }, 'out');
+    S.key(id, 'act', w1 + 0.1, { 'hips.dy': 0, 'torso.lean': 0.06, 'head.pitch': 0.1, 'arm.R.pitch': 0.15, 'arm.L.pitch': 0.1 }, 'back');
+    S.key(id, 'act', w1 + 0.9, { 'torso.lean': 0, 'head.pitch': 0.05, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut');
+    holds.push({ actor: id, t0: r3(w1 + 1), t1: r3(T), why: 'dead' }); occupy(id, w0 - 0.2, T + 1, 'dead'); cue(w0, id, 'the fall: the knees go, the arms fly, he lies across the table'); }
   /* hit: the jolt back (the arms fly up, the head snaps), a beat, the knees go; the fall itself is the blocking's (its next key) */
   function hit(id, t) { S.key(id, 'act', t - 0.1, { 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }, 'inOut');
     S.key(id, 'act', t + 1 / F, { 'torso.lean': -0.25, 'head.pitch': -0.2, 'arm.R.pitch': -2.2, 'arm.L.pitch': -1.8, 'root.pitch': -0.12 }, 'out');
@@ -467,19 +519,19 @@ function generate(M, prev) {
     generated: { by: 'tools/choreograph.js', emotion: sceneEmo, from: 'odyssey/choreo/marks/' + M.scene + '.json', note: 'the rough pass; hand keys go in overrides[actor][channel@layer] and survive regeneration' },
     voice: clips.map(c => ({ gi: c.gi, at: r3(c.at), dur: r3(c.dur), kind: c.kind, voice: c.voice, speaker: c.speaker, addressee: c.addressee, caption: c.caption, key: c.gi === M.keyGi })),
     cut: (M.cut || []).map(x => ({ t0: r3(x.t0), dur: r3(x.dur), kind: x.kind })), keys: M.keys.map(k => ({ id: k.id, t: r3(k.t), win: k.win && k.win.map(r3), beat: k.beat })),
-    cues: cues.sort((a, b) => a.t - b.t), notes, actors, props: props.sort((a, b) => a.t - b.t), rigs, overrides: (prev && prev.overrides) || {} };
+    cues: cues.sort((a, b) => a.t - b.t), holds, notes, actors, props: props.sort((a, b) => a.t - b.t), rigs, overrides: (prev && prev.overrides) || {} };
 }
 let CLIPS = null;
 function loadClips() { try { if (!globalThis.THREE) globalThis.THREE = require('three'); require(path.join(ROOT, 'film-readymades/motion.js')); CLIPS = globalThis.OdysseyMotion.CLIPS; } catch (e) { console.warn('motion.js clips unavailable (' + e.message.split('\n')[0] + '); writing keys of its own'); CLIPS = {}; } }
 
 /* ═══════════════ the acting density: from poses probed in the page ═══════════════ */
-/* per drawn frame (12 a second) and per figure in frame: did any of seven points on the body (the face, the crown, the chest, both
+/* per drawn frame (12 a second) and per figure in frame (outside the sheet's deliberate stillnesses, `holds`: the dead): did any of seven points on the body (the face, the crown, the chest, both
    hands, both feet) move more than THRESH of the figure's height since the drawing before? The longest frozen stretch is the longest
    run of drawings in frame without such a move. */
 const THRESH = 0.005;
-function density(P) {
-  const per = {}, prev = {};
-  for (const p of P) { for (const [id, a] of Object.entries(p.actors)) { const e = per[id] || (per[id] = { on: 0, moving: 0, run: 0, frozen: 0, frozenAt: null, runStart: null });
+function density(P, holds) {
+  const per = {}, prev = {}, held = (id, t) => (holds || []).some(h => h.actor === id && t >= h.t0 && t <= h.t1);
+  for (const p of P) { for (const [id, a] of Object.entries(p.actors)) { if (held(id, p.t)) { delete prev[id]; continue; } const e = per[id] || (per[id] = { on: 0, moving: 0, run: 0, frozen: 0, frozenAt: null, runStart: null });
       const b = prev[id]; prev[id] = a; if (!a.on || !b) { e.run = 0; continue; }
       e.on++; const d = Math.max(...a.p.map((x, i) => Math.hypot(x[0] - b.p[i][0], x[1] - b.p[i][1], x[2] - b.p[i][2]))) / a.H;
       if (d > THRESH) { e.moving++; e.run = 0; } else { if (!e.run) e.runStart = p.t; e.run++; if (e.run > e.frozen) { e.frozen = e.run; e.frozenAt = e.runStart; } } }
@@ -513,7 +565,7 @@ async function probe(id, { marks = true } = {}) {
   const f = path.join(OUT, id + '.json'); let C = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null;
   if (!C) { loadClips(); C = generate(M, null); fs.writeFileSync(f, JSON.stringify(C)); }
   await page.evaluate(C => OdysseyTake.useChoreo(C), C);
-  const after = density(await poses(page, M.total)); console.log('after', JSON.stringify({ mean: after.mean, worstFrozen: after.worstFrozen, over80: after.over80 + '/' + after.count }));
+  const after = density(await poses(page, M.total), C.holds); console.log('after', JSON.stringify({ mean: after.mean, worstFrozen: after.worstFrozen, over80: after.over80 + '/' + after.count }));
   await browser.close();
   fs.mkdirSync(path.join(OUT, 'density'), { recursive: true });
   fs.writeFileSync(path.join(OUT, 'density', id + '.json'), JSON.stringify({ scene: id, mode: MODE, measured: new Date().toISOString().slice(0, 10), rule: 'per drawing (12 a second), per figure in frame: moving if any of seven body points moved more than ' + THRESH * 100 + '% of its height since the drawing before', before, after }, null, 1));
