@@ -293,6 +293,9 @@ function generate(M, prev) {
     const G = GEST[g]; if (!G) return; const s = B.at(id, t); if (!s || !s.vis || B.lying(s)) return;
     if (s.moving && s.walk > 0.2) return;
     let a = amp; const sides = G.both ? ['R', 'L'] : [side];
+    /* a hand that holds something long (a sword, a spear, a bow) gestures low and turns the wrist out, so the blade opens away
+       from the face instead of sweeping across it */
+    const holds = x => (M.held[id] || {})[x] > 0;
     /* a partner in front and close: the arms keep out of him (reach less forward, open more to the side) */
     let cap = -3; if (toward) { const w = B.at(toward, t); if (w) { const d = dist2(s.p, w.p) / H(id), rb = Math.abs(relBearing(s, w.p)); if (d < 0.8 && rb < 0.9) cap = -0.55; else if (d < 1.2 && rb < 0.9) cap = -0.9; } }
     const L = 'beat', ch = x => 'arm.' + x;
@@ -304,16 +307,16 @@ function generate(M, prev) {
     S.key(id, L, t - 1 / F, { 'head.pitch': G.hp * a }, 'out');
     if (G.turn) S.key(id, 'look', t, { 'head.yaw': S.rel(G.turn) }, 'out');
     /* the strike */
-    for (const x of sides) { const pv = Math.max(cap, G.arm.pitch * a), ov = G.arm.out * a * (cap > -1 ? 1.4 : 1);
+    for (const x of sides) { const cx = holds(x) ? Math.max(cap, -0.85) : cap, pv = Math.max(cx, G.arm.pitch * a), ov = G.arm.out * a * (cx > -1 ? 1.4 : 1) + (holds(x) ? 0.12 : 0);
       S.key(id, L, tp, { [ch(x) + '.pitch']: pv, [ch(x) + '.out']: ov }, G.ease || 'out');
-      S.key(id, L, tp + 2 / F, { ['hand.' + x + '.roll']: G.hand * (x === 'L' ? -1 : 1) * a }, 'out');
+      S.key(id, L, tp + 2 / F, { ['hand.' + x + '.roll']: (holds(x) ? 0.6 : G.hand) * (x === 'L' ? -1 : 1) * a }, 'out');
       if (G.down) { S.key(id, L, tp + 2 / F, { [ch(x) + '.pitch']: pv + G.down * a }, 'in'); S.key(id, L, tp + 5 / F, { [ch(x) + '.pitch']: pv + G.down * a * 0.8 }, 'out'); }
       if (G.cycle) { S.key(id, L, tp + 3 / F, { [ch(x) + '.pitch']: pv + G.cycle }, 'inOut'); S.key(id, L, tp + 6 / F, { [ch(x) + '.pitch']: pv }, 'inOut'); S.key(id, L, tp + 9 / F, { [ch(x) + '.pitch']: pv + G.cycle }, 'inOut'); } }
     /* the torso follows */
     S.key(id, L, t + 2 / F, { 'torso.lean': G.lean * a, 'torso.twist': (side === 'R' ? 0.08 : -0.08) * a * (G.both ? 0 : 1) }, 'inOut');
     /* the hold, still moving: the arm settles a fifth of the way back, the torso eases */
     const th = tp + Math.max(0.35, hold);
-    for (const x of sides) S.key(id, L, th, { [ch(x) + '.pitch']: Math.max(cap, G.arm.pitch * a) * 0.8 + (G.down ? G.down * a * 0.6 : 0), [ch(x) + '.out']: G.arm.out * a * 0.75 }, 'linear');
+    for (const x of sides) S.key(id, L, th, { [ch(x) + '.pitch']: Math.max(holds(x) ? Math.max(cap, -0.85) : cap, G.arm.pitch * a) * 0.8 + (G.down ? G.down * a * 0.6 : 0), [ch(x) + '.out']: G.arm.out * a * 0.75 }, 'linear');
     S.key(id, L, th, { 'torso.lean': G.lean * a * 0.7, 'head.pitch': G.hp * a * 0.5 }, 'linear');
     /* the release: the arm drops through, a small overshoot, the hand last */
     const tr = th + 0.45;
