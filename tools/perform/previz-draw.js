@@ -12,6 +12,9 @@ function frame(g, W, H, D, f) {
   /* the set: boxes, thin */
   g.lineWidth = 1; g.strokeStyle = dark ? 'rgba(200,205,215,0.16)' : 'rgba(40,40,40,0.18)';
   for (const e of f.set || []) { g.beginPath(); g.moveTo(X(e[0]), Y(e[1])); g.lineTo(X(e[2]), Y(e[3])); g.stroke(); }
+  /* the sea (the SEA machine's wave field): polylines, stronger with the level */
+  for (const w of f.sea || []) { g.lineWidth = 1 + 1.5 * w.l; g.strokeStyle = dark ? 'rgba(90,150,210,' + (0.25 + 0.5 * w.l) + ')' : 'rgba(30,90,160,' + (0.25 + 0.5 * w.l) + ')'; g.beginPath(); w.pts.forEach((q, k) => k ? g.lineTo(X(q[0]), Y(q[1])) : g.moveTo(X(q[0]), Y(q[1]))); g.stroke(); }
+  g.lineWidth = 1; g.strokeStyle = dark ? 'rgba(200,205,215,0.16)' : 'rgba(40,40,40,0.18)';
   /* heat: a glow under each body, radius by its size on screen, colour by its motion heat */
   g.globalCompositeOperation = dark ? 'lighter' : 'multiply';
   for (const b of f.glow || []) { const r = Math.min(H * 0.28, Math.max(8, b.r * H * (0.7 + 0.8 * heatScale(b.T)))), [cr, cg, cb] = heatRGB(heatScale(b.T)), a = (0.12 + 0.55 * heatScale(b.T)) * (b.r > 0.35 ? 0.5 : 1);
