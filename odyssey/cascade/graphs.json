@@ -1,0 +1,52 @@
+{
+  "note": "The graphs of this project, how each is cooked and played. Read by tools/build.mjs (players), tools/verify.mjs (headless cooks) and players/view.html (the controls).",
+  "graphs": [
+    { "name": "kit", "graph": "kit.cascade", "title": "A kit of a motion", "frames": [1, 240], "fps": 24, "output": ["plot", "image"], "svg": "gesture.svg",
+      "scene": "OD-B01-S03", "verifyFrames": "1-240x60",
+      "params": [
+        { "node": "hand", "prop": "gesture", "label": "Gesture", "type": "select", "options": [["welcome", "Telemachus's welcome (OD-B01-S03)"], ["bow", "Odysseus's bow draw (OD-B22-S01)"]], "value": "welcome" },
+        { "node": "hand", "prop": "side", "label": "Hand", "type": "select", "options": [["R", "right"], ["L", "left"]], "value": "R" },
+        { "node": "hand", "prop": "frame", "label": "Frame", "type": "select", "options": [["world", "in the hall (the walk kept)"], ["body", "in the body (the gesture alone)"]], "value": "world" },
+        { "node": "hand", "prop": "samples", "label": "Samples of the span", "type": "range", "min": 8, "max": 800, "step": 1, "value": 360 },
+        { "node": "grid", "prop": "scale", "label": "Kit scale", "type": "range", "min": 0.5, "max": 4, "step": 0.25, "value": 1 },
+        { "node": "grid", "prop": "minRun", "label": "Keep cells held for N samples", "type": "range", "min": 1, "max": 12, "step": 1, "value": 1 },
+        { "node": "bricks", "prop": "azimuth", "label": "Azimuth", "type": "range", "min": -180, "max": 180, "step": 1, "value": 35 },
+        { "node": "bricks", "prop": "elevation", "label": "Elevation", "type": "range", "min": 0, "max": 90, "step": 1, "value": 30 },
+        { "node": "bricks", "prop": "supports", "label": "Supports", "type": "bool", "value": true }
+      ] },
+    { "name": "attention", "graph": "attention.cascade", "title": "The attention knob", "frames": [1, 534], "fps": 12, "output": ["plot", "image"], "svg": "attention.svg",
+      "scene": "OD-B01-S03", "verifyFrames": "1-534x133",
+      "params": [
+        { "node": "biz", "prop": "threshold", "label": "Threshold", "type": "range", "min": 0, "max": 400, "step": 1, "value": 50 },
+        { "node": "biz", "prop": "script", "label": "Scripted motion kept", "type": "range", "min": 0, "max": 2, "step": 0.05, "value": 1 },
+        { "node": "biz", "prop": "invent", "label": "Business invented", "type": "range", "min": 0, "max": 6, "step": 0.05, "value": 1.4 },
+        { "node": "biz", "prop": "decay", "label": "Business decay", "type": "range", "min": 0, "max": 0.99, "step": 0.01, "value": 0.86 },
+        { "node": "biz", "prop": "seed", "label": "Seed", "type": "range", "min": 0, "max": 99, "step": 1, "value": 7 }
+      ] },
+    { "name": "clocks", "graph": "clocks.cascade", "title": "Two clocks", "frames": [1, 288], "fps": 24, "output": ["plot", "image"], "svg": "clocks.svg",
+      "scene": "OD-B05-S04", "verifyFrames": "1-288x96",
+      "params": [
+        { "node": "sky", "prop": "ratio", "label": "World days per performer second", "type": "range", "min": 0, "max": 400, "step": 0.1, "value": 255.7 },
+        { "node": "raft", "prop": "rate", "label": "Logs per performer second", "type": "range", "min": 0.2, "max": 10, "step": 0.1, "value": 2 },
+        { "node": "sky", "prop": "latitude", "label": "Latitude", "type": "range", "min": 0, "max": 60, "step": 1, "value": 36 },
+        { "node": "sky", "prop": "moon", "label": "Moon", "type": "bool", "value": true }
+      ] },
+    { "name": "forbidden", "graph": "forbidden.cascade", "title": "The illegal Odyssey", "frames": [1, 96], "fps": 24, "output": ["plot", "image"], "svg": "forbidden.svg",
+      "scene": "OD-B04-S04", "verifyFrames": "1-96x95",
+      "params": [
+        { "node": "clash", "prop": "view", "label": "View", "type": "select", "options": [["plan", "plan"], ["front", "front elevation"], ["side", "side elevation"]], "value": "plan" },
+        { "node": "clash", "prop": "card", "label": "Card", "type": "select", "options": [[-1, "all eight"], [0, "Temple of Athena"], [1, "The Scaean Gate"], [2, "A Trojan house"], [3, "A street"], [4, "The great hall"], [5, "The court"], [6, "The storeroom"], [7, "Penelope's chamber"]], "value": -1 },
+        { "node": "clash", "prop": "minDepth", "label": "At least this deep (LDU)", "type": "range", "min": 0, "max": 24, "step": 1, "value": 0 },
+        { "node": "clash", "prop": "context", "label": "What each card occupies", "type": "bool", "value": true }
+      ] },
+    { "name": "facing", "graph": "facing.cascade", "title": "The facing field", "frames": [1, 240], "fps": 24, "output": ["plot", "image"], "svg": "facing.svg",
+      "scene": "OD-B09-S09", "verifyFrames": "1-240x80",
+      "params": [
+        { "node": "field", "prop": "explicit", "label": "Facing is an explicit attribute", "type": "bool", "value": true },
+        { "node": "field", "prop": "speed", "label": "Groping speed", "type": "range", "min": 0, "max": 3, "step": 0.01, "value": 0.6 },
+        { "node": "field", "prop": "wander", "label": "Path's two beats", "type": "range", "min": 0.2, "max": 4, "step": 0.01, "value": 1.37 },
+        { "node": "field", "prop": "count", "label": "Objects", "type": "range", "min": 1, "max": 200, "step": 1, "value": 90 },
+        { "node": "field", "prop": "trail", "label": "Seconds of path drawn", "type": "range", "min": 0, "max": 20, "step": 0.5, "value": 3 }
+      ] }
+  ]
+}
