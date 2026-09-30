@@ -84,6 +84,8 @@ footer { margin-top: 42px; color: var(--muted); font-size: 13px; }
 
 <h2 id="scene">The four proofs</h2>
 <div class="scenes" id="scenes"></div>
+<div class="row2"><span class="muted" style="font-size:13px">First scores for the other prepared scenes, authored from the needs catalogue (<code>tools/perform/scenes/_auto.js</code>) until a director writes theirs:</span></div>
+<div class="scenes" id="scenes2"></div>
 <p class="lede" id="sceneNote"></p>
 <div class="stage">
   <div>
@@ -149,12 +151,15 @@ const vid = $('vid');
 /* the scenes */
 $('scenes').innerHTML = SCENES.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
 $('scenes').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); };
+const SCENES2 = [['OD-B09-S03', 'The Lotus-Eaters'], ['OD-B09-S11', 'The Boast and the Curse'], ['OD-B10-S02', 'The Laestrygonian Harbour'], ['OD-B10-S04', 'Circe Transforms the Crew'], ['OD-B10-S05', 'Hermes Gives the Moly'], ['OD-B12-S04', 'Scylla and Charybdis'], ['OD-B12-S07', 'The Last Ship']];
+$('scenes2').innerHTML = SCENES2.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
+$('scenes2').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); };
 async function load(sid) {
-  for (const b of $('scenes').children) b.setAttribute('aria-pressed', b.dataset.s === sid);
+  for (const b of [...$('scenes').children, ...$('scenes2').children]) b.setAttribute('aria-pressed', b.dataset.s === sid);
   D = await (await fetch('data/' + sid + '.json')).json();
   E = D.events.map(x => ({ id: x[0], lane: x[1], actor: x[2], t0: x[3], t1: x[4], kind: x[5], label: x[6], because: x[7], lanes: x[8], heat: x[9], actors: x[10] })); byId = new Map(E.map(e => [e.id, e]));
-  $('sceneNote').textContent = NOTES[sid] || '';
-  const srcs = [['previz', D.media.previz, 'previz (heat)'], ['film', D.media.film, 'performed film'], ['acted', D.media.acted, 'acted film (before)']].filter(x => x[1]);
+  $('sceneNote').textContent = NOTES[sid] || (D.title + '. A first score: the catalogue\'s intents, lines and causal chain on the take\'s blocking, every figure given a reason to hold.' + (D.autoNotes && D.autoNotes.length ? ' Not yet played: ' + D.autoNotes.slice(0, 6).join('; ') + '.' : ''));
+  const srcs = [['previz', D.media.previz, 'previz, performed'], ['pacted', D.media.previzActed, 'previz, acted sheet'], ['film', D.media.film, 'performed film'], ['acted', D.media.acted, 'acted film (before)']].filter(x => x[1]);
   $('srcs').innerHTML = srcs.map(([k, u, n], i) => `<button data-u="${u}" aria-pressed="${i === 0}">${n}</button>`).join(' ');
   $('srcs').onclick = e => { const b = e.target.closest('button'); if (!b) return; for (const c of $('srcs').children) c.setAttribute('aria-pressed', c === b); const t = vid.currentTime; vid.src = b.dataset.u; vid.currentTime = t; };
   vid.src = srcs[0][1]; vid.poster = D.media.poster || '';
@@ -287,7 +292,7 @@ window.addEventListener('resize', () => { if (D) { drawLanes(); drawHeat(); draw
 $('theme').onclick = () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('perform-theme', r.dataset.theme); } catch (e) {} if (D) { renderSpecial(); drawLanes(); drawHeat(); drawNeedles(vid.currentTime || 0); } };
 try { const th = localStorage.getItem('perform-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 const q = (location.hash.match(/OD-B\d\d-S\d\d/) || [])[0];
-load(q && SCENES.some(s => s[0] === q) ? q : 'OD-B01-S03');
+load(q && SCENES.concat(SCENES2).some(s => s[0] === q) ? q : 'OD-B01-S03');
 </script>
 </body>
 </html>

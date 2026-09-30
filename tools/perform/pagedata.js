@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '..', '..'), J = f => JSON.parse(fs.readFil
 const Score = require('./score.js'), Thermo = require('./thermo.js'), Compile = require('./compile.js'), Homeostat = require('./homeostat.js');
 const r3 = v => Math.round(v * 1000) / 1000, r2 = v => Math.round(v * 100) / 100;
 const PAL = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#d35400', '#c0392b', '#7f8c8d', '#16a085', '#8e44ad', '#27ae60', '#e67e22', '#2980b9'];
-const SCENES = process.argv.slice(2).filter(a => /^OD-/.test(a)); if (!SCENES.length) SCENES.push('OD-B01-S03', 'OD-B09-S09', 'OD-B12-S03', 'OD-B22-S01');
+const SCENES = process.argv.slice(2).filter(a => /^OD-/.test(a)); if (!SCENES.length) SCENES.push(...fs.readdirSync(path.join(ROOT, 'odyssey/score')).filter(f => /^OD-B\d\d-S\d\d\.json$/.test(f)).map(f => f.slice(0, 10)));
 const down = (a, k) => a ? a.filter((_, i) => i % k === 0).map(r3) : null;
 function events(S) { return (S.events || []).filter(e => e.kind !== 'BREATH' && !(e.lane === 'VOICE' && e.kind === 'PHRASE' && false)).map(e => [e.id, e.lane, e.actor || null, r3(e.t0), r3(e.t1), e.kind, (e.label || '').slice(0, 120), (e.because || []).map(b => [b.id, b.latency == null ? null : r2(b.latency), b.rel || null]), e.lanes || null, e.heat ? [e.heat.Tm, e.heat.dS] : null, e.actors || null]); }
 function summary(s) { if (!s) return null; return { coverage: s.coverage, literal: s.literal, share: s.share, freeze: s.unmotivatedFreeze, freezeBy: s.unmotivatedFreezeBy, unmotivated: s.unmotivatedAction, latency: s.reactionLatency, gestures: s.gestureDensity, diversity: s.diversity,
@@ -17,7 +17,7 @@ for (const sid of SCENES) {
   const S = J('odyssey/score/' + sid + '.json'), M = J('odyssey/choreo/marks/' + sid + '.json'), Ms = ex('odyssey/score/measures/' + sid + '.json') ? J('odyssey/score/measures/' + sid + '.json') : null;
   const ids = Object.keys(M.H || {}), colors = Object.fromEntries(ids.map((id, k) => [id, PAL[k % PAL.length]]));
   const bands = S.bands || Homeostat.bandsFor(S.type);
-  const out = { scene: sid, title: S.title, type: S.type, total: M.total, built: new Date().toISOString().slice(0, 10),
+  const out = { scene: sid, title: S.title, type: S.type, direction: (S.source || {}).direction || '', autoNotes: ((S.authored || {}).notes || []).slice(0, 20), compileNotes: ((S.compiled || {}).notes || []).slice(0, 8), total: M.total, built: new Date().toISOString().slice(0, 10),
     media: { previz: 'media/previz-' + sid + '.mp4', previzActed: ex('odyssey/perform/media/previz-' + sid + '-acted.mp4') ? 'media/previz-' + sid + '-acted.mp4' : null, poster: 'media/previz-' + sid + '.jpg', film: ex('films/odyssey/' + sid + '-performed.mp4') ? '../../films/odyssey/' + sid + '-performed.mp4' : null, acted: ex('films/odyssey/' + sid + '-acted.mp4') ? '../../films/odyssey/' + sid + '-acted.mp4' : null },
     lanes: Score.LANES, actors: Object.fromEntries(ids.map(id => [id, { short: Score.short(id), color: colors[id], role: ((S.actors || {})[id] || {}).role || '', principal: !!((S.actors || {})[id] || {}).principal }])),
     objects: Object.fromEntries(Object.entries(S.objects || {}).map(([k, o]) => [k, { kind: o.kind, material: o.material, affords: o.affords || [] }])),
