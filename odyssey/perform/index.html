@@ -82,10 +82,11 @@ footer { margin-top: 42px; color: var(--muted); font-size: 13px; }
   <div class="card"><b>6. The homeostat</b><p>Four units watch four essential variables. When one leaves its band, its uniselector steps the compiler's parameters to a new position; the first configuration with all four in band is kept, every attempt logged. The coupled version runs the Blinding.</p></div>
 </div>
 
-<h2 id="scene">The four proofs</h2>
+<h2 id="scene">The director's scores</h2>
 <div class="scenes" id="scenes"></div>
 <div class="row2"><span class="muted" style="font-size:13px">First scores for the other prepared scenes, authored from the needs catalogue (<code>tools/perform/scenes/_auto.js</code>) until a director writes theirs:</span></div>
 <div class="scenes" id="scenes2"></div>
+<p class="muted" style="font-size:13px"><a href="#all">Every scene, before and after</a></p>
 <p class="lede" id="sceneNote"></p>
 <div class="stage">
   <div>
@@ -123,6 +124,10 @@ footer { margin-top: 42px; color: var(--muted); font-size: 13px; }
 <h3>From animatic to animatronic</h3>
 <div id="hw"></div>
 
+<h2 id="all">Every scene, before and after</h2>
+<p class="lede">Each scored scene: its type and bands, the homeostat's result, and the measures of the acted sheet (before) and the performed one (after). Coverage is the share of screen time in which each figure acts, reacts or holds for a reason; dead is the rest; the four needles are H1 motion, H2 causal variety, H3 contrast, H4 viability.</p>
+<div class="scroll"><table class="tbl" id="allTbl"></table></div>
+
 <h2>What this is, and is not</h2>
 <div class="note">Motion heat is an activity variable with the form of a temperature: velocities squared, integrated with a time constant, passed along
   couplings by a stated table of materials. It is not a simulation of physical heat. Causal heat is the entropy of a declared, hand-written model
@@ -141,22 +146,39 @@ footer { margin-top: 42px; color: var(--muted); font-size: 13px; }
 <button class="theme" id="theme" aria-label="Switch light and dark">Light / dark</button>
 <script>
 'use strict';
-const SCENES = [['OD-B01-S03', 'The Gate'], ['OD-B09-S09', 'The Blinding'], ['OD-B12-S03', 'The Sirens'], ['OD-B22-S01', 'The Hall']];
+const PROOF = { 'OD-B01-S03': 'The Gate', 'OD-B09-S09': 'The Blinding', 'OD-B12-S03': 'The Sirens', 'OD-B22-S01': 'The Hall', 'OD-B09-S08': 'The Stake', 'OD-B09-S10': 'The Rams', 'OD-B09-S11': 'The Taunt', 'OD-B10-S04': 'Circe', 'OD-B12-S04': 'Scylla', 'OD-B12-S07': 'The Thunderbolt', 'OD-B05-S05': 'The Storm and the Raft' };
+let SCENES = Object.entries(PROOF), SCENES2 = [], INDEX = null;
 const NOTES = { 'OD-B01-S03': 'Acting. Athena arrives and waits unattended; the suitors dice; Telemachus hears her spear on the stone, sees her, is ashamed, sets down his cup, rises, crosses, goes to her, welcomes her, takes her spear (two bodies, one grip, ownership changed and kept through scrubbing), turns and leads her in.',
   'OD-B09-S09': 'The coupled homeostat. Four needles (Odysseus, Polyphemus, the crew, the fire and the cave) decide when the stake glows, when he decides, the thrust, the stir, the roar and the scatter. Disturb Polyphemus (a bowl knocked over at 33 s) and compare the crew breaking with the crew regulated.',
   'OD-B12-S03': 'Machinery. The rowers on one clock with offsets, the hull as a damped oscillator driven by the stroke and the sea, the mast constraint over the layout\'s moves, rope tension, Odysseus\'s strain toward the Sirens and his head on them.',
-  'OD-B22-S01': 'Choreography by causal chain: the loose, the impact, the fall, the table over, the recoil and the flight, the search for weapons that are gone, the room turning back to the man in the door, the declaration.' };
+  'OD-B22-S01': 'Choreography by causal chain: the loose, the impact, the fall, the table over, the recoil and the flight, the search for weapons that are gone, the room turning back to the man in the door, the declaration.',
+  'OD-B09-S08': 'Four time skips on one set, timed by four needles: his rage over the sleeper checked at the door stone, the giant\'s appetite (two men seized and eaten at dawn, the wine a gulp at a time at evening), the crew\'s terror (a man bolts for the wall; in the day they must be calm enough to work), and the work, whose integral is the stake: cut, smoothed, sharpened, hardened, hidden. Then the bowl lifted up to him, and "Nobody".',
+  'OD-B09-S10': 'A blind search that must miss. Eighteen rams in six triads on one herd path, a man slung under each middle ram; the giant sits in the door with his hands out over the backs. The flock\'s pace decides when each triad passes under the hands; each pass drives his suspicion and the fear of the man beneath; a man over his limit shifts, and the giant hears it; the hands feel lower as the needle rises, and over its limit with a man under the hand they would find him. Last, the lead ram, Odysseus under its belly: the hand along its back, the words to it, the ram let go when the needle is calm.',
+  'OD-B09-S11': 'Rage by ear: the jeers\' stresses build the blind giant\'s needle until he tears off a peak and throws; its landing is a blow to the sea and a push on the hull toward the shore; the fear loses strokes; at the name a man grips his arm (a held grip solved every drawing); the prophecy remembered, the prayer, the second rock.',
+  'OD-B10-S04': 'A transformation. The song draws the scouts; the drugged wolves and lions fawn; the feast, the drink, then the wand on each man who has drunk; each goes down on all fours over four drawings on twos, the pig\'s face on him for one drawing, then the pig (a part-swap sequence with his identity kept in the score); the sties, the acorns, the witness running back. Typed a transformation, with its own bands: the dialogue-typed first score could not reach its band.',
+  'OD-B12-S04': 'The stroke held under two monsters: the crew\'s fear loses strokes (skipped on the one rowing clock), the ship\'s way brings it under the rock, and Scylla strikes when her needle crosses; with the uniselectors held the fear loses more strokes and she strikes after the take\'s cut to it. Six heads, six riders on the jaws, each lifted to its own place.',
+  'OD-B12-S07': 'A god\'s anger against a vessel: Zeus\'s needle rises through the feast and the sail and strikes the mast; the mast falls on the helmsman; the ship\'s integrity wears and breaks; the men swim and go down one by one as their share of the endurance runs out; the keel and mast lashed, ridden, the fig tree.',
+  'OD-B05-S05': 'Poseidon sees the raft and strikes the sea; the raft wears (its uniselector is his steering); he is thrown when the sea passes 0.7 with the raft failing and back aboard when his endurance returns; Ino\'s veil; the north wind. Held, the raft breaks early and he does not regain it.' };
+const SPECIAL = {
+  'OD-B10-S04': ['Circe: the change as a part swap', 'Each changed man goes down onto all fours over the four drawings on twos before the middle of the key\'s window, where the take stops drawing him (TRANSFORM, on the man). The beast\'s CHANGE sets its morph channel for the drawing before the swap: only the animal\'s head is drawn, set on the man\'s head as the sheet poses him (the pig\'s face is the minifig pig headdress, 17351p01), and at the swap the pig stands in its own place. The score keeps his identity: a SWAP event from the man, an IN-BETWEEN event on the pig, and the pig\'s later acts (driven into the sty, rooting at the acorns, its head up to her) caused by his change. Circe\'s beasts are rigs cut from the set pieces\' pig, wolf and lion.'],
+  'OD-B09-S10': ['The rams: a search that must miss', 'Riders: each man is a rider on his ram\'s belly (face up, hands in the wool), carried by the herd procedure the flock shares (one path, three abreast, separation), so he goes where his ram goes; the giant\'s two hands grope a lane across the door at the height of the backs, lowered by his needle. The escape is regulated: with the uniselectors held the crew\'s fear breaks, a man shifts, the giant hears it, and his hands find him. The disturbance: the wool gives under Odysseus\'s hands under the lead ram.'] };
 const LANE_COL = l => ({ VOICE: '--m-voice', STIMULUS: '--m-stim', INTENT: '--m-intent', ACTION: '--m-action', CONTACT: '--m-contact', CAMERA: '--m-world', LIGHT: '--m-world', 'SET/VEHICLE': '--m-world', FX: '--m-world' })[l] || '--m-body';
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const $ = id => document.getElementById(id), esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 let D = null, E = null, byId = new Map(), who = null, pick = null;
 const vid = $('vid');
 /* the scenes */
-$('scenes').innerHTML = SCENES.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
+function lists() { const has = s => !INDEX || INDEX.scenes.some(r => r.scene === s && r.data);
+  SCENES = Object.entries(PROOF).filter(([s]) => has(s)); SCENES2 = INDEX ? INDEX.scenes.filter(r => r.data && !PROOF[r.scene]).map(r => [r.scene, r.title]) : [];
+  $('scenes').innerHTML = SCENES.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
+  $('scenes2').innerHTML = SCENES2.map(([s, n]) => `<button data-s="${s}">${esc(n)}</button>`).join(''); }
 $('scenes').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); };
-const SCENES2 = [['OD-B05-S05', 'Poseidon Breaks the Sea'], ['OD-B09-S03', 'The Lotus-Eaters'], ['OD-B09-S11', 'The Boast and the Curse'], ['OD-B10-S02', 'The Laestrygonian Harbour'], ['OD-B10-S04', 'Circe Transforms the Crew'], ['OD-B10-S05', 'Hermes Gives the Moly'], ['OD-B12-S04', 'Scylla and Charybdis'], ['OD-B12-S07', 'The Last Ship']];
-$('scenes2').innerHTML = SCENES2.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
 $('scenes2').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); };
+function renderAll() { if (!INDEX) return; const f = v => v == null ? '-' : typeof v === 'number' ? (Math.abs(v) < 1 ? v.toFixed(3) : v.toFixed(2)) : v, pc = v => v == null ? '-' : (v * 100).toFixed(1) + '%', inb = (v, b) => v != null && v >= b[0] && v <= b[1];
+  $('allTbl').innerHTML = '<tr><th>Scene</th><th>Type</th><th>Score</th><th>Homeostat</th><th>Coverage before / after</th><th>Dead before / after</th><th>Longest freeze before / after</th><th>H1 after</th><th>H2 after</th><th>H3 after</th><th>H4 after</th></tr>' +
+    INDEX.scenes.map(r => { const a = r.after || {}, b = r.before || {}, e = a.essentials || {}, B = r.bands || {}; const h = r.homeostat ? (r.homeostat.stable ? 'in band (attempt ' + r.homeostat.retained + ')' : 'not in band in ' + r.homeostat.attempts + '; nearest kept') : 'not run';
+      return `<tr><td>${r.data ? `<a href="#${r.scene}" data-s="${r.scene}">${esc(r.scene)}</a>` : esc(r.scene)} ${esc(r.title)}</td><td>${esc(r.type)}</td><td>${r.director ? 'director' + (r.coupled ? ', coupled' : '') : 'first score'}</td><td style="font-size:12.5px">${h}</td><td class="n">${pc(b.coverage)} / ${pc(a.coverage)}</td><td class="n">${pc(b.dead)} / ${pc(a.dead)}</td><td class="n">${f(b.freeze)} / ${f(a.freeze)} s</td>${['H1', 'H2', 'H3', 'H4'].map(k => `<td class="n ${B[k] ? (inb(e[k], B[k].band) ? 'good' : 'badv') : ''}">${f(e[k])}</td>`).join('')}</tr>`; }).join('');
+  $('allTbl').onclick = ev => { const a = ev.target.closest('a[data-s]'); if (a) { ev.preventDefault(); load(a.dataset.s); document.getElementById('scene').scrollIntoView(); } }; }
 async function load(sid) {
   for (const b of [...$('scenes').children, ...$('scenes2').children]) b.setAttribute('aria-pressed', b.dataset.s === sid);
   D = await (await fetch('data/' + sid + '.json')).json();
@@ -170,13 +192,13 @@ async function load(sid) {
   $('who').innerHTML = ids.map(i => `<option value="${i}" ${i === who ? 'selected' : ''}>${esc(D.actors[i].short)}${D.actors[i].principal ? ' (principal)' : ''}</option>`).join('');
   $('who').onchange = () => { who = $('who').value; drawLanes(); };
   pick = null; renderMetrics(); renderCausal(); renderHomeo(); renderSpecial(); renderHw(); drawLanes(); drawHeat(); drawNeedles(0); showWhy(null);
-  $('needleNote').textContent = D.coupled ? 'The coupled homeostat: each needle a unit, -1 left to +1 right; the crew\'s band (green) is its limit while the plan is carried out.' : 'The four essential variables of the compiled scene against their bands (green): motion heat, causal variety, contrast, viability.';
+  $('needleNote').textContent = D.coupled ? 'The coupled homeostat: each needle a unit, -1 left to +1 right; a green band is a unit\'s limit where it has one (its essential variable).' : 'The four essential variables of the compiled scene against their bands (green): motion heat, causal variety, contrast, viability.';
 }
 /* the needles, in sync with the video */
 function drawNeedles(t) {
   const c = $('needles'), W = c.clientWidth, H = 120, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
   let N = [];
-  if (D.coupled) { const r = D.coupled.runs[0], i = Math.min(r.x[0].length - 1, Math.round(t * r.hz)); N = D.coupled.units.map((u, k) => ({ label: u, v: (r.x[k][i] + 1) / 2, band: u === 'CREW' ? [0, 0.775] : null, val: r.x[k][i].toFixed(2) })); }
+  if (D.coupled) { const r = D.coupled.runs[0], i = Math.min(r.x[0].length - 1, Math.round(t * r.hz)); N = D.coupled.units.map((u, k) => { const L = (D.coupled.limits || {})[u]; return { label: u.slice(0, 10), v: (r.x[k][i] + 1) / 2, band: L ? [(L[0] + 1) / 2, (L[1] + 1) / 2] : null, val: r.x[k][i].toFixed(2), out: L ? r.x[k][i] < L[0] || r.x[k][i] > L[1] : false }; }); }
   else if (D.needles) { const i = Math.min(D.needles.H1.length - 1, Math.round(t * 12)); N = ['H1', 'H2', 'H3', 'H4'].map(k => { const b = D.bands[k].band, top = Math.max(b[1] * 2, 1e-3), v = D.needles[k][i]; return { label: { H1: 'MOTION', H2: 'CAUSAL', H3: 'CONTRAST', H4: 'VIABILITY' }[k], v: v / top, band: [b[0] / top, b[1] / top], val: v.toFixed(3), out: v < b[0] || v > b[1] }; }); }
   const w = W / Math.max(1, N.length);
   N.forEach((n, k) => { const cx = w * k + w / 2, cy = H * 0.72, r = Math.min(w * 0.42, H * 0.6), A = v => Math.PI * (1 - Math.max(0, Math.min(1, v)));
@@ -255,13 +277,21 @@ function renderHw() { const w = D.hardware; if (!w) { $('hw').innerHTML = ''; re
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Estimated energy over the scene</th></tr>${Object.entries(w.energy || {}).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="n">${v} J</td></tr>`).join('')}</table></div>`; }
 /* the Blinding's experiment, the Gate's chain */
 function renderSpecial() { let h = '';
-  if (D.coupled) { const C = D.coupled, runs = C.runs, fmt = v => v == null ? '-' : typeof v === 'number' ? v.toFixed(2) + ' s' : String(v);
-    h += `<h2>The Blinding: four needles, disturbed</h2><p class="lede">Each unit is a needle x with tau dx/dt = -x + tanh(sum W x + u(t)): ODYSSEUS (resolve), POLYPHEMUS (arousal), CREW (fear), ENVIRONMENT (the fire and the stake's heat). The score's drives u are the wine, the fire, the glowing stake, the thrust's pain. The needles' crossings are the scene's timings. While they carry out the plan the crew must stay under 0.55 (they would drop the stake). Disturb Polyphemus with a bowl knocked over at 33 s: with the uniselectors held the crew breaks; regulated, the crew's uniselector steps once, to a new wiring, and a new stable choreography follows.</p>`;
-    h += `<canvas id="cpl" height="260"></canvas><div class="legend">${C.units.map((u, k) => `<span><i style="background:${['#3498db', '#e74c3c', '#27ae60', '#f39c12'][k]}"></i>${u}</span>`).join('')}<span>solid: undisturbed; dashed: disturbed, held; dotted: disturbed, regulated</span></div>`;
-    const keys = ['asleep', 'glow', 'decide', 'thrust', 'stir', 'brokeAt', 'roar', 'scatter'], lab = { asleep: 'he sleeps', glow: 'the stake glows', decide: 'Odysseus decides', thrust: 'the thrust', stir: 'he stirs', brokeAt: 'the crew breaks', roar: 'the roar', scatter: 'the scatter' };
-    h += `<div class="scroll"><table class="tbl"><tr><th>When</th>${runs.map(r => `<th>${esc(r.label)}</th>`).join('')}</tr>${keys.map(k => `<tr><td>${lab[k]}</td>${runs.map(r => `<td class="n">${fmt(r.events[k])}</td>`).join('')}</tr>`).join('')}<tr><td>why the scatter</td>${runs.map(r => `<td style="font-size:12.5px">${esc(r.events.scatterWhy || '-')}</td>`).join('')}</tr><tr><td>uniselector steps</td>${runs.map(r => `<td style="font-size:12.5px">${r.steps.length ? r.steps.map(s => esc(s.unit) + ' at ' + s.t + ' s to position ' + s.position + ': ' + s.row.map(v => v.toFixed(2)).join(', ')).join('; ') : 'none'}</td>`).join('')}</tr></table></div>`;
+  if (SPECIAL[D.scene]) h += `<h2>${esc(SPECIAL[D.scene][0])}</h2><p class="lede">${esc(SPECIAL[D.scene][1])}</p>`;
+  if (D.coupled) { const C = D.coupled, runs = C.runs, fmt = v => v == null ? '-' : typeof v === 'number' ? v.toFixed(2) + ' s' : Array.isArray(v) ? (v.length ? v.map(x => typeof x === 'number' ? x.toFixed(1) : Array.isArray(x) ? x[0].toFixed(1) : x && x.t != null ? x.t.toFixed(1) + (x.row != null ? ' (' + (x.row + 1) + ')' : '') : JSON.stringify(x)).join(', ') + ' s' : 'none') : typeof v === 'object' ? Object.entries(v).map(([k, x]) => k + ' ' + (typeof x === 'number' ? x.toFixed(1) : x)).join(', ') : String(v);
+    const MODEL = { blinding: 'ODYSSEUS (resolve), POLYPHEMUS (arousal), CREW (fear), ENVIRONMENT (the fire and the stake\'s heat); drives: the wine, the fire, the glowing stake, the thrust\'s pain. While they carry out the plan the crew must stay under 0.55 (they would drop the stake). The disturbance: a bowl knocked over at 33 s.',
+      rams: 'ODYSSEUS (his hold under the lead ram), POLYPHEMUS (the searching hands\' suspicion), CREW (the fear of the men under the rams), FLOCK (the pace at the door: the herd\'s speed). A man over his fear\'s limit for half a second shifts (a stir the giant hears); the giant over his limit for half a second with a man under the hand finds him. The disturbance: the wool gives under Odysseus\'s hands at 38 s.',
+      stake: 'ODYSSEUS (rage, then resolve), POLYPHEMUS (appetite), CREW (terror), WORK (the labour\'s will; the stake\'s progress is its integral). The disturbance: the wine too weak (his appetite driven up).',
+      strait: 'CREW (fear: lost strokes), ODYSSEUS (readiness at the bow), SCYLLA (hunger as the ship comes under her rock), CHARYBDIS (the whirlpool\'s pull).',
+      taunt: 'ODYSSEUS (pride), POLYPHEMUS (rage by ear), CREW (fear: lost strokes, a hand on his arm at the name), SEA (the wave).',
+      storm: 'GOD (anger), SEA (the storm), VESSEL (the ship\'s or the raft\'s integrity), HERO (endurance).' };
+    const key = (String(C.model).match(/machinery\.js (\w+)/) || [])[1] || 'blinding';
+    h += `<h2>${esc(D.title.replace(/ \(.*$/, ''))}: ${C.units.length} needles${runs.length > 1 ? ', disturbed and held' : ''}</h2><p class="lede">Each unit is a needle x with tau dx/dt = -x + tanh(sum W x + u(t)): ${esc(MODEL[key] || '')} The needles' crossings are the scene's timings; when a needle stays out of its limits past its dwell, that unit's uniselector steps to a new row of weights and the run goes on (Ashby's ultrastability). With the uniselectors held, the same drives give the failure.</p>`;
+    h += `<canvas id="cpl" height="260"></canvas><div class="legend">${C.units.map((u, k) => `<span><i style="background:${['#3498db', '#e74c3c', '#27ae60', '#f39c12'][k]}"></i>${u}</span>`).join('')}<span>${runs.map((r, i) => (i === 0 ? 'solid' : i === 1 ? 'dashed' : i === 2 ? 'dotted' : 'dash-dot') + ': ' + r.label).join('; ')}</span></div>`;
+    const keys = [...new Set(runs.flatMap(r => Object.keys(r.events || {})))].filter(k => !/Log$|^log$|^s$|^sLog$|cOut|^progress$/.test(k));
+    h += `<div class="scroll"><table class="tbl"><tr><th>When</th>${runs.map(r => `<th>${esc(r.label)}${r.failed ? ' <span class="badv">(fails)</span>' : ''}</th>`).join('')}</tr>${keys.map(k => `<tr><td>${esc(k)}</td>${runs.map(r => `<td class="n" style="font-size:12.5px">${esc(fmt((r.events || {})[k]))}</td>`).join('')}</tr>`).join('')}<tr><td>uniselector steps</td>${runs.map(r => `<td style="font-size:12.5px">${r.steps.length ? r.steps.slice(0, 8).map(s => esc(s.unit) + ' at ' + s.t + ' s to position ' + s.position).join('; ') + (r.steps.length > 8 ? '; and ' + (r.steps.length - 8) + ' more' : '') : 'none'}</td>`).join('')}</tr>${runs.some(r => r.measures && r.measures.essentials) ? `<tr><td>H1-H4 after</td>${runs.map(r => `<td class="n" style="font-size:12.5px">${r.measures && r.measures.essentials ? ['H1', 'H2', 'H3', 'H4'].map(k => r.measures.essentials[k]).join(' / ') : '-'}</td>`).join('')}</tr>` : ''}</table></div>`;
     h += `<div class="cols" style="margin-top:12px">${runs.filter(r => r.media).map(r => `<div class="card"><b>${esc(r.label)}</b><video controls playsinline preload="none" src="${r.media}" style="margin-top:6px"></video></div>`).join('')}</div>`;
-    h += `<p class="muted" style="font-size:13px">The wiring (rows: what moves each unit; columns: ODYSSEUS, POLYPHEMUS, CREW, ENVIRONMENT): ${C.W0.map((r, i) => C.units[i] + ' [' + r.join(', ') + ']').join('; ')}. Model: <code>${esc(C.model)}</code>.</p>`; }
+    h += `<p class="muted" style="font-size:13px">The wiring (rows: what moves each unit; columns: ${C.units.join(', ')}): ${C.W0.map((r, i) => C.units[i] + ' [' + r.join(', ') + ']').join('; ')}. Model: <code>${esc(C.model)}</code>.</p>`; }
   if (D.chain) { const S = D.chain.steps;
     h += `<h2>Five instructions, one timeline</h2><p class="lede">Each instruction is a row in a deterministic table (<code>tools/perform/patches.js</code>) that rewrites intents, affects or the homeostat's bands; never "move more". Where bands change the homeostat searches for parameters; where the patch locks the choreography it does not. Each step is diffed against the one before.</p><div class="steps">`;
     S.forEach((s, i) => { if (i === 0) { h += `<div class="step"><div class="q">As authored</div><div class="muted" style="font-size:13px">H1 ${s.essentials.H1} · H2 ${s.essentials.H2} · H3 ${s.essentials.H3} · H4 ${s.essentials.H4} · coverage ${(s.metrics.coverage * 100).toFixed(1)}% · literal ${(s.metrics.literal * 100).toFixed(1)}% · gestures/phrase ${s.metrics.gestureDensity}</div></div>`; return; }
@@ -281,8 +311,7 @@ function renderSpecial() { let h = '';
 function drawCoupled() { const c = $('cpl'), W = c.clientWidth, H = 260, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
   const runs = D.coupled.runs, n = runs[0].x[0].length, X = i => i / (n - 1) * W, Y = v => 10 + (1 - (v + 1) / 2) * (H - 30), cols = ['#3498db', '#e74c3c', '#27ae60', '#f39c12'];
   g.strokeStyle = css('--rule'); g.lineWidth = 1; for (const v of [-1, 0, 1]) { g.beginPath(); g.moveTo(0, Y(v)); g.lineTo(W, Y(v)); g.stroke(); }
-  g.fillStyle = css('--ok'); g.globalAlpha = 0.12; g.fillRect(0, Y(0.55), W, Y(-1) - Y(0.55)); g.globalAlpha = 1;
-  runs.forEach((r, ri) => { g.setLineDash(ri === 0 ? [] : ri === 1 ? [6, 4] : [2, 3]); r.x.forEach((a, k) => { g.strokeStyle = cols[k]; g.lineWidth = ri === 0 ? 2 : 1.6; g.beginPath(); a.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v))); g.stroke(); }); });
+  runs.forEach((r, ri) => { g.setLineDash(ri === 0 ? [] : ri === 1 ? [6, 4] : ri === 2 ? [2, 3] : [8, 3, 2, 3]); r.x.forEach((a, k) => { g.strokeStyle = cols[k]; g.lineWidth = ri === 0 ? 2 : 1.6; g.beginPath(); a.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v))); g.stroke(); }); });
   g.setLineDash([]); g.fillStyle = css('--muted'); g.font = '10px ui-monospace, monospace'; g.textAlign = 'center'; const T = D.total; for (let s = 0; s <= T; s += 10) g.fillText(s + 's', X(s / T * (n - 1)), H - 4); }
 function drawChainTimelines() { for (const c of document.querySelectorAll('canvas.tl')) { const s = D.chain.steps[+c.dataset.i], p = D.chain.steps[+c.dataset.i - 1], W = c.clientWidth, H = 54, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio);
   const X = t => t / D.total * W, draw = (tl, y, col) => { for (const x of tl || []) { g.fillStyle = col; g.globalAlpha = x[0] === 'INTENT' ? 0.35 : 0.8; g.fillRect(X(x[3]), y, Math.max(2, X(x[4]) - X(x[3])), x[0] === 'INTENT' ? 8 : 6); } g.globalAlpha = 1; };
@@ -295,7 +324,8 @@ window.addEventListener('resize', () => { if (D) { drawLanes(); drawHeat(); draw
 $('theme').onclick = () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('perform-theme', r.dataset.theme); } catch (e) {} if (D) { renderSpecial(); drawLanes(); drawHeat(); drawNeedles(vid.currentTime || 0); } };
 try { const th = localStorage.getItem('perform-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 const q = (location.hash.match(/OD-B\d\d-S\d\d/) || [])[0];
-load(q && SCENES.concat(SCENES2).some(s => s[0] === q) ? q : 'OD-B01-S03');
+(async () => { try { INDEX = await (await fetch('data/index.json', { cache: 'no-store' })).json(); } catch (e) { INDEX = null; } lists(); renderAll();
+  load(q && SCENES.concat(SCENES2).some(s => s[0] === q) ? q : 'OD-B01-S03'); })();
 </script>
 </body>
 </html>

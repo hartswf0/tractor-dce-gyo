@@ -31,12 +31,17 @@ for (const sid of SCENES) {
     materials: Object.fromEntries(Object.entries(Thermo.MATERIAL).map(([k, m]) => [k, { tau: m.tau > 1e6 ? 'forever' : m.tau, k: m.k, source: m.source, gain: m.gain || 1, note: m.note || '' }])),
     homeostat: { log: ((S.log || {}).homeostat || []).slice(0, 60), wiring: Homeostat.WIRING, positions: Homeostat.POSITIONS },
     hardware: ex('odyssey/score/hardware/' + sid + '.posesheet.csv') ? { posesheet: '../score/hardware/' + sid + '.posesheet.csv', servo: '../score/hardware/' + sid + '.servo.csv', energy: J('odyssey/score/hardware/' + sid + '.energy.json').energyJ } : null };
-  /* the Blinding: the coupled homeostat's three runs */
-  if (S.authored && S.authored.coupled) { const runs = [{ name: 'baseline', label: 'undisturbed', S }];
-    for (const [v, lab] of [['wake-early.frozen', 'Polyphemus wakes early; uniselectors held'], ['wake-early.regulated', 'Polyphemus wakes early; regulated']]) { const f = 'odyssey/score/variants/' + sid + '.' + v + '.json'; if (ex(f)) runs.push({ name: v, label: lab, S: J(f) }); }
-    out.coupled = { units: S.authored.coupled.units, model: 'tools/perform/machinery.js blinding', W0: S.authored.coupled.W0,
-      runs: runs.map(r => { const c = r.S.authored.coupled, k = Math.max(1, Math.round(c.hz / 12)); return { name: r.name, label: r.label, hz: 12, x: c.x.map(a => a.filter((_, i) => i % k === 0)), events: c.events, steps: c.steps, W: c.W,
-        media: ex('odyssey/perform/media/previz-' + sid + (r.name === 'baseline' ? '' : '-wake-early-' + (r.name.endsWith('frozen') ? 'held' : 'regulated')) + '.mp4') ? 'media/previz-' + sid + (r.name === 'baseline' ? '' : '-wake-early-' + (r.name.endsWith('frozen') ? 'held' : 'regulated')) + '.mp4' : null,
+  /* a coupled homeostat: the baseline and every variant run beside it (odyssey/score/variants/<scene>.<variant>.<frozen|regulated>.json) */
+  if (S.authored && S.authored.coupled) { const runs = [{ name: 'baseline', label: 'undisturbed, regulated', S }], vdir = path.join(ROOT, 'odyssey/score/variants');
+    const LAB = { 'wake-early': 'Polyphemus wakes early', 'grip-slips': 'the wool gives under his hands', held: 'undisturbed', 'wine-weak': 'the wine too weak' };
+    if (fs.existsSync(vdir)) for (const f of fs.readdirSync(vdir).filter(f => f.startsWith(sid + '.') && /\.(frozen|regulated)\.json$/.test(f)).sort()) { const m = f.slice(sid.length + 1).replace(/\.json$/, ''), [v, how] = [m.replace(/\.(frozen|regulated)$/, ''), m.endsWith('frozen') ? 'held' : 'regulated'];
+      runs.push({ name: m, label: (LAB[v] || v) + '; ' + (how === 'held' ? 'uniselectors held' : 'regulated'), S: J('odyssey/score/variants/' + f), media: 'media/previz-' + sid + '-' + v + '-' + how + '.mp4' }); }
+    const LIM = { blinding: { CREW: [-1, 0.55] }, rams: { ODYSSEUS: [-0.5, 1], POLYPHEMUS: [-1, 0.55], CREW: [-1, 0.6] }, stake: { ODYSSEUS: [-1, 0.8], CREW: [-1, 0.85], WORK: [0.2, 1] }, strait: { CREW: [-1, 0.55] }, taunt: { POLYPHEMUS: [-1, 0.4], CREW: [-1, 0.6] }, storm: { VESSEL: [-0.5, 1], HERO: [-0.6, 1] } };
+    const model = S.authored.coupled.model || 'tools/perform/machinery.js blinding', key = (model.match(/machinery\.js (\w+)/) || [])[1] || 'blinding';
+    out.coupled = { units: S.authored.coupled.units, model, limits: LIM[key] || {}, W0: S.authored.coupled.W0,
+      runs: runs.map(r => { const c = r.S.authored.coupled, k = Math.max(1, Math.round(c.hz / 12)), med = r.name === 'baseline' ? null : r.media && ex('odyssey/perform/' + r.media) ? r.media : ex('odyssey/perform/media/previz-' + sid + (r.name.startsWith('wake-early') ? '-wake-early-' + (r.name.endsWith('frozen') ? 'held' : 'regulated') : '') + '.mp4') && r.name.startsWith('wake-early') ? 'media/previz-' + sid + '-wake-early-' + (r.name.endsWith('frozen') ? 'held' : 'regulated') + '.mp4' : null;
+        const ms = r.S.measures ? { essentials: r.S.measures.after && r.S.measures.after.essentials, coverage: r.S.measures.after && r.S.measures.after.coverage } : null;
+        return { name: r.name, label: r.label, hz: 12, x: c.x.map(a => a.filter((_, i) => i % k === 0)), events: c.events, steps: c.steps, W: c.W, failed: !!c.failed, media: med, measures: ms,
         timeline: (r.S.events || []).filter(e => ['INTENT', 'STIMULUS'].includes(e.lane) && e.kind !== 'HOLD' && e.kind !== 'BLOCKING').map(e => [e.lane, e.actor, e.kind, r3(e.t0), r3(e.t1), (e.label || '').slice(0, 80)]) }; }) }; }
   /* the Gate: the patch chain */
   if (ex('odyssey/score/chains/' + sid + '.json')) { const C = J('odyssey/score/chains/' + sid + '.json');
@@ -47,3 +52,13 @@ for (const sid of SCENES) {
   const f = path.join(ROOT, 'odyssey/perform/data', sid + '.json'); fs.writeFileSync(f, JSON.stringify(out));
   console.log('page data', path.relative(ROOT, f), (fs.statSync(f).size / 1024).toFixed(0), 'KB');
 }
+/* the index of every scored scene (the page's scene list and its table of before and after) */
+{ const all = fs.readdirSync(path.join(ROOT, 'odyssey/score')).filter(f => /^OD-B\d\d-S\d\d\.json$/.test(f)).map(f => f.slice(0, 10)).sort(), rows = [];
+  for (const sid of all) { const S = J('odyssey/score/' + sid + '.json'), m = S.measures || {}, b = m.before || {}, a = m.after || {}, dir = (S.source || {}).direction || '';
+    rows.push({ scene: sid, title: String(S.title || sid).replace(/ \(a first score from the needs catalogue\)$/, ''), type: S.type, director: !/_auto/.test(dir), coupled: !!(S.authored && S.authored.coupled), model: S.authored && S.authored.coupled ? S.authored.coupled.model : null,
+      data: ex('odyssey/perform/data/' + sid + '.json'), previz: ex('odyssey/perform/media/previz-' + sid + '.mp4'), film: ex('films/odyssey/' + sid + '-performed.mp4'),
+      bands: S.bands || Homeostat.bandsFor(S.type), homeostat: S.homeostat || null,
+      before: b.coverage != null ? { coverage: b.coverage, dead: (b.share || {}).DEAD, freeze: b.unmotivatedFreeze, unmotivated: b.unmotivatedAction, diversity: b.diversity, slide: b.contact && b.contact.footSlide, essentials: b.essentials } : null,
+      after: a.coverage != null ? { coverage: a.coverage, dead: (a.share || {}).DEAD, freeze: a.unmotivatedFreeze, unmotivated: a.unmotivatedAction, diversity: a.diversity, slide: a.contact && a.contact.footSlide, essentials: a.essentials } : null }); }
+  fs.writeFileSync(path.join(ROOT, 'odyssey/perform/data/index.json'), JSON.stringify({ built: new Date().toISOString().slice(0, 16), scenes: rows }));
+  console.log('page index', rows.length, 'scenes'); }
