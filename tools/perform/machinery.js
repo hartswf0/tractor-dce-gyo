@@ -139,6 +139,36 @@ function strait(o = {}) {
 }
 MACH.strait = strait;
 
+/* ═════ the Taunt's coupled homeostat (OD-B09-S11): pride, rage, fear and the sea ═════
+   x_O ODYSSEUS     pride: each stress of his taunt a pulse, the crew's pleading against it; the wave takes it down, the name lifts it
+   x_P POLYPHEMUS   rage, by ear: each stress he hears a pulse, the name a blow; over 0.7 in the take's window he tears off a peak and
+                    throws; the prophecy remembered takes it down (grief); the prayer; over 0.7 again at the end: the second rock
+   x_C CREW         fear: the pleading's strength; over 0.6 while they row, a stroke lost; over 0.65 during the name, a man grips his arm
+   x_E SEA          the wave: the rock's landing is a blow to it; its peak is the push of the ship back toward the shore
+   o: stresses [t] (his taunt's), name t (the word "Odysseus"), prophecy t, prayer [t0, t1], windows {throw1: [a, b], throw2: [a, b]},
+   row [t0, t1] */
+function taunt(o = {}) {
+  const T = o.total || 100.5, st = o.stresses || [], nameAt = o.name || 33, proph = o.prophecy || 48, pray = o.prayer || [62, 90], w1 = o.throw1 || [17, 19], w2 = o.throw2 || [91.8, 93], row = o.row || [20, 28], flight = o.flight || 4.4;
+  const ctx = { throws: [], lost: [], grips: [] }, pulse = (t, a, w) => (t >= a && t < a + w ? 1 : 0), land = () => ctx.throws.map(x => x + flight);
+  const units = [
+    { id: 'ODYSSEUS', tau: 0.6, x0: 0.2, range: 1.4, dwell: 1e9, drive: t => { let u = 0.1; for (const s of st) u += 0.8 * pulse(t, s, 0.6); for (const l of land()) u -= 2.0 * pulse(t, l, 4); u += 1.4 * pulse(t, nameAt - 1.5, 3); return u; }, limits: () => [-1, 1] },
+    { id: 'POLYPHEMUS', tau: 0.9, x0: 0.1, range: 1.4, dwell: 0.8,
+      drive: t => { let u = 0.15 + 0.05 * st.filter(s => s < t && t < (ctx.throws[0] || 1e9)).length; for (const s of st) u += 0.55 * pulse(t, s + 0.3, 0.8); u += 2.6 * pulse(t, nameAt, 3); for (const x of ctx.throws) u -= 1.8 * pulse(t, x + 1.2, 3.5); if (t >= proph && t < pray[0]) u -= 1.1; if (t >= pray[0] && t < pray[1]) u -= 0.3; if (t >= pray[1]) u += 1.6; return u; },
+      limits: t => (t >= proph && t < pray[1] ? [-1, 0.4] : [-1, 1]) },   /* while he remembers and prays, the rage held down (a curse is not a throw) */
+    { id: 'CREW', tau: 0.5, x0: 0.1, range: 1.6, dwell: 0.7, drive: t => { let u = 0.25; for (const l of land()) u += 2.2 * pulse(t, l, 3); return u; }, limits: t => (t >= row[0] && t < row[1] ? [-1, 0.6] : [-1, 1]) },
+    { id: 'SEA', tau: 1.6, x0: -0.6, range: 1.0, dwell: 1e9, drive: t => { let u = -0.7; for (const l of land()) u += 3.0 * pulse(t, l, 2.5); return u; }, limits: () => [-1, 1] } ];
+  const W = [[0, 0.35, -0.5, 0], [0, 0, 0, 0], [0.45, 0.4, 0, 0.6], [0, 0, 0, 0]];
+  let cOut = 0;
+  function onStep(t, x) { const [O, P, C, E] = x, dt = 1 / 24;
+    for (const w of [w1, w2]) if (t >= w[0] && t < w[1] + 2.5 && P > 0.7 && !ctx.throws.some(y => y >= w[0] - 0.1 && y < w[1] + 2.6)) ctx.throws.push(+t.toFixed(3));
+    for (const w of [w1, w2]) if (t >= w[1] + 2.5 && t < w[1] + 2.5 + dt && !ctx.throws.some(y => y >= w[0] - 0.1 && y < w[1] + 2.6)) { ctx.throws.push(+t.toFixed(3)); ctx.late = (ctx.late || []).concat([+t.toFixed(3)]); }
+    if (t >= row[0] && t < row[1] && C > 0.6) { cOut += dt; if (cOut > 0.3 && (!ctx.lost.length || t - ctx.lost[ctx.lost.length - 1][1] > 1.3)) ctx.lost.push([+t.toFixed(3), +(t + 2.6).toFixed(3)]); } else cOut = 0;
+    if (t >= nameAt - 2 && t < nameAt + 8 && C > 0.65 && !ctx.grips.some(g => t - g < 3)) ctx.grips.push(+t.toFixed(3));
+    if (!ctx.peak || E > ctx.peak.e) ctx.peak = { t: +t.toFixed(3), e: +E.toFixed(3) }; }
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: 'OD-B09-S11:' + (o.disturb || 'base') };
+}
+MACH.taunt = taunt;
+
 /* ═════ the Rams' coupled homeostat (OD-B09-S10): a blind search that must miss ═════
    x_O ODYSSEUS     his hold under the lead ram: > -0.5 while he hangs there (below it for 1 s his grip slips: a foot drops)
    x_P POLYPHEMUS   the searching hands' suspicion: over 0.55 for 0.5 s with a man under the hand, the fingers go down the flank and
