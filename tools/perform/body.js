@@ -77,12 +77,14 @@ function toYXZ(m) { const m23 = m[6], x = Math.asin(-Math.max(-1, Math.min(1, m2
 const CLAMP = Choreo.CLAMP;
 function within(ch, base, v) { const c = CLAMP[ch]; if (!c) return v; const lo = Math.min(c[0], base), hi = Math.max(c[1], base); return Math.max(lo, Math.min(hi, v)); }
 /* the figure's joints and root at t: {p, rot:[pitch,h,roll], hipsDy, j:{pivot:[x,y,z]}, vis, sat, walk, lying} */
-function poseAt(ctx, id, t) {
+function poseAt(ctx, id, t, extra) {
   const { B, C, M } = ctx, s = B.at(id, t); if (!s) return null;
   const P = { id, t, vis: !!s.vis, sat: !!s.sat, walk: s.walk || 0, moving: !!s.moving, lying: B.lying(s), p: s.p.slice(), rot: [s.rot[0], s.h, s.rot[1]], hipsDy: 0, j: JSON.parse(JSON.stringify(s.j)), key: s.key };
   const held = (M.held && M.held[id]) || {}; P.hipsY = held.hipsY != null ? held.hipsY : -40; P.scale = held.scale || M.scale || 1;
-  const v = C ? Choreo.sampleActor(C, id, t) : null;
-  if (v && (C.layer || 'abs') === 'add') {
+  let v = C ? Choreo.sampleActor(C, id, t) : null;
+  /* extra: channel deltas laid over the sheet's sum (a solver trying a pose: the hand to the spear) */
+  if (extra) { v = Object.assign({}, v || {}); for (const [k, d] of Object.entries(extra)) v[k] = (v[k] || 0) + d; }
+  if (v && ((C && C.layer) || (extra ? 'add' : 'abs')) === 'add') {
     const g = k => v[k] || 0;
     P.p = [P.p[0] + g('root.x'), P.p[1] + g('root.y'), P.p[2] + g('root.z')];
     if (g('root.h') || g('root.pitch') || g('root.roll')) { const e = toYXZ(eYXZ(P.rot[0], P.rot[1], P.rot[2])); P.rot = [e[0] + g('root.pitch'), e[1] + g('root.h'), e[2] + g('root.roll')]; }
@@ -134,7 +136,7 @@ function points(P) {
 }
 /* a scene context: marks, the sheet (or null: the blocking alone) */
 function context(M, C) { const B = Blocking(M); if (C) Choreo.compile(C); return { M, C, B, ids: B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis)) }; }
-function sample(ctx, id, t) { const P = poseAt(ctx, id, t); if (!P) return null; P.pts = points(P); return P; }
+function sample(ctx, id, t, extra) { const P = poseAt(ctx, id, t, extra); if (!P) return null; P.pts = points(P); return P; }
 
 const API = { Blocking, poseAt, points, frames, sample, context, JOINTS, LOCAL, DENSITY, wrap, angLerp, sm, lerp, cl01, eYXZ, eXYZ, mul, ap, apR, toYXZ };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;

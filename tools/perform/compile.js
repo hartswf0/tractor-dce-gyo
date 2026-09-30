@@ -1,0 +1,223 @@
+/* tools/perform/compile.js — the intent compiler: UTTERANCE -> PERFORMANCE INTENT -> BODY SCORE.
+
+   Input: the take's marks (odyssey/choreo/marks/<scene>.json: blocking, clips, the voice envelope, the cut) and a score's authored
+   layer (odyssey/score/<scene>.json `authored`: intents with parameters, holds with reasons, stimuli, contacts and props, clocks,
+   couplings, combat relations), with the compiler's parameters (`params`, which the homeostat's selectors step).
+   Output: an odyssey-choreo/1 sheet (layer 'add': an acting layer over the take's blocking, as tools/choreograph.js wrote) and the
+   score's events: every move the compiler writes is an ACTION with the body lanes it moves, each caused by the intent that wanted
+   it, which is caused by an utterance, a stimulus, another actor's action or a HOLD's reason. Nothing is written without a cause;
+   the compiler never adds business to beat a motion threshold. Patching an intent's kind or parameters and compiling again
+   re-derives the body; nothing else is regenerated at random (the only randomness is seeded by scene, actor and intent id).
+
+   The compiler's parameters (the homeostat's ten selectors, 25 positions each, position 12 = the authored default):
+     latency    reaction latency (s)             amp        gesture amplitude (x)          separation  actor separation (x)
+     threat     threat distance (figure heights)  attack     attack probability             pause       pause duration (s)
+     camera     camera distance (x, media)        affordance prop affordance weight         env         environment response (x)
+     horizon    action-selection horizon (s)
+   Layers written (they sum; choreo.js plays them): @gaze (where the head and torso point), @act (the intents' actions), @grip
+   (hand contacts solved by forward kinematics), @loco (root travel and walk cycles the blocking does not give), @weight (weight,
+   tension, breath), @react (reactions), @mech (machinery: the rowing clock, the rope, the ship's riders). */
+'use strict';
+const path = require('path');
+const Body = require('./body.js'), Score = require('./score.js');
+const Choreo = require('../../film-readymades/choreo.js');
+const F = 12, q = t => Math.round(t * F) / F, r3 = v => Math.round(v * 1000) / 1000, r4 = v => Math.round(v * 1e4) / 1e4;
+const cl = (v, a, b) => Math.max(a, Math.min(b, v)), sm = u => { u = cl(u, 0, 1); return u * u * (3 - 2 * u); }, lerp = (a, b, u) => a + (b - a) * u, wrap = Body.wrap;
+function hash32(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
+function rng(seed) { let s = hash32(String(seed)); return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+const PARAMS = {
+  latency: { label: 'reaction latency', unit: 's', lo: 0.08, hi: 0.9, def: 0.3 },
+  amp: { label: 'gesture amplitude', unit: 'x', lo: 0.35, hi: 1.65, def: 1.0 },
+  separation: { label: 'actor separation', unit: 'x', lo: 0.6, hi: 1.6, def: 1.0 },
+  threat: { label: 'threat distance', unit: 'H', lo: 0.6, hi: 3.0, def: 1.5 },
+  attack: { label: 'attack probability', unit: '', lo: 0.1, hi: 0.95, def: 0.5 },
+  pause: { label: 'pause duration', unit: 's', lo: 0.2, hi: 2.0, def: 0.7 },
+  camera: { label: 'camera distance', unit: 'x', lo: 0.7, hi: 1.5, def: 1.0 },
+  affordance: { label: 'prop affordance weight', unit: '', lo: 0, hi: 1.5, def: 0.7 },
+  env: { label: 'environment response', unit: 'x', lo: 0, hi: 2, def: 1.0 },
+  horizon: { label: 'action-selection horizon', unit: 's', lo: 1, hi: 3, def: 2.0 },
+};
+const defaults = () => Object.fromEntries(Object.entries(PARAMS).map(([k, p]) => [k, p.def]));
+
+/* ═════ the voice: phrases and stresses from the recorded envelope (tools/choreograph.js's reading), words placed by their letters ═════ */
+function voiceOf(M, c) {
+  const env = M.env, hz = M.hz, i0 = Math.floor(c.start * hz), n = Math.ceil(c.dur * hz), E = [];
+  for (let i = 0; i < n; i++) E.push(env[i0 + i] || 0);
+  const S = E.map((_, i) => { let s = 0, w = 0; for (let d = -3; d <= 3; d++) { const x = E[i + d]; if (x != null) { s += x; w++; } } return s / w; });
+  const phrases = [], stresses = []; let quiet = 99, inP = false;
+  for (let i = 0; i < n; i++) { const t = c.at + i / hz, v = S[i];
+    if (v < 0.09) { quiet++; if (quiet > 0.22 * hz && inP) { inP = false; phrases[phrases.length - 1].t1 = t - quiet / hz; } }
+    else { if (!inP && v > 0.14) { inP = true; phrases.push({ t0: t, t1: c.at + c.dur }); } quiet = 0; } }
+  for (let i = 2; i < n - 2; i++) { const v = S[i]; if (v < 0.5) continue; if (v >= S[i - 1] && v >= S[i + 1] && v >= S[i - 2] && v >= S[i + 2]) { const t = c.at + i / hz;
+    if (!stresses.length || t - stresses[stresses.length - 1].t > 0.42) stresses.push({ t, v }); else if (v > stresses[stresses.length - 1].v) stresses[stresses.length - 1] = { t, v }; } }
+  /* the words: placed inside the phrases by their letters (the voice's own pauses stretch them) */
+  const text = String(c.caption || ''), words = [], re = /[A-Za-z']+/g; let m; const toks = [];
+  while ((m = re.exec(text))) toks.push({ w: m[0].toLowerCase(), i: m.index, punct: /[,.;:!?]/.test(text.slice(m.index + m[0].length, m.index + m[0].length + 2)) });
+  const spoken = phrases.length ? phrases : [{ t0: c.at + 0.15, t1: c.at + c.dur - 0.15 }], tot = spoken.reduce((a, p) => a + (p.t1 - p.t0), 0), L = Math.max(1, text.length);
+  for (const tk of toks) { let u = tk.i / L * tot; for (const p of spoken) { const d = p.t1 - p.t0; if (u <= d) { words.push({ w: tk.w, t: p.t0 + u, punct: tk.punct }); break; } u -= d; } }
+  for (const w of words) { const st = stresses.find(s => Math.abs(s.t - w.t) < 0.3); if (st) w.stress = st.t; }
+  return { phrases, stresses, words };
+}
+/* the turn's act (halfworld performance-turns) as the speech act the body plays */
+const SPEECH_ACT = { GREET: 'WELCOME', DECLARE: 'DECLARE', ACCUSE: 'ACCUSE', COMMAND: 'COMMAND', PLEAD: 'PLEAD', PETITION: 'PLEAD', PROMISE: 'PROMISE', THREATEN: 'THREATEN', ASSERT: 'DECLARE', NARRATE: 'NARRATE' };
+
+/* ═════ the sheet: lanes of keys per actor channel@layer, written as moves (tools/choreograph.js's rule: a move takes the lane from
+   where it is at the move's start, and truncates what an earlier move left on the lane after that) ═════ */
+function Sheet() {
+  const actors = {}, moves = []; let open = null;
+  const lane = (id, k) => { const A = actors[id] || (actors[id] = { channels: {} }); return A.channels[k] || (A.channels[k] = []); };
+  const key = (id, layer, t, vals, ease) => { const k = { id, layer, t: Math.max(0, q(t)), vals, ease }; if (open) open.keys.push(k); else moves.push({ keys: [k], n: moves.length }); };
+  const begin = () => { open = { keys: [], n: moves.length }; moves.push(open); }, end = () => { open = null; };
+  function write() {
+    const Ms = moves.filter(m => m.keys.length).map(m => ({ ...m, t0: Math.min(...m.keys.map(k => k.t)) })).sort((a, b) => a.t0 - b.t0 || a.n - b.n);
+    for (const m of Ms) { const start = new Map(), ks = m.keys.map((k, i) => ({ k, i })).sort((a, b) => a.k.t - b.k.t || a.i - b.i).map(x => x.k);
+      for (const { id, layer, t, vals, ease } of ks) for (const [ch, v0] of Object.entries(vals)) { if (v0 == null) continue;
+        const nm = ch + '@' + layer, L = lane(id, nm), tag = id + '|' + nm;
+        if (!start.has(tag)) { const s0 = L.length ? Choreo.sampleKeys(L, m.t0, '') : 0; start.set(tag, s0);
+          while (L.length && L[L.length - 1][0] > m.t0 + 1e-6) L.pop(); if (!L.length || L[L.length - 1][0] < m.t0 - 1e-6) { if (!L.length && m.t0 > 0) L.push([0, 0]); L.push([m.t0, r4(s0)]); } }
+        let v = typeof v0 === 'object' ? start.get(tag) + v0.rel : v0; if (!isFinite(v)) continue;
+        while (L.length && L[L.length - 1][0] > t + 1e-6) L.pop();
+        const kk = ease && ease !== 'inOut' ? [t, r4(v), ease] : [t, r4(v)];
+        if (L.length && Math.abs(L[L.length - 1][0] - t) < 1e-6) L[L.length - 1] = kk; else { if (!L.length && t > 0) L.push([0, 0]); L.push(kk); } } }
+    moves.length = 0; }
+  return { actors, key, begin, end, write, rel: d => ({ rel: d || 0 }) };
+}
+
+/* ═════ the compile ═════ */
+function compile(M, S, opts = {}) {
+  const A = S.authored || {}, θ = Object.assign(defaults(), S.params || {}, opts.params || {}), sid = M.scene, T = M.total;
+  const B = Body.Blocking(M), bctx = { M, C: null, B }, sheet = Sheet(), E = Score.Events([]), props = [], rigs = {}, notes = [];
+  const ids = B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis));
+  const H = id => (M.H && M.H[id]) || 60, aff = id => Object.assign({ fear: 0, weight: 1, suspicion: 0, cunning: 0, heat: 1 }, ((S.actors || {})[id] || {}).affect || {});
+  const scale = M.scale || 1, stud = 20 * scale;
+  const solvers = [], busyArms = {};
+  /* the blocking's own pose (no sheet) at t, forward-kinematic points cached per drawing */
+  const bcache = new Map();
+  const bpose = (id, t) => { const k = id + '@' + q(t); if (!bcache.has(k)) bcache.set(k, Body.sample(bctx, id, q(t))); return bcache.get(k); };
+  const at = (id, t) => B.at(id, t);
+  const objects = S.objects || {};
+  /* where a thing is at t: an actor's face, an object's mark (or the hand that holds it), a point */
+  function where(x, t) {
+    if (Array.isArray(x)) return x.length === 2 ? [x[0], 40 * scale, x[1]] : x;
+    if (typeof x !== 'string') return null;
+    if (ids.includes(x)) { const P = bpose(x, t); return P ? P.pts.face : null; }
+    const o = objects[x]; if (!o) return null;
+    if (o.at) return o.at.length === 2 ? [o.at[0], o.y != null ? o.y : 40 * scale, o.at[1]] : o.at;
+    if (o.holder) { const [who, sd] = o.holder.split(':'); const P = bpose(who, t); return P ? P.pts['hand' + (sd || 'R')] : null; }
+    return null;
+  }
+  const relBearing = (s, p) => wrap(Math.atan2(p[0] - s.p[0], p[2] - s.p[2]) - s.h);
+
+  /* ── events ── */
+  const ev = e => E.add(e);
+  const because = (...xs) => xs.flat().filter(Boolean).map(x => typeof x === 'string' ? { id: x } : x);
+  const lat = (cause, t) => { const c = typeof cause === 'string' ? E.get(cause) : cause; return c ? { id: c.id, latency: r3(t - c.t0) } : null; };
+  /* a move: keys on one actor's layer, recorded as an ACTION with the body lanes it moves, caused by `why` */
+  function move(id, layer, kind, why, fn, o = {}) {
+    sheet.begin(); const keys = []; const k = (t, vals, ease) => { keys.push({ t: q(t), vals }); sheet.key(id, layer, t, vals, ease); };
+    try { fn(k); } finally { sheet.end(); }
+    if (!keys.length) return null;
+    const t0 = Math.min(...keys.map(x => x.t)), t1 = Math.max(...keys.map(x => x.t)), chs = new Set(keys.flatMap(x => Object.keys(x.vals)));
+    const cz = because(why).map(b => { const c = E.get(b.id); return c ? { id: c.id, latency: r3(Math.max(0, t0 - c.t0)), rel: b.rel } : b; });
+    if (o.silent) return { t0, t1 };
+    const a = ev({ lane: o.lane || 'ACTION', actor: id, t0, t1, kind, label: o.label || '', because: cz, layer, params: o.params });
+    const lanes = new Set([...chs].map(c => Score.CH_LANE[c]).filter(Boolean));
+    for (const l of lanes) ev({ lane: l, actor: id, t0, t1, kind, label: o.label || '', because: [{ id: a.id, latency: 0 }], layer, derived: true });
+    return a;
+  }
+  const stim = (label, t, actor, o = {}) => ev({ lane: 'STIMULUS', actor, t0: t, t1: o.t1 != null ? o.t1 : t + (o.dur || 0.2), kind: o.kind || 'STIMULUS', label, because: because(o.because), params: o.params });
+
+  /* ── the look: head leads, torso follows two drawings later, the feet a beat after that when the turn is past the neck and
+     waist; toward an actor, an object or a point. Returns the GAZE event. ── */
+  function look(id, target, t, why, o = {}) {
+    const s = at(id, t); if (!s || !s.vis) return null; const L = o.layer || 'gaze';
+    let rel = 0, pitch = 0, tp = null;
+    if (target != null) { tp = where(target, t); if (!tp) return null; rel = relBearing(s, tp); const P = bpose(id, t); if (P) { const f = P.pts.face, d = Math.hypot(tp[0] - f[0], tp[2] - f[2]); pitch = cl(-Math.atan2(tp[1] - f[1], Math.max(1, d)), -0.2, 0.2); } }
+    if (s.moving && s.walk > 0.2 && !o.walking) return null;
+    const lying = B.lying(s), sat = s.sat, base = -(s.j.headP ? s.j.headP[1] : 0);
+    let feet = 0; if (target != null && !sat && !lying && !o.noFeet && Math.abs(rel) > 1.25) feet = rel - Math.sign(rel) * 0.9;
+    const rest = rel - feet, twist = target != null ? cl(rest * (o.torso != null ? o.torso : 0.35), -0.45, 0.45) : 0, head = target != null ? cl(rest - twist - base, -1.35, 1.35) : 0;
+    const dur = (o.speed || 1) * (0.3 + Math.abs(rel - (o.from || 0)) * 0.1), t0 = t;
+    return move(id, L, o.kind || (target == null ? 'LOOK FRONT' : 'LOOK'), why, k => {
+      k(t0, { 'head.yaw': sheet.rel(0), 'torso.twist': sheet.rel(0), 'head.pitch': sheet.rel(0) });
+      if (o.dip !== false) k(t0 + 1 / F, { 'head.pitch': 0.05 });
+      k(t0 + dur, { 'head.yaw': head * (o.overshoot === false ? 1 : 1.05), 'head.pitch': pitch }, 'out');
+      if (o.overshoot !== false) k(t0 + dur + 0.25, { 'head.yaw': head });
+      k(t0 + 2 / F + dur, { 'torso.twist': twist });
+      if (!lying && !sat && !o.noFeet) { k(t0 + 4 / F, { 'root.h': sheet.rel(0) }); k(t0 + 4 / F + dur + 0.2, { 'root.h': feet * 0.95 }); }
+    }, { lane: 'ACTION', label: (target == null ? 'front' : typeof target === 'string' ? Score.short(target) : 'a point') + (o.label ? ': ' + o.label : ''), params: { target: typeof target === 'string' ? target : null } });
+  }
+  /* a look that stays on a moving target: re-aimed every `every` seconds from t0 to t1 */
+  function track(id, target, t0, t1, why, o = {}) { const out = []; for (let t = t0; t < t1 - 0.05; t += o.every || 0.5) { const e = look(id, target, t, why, { ...o, overshoot: false, dip: false, speed: 0.7, kind: 'TRACK', walking: true }); if (e) out.push(e); } return out; }
+
+  /* ── the context the intents write through ── */
+  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
+    after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c) };
+
+  /* 1. VOICE: every clip on the clock; a spoken line is an UTTERANCE {speaker, addressee, phrases, stress, speech_act, affect, goal} */
+  const clips = (M.clips || []).filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
+  const goals = A.goals || {};
+  for (const c of clips) {
+    const spoken = c.kind === 'DIALOGUE', V = voiceOf(M, c), who = c.voice || c.speaker || null;
+    const act = SPEECH_ACT[c.act] || (spoken ? 'SPEAK' : 'NARRATE');
+    const u = ev({ id: 'v' + c.gi, lane: 'VOICE', actor: spoken ? who : null, t0: c.at, t1: c.at + c.dur, kind: spoken ? 'UTTERANCE' : 'NARRATION', label: '"' + String(c.caption).slice(0, 90) + (c.caption.length > 90 ? '..."' : '"'),
+      params: { speaker: who, addressee: c.addressee, speech_act: act, affect: (M.beat && c.gi === M.keyGi) ? M.beat.emotion : (A.affect && A.affect[who]) || null, goal: goals[c.gi] || goals[who] || null,
+        phrases: V.phrases.map(p => [r3(p.t0), r3(p.t1)]), stresses: V.stresses.map(s => r3(s.t)), words: V.words.map(w => [w.w, r3(w.t), w.stress ? 1 : 0]) } });
+    X.utter[c.gi] = { ev: u, c, V };
+    if (spoken) V.phrases.forEach((p, i) => ev({ lane: 'VOICE', actor: who, t0: p.t0, t1: p.t1, kind: 'PHRASE', label: String(i + 1), because: [{ id: u.id, latency: r3(p.t0 - u.t0) }], derived: true }));
+  }
+  /* the cut: the camera lane (for the media temperature) */
+  for (const s of M.cut || []) ev({ lane: 'CAMERA', t0: s.t0, t1: s.t0 + s.dur, kind: s.kind, label: 'shot', derived: true });
+  /* the blocking's key windows: the layout pass moves a figure from mark to mark; an authored intent may own that move */
+  const keyEv = {};
+  for (const K of M.keys) { const e = ev({ lane: 'STIMULUS', t0: K.win ? K.win[0] : K.t, t1: K.win ? K.win[1] : K.t + 0.1, kind: 'BLOCKING', label: K.id + ': ' + String(K.beat).slice(0, 80), derived: true }); keyEv[K.id] = e; }
+  X.keyEv = keyEv;
+  /* 2. the authored stimuli and intents (and holds), in time order, each realised by its kind */
+  const INT = require('./intents.js');
+  for (const s of A.stimuli || []) ev({ ...s, lane: 'STIMULUS', because: because(s.because).map(b => ({ ...b })) });
+  const intents = (A.intents || []).concat((A.holds || []).map(h => ({ ...h, kind: 'HOLD' }))).map(I => ({ ...I })).sort((a, b) => a.t0 - b.t0);
+  for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });
+  for (const I of intents) { const f = INT[I.kind]; if (!f) { notes.push('no realiser for intent ' + I.kind + ' (' + I.id + ')'); continue; } f(X, I, E.get(I.id)); }
+  /* 3. machinery (clocks, couplings, constraints) the scene declares */
+  if (A.machinery) { const Mach = require('./machinery.js'); for (const m of [].concat(A.machinery)) if (Mach[m.kind]) Mach[m.kind](X, m); else notes.push('no machinery ' + m.kind); }
+  /* 4. the walks the blocking gives: the body goes with the take's walk (bob, lean), owned by the intent that wants the move */
+  for (let j = 1; j < M.keys.length; j++) { const K = M.keys[j]; if (!K.win || !K.moves) continue;
+    for (const [id, m] of Object.entries(K.moves)) { if (!m.walk || !ids.includes(id) || (K.snap[id] && B.lying(K.snap[id]))) continue;
+      const owner = intents.find(I => I.actor === id && (I.key === K.id || (I.keys || []).includes(K.id))); INT._walkBlocking(X, id, K, owner ? E.get(owner.id) : keyEv[K.id]); } }
+  /* 5. breath: every living figure, the whole time, staggered (it keeps a hold alive; it is never counted as a performance by itself) */
+  for (const id of ids) { if ((A.noBreath || []).includes(id)) continue; const R = rng(sid + id + 'breath'), P = 3.2 + R() * 1.2; let t = R() * P, up = true;
+    const dead = (A.holds || []).filter(h => h.actor === id && /dead|lifeless/.test(h.reason || '')), isDead = t => dead.some(h => t >= h.t0 && t <= h.t1);
+    const e = ev({ lane: 'WEIGHT', actor: id, t0: 0, t1: T, kind: 'BREATH', label: 'the idle breath', because: [], derived: true, life: true });
+    sheet.begin(); while (t < T + P) { const s = at(id, Math.min(T, t)); if (s && !isDead(t)) { const st = !s.sat && !B.lying(s), k = up ? 1 : 0;
+      sheet.key(id, 'weight', t, { 'torso.lean': -0.03 * k, 'head.pitch': -0.025 * k, 'hips.dy': st ? 0.7 * k : 0 }, 'inOut'); } t += up ? P * 0.42 : P * 0.58; up = !up; } sheet.end(); void e; }
+  sheet.write();
+  /* 6. solvers that need the pose the sheet gives (a hand to a spear): run on the sheet as written, their keys added, written again */
+  if (solvers.length) { let C0 = finish(); for (const fn of solvers) { fn(X, C0); sheet.write(); C0 = finish(); } }
+  return { sheet: finish(), events: E.list, notes, params: θ };
+
+  function finish() {
+    /* the director's hand keys (overrides kept from the scene's sheet, e.g. the rig desk's): inside their span the compiler's own keys
+       on that channel are faded out, so the director's lane is the channel there (choreo.js sums layers; this keeps it the director's) */
+    const ov = opts.overrides || {}, actors = {};
+    for (const id of ids) { const Ac = sheet.actors[id]; if (!Ac) continue; const ch = {};
+      for (const [k, L] of Object.entries(Ac.channels).sort()) { const keys = L.filter((x, i) => i === 0 || x[0] > L[i - 1][0] - 1e-9); if (keys.length > 1 || (keys[0] && keys[0][1] !== 0)) ch[k] = keys; }
+      const O = ov[id] || {};
+      for (const [ok, OK] of Object.entries(O)) { if (!OK || !OK.length) continue; const base = ok.split('@')[0], a = OK[0][0], b = OK[OK.length - 1][0];
+        for (const [k, L] of Object.entries(ch)) { if (k.split('@')[0] !== base) continue;
+          const mask = t => t < a - 0.3 || t > b + 0.3 ? 1 : t < a ? (a - t) / 0.3 : t > b ? (t - b) / 0.3 : 0, out = [];
+          for (const x of L) if (x[0] < a - 0.3 || x[0] > b + 0.3) out.push(x);
+          for (let t = Math.max(0, a - 0.3); t <= b + 0.3 + 1e-6; t += 1 / F) out.push([r4(t), r4(Choreo.sampleKeys(L, t, k) * mask(t)), 'linear']);
+          ch[k] = out.sort((x, y) => x[0] - y[0]); } }
+      actors[id] = { channels: ch, H: r3(H(id)) }; }
+    const C = { format: 'odyssey-choreo/1', scene: sid, clock: M.mode || 'cut', step: 'twos', layer: 'add', total: T,
+      generated: { by: 'tools/perform/compile.js', from: 'odyssey/score/' + sid + '.json', note: 'the performance engine\'s body score: every key caused by an intent in the score; hand keys go in overrides' },
+      voice: clips.map(c => ({ gi: c.gi, at: r3(c.at), dur: r3(c.dur), kind: c.kind, voice: c.voice, speaker: c.speaker, addressee: c.addressee, caption: c.caption, key: c.gi === M.keyGi })),
+      cut: (M.cut || []).map(x => ({ t0: r3(x.t0), dur: r3(x.dur), kind: x.kind })), keys: M.keys.map(k => ({ id: k.id, t: r3(k.t), win: k.win && k.win.map(r3), beat: k.beat })),
+      cues: E.list.filter(e => e.lane === 'ACTION' && !e.derived).map(e => ({ t: r3(e.t0), actor: e.actor, what: e.kind.toLowerCase() + (e.label ? ' ' + e.label : '') })).sort((a, b) => a.t - b.t),
+      holds: E.list.filter(e => e.lane === 'INTENT' && e.kind === 'HOLD').map(e => ({ actor: e.actor, t0: e.t0, t1: e.t1, why: e.label })),
+      notes, actors, props: props.slice().sort((a, b) => a.t - b.t), rigs, overrides: opts.overrides || {} };
+    Choreo.compile(C); return C;
+  }
+}
+module.exports = { compile, PARAMS, defaults, voiceOf, Sheet, SPEECH_ACT, rng, hash32 };

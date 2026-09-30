@@ -155,6 +155,8 @@ function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan
   const M=T.dir&&T.dir.d.move||'push',v=u-0.5,k=M==='push'?1-(T.dir?0.12:0.08)*u:M==='pull'?1+0.1*u:1,yaw=M==='orbit'?0.25*v:M==='track'?0.12*v:0,lift=M==='crane'?0.3*v:0;
   if(c.type==='hero'){const H=T.H[c.a]||60;OdysseyFilm.rig({...c,dist:c.dist*k,yaw:(c.yaw||0)+yaw,height:(c.height||0)+lift*H});return;}
   if(c.type==='obj'){const r=rigOf(c.a),hand=kfHand(c.a,'R');if(r&&hand){const kk=M==='push'?1-0.1*u:k,aim=hand.clone().lerp(kfHead(c.a),0.35),fwd=new V3(Math.sin(r.heading+c.yaw+yaw),0,Math.cos(r.heading+c.yaw+yaw)),pos=aim.clone().add(fwd.multiplyScalar(c.dist*kk)).add(new V3(0,c.h+lift*c.dist*0.5,0));kfShoot({pos:pos.toArray(),target:aim.toArray(),fov:32});return;}}
+  /* a key camera without a fixed mark (an orbit about a prop, as the Blinding's first keys have): the rig places it as it is */
+  if(!Array.isArray(c.pos)||c.target==null){OdysseyFilm.rig(c);return;}
   /* a fixed mark: moved about its target (push 4% by default), the target followed if it is an actor */
   const tg=typeof c.target==='string'?kfHead(c.target):new V3(...c.target),p0=new V3(...c.pos),rel=p0.clone().sub(tg),dd=rel.length();let pos;
   if(M==='push')pos=p0.clone().lerp(tg,(T.dir?0.06:0.04)*u);else if(M==='pull')pos=tg.clone().add(rel.multiplyScalar(1+0.06*u));
