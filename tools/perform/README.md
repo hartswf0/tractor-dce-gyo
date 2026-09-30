@@ -40,7 +40,7 @@ node tools/perform/probe.js            OD-B09-S09 [--poses] [--ground-only] [--v
 | `patches.js` | instruction -> patch table; timeline and body diffs |
 | `hardware.js` | pose sheet and servo timeline (figures, and creatures' angular channels on a giant puppet's segment model) |
 | `previz.js`, `previz-draw.js` | the light previz |
-| `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
+| `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B10-S02 (the Harbour), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
 
 Data: `odyssey/score/<scene>.json` (score), `<scene>.choreo.json` (sheet the take plays: `tools/export-odyssey.js --choreo`),
 `measures/`, `chains/`, `variants/`, `cameras/`, `hardware/`.
@@ -196,7 +196,8 @@ Each director's module that decides its timings by needles has its model in `mac
 pace, the searching hands' suspicion, the crew's fear, Odysseus's hold; a search that must miss: detection is the failure), `strait`
 (OD-B12-S04: fear loses strokes, the ship's way brings Scylla's hunger up), `taunt` (OD-B09-S11: rage by ear on the taunt's stresses,
 the rock, the sea's blow and push), `storm` (OD-B12-S07 and OD-B05-S05: a god's anger, the sea, the vessel's integrity, the hero's
-endurance). `homeostat.couple(spec, {frozen})` runs them; `perform.js author <scene> --variant <name> [--frozen] --force` writes a
+endurance), `harbour` (OD-B10-S02: the town roused brings each giant in, each rock a blow to the fleet and to his alarm; he cuts the
+cable in resolve between 0.7 and 0.95, frozen above it). `homeostat.couple(spec, {frozen})` runs them; `perform.js author <scene> --variant <name> [--frozen] --force` writes a
 disturbed or held run beside the baseline (`odyssey/score/variants/`).
 
 ### Scene types and bands
