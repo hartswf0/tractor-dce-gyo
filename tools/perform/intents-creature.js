@@ -30,8 +30,9 @@ const figPoint = (X, target, t, y) => { if (Array.isArray(target)) return target
 function place(kind, scale, preset, o) {
   const rig = Cr.define(kind, { scale }), K = Cr.kinds().find(k => k.kind === kind), h = o.h || 0;
   const v = Object.assign(rig.rest(), rig.preset(preset) || {}, { 'root.x': 0, 'root.y': 0, 'root.z': 0, 'root.h': h }), P = rig.pose(v);
-  let lo = [1e9, 1e9], hi = [-1e9, -1e9], ylo = 1e9; for (const n of K.nodes) { const M = P.nodes[n.id]; if (!M) continue; const p = Cr.m.ap(M, n.p); lo = [Math.min(lo[0], p[0]), Math.min(lo[1], p[2])]; hi = [Math.max(hi[0], p[0]), Math.max(hi[1], p[2])]; if (!/^(arm|elbow|hand)/.test(n.id)) ylo = Math.min(ylo, p[1]); }   /* the trunk and legs rest on the floor; an arm may hang lower */
+  let lo = [1e9, 1e9], hi = [-1e9, -1e9], ylo = 1e9, yall = 1e9; for (const n of K.nodes) { const M = P.nodes[n.id]; if (!M) continue; const p = Cr.m.ap(M, n.p); lo = [Math.min(lo[0], p[0]), Math.min(lo[1], p[2])]; hi = [Math.max(hi[0], p[0]), Math.max(hi[1], p[2])]; yall = Math.min(yall, p[1]); if (!/^(arm|elbow|hand)/.test(n.id)) ylo = Math.min(ylo, p[1]); }   /* the trunk and legs rest on the floor; an arm may hang lower */
   const c = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2];
+  if (o.floor != null && o.at) return [o.at[0], r3(o.floor - (yall < 1e8 ? yall : 0)), o.at[2], h];   /* as the take sets a floor prop: its lowest point on the ground under it */
   if (o.anchor && o.to) { const A = rig.anchor(o.anchor, v); if (A) return [r3(o.to[0] - A[0]), r3(o.y != null ? o.y : -ylo), r3(o.to[2] - A[2]), h]; }   /* an anchor (the eye) on a point; the trunk on the floor */
   if (o.box) { const b = o.box, bc = [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2]; return [r3(bc[0] - c[0]), r3(b[1] - ylo), r3(bc[1] - c[1]), h]; }
   if (o.center) return [r3(o.center[0] - c[0]), r3((o.y || 0) - ylo), r3(o.center[1] - c[1]), h];
@@ -88,7 +89,9 @@ K.THROW = (X, I, e) => { const p = I.params || {}, hand = p.hand || 'R', lift = 
   return flight; };
 K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, { proc: { type: 'herd', path: p.path, n: p.n || 4, index: p.index || 0, gait: p.gait || 'walk', spacing: p.spacing || 60, seed: p.seed || 3, from: I.t0, to: I.t1, fade: 0.3 } }, { label: I.label || 'with the flock' }); };
 K.STRIKE = (X, I, e) => { const p = I.params || {}, tg = (p.targets || []).map(id => figPoint(X, id, I.t0 + 0.3, X.H(id) * 0.6)).filter(Boolean);
-  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
+  /* creatures.js runProc calls strike() without the sampled pose: its base (the root) is given here, or the targets are read from the origin */
+  const at = X.creatures[I.actor].at || [0, 0, 0, 0], sbase = { 'root.x': at[0], 'root.y': at[1], 'root.z': at[2], 'root.h': at[3] || 0 };
+  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', base: sbase, targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
   /* each head reaches its man at t0 + its stagger + the strike (0.35 s); he rides that jaw from then to the end: taken */
   const D = [0, 0.08, 0.03, 0.12, 0.05, 0.1];
   (p.targets || []).forEach((id, k) => { const tg = r3(I.t0 + D[k % 6] + 0.36); X.cmove(I.actor, 'SEIZED', ev1, { riders: [{ actor: id, at: 'jaw' + (k + 1), from: tg, to: r3(p.keep === false ? I.t1 : X.T) }], from: tg, to: I.t1 }, { label: id + ' in jaw ' + (k + 1) });
