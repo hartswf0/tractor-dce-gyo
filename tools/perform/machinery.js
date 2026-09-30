@@ -169,6 +169,38 @@ function taunt(o = {}) {
 }
 MACH.taunt = taunt;
 
+/* ═════ the Storm's coupled homeostat (OD-B12-S07 the thunderbolt, OD-B05-S05 the raft): a god's anger against a vessel and a man ═════
+   x_G GOD          the anger (Zeus for the Sun's cattle, Poseidon at the sight of the raft): o.anger(t) drives it; over 0.75 inside the
+                    take's window the god strikes (the bolt on the mast; the trident in the sea)
+   x_S SEA          the storm: calm until the strike, then driven up; o.calm (Athena, or the storm passing) drives it down
+   x_V VESSEL       the ship's or the raft's integrity: the sea over 0.3 wears it, the strike is a blow; under -0.5 for half a second after
+                    the strike it breaks up (at the earliest in o.breakWindow); the hero's work on it (the steering oar, the lashing)
+                    is its uniselector's
+   x_H HERO         endurance: the water takes it down, the vessel's soundness holds it up; with the vessel under 0 and the sea over
+                    0.7 he is thrown; back aboard when it is over 0.3 two seconds later; the crew (o.crew n) drown one by one after the
+                    breakup as their share of it runs out
+   o: anger(t), strikeWindow, calm (t), breakWindow, thrownWindow, crew (n), seed */
+function storm(o = {}) {
+  const T = o.total || 60, sw = o.strikeWindow || [20, 30], bw = o.breakWindow || null, tw = o.thrownWindow || null, calm = o.calm || 1e9, n = o.crew || 0;
+  const ctx = { drowned: [] }, pulse = (t, a, w) => (t >= a && t < a + w ? 1 : 0);
+  const units = [
+    { id: 'GOD', tau: 1.2, x0: -0.4, range: 1.0, dwell: 1e9, drive: t => (o.anger ? o.anger(t) : 0.5) - (ctx.strike && t > ctx.strike + 1 ? 1.2 : 0), limits: () => [-1, 1] },
+    { id: 'SEA', tau: 1.8, x0: -0.5, range: 1.0, dwell: 1e9, drive: t => (!ctx.strike || t < ctx.strike ? -0.6 : t < calm ? 1.9 : -1.0), limits: () => [-1, 1] },
+    { id: 'VESSEL', tau: 0.9, x0: 0.8, range: 1.4, dwell: 0.4, drive: t => 0.8 - (ctx.strike ? 3.0 * pulse(t, ctx.strike, 1.5) : 0) - (ctx.breakup && t >= ctx.breakup ? 3 : 0), limits: t => (ctx.strike && t > ctx.strike && !ctx.breakup ? [-0.5, 1] : [-1, 1]) },
+    { id: 'HERO', tau: 0.7, x0: 0.5, range: 1.4, dwell: 0.6, drive: t => 0.6 - (ctx.thrown && (!ctx.regain || t < ctx.regain) ? 1.0 : 0), limits: t => (ctx.strike && t > ctx.strike ? [-0.6, 1] : [-1, 1]) } ];
+  const W = [[0, 0, 0, 0], [0.5, 0, 0, 0], [0, -1.6, 0, 0.3], [0, -0.9, 0.6, 0]];
+  let vOut = 0;
+  function onStep(t, x) { const [Gd, S, V, H] = x, dt = 1 / 24;
+    if (!ctx.strike && t >= sw[0] && Gd > 0.75) ctx.strike = +t.toFixed(3); if (!ctx.strike && t >= sw[1]) { ctx.strike = +t.toFixed(3); ctx.lateStrike = true; }
+    if (ctx.strike && !ctx.breakup && t > ctx.strike && (!bw || t >= bw[0])) { if (V < -0.5) { vOut += dt; if (vOut > 0.5) ctx.breakup = +t.toFixed(3); } else vOut = 0; if (bw && t >= bw[1] && !ctx.breakup) { ctx.breakup = +t.toFixed(3); ctx.lateBreak = true; } }
+    if (!ctx.thrown && ctx.strike && (!tw || t >= tw[0]) && S > 0.7 && V < 0.1) ctx.thrown = +t.toFixed(3);
+    if (!ctx.thrown && tw && t >= tw[1]) { ctx.thrown = +t.toFixed(3); ctx.lateThrown = true; }
+    if (ctx.thrown && !ctx.regain && t > ctx.thrown + 2 && H > 0.3) ctx.regain = +t.toFixed(3);
+    if (ctx.breakup && ctx.drowned.length < n) { const k = ctx.drowned.length, due = ctx.breakup + 1.2 + k * (0.9 + 0.5 * Math.max(0, H)); if (t >= due) ctx.drowned.push(+t.toFixed(3)); } }
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: o.seed || 'storm' };
+}
+MACH.storm = storm;
+
 /* ═════ the Rams' coupled homeostat (OD-B09-S10): a blind search that must miss ═════
    x_O ODYSSEUS     his hold under the lead ram: > -0.5 while he hangs there (below it for 1 s his grip slips: a foot drops)
    x_P POLYPHEMUS   the searching hands' suspicion: over 0.55 for 0.5 s with a man under the hand, the fingers go down the flank and
