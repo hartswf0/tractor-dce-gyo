@@ -187,6 +187,8 @@ WATCH = [
      'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
     ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
      'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
+    ('../perform/index.html', '../perform/media/previz-OD-B09-S09.jpg', 'Engine · performance',
+     'The Performance Engine', 'Words become intents, intents become the body on the minifig rigs, every key with a cause: the Gate, the Blinding as a four-needle homeostat, the Sirens\' machinery, the Hall by causal chain; motion, causal and media temperatures.'),
     ('../cascade/beflix.html', '../cascade/media/beflix.jpg', 'Cascade · BEFLIX film',
      'BEFLIX in Cascade: the Sirens', 'Knowlton\'s 1963 film machine as a node graph, running Halfworld\'s Sirens with its voice: 52 seconds with sound, a live player, and every frame a buildable LEGO mosaic.'),
     ('../cascade/index.html', '../cascade/kit/cascade.gesture-welcome.jpg', 'Cascade · live graphs',
@@ -287,6 +289,7 @@ def hub(kits, frames):
   <ul class="links">
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
     <li><a href="../trailers/index.html">The trailers</a>: three options and a teaser with voice and sound (films/trailers/*.mp4), each through three rounds of review</li>
+    <li><a href="../perform/index.html">The performance engine</a>: the score (meaning above mechanics), the intent compiler, the metrics of motivated state change, three temperatures and an Ashby homeostat (tools/perform)</li>
     <li><a href="../choreo/index.html">The dope sheet</a>: every figure's servos keyed on the voice clock (tools/choreograph.js), over the rendered scene, with the acting density before and after</li>
     <li><a href="../cascade/index.html">The Odyssey in Cascade</a>: five live node graphs (FIELD.IO's Cascade) grown from the project's failures, each cooked to print, motion, a web player and, for a gesture, a checked LDraw kit</li>
     <li><a href="cineosis.html">Cineosis</a>: every scene of the cut read by Deleuze's cinematic signs, and the moving images the film still has to master</li>
