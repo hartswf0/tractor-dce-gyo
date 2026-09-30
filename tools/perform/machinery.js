@@ -19,15 +19,16 @@ const MACH = {};
    x_E ENVIRONMENT  the fire and the stake's heat; > 0.6 while heating: the stake glows; the steam at the thrust
    tau_i dx_i/dt = -x_i + tanh( sum_j W_ij x_j + u_i(t) ) */
 function blinding(o = {}) {
-  const K3 = o.K3 || [38.3, 42.7], carry = o.carry || 2.8, heatAt = o.heatAt || 29.8, sleepAt = o.sleepAt || 23.8;
+  const K3 = o.K3 || [38.3, 42.7], carry = o.carry || 4.4, heatAt = o.heatAt || 29.8, sleepAt = o.sleepAt || 23.8;
   const ctx = {}, dist = o.disturb || null;
   const units = [
     { id: 'ODYSSEUS', tau: 0.6, x0: -0.5, range: 1.6, dwell: 0.6,
-      drive: (t) => (t < sleepAt ? -0.9 : ctx.roar ? -0.4 : ctx.thrust && t >= ctx.thrust ? 0.8 : t >= heatAt ? 0.15 + 0.03 * (t - heatAt) : 0.15),
+      drive: (t) => (t < sleepAt ? -0.9 : ctx.roar ? -0.4 : ctx.thrust && t >= ctx.thrust ? 0.8 : t >= heatAt ? 0.15 + 0.036 * (t - heatAt) : 0.15),
       limits: (t) => (!ctx.decide ? [-1, 0.93] : [-1, 1]) },
     { id: 'POLYPHEMUS', tau: 3.0, x0: 0.2, range: 1.0, dwell: 1e9,
       drive: (t) => { let u = t < 18 ? 0.3 : t < 26 ? 0.3 - 2.1 * (t - 18) / 8 : -1.8;
         if (ctx.thrust && t >= ctx.thrust) u += 3.4 * (1 - Math.exp(-(t - ctx.thrust) / 2.5));
+        if (ctx.failed && t >= ctx.brokeAt) u += 2.6;   /* the stake dropped in the dark: he wakes, and sees */
         if (dist === 'wake-early' && t >= 33 && t <= 37) u += 3.6;   /* a bowl knocked over in the dark: he stirs */
         return u; },
       limits: () => [-1, 1] },
@@ -44,11 +45,14 @@ function blinding(o = {}) {
     const [O, P, C, E] = x;
     if (!ctx.glow && t >= heatAt && E > 0.6) ctx.glow = t;
     if (!ctx.stir && t > sleepAt + 2 && P > 0.2) ctx.stir = t;
+    if (!ctx.asleep && t > 18 && P < -0.5) ctx.asleep = t;
     if (!ctx.decide && ctx.glow && O > 0.62 && !ctx.brokeAt) { ctx.decide = t; ctx.thrust = t + carry; }
     if (!ctx.brokeAt && t >= heatAt && (!ctx.thrust || t < ctx.thrust) && C > 0.55) { ctx.breakStart = ctx.breakStart || t; if (t - ctx.breakStart > 0.8) ctx.brokeAt = t; } else if (C <= 0.55) ctx.breakStart = null;
     if (ctx.thrust && t > ctx.thrust && !ctx.roar && P > 0.5) ctx.roar = t;
-    if (ctx.roar && !ctx.scatter && (C > 0.7 || t > ctx.roar + 2.5)) { ctx.scatter = t; ctx.scatterWhy = C > 0.7 ? 'the crew\'s fear (needle over 0.7)' : 'Odysseus\'s command, 2.5 s after the roar'; }
-    if (ctx.brokeAt && !ctx.thrust) { ctx.failed = true; }
+    if (ctx.roar && !ctx.scatter && !ctx.failed && (C > 0.7 || t > ctx.roar + 2.5)) { ctx.scatter = t; ctx.scatterWhy = C > 0.7 ? 'the crew\'s fear (needle over 0.7)' : 'Odysseus\'s command, 2.5 s after the roar'; }
+    /* the crew broke before the thrust: the stake is dropped, the thrust never comes */
+    if (ctx.brokeAt && !ctx.failed && (!ctx.thrust || ctx.brokeAt < ctx.thrust)) { ctx.failed = true; ctx.thrustPlanned = ctx.thrust || null; ctx.thrust = null; ctx.scatter = ctx.brokeAt; ctx.scatterWhy = 'the crew broke (fear over 0.55 for 0.8 s before the thrust)'; }
+    if (ctx.failed && !ctx.roar && P > 0.5) ctx.roar = t;
   }
   return { units, W, ctx, onStep, total: o.total || 89.4, dt: 1 / 24, seed: 'OD-B09-S09:' + (dist || 'base') };
 }
