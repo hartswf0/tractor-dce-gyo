@@ -201,6 +201,33 @@ function storm(o = {}) {
 }
 MACH.storm = storm;
 
+/* ═════ the Harbour's coupled homeostat (OD-B10-S02): the town roused, the fleet crushed, one cable cut ═════
+   x_O ODYSSEUS     alarm, and the resolve to cut: rises with each boulder that lands; over 0.7 inside the take's window he draws and cuts.
+                    Over 0.95 for a second before the cut he is frozen by it (out of limits: his uniselector steps)
+   x_T TOWN         the giants roused: the queen's call, the seizure, the shout spreading: giant k joins when it passes its threshold
+   x_F FLEET        the trapped crews' panic: each landing a blow
+   x_S SEA          the splashes and the swell they raise under his ship
+   o: seize t, giants (thresholds), cutWindow, flight (s), throwsEach */
+function harbour(o = {}) {
+  const T = o.total || 35, seize = o.seize || 18.5, th = o.thresholds || [0.3, 0.45, 0.6, 0.75], cw = o.cutWindow || [26, 30], fl = o.flight || 1.8, each = o.throwsEach || 2;
+  const ctx = { joins: [], throws: [], lands: [] }, pulse = (t, a, w) => (t >= a && t < a + w ? 1 : 0);
+  const units = [
+    { id: 'ODYSSEUS', tau: 0.8, x0: -0.3, range: 1.4, dwell: 1.0, drive: t => { let u = -0.4; for (const l of ctx.lands) if (t >= l) u += 0.3; return u; }, limits: t => (!ctx.cut ? [-1, 0.95] : [-1, 1]) },
+    { id: 'TOWN', tau: 1.2, x0: -0.8, range: 1.2, dwell: 1e9, drive: t => (t < seize - 2 ? -0.8 : t < seize ? 0.2 : 0.9 + 0.12 * (t - seize)), limits: () => [-1, 1] },
+    { id: 'FLEET', tau: 0.5, x0: -0.2, range: 1.4, dwell: 1e9, drive: t => { let u = -0.2; for (const l of ctx.lands) u += 1.6 * pulse(t, l, 2.0); return u; }, limits: () => [-1, 1] },
+    { id: 'SEA', tau: 1.4, x0: -0.6, range: 1.0, dwell: 1e9, drive: t => { let u = -0.6; for (const l of ctx.lands) u += 1.2 * pulse(t, l, 1.5); return u; }, limits: () => [-1, 1] } ];
+  const W = [[0, 0.4, 1.8, 0], [0, 0, 0, 0], [0, 0.5, 0, 0.3], [0, 0, 0, 0]];
+  let oOut = 0;
+  function onStep(t, x) { const [O, Tn] = x, dt = 1 / 24;
+    th.forEach((v, k) => { if (!ctx.joins[k] && Tn > v) ctx.joins[k] = +t.toFixed(3); });
+    ctx.joins.forEach((j, k) => { if (j == null) return; for (let n = 0; n < each; n++) { const tt = +(j + 1.0 + n * 2.6).toFixed(3); if (t >= tt && !ctx.throws.some(q => q.k === k && q.n === n)) { ctx.throws.push({ k, n, t: tt }); ctx.lands.push(+(tt + 2.2 + fl).toFixed(3)); } } });
+    if (!ctx.cut && O > 0.95) { oOut += dt; if (oOut > 1 && !ctx.frozenAt) ctx.frozenAt = +t.toFixed(3); } else oOut = 0;
+    if (!ctx.cut && t >= cw[0] && O > 0.7 && O < 0.95) ctx.cut = +t.toFixed(3);   /* resolve, not panic: over 0.95 he is frozen by it */
+    if (!ctx.cut && t >= cw[1]) { ctx.cut = +t.toFixed(3); ctx.lateCut = true; } }
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: 'OD-B10-S02:' + (o.disturb || 'base') };
+}
+MACH.harbour = harbour;
+
 /* ═════ the Rams' coupled homeostat (OD-B09-S10): a blind search that must miss ═════
    x_O ODYSSEUS     his hold under the lead ram: > -0.5 while he hangs there (below it for 1 s his grip slips: a foot drops)
    x_P POLYPHEMUS   the searching hands' suspicion: over 0.55 for 0.5 s with a man under the hand, the fingers go down the flank and
