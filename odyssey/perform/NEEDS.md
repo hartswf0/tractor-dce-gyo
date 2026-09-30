@@ -605,9 +605,11 @@ Holds: menelaus 0.6-5.5: hidden under the skin, the stench endured: still, breat
 
 ### OD-B16-S03 The Father Reveals Himself
 
-**Type** recognition. **Total** 42.61 s. **Prepared**: nothing.
+**Type** recognition. **Total** 42.61 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A body transformed off-screen and re-entering changed (beggar -> king: costume swap with the same actor), a son recoiling in terror, a declaration, a refusal, then an embrace with the force of birds robbed of their young.
+
+**The take**: cast odysseus-restored, telemachus; 5 keys, 7 shots; staged only as a set piece: athena; rough-pass density (after) 0.516, longest still 2.5 s.
 
 **Essential variables**: the costume/figure swap for one actor id across a cut (odysseus-as-beggar -> odysseus-restored); fear: recoil and averted eyes held (not doubt: terror); the embrace as a crash of two bodies with sustained weeping; Athena at the threshold (a goddess only Odysseus sees)
 
@@ -637,9 +639,11 @@ Holds: telemachus 18.0-24.0: terror: frozen, eyes averted (Ic: close held long)
 
 ### OD-B19-S04 Eurycleia Finds the Scar
 
-**Type** recognition. **Total** 45.11 s. **Prepared**: nothing.
+**Type** recognition. **Total** 45.11 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A foot-washing by an old nurse: the basin, the hands on the leg, the scar under the fingers, the foot dropped and the basin tipped, then a grip at the throat to swear her silence while Penelope must not see.
+
+**The take**: cast eurycleia, odysseus-as-beggar, penelope; 4 keys, 11 shots; rough-pass density (after) 0.382, longest still 3.083 s.
 
 **Essential variables**: hand-on-body contact (washing the foot and shin) that must stay on the surface; the basin tipping and water spilling (prop physics); the throat grip: firm but gentle, held through a whispered oath; Penelope in the room kept unaware (attention turned away by Athena)
 
@@ -667,9 +671,11 @@ Holds: eurycleia 25.0-26.5: the recognition under her fingers; penelope 25.0-45.
 
 ### OD-B14-S01 The Dogs at Eumaeus's Yard
 
-**Type** fight. **Total** 25.18 s. **Prepared**: nothing.
+**Type** fight. **Total** 25.18 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: Four dogs rush a sitting beggar, a swineherd runs out throwing stones to scatter them, then turns to hospitality: pursuit by quadrupeds, a defensive sit, thrown stones, and the switch to welcome in 25 s.
+
+**The take**: cast odysseus-as-beggar, eumaeus; 3 keys, 3 shots; staged only as a set piece: dogs; rough-pass density (after) 0.579, longest still 3 s.
 
 **Essential variables**: dogs as pursuers with a rush path and a stop distance; the defensive drop: staff let fall, the man sits; stones thrown (small ballistic props) and the dogs scattering; the switch from protection to welcome
 
@@ -692,9 +698,11 @@ Holds: odysseus 4.0-7.6: sitting still to avoid the dogs (a chosen stillness)
 
 ### OD-B12-S06 The Cattle Are Slaughtered
 
-**Type** labour. **Total** 38.19 s. **Prepared**: nothing.
+**Type** labour. **Total** 38.19 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: Persuasion of a crowd, then the sacrifice with substitutes (oak leaves for barley, water for wine), the slaughter and roasting, and an omen: the hides crawl and the meat bellows on the spits.
+
+**The take**: cast eurylochus, sleeping-odysseus, crew-sacrificial-group-1, crew-sacrificial-group-2, crew-sacrificial-group-3, crew-sacrificial-group-4, crew-sacrificial-group-5; 4 keys, 15 shots; rough-pass density (after) 0.585, longest still 2.917 s.
 
 **Essential variables**: a persuader working a crowd (turning heads, the crowd yielding); slaughter and butchery kept offscreen-ish but the labour on screen; spits turning over a fire (a row, regular); the omen: a hide crawling (a prop moving by itself), the meat bellowing (sound)
 
@@ -773,9 +781,11 @@ Holds: empty-throne 3.0-6.0: the absence as an insert (Dm); athena 38.0-40.5: he
 
 ### OD-B10-S01 Aeolus and the Bag of Winds
 
-**Type** dialogue. **Total** 31.53 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 31.53 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A gift (the bag) made fast under the deck, nine days at sea, sleep at the helm, the crew opening the bag, a blast of winds that spins the ship back; then the host's horrified refusal. Most of the action is cut from the voice.
+
+**The take**: cast aeolus, odysseus; 2 keys, 6 shots; rough-pass density (after) 0.846, longest still 0.75 s.
 
 **Essential variables**: the bag as a charged prop (silver wire, lashed under the deck); the crew's hands on the cord (pose-to-pose, Sy); sleep at the helm (a head that drops); a ship spun by a blast (time-lapse, Ga); refusal: the host's dismissal gesture
 
@@ -803,9 +813,11 @@ Holds: odysseus 17.0-31.0: shamed stillness under the refusal: head down
 
 ### OD-B13-S01 The Phaeacians Carry Odysseus Home
 
-**Type** ritual. **Total** 43.99 s. **Prepared**: nothing.
+**Type** ritual. **Total** 43.99 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A silent hall after the tale, a command of gifts, the boarding at sunset, a sleeper on a stern bed while the ship runs, and the crew carrying him and his treasure ashore without waking him.
+
+**The take**: cast odysseus, alcinous, arete, phaeacian-convoy-crew-1, phaeacian-convoy-crew-2, phaeacian-convoy-crew-3, phaeacian-convoy-crew-4, phaeacian-convoy-crew-5; 4 keys, 5 shots; not in the take's cast: phaeacians; rough-pass density (after) 0.778, longest still 6 s.
 
 **Essential variables**: a silence held by a whole hall (group stillness that breathes); a sleeping body carried by several (limp, cradled); the ship running fast (hawk speed) under oars; treasure carried and set down (tripods, cauldrons)
 
@@ -833,9 +845,11 @@ Holds: phaeacians 0.6-9.0: spellbound silence after the tale (Ma: listeners stil
 
 ### OD-B11-S01 The Blood Pit Opens
 
-**Type** ritual. **Total** 41.55 s. **Prepared**: nothing.
+**Type** ritual. **Total** 41.55 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A rite as repeated gesture (dig, pour three libations, cut sheep's throats over the pit), a crowd of shades of every age rising and pressing in, and a man holding them back with a drawn sword until the right one comes.
+
+**The take**: cast odysseus, crew-ritual-assistants-1, crew-ritual-assistants-2, crew-ritual-assistants-3, crew-ritual-assistants-4, crew-ritual-assistants-5; 4 keys, 5 shots; staged only as a set piece: shades; rough-pass density (after) 0.923, longest still 2.667 s.
 
 **Essential variables**: ritual steps as a repeated frontal gesture (Bg); a crowd of shades pressing toward a pit (crowd attraction with a barrier); the sword held out as a boundary (a held threat pose that keeps a crowd off); empty frames (As) before the rite
 
@@ -887,9 +901,11 @@ Contacts and handoffs: gi3 s laertes scoops dust; gi5 s odysseus holds him
 
 ### OD-B06-S03 The Naked Stranger Emerges
 
-**Type** dialogue. **Total** 43.09 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 43.09 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A wild man emerging from bushes with a branch over his nakedness, maids scattering, one girl standing her ground; distance kept on purpose (he does not touch her knees); much of the action is cut from the voice.
+
+**The take**: cast odysseus, nausicaa, nausicaa-s-maids-1, nausicaa-s-maids-2, nausicaa-s-maids-3, nausicaa-s-maids-4, nausicaa-s-maids-5; 2 keys, 20 shots; rough-pass density (after) 0.867, longest still 3.667 s.
 
 **Essential variables**: the branch as a held cover prop (two hands low); maids fleeing in a scatter (group flight); deliberate distance kept (proxemics as intent); the plea without contact (supplication at a distance)
 
@@ -916,9 +932,11 @@ Holds: nausicaa 3.5-9.9: steadied by Athena: she holds her ground (not frozen: b
 
 ### OD-B08-S05 The Trojan Horse Song and the Name
 
-**Type** revelation. **Total** 56.47 s. **Prepared**: nothing.
+**Type** revelation. **Total** 56.47 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A singer and a listener: the song carried by the voice, the listener breaking into tears under his cloak, a host who notices and stops the lyre; weeping as the main action for long stretches.
+
+**The take**: cast odysseus, demodocus, alcinous; 2 keys, 13 shots; not in the take's cast: phaeacians; rough-pass density (after) 0.368, longest still 2 s.
 
 **Essential variables**: weeping hidden under a cloak (cloak over the head, one eye); the lyre played (string hand, the song's beat); the host noticing the guest (NOTICE, then speech); a hall that listens (seated group)
 
@@ -975,9 +993,11 @@ Holds: loom 22.0-45.0: three matched overhead frames of the loom (Mk)
 
 ### OD-B17-S03 Argos Recognizes His Master
 
-**Type** recognition. **Total** 31.94 s. **Prepared**: nothing.
+**Type** recognition. **Total** 31.94 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: The actor is a dying dog on a dung heap: lift of the head, ears dropping, the tail moving, then death; the man turns aside to hide a tear. Almost no motion, all of it meaningful.
+
+**The take**: cast odysseus-as-beggar, eumaeus; 3 keys, 5 shots; staged only as a set piece: argos; rough-pass density (after) 0.644, longest still 2.417 s.
 
 **Essential variables**: a quadruped with head, ears and tail channels (no dog rig); death as a chosen stillness after recognition (a HOLD with reason: dead); the tear hidden by turning aside; Eumaeus answering about the dog
 
