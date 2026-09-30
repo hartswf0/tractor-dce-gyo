@@ -735,7 +735,8 @@ function throwArc(t, { from, to, t0, t1, g = 980 }) {
    with a minifig's limits:
      creatures: { polyphemus: { kind: 'polyphemus', scale: 1.4, colour: 84, layer: 'abs' | 'add', floor: y (the ground it stands on),
                    present: [[t0, t1], ...] (when the take stages it; absent: always),
-                   procs: [{ type: 'gait'|'heavy'|'grope'|'reach'|'strike'|'preset'|'herd', from, to, fade, ...params }],
+                   procs: [{ type: 'gait'|'heavy'|'grope'|'reach'|'strike'|'preset'|'herd'|'place', from, to, fade, ...params }]
+                     (a gait, heavy, herd or place leaves the root where it ended: held until a later procedure moves it),
                    channels: { 'arm.R.pitch': [[t, v, ease], ...], 'head.yaw@life': [...] },
                    riders: [{ actor: 'odysseus', at: 'belly', from, to, offset: [x, y, z], lie: 'under' | 'across' | 'upright', turn: [rx, ry, rz] }] } }
    At t: the rest pose, each procedure over its span (faded in and out over `fade` s), then the keys (absolute replace the procedures'
@@ -754,8 +755,11 @@ function sampleKeys(K, t) {
 const LIE = { under: [0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0], across: [0, 0, 0, 0, 0, 1, 0, -1, 0, 1, 0, 0], upright: I12 };
 const RIGS = new WeakMap();
 function rigFor(C, id) { let m = RIGS.get(C); if (!m) { m = {}; RIGS.set(C, m); } if (!m[id]) { const A = C.creatures[id]; m[id] = define(A.kind, { id, scale: A.scale, colour: A.colour }); } return m[id]; }
+const PERSIST = { gait: 1, heavy: 1, herd: 1, place: 1 };
 function runProc(rig, p, t, v, ctx = {}) {
   switch (p.type) {
+    case 'place': { const u = sm(cl01((t - p.from) / Math.max(1e-6, p.to - p.from))), A = p.a, B = p.b, o = Object.assign({}, v);   /* a move of the whole body from a to b ([x, y, z, h]), held after */
+      o['root.x'] = lerp(A[0], B[0], u); o['root.y'] = lerp(A[1], B[1], u); o['root.z'] = lerp(A[2], B[2], u); o['root.h'] = A[3] + wrapPi(B[3] - A[3]) * u; return o; }
     case 'preset': return Object.assign({}, v, rig.preset(p.name));
     case 'gait': return gait(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) }));
     case 'heavy': return heavy(rig, t, Object.assign(p, { base: Object.assign({}, v, p.base || {}) }));
@@ -771,7 +775,9 @@ function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
   const A = (C.creatures || {})[id]; if (!A) return null; const rig = rigFor(C, id), tq = stepped ? drawT(t, C.step || 'twos') : t;
   let v = Object.assign(rig.rest(), A.at ? { 'root.x': A.at[0], 'root.y': A.at[1], 'root.z': A.at[2], 'root.h': A.at[3] || 0 } : {}); let fx = {};
   for (const p of A.procs || []) {
-    const a = p.from != null ? p.from : -Infinity, b = p.to != null ? p.to : Infinity, fade = p.fade || 0; if (tq < a - 1e-9 || tq > b + fade) continue;
+    const a = p.from != null ? p.from : -Infinity, b = p.to != null ? p.to : Infinity, fade = p.fade || 0; if (tq < a - 1e-9) continue;
+    /* where a walk, a herd or a move leaves the creature it stays (its root held from the end on, until a later procedure moves it) */
+    if (tq > b + fade) { if (!PERSIST[p.type] || p.hold === false) continue; const end = runProc(rig, p, b, v, ctx); for (const k of ROOTCH) if (end[k] != null) v = Object.assign({}, v, { [k]: end[k] }); continue; }
     const w = fade ? Math.min(cl01((tq - a) / fade + (a === -Infinity ? 1 : 0)), tq > b ? 1 - cl01((tq - b) / fade) : 1) : 1, out = runProc(rig, p, Math.min(tq, b), v, ctx);
     if (out._fx) fx = Object.assign(fx, out._fx); if (out._feet) fx.feet = out._feet; if (out._touch != null) fx.touch = out._touch;
     const nv = {}; for (const k of Object.keys(Object.assign({}, v, out))) { if (k[0] === '_') continue; const x0 = v[k] || 0, x1 = out[k] != null ? out[k] : x0; nv[k] = k === 'root.h' ? x0 + wrapPi(x1 - x0) * w : lerp(x0, x1, w); } v = nv;

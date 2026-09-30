@@ -86,7 +86,7 @@ function Sheet() {
 }
 
 /* a creature's channel to the score's body lanes (its legs and knees to the legs, its elbows to the arms, its eye and jaw to the face) */
-const CPROC = { gait: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch'], heavy: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch', 'torso.roll'], grope: ['arm.R.pitch', 'arm.L.pitch', 'torso.lean'], reach: ['arm.R.pitch', 'elbow.R', 'torso.lean'], strike: ['neck'], herd: ['root.x', 'root.z', 'leg'] };
+const CPROC = { gait: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch'], heavy: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch', 'torso.roll'], grope: ['arm.R.pitch', 'arm.L.pitch', 'torso.lean'], reach: ['arm.R.pitch', 'elbow.R', 'torso.lean'], strike: ['neck'], herd: ['root.x', 'root.z', 'leg'], place: ['root.x', 'root.z', 'root.y'] };
 function creatureLane(c) { if (Score.CH_LANE[c]) return Score.CH_LANE[c]; const [a, b] = c.split('.');
   if (a === 'root') return 'ROOT'; if (a === 'body' || a === 'hips') return 'WEIGHT'; if (a === 'elbow' || a === 'hand') return b === 'L' ? 'ARM.L' : 'ARM.R'; if (a === 'knee' || a === 'leg') return /L$/.test(b || '') ? 'LEG.L' : 'LEG.R';
   if (a === 'eye' || a === 'jaw' || a === 'ear' || a === 'tail') return 'FACE'; if (a === 'neck' || /^neck\d/.test(a)) return 'HEAD'; if (a === 'rider') return 'PROP'; return null; }

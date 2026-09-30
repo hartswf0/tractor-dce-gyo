@@ -58,6 +58,108 @@ function blinding(o = {}) {
 }
 MACH.blinding = blinding;
 
+/* ═════ the Stake's coupled homeostat (OD-B09-S08): restraint, appetite, terror and the work, across four time skips ═════
+   x_O ODYSSEUS     his rage and resolve: in the night over the sleeper it rises (the sword's hilt); the door stone seen drives it down
+                    (no man can move the stone: kill him and they die in the cave); over 0.8 in the night he would strike: out of limits.
+                    At the evening the resolve to step up with the bowl: he offers when it passes 0.5 after the giant is seated
+   x_P POLYPHEMUS   his appetite and wakefulness: asleep (< -0.5) in the night, rising at dawn; over 0.55 he reaches for a man (a
+                    seizure: eating drives it down); at the evening the wine drives it down a gulp at a time: he drinks until it is under -0.2
+   x_C CREW         terror: each seizure is a blow; over 0.85 for a second a man bolts for the wall (out of limits: the uniselector steps)
+   x_W WORK         the labour's will: the stake's progress is its integral (with the crew's terror against it); the phases are its
+                    thresholds (the trunk cut 0.25, smoothed 0.5, sharpened 0.72, hardened 0.9); under 0.2 for 1.5 s while the work is
+                    unfinished: out of limits (the work would stall: Odysseus rallies them)
+   The timings the scene takes: the hand off the hilt, the waking, the two seizures, the work's phases, the offer, the gulps. */
+function stake(o = {}) {
+  const T = o.total || 68, K = o.K || { night: [0.6, 11.9], dawn: [11.9, 23.1], day: [23.1, 35.7], dusk: [35.7, 44], eve: [44, 68] }, stoneAt = o.stoneAt || 3.2, dist = o.disturb || null;
+  const ctx = { seizures: [], progress: 0, phases: {}, gulps: [], bolts: [], log: [] }, inP = (t, w) => t >= w[0] && t < w[1];
+  const units = [
+    { id: 'ODYSSEUS', tau: 0.7, x0: 0.1, range: 1.5, dwell: 0.6,
+      drive: t => { if (inP(t, K.night)) return t < stoneAt ? 1.3 : -1.1; if (inP(t, K.dawn)) return -0.4 + (ctx.seizures.length ? 0.5 : 0); if (inP(t, K.day)) return 0.6; if (inP(t, K.dusk)) return 0.2;
+        return ctx.seated && t >= ctx.seated ? 0.35 + 0.08 * (t - ctx.seated) : -0.2; },
+      limits: t => (inP(t, K.night) ? [-1, 0.8] : [-1, 1]) },
+    { id: 'POLYPHEMUS', tau: 1.1, x0: -0.8, range: 1.2, dwell: 1e9,
+      drive: t => { if (inP(t, K.night)) return -1.2; if (inP(t, K.dawn)) { let u = -0.4 + 2.4 * Math.min(1, (t - K.dawn[0]) / 2.2); for (const s of ctx.seizures) if (t >= s.t + 1.2) u -= 1.4; return u; }
+        if (inP(t, K.eve)) { let u = t < (ctx.seated || 1e9) ? 0.6 : 0.9; for (const g of ctx.gulps) if (t >= g) u -= 0.75; if (dist === 'wine-weak') u += 0.9; return u; } return -0.5; },
+      limits: () => [-1, 1] },
+    { id: 'CREW', tau: 0.5, x0: 0, range: 1.6, dwell: 1.0,
+      drive: t => { let u = inP(t, K.night) ? 0.1 : inP(t, K.dawn) ? 0.3 : inP(t, K.eve) ? 0.4 : -0.2; for (const s of ctx.seizures) if (t >= s.t && t < s.t + 3) u += 1.6; return u; },
+      limits: t => (inP(t, K.day) ? [-1, 0.3] : [-1, 0.85]) },   /* in the day the men must be calm enough to work */
+    { id: 'WORK', tau: 1.0, x0: 0, range: 1.2, dwell: 1.5,
+      drive: t => (inP(t, K.day) || (inP(t, K.dusk) && ctx.progress < 1) ? 0.9 : -0.6),
+      limits: t => (inP(t, K.day) && ctx.progress < 0.9 ? [0.2, 1] : [-1, 1]) } ];
+  /* the wiring: row i = what moves unit i (O, P, C, W) */
+  const W = [[0, 0.5, -0.2, 0.3], [0, 0, 0.3, 0], [-0.4, 0.9, 0, 0], [0.5, 0, -0.8, 0]];
+  function onStep(t, x) { const [O, P, C, Wk] = x, dt = 1 / 24;
+    if (inP(t, K.night)) { if (O > 0.6) ctx.hilt = ctx.hilt || +t.toFixed(3); if (ctx.hilt && !ctx.checked && t > stoneAt && O < 0.1) ctx.checked = +t.toFixed(3); }
+    if (!ctx.wake && inP(t, K.dawn) && P > 0.3) ctx.wake = +t.toFixed(3);
+    if (inP(t, K.dawn) && P > 0.55 && ctx.seizures.length < 2 && (!ctx.seizures.length || t - ctx.seizures[ctx.seizures.length - 1].t > 2.6) && t < K.dawn[1] - 4) ctx.seizures.push({ t: +t.toFixed(3) });
+    if (inP(t, K.dawn) && !ctx.out && ctx.seizures.length >= 2 && t > ctx.seizures[1].t + 3) ctx.out = +t.toFixed(3);
+    if (C > 0.85) { ctx.cOut = (ctx.cOut || 0) + dt; if (ctx.cOut > 1 && (!ctx.bolts.length || t - ctx.bolts[ctx.bolts.length - 1] > 3)) { ctx.bolts.push(+t.toFixed(3)); ctx.cOut = 0; } } else ctx.cOut = 0;
+    if (inP(t, K.day) || inP(t, K.dusk)) { ctx.progress = Math.min(1, ctx.progress + dt * 0.085 * Math.max(0, 0.35 + Wk) * (1 - 0.5 * Math.max(0, C)));
+      for (const [k, v] of [['cut', 0.25], ['smooth', 0.5], ['sharp', 0.72], ['hard', 0.9]]) if (!ctx.phases[k] && ctx.progress >= v) ctx.phases[k] = +t.toFixed(3); }
+    if (Math.round(t * 12) !== Math.round((t - dt) * 12)) ctx.log.push([+t.toFixed(3), +ctx.progress.toFixed(3)]);
+    if (inP(t, K.eve) && !ctx.seated && t > K.eve[0] + (o.enter || 2.5)) ctx.seated = +t.toFixed(3);
+    if (inP(t, K.eve) && ctx.seated && !ctx.offer && O > 0.5) ctx.offer = +t.toFixed(3);
+    if (ctx.offer && !ctx.take && t > ctx.offer + (o.reach || 2.0)) ctx.take = +t.toFixed(3);
+    if (ctx.take && (!ctx.gulps.length || t - ctx.gulps[ctx.gulps.length - 1] > 1.8) && t > ctx.take + 0.8 && !ctx.sated && ctx.gulps.length < 6) ctx.gulps.push(+t.toFixed(3));
+    if (ctx.take && !ctx.sated && ctx.gulps.length && P < -0.2) ctx.sated = +t.toFixed(3); }
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: 'OD-B09-S08:' + (dist || 'base') };
+}
+MACH.stake = stake;
+
+/* ═════ the Rams' coupled homeostat (OD-B09-S10): a blind search that must miss ═════
+   x_O ODYSSEUS     his hold under the lead ram: > -0.5 while he hangs there (below it for 1 s his grip slips: a foot drops)
+   x_P POLYPHEMUS   the searching hands' suspicion: over 0.55 for 0.5 s with a man under the hand, the fingers go down the flank and
+                    find him (DETECTED: the failure); the hands feel lower as it rises (the grope's height is the needle's)
+   x_C CREW         the fear of the men under the rams: over 0.6 for 0.5 s a man shifts (a STIR the giant hears: a blow to x_P)
+   x_F FLOCK        the pace of the flock at the door: the herd's speed; a suspicious giant holds each back longer (w_FP < 0)
+   tau_i dx_i/dt = -x_i + tanh( sum_j W_ij x_j + u_i(t) )
+   The drives: each triad's pass under the hands (a pulse to P, and to C for the man under it), the stirs (to P), the lead ram's stop and
+   the giant's words to it (tenderness lowers P; "why last" raises it), Odysseus's fatigue under the ram (to O), and the disturbance
+   (o.disturb 'grip-slips': the wool gives under his hands at 38 s). The events derived on the run: the passes (from the flock's
+   integrated pace), the stirs, the slip, the detection, the ram let go (the words over and the needle calm). */
+function rams(o = {}) {
+  const T = o.total || 72.4, K1 = o.K1 || [0.6, 10.9], K3 = o.K3 || [23.4, 53.9], door = o.door || 60, back0 = o.back0 || 0, spacing = o.spacing || 60, rows = o.rows || 6, riders = o.riders || [1, 1, 1, 1, 1, 1];
+  const v0 = o.v0 || 36, quoteAt = o.quoteAt || [30, 48], lastAt = o.lastAt || null, stopAt = o.stopAt || K3[0] + 4, dist = o.disturb || null;
+  const ctx = { passes: [], stirs: [], s: 0, sLog: [], slip: null, detected: null, release: null }, pulse = (t, a, w) => (t >= a && t < a + w ? 1 : 0);
+  const inK1 = t => t >= K1[0] && t < K1[1], inK3 = t => t >= K3[0] && t < K3[1], under = t => t >= stopAt - 3 && t < (ctx.release || K3[1]);
+  const units = [
+    { id: 'ODYSSEUS', tau: 0.8, x0: 0.4, range: 1.5, dwell: 0.6,
+      drive: t => { if (!inK3(t)) return 0.6; let u = 0.55 - 0.028 * Math.max(0, t - K3[0]); if (ctx.release && t >= ctx.release) u = 0.9; if (dist === 'grip-slips' && t >= 38 && t < 40.5) u -= 1.6; return u; },
+      limits: t => (inK3(t) && under(t) ? [-0.5, 1] : [-1, 1]) },
+    { id: 'POLYPHEMUS', tau: 1.3, x0: -0.3, range: 1.4, dwell: 0.3,
+      drive: t => { let u = inK1(t) || inK3(t) ? -0.15 : -0.8;
+        for (const p of ctx.passes) u += 0.75 * pulse(t, p.t, 0.7); for (const s of ctx.stirs) u += 2.4 * pulse(t, s.t, 1.0); if (ctx.slip && t >= ctx.slip) u += 2.2 * pulse(t, ctx.slip, 1.2);
+        if (inK3(t) && t >= stopAt && t < quoteAt[1]) u -= 0.35;   /* the hand on his ram: grief, tenderness */
+        if (lastAt && t >= lastAt && t < lastAt + 2.5) u += 0.7;   /* "why last?" */
+        return u; },
+      limits: t => ((inK1(t) || (inK3(t) && under(t))) ? [-1, 0.55] : [-1, 1]) },
+    { id: 'CREW', tau: 0.5, x0: -0.2, range: 1.6, dwell: 0.35,
+      drive: t => { if (!inK1(t)) return -0.6; let u = 0.15; for (const p of ctx.passes) if (p.rider) u += 0.9 * pulse(t, p.t - 0.2, 0.9); return u; },
+      limits: t => (inK1(t) ? [-1, 0.6] : [-1, 1]) },
+    { id: 'FLOCK', tau: 1.2, x0: 0.3, range: 1.2, dwell: 1e9,
+      drive: t => (inK1(t) ? 0.5 : inK3(t) ? 0.2 : 0.4), limits: () => [-1, 1] } ];
+  /* the wiring: row i = what moves unit i (O, P, C, F) */
+  const W = [[0, -0.45, 0, 0], [0, 0, 0.35, 0.25], [0.25, 1.1, 0, 0], [0, -0.9, 0.15, 0]];
+  let cOut = 0, oOut = 0, pOut = 0;
+  function onStep(t, x) { const [O, P, C, F] = x, dt = 1 / 24;
+    /* the flock: the leader's arc length at the flock's pace; each row passes the door when its back (row x spacing) reaches it */
+    if (inK1(t)) { ctx.s += dt * v0 * (0.55 + 0.45 * (F + 1)); for (let r = 0; r < rows; r++) if (!ctx.passes.some(p => p.row === r) && ctx.s - back0 - r * spacing >= door) ctx.passes.push({ t: +t.toFixed(3), row: r, rider: !!riders[r] }); }
+    if (Math.round(t * 12) !== Math.round((t - dt) * 12)) ctx.sLog.push([+t.toFixed(3), +ctx.s.toFixed(2)]);
+    /* the crew: a man shifts after 0.5 s over the limit (the one under the ram at the door, else the last to pass) */
+    if (inK1(t) && C > 0.6) { cOut += dt; if (cOut > 0.5 && (!ctx.stirs.length || t - ctx.stirs[ctx.stirs.length - 1].t > 2)) { const p = ctx.passes.filter(q => q.rider && q.t <= t + 0.2).pop(); ctx.stirs.push({ t: +t.toFixed(3), row: p ? p.row : 0 }); cOut = 0; } } else cOut = 0;
+    /* Odysseus: a foot drops after 1 s under his limit */
+    if (inK3(t) && under(t) && O < -0.5) { oOut += dt; if (oOut > 1.0 && !ctx.slip) ctx.slip = +t.toFixed(3); } else oOut = 0;
+    /* the search: 0.5 s over 0.55 with a man under the hand */
+    const riderUnder = (inK1(t) && ctx.passes.some(p => p.rider && t >= p.t - 0.3 && t < p.t + 0.9)) || (inK3(t) && under(t) && t >= stopAt);
+    if (P > 0.55 && riderUnder) { pOut += dt; if (pOut > 0.5 && !ctx.detected) ctx.detected = +t.toFixed(3); } else pOut = 0;
+    /* the lead ram let go: his words over and the needle calm (at the latest a little before the cut outside) */
+    if (!ctx.release && !ctx.detected && inK3(t) && t >= quoteAt[1] && P < 0) ctx.release = +t.toFixed(3);
+    if (!ctx.release && !ctx.detected && t >= K3[1] - 2.5) ctx.release = +t.toFixed(3); }
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: 'OD-B09-S10:' + (dist || 'base') };
+}
+MACH.rams = rams;
+
 /* ═════ ROWING: one shared phase clock, per-body offsets (a fraction of the stroke), coordinated labour, not cloned loops ═════
    m {kind:'ROWING', clock: {period, t0, t1}, offsets: {actor: fraction}, amp} */
 MACH.ROWING = (X, m) => {

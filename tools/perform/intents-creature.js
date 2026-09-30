@@ -68,7 +68,7 @@ K.BLINDED = (X, I, e) => { const t = I.t0;
   return X.cmove(I.actor, 'BLINDED', e, { keys: { eye: [[t - 0.05, 2], [t, 3]], 'head.pitch@blind': [[t, 0], [t + 0.25, 0.45], [t + 1.4, 0.25], [I.t1, 0.1]], 'jaw@blind': [[t, 0], [t + 0.2, 0.8], [I.t1, 0.4]],
     'arm.R.pitch@blind': [[t + 0.2, 0], [t + 0.8, -1.9], [I.t1, -1.6]], 'arm.L.pitch@blind': [[t + 0.25, 0], [t + 0.85, -1.8], [I.t1, -1.5]], 'elbow.R@blind': [[t + 0.2, 0], [t + 0.8, -1.2]], 'elbow.L@blind': [[t + 0.25, 0], [t + 0.85, -1.2]] } }, { label: I.label || 'the eye put out: hands to the face' }); };
 K.ROAR = (X, I, e) => { const A = X.creatures[I.actor], out = [];
-  if (I.params && I.params.place) { const s = cstate(X, I.actor, I.t0).v, a = [s['root.x'], s['root.y'], s['root.z'], s['root.h']]; out.push(X.cmove(I.actor, 'RISE', e, { keys: rootKeys(a, I.params.place, I.t0, I.t0 + (I.params.rise || 1.4)) }, { label: 'rises to his feet' })); }
+  if (I.params && I.params.place) { const s = cstate(X, I.actor, I.t0).v, a = [s['root.x'], s['root.y'], s['root.z'], s['root.h']]; out.push(X.cmove(I.actor, 'RISE', e, { proc: { type: 'place', a, b: I.params.place.slice(0, 4), from: I.t0, to: I.t0 + (I.params.rise || 1.4) } }, { label: 'rises to his feet' })); }
   out.push(X.cmove(I.actor, 'ROAR', e, { proc: { type: 'preset', name: (I.params && I.params.preset) || 'roar', from: I.t0, to: I.t1, fade: 0.8 }, keys: Object.assign({ 'jaw@roar': [[I.t0, 0], [I.t0 + 0.4, 1], [I.t1 - 0.3, 0.8], [I.t1, 0.2]] }, I.params && I.params.eye != null ? { eye: [[I.t0 - 0.05, 2], [I.t0 + 0.1, I.params.eye]] } : {}) }, { label: I.label || 'the roar' }));
   void A; return out[out.length - 1]; };
 K.WALK = (X, I, e) => { const A = X.creatures[I.actor], giant = Cr.KINDS[A.kind].family === 'giant', p = I.params;
