@@ -1,0 +1,292 @@
+{
+  "version": "0.2",
+  "metadata": {
+    "name": "The facing field",
+    "description": "The Cyclops' cave: every object faces away from where the blinded giant gropes, by an explicit orientation attribute that Copy to Points reads. The backward bow is the first instance; switch the attribute off and every copy keeps its glyph's own facing, as 93 bows once did."
+  },
+  "nodes": [
+    {
+      "id": "field",
+      "module": "project.FacingField",
+      "position": [
+        0,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "time": {
+          "value": 0,
+          "expression": "$T"
+        },
+        "center": [
+          0,
+          0
+        ],
+        "reach": [
+          150,
+          90
+        ],
+        "speed": 0.6,
+        "wander": 1.37,
+        "count": 90,
+        "explicit": true,
+        "seed": 9,
+        "trail": 3
+      }
+    },
+    {
+      "id": "rams",
+      "module": "cascade.geo.CopyToPoints",
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "id": "bows",
+      "module": "cascade.geo.CopyToPoints",
+      "position": [
+        300,
+        160
+      ]
+    },
+    {
+      "id": "inkRams",
+      "module": "project.Paint",
+      "position": [
+        540,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "color": [
+          0.3,
+          0.29,
+          0.27,
+          1
+        ],
+        "width": 1
+      }
+    },
+    {
+      "id": "inkBow",
+      "module": "project.Paint",
+      "position": [
+        540,
+        160
+      ],
+      "source": "project",
+      "props": {
+        "color": [
+          0.75,
+          0.1,
+          0.08,
+          1
+        ],
+        "width": 2.2
+      }
+    },
+    {
+      "id": "merge",
+      "module": "cascade.geo.Merge",
+      "position": [
+        780,
+        80
+      ]
+    },
+    {
+      "id": "plot",
+      "module": "project.Plot",
+      "position": [
+        1000,
+        80
+      ],
+      "source": "project",
+      "props": {
+        "size": [
+          960,
+          640
+        ],
+        "bounds": [
+          -240,
+          -160,
+          240,
+          160
+        ],
+        "margin": 12,
+        "background": [
+          0.93,
+          0.91,
+          0.86,
+          1
+        ],
+        "filename": "facing.png"
+      }
+    },
+    {
+      "id": "svg",
+      "module": "cascade.geo.SvgExport",
+      "position": [
+        1000,
+        280
+      ],
+      "props": {
+        "filename": "facing.svg",
+        "bounds": [
+          -240,
+          -160,
+          240,
+          160
+        ],
+        "margin": 4
+      }
+    }
+  ],
+  "connections": [
+    [
+      [
+        "field",
+        2,
+        "glyph"
+      ],
+      [
+        "rams",
+        0,
+        "source"
+      ]
+    ],
+    [
+      [
+        "field",
+        0,
+        "flock"
+      ],
+      [
+        "rams",
+        1,
+        "target"
+      ]
+    ],
+    [
+      [
+        "field",
+        3,
+        "bowGlyph"
+      ],
+      [
+        "bows",
+        0,
+        "source"
+      ]
+    ],
+    [
+      [
+        "field",
+        1,
+        "bow"
+      ],
+      [
+        "bows",
+        1,
+        "target"
+      ]
+    ],
+    [
+      [
+        "rams",
+        0,
+        "geometry"
+      ],
+      [
+        "inkRams",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "bows",
+        0,
+        "geometry"
+      ],
+      [
+        "inkBow",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "field",
+        5,
+        "cave"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "field",
+        4,
+        "grope"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "inkRams",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "inkBow",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "plot",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "svg",
+        0,
+        "geometry"
+      ]
+    ]
+  ],
+  "annotations": []
+}

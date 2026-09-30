@@ -1,0 +1,97 @@
+{
+  "version": "0.2",
+  "metadata": {
+    "name": "The illegal Odyssey",
+    "description": "Only the volumes where two parts of a build fill the same space, in the eight Troy and Ithaca modules made before the strict check: the kit of forbidden bricks."
+  },
+  "nodes": [
+    {
+      "id": "clash",
+      "module": "project.Forbidden",
+      "position": [
+        0,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "sheet": {
+          "path": "assets/clashes.json",
+          "mediaType": "application/json"
+        },
+        "view": "plan",
+        "card": -1,
+        "columns": 4,
+        "minDepth": 0,
+        "context": true,
+        "reveal": {
+          "value": 1,
+          "expression": "clamp(($F - 1) / 95, 0, 1)"
+        }
+      }
+    },
+    {
+      "id": "plot",
+      "module": "project.Plot",
+      "position": [
+        300,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "size": [
+          1200,
+          760
+        ],
+        "margin": 10,
+        "edge": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "edgeWidth": 0,
+        "filename": "forbidden.png"
+      }
+    },
+    {
+      "id": "svg",
+      "module": "cascade.geo.SvgExport",
+      "position": [
+        300,
+        200
+      ],
+      "props": {
+        "filename": "forbidden.svg",
+        "strokeWidth": 0.6,
+        "margin": 4
+      }
+    }
+  ],
+  "connections": [
+    [
+      [
+        "clash",
+        0,
+        "geometry"
+      ],
+      [
+        "plot",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "clash",
+        0,
+        "geometry"
+      ],
+      [
+        "svg",
+        0,
+        "geometry"
+      ]
+    ]
+  ],
+  "annotations": []
+}

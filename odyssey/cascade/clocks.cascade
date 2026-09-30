@@ -1,0 +1,274 @@
+{
+  "version": "0.2",
+  "metadata": {
+    "name": "Two clocks",
+    "description": "Calypso's island: the raft laid log by log at the performer's rate while the sun and the moon cross the sky at the world's rate. The ratio of the clocks is a parameter: four days to the raft, as the poem has it, or seven years under one raft."
+  },
+  "nodes": [
+    {
+      "id": "clock",
+      "module": "cascade.core.Time",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "raft",
+      "module": "project.Planks",
+      "position": [
+        260,
+        260
+      ],
+      "source": "project",
+      "props": {
+        "time": {
+          "value": 0,
+          "expression": "$T"
+        },
+        "rate": 2,
+        "count": 20,
+        "origin": [
+          -150,
+          -16
+        ],
+        "spacing": 8.5
+      }
+    },
+    {
+      "id": "log",
+      "module": "cascade.geo.Circle",
+      "position": [
+        260,
+        420
+      ],
+      "inputs": {
+        "radius": [
+          4,
+          4
+        ]
+      },
+      "props": {
+        "type": "polygon"
+      }
+    },
+    {
+      "id": "logs",
+      "module": "cascade.geo.CopyToPoints",
+      "position": [
+        520,
+        340
+      ]
+    },
+    {
+      "id": "wood",
+      "module": "project.Paint",
+      "position": [
+        760,
+        340
+      ],
+      "source": "project",
+      "props": {
+        "color": [
+          0.42,
+          0.26,
+          0.12,
+          1
+        ],
+        "width": 1.4
+      }
+    },
+    {
+      "id": "sky",
+      "module": "project.SkyArcs",
+      "position": [
+        260,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "time": {
+          "value": 0,
+          "expression": "$T"
+        },
+        "ratio": 255.7,
+        "latitude": 36,
+        "maxArcs": 420,
+        "moon": true
+      }
+    },
+    {
+      "id": "merge",
+      "module": "cascade.geo.Merge",
+      "position": [
+        1000,
+        120
+      ]
+    },
+    {
+      "id": "plot",
+      "module": "project.Plot",
+      "position": [
+        1240,
+        120
+      ],
+      "source": "project",
+      "props": {
+        "size": [
+          960,
+          600
+        ],
+        "bounds": [
+          -200,
+          -42,
+          200,
+          120
+        ],
+        "margin": 14,
+        "background": [
+          0.07,
+          0.08,
+          0.11,
+          1
+        ],
+        "edge": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "edgeWidth": 0,
+        "filename": "clocks.png"
+      }
+    },
+    {
+      "id": "svg",
+      "module": "cascade.geo.SvgExport",
+      "position": [
+        1240,
+        320
+      ],
+      "props": {
+        "filename": "clocks.svg",
+        "bounds": [
+          -200,
+          -42,
+          200,
+          120
+        ],
+        "margin": 4
+      }
+    }
+  ],
+  "connections": [
+    [
+      [
+        "raft",
+        0,
+        "points"
+      ],
+      [
+        "logs",
+        1,
+        "target"
+      ]
+    ],
+    [
+      [
+        "log",
+        0,
+        "geometry"
+      ],
+      [
+        "logs",
+        0,
+        "source"
+      ]
+    ],
+    [
+      [
+        "logs",
+        0,
+        "geometry"
+      ],
+      [
+        "wood",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "sky",
+        2,
+        "ground"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "sky",
+        0,
+        "arcs"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "wood",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "sky",
+        1,
+        "sun"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "plot",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "svg",
+        0,
+        "geometry"
+      ]
+    ]
+  ],
+  "annotations": []
+}
