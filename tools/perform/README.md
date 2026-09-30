@@ -15,7 +15,7 @@ node tools/perform/perform.js patch    OD-B01-S03 "make Telemachus more suspicio
 node tools/perform/perform.js chain    OD-B01-S03                  five instructions in a row, with timeline diffs
 node tools/perform/perform.js hardware OD-B01-S03                  stop-motion pose sheet and servo timeline (CSV)
 node tools/perform/previz.js           OD-B01-S03 [--sheet f --score f --name n --from s --to s]
-node tools/perform/probe.js            OD-B09-S09 [--poses]        marks and shot cameras from the film's page (12-15 min)
+node tools/perform/probe.js            OD-B09-S09 [--poses] [--ground-only] [--verbose]   marks, shot cameras and the ground grid from the film's page
   --variant wake-early [--frozen]      a disturbed run (the Blinding): odyssey/score/variants/
 ```
 
@@ -29,6 +29,8 @@ node tools/perform/probe.js            OD-B09-S09 [--poses]        marks and sho
 | `intents.js` | attention, holds, speech acts (WELCOME, GUARDED_WELCOME), the handoff (OFFER/TAKE), LEAD/FOLLOW, business (GAMBLE, DRINK, POUR, REACT, GESTURE) |
 | `intents-action.js` | labour, force, combat: SIGNAL, HEAT, CARRY, THRUST, TWIST, STRAIN, RECOIL, HIDE, CLING, ADVANCE, RETIME, THREAT, SHOOT, IMPACT, FALL, DUCK, EVADE, SEARCH, LEAP, POUR_OUT, SEPARATION, RETARGET, RECOVER, PURSUIT |
 | `intents-more.js` | the kinds the other scenes ask for (odyssey/perform/needs.json): POSTURE, WEEP, TOOL_WORK, ARM, EAT, RECOGNISE, the contact primitive (SEIZE, HOLD_ON, EMBRACE, DRAG, TEND), STRUGGLE, FLEE, HERD, SACRIFICE, THROW, SWING (hit or miss: MISS and OPENING stimuli), BLOCK |
+| `intents-extra.js` | ROW (one clock per name, rowers joining late in phase), GRIP (a held grip solved at every drawing on twos, with its residual), the attack kinds STAB CLUB PUNCH SHOVE and defences PARRY DODGE CATCH (ATTACK/DEFEND dispatch by `params.kind`), LOCOMOTE LEAVE CIRCLE RIDE CLIMB SWIM DROWN WEAVE MOVE_STONE CARESS WAKE DIE |
+| `ground.js` | the floor under a point as the take finds it: the probed ray grid (`odyssey/choreo/ground/<scene>.json`), else the piece boxes |
 | `intents-creature.js` | intents for creatures (film-readymades/creatures.js rigs): POSE SLEEP TALK STIR BLINDED ROAR WALK GROPE REACH SEIZE EAT THROW HERD STRIKE ATTEND RECOGNISE INVOKE; `place()` fits a rig over the take's piece |
 | `scenes/_auto.js` | a first score for any prepared scene from odyssey/perform/needs.json: lines, intents, chain, sea machinery, creatures from the keyframes, a generic causal model |
 | `machinery.js` | the Blinding's coupled homeostat model; ROWING (one phase clock, per-body offsets); SIRENS_CHAIN (crew force -> hull -> mast -> rope -> strain) |
@@ -38,7 +40,7 @@ node tools/perform/probe.js            OD-B09-S09 [--poses]        marks and sho
 | `patches.js` | instruction -> patch table; timeline and body diffs |
 | `hardware.js` | pose sheet and servo timeline (figures, and creatures' angular channels on a giant puppet's segment model) |
 | `previz.js`, `previz-draw.js` | the light previz |
-| `scenes/<scene>.js` | a scene's direction (authors the score) |
+| `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
 
 Data: `odyssey/score/<scene>.json` (score), `<scene>.choreo.json` (sheet the take plays: `tools/export-odyssey.js --choreo`),
 `measures/`, `chains/`, `variants/`, `cameras/`, `hardware/`.
@@ -72,6 +74,15 @@ because: [{id}]}`. A hold: `{id, actor, t0, t1, reason, params: {look: [[target,
 still: bool, offset}, because}`. A stimulus: `{id, t0, t1, kind (SOUND, SIGHT, SCENE, WORD, NEEDLE, ...), label, actor?, because}`.
 A target is an actor id, an object id, or a point `[x,y,z]`.
 
+### The CAMERA lane (what the cinematographer reads)
+
+Kept stable for tools/cinematographer/plan.js. Events `{lane: 'CAMERA', t0, t1, kind, label}`: `FOLLOW` (a request: the camera to
+the causal hot spot, `authored.camera.follow`), `ELIDE` (a request: cut before effects, `authored.camera.elide`), and one derived
+event per shot of the take's own cut (`kind` the shot kind, `derived: true`). The planner also reads, unchanged in format: INTENT
+events (speech kinds, holds), VOICE UTTERANCE and NARRATION, CONTACT events with `actors` (GRIP, GRIP SYNC, IMPACT, SEIZE, PUSH, PARRY,
+TOUCH, RIDER, PUSH), STIMULUS events with their causes, the measures' `after` series, and the sheet's `creatures` (with `present`
+windows and `floor`). New lanes or kinds are added, never renamed.
+
 ### Intent kinds and their parameters
 
 - `ATTEND {target, params.track}`; `NOTICE {target, params.gazeHold}` (the double take); `SHAME {params.lookAt, hold}`;
@@ -101,6 +112,22 @@ Every realiser writes through `X.move(actor, layer, kind, cause, k => { k(t, {ch
 (a move starts from where its lane is; `{abs}` is an absolute joint angle, converted to an offset over the blocking's pose) and
 `X.look(actor, target, t, cause, opts)`. Layers: `gaze act grip loco weight react mech limit`. Add a kind by adding a function
 `(X, I, e)` to `intents.js` or `intents-action.js`.
+
+### More kinds (intents-extra.js)
+
+- `ROW {params: clock (a name), period, origin, offset, amp}`: every ROW of one clock strokes on its period from its origin, each body
+  at its own offset; a rower who joins late comes in on the phase (the ROWING machinery and ROW share `machinery.js stroke`).
+- `GRIP {target, params: point (shoulder | arm | wrist | hand | waist | neck | head | back), side, targetSide, reach, answer}`: a
+  held grip. A solver (after the sheet is written) finds, every sixth of a second, the arm pitch, arm out and lean that put the hand on
+  that point of the other body as the sheet poses it; the CONTACT GRIP carries the residual series (units) with its mean and worst.
+  `answer: 'struggle'` makes the held one fight it.
+- Attacks: `STAB`, `CLUB`, `PUNCH`, `SHOVE` (the pushed one's STAGGER is caused by the CONTACT PUSH), with `params.hit`: a hit is a
+  CONTACT IMPACT, a miss a MISS and an OPENING stimulus. Defences: `PARRY` (CONTACT PARRY and a DEFLECTED stimulus on the attacker),
+  `DODGE` (a side step and lean, `params.to`), `CATCH` (a GRIP on the attacking wrist). `ATTACK {params.kind}` and `DEFEND
+  {params.kind}` dispatch to these, SWING, BLOCK and DUCK.
+- `LOCOMOTE {path, speed}`, `LEAVE {to}`, `CIRCLE {target, radius, turn}`, `RIDE {period}`, `CLIMB {rise, period}`, `SWIM {period}`,
+  `DROWN {sink}` (the breath stops at its end), `WEAVE {period, at}` (the shuttle, the beater: a CONTACT TOOL each pass),
+  `MOVE_STONE {target}`, `CARESS {target, side, strokes}`, `WAKE {rise}`, `DIE {key}` (the fall, then no breath).
 
 ### Machinery
 
@@ -134,6 +161,48 @@ carries (`riders`) is placed at the anchor by body.js (`carried`) and skipped by
 builder finds creatures in the take's keyframes (odyssey/keyframes/<scene>.json: a prop named polyphemus..., laestrygon..., ram...)
 and places them where the take puts the prop. The film's player does not load the rigs yet (CREATURES.md, "Wiring it into the
 film"): the take shows its staged prop; the previz, the metrics and the heat use the rig.
+
+More creature kinds: `MOVE_STONE {target, to, object}` (both hands on the stone, its track a PROP MOVED event and the object's
+track), `DRINK {gulps}`, `CARESS {target, anchor, strokes}` (reach procedures drawn along a ram's back), `FAWN {target, path}`,
+`GRAZE`, `CARRY {riders: [{actor, at, lie, from, to, offset}]}` (CONTACT RIDER), `CHANGE {man, at}` (the beast's half of TRANSFORM:
+see below). Kinds: polyphemus, laestrygon, ram, dog, cattle, scylla, and Circe's pig, wolf and lion (cut from the set pieces' 87621p01,
+48812 and 14734 by tools/creatures/build.js).
+
+Where a creature stands. `place` puts a preset's body over a box or a centre on the ground the take finds there
+(`ground.js`: the probe's ray grid, which keeps each surface that faces up with air over it, so a cave's floor under its roof; the piece
+boxes for a scene not yet probed), and the sheet records it as the creature's `floor`. The player casts the take's own ray under the
+rig from just above that floor at every drawing (cached by cell) and lifts or lowers the rig by the difference
+(`creatures.js sample(..., {ctx: {ground}})`), so a walk goes over the set as it is. A creature's `present: [[t0, t1], ...]` are the
+windows in which the take stages its prop (the first score reads them from the keyframes); outside them it is not drawn.
+
+Where a creature stays. A `gait`, `heavy`, `herd` or `place` procedure leaves the root where it ended until a later procedure moves it
+(the rise of ROAR is a `place`; before this the rise's root keys pinned the Blinding's giant, who never walked to the door). Keys on a
+lane named `channel@span` hold only between their first and last key (a place taken for a moment: the in-between of a change, a
+flock's place at one key).
+
+TRANSFORM as a part swap. The man goes down on all fours over the four drawings on twos before the middle of the key's window (where
+the take stops drawing him); the beast's CHANGE puts its `morph` channel at 2 for the drawing before: only the animal's head is drawn,
+set on the man's head (the pig's face is the minifig pig headdress 17351p01; a wolf's or lion's own cut head), then at the swap the
+beast in its own place. `morph` 1 draws nothing.
+
+The eye. The Cyclops' eye states come from parts the packs have: open (the black round tile), half shut (a 1 x 2 tile in his skin over
+the upper half of the white), shut (a 2 x 2 round tile in his skin over the eye), put out (the round tile dark red). A swap state may
+carry extra meshes: `[part, colour, [{part, col, m}]]`.
+
+### The coupled homeostats
+
+Each director's module that decides its timings by needles has its model in `machinery.js`: `blinding` (OD-B09-S09), `stake`
+(OD-B09-S08: rage and restraint, appetite, terror, the work whose integral is the stake's progress), `rams` (OD-B09-S10: the flock's
+pace, the searching hands' suspicion, the crew's fear, Odysseus's hold; a search that must miss: detection is the failure), `strait`
+(OD-B12-S04: fear loses strokes, the ship's way brings Scylla's hunger up), `taunt` (OD-B09-S11: rage by ear on the taunt's stresses,
+the rock, the sea's blow and push), `storm` (OD-B12-S07 and OD-B05-S05: a god's anger, the sea, the vessel's integrity, the hero's
+endurance). `homeostat.couple(spec, {frozen})` runs them; `perform.js author <scene> --variant <name> [--frozen] --force` writes a
+disturbed or held run beside the baseline (`odyssey/score/variants/`).
+
+### Scene types and bands
+
+`dialogue`, `fight`, `revelation`, `machinery`, and two more: `transformation` (motion warm to hot [0.2, 0.5], causes warm, contrast of
+one body lit [0.03, 0.3]: Circe) and `escape` (motion cool, causes warm, one body lit: the rams).
 
 ### The causal model
 
@@ -184,10 +253,11 @@ in its export log: N > 0 means the rig was attached.
 
 - A creature rig (film-readymades/creatures.js, to come) gives a giant or a quadruped channels: add them to body.js's pivot tree,
   to choreo.js's CLAMP and applyRig, and write GIANT_RIG / QUADRUPED intents (SEIZE, EAT, THROW, HERD) here.
-- The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for. Present: the three intent files above, ROPE (bind,
+- The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for (see intents-extra.js for the ones added since). Present: the three intent files above, ROPE (bind,
   haul), SEAL, SING, BECKON, STEER, PLEAD_BOUND, ROWING and SIRENS_CHAIN machinery; gesture shapes open point chop fist chest dismiss plead
   recoil offer invoke taunt describe mime oath reach show, SEA (hulls, rafts, swimmers, rowers on one clock). TRANSFORM (the man down
   onto all fours over four drawings on twos, ending at the key where the take swaps him for the animal: a SWAP event keeps his
-  identity). Missing: the swap's own in-between (a mesh morph), a hull breaking up, rigs for wolves, lions and pigs. Ships translate (a rock's wave pushes a
+  identity; the beast's CHANGE draws its face on him for the drawing before). Missing: a hull breaking up into pieces (the Thunderbolt's
+  wreck is the take's cut, the sea's impulse and the men thrown). Ships translate (a rock's wave pushes a
   hull toward the shore: `dx`, `dz` channels) and creatures act (see Creatures).
 - `tools/perform/pagedata.js` builds the page's data; `perform.js desk <scene>` writes the engine's lanes into the rig desk's score.

@@ -28,6 +28,7 @@ const t0 = Date.now(), say = (...a) => console.log(((Date.now() - t0) / 1000).to
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--mute-audio'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } }); page.setDefaultTimeout(1800000);
   page.on('pageerror', e => say('page error', e.message));
+  if (args.includes('--verbose')) page.on('console', m => { const x = m.text(); if (/take|creature|choreo|cine|plan/i.test(x)) say('console', x.slice(0, 200)); });
   await page.goto('http://localhost:' + (process.env.PORT || 8899) + '/film-readymades/production/Film-Butter-Odyssey.html', { timeout: 1800000 });
   await page.waitForFunction(() => window.ButterLocation && window.ButterFilms?.current && !ButterFilms.busy && ButterCast.cast.length, null, { timeout: 1800000 });
   const loc = 'odyssey-' + sid.toLowerCase();
