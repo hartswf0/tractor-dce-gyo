@@ -33,6 +33,9 @@ module.exports = function author(M, X) {
   G.forEach((g, k) => { if (k % 2 === 0) I({ id: 'gGlance' + k, actor: g, kind: 'REACT', t0: q(tPos + 0.3 + 0.1 * k), t1: q(tPos + 1.4 + 0.1 * k), label: 'a glance at the empty throne', params: { how: 'turn', lookAt: throne }, because: [{ id: 'sPoseidon' }] }); });
   I({ id: 'aHear', actor: A, kind: 'LISTEN', target: Z, t0: c6.at, t1: q(tShape - 0.2), label: 'hears her father', params: { nods: [] }, because: [{ id: 'zAnswer' }] });
   I({ id: 'aWon', actor: A, kind: 'REACT', t0: q(tShape + 0.2), t1: q(tShape + 1.4), label: '"let us shape his return": she has won', params: { how: 'nod', lookAt: Z }, because: [{ id: 'zAnswer' }] });
+  G.forEach((g, k) => { holds.push({ id: 'hHearA' + k, actor: g, t0: q(c5.at + 1.8 + 0.25 * k), t1: c6.at - 0.3, reason: 'the council hears the goddess plead', params: { look: [[A, 3.0], [Z, 1.0]], weight: true, offset: 0.35 * k }, because: [{ id: 'gToA' + k }] });
+    holds.push({ id: 'hHearZ' + k, actor: g, t0: q(c6.at + 1.6 + 0.25 * k), t1: T, reason: 'the council hears the father answer', params: { look: [[Z, 3.0], [A, 1.0]], weight: true, offset: 0.35 * k }, because: [{ id: 'gToZ' + k }] }); });
+  holds.push({ id: 'hA8', actor: A, t0: c6.at + 0.2, t1: q(tShape - 0.2), reason: 'standing before her father while he answers', params: { look: [[Z, 3.2], [throne, 0.7]], weight: true }, because: [{ id: 'zAnswer' }] });
   holds.push({ id: 'hA9', actor: A, t0: q(tShape + 1.5), t1: T, reason: 'her petition granted: already planning', params: { look: [[Z, 2.0], [throne, 0.8], [Z, 1.4]], weight: true }, because: [{ id: 'aWon' }] });
   holds.push({ id: 'hZ0', actor: Z, t0: q(tEmpty + 1.9), t1: c5.at - 0.1, reason: 'the father of gods and men, waiting for the council to begin', params: { look: [[A, 1.8], [G[1], 1.0], [throne, 0.9]], weight: true }, because: [{ id: 'iThrone0' }] });
   return {
