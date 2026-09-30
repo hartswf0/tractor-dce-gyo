@@ -245,6 +245,8 @@ async function solve(plan, api) {
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
     if (cand.key) s += 1.5;
+    /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
+    if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;
     /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
     const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
     if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
@@ -292,7 +294,7 @@ async function solve(plan, api) {
   }
   /* ── solve every shot ── */
   const lines = new Map(), solved = [], report = [], stats = {};
-  let prevCam = null;
+  let prevCam = null, prevHold = null;
   for (const sh of plan.shots) {
     const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
     const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
@@ -304,6 +306,11 @@ async function solve(plan, api) {
     if (!A.alive.length && use.size !== 'WIDE') { const v = Object.assign({}, sh, { subjects: [sh.primary], size: 'WIDE', contact: null, profile: false, angle: 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'no legal camera at the planned size: a wide on the primary'; } }
     /* the primary cannot be framed legally from anywhere: the shot goes to the other end of its line (whom it reacts to, acts on) */
     if (!A.alive.length && sh.line) { const other = sh.line.find(x => x !== sh.primary); if (other) { const v = Object.assign({}, sh, { primary: other, subjects: [other, sh.primary], size: 'MID', contact: null, profile: false, kind: sh.kind, giant: creatures[other] ? other : sh.giant, angle: creatures[other] ? (sh.angle === 'high' || sh.lying ? 'high' : 'low') : 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = sh.primary + ' cannot be framed legally from anywhere: the shot goes to ' + other + ' (' + sh.primary + ' in frame if seen)'; } } }
+    /* last: hold the shot before (its camera, its framing) if it stays legal here: a reaction that cannot be seen is not cut to */
+    if (!A.alive.length && prevHold) { const c = Object.assign({}, prevHold.pick, { res: [] }); let ok = true;
+      for (const t of ts) { const k = api.poseAt(t); world(k); pointsCache.clear(); for (const id of new Set([...prevHold.subj, ...(prevHold.use.line || [])])) { const p = points(id, t); if (p) pointsCache.set(id, p); }
+        const St = prevHold.subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) { ok = false; break; } const r = check(c, St, prevHold.use, 0); c.res.push(r); if (r.fail.length) { ok = false; break; } }
+      if (ok) { A = Object.assign({}, A, { subj: prevHold.subj, alive: [c], moving: false, P0: null }); use = prevHold.use; eased = sh.primary + ' cannot be framed legally from anywhere: the shot before is held (no cut)'; } }
     const { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
     let pick = null, legal = alive.length > 0;
     if (legal) { let best = -1e9; for (const c of alive) { const s = score(c, c.res[0], use, prevCam); if (s > best) { best = s; pick = c; } } }
@@ -332,6 +339,7 @@ async function solve(plan, api) {
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
       facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;
+    prevHold = pick && legal && !moving ? { pick, use, subj } : null;
     if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary }; }
   }
   camera.position.copy(saved.pos); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.updateProjectionMatrix();
