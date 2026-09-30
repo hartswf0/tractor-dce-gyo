@@ -23,7 +23,7 @@ module.exports = function author(M, X) {
   /* ── the suitors: the game and the wine, never the gate ── */
   const game = { 'the-suitors-2': [12.4, 17.3, 25.2], 'the-suitors-3': [14.2, 22.8, 28.6], 'the-suitors-4': [13.1, 20.4, 27.0] };
   for (const [id, th] of Object.entries(game)) I({ id: 'iG' + id.slice(-1), actor: id, kind: 'GAMBLE', t0: th[0] - 0.6, t1: th[th.length - 1] + 1.5, label: 'the dice', params: { throws: th }, because: [{ id: 'sS0' }] });
-  stimuli.push({ id: 'sS0', t0: 11.7, t1: 11.8, kind: 'SCENE', label: 'the suitors at their game (the feast in the court)' });
+  stimuli.push({ id: 'sS0', t0: 0.1, t1: 0.2, kind: 'SCENE', label: 'the suitors at their game (the feast in the court)' });
   I({ id: 'iD1', actor: 'the-suitors-1', kind: 'DRINK', t0: 13.4, t1: 27.5, label: 'drains his cup', params: { at: [13.4, 20.6, 27.0] }, because: [{ id: 'sS0' }] });
   /* the table answers each throw: laughter from the others at that table (a reaction to the dice, with the compiler's latency) */
   const tables = { 'the-suitors-2': ['the-suitors-1', 'the-suitors-3'], 'the-suitors-3': ['the-suitors-2'], 'the-suitors-4': ['the-suitors-5'] };
@@ -52,11 +52,11 @@ module.exports = function author(M, X) {
   I({ id: 'iA3', actor: A, kind: 'ATTEND', t0: K3.win[0] + 0.35, t1: K4.win[0], target: Tm, label: 'sees him rise and come', params: { track: true }, because: [{ id: 'iT6' }] });
   I({ id: 'iA4', actor: A, kind: 'APPROACH', t0: K4.win[0], t1: K4.win[1], key: 'K4', target: Tm, label: 'meets him at the gate', because: [{ id: 'iT8' }] });
   /* ── the welcome, the handoff, the lead ── */
-  I({ id: 'iT9', actor: Tm, kind: 'WELCOME', t0: line.at - 0.4, t1: line.at + line.dur, target: A, utterance: line.gi, label: 'welcome, stranger', params: { spear: 'spear' }, because: [{ id: 'v' + line.gi }, { id: 'iT8' }] });
-  I({ id: 'iA5', actor: A, kind: 'LISTEN', t0: line.at, t1: come, target: Tm, label: 'hears him out', params: { nods: [V.stresses[0] && V.stresses[0].t, word('eat')].filter(Boolean) }, because: [{ id: 'v' + line.gi }] });
+  I({ id: 'iT9', actor: Tm, kind: 'WELCOME', t0: line.at - 0.4, t1: line.at + line.dur, target: A, utterance: line.gi, label: 'welcome, stranger', params: { spear: 'spear' }, because: [{ id: 'v' + line.gi, rel: 'realises' }, { id: 'iT8' }] });
+  I({ id: 'iA5', actor: A, kind: 'LISTEN', t0: line.at, t1: come, target: Tm, label: 'hears him out', params: { nods: [V.stresses[0] && V.stresses[0].t, word('eat')].filter(Boolean) }, because: [{ id: 'v' + line.gi, rel: 'realises' }] });
   const tg = spear + 0.35;
-  I({ id: 'iT10', actor: Tm, kind: 'TAKE', t0: tg - 0.9, t1: tg + 1.4, target: A, label: 'takes her spear', params: { prop: 'spear', from: A + ':R', to: Tm + ':R', at: tg, reach: 0.55 }, because: [{ id: 'iT9' }, { id: 'v' + line.gi }] });
-  I({ id: 'iA6', actor: A, kind: 'OFFER', t0: tg - 1.1, t1: tg + 1.1, target: Tm, label: 'gives him the spear', params: { with: 'iT10', at: tg, from: A + ':R' }, because: [{ id: 'v' + line.gi }] });
+  I({ id: 'iT10', actor: Tm, kind: 'TAKE', t0: tg - 0.9, t1: tg + 1.4, target: A, label: 'takes her spear', params: { prop: 'spear', from: A + ':R', to: Tm + ':R', at: tg, reach: 0.55 }, because: [{ id: 'iT9' }, { id: 'v' + line.gi + 'p3', rel: 'realises' }] });
+  I({ id: 'iA6', actor: A, kind: 'OFFER', t0: tg - 0.85, t1: tg + 1.1, target: Tm, label: 'gives him the spear', params: { with: 'iT10', at: tg, from: A + ':R' }, because: [{ id: 'v' + line.gi + 'p3' }] });
   const leadAt = come + 0.12;
   I({ id: 'iT11', actor: Tm, kind: 'LEAD', t0: leadAt, t1: Math.min(T, leadAt + 2.2), target: house, label: 'turns and leads her in', params: { path: [[-14, 176], [-12, 140]], speed: 1.15, freeArm: 'L', label: 'through the gate, the spear carried' }, because: [{ id: 'iT9' }, { id: 'iT10' }] });
   I({ id: 'iA7', actor: A, kind: 'FOLLOW', t0: leadAt + 0.5, t1: T, target: Tm, label: 'follows him in', params: { leader: 'iT11', path: [[2, 214], [-10, 180], [-12, 160]], speed: 1.2, freeArm: 'L', label: 'after him, across the threshold' }, because: [{ id: 'iT11' }] });

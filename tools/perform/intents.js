@@ -67,6 +67,8 @@ I_.RISE = (X, I, e) => { const id = I.actor, t = I.t0;
    the intent that owns the move points the head where it is going (its target), or the walk simply goes (the layout pass) */
 I_._walkBlocking = (X, id, K, cause) => {
   const [w0, w1] = K.win; let prev = null; const pts = [];
+  /* the walk takes the head, the torso and the feet back to the way it goes: whatever the gaze layer held is released */
+  X.move(id, 'gaze', 'FACE THE WAY', cause, k => { k(w0, { 'root.h': X.sheet.rel(0), 'head.yaw': X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) }); k(w0 + 0.35, { 'root.h': 0, 'head.yaw': 0, 'torso.twist': 0 }); }, { silent: true });
   for (let t = w0; t <= w1 + 1e-6; t += 1 / 24) { const s = X.at(id, t); if (!s || s.ph == null) continue; if (prev != null) { const a = Math.floor(prev / (Math.PI / 2)), b = Math.floor(s.ph / (Math.PI / 2)); if (b !== a) pts.push([t, b, s.walk]); } prev = s.ph; }
   X.move(id, 'loco', 'WALK', cause, k => { k(w0, { 'hips.dy': 0, 'torso.lean': 0, 'head.pitch': 0 });
     for (const [t, b, amt] of pts) { const contact = b % 2 === 1; k(t, { 'hips.dy': (contact ? -1.5 : 0.9) * amt, 'torso.lean': 0.06 * amt, 'torso.roll': (contact ? (b % 4 === 1 ? 0.045 : -0.045) : 0) * amt }, contact ? 'in' : 'out'); k(t + 1 / X.F, { 'head.pitch': (contact ? 0.035 : -0.02) * amt }); }
@@ -92,9 +94,9 @@ function speechAct(X, I, e, P) {
   /* PRE: the head acquires the one addressed before the voice; the torso follows */
   const pre = X.look(id, tgt, t0 - p.headLead, e, { label: 'acquires ' + Score.short(tgt) + ' before speaking', speed: p.guard ? 1.3 : 0.8 });
   /* the approach: the last step to the distance of the welcome (or back from it) */
-  const s = X.at(id, t0), tp = X.where(tgt, t0);
+  const tS = Math.max(X.settled(id, t0 - 0.2), X.settled(tgt, t0 - 0.2)), s = X.at(id, tS), tp = X.where(tgt, tS);
   if (s && tp) { const d = Math.hypot(tp[0] - s.p[0], tp[2] - s.p[2]) / X.H(id), want = p.approach * X.θ.separation, step = X.cl(d - want, -0.45, 0.45);
-    if (Math.abs(step) > 0.05) I_.STEP(X, { actor: id, t0: t0 - 0.2, target: tgt, params: { dist: step, dur: 0.55 } }, pre || e); }
+    if (Math.abs(step) > 0.05) I_.STEP(X, { actor: id, t0: tS, target: tgt, params: { dist: step, dur: 0.55 } }, pre || e); }
   /* ON STRESS: the first stress of each phrase carries the act's gesture (the welcome: the arm opens, the weight goes to her);
      the words that are gestures of their own take theirs; at most maxBeats a phrase */
   const words = V.words, used = [];
@@ -134,8 +136,8 @@ I_._WELCOME_P = WELCOME_P; I_._GUARDED_P = GUARDED_P;
    the grip (props give: persistent state at t, so scrubbing back gives it back), the giver's hand opens and returns, the receiver
    carries it. */
 I_.OFFER = (X, I, e) => { const id = I.actor, p = I.params || {}, tg = p.at, sd = (p.from || id + ':R').split(':')[1] || 'R';
-  X.look(id, I.target, tg - 1.1, e, { label: 'to his hand', noFeet: true });
-  X.move(id, 'act', 'OFFER', e, k => { k(tg - 0.9, { 'torso.lean': X.sheet.rel(0) }); k(tg - 0.4, { 'torso.lean': 0.05 }, 'inOut'); k(tg + 0.5, { 'torso.lean': 0.02 }); k(tg + 1.1, { 'torso.lean': 0 }); }, { label: 'the spear held out' }); void sd; };
+  X.look(id, I.target, tg - 0.8, e, { label: 'to his hand', noFeet: true });
+  X.move(id, 'act', 'OFFER', e, k => { k(tg - 0.8, { 'torso.lean': X.sheet.rel(0) }); k(tg - 0.4, { 'torso.lean': 0.05 }, 'inOut'); k(tg + 0.5, { 'torso.lean': 0.02 }); k(tg + 1.1, { 'torso.lean': 0 }); }, { label: 'the spear held out' }); void sd; };
 I_.TAKE = (X, I, e) => {
   const rid = I.actor, gid = I.target, p = I.params || {}, tg = X.q(p.at), [, rs] = (p.to || rid + ':R').split(':'), [, gs] = (p.from || gid + ':R').split(':');
   const reach = p.reach || 0.55, hold = 3 / X.F;
@@ -147,12 +149,17 @@ I_.TAKE = (X, I, e) => {
     /* the meeting point: between the chests, nearer the giver (she holds it out), at the hands' mean height */
     const M = [cr[0] * 0.45 + cg[0] * 0.55, (hr[1] + hg[1]) / 2 + 2, cr[2] * 0.45 + cg[2] * 0.55];
     function solve(who, s, P0) { let best = { d: 1e9, x: {} }; const pts = x => Body.sample(bctx, who, tg, x).pts['hand' + s];
-      const dirTo = Math.atan2(M[0] - P0.p[0], M[2] - P0.p[2]);
-      for (let ap = -2.2; ap <= 0.6; ap += 0.1) for (let ao = -0.2; ao <= 0.55; ao += 0.075) for (const ln of [0, 0.06, 0.12]) {
-        const x = { ['arm.' + s + '.pitch']: ap, ['arm.' + s + '.out']: ao, 'torso.lean': ln }, h = pts(x), d = Math.hypot(h[0] - M[0], h[1] - M[1], h[2] - M[2]); if (d < best.d) best = { d, x }; }
+      const dirTo = Math.atan2(M[0] - P0.p[0], M[2] - P0.p[2]), face = X.wrap(dirTo - P0.rot[1]);
+      /* the body turned toward the meeting point (the right hand a little across: the shoulder is off the centre line) */
+      for (const dh of [face, face + 0.2, face + 0.4, face - 0.2]) for (let ap = -2.2; ap <= 0.6; ap += 0.1) for (let ao = -0.2; ao <= 0.55; ao += 0.075) for (const ln of [0, 0.06, 0.12]) {
+        const x = { 'root.h': dh, ['arm.' + s + '.pitch']: ap, ['arm.' + s + '.out']: ao, 'torso.lean': ln }, h = pts(x), d = Math.hypot(h[0] - M[0], h[1] - M[1], h[2] - M[2]); if (d < best.d) best = { d, x }; }
       /* a step if the arm cannot reach */
-      if (best.d > 1.5) { for (let st = 0.5; st <= 14; st += 0.5) { const x = { ...best.x, 'root.x': Math.sin(dirTo) * st * X.scale, 'root.z': Math.cos(dirTo) * st * X.scale };
-        for (let ap = -2.2; ap <= 0.6; ap += 0.1) { x['arm.' + s + '.pitch'] = ap; const h = pts(x), d = Math.hypot(h[0] - M[0], h[1] - M[1], h[2] - M[2]); if (d < best.d) best = { d, x: { ...x } }; } if (best.d < 1.0) break; } }
+      /* a step toward it if the arm cannot reach: the shortest step that brings the hand within a unit */
+      if (best.d > 1.0) { for (let st = 0.5; st <= 16; st += 0.5) { let got = false;
+        for (const dh of [face - 0.3, face - 0.15, face, face + 0.15, face + 0.3, face + 0.45]) for (let ap = -2.2; ap <= 0.6; ap += 0.1) for (let ao = -0.2; ao <= 0.55; ao += 0.075) {
+          const x = { 'root.h': dh, ['arm.' + s + '.pitch']: ap, ['arm.' + s + '.out']: ao, 'torso.lean': best.x['torso.lean'] || 0, 'root.x': Math.sin(dirTo) * st, 'root.z': Math.cos(dirTo) * st };
+          const h = pts(x), d = Math.hypot(h[0] - M[0], h[1] - M[1], h[2] - M[2]) + st * 0.02; if (d < best.d) { best = { d, x }; got = true; } }
+        if (best.d < 1.0 && !got) break; } best.d = (() => { const h = pts(best.x); return Math.hypot(h[0] - M[0], h[1] - M[1], h[2] - M[2]); })(); }
       return best; }
     const R = solve(rid, rs, P0r), G = solve(gid, gs, P0g);
     const gripEv = X.ev({ lane: 'CONTACT', actor: rid, actors: [rid, gid], t0: tg - hold, t1: tg + hold, kind: 'GRIP SYNC', label: 'both hands on ' + (p.prop || 'it') + ': ' + R.d.toFixed(1) + ' / ' + G.d.toFixed(1) + ' units from the meeting point', because: [{ id: e.id, latency: X.r3(tg - hold - e.t0) }], params: { meet: M.map(X.r3), residual: [X.r3(R.d), X.r3(G.d)] } });

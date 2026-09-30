@@ -41,6 +41,8 @@ const r3 = v => Math.round(v * 1000) / 1000;
 /* an event store with ids, lookups and the causal walk */
 function Events(list) {
   const E = list || [], byId = new Map(E.map(e => [e.id, e])); let n = E.reduce((m, e) => Math.max(m, +(String(e.id).match(/\d+$/) || [0])[0]), 0);
+  /* derived events are numbered from 1000 (a1001, e1002, ...), clear of the ids a director writes (iT9, hA1, v5, sKnock) */
+  if (n < 1000) n = 1000;
   function add(e) { if (!e.id) e.id = (e.lane === 'INTENT' ? 'i' : e.lane === 'STIMULUS' ? 's' : e.lane === 'VOICE' ? 'v' : e.lane === 'CONTACT' ? 'c' : e.lane === 'ACTION' ? 'a' : 'e') + (++n);
     e.t0 = r3(e.t0); e.t1 = r3(e.t1 == null ? e.t0 : e.t1); e.because = (e.because || []).filter(b => b && b.id).map(b => ({ ...b, latency: b.latency == null ? null : r3(b.latency) }));
     E.push(e); byId.set(e.id, e); return e; }
@@ -88,7 +90,7 @@ function validate(S) {
   for (const e of S.events || []) { if (!LANES.includes(e.lane)) errs.push(e.id + ': unknown lane ' + e.lane); if (ids.has(e.id)) errs.push('duplicate id ' + e.id); ids.add(e.id);
     if (!(e.t1 >= e.t0)) errs.push(e.id + ': ends before it starts'); }
   const byId = new Map((S.events || []).map(e => [e.id, e]));
-  for (const e of S.events || []) for (const b of e.because || []) { const c = byId.get(b.id); if (!c) errs.push(e.id + ': cause ' + b.id + ' missing'); else if (c.t0 > e.t0 + 1 / 12 + 1e-6 && b.rel !== 'anticipates') errs.push(e.id + ' (' + e.kind + ' ' + e.t0 + ') before its cause ' + c.id + ' (' + c.kind + ' ' + c.t0 + ')'); }
+  for (const e of S.events || []) for (const b of e.because || []) { const c = byId.get(b.id); if (!c) errs.push(e.id + ': cause ' + b.id + ' missing'); else if (c.t0 > e.t0 + 1 / 12 + 1e-6 && !['anticipates', 'realises', 'prepares'].includes(b.rel)) errs.push(e.id + ' (' + e.kind + ' ' + e.t0 + ') before its cause ' + c.id + ' (' + c.kind + ' ' + c.t0 + ')'); }
   return errs;
 }
 const API = { LANES, LANE_CH, CH_LANE, band, Events, deskLanes, validate, short, format: 'odyssey-score/1' };

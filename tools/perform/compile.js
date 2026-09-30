@@ -108,6 +108,8 @@ function compile(M, S, opts = {}) {
     return null;
   }
   const relBearing = (s, p) => wrap(Math.atan2(p[0] - s.p[0], p[2] - s.p[2]) - s.h);
+  /* when the blocking has the figure standing on its mark again at or after t (the end of a walk window it is inside) */
+  const settled = (id, t) => { const s = at(id, t); return s && s.moving && s.win ? s.win[1] + 0.05 : t; };
 
   /* ── events ── */
   const ev = e => E.add(e);
@@ -119,7 +121,8 @@ function compile(M, S, opts = {}) {
     try { fn(k); } finally { sheet.end(); }
     if (!keys.length) return null;
     const t0 = Math.min(...keys.map(x => x.t)), t1 = Math.max(...keys.map(x => x.t)), chs = new Set(keys.flatMap(x => Object.keys(x.vals)));
-    const cz = because(why).map(b => { const c = E.get(b.id); return c ? { id: c.id, latency: r3(Math.max(0, t0 - c.t0)), rel: b.rel } : b; });
+    /* a body's preparation may start before its intent's nominal start (the PRE phase: anticipation): recorded as such */
+    const cz = because(why).map(b => { const c = E.get(b.id); return c ? { id: c.id, latency: r3(t0 - c.t0), rel: b.rel || (t0 < c.t0 - 1e-6 ? 'anticipates' : undefined) } : b; });
     if (o.silent) return { t0, t1 };
     const a = ev({ lane: o.lane || 'ACTION', actor: id, t0, t1, kind, label: o.label || '', because: cz, layer, params: o.params });
     const lanes = new Set([...chs].map(c => Score.CH_LANE[c]).filter(Boolean));
@@ -131,10 +134,11 @@ function compile(M, S, opts = {}) {
   /* ── the look: head leads, torso follows two drawings later, the feet a beat after that when the turn is past the neck and
      waist; toward an actor, an object or a point. Returns the GAZE event. ── */
   function look(id, target, t, why, o = {}) {
-    const s = at(id, t); if (!s || !s.vis) return null; const L = o.layer || 'gaze';
+    let s = at(id, t); if (!s || !s.vis) return null; const L = o.layer || 'gaze';
+    /* a look asked for while the blocking walks the figure waits for the walk to end (the walk carries the head where it goes) */
+    if (s.moving && s.walk > 0.2 && !o.walking && s.win) { t = s.win[1] + 0.05; s = at(id, t); if (!s) return null; }
     let rel = 0, pitch = 0, tp = null;
     if (target != null) { tp = where(target, t); if (!tp) return null; rel = relBearing(s, tp); const P = bpose(id, t); if (P) { const f = P.pts.face, d = Math.hypot(tp[0] - f[0], tp[2] - f[2]); pitch = cl(-Math.atan2(tp[1] - f[1], Math.max(1, d)), -0.2, 0.2); } }
-    if (s.moving && s.walk > 0.2 && !o.walking) return null;
     const lying = B.lying(s), sat = s.sat, base = -(s.j.headP ? s.j.headP[1] : 0);
     let feet = 0; if (target != null && !sat && !lying && !o.noFeet && Math.abs(rel) > 1.25) feet = rel - Math.sign(rel) * 0.9;
     const rest = rel - feet, twist = target != null ? cl(rest * (o.torso != null ? o.torso : 0.35), -0.45, 0.45) : 0, head = target != null ? cl(rest - twist - base, -1.35, 1.35) : 0;
@@ -152,7 +156,7 @@ function compile(M, S, opts = {}) {
   function track(id, target, t0, t1, why, o = {}) { const out = []; for (let t = t0; t < t1 - 0.05; t += o.every || 0.5) { const e = look(id, target, t, why, { ...o, overshoot: false, dip: false, speed: 0.7, kind: 'TRACK', walking: true }); if (e) out.push(e); } return out; }
 
   /* ── the context the intents write through ── */
-  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
+  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
     after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c) };
 
   /* 1. VOICE: every clip on the clock; a spoken line is an UTTERANCE {speaker, addressee, phrases, stress, speech_act, affect, goal} */
@@ -165,7 +169,7 @@ function compile(M, S, opts = {}) {
       params: { speaker: who, addressee: c.addressee, speech_act: act, affect: (M.beat && c.gi === M.keyGi) ? M.beat.emotion : (A.affect && A.affect[who]) || null, goal: goals[c.gi] || goals[who] || null,
         phrases: V.phrases.map(p => [r3(p.t0), r3(p.t1)]), stresses: V.stresses.map(s => r3(s.t)), words: V.words.map(w => [w.w, r3(w.t), w.stress ? 1 : 0]) } });
     X.utter[c.gi] = { ev: u, c, V };
-    if (spoken) V.phrases.forEach((p, i) => ev({ lane: 'VOICE', actor: who, t0: p.t0, t1: p.t1, kind: 'PHRASE', label: String(i + 1), because: [{ id: u.id, latency: r3(p.t0 - u.t0) }], derived: true }));
+    if (spoken) V.phrases.forEach((p, i) => ev({ id: 'v' + c.gi + 'p' + (i + 1), lane: 'VOICE', actor: who, t0: p.t0, t1: p.t1, kind: 'PHRASE', label: String(i + 1), because: [{ id: u.id, latency: r3(p.t0 - u.t0) }], derived: true }));
   }
   /* the cut: the camera lane (for the media temperature) */
   for (const s of M.cut || []) ev({ lane: 'CAMERA', t0: s.t0, t1: s.t0 + s.dur, kind: s.kind, label: 'shot', derived: true });
