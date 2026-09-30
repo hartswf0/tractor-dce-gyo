@@ -261,6 +261,58 @@ KINDS.cattle = quad('cattle', {
   scenes: ['OD-B12-S06'], needs: ['HERD: the cattle driven in', 'SACRIFICE: felled (a fall to the side)', 'the omen: the hides crawl, the meat lows on the spits'],
   card: 'kit.prop-cow',
 });
+/* Circe's beasts: the pig (87621p01), the wolf (48812) and the lion cub (14734) of the set pieces, cut like the ram. Each carries a
+   `morph` channel for TRANSFORM (a man into the animal, a part-swap sequence on twos): 0 the animal, 1 nothing drawn (before the
+   change), 2 the in-between: only the animal's head on the man (the pig's head is the minifig pig headdress 17351p01; the wolf's and
+   the lion's their own cut heads), the man still drawn on all fours under it; the take's swap follows */
+function beast(kind, o) { const K = quad(kind, o); K.family = 'quadruped';
+  if (o.mask) K.nodes.push({ id: 'morph', parent: 'root', p: [0, 0, 0], swap: { ch: 'morph', parts: [null, null, [o.mask.part, o.mask.col]] }, mesh: [{ part: o.mask.part, col: o.mask.col, m: o.mask.m }] });
+  K.morphShows = o.mask ? ['morph'] : ['head'];   /* what the in-between draws */
+  K.channels.push(ch('morph', 0, 2, 'the change (TRANSFORM): 0 the animal, 1 not yet drawn, 2 only its head, on the man (a part swap)', 'index'));
+  return K; }
+KINDS.pig = beast('pig', {
+  title: 'Pig', part: '87621p01', base: T(0, -40, 0), height: 44,
+  blurb: 'Circe\'s swine: the pig of the set pieces cut at the neck, shoulders and hips, knees and tail; the men she changes go down on all fours and are swapped for it, the headdress pig face the in-between.',
+  body: [0, -24, 0], neck: [0, -26, -36], tail: [0, -24, 34],
+  legs: { FL: { hip: [7, -14, -17], knee: [7, -5, -17], foot: [7, 0, -18] }, FR: { hip: [-7, -14, -17], knee: [-7, -5, -17], foot: [-7, 0, -18] },
+    HL: { hip: [7, -14, 19], knee: [7, -5, 20], foot: [7, 0, 20] }, HR: { hip: [-7, -14, 19], knee: [-7, -5, 20], foot: [-7, 0, 20] } },
+  regions: [['head', { z: [-99, -36], y: [-99, 99] }], ['tail', { z: [32, 99], y: [-99, -14] }]].concat(legBoxes(-5, -11, 0)),
+  anchors: { back: { node: 'body', p: [0, -44, 0] }, head: { node: 'head', p: [0, -30, -46] }, mouth: { node: 'head', p: [0, -18, -58] }, belly: { node: 'body', p: [0, -12, 0] } },
+  gaits: { walk: { stride: 16, duty: 0.66, lift: 1.5, speed: 14, crouch: 1, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 22, duty: 0.45, lift: 4, speed: 34, crouch: 1.5, bob: 1.2, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 32, duty: 0.32, lift: 5, speed: 70, crouch: 2, bob: 1.8, phase: { HL: 0, HR: 0.1, FL: 0.5, FR: 0.6 } } },
+  colours: { pink: 29, dark: 5, tan: 19 }, headDown: -0.7,
+  presets: { graze: { 'head.pitch': -0.6 }, lie: { 'body.dy': -8, 'leg.FL': -1.2, 'knee.FL': 1.5, 'leg.FR': -1.2, 'knee.FR': 1.5, 'leg.HL': 0.8, 'knee.HL': -1.4, 'leg.HR': 0.8, 'knee.HR': -1.4 } },
+  mask: { part: '17351p01', col: 29, m: T(0, 6, 0) },
+  scenes: ['OD-B10-S04', 'OD-B10-S05'], needs: ['TRANSFORM: a man down on all fours, the pig face on him, the pig', 'ROOT for acorns in the pen (graze)', 'crowd to the fence at Circe\'s step'],
+  card: 'kit.prop-pig',
+});
+KINDS.wolf = beast('wolf', {
+  title: 'Wolf', part: '48812', base: T(0, -48, 0), height: 72,
+  blurb: 'Circe\'s enchanted wolves: the wolf of the set pieces cut at the neck, shoulders and hips, knees and tail. They fawn on the men like dogs on a master home from a feast: the head low, the tail wagging, a nuzzle.',
+  body: [0, -40, 0], neck: [0, -50, -30], tail: [0, -38, 32],
+  legs: { FL: { hip: [6, -28, -28], knee: [6, -14, -28], foot: [6, 0, -29] }, FR: { hip: [-6, -28, -28], knee: [-6, -14, -28], foot: [-6, 0, -29] },
+    HL: { hip: [6, -28, 26], knee: [6, -14, 28], foot: [6, 0, 28] }, HR: { hip: [-6, -28, 26], knee: [-6, -14, 28], foot: [-6, 0, 28] } },
+  regions: [['head', { z: [-99, -30], y: [-99, -40] }], ['tail', { z: [31, 99], y: [-99, -16] }]].concat(legBoxes(-14, -22, 0)),
+  anchors: { back: { node: 'body', p: [0, -54, 0] }, head: { node: 'head', p: [0, -58, -40] }, mouth: { node: 'head', p: [0, -52, -50] }, belly: { node: 'body', p: [0, -24, 0] } },
+  gaits: { walk: { stride: 28, duty: 0.6, lift: 4, speed: 24, crouch: 2.5, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 38, duty: 0.45, lift: 6, speed: 60, crouch: 3.5, bob: 1.6, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 60, duty: 0.3, lift: 9, speed: 150, crouch: 5, bob: 2.4, phase: { HL: 0, HR: 0.08, FL: 0.45, FR: 0.55 } } },
+  colours: { black: 72, grey: 71, dark: 0 },
+  presets: { fawn: { 'head.pitch': -0.45, 'body.pitch': -0.12, 'tail.pitch': 0.3, 'body.dy': -4 }, sit: { 'body.pitch': 0.5, 'body.dy': -12, 'leg.HL': -1.3, 'knee.HL': -1.5, 'leg.HR': -1.3, 'knee.HR': -1.5, 'leg.FL': 0.45, 'leg.FR': 0.45, 'head.pitch': -0.1 },
+    lie: { 'body.dy': -22, 'leg.FL': -1.5, 'knee.FL': 0.1, 'leg.FR': -1.5, 'knee.FR': 0.1, 'leg.HL': -1.2, 'knee.HL': -0.2, 'leg.HR': -1.2, 'knee.HR': -0.2, 'head.pitch': -0.35 } },
+  scenes: ['OD-B10-S04'], needs: ['FAWN on the men (head low, tail wag, nuzzle)', 'circle, stand off'], card: 'kit.prop-wolf',
+});
+KINDS.lion = beast('lion', {
+  title: 'Lion', part: '14734', base: T(0, 0, 0), height: 60,
+  blurb: 'Circe\'s lions: the lion cub of the set pieces, scaled up, cut at the neck, shoulders and hips, knees and tail. They fawn with the wolves.',
+  body: [0, -30, -18], neck: [0, -40, -32], tail: [0, -26, 8],
+  legs: { FL: { hip: [10, -24, -30], knee: [10, -8, -30], foot: [10, 0, -31] }, FR: { hip: [-10, -24, -30], knee: [-10, -8, -30], foot: [-10, 0, -31] },
+    HL: { hip: [9, -24, -6], knee: [9, -8, -5], foot: [9, 0, -5] }, HR: { hip: [-9, -24, -6], knee: [-9, -8, -5], foot: [-9, 0, -5] } },
+  regions: [['head', { z: [-99, -32], y: [-99, -28] }], ['tail', { z: [8, 99], y: [-99, 99] }]].concat(legBoxes(-8, -18, -18)),
+  anchors: { back: { node: 'body', p: [0, -44, -18] }, head: { node: 'head', p: [0, -46, -40] }, mouth: { node: 'head', p: [0, -36, -48] }, belly: { node: 'body', p: [0, -20, -18] } },
+  gaits: { walk: { stride: 22, duty: 0.6, lift: 4, speed: 20, crouch: 2, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 30, duty: 0.45, lift: 5, speed: 50, crouch: 3, bob: 1.4, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 48, duty: 0.3, lift: 8, speed: 120, crouch: 4, bob: 2.2, phase: { HL: 0, HR: 0.08, FL: 0.45, FR: 0.55 } } },
+  colours: { gold: 191, tan: 19, orange: 25 },
+  presets: { fawn: { 'head.pitch': -0.4, 'body.pitch': -0.1, 'tail.pitch': 0.4, 'body.dy': -3 }, lie: { 'body.dy': -14, 'leg.FL': -1.3, 'knee.FL': 0.2, 'leg.FR': -1.3, 'knee.FR': 0.2, 'leg.HL': -1.1, 'knee.HL': -0.2, 'leg.HR': -1.1, 'knee.HR': -0.2 } },
+  scenes: ['OD-B10-S04'], needs: ['FAWN on the men', 'circle'], card: 'kit.prop-lion',
+});
+
 /* Scylla: six necks of Technic ribbed-hose segments (the set piece's), each a chain laid along a curve of fixed length from its
    root in the cliff to a head (the classic dragon head) that strikes at a target and lifts what it seized */
 const SEG = 6.2, NSEG = 46;
@@ -316,7 +368,9 @@ function define(kind, opts = {}) {
     },
     pose(v) { const W = rig.world(v || {}), L = rig.local(v), out = {}; for (const id in L) out[id] = mul(W, L[id]); return { nodes: out, world: W, local: L }; },
     /* the parts of a node (a replacement part by its channel) */
-    meshOf(n, v) { if (n.swap) { const i = cl(Math.round((v || {})[n.swap.ch] || 0), 0, n.swap.parts.length - 1), q = n.swap.parts[i]; return n.mesh.map(m => Object.assign({}, m, Array.isArray(q) ? { part: q[0], col: q[1] } : { part: q })).concat(Array.isArray(q) && q[2] ? q[2] : []); } return n.mesh || []; },
+    /* a node not drawn at v: the change (morph 1 nothing, 2 only the in-between's nodes) */
+    hidden(n, v) { const mo = K.morphShows ? Math.round((v || {}).morph || 0) : 0; return mo === 1 || (mo === 2 && !K.morphShows.includes(n.id)); },
+    meshOf(n, v) { if (rig.hidden(n, v)) return []; if (n.swap) { const i = cl(Math.round((v || {})[n.swap.ch] || 0), 0, n.swap.parts.length - 1), q = n.swap.parts[i]; if (q == null) return []; return n.mesh.map(m => Object.assign({}, m, Array.isArray(q) ? { part: q[0], col: q[1] } : { part: q })).concat(Array.isArray(q) && q[2] ? q[2] : []); } return n.mesh || []; },
     rows(v, { frame = 'world' } = {}) {
       const P = rig.pose(v), out = [];
       for (const n of order) for (const m of rig.meshOf(n, v)) {
@@ -340,7 +394,7 @@ function define(kind, opts = {}) {
       rig.three = { THREE, group, objs: {} };
       for (const n of order) { const g = new THREE.Group(); g.name = rig.id + ':' + n.id; g.matrixAutoUpdate = false; group.add(g); rig.three.objs[n.id] = g;
         for (const m of n.swap ? [] : n.mesh || []) { const o = meshOf(m.file || m.part, m.file ? (rig.colour != null ? rig.colour : 16) : m.col === 'trim' ? rig.trim : m.col === 16 && rig.colour != null ? rig.colour : m.col); if (!o) continue; setM(THREE, o, m.m || I12); g.add(o); }
-        if (n.swap) { g.userData.swap = n.swap.parts.map(p => { const c0 = Array.isArray(p) ? p[1] : n.mesh[0].col, o = meshOf(Array.isArray(p) ? p[0] : p, c0 === 16 && rig.colour != null ? rig.colour : c0); if (!o) return null;
+        if (n.swap) { g.userData.swap = n.swap.parts.map(p => { if (p == null) return null; const c0 = Array.isArray(p) ? p[1] : n.mesh[0].col, o = meshOf(Array.isArray(p) ? p[0] : p, c0 === 16 && rig.colour != null ? rig.colour : c0); if (!o) return null;
           const extra = Array.isArray(p) && p[2] ? p[2] : []; let s = o; setM(THREE, o, n.mesh[0].m);
           if (extra.length) { s = new THREE.Group(); s.add(o); for (const m of extra) { const e = meshOf(m.part, m.col === 16 && rig.colour != null ? rig.colour : m.col); if (e) { setM(THREE, e, m.m); s.add(e); } } }   /* a lid with the pupil: one state */
           s.visible = false; g.add(s); return s; }); } }
@@ -348,7 +402,7 @@ function define(kind, opts = {}) {
     },
     apply(v) {
       const R = rig.three; if (!R) return; const P = rig.pose(v);
-      for (const n of order) { const g = R.objs[n.id]; setM(R.THREE, g, P.nodes[n.id]); g.matrixWorldNeedsUpdate = true;
+      for (const n of order) { const g = R.objs[n.id]; setM(R.THREE, g, P.nodes[n.id]); g.matrixWorldNeedsUpdate = true; g.visible = !rig.hidden(n, v);
         if (g.userData.swap) { const i = cl(Math.round((v || {})[n.swap.ch] || 0), 0, n.swap.parts.length - 1); g.userData.swap.forEach((o, k) => { if (o) o.visible = k === i; }); } }
     },
   };

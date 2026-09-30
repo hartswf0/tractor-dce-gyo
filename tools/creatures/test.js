@@ -21,13 +21,13 @@ for (const k of C.kinds()) {
   const files = K.cuts || K.cutFrom ? ld.mpdFiles(fs.readFileSync(path.join(ld.ROOT, 'odyssey/creatures/parts', (K.cutFrom || k.kind) + '.mpd'), 'utf8')) : new Map();
   const missing = K.nodes.flatMap(n => (n.mesh || []).filter(m => m.file && !files.has(m.file.toLowerCase()))).map(m => m.file);
   ok(missing.length === 0, `${k.kind}: every cut piece in its MPD (${missing.join(' ')})`);
-  const parts = [...new Set(K.nodes.flatMap(n => (n.mesh || []).filter(m => m.part).map(m => m.part).concat(n.swap ? n.swap.parts.flatMap(p => Array.isArray(p) ? [p[0]].concat((p[2] || []).map(m => m.part)) : [p]) : [])))];
+  const parts = [...new Set(K.nodes.flatMap(n => (n.mesh || []).filter(m => m.part).map(m => m.part).concat(n.swap ? n.swap.parts.flatMap(p => Array.isArray(p) ? [p[0]].concat((p[2] || []).map(m => m.part)) : p ? [p] : []) : [])))];
   ok(parts.every(p => ld.libLines(p)), `${k.kind}: every part in the library (${parts.filter(p => !ld.libLines(p)).join(' ')})`);
   /* the clamp */
   const wild = {}; for (const c of K.channels) wild[c.name] = c.max * 3 + 7; const cv = rig.clamp(wild);
   ok(K.channels.every(c => cv[c.name] <= c.max), `${k.kind}: clamp holds the limits`);
   /* a pose is a function of its channels */
-  const q = {}; K.channels.forEach((c, i) => { q[c.name] = c.min + (c.max - c.min) * ((i * 0.37) % 1); });
+  const q = {}; K.channels.forEach((c, i) => { q[c.name] = c.min + (c.max - c.min) * ((i * 0.37) % 1); }); if ('morph' in q) q.morph = 0;   /* the animal drawn (1 draws nothing: the change not yet come) */
   ok(JSON.stringify(rig.rows(q)) === JSON.stringify(rig.rows(Object.assign({}, q))), `${k.kind}: the same channels, the same pose`);
   ok(typeof rig.ldr(q) === 'string' && rig.ldr(q).split('\n').length > 3, `${k.kind}: an LDraw frame`);
   for (const a of Object.keys(K.anchors || {})) ok(rig.anchor(a, q).every(isFinite), `${k.kind}: anchor ${a}`);
