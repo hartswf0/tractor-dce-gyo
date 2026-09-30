@@ -325,9 +325,11 @@ Previz: Contact sheet read. The rig cast is only Odysseus and three scouts: no c
 
 ### OD-B10-S04 Circe Transforms the Crew
 
-**Type** transformation. **Total** 52.09 s. **Prepared**: nothing.
+**Type** transformation. **Total** 52.09 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: Beasts fawning around men (quadrupeds with intent), a host turning jailer, a wand strike that swaps bodies (minifig to pig by replacement on twos, torso held), pigs herded into pens, and a hidden witness who flees.
+
+**The take**: cast circe, eurylochus, five-scouts-1, five-scouts-2, five-scouts-3, five-scouts-4, five-scouts-5; 5 keys, 25 shots; staged only as a set piece: crew; not in the take's cast: wolves-lions; rough-pass density (after) 0.787, longest still 2 s.
 
 **Essential variables**: body replacement mid-scene (figure -> pig) with identity carried (the same actor id); wolves and lions that fawn (quadruped business); a watcher hidden and still, then fleeing; the loom and the song at the start
 
@@ -353,6 +355,8 @@ Machinery: LOOM: Circe weaving: shuttle and beater on the song's beat; TRANSFORM
 Contacts and handoffs: 17.0 s cups circe -> crew [owner crew]; 21.5 s wand touches each man; 34.0 s acorns thrown into the pen
 
 Holds: eurylochus 12.0-36.0: hidden and frozen in dread (not dead: shallow breath, eyes tracking)
+
+Previz: Contact sheet read. There is no transformation: the scouts are simply made invisible key by key (K3, K4), with no pig and no beasts (the wolves, lions and swine are set pieces). Eurylochus is invisible until K5 (38.1 s), so the hidden witness is never seen watching. At K3 (24.1 s) Circe is blocked 12 units above the floor (y 25 on a floor at 13): she floats. His report (38-52 s) is played to Circe, the only figure present (Odysseus is not in the scene), with the camera behind Eurylochus' head, which fills most of the frame for 14 s. The seated scouts are at y -8, possibly sunk into the benches. No T-poses.
 
 ### OD-B10-S05 Hermes Gives the Moly
 
