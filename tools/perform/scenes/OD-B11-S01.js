@@ -32,6 +32,8 @@ module.exports = function author(M, X) {
     holds.push({ id: 'hHold' + k, actor: h, t0: K2.win[1] + 0.2, t1: t + 0.8, reason: 'holding the black ' + b + ' over the pit', params: { look: [[b, 2.2], [O, 1.2]], weight: true }, because: [{ id: 'oDig' }] });
     I({ id: 'oCut' + k, actor: O, kind: 'SACRIFICE', target: b, t0: t - 0.6, t1: t + 0.7, label: 'the knife across the ' + b + '\'s throat over the pit', because: [{ id: k ? 'oCut0' : 'oPour' }] });
     I({ id: 'bDie' + k, actor: b, kind: 'DIE', t0: t + 0.1, t1: t + 2.0, label: 'the ' + b + ' dies over the pit', params: { roll: 1.2, sink: 0.5 }, because: [{ id: 'oCut' + k }] }); });
+  crew.forEach((c, k) => { const t0 = k < beasts.length ? q(tSac + 0.4 + 1.1 * k + 0.9) : K2.win[1] + 0.2;
+    holds.push({ id: 'hRite' + k, actor: c, t0, t1: tDead + 0.2, reason: 'watching the rite, the blood running into the pit', params: { look: [[pit, 1.8], [O, 1.4], [[0, 60, 320], 0.9]], weight: true, offset: 0.25 * k }, because: [{ id: k < beasts.length ? 'oCut' + k : 'oDig' }] }); });
   stimuli.push({ id: 'sBlood', t0: q(tSac + 0.6), t1: q(tSac + 3.0), kind: 'SIGHT', label: 'the dark blood runs into the pit', because: [{ id: 'oCut0' }] });
   I({ id: 'oDraw', actor: O, kind: 'ARM', t0: q(tHolds - 0.4), t1: q(tHolds + 1.0), label: 'draws the sword', params: { side: 'R' }, because: [{ id: 'sBlood' }] });
   I({ id: 'oGuard', actor: O, kind: 'THREAT', target: shades[1], t0: q(tHolds + 1.1), t1: K3.win[0] + 1.0, label: 'the sword over the pit against what is coming', params: { side: 'R' }, because: [{ id: 'oDraw' }] });
