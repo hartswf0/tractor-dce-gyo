@@ -134,7 +134,9 @@ function measure(Tr, o = {}) {
     const myCues = cues.filter(q => String(q.actor).split(', ').includes(id));
     let unmot = 0, spanN = 0; const unmotSpans = [];
     for (const [s0, s1] of spans[id]) { const t0 = s0 / F; spanN++;
-      const why = r[s0] || mine.some(e => e.t0 <= t0 + 0.25 && e.t1 >= t0 - 0.25) || myCues.some(q => Math.abs(q.t - t0) < 0.6) || walkWin.some(([x, y]) => t0 >= x - 0.3 && t0 <= y + 0.3) || speak(t0) || speak(t0 - 0.3);
+      /* a rider of a ship rig is moved by the hull (the SEA's HULL event): that motion has its cause */
+      const aboard = !!(Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => Body.rides(R, id, t0)));
+      const why = r[s0] || mine.some(e => e.t0 <= t0 + 0.25 && e.t1 >= t0 - 0.25) || myCues.some(q => Math.abs(q.t - t0) < 0.6) || walkWin.some(([x, y]) => t0 >= x - 0.3 && t0 <= y + 0.3) || speak(t0) || speak(t0 - 0.3) || aboard;
       if (!why) { unmot++; unmotSpans.push([r3(t0), r3(s1 / F)]); } }
     /* channel diversity */
     const G = { ROOT: 0, WEIGHT: 0, TORSO: 0, HEAD: 0, ARMS: 0, HANDS: 0, LEGS: 0 }; for (let i = 1; i < n; i++) if (S.grp[i] && S.on[i]) for (const k in G) G[k] += S.grp[i][k];
