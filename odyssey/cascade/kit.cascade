@@ -1,29 +1,524 @@
 {
   "version": "0.2",
-  "metadata": { "name": "A kit of a motion", "description": "Telemachus's welcome (or Odysseus's bow draw) read from the choreography sheet, the hand swept through time by the minifigure's kinematics, the trail quantized to studs and plates: print, motion, web, and (offline) a kit." },
+  "metadata": {
+    "name": "A kit of a motion",
+    "description": "Telemachus's welcome (or Odysseus's bow draw) read from the choreography sheet, the hand swept through time by the minifigure's kinematics, the trail quantized to studs and plates: print, motion, web, and (offline) a kit."
+  },
   "nodes": [
-    { "id": "hand", "module": "project.ChoreoHand", "position": [0, 0], "source": "project",
-      "props": { "sheet": { "path": "assets/gestures.json", "mediaType": "application/json" }, "gesture": "welcome", "side": "R", "frame": "world", "samples": 360,
-        "now": { "value": 1, "expression": "clamp(($F - 1) / 119, 0, 1)" }, "upto": true } },
-    { "id": "grid", "module": "project.StudGrid", "position": [260, 0], "source": "project", "props": { "scale": 1, "minRun": 1 } },
-    { "id": "bricks", "module": "project.Bricks", "position": [520, 0], "source": "project", "props": { "azimuth": 35, "elevation": 30, "supports": true } },
-    { "id": "vtrail", "module": "project.View", "position": [520, 160], "source": "project",
-      "props": { "azimuth": { "value": 35, "expression": "ch(\"bricks/azimuth\")" }, "elevation": { "value": 30, "expression": "ch(\"bricks/elevation\")" } } },
-    { "id": "vfig", "module": "project.View", "position": [260, 300], "source": "project",
-      "props": { "azimuth": { "value": 35, "expression": "ch(\"bricks/azimuth\")" }, "elevation": { "value": 30, "expression": "ch(\"bricks/elevation\")" },
-        "scale": { "value": 1, "expression": "ch(\"grid/scale\")" } } },
-    { "id": "merge", "module": "cascade.geo.Merge", "position": [780, 100] },
-    { "id": "plot", "module": "project.Plot", "position": [1000, 100], "source": "project", "props": { "size": [960, 640], "filename": "kit.png" } }
+    {
+      "id": "hand",
+      "module": "project.ChoreoHand",
+      "position": [
+        0,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "sheet": {
+          "path": "assets/gestures.json",
+          "mediaType": "application/json"
+        },
+        "gesture": "welcome",
+        "side": "R",
+        "frame": "world",
+        "samples": 360,
+        "now": {
+          "value": 1,
+          "expression": "clamp(($F - 1) / 239, 0, 1)"
+        },
+        "upto": true
+      }
+    },
+    {
+      "id": "grid",
+      "module": "project.StudGrid",
+      "position": [
+        260,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "scale": 1,
+        "minRun": 1,
+        "filename": "gesture-cells-now.json"
+      }
+    },
+    {
+      "id": "bricks",
+      "module": "project.Bricks",
+      "position": [
+        520,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": 35,
+        "elevation": 30,
+        "supports": true
+      }
+    },
+    {
+      "id": "vtrail",
+      "module": "project.View",
+      "position": [
+        520,
+        160
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": {
+          "value": 35,
+          "expression": "ch(\"bricks/azimuth\")"
+        },
+        "elevation": {
+          "value": 30,
+          "expression": "ch(\"bricks/elevation\")"
+        }
+      }
+    },
+    {
+      "id": "vfig",
+      "module": "project.View",
+      "position": [
+        260,
+        300
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": {
+          "value": 35,
+          "expression": "ch(\"bricks/azimuth\")"
+        },
+        "elevation": {
+          "value": 30,
+          "expression": "ch(\"bricks/elevation\")"
+        },
+        "scale": {
+          "value": 1,
+          "expression": "ch(\"grid/scale\")"
+        }
+      }
+    },
+    {
+      "id": "merge",
+      "module": "cascade.geo.Merge",
+      "position": [
+        780,
+        100
+      ]
+    },
+    {
+      "id": "plot",
+      "module": "project.Plot",
+      "position": [
+        1000,
+        100
+      ],
+      "source": "project",
+      "props": {
+        "size": [
+          960,
+          640
+        ],
+        "filename": "kit.png"
+      }
+    },
+    {
+      "id": "full",
+      "module": "project.ChoreoHand",
+      "position": [
+        0,
+        520
+      ],
+      "source": "project",
+      "props": {
+        "sheet": {
+          "path": "assets/gestures.json",
+          "mediaType": "application/json"
+        },
+        "gesture": {
+          "value": "welcome",
+          "expression": "chs(\"hand/gesture\")"
+        },
+        "side": {
+          "value": "R",
+          "expression": "chs(\"hand/side\")"
+        },
+        "frame": {
+          "value": "world",
+          "expression": "chs(\"hand/frame\")"
+        },
+        "samples": {
+          "value": 360,
+          "expression": "ch(\"hand/samples\")"
+        },
+        "now": 1,
+        "upto": false
+      }
+    },
+    {
+      "id": "gridp",
+      "module": "project.StudGrid",
+      "position": [
+        260,
+        520
+      ],
+      "source": "project",
+      "props": {
+        "scale": {
+          "value": 1,
+          "expression": "ch(\"grid/scale\")"
+        },
+        "minRun": {
+          "value": 1,
+          "expression": "ch(\"grid/minRun\")"
+        },
+        "filename": "gesture-cells.json"
+      }
+    },
+    {
+      "id": "belev",
+      "module": "project.Bricks",
+      "position": [
+        520,
+        460
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": 90,
+        "elevation": 0,
+        "supports": false,
+        "studs": false
+      }
+    },
+    {
+      "id": "telev",
+      "module": "project.View",
+      "position": [
+        520,
+        560
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": 90,
+        "elevation": 0,
+        "scale": 1
+      }
+    },
+    {
+      "id": "bplan",
+      "module": "project.Bricks",
+      "position": [
+        520,
+        660
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": 90,
+        "elevation": 90,
+        "supports": false,
+        "studs": false
+      }
+    },
+    {
+      "id": "tplan",
+      "module": "project.View",
+      "position": [
+        520,
+        760
+      ],
+      "source": "project",
+      "props": {
+        "azimuth": 90,
+        "elevation": 90,
+        "scale": 1
+      }
+    },
+    {
+      "id": "mplan",
+      "module": "cascade.geo.Merge",
+      "position": [
+        760,
+        720
+      ]
+    },
+    {
+      "id": "below",
+      "module": "cascade.geo.Transform",
+      "position": [
+        960,
+        720
+      ],
+      "inputs": {
+        "translate": [
+          0,
+          -190
+        ]
+      }
+    },
+    {
+      "id": "sheet",
+      "module": "cascade.geo.Merge",
+      "position": [
+        1160,
+        560
+      ]
+    },
+    {
+      "id": "svg",
+      "module": "cascade.geo.SvgExport",
+      "position": [
+        1360,
+        560
+      ],
+      "props": {
+        "filename": "gesture.svg",
+        "strokeWidth": 0.9,
+        "margin": 12
+      }
+    }
   ],
   "connections": [
-    [["hand", 0, "trail"], ["grid", 0, "trail"]],
-    [["grid", 0, "cells"], ["bricks", 0, "cells"]],
-    [["grid", 1, "trail"], ["vtrail", 0, "geometry"]],
-    [["hand", 1, "figure"], ["vfig", 0, "geometry"]],
-    [["bricks", 0, "geometry"], ["merge", 0, "inputs"]],
-    [["vtrail", 0, "geometry"], ["merge", 0, "inputs"]],
-    [["vfig", 0, "geometry"], ["merge", 0, "inputs"]],
-    [["merge", 0, "geometry"], ["plot", 0, "geometry"]]
+    [
+      [
+        "hand",
+        0,
+        "trail"
+      ],
+      [
+        "grid",
+        0,
+        "trail"
+      ]
+    ],
+    [
+      [
+        "grid",
+        0,
+        "cells"
+      ],
+      [
+        "bricks",
+        0,
+        "cells"
+      ]
+    ],
+    [
+      [
+        "grid",
+        1,
+        "trail"
+      ],
+      [
+        "vtrail",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "hand",
+        1,
+        "figure"
+      ],
+      [
+        "vfig",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "bricks",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "vtrail",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "vfig",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "plot",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "full",
+        0,
+        "trail"
+      ],
+      [
+        "gridp",
+        0,
+        "trail"
+      ]
+    ],
+    [
+      [
+        "gridp",
+        0,
+        "cells"
+      ],
+      [
+        "belev",
+        0,
+        "cells"
+      ]
+    ],
+    [
+      [
+        "gridp",
+        1,
+        "trail"
+      ],
+      [
+        "telev",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "gridp",
+        0,
+        "cells"
+      ],
+      [
+        "bplan",
+        0,
+        "cells"
+      ]
+    ],
+    [
+      [
+        "gridp",
+        1,
+        "trail"
+      ],
+      [
+        "tplan",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "bplan",
+        0,
+        "geometry"
+      ],
+      [
+        "mplan",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "tplan",
+        0,
+        "geometry"
+      ],
+      [
+        "mplan",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "mplan",
+        0,
+        "geometry"
+      ],
+      [
+        "below",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "belev",
+        0,
+        "geometry"
+      ],
+      [
+        "sheet",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "telev",
+        0,
+        "geometry"
+      ],
+      [
+        "sheet",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "below",
+        0,
+        "geometry"
+      ],
+      [
+        "sheet",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "sheet",
+        0,
+        "geometry"
+      ],
+      [
+        "svg",
+        0,
+        "geometry"
+      ]
+    ]
   ],
   "annotations": []
 }
