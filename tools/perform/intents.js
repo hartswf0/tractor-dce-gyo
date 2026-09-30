@@ -17,14 +17,15 @@ I_.ATTEND = (X, I, e) => { X.look(I.actor, I.target, I.t0, e, { label: I.label }
 /* NOTICE: the double take. A glance that passes it, a beat, the snap back (overshoot), the gaze held (params.gazeHold s); the torso
    gives a little (surprise), the breath caught (hips up) */
 I_.NOTICE = (X, I, e) => {
-  const id = I.actor, t = I.t0, s = X.at(id, t); if (!s) return; const p = I.params || {}, a = X.θ.amp, f = X.aff(id).fear;
+  const id = I.actor, t = I.t0, s = X.at(id, t); if (!s) return; const p = I.params || {}, a = X.ampOf(I), f = X.aff(id).fear;
   const tp = X.where(I.target, t); if (!tp) return; const rel = X.relBearing(s, tp), base = -(s.j.headP ? s.j.headP[1] : 0);
+  const t_ = t; void t_;
   X.move(id, 'gaze', 'GLANCE', e, k => { k(t, { 'head.yaw': X.sheet.rel(0) }); k(t + 0.3, { 'head.yaw': X.cl(rel * 0.45 - base, -0.8, 0.8) }, 'out'); k(t + 0.55, { 'head.yaw': X.cl(rel * 0.3 - base, -0.7, 0.7) }); k(t + 0.72, { 'head.yaw': 0 }, 'in'); }, { label: 'passes over ' + Score.short(I.target) });
   const snap = X.look(id, I.target, t + 0.78, e, { label: 'the double take', speed: 0.6, kind: 'SNAP LOOK' });
   X.move(id, 'act', 'SURPRISE', snap || e, k => { k(t + 0.85, { 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0) }); k(t + 1.0, { 'torso.lean': -0.07 * a * (1 + f), 'hips.dy': 1.2 * a }, 'out'); k(t + 1.0 + (p.gazeHold || 1.2), { 'torso.lean': -0.04 * a, 'hips.dy': 0.4 }, 'linear'); k(t + 1.5 + (p.gazeHold || 1.2), { 'torso.lean': 0, 'hips.dy': 0 }); }, { label: 'the breath caught' });
 };
 /* SHAME: the eyes drop from the one he should have seen, the head goes down, the body folds a little; held params.hold s */
-I_.SHAME = (X, I, e) => { const id = I.actor, t = I.t0, p = I.params || {}, a = X.θ.amp;
+I_.SHAME = (X, I, e) => { const id = I.actor, t = I.t0, p = I.params || {}, a = X.ampOf(I);
   if (p.lookAt) X.look(id, p.lookAt, t, e, { label: 'at what shames him' });
   X.move(id, 'act', 'HEAD DOWN', e, k => { k(t + 0.4, { 'head.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0) }); k(t + 0.9, { 'head.pitch': 0.17 * a, 'torso.lean': 0.07 * a }, 'inOut'); k(t + 0.9 + (p.hold || X.θ.pause * 1.4), { 'head.pitch': 0.12 * a, 'torso.lean': 0.05 * a }, 'linear'); k(I.t1, { 'head.pitch': 0, 'torso.lean': 0 }); }, { label: I.label || 'shame' }); };
 /* DECIDE: the resolve before the move: a breath in, the head up, the weight gathered */
@@ -36,7 +37,9 @@ I_.DECIDE = (X, I, e) => { const id = I.actor, t = I.t0;
    the performance (the dead, the sleeping): nothing moves but the reason holds ═════ */
 I_.HOLD = (X, I, e) => {
   const id = I.actor, p = I.params || {}; if (p.still) return;
-  const R = X.rng(I.id + id), looks = p.look || [], pause = X.θ.pause;
+  const R = X.rng(I.id + id), pause = X.θ.pause, fear = X.aff(id).fear;
+  /* fear: the eyes go to the way out first, and come back to it */
+  const looks = fear > 0.2 && X.exits().length ? [[X.exits()[0], 1.2]].concat(...(p.look || []).map(l => [l, [X.exits()[0], 0.8]])) : (p.look || []);
   if (looks.length) { let t = I.t0 + (p.offset || 0.2), k = 0;
     while (t < I.t1 - 0.4) { const [tg, dwell] = looks[k % looks.length]; const g = X.look(id, tg, t, e, { label: 'held: ' + (I.reason || ''), speed: 1.2, noFeet: true }); void g;
       t += (dwell || 2) * (0.7 + pause) * (0.85 + 0.3 * R()); k++; } }
@@ -90,7 +93,7 @@ I_._walkBlocking = (X, id, K, cause) => {
 const WELCOME_P = { approach: 0.75, openness: 0.85, headLead: 0.3, weight: 0.08, handToSpearDelay: 0.35, gazeHold: 1.0, backBias: 0, maxBeats: 2, guard: false };
 const GUARDED_P = { approach: 1.05, openness: 0.3, headLead: 0.12, weight: 0.02, handToSpearDelay: 0.9, gazeHold: 2.0, backBias: 0.06, maxBeats: 1, guard: true };
 function speechAct(X, I, e, P) {
-  const id = I.actor, U = X.utter[I.utterance], a = X.θ.amp, f = X.aff(id).fear; if (!U) return;
+  const id = I.actor, U = X.utter[I.utterance], a = X.ampOf(I), f = X.aff(id).fear; if (!U) return;
   const p = Object.assign({}, P, I.params || {}), V = U.V, t0 = U.c.at, tgt = I.target, sd = p.side || 'R';
   /* fear bends it: the distance up, the weight back, the hand slower */
   p.approach *= 1 + 0.5 * f; p.backBias += 0.06 * f; p.handToSpearDelay += 0.4 * f; p.openness *= 1 - 0.5 * f;
@@ -104,6 +107,7 @@ function speechAct(X, I, e, P) {
      the words that are gestures of their own take theirs; at most maxBeats a phrase */
   const words = V.words, used = [];
   V.phrases.forEach((ph, i) => { const st = V.stresses.filter(x => x.t >= ph.t0 - 0.05 && x.t <= ph.t1 + 0.05).slice(0, Math.max(1, Math.round(p.maxBeats)));
+    if (p.beatsOnlyKey && i > 0) st.length = 0;   /* less gesturing: only the line's first phrase carries a gesture; the rest is held */
     const wIn = words.filter(w => w.t >= ph.t0 - 0.05 && w.t <= ph.t1 + 0.05).map(w => w.w).join(' ');
     st.forEach((x, k) => { if (used.some(u => Math.abs(u - x.t) < 0.6)) return; if ((I.busy || []).some(([a0, a1]) => x.t > a0 && x.t < a1)) return; used.push(x.t);
       const big = k === 0 && i === 0, amp = a * (big ? 1 : 0.55) * p.openness;
@@ -138,11 +142,18 @@ I_._WELCOME_P = WELCOME_P; I_._GUARDED_P = GUARDED_P;
    and roll, a lean and a small step; both hands hold the spear together for three drawings (CONTACT: GRIP SYNC), ownership moves at
    the grip (props give: persistent state at t, so scrubbing back gives it back), the giver's hand opens and returns, the receiver
    carries it. */
-I_.OFFER = (X, I, e) => { const id = I.actor, p = I.params || {}, tg = p.at, sd = (p.from || id + ':R').split(':')[1] || 'R';
+/* the grip instant: the word ("spear") + the speech act's handToSpearDelay (its kind's default unless its params say), + fear's delay */
+function gripTime(X, T) { const p = T.params || {}; if (!p.word || !p.of) return p.at;
+  const sp = (X.A.intents || []).find(x => x.id === p.of), U = sp && X.utter[sp.utterance]; if (!U) return p.at;
+  const w = U.V.words.filter(x => x.w === p.word).pop(); if (!w) return p.at;
+  const d = ((sp.params || {}).handToSpearDelay != null ? sp.params.handToSpearDelay : (sp.kind === 'GUARDED_WELCOME' ? GUARDED_P : WELCOME_P).handToSpearDelay) + 0.4 * X.aff(sp.actor).fear;
+  return X.q(w.t + d); }
+I_._gripTime = gripTime;
+I_.OFFER = (X, I, e) => { const id = I.actor, p = I.params || {}, T = (X.A.intents || []).find(x => x.id === p.with), tg = T ? gripTime(X, T) : p.at, sd = (p.from || id + ':R').split(':')[1] || 'R';
   X.look(id, I.target, tg - 0.8, e, { label: 'to his hand', noFeet: true });
   X.move(id, 'act', 'OFFER', e, k => { k(tg - 0.8, { 'torso.lean': X.sheet.rel(0) }); k(tg - 0.4, { 'torso.lean': 0.05 }, 'inOut'); k(tg + 0.5, { 'torso.lean': 0.02 }); k(tg + 1.1, { 'torso.lean': 0 }); }, { label: 'the spear held out' }); void sd; };
 I_.TAKE = (X, I, e) => {
-  const rid = I.actor, gid = I.target, p = I.params || {}, tg = X.q(p.at), [, rs] = (p.to || rid + ':R').split(':'), [, gs] = (p.from || gid + ':R').split(':');
+  const rid = I.actor, gid = I.target, p = I.params || {}, tg = X.q(gripTime(X, I)), [, rs] = (p.to || rid + ':R').split(':'), [, gs] = (p.from || gid + ':R').split(':');
   const reach = p.reach || 0.55, hold = 3 / X.F;
   X.look(rid, p.prop && X.S.objects && X.S.objects[p.prop] ? p.prop : gid, tg - reach - 0.35, e, { label: 'to the spear', noFeet: true });
   X.after((X2, C0) => {
@@ -216,8 +227,8 @@ I_.GAMBLE = (X, I, e) => { const id = I.actor, p = I.params || {}, sd = holdsSid
 I_.DRINK = (X, I, e) => { const id = I.actor, sd = (I.params || {}).side || 'R';
   for (const t of (I.params || {}).at || [I.t0]) X.move(id, 'act', 'DRINK', e, k => { k(t, { ['arm.' + sd + '.pitch']: X.sheet.rel(0), 'head.pitch': X.sheet.rel(0) }); k(t + 0.5, { ['arm.' + sd + '.pitch']: { abs: -2.0 }, 'head.pitch': -0.12 }); k(t + 1.0, { ['arm.' + sd + '.pitch']: { abs: -2.2 }, 'head.pitch': -0.18 }, 'linear'); k(t + 1.5, { ['arm.' + sd + '.pitch']: { abs: -0.5 }, 'head.pitch': 0.02 }); k(t + 1.9, { ['arm.' + sd + '.pitch']: 0, 'head.pitch': 0 }); }, { label: 'the cup' }); };
 /* REACT params.to: a stimulus id (or ids); params.how: laugh | lean | nod | flinch | startle | turn; latency X.θ.latency scaled */
-I_.REACT = (X, I, e) => { const id = I.actor, p = I.params || {}, a = X.θ.amp, how = p.how || 'nod';
-  const t = I.t0; const dl = X.cl(X.θ.latency * (p.latencyScale || 1), 0.04, 1.5), tt = t + dl;
+I_.REACT = (X, I, e) => { const id = I.actor, p = I.params || {}, a = X.ampOf(I), how = p.how || 'nod';
+  const t = I.t0; const dl = X.cl(X.θ.latency * (p.latencyScale || 1) * (1 + 0.6 * X.aff(id).fear), 0.04, 1.5), tt = t + dl;
   const lbl = p.label || how;
   if (p.lookAt) X.look(id, p.lookAt, tt - 0.05, e, { label: 'to ' + Score.short(p.lookAt), noFeet: !p.feet });
   X.move(id, 'react', how.toUpperCase(), e, k => {

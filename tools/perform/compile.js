@@ -37,6 +37,7 @@ const PARAMS = {
   affordance: { label: 'prop affordance weight', unit: '', lo: 0, hi: 1.5, def: 0.7 },
   env: { label: 'environment response', unit: 'x', lo: 0, hi: 2, def: 1.0 },
   horizon: { label: 'action-selection horizon', unit: 's', lo: 1, hi: 3, def: 2.0 },
+  focus: { label: 'focus on the principals (background amplitude x (1 - focus))', unit: '', lo: 0, hi: 0.8, def: 0.2 },
 };
 const defaults = () => Object.fromEntries(Object.entries(PARAMS).map(([k, p]) => [k, p.def]));
 
@@ -91,7 +92,7 @@ function compile(M, S, opts = {}) {
   const ids = B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis));
   const H = id => (M.H && M.H[id]) || 60, aff = id => Object.assign({ fear: 0, weight: 1, suspicion: 0, cunning: 0, heat: 1 }, ((S.actors || {})[id] || {}).affect || {});
   const scale = M.scale || 1, stud = 20 * scale;
-  const solvers = [], busyArms = {};
+  const solvers = [], busyArms = {}, principals = new Set(Object.entries(S.actors || {}).filter(([, a]) => a.principal).map(([k]) => k));
   /* the blocking's own pose (no sheet) at t, forward-kinematic points cached per drawing */
   const bcache = new Map();
   const bpose = (id, t) => { const k = id + '@' + q(t); if (!bcache.has(k)) bcache.set(k, Body.sample(bctx, id, q(t))); return bcache.get(k); };
@@ -122,7 +123,15 @@ function compile(M, S, opts = {}) {
   /* a move: keys on one actor's layer, recorded as an ACTION with the body lanes it moves, caused by `why` */
   function move(id, layer, kind, why, fn, o = {}) {
     /* a value {abs: v} is the joint's absolute angle: the offset over the blocking's own pose at that drawing */
-    sheet.begin(); const keys = []; const k = (t, vals, ease) => { const vv = {}; for (const [c, v] of Object.entries(vals)) vv[c] = v && typeof v === 'object' && v.abs != null ? v.abs - baseOf(id, c, t) : v; keys.push({ t: q(t), vals: vv }); sheet.key(id, layer, t, vv, ease); };
+    /* a heavier body (affect.weight > 1) takes longer to start and stop: the move's keys stretched about its first by sqrt(weight);
+       an actor's heat (affect.heat) scales how far it moves (absolute targets excepted) */
+    /* the amplitude of the expressive layers (acting, reactions, weight): the compiler's amp, the actor's heat, and focus (a figure
+       the scene does not name as a principal moves x (1 - focus)); gaze, walks, grips and machinery keep their geometry */
+    const expressive = ['act', 'react', 'weight'].includes(layer) && !o.rigid, prin = principals.size === 0 || principals.has(id);
+    const W = Math.sqrt(Math.max(0.3, aff(id).weight || 1)), heat = (aff(id).heat == null ? 1 : aff(id).heat) * (expressive ? θ.amp * (prin ? 1 : 1 - θ.focus) : 1); let tFirst = null;
+    sheet.begin(); const keys = []; const k = (t, vals, ease) => { if (tFirst == null) tFirst = t; if (W !== 1 && !o.rigid) t = tFirst + (t - tFirst) * W;
+      const vv = {}; for (const [c, v] of Object.entries(vals)) vv[c] = v && typeof v === 'object' && v.abs != null ? (v.abs - baseOf(id, c, t)) * (o.exact ? 1 : heat) : (heat !== 1 && typeof v === 'number' && !/^root\.[xyz]$/.test(c) ? v * heat : v);
+      keys.push({ t: q(t), vals: vv }); sheet.key(id, layer, t, vv, ease); };
     try { fn(k); } finally { sheet.end(); }
     if (!keys.length) return null;
     const t0 = Math.min(...keys.map(x => x.t)), t1 = Math.max(...keys.map(x => x.t)), chs = new Set(keys.flatMap(x => Object.keys(x.vals)));
@@ -162,7 +171,11 @@ function compile(M, S, opts = {}) {
 
   /* ── the context the intents write through ── */
   const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, baseOf, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
-    after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c) };
+    after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c),
+    /* an intent's amplitude: the compiler's amp x the intent's own params.amp */
+    ampOf: I => ((I && I.params && I.params.amp) || 1),   /* the intent's own amplitude; the compiler's amp is applied to every expressive move */
+    /* the exits an afraid actor looks to first: the scene's objects of kind door */
+    exits: () => Object.entries(S.objects || {}).filter(([, o]) => o.kind === 'door' || o.exit).map(([k]) => k) };
 
   /* 1. VOICE: every clip on the clock; a spoken line is an UTTERANCE {speaker, addressee, phrases, stress, speech_act, affect, goal} */
   const clips = (M.clips || []).filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
@@ -176,6 +189,10 @@ function compile(M, S, opts = {}) {
     X.utter[c.gi] = { ev: u, c, V };
     if (spoken) V.phrases.forEach((p, i) => ev({ id: 'v' + c.gi + 'p' + (i + 1), lane: 'VOICE', actor: who, t0: p.t0, t1: p.t1, kind: 'PHRASE', label: String(i + 1), because: [{ id: u.id, latency: r3(p.t0 - u.t0) }], derived: true }));
   }
+  /* the camera lane's requests (a patch's: follow the causal hot spot; elide effects so the audience completes them): recorded as
+     CAMERA events for the cut; the take's own shot plan is not rewritten by the engine */
+  if (A.camera && A.camera.follow) ev({ lane: 'CAMERA', t0: 0, t1: T, kind: 'FOLLOW', label: 'the camera to the causal hot spot (a request to the cut)', derived: false });
+  if (A.camera && A.camera.elide) ev({ lane: 'CAMERA', t0: 0, t1: T, kind: 'ELIDE', label: 'cut before effects: the audience completes them (a request to the cut)', derived: false });
   /* the cut: the camera lane (for the media temperature) */
   for (const s of M.cut || []) ev({ lane: 'CAMERA', t0: s.t0, t1: s.t0 + s.dur, kind: s.kind, label: 'shot', derived: true });
   /* the blocking's key windows: the layout pass moves a figure from mark to mark; an authored intent may own that move */

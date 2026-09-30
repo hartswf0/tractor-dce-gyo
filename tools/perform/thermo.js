@@ -18,7 +18,8 @@
    NOT thermodynamics): per drawing, from the film's cut: whether the hottest thing (motion + causal) is on screen, how large (shot
    scale), and whether cause and effect are both shown or a cut elides one (the audience completes it: cooler).
 
-   THERMAL CONTRAST C_T per drawing: hottest minus ambient (the median) over the figures on stage: drama is contrast, not mean motion.
+   THERMAL CONTRAST C_T per drawing: the hottest figure on screen minus the ambient (the median of everyone on stage): drama is
+   contrast, what the shot shows hot against the room, not mean motion.
    A cut is a discontinuity in what is shown hot: recorded per cut. VIABILITY V per drawing: joint requests past the limits, parts
    inside parts, feet sliding, balance lost, a prop jumping between hands (tools/perform/metrics.js), weighted; viable if V < 0.05. */
 'use strict';
@@ -149,12 +150,16 @@ function thermo(Tr, S, o = {}) {
     /* a cause and its effect: both inside this shot, or split by a cut (the audience completes the link) */
     const shotId = fr.cam && fr.cam.shot, t = i / F; let elided = 0, links = 0;
     for (const e of causal) { if (t < e.t0 || t > e.t0 + 1.0) continue; for (const b of e.because) { const c = E.find(x => x.id === b.id); if (!c || !c.actor || c.actor === e.actor) continue; links++; const ic = Math.max(0, Math.min(n - 1, Math.round(c.t0 * F))); const sc = frames[ic].cam && frames[ic].cam.shot; if (sc !== shotId) elided++; } }
-    const spec = links ? 1 - elided / links : 1;
-    Tmedia[i] = 0.45 * size + 0.35 * shown + 0.2 * spec;
+    let spec = links ? 1 - elided / links : 1;
+    /* the camera lane's requests (compile.js CAMERA FOLLOW / ELIDE): as the cut would be if it honoured them */
+    const cam = (S.authored && S.authored.camera) || {}; let sz = size, sh = shown; if (cam.follow) { sh = 1; sz = Math.max(sz, 0.5); } if (cam.elide) spec *= 0.3;
+    Tmedia[i] = 0.45 * sz + 0.35 * sh + 0.2 * spec;
     if (i > 0 && frames[i - 1].cam && fr.cam && frames[i - 1].cam.shot !== fr.cam.shot) cuts.push({ t: r3(t), from: frames[i - 1].cam.shot, to: fr.cam.shot, hotBefore: hot[i - 1], hotAfter: best }); }
   /* 4. contrast and viability */
   const CT = new Float32Array(n), Tmean = new Float32Array(n), V = new Float32Array(n), viol = o.viol || null;
-  for (let i = 0; i < n; i++) { const xs = ids.filter(id => frames[i].a[id]).map(id => T[id][i]).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1]; CT[i] = xs[xs.length - 1] - med; Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }
+  /* C_T: the hottest figure the shot shows, against the room's temperature (the median of everyone on stage) */
+  for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
+    const shown = here.filter(id => frames[i].a[id].on !== false).map(id => T[id][i]); CT[i] = Math.max(0, (shown.length ? Math.max(...shown) : xs[xs.length - 1]) - med); Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }
   for (const c of cuts) { const i = Math.round(c.t * F); c.dT = r3((CT[i] || 0) - (CT[Math.max(0, i - 1)] || 0)); c.transfer = c.hotBefore !== c.hotAfter; }
   /* 5. the field: nodes splatted on a floor grid over the set, one grid a second */
   const box = (M.pieces || []).filter(p => /floor|plate|sea|stage/.test(p.label)).map(p => p.box)[0] || [-300, 0, -300, 300, 10, 300], G = 24, field = [];

@@ -33,7 +33,7 @@ const TYPES = { dialogue: { H1: 'cool', H2: 'warm', H3: 'warm', H4: 'zero' }, fi
   revelation: { H1: 'near zero', H2: 'very hot', H3: 'very high', H4: 'zero' }, machinery: { H1: 'warm', H2: 'warm', H3: 'warm', H4: 'zero' } };
 function bandsFor(type) { const w = TYPES[type] || TYPES.dialogue; return Object.fromEntries(Object.entries(w).map(([k, x]) => [k, { word: x, band: WORD[k][x].slice() }])); }
 /* each unit's uniselector is wired to these compiler parameters */
-const WIRING = { H1: ['amp', 'pause', 'latency'], H2: ['horizon', 'affordance', 'attack', 'threat'], H3: ['pause', 'amp', 'env', 'camera'], H4: ['separation', 'amp'] };
+const WIRING = { H1: ['amp', 'pause', 'latency', 'focus'], H2: ['horizon', 'affordance', 'attack', 'threat'], H3: ['focus', 'pause', 'amp', 'env', 'camera'], H4: ['separation', 'amp'] };
 const POSITIONS = 25;
 /* position k of unit u: position 0 is where the scene stands (its current parameters); the rest a seeded draw over each parameter's
    range in 25 levels, as a uniselector's contacts are wired to a random table of resistances */

@@ -59,6 +59,8 @@ function measureSheet(s, C, S, events, o = {}) {
     series: { hz: 12, needles: es.series, Tm: Object.fromEntries(ids.map(id => [id, r(th.T[id])])), Sc: Object.fromEntries(Object.entries(th.Sc).map(([k, v]) => [k, r(v)])), Tc: r(th.Tc), Tmedia: r(th.Tmedia), CT: r(th.CT), V: r(th.V), hot: th.hot, onScreen: Object.fromEntries(ids.map(id => [id, Tr.frames.map(f => f.a[id] ? (f.a[id].on ? 1 : 0) : -1).join('')])) },
     eventHeat: th.eventHeat, cuts: th.cuts, field: th.field, causal: th.causal, objects: Object.fromEntries(Object.keys(S.objects || {}).map(k => [k, r(th.T[k] || [])])) };
 }
+const CHAINS = { default: ['make it more dramatic', 'less gesturing while they speak', 'cool this scene down', 'more fighting', 'focus this on the fight'],
+  'OD-B01-S03': ['make Telemachus more suspicious', 'less gesturing while they speak', 'make it more dramatic', 'keep the choreography but make Telemachus more afraid', 'cool this scene down'] };
 module.exports = { author, compileScene, marksOf, scoreF, sheetF, save, overridesOf, J, ROOT, measureSheet };
 if (require.main !== module) return;
 
@@ -86,6 +88,28 @@ if (require.main !== module) return;
     S.bands = res.bands; S.log = S.log || {}; S.log.homeostat = res.log; S.params = res.retained.params; S.homeostat = { stable: res.stable, retained: res.retained.n, attempts: res.log.length, at: new Date().toISOString().slice(0, 19) };
     S.events = res.ev.R.events; save(scoreF(sid), S, true); save(sheetF(sid), res.ev.R.sheet);
     console.log(res.stable ? 'stable at attempt ' + res.retained.n : 'not stable in ' + res.log.length + ' attempts; nearest kept (attempt ' + res.retained.n + ')', JSON.stringify(res.retained.params)); return; }
+  if (cmd === 'patch' || cmd === 'chain') {
+    const Pa = require('./patches.js'), Ho = require('./homeostat.js'), M = marksOf(sid);
+    const texts = cmd === 'patch' ? [args.slice(1).find(a => !/^OD-/.test(a) && !a.startsWith('--'))] : (opt('steps') ? opt('steps').split('|') : CHAINS[sid] || CHAINS.default);
+    let S = cmd === 'chain' ? author(sid, true) : J(scoreF(sid));
+    const ov = overridesOf(sid), steps = [];
+    let prev = Ho.evaluate(M, S, Object.assign(Compile.defaults(), S.params), { overrides: ov }), prevS = JSON.parse(JSON.stringify(S));
+    const snap = (ev, SS) => ({ essentials: { H1: ev.es.H1, H2: ev.es.H2, H3: ev.es.H3, H4: ev.es.H4 }, bands: SS.bands || Ho.bandsFor(SS.type), params: SS.params, metrics: { coverage: ev.m.summary.coverage, literal: ev.m.summary.literal, freeze: ev.m.summary.unmotivatedFreeze, gestureDensity: ev.m.summary.gestureDensity, latency: ev.m.summary.reactionLatency.median, diversity: ev.m.summary.diversity, handoffs: ev.m.summary.contact.handoffs.map(h => h.gap) },
+      timeline: ev.R.events.filter(e => ['INTENT', 'ACTION', 'CONTACT', 'PROP'].includes(e.lane) && !e.derived).map(e => [e.lane, e.actor, e.kind, e.t0, e.t1, e.label || '']), needles: ev.es.series });
+    steps.push({ text: '(as authored)', ...snap(prev, S) });
+    for (const text of texts) {
+      const r = Pa.apply(S, M, text, prev.es); if (!r) { console.log('no patch for', JSON.stringify(text)); steps.push({ text, error: 'no patch in the table' }); continue; }
+      let ev; if (!r.lock && S.bands) { const res = Ho.run(M, S, { overrides: ov, max: +opt('max', 30), bands: S.bands, say: x => process.stdout.write('.' ) }); ev = res.ev; S.params = res.retained.params; r.homeostat = { stable: res.stable, attempts: res.log.length, retained: res.retained.n, log: res.log.map(x => ({ n: x.n, positions: x.positions, reading: x.reading, out: x.out })) }; process.stdout.write('\n'); }
+      else ev = Ho.evaluate(M, S, Object.assign(Compile.defaults(), S.params), { overrides: ov });
+      const d = Pa.diff(prev.R.events, ev.R.events), body = Pa.bodyDiff(M, prev.R.sheet, ev.R.sheet);
+      const intentsShifted = d.shifted.filter(x => x.lane === 'INTENT').length;
+      steps.push({ text, patch: r.row, did: r.did, lock: r.lock, homeostat: r.homeostat || null, diff: { counts: d.counts, added: d.added.slice(0, 40), removed: d.removed.slice(0, 40), shifted: d.shifted.slice(0, 60), changed: d.changed, intentsShifted }, body, ...snap(ev, S) });
+      console.log(JSON.stringify(text), '->', r.row + ':', r.did); console.log('   diff', JSON.stringify(d.counts), 'intents shifted', intentsShifted, '| H', JSON.stringify(steps[steps.length - 1].essentials), r.homeostat ? (r.homeostat.stable ? 'stable after ' + r.homeostat.attempts : 'nearest of ' + r.homeostat.attempts) : 'locked');
+      prev = ev; prevS = JSON.parse(JSON.stringify(S)); }
+    if (cmd === 'chain') { save(path.join(SC, 'chains', sid + '.json'), { scene: sid, made: new Date().toISOString().slice(0, 10), note: 'five instructions applied in order to one score; each step: what the patch did, the homeostat\'s search, the timeline diff against the step before, the body diff (mean absolute channel change per actor), the essential variables and metrics after', steps });
+      save(path.join(SC, 'chains', sid + '.last.choreo.json'), prev.R.sheet); author(sid, true); }
+    else { S.events = prev.R.events; save(scoreF(sid), S, true); save(sheetF(sid), prev.R.sheet); }
+    return; }
   if (cmd === 'why') { const S = J(scoreF(sid)), E = Score.Events(S.events), who = args[2] && !/^OD-/.test(args[2]) ? args[2] : args[3], t = +args[args.length - 1];
     const w = E.why(who, t); console.log(w.text); for (const c of w.chain) console.log('  '.repeat(c.depth + 1) + c.lane.padEnd(9), c.kind.padEnd(16), (c.actor || '').padEnd(18), c.t0.toFixed(2) + '-' + c.t1.toFixed(2), c.latency != null ? '(+' + c.latency + ' s)' : '', c.label || ''); return; }
   console.log('see the header of tools/perform/perform.js'); process.exit(1);
