@@ -286,6 +286,9 @@ function plan(sid, opts = {}) {
   }
   /* R9: the same figure twice in a row changes size */
   for (let k = 1; k < shots.length; k++) { const a = shots[k - 1], b = shots[k]; if (a.primary && a.primary === b.primary && a.size === b.size && !['ACTION', 'TWO', 'WIDE', 'INSERT'].includes(a.kind) && !['ACTION', 'TWO', 'WIDE', 'INSERT'].includes(b.kind)) { const j = SIZES.indexOf(b.size); b.size = SIZES[j === 2 ? 1 : j + 1]; if (b.kind === 'WIDE' && b.size !== 'WIDE') b.kind = 'HOT'; b.why.rule += `; R9 not the same size as the shot before (${a.size})`; } }
+  /* R8: a giant lying down (a sprawl or a sleep in the sheet's procedures) is shot from above his body, not from the floor */
+  const lying = (id, t) => ((C.creatures || {})[id] || { procs: [] }).procs.some(p => p.type === 'preset' && /sprawl|sleep|lie|dead/.test(p.name) && t >= p.from && t <= p.to);
+  for (const sh of shots) if (sh.giant && lying(sh.giant, (sh.t0 + sh.t1) / 2)) { sh.angle = 'high'; sh.lying = true; sh.why.rule += '; the giant lies on the floor: the lens above him, the men beside him for size'; }
   /* R7: the beat of each shot (a blocking key) and its line */
   const keys = (C.keys || []).map(k => ({ id: k.id, t: k.t }));
   for (const sh of shots) { const kk = keys.filter(k => k.t <= sh.t0 + 0.01).pop(); sh.beat = kk ? kk.id : null; if (sh.line && (!sh.line[0] || !sh.line[1] || sh.line[0] === sh.line[1])) sh.line = null; }
