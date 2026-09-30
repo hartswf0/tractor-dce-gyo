@@ -36,7 +36,8 @@ module.exports = function author(M, X) {
   /* Scylla: coiled on her rock, the strike, the six lifted (riders on the jaws), held while the ship goes on */
   I({ id: 'iStrike', actor: S, kind: 'STRIKE', t0: tS, t1: T, label: 'six heads at once, down onto the benches', params: { targets: crew.slice(0, 6), lift: 5 }, because: [{ id: 'sStrike' }] });
   crew.forEach((m, k) => { const tg = q(tS + [0, 0.08, 0.03, 0.12, 0.05, 0.1][k % 6] + 0.36);
-    I({ id: 'iTaken' + k, actor: m, kind: 'STRUGGLE', t0: tg + 0.1, t1: Math.min(T, tg + 9), label: 'hands and feet in the air, calling his name', because: [{ id: 'iStrike' }] }); });
+    I({ id: 'iTaken' + k, actor: m, kind: 'STRUGGLE', t0: tg + 0.1, t1: Math.min(T, tg + 10 + 0.4 * k), label: 'hands and feet in the air, calling his name', because: [{ id: 'iStrike' }] });
+    if (tg + 10.6 + 0.4 * k < T) A.holds.push({ id: 'hTaken' + k, actor: m, t0: tg + 10.6 + 0.4 * k, t1: T, reason: 'lifeless in the jaws at the cave mouth', params: { weight: false }, because: [{ id: 'iTaken' + k }] }); });
   I({ id: 'iSee', actor: O, kind: 'REACT', t0: tS + 0.2, t1: tS + 1.6, label: 'the heads come from above, not from the rock face', params: { how: 'startle', lookAt: S }, because: [{ id: 'sStrike' }] });
   I({ id: 'iThreat', actor: O, kind: 'THREAT', t0: q(tS + 1.8), t1: q(tS + 4), target: S, label: 'the spear up at her: too high', params: { side: 'R' }, because: [{ id: 'iSee' }] });
   I({ id: 'iLook', actor: O, kind: 'ATTEND', t0: q(tS + 4.2), t1: q((cAfter ? cAfter.at : tS + 8) - 0.2), target: crew[0], label: 'watches them lifted, calling to him', because: [{ id: 'iStrike' }] });
@@ -44,5 +45,7 @@ module.exports = function author(M, X) {
   const causal = { tau: 0.7, actions: {
     [O]: [{ a: 'steady the crew', base: 0.2, f: { 'after:sC0': 1.2, 'after:sC2': -1 } }, { a: 'arm and search the rock', base: -2, f: { 'after:sC2': 3.0, 'after:sStrike': -3 } }, { a: 'strike back', base: -3, f: { 'after:sStrike': 2.6 } }, { a: 'weep', base: -3.4, f: { 'after:sC4': 4 } }],
     ...Object.fromEntries(crew.map(m => [m, [{ a: 'row', base: 1.0, f: { 'after:sStrike': -4 } }, { a: 'look to the whirlpool', base: -1.2, f: { 'threat:odysseus': 0, 'after:sC0': 1.2 } }, { a: 'struggle in the jaws', base: -4, f: { 'after:sStrike': 6 } }]])) } };
+  /* the director's options first, the first score's generic ones after them (both are the scene's: the entropy is over all) */
+  for (const [id, acts] of Object.entries((A.causal || {}).actions || {})) causal.actions[id] = (causal.actions[id] || []).concat(acts.filter(a => !causal.actions[id] || !causal.actions[id].some(b => b.a === a.a)));
   return { ...base, type: 'fight', title: 'Scylla' + (frozen ? ' (uniselectors held)' : ''), authored: { ...A, coupled, causal } };
 };
