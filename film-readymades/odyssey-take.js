@@ -217,7 +217,7 @@ function ropeLive(t){for(const m of (T.ropeMeshes||[])){m.parent&&m.parent.remov
   const binds=R.filter(r=>r.how==='bind'&&r.at===b.who),hauls=R.filter(r=>r.how==='haul'&&r.at===b.who);if(!binds.length)return;
   const b0=Math.min(...binds.map(r=>r.t0)),b1=Math.max(...binds.map(r=>r.t1));if(t<b0)return;const prog=cl01((t-b0)/Math.max(0.1,b1-b0));
   scene.updateMatrixWorld(true);const feet=a.rig.pos.clone(),head=kfHead(b.who),tall=Math.max(1,head.y-feet.y),torso=a.rig.torsoP.getWorldPosition(new V3());
-  const P=new V3(b.post[0],0,b.post[1]),rf=0.2*tall,rp=0.07*tall,th=0.011*tall,mat=T.ropeMat||(T.ropeMat=new THREE.MeshStandardMaterial({color:'#6f5230',roughness:0.95}));
+  const P=new V3(b.post[0],0,b.post[1]),rf=0.2*tall,rp=0.07*tall,th=0.011*tall,mat=T.ropeMat||(T.ropeMat=new THREE.MeshStandardMaterial({color:'#4a3218',roughness:1}));
   const pts=[];for(const f of (b.at||[0.72,0.5,0.22])){const y0=feet.y+tall*f,F=(f>0.45?torso:feet).clone();F.y=0;const d=P.clone().sub(F),L=Math.max(1e-3,d.length()),u=d.clone().divideScalar(L),n=new V3(-u.z,0,u.x);
     const sh=T.choreo.ship&&T.choreo.ship(),Pm=sh?new V3(b.post[0],y0,b.post[1]).applyQuaternion(sh.Q).add(sh.off).setY(0):P;   /* the mast rolls with the hull */
     for(let turn=0;turn<2;turn++)for(let i=0;i<=24;i++){const w=i/24,ang=w*Math.PI*2,y=y0+(turn+w-1)*0.03*tall;
