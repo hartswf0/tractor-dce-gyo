@@ -186,4 +186,27 @@ K.CHANGE = (X, I, e) => { const p = I.params || {}, man = p.man, tS = X.q(p.at !
     for (const [c, v] of [['root.x', at[0]], ['root.y', at[1]], ['root.z', at[2]], ['root.h', h]]) A.channels[c + '@span'] = [[X.r3(tA), X.r3(v), 'step'], [X.r3(tS), X.r3(v), 'step']];
     X.ev({ lane: 'SET/VEHICLE', actor: I.actor, t0: X.r3(tA), t1: X.r3(tS), kind: 'IN-BETWEEN', label: 'the ' + A.kind + "'s face on " + man + ' (one drawing on twos before the swap)', because: [{ id: ev1.id, latency: 0 }], params: { man, at: at.map(X.r3), scale: sc } }); });
   return ev1; };
+/* ═════ a beast's small acts (Argos, and any quadruped with ears and a tail): almost no motion, all of it meant ═════ */
+/* WATCH {target, params: every}: the head kept on a figure as it moves (re-aimed every half second), the ears pricked at the start */
+K.WATCH = (X, I, e) => { const p = I.params || {}, dt = p.every || 0.5, t0 = I.t0, t1 = I.t1, yaw = [[t0, 0]], pit = [[t0, 0]];
+  for (let t = t0 + 0.8; t <= t1 + 1e-6; t += dt) { const b = bearing(X, I.actor, I.target, t); if (!b) continue; yaw.push([r3(t), Math.max(-1.1, Math.min(1.1, b.yaw))]); pit.push([r3(t), p.lift != null ? p.lift : 0.35]); }
+  const back = p.hold ? [] : [[r3(t1 + (p.release || 1.2)), 0]];
+  return X.cmove(I.actor, 'WATCH', e, { keys: { 'head.yaw@watch': yaw.concat(back), 'head.pitch@watch': pit.concat(back), 'ear.L@watch': [[t0, 0], [t0 + 0.5, -0.35], [t1, -0.25]].concat(back), 'ear.R@watch': [[t0 + 0.05, 0], [t0 + 0.55, -0.35], [t1, -0.25]].concat(back) } }, { label: I.label || 'the head lifted to ' + I.target }); };
+/* EARS {params: how drop|prick, dur}: both ears laid back (the fawning of a dog that cannot rise) or pricked */
+K.EARS = (X, I, e) => { const v = (I.params || {}).how === 'prick' ? -0.35 : 1.05, t0 = I.t0, t1 = I.t1;
+  return X.cmove(I.actor, 'EARS', e, { keys: { 'ear.L@ears': [[t0, 0], [t0 + 0.4, v, 'out'], [t1, v * 0.9]], 'ear.R@ears': [[t0 + 0.08, 0], [t0 + 0.5, v, 'out'], [t1, v * 0.9]] } }, { label: I.label || 'the ears ' + ((I.params || {}).how || 'dropped') }); };
+/* WAG {params: period, amp, fade (0..1: how much of the swing is left at the end), lift}: the tail beating from side to side */
+K.WAG = (X, I, e) => { const p = I.params || {}, P = p.period || 0.5, A0 = p.amp || 0.45, f = p.fade != null ? p.fade : 0.4, t0 = I.t0, t1 = I.t1, yaw = [[t0, 0]];
+  for (let t = t0 + P / 4, k = 0; t < t1; t += P / 2, k++) { const u = (t - t0) / Math.max(0.1, t1 - t0), a = A0 * (1 - (1 - f) * u); yaw.push([r3(t), (k % 2 ? -1 : 1) * a]); }
+  yaw.push([r3(t1 + 0.3), 0]);
+  return X.cmove(I.actor, 'WAG', e, { keys: { 'tail.yaw@wag': yaw, 'tail.pitch@wag': [[t0, 0], [t0 + 0.4, p.lift != null ? p.lift : 0.25], [t1, (p.lift != null ? p.lift : 0.25) * f], [t1 + 0.4, 0]] } }, { label: I.label || 'the tail wags' }); };
+/* BREATHE {params: period, depth}: the slow breath of a beast lying down (stopped by a DIE after it) */
+K.BREATHE = (X, I, e) => { const p = I.params || {}, P = p.period || 2.4, d = (p.depth || 2.5) * (X.creatures[I.actor].scale || 1), k = [[I.t0, 0]];
+  for (let t = I.t0 + P / 2, up = 1; t <= I.t1; t += P / 2, up ^= 1) k.push([r3(t), up ? d : 0]); k.push([r3(I.t1 + 0.3), 0]);
+  return X.cmove(I.actor, 'BREATHE', e, { keys: { 'body.dy@breath': k } }, { label: I.label || 'the slow breath' }); };
+/* DIE (a beast) {params: roll, sink}: the head goes down to the ground, the ears and the tail slacken, the body rolls onto its side; no
+   breath after (a HOLD with the reason 'dead' keeps it) */
+K.DIE = (X, I, e) => { const p = I.params || {}, t0 = I.t0, t1 = Math.max(I.t1, t0 + 2.2), r = p.roll != null ? p.roll : 1.2;
+  return X.cmove(I.actor, 'DIE', e, { keys: { 'head.pitch@die': [[t0, 0], [t0 + 1.4, -(p.sink || 0.55), 'in']], 'head.yaw@die': [[t0, 0], [t1, -0.15]], 'ear.L@die': [[t0, 0], [t0 + 1, 0.5]], 'ear.R@die': [[t0, 0], [t0 + 1.1, 0.5]],
+    'tail.pitch@die': [[t0, 0], [t0 + 1.2, -0.3]], 'root.roll@die': [[t0 + 0.6, 0], [t1, r, 'in']], 'body.dy@die': [[t0 + 0.6, 0], [t1, -4 * (X.creatures[I.actor].scale || 1)]] } }, { label: I.label || 'dies' }); };
 module.exports = Object.assign(K, { place, placeAt, cstate, pointOf });
