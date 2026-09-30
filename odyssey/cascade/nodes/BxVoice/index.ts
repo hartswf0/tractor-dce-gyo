@@ -3,7 +3,7 @@
    (an expression, $T) and gives the graph: the amplitude now, the seconds of voice so far (the integral of the envelope), the
    words being spoken and how far through them, the segment's number, and whether anyone is speaking. */
 import type { NodeDefinition, NodeExecutionContext } from 'cascade/contracts';
-import { decodeJson } from '../../lib/choreo';
+import { asciiJson } from '../../lib/mosaic';
 
 export const definition = {
   apiVersion: 1,
@@ -31,7 +31,7 @@ export const definition = {
 type Track = { rate: number; env: string; total: number; segments: { start: number; dur: number; text: string; kind: string }[] };
 
 export async function execute(context: NodeExecutionContext<typeof definition>) {
-  const { props } = context, v = decodeJson<Track>(await context.capabilities.assets.read(props.track, { signal: context.signal }));
+  const { props } = context, v = asciiJson<Track>(await context.capabilities.assets.read(props.track, { signal: context.signal }));
   const n = v.env.length >> 1, at = (i: number) => parseInt(v.env.slice(2 * i, 2 * i + 2), 36) / 1295;
   const x = props.time * v.rate, i0 = Math.floor(x), f = x - i0;
   const amp = i0 < 0 || i0 >= n ? 0 : at(i0) * (1 - f) + (i0 + 1 < n ? at(i0 + 1) : 0) * f;

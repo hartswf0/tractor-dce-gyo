@@ -1,9 +1,11 @@
 /* project.BxLego — every frame a buildable LEGO mosaic. The mosaic is resampled to a tile grid (cover-fitted, the mean
-   darkness of the cells under each stud), the ink levels mapped to real LEGO colours (lib/mosaic.ts legoRamp: White, Tan,
+   darkness of the cells under each stud, printed through Halfworld's ink law: the floor and the S-curve that push a mean toward
+   paper or ink, as the halftone does), the ink levels mapped to real LEGO colours (lib/mosaic.ts legoRamp: White, Tan,
    Light Bluish Grey, Dark Tan, Dark Bluish Grey, Black), one 1 x 1 round tile (98138) per stud on 48 x 48 baseplates (4186).
-   The info output counts the pieces: tiles per colour, plates, the total. */
+   The info output counts the pieces: tiles per colour, plates, the total. With a filename the grid is also written as a JSON asset
+   (rows of LDraw colour codes), which tools/beflix_kit.py builds in LDraw parts. */
 import type { NodeDefinition, NodeExecutionContext } from 'cascade/contracts';
-import { clampLevel, legoColor, legoRamp, orBlank, type Lego } from '../../lib/mosaic';
+import { clampLevel, inkGrade, legoColor, legoRamp, orBlank, type Lego } from '../../lib/mosaic';
 
 export const definition = {
   apiVersion: 1,
@@ -11,15 +13,18 @@ export const definition = {
   description: 'The mosaic as 1 x 1 round LEGO tiles on 48 x 48 baseplates, at a chosen resolution, with a live parts count.',
   icon: 'Blocks',
   runsOn: 'portable',
+  capabilities: ['assets'],
   inputs: { field: { kind: 'data', type: 'project.mosaic' } },
   props: {
     studs: { type: 'vec2i', default: [96, 64], min: 8, max: 512, label: 'Studs across, down' },
-    ramp: { type: 'string', default: 'paper', control: 'select', options: ['paper', 'grey', 'two'], label: 'Colour ramp' }
+    ramp: { type: 'string', default: 'paper', control: 'select', options: ['paper', 'grey', 'two'], label: 'Colour ramp' },
+    law: { type: 'bool', default: true, label: "Halfworld's ink law on each stud" },
+    filename: { type: 'string', default: '', label: 'Write the tile grid as JSON (empty: do not)' }
   },
   outputs: { lego: { kind: 'data', type: 'project.lego' }, info: { kind: 'data', type: 'object' } }
 } as const satisfies NodeDefinition;
 
-export function execute(context: NodeExecutionContext<typeof definition>) {
+export async function execute(context: NodeExecutionContext<typeof definition>) {
   const m = orBlank(context.inputs.field), [w, h] = context.props.studs.map(v => Math.max(1, Math.round(v))) as [number, number];
   const ramp = legoRamp(context.props.ramp);
   /* cover: the scale that fills the tile grid, the source window centred */
@@ -33,7 +38,7 @@ export function execute(context: NodeExecutionContext<typeof definition>) {
       const k = (Math.min(cx + 1, a1) - Math.max(cx, a0)) * (Math.min(cy + 1, b1) - Math.max(cy, b0));
       if (k > 0) { sum += m.ink[cy * m.w + cx] * k; wt += k; }
     }
-    const code = ramp[clampLevel(wt ? sum / wt : 0)];
+    const d = wt ? sum / wt / 7 : 0, code = ramp[clampLevel((context.props.law ? (d < 0.2 ? 0 : inkGrade(d)) : d) * 7)];
     colors[y * w + x] = code; counts[code] = (counts[code] || 0) + 1;
   }
   const plates: [number, number] = [Math.ceil(w / 48), Math.ceil(h / 48)];
@@ -41,4 +46,10 @@ export function execute(context: NodeExecutionContext<typeof definition>) {
   context.outputs.lego.set(lego);
   const tiles = Object.entries(counts).map(([code, n]) => ({ code: +code, name: legoColor(+code).name, part: '98138', n })).sort((a, b) => b.n - a.n);
   context.outputs.info.set({ studs: [w, h], plates: plates[0] * plates[1], platesAcross: plates, platePart: '4186', tilePart: '98138', tiles, tileCount: w * h, pieces: w * h + plates[0] * plates[1] });
+  if (context.props.filename) {
+    const rows: number[][] = []; for (let y = 0; y < h; y++) rows.push(Array.from(colors.subarray(y * w, y * w + w)));
+    const s = JSON.stringify({ studs: [w, h], ramp: context.props.ramp, rows });
+    const bytes = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
+    await context.capabilities.assets.write(bytes, { mediaType: 'application/json', suggestedName: context.props.filename }, { signal: context.signal });
+  }
 }

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
-    "check:graphs": "for g in kit attention clocks forbidden facing; do cascade check $g.cascade || exit 1; done",
+    "check:graphs": "for g in kit attention clocks forbidden facing beflix; do cascade check $g.cascade || exit 1; done",
     "extract": "node tools/extract.cjs && python3 tools/clashes.py",
     "build": "node tools/build.mjs",
     "media": "node tools/media.mjs",

@@ -10,7 +10,7 @@
    quantizer inverted (inkLevel(l) paints grey 255 - l*255/7, so a cell of grey g holds l = round((255 - g) * 7 / 255)), and
    a cell no member painted is transparent (stored as 8).
 
-   Writes assets/beflix/sirens.json: per layer a few states, each cropped to its ink box and run-length coded (a run is one
+   Writes assets/beflix/plates/<layer>.json: per layer a few states, each cropped to its ink box and run-length coded (a run is one
    pair of base-36 characters, code = length * 9 + level, see lib/mosaic.ts decodeRuns), and contact PNGs into renders/bake/
    (not committed). Close shots (SHOTS) are whole-stage plates re-drawn larger and cropped, as Halfworld's camera frames.
 
@@ -161,7 +161,10 @@ for (const S of SHOTS) {
   }
 }
 await browser.close(); srv.close();
-fs.mkdirSync(path.join(here, 'assets', 'beflix'), { recursive: true });
-const file = path.join(here, 'assets', 'beflix', 'sirens.json');
-fs.writeFileSync(file, JSON.stringify(doc));
-console.log(`${path.relative(here, file)}: ${(fs.statSync(file).size / 1024).toFixed(1)} KB`);
+/* one file a layer, so a plate node parses only its own layer at each frame */
+const dir = path.join(here, 'assets', 'beflix', 'plates'); fs.mkdirSync(dir, { recursive: true });
+for (const [id, layer] of Object.entries(doc.layers)) {
+  const file = path.join(dir, id + '.json');
+  fs.writeFileSync(file, JSON.stringify({ note: doc.note, source: doc.source, mosaic: doc.mosaic, cellPixels: doc.cellPixels, layers: { [id]: layer } }));
+  console.log(`${path.relative(here, file)}: ${(fs.statSync(file).size / 1024).toFixed(1)} KB`);
+}

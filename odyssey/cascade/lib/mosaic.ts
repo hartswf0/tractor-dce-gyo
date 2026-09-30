@@ -45,6 +45,14 @@ export function hash2(x: number, y: number, seed: number): number {
   return (h >>> 0) / 4294967296;
 }
 
+/* the baked assets are ASCII JSON (tools/bake_*.mjs write no other character), so bytes become a string a chunk at a time and
+   are parsed directly, without the UTF-8 round trip */
+export function asciiJson<T>(bytes: Uint8Array): T {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + 8192)));
+  return JSON.parse(s) as T;
+}
+
 /* the baked plates' run-length code (tools/bake_halfworld.mjs): two base-36 characters per run, code = length * 9 + value,
    value 0-7 an ink level and 8 a cell no Halfworld program painted */
 export function decodeRuns(runs: string, n: number): Uint8Array {
