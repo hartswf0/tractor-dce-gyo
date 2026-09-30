@@ -58,7 +58,8 @@ Props added to `odyssey/keyframes/props.json`: `dung` (a heap over the stake), `
 the location's collider boxes, and lists runs of three drawings or more of: the lens inside a figure (`cam-in-figure`) or a set piece
 (`cam-in-set`), two figures through each other (`in-figure`), feet on a head (`on-head`), an upright figure over (`float`) or under
 (`sunk`) the highest surface beneath it, and shots with no figure in frame (`empty-wide`, `empty-shot`: an OBJ insert of a prop may be
-right). The support test uses collider boxes (a bench, a hull, a rock's box), so `float` and `sunk` are candidates to look at, not
+right). `cam-in-set` reads every piece's colliders whether or not a key hides the piece: a lens inside a hidden baked giant
+(OD-B09-S08 51-60 s, `polyphemus`) is no defect. The support test uses collider boxes (a bench, a hull, a rock's box), so `float` and `sunk` are candidates to look at, not
 verdicts: a man seated on a bench or standing in a hull's box shows as sunk. The table is the scan of the probes on record; the scenes
 whose blocking changed above are re-probed when they are prepared again.
 
