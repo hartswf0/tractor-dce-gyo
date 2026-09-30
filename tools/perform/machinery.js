@@ -68,11 +68,11 @@ MACH.ROWING = (X, m) => {
     for (let tc = t0 + off * P; tc < t1; tc += P, n++) { if (tc < t0 - 1e-6 || busy.some(([x, y]) => tc + P > x && tc < y)) continue;
       /* catch (arms forward, body forward) -> drive (arms back, body back, legs push) -> finish -> recovery */
       X.move(id, 'mech', 'STROKE', { id: clockEv.id, latency: r3(tc - t0), rel: 'on the clock' }, k => {
-        k(tc, { 'arm.R.pitch': -1.45 * a, 'arm.L.pitch': -1.45 * a, 'torso.lean': 0.22 * a, 'hips.dy': -0.4, 'head.pitch': 0.04 });
-        k(tc + P * 0.12, { 'arm.R.pitch': -1.2 * a, 'arm.L.pitch': -1.2 * a, 'torso.lean': 0.12 * a }, 'in');
-        k(tc + P * 0.42, { 'arm.R.pitch': -0.45 * a, 'arm.L.pitch': -0.45 * a, 'torso.lean': -0.16 * a, 'hips.dy': -1.4, 'head.pitch': -0.04 }, 'out');
-        k(tc + P * 0.55, { 'arm.R.pitch': -0.5 * a, 'arm.L.pitch': -0.5 * a, 'torso.lean': -0.14 * a });
-        k(tc + P * 0.99, { 'arm.R.pitch': -1.4 * a, 'arm.L.pitch': -1.4 * a, 'torso.lean': 0.2 * a, 'hips.dy': -0.4, 'head.pitch': 0.03 });
+        k(tc, { 'arm.R.pitch': { abs: -1.7 * a }, 'arm.L.pitch': { abs: -1.7 * a }, 'torso.lean': 0.22 * a, 'hips.dy': -0.4, 'head.pitch': 0.04 });   /* the catch: arms forward, the body forward */
+        k(tc + P * 0.12, { 'arm.R.pitch': { abs: -1.5 * a }, 'arm.L.pitch': { abs: -1.5 * a }, 'torso.lean': 0.12 * a }, 'in');
+        k(tc + P * 0.42, { 'arm.R.pitch': { abs: -0.55 * a }, 'arm.L.pitch': { abs: -0.55 * a }, 'torso.lean': -0.16 * a, 'hips.dy': -1.4, 'head.pitch': -0.04 }, 'out');   /* the drive: pulled through */
+        k(tc + P * 0.55, { 'arm.R.pitch': { abs: -0.6 * a }, 'arm.L.pitch': { abs: -0.6 * a }, 'torso.lean': -0.14 * a });   /* the finish */
+        k(tc + P * 0.99, { 'arm.R.pitch': { abs: -1.65 * a }, 'arm.L.pitch': { abs: -1.65 * a }, 'torso.lean': 0.2 * a, 'hips.dy': -0.4, 'head.pitch': 0.03 });   /* the recovery */
       }, { label: 'stroke ' + (n + 1) + ' (offset ' + (off >= 0 ? '+' : '') + off + ')', params: { phase: r3(off), force: r3(a) }, rigid: true }); }
     X.move(id, 'mech', 'SHIP OARS', clockEv, k => { k(t1, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0) }); k(t1 + 0.8, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0 }); }, { silent: true }); }
 };
@@ -99,7 +99,8 @@ MACH.SIRENS_CHAIN = (X, m) => {
     pv += pa * dt; p += pv * dt; rv += ra * dt; r += rv * dt; hv += ha * dt; h += hv * dt;
     if (Math.abs(t * 12 - Math.round(t * 12)) < 1e-6 || Math.abs((t * 12) % 1) < dt * 12 * 0.5) { const tq = r3(Math.round(t * 12) / 12); if (!out.pitch.length || out.pitch[out.pitch.length - 1][0] < tq - 1e-6) { out.pitch.push([tq, r3(p)]); out.roll.push([tq, r3(r)]); out.heave.push([tq, r3(h * X.scale)]); out.F.push([tq, r3(F)]); } } }
   X.rigs.ship = { type: 'ship', piece: S.piece, pivot: S.pivot, channels: { pitch: out.pitch.map(([t, v]) => [t, v, 'linear']), roll: out.roll.map(([t, v]) => [t, v, 'linear']), heave: out.heave.map(([t, v]) => [t, v, 'linear']) }, riders: S.riders };
-  const hull = X.ev({ id: 'hull', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'HULL', label: 'the ship answers the oars and the sea (pitch, roll, heave: a damped oscillator)', because: [{ id: R.id || 'clock:row', latency: 0 }], params: { omega: w, zeta: z } });
+  const seaEv = X.ev({ id: 'sea', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'SEA', label: 'the swell (two slow waves)', because: [] });
+  const hull = X.ev({ id: 'hull', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'HULL', label: 'the ship answers the sea and, from the first stroke, the oars (pitch, roll, heave: a damped oscillator)', because: [{ id: seaEv.id, latency: 0 }, { id: R.id || 'clock:row', latency: 0, rel: 'realises' }], params: { omega: w, zeta: z } });
   /* splashes at each catch (the oars into the water) */
   for (let t = (R.clock.t0 || 0); t < (R.clock.t1 || T); t += R.clock.period) X.ev({ lane: 'FX', t0: t + 0.1 * R.clock.period, t1: t + 0.35 * R.clock.period, kind: 'SPLASH', label: 'the oars bite the water', because: [{ id: R.id || 'clock:row', latency: r3(t - (R.clock.t0 || 0)) }] });
   /* the rope and Odysseus's strain, drawing by drawing */
