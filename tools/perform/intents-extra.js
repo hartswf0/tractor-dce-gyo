@@ -166,4 +166,12 @@ E_.PLUCK = (X, I, e) => { const id = I.actor, p = I.params || {}, t = I.t0, a = 
   X.move(id, 'act', 'PLUCK', e, k => { k(t - 0.3, { 'arm.R.pitch': rel(X), 'arm.R.out': rel(X), 'torso.roll': rel(X), 'head.pitch': rel(X) }); k(t, { 'arm.R.pitch': { abs: -1.3 }, 'arm.R.out': 0.12, 'torso.roll': 0.06, 'head.pitch': 0.12 }); k(t + 1 / X.F, { 'arm.R.out': 0.3 * a }, 'out');
     k(t + 0.6, { 'arm.R.out': 0.2, 'torso.roll': 0.09 }); k(I.t1, { 'arm.R.pitch': { abs: -1.2 }, 'arm.R.out': 0.05, 'torso.roll': 0, 'head.pitch': 0.05 }); }, { label: I.label || 'plucks the string' });
   X.ev({ id: p.soundId || ('pluck:' + id), lane: 'STIMULUS', t0: t + 0.05, t1: t + 1.2, kind: 'SOUND', label: 'the string sings like a swallow', actor: id, because: [{ id: e.id, latency: 0.05 }] }); };
+/* FASTEN {params: strokes}: seated, the body bent to the feet, both hands at the ankle binding a sandal (short crossing strokes), the
+   head bent to the work; one foot then the other (params.strokes each) */
+E_.FASTEN = (X, I, e) => { const id = I.actor, p = I.params || {}, n = p.strokes || 3, t0 = I.t0, t1 = I.t1, half = (t1 - t0 - 0.8) / 2;
+  X.move(id, 'act', 'FASTEN', e, k => { k(t0, { 'torso.lean': rel(X), 'head.pitch': rel(X), 'arm.R.pitch': rel(X), 'arm.L.pitch': rel(X), 'arm.R.out': rel(X), 'arm.L.out': rel(X) });
+    k(t0 + 0.5, { 'torso.lean': 0.34, 'head.pitch': 0.2, 'arm.R.pitch': { abs: -0.55 }, 'arm.L.pitch': { abs: -0.5 }, 'arm.R.out': -0.05, 'arm.L.out': -0.05 }, 'out');
+    for (let side = 0; side < 2; side++) for (let j = 0; j < n; j++) { const t = t0 + 0.6 + side * half + (j + 0.5) * half / n, u = j % 2 ? 1 : -1;
+      k(t, { 'arm.R.out': (side ? 0.12 : -0.12) + 0.06 * u, 'arm.L.out': (side ? 0.1 : -0.1) - 0.06 * u, 'arm.R.pitch': { abs: -0.5 + 0.06 * u } }, 'linear'); }
+    k(t1, { 'torso.lean': 0.3, 'arm.R.out': 0, 'arm.L.out': 0 }); k(t1 + 0.6, { 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }); }, { label: I.label || 'binds on the sandals' }); };
 module.exports = E_;
