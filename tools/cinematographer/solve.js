@@ -359,8 +359,16 @@ async function solve(plan, api) {
       const p = pos.map((v, q) => v + (tg[q] - v) * k);
       api.shoot({ pos: p, target: tg, fov: sh.fov });
     },
+    /* an audit of any cameras (the take's old shots, as tools/perform/probe.js read them, or this plan's): for each {t, pos, dir, fov}
+       whether the lens is inside geometry (L1), and for each figure and creature whether its head is in the frame and seen (L2, L3) */
+    audit(cams) { const out = []; for (const c of cams) { const key = api.poseAt(c.t); world(key); let pos, dir, fov;
+        if (c.pos) { pos = new V3(...c.pos); dir = new V3(...c.dir); fov = c.fov; } else { const s = S.shotAt(c.t); S.shoot(s, c.t); pos = camera.position.clone(); dir = camera.getWorldDirection(new V3()); fov = camera.fov; }
+        place(pos, fov, pos.clone().add(dir)); const ins = inside(pos); const who = {};
+        for (const id of [...api.cast(), ...Object.keys(creatures)]) { const p = points(id, c.t); if (!p) continue; const q = proj(p.creature ? p.eye : p.head); const inF = q[2] < 1 && q[0] > 0 && q[0] < 1 && q[1] > 0 && q[1] < 1; who[id] = { inFrame: inF, seen: inF ? !seen(p.creature ? p.eye : p.head, id) : false, v: +q[1].toFixed(2) }; }
+        out.push({ t: c.t, inside: ins[0] || null, who }); }
+      return out; },
     /* after OdysseyTake.frame(t): where the shot's subjects are on the frame (for marking a still) */
-    debug(t) { const s = S.shotAt(t), r = report.find(x => x.i === s.i); const key = api.poseAt(t); world(key); S.shoot(s, t); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+    debug(t) { if (Array.isArray(t)) return S.audit(t); const s = S.shotAt(t), r = report.find(x => x.i === s.i); const key = api.poseAt(t); world(key); S.shoot(s, t); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
       const marks = []; for (const id of r.subjects) { const p = points(id, t); if (!p) continue; for (const n of ['head', 'eye', 'crown', 'feet']) if (p[n]) { const q = proj(p[n]); marks.push({ id, n, u: q[0], v: q[1], z: q[2] }); } if (p.box) { const b = p.box; for (const x of [b.min, b.max]) { const q = proj(x); marks.push({ id, n: 'box', u: q[0], v: q[1], z: q[2] }); } } }
       return { report: r, marks }; },
   };

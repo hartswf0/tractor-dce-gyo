@@ -91,7 +91,7 @@ const SCENES = [
 ];
 const WRONG = [];
 (async () => {
-  const host = document.getElementById('scenes'); let html = '';
+  const host = document.getElementById('scenes'); let html = ''; let AUDIT = {}; try { AUDIT = await (await fetch('camera-audit.json')).json(); } catch (e) { }
   for (const S of SCENES) {
     let J = null; try { J = await (await fetch('../../films/odyssey/' + S.after + '.json')).json(); } catch (e) { }
     const R = J && J.take && J.take.cine;
@@ -99,6 +99,9 @@ const WRONG = [];
     html += `<div class="pair"><figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.before}.jpg" src="../../films/odyssey/${S.before}.mp4"></video><figcaption>Before: shots planned from the blocking (${S.before})</figcaption></figure>`;
     html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>After: shots chosen from the performance (${S.after})</figcaption></figure></div>`;
     html += `<h3>Contact sheets: one frame from the middle of every shot</h3><div class="pair"><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} before" src="media/camera-${S.id}-before.jpg"><figcaption>Before</figcaption></figure><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} after" src="media/camera-${S.id}-after.jpg"><figcaption>After</figcaption></figure></div>`;
+    const Au = AUDIT[S.id];
+    if (Au) { const row = (k, o) => `<tr><td>${k}</td><td class="t">${o.inside} of ${o.samples}</td><td class="t">${o.seen.polyphemus || 0} of ${o.samples}</td><td class="t">${o.seen.odysseus || 0} of ${o.samples}</td></tr>`;
+      html += `<h3>The same checks on both cuts, once a second</h3><div class="scroll"><table><thead><tr><th>cut</th><th>lens inside geometry</th><th>giant's eye in frame and seen</th><th>Odysseus's head in frame and seen</th></tr></thead><tbody>${row('before', Au.before)}${row('after', Au.after)}</tbody></table></div><p class="note">${esc(Au.rule)}. The one sample after that fails is inside the box of one of the giant's pieces while he breathes, between two of the shot's tested drawings.</p>`; }
     if (!R) { html += '<p class="note">The shot report appears here when the film is rendered.</p>'; continue; }
     const legal = R.shots.filter(s => s.legal).length;
     html += `<p class="note">${R.shots.length} shots, ${legal} legal on every check at every sample; media ${esc(R.media)}; direction: rhythm ${esc(R.direction && R.direction.cut_rhythm)}, hold ${esc(R.direction && R.direction.hold_min_s)} s, insert ${esc(R.direction && R.direction.insert_object || 'none')}. Solved in ${R.solvedIn} s.</p>`;
