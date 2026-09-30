@@ -20,7 +20,9 @@ const require = createRequire(path.join(here, 'node_modules', 'cascade', 'packag
 const { loadImage, createCanvas } = require('@napi-rs/canvas');
 /* the project's launcher: the CLI with its per-instance node compile serialized (tools/cascade.mjs); races below stay counted */
 const cli = path.join(here, 'tools/cascade.mjs');
-const { graphs } = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8'));
+/* --only <regex>: verify just the graphs whose name matches (a new rig desk), merged into verify.json over the last full run */
+const onlyI = process.argv.indexOf('--only'), only = onlyI > 0 ? new RegExp(process.argv[onlyI + 1]) : null;
+const graphs = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8')).graphs.filter(g => !only || only.test(g.name));
 const score = JSON.parse(fs.readFileSync(path.join(root, 'odyssey/cineosis/score.json'), 'utf8'));
 const signOf = id => { const s = score.scenes.find(x => x.id === id); return s ? { scene: id, title: s.title, sign: s.primary.symbol, signName: s.primary.name, question: s.primary.question } : { scene: id }; };
 
@@ -94,6 +96,14 @@ const CRITICS = {
       songInkPixels: sung.count, noSongInkPixels: unsung.count, voiceDrivenInkPixels: loud.count, voiceMutedInkPixels: mute.count, legoTanPixels: lego.count }; } },
 };
 
+/* the rig desk: is the choreography sheet what the graph says (an export now would change nothing), and does the rig's density,
+   computed from the graph in a second, stand within five points of the page's own measure (tools/choreograph.js)? */
+const { exportDesk } = await import('./rig_export.mjs'), { rigDensity } = await import('./rig_density.mjs');
+for (const g of graphs.filter(x => x.rig)) CRITICS[g.name] = { ask: 'Is the film playing what the director keyed: the sheet in step with the graph, and the rig\'s density close to the take\'s?', run: async () => {
+  const e = exportDesk(g.scene), d = rigDensity(g.scene).density, pf = path.join(root, `odyssey/choreo/density/${g.scene}.json`), page = fs.existsSync(pf) ? JSON.parse(fs.readFileSync(pf, 'utf8')).after : null;
+  const gap = page ? Math.abs(page.mean - d.mean) : 1;
+  return { ok: !e.changed && gap <= 0.05, sheetInStep: !e.changed, deskLanes: e.lanesOf, rigDensity: d.mean, pageDensity: page && page.mean, rigWorstStill: d.worstFrozen }; } };
+
 const report = { ran: new Date().toISOString(), cascade: JSON.parse(fs.readFileSync(path.join(here, 'node_modules/cascade/package.json'), 'utf8')).version, graphs: [] };
 let failed = 0;
 for (const g of graphs) {
@@ -116,6 +126,9 @@ for (const g of graphs) {
   console.log(`${r.ok ? 'ok  ' : 'FAIL'} ${g.name.padEnd(10)} check ${r.check ? 'passed' : 'FAILED'} · ${r.run.status} ${r.run.files ?? 0} frames, ${r.run.distinctFrames ?? 0} distinct, ${r.run.wallMs ?? '?'} ms · critic ${r.critic ? (r.critic.ok ? 'passed' : 'FAILED') : 'none'}`);
 }
 report.ok = failed === 0; report.compileRacesRetried = races;
+if (only && fs.existsSync(path.join(here, 'verify.json'))) { const prev = JSON.parse(fs.readFileSync(path.join(here, 'verify.json'), 'utf8')), mine = new Set(report.graphs.map(r => r.name)), order = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8')).graphs.map(g => g.name);
+  const all = prev.graphs.filter(r => !mine.has(r.name)).concat(report.graphs).sort((x, y) => order.indexOf(x.name) - order.indexOf(y.name));
+  Object.assign(report, { ran: prev.ran, partial: [...(prev.partial || []).filter(p => !mine.has(p.name)), ...report.graphs.map(r => ({ name: r.name, ran: new Date().toISOString() }))], graphs: all, ok: all.every(r => r.ok), compileRacesRetried: (prev.compileRacesRetried || 0) + races }); }
 fs.writeFileSync(path.join(here, 'verify.json'), JSON.stringify(report, null, 1) + '\n');
 console.log(failed ? `${failed} graph(s) failed` : 'every graph cooked, every output present, every critic answered');
 process.exit(failed ? 1 : 0);

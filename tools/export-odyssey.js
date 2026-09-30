@@ -73,7 +73,7 @@ async function optics(page, t, jpeg) {
   const { chromium } = require('playwright');
   const browser = await chromium.launch({ executablePath: chromiumPath, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--mute-audio', '--autoplay-policy=no-user-gesture-required'] });
   const page = await browser.newPage({ viewport: { width: W, height: H } }); page.setDefaultTimeout(900000);
-  page.on('pageerror', e => say('page error', e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) say('console', m.text().slice(0, 200)); if (/^\[take\]/.test(m.text())) say(m.text().slice(0, 200)); });
+  page.on('pageerror', e => say('page error', e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) say('console', m.text().slice(0, 200)); if (/^\[(take|creatures)\]/.test(m.text())) say(m.text().slice(0, 200)); });
   await page.goto(URL_, { timeout: 900000 });
   await page.waitForFunction(() => window.ButterLocation && window.ButterFilms?.current && !ButterFilms.busy && ButterCast.cast.length, null, { timeout: 900000 });
   const loc = 'odyssey-' + sid.toLowerCase();
@@ -85,6 +85,7 @@ async function optics(page, t, jpeg) {
   await page.waitForTimeout(800);
   /*[motion]*/ if (plan) { if (!(await page.evaluate(() => !!window.OdysseyMotion))) await page.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'film-readymades/motion.js'), 'utf8') }); } /*[/motion]*/
   const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode, w: W, h: H, /*[motion]*/ motion: plan || undefined /*[/motion]*/, /*[choreo]*/ choreo /*[/choreo]*/ });
+  /*[choreo]*/ { const cr = await page.evaluate(() => OdysseyTake.creatures ? OdysseyTake.creatures() : null); if (cr) say('creatures', JSON.stringify(cr)); } /*[/choreo]*/
   say('follow', JSON.stringify(info.follow));say('take', info.scene, info.mode, info.total.toFixed(2), 's; keys', JSON.stringify(info.keys), '; faces', info.faces.join(','), '; shots', JSON.stringify(info.shots));
   if (stills) {
     for (const s of stills.split(',').map(Number)) { const r = await page.evaluate(t => OdysseyTake.frame(t, { quality: 0.92 }), s); const f = `${base}-t${s.toFixed(1)}.jpg`; fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', f, r.key, r.shot, 'ms apply/render/encode', r.ms.join('/')); }

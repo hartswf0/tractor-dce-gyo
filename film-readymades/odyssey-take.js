@@ -97,7 +97,8 @@ function cutAt(c,t){if(T.dir){const L=cutList();const q=L.find(s=>t>=s.t0&&t<s.t
 function sizeOf(c,t){if(t<2||!c||c.kind==='SCENE_HEADER'||!c.speaker)return 'WIDE';if(T.tk.keyGi>=0&&c.gi===T.tk.keyGi)return 'CLOSE';return 'MID';}
 /* the authored inserts; where a scene has none, the sign score's insert_object: one insert, seeded between 40% and 60% of the scene, held the floor */
 function insertAt(t){const D=T.dir&&T.dir.d,L=INSERTS[T.sid]||(D&&D.insert_object?(T.insDir||(T.insDir=[{at:0.4+0.2*(hash32(T.sid+':insert')%1000)/1000,on:String(D.insert_object).toLowerCase().split(/[^a-z]+/).filter(w=>w.length>2).pop()||'thing',what:D.insert_object,fill:0.8,hold:Math.max(2.6,D.hold_min_s||0)}])):null);if(!L)return null;for(const x of L){const t0=x.at*T.total;if(t>=t0&&t<t0+(x.hold||2.5))return x;}return null;}
-function shotAt(t){let c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
+function shotAt(t){if(T.cine)return T.cine.shotAt(t);   /* the cinematographer's plan (tools/cinematographer): shots chosen from the performance */
+  let c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
   if(c.kind==='SCENE_HEADER'){const nx=T.clips[T.clips.indexOf(c)+1];return {id:'header:'+c.gi,kind:'HEADER',t0:c.at,dur:(nx?nx.at:c.at+c.dur)-c.at,c};}
   const ins=insertAt(t);if(ins)return {id:'insert:'+ins.on,kind:'INSERT',ins,t0:ins.at*T.total,dur:ins.hold,c};
   /* the syncwatch's resolution of a cut: no addressee, the speaker; no speaker, the wide; the key beat holds the speaker (its
@@ -144,7 +145,7 @@ function wideFor(k){const kc=keyCam(k),R0=resolved(kc),p=new V3(...R0.pos),tg=ne
     if(!prim||!kfActor(prim))return spec;OdysseyFilm.rig(spec);const s=OdysseyFilm.score([{id:prim}])[prim];if(s&&!s.behind&&s.visible>=0.5&&OdysseyFilm.lens(prim,k.lensAllow||[])<=0.1)return spec;}
   return null;}
 /* the camera for a shot at t, with the cast where it is at t: the plan's spec resolved against the live rigs, eased by u */
-function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan.get(sh.id);
+function shootAt(sh,t){if(sh.cine){T.cine.shoot(sh,t);return;}const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan.get(sh.id);
   if(sh.kind==='HEADER'&&P){const a=P.from,b=P.to,v=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur)));
     kfShoot({pos:a.pos.map((x,i)=>lerp(x,b.pos[i],v)),target:a.target.map((x,i)=>lerp(x,b.target[i],v)),fov:lerp(a.fov,b.fov,v)});return;}
   const sub=sh.c&&(sh.kind==='REACT'?sh.c.addressee:sh.c.speaker),mv=T.moving&&T.win&&sub&&T.win.moves[sub];
@@ -155,6 +156,8 @@ function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan
   const M=T.dir&&T.dir.d.move||'push',v=u-0.5,k=M==='push'?1-(T.dir?0.12:0.08)*u:M==='pull'?1+0.1*u:1,yaw=M==='orbit'?0.25*v:M==='track'?0.12*v:0,lift=M==='crane'?0.3*v:0;
   if(c.type==='hero'){const H=T.H[c.a]||60;OdysseyFilm.rig({...c,dist:c.dist*k,yaw:(c.yaw||0)+yaw,height:(c.height||0)+lift*H});return;}
   if(c.type==='obj'){const r=rigOf(c.a),hand=kfHand(c.a,'R');if(r&&hand){const kk=M==='push'?1-0.1*u:k,aim=hand.clone().lerp(kfHead(c.a),0.35),fwd=new V3(Math.sin(r.heading+c.yaw+yaw),0,Math.cos(r.heading+c.yaw+yaw)),pos=aim.clone().add(fwd.multiplyScalar(c.dist*kk)).add(new V3(0,c.h+lift*c.dist*0.5,0));kfShoot({pos:pos.toArray(),target:aim.toArray(),fov:32});return;}}
+  /* a key camera without a fixed mark (an orbit about a prop, as the Blinding's first keys have): the rig places it as it is */
+  if(!Array.isArray(c.pos)||c.target==null){OdysseyFilm.rig(c);return;}
   /* a fixed mark: moved about its target (push 4% by default), the target followed if it is an actor */
   const tg=typeof c.target==='string'?kfHead(c.target):new V3(...c.target),p0=new V3(...c.pos),rel=p0.clone().sub(tg),dd=rel.length();let pos;
   if(M==='push')pos=p0.clone().lerp(tg,(T.dir?0.06:0.04)*u);else if(M==='pull')pos=tg.clone().add(rel.multiplyScalar(1+0.06*u));
@@ -199,7 +202,7 @@ function poseCast(st,t){for(const a of ButterCast.cast){const id=kfShort(a.kind)
   P.last=null;const saveSeated=r.seated;r.seated=s.sat||s.walk>0.1;   /* a seated or walking body keeps the blocking's legs; the performance keeps to the face and the head */
   const v=Perform.apply(P,t);r.seated=saveSeated;
   if(r.seated&&v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}
-  /*[choreo]*/if(T.choreo)T.choreo.apply(t);/*[/choreo]*/}
+  /*[choreo]*/if(T.choreo)T.choreo.apply(t);if(T.creatures)T.creatures.apply(t);/*[/choreo]*/}
 /* the key's world beyond the cast: props, the hidden pieces, the light and the sky, re-staged only when the key changes */
 function worldFor(key){if(T.world===key.id)return;T.world=key.id;const k=key.k,spec=T.spec;
   OdysseyFilm.hide(k.hide||[]);const pl=JSON.stringify([...(spec.props||[]),...(k.props||[])]);if(pl!==T.propsNow){T.propsNow=pl;OdysseyFilm.props(JSON.parse(pl));OdysseyFilm.propsAfter(JSON.parse(pl));}
@@ -254,9 +257,13 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
     P.base={'arm.R.pitch':s?s.j.armRP[0]:0,'arm.L.pitch':s?s.j.armLP[0]:0};const sl=env.slice(Math.floor(c.start*hz),Math.ceil((c.start+c.dur)*hz)+2);
     Perform.speak(P,{t:c.at,sec:c.dur,text:c.caption,env:sl,hz});P.speeches.push(P.speech);P.speech=null;P.base={};
     if(tk.beat&&c.gi===tk.keyGi&&Perform.PHRASES[tk.beat.emotion])Perform.phrase(P,tk.beat.emotion,c.at-0.25,{enter:0.6,hold:c.dur,release:0.9});}
+  /* the cinematographer's plan (tools/cinematographer/plan.js -> plans/<scene>.json): shots chosen from the performance's score (the
+     causal and thermal hot spot, contacts, reactions, creatures) and solved here against the real set (solve.js). o.shots: a plan,
+     or false for none; else the scene's plan is read when the take plays the sheet it was planned on (o.choreo, as --choreo gives it) */
+  const cinePlan=o.shots===false?null:typeof o.shots==='object'&&o.shots?o.shots:(o.choreo&&typeof o.choreo==='object')?await cineFetch(sid,mode,o.choreo):null;
   /* the walks: a tracking shot for each figure that crosses the set, its bearing chosen so that nothing (an olive, a column)
      comes between it and the walker anywhere along the way */
-  for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
+  if(!cinePlan)for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
     /* a camera that travels with him, or one of the two keys' own marks turning to follow him (the gate's still frames him arriving) */
     const cands=[];for(const yaw of [0.6,-0.6,1.0,-1.0])for(const h of [0.4,1.3])cands.push({yaw,h,cam:{type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42}});
     for(const kk of spec.keys){const kc=keyCam(kk);if(Array.isArray(kc.pos))cands.push({fixed:true,cam:{type:'wide',pos:kc.pos,target:id,fov:Math.max(kc.fov||40,40),subject:id,eye:0.42}});}
@@ -266,7 +273,7 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       if(!best||worst<best.worst)best={...c,worst};}
     m.follow=best;}}
   /* the shot plan: every shot the clock can reach, its camera found and scored at its key's staging */
-  const ids=new Map();for(let t=0;t<T.total;t+=0.05){const sh=shotAt(t);if(!ids.has(sh.id))ids.set(sh.id,{sh,t});}
+  const ids=new Map();if(!cinePlan)for(let t=0;t<T.total;t+=0.05){const sh=shotAt(t);if(!ids.has(sh.id))ids.set(sh.id,{sh,t});}
   const byKey=new Map();for(const [id,v] of ids){const K=T.keys[keyIndexAt(v.t)];if(!byKey.has(K))byKey.set(K,[]);byKey.get(K).push(v);}
   const stats={};for(const [K,list] of byKey){worldFor(K);poseCast(K.snap?Object.fromEntries(Object.entries(K.snap).map(([i,s])=>[i,{...s,walk:0}])):{},K.t);scene.updateMatrixWorld(true);
     const kc=keyCam(K.k),prim=kc.subject||((K.k.subjects||[]).find(s=>s.primary)||{}).id;
@@ -281,12 +288,51 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   T.world=null;T.stats=stats;
   /*[choreo]*/ /* the choreography (odyssey/choreo/<scene>.json, film-readymades/choreo.js): every servo of every actor on the voice clock, over the blocking; o.choreo an object, false for none */
   if(window.OdysseyChoreo&&o.choreo!==false){let C=typeof o.choreo==='object'?o.choreo:null;if(!C)try{const r=await fetch(root+'odyssey/choreo/'+sid+'.json',{cache:'no-store'});if(r.ok)C=await r.json();}catch(e){}
-    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);}/*[/choreo]*/
+    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);
+    if(C&&C.creatures&&(C.clock||'cut')===mode&&window.OdysseyCreatures)try{T.creatures=await creaturesStage(C);}catch(e){console.warn('[take] creatures',e);}}/*[/choreo]*/
   /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
   if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
+  if(cinePlan)await cineStart(cinePlan);
   return info();}
-function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
+/* ── the cinematographer (tools/cinematographer/solve.js, read from the repository as the keyframes are): the plan's shots solved
+   against the set at the cast's poses, every camera tested for legality (inside geometry, occlusion, the head in frame) ── */
+async function cineFetch(sid,mode,C){try{const r=await fetch(root+'tools/cinematographer/plans/'+sid+'.json',{cache:'no-store'});if(!r.ok)return null;const P=await r.json();
+    const g=(C.generated||{}).from||null;if(P.clock!==mode||(P.sheet&&P.sheet.from!==g)||Math.abs((P.total||0)-(C.total||0))>0.05){console.warn('[take] the shot plan was made for another sheet or clock: not used');return null;}return P;}
+  catch(e){console.warn('[take] no shot plan',e);return null;}}
+function cineApi(){return {THREE,scene,camera,renderer,T,V3,kfActor,kfHead,kfHand,kfSolid,kfShort,rigOf,figHeight,OdysseyFilm,shoot:kfShoot,
+  poseAt:t=>{const {state,key}=castAt(t);worldFor(key);poseCast(state,t);/*[motion]*/if(T.motion)T.motion.frame(t,key);/*[/motion]*/scene.updateMatrixWorld(true);return key;},
+  keyCam:k=>keyCam(k),resolved:spec=>resolved(spec),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind))};}
+async function cineStart(plan){if(!window.OdysseyCine||T.cineReload){const src=await (await fetch(root+'tools/cinematographer/solve.js',{cache:'no-store'})).text();(0,eval)(src);}
+  const S=await OdysseyCine.solve(plan,cineApi());T.cine=S;T.world=null;return S.report();}
+async function cineReload(plan){if(!T)return null;T.cine=null;T.cineReload=true;const P=plan||await cineFetch(T.sid,T.mode,T.choreo?T.choreo.C:{});if(!P)return null;return cineStart(P);}
+function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.cine?T.cine.stats():T.stats,cine:T.cine?T.cine.report():null,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
+/*[choreo]*/ /* creatures (film-readymades/creatures.js, CREATURES.md "Wiring it into the film"): a sheet's `creatures` as rigs in the take. Each
+   rig's pieces are parsed once (library parts from the part packs, as the props are; the cut pieces from odyssey/creatures/parts/<kind>.mpd),
+   attached under one group at the scene's root (the rig's world is the take's), posed every drawing from OdysseyCreatures.sample; the staged
+   prop of the same id (prop:<id>) is hidden while its rig plays; a rider's figure is set in the anchor's frame (a man in a fist, under a ram) */
+async function creaturesStage(C){const Cr=OdysseyCreatures,root=new URL('../../',location.href).href,rigs={},want=new Map(),cache=new Map(),mpd={};
+  for(const [id,A] of Object.entries(C.creatures)){const rig=Cr.define(A.kind,{id,scale:A.scale,colour:A.colour});rigs[id]=rig;rig.attach(THREE,new THREE.Group(),(f,c)=>{want.set(f+'|'+c,{f,c,kind:rig.K.cutFrom||rig.kind});return null;});}
+  const partKey=f=>/\.ldr$/.test(f)?f:'parts/'+String(f).replace(/\.dat$/,'')+'.dat';
+  for(const {f,kind} of want.values()){if(/\.ldr$/.test(f)){if(!mpd[kind]){mpd[kind]={};try{const txt=await (await fetch(root+'odyssey/creatures/parts/'+kind+'.mpd')).text();let cur=null,buf=[];for(const ln of txt.split(/\r?\n/)){const m=ln.match(/^0 FILE (.+)$/);if(m){if(cur)mpd[kind][cur]=buf.join('\n');cur=m[1].trim();buf=[];}else buf.push(ln);}if(cur)mpd[kind][cur]=buf.join('\n');}catch(e){console.warn('[creatures] no parts for',kind);}}continue;}
+    const id=String(f).replace(/\.dat$/,'');if(ButterLDraw.parts['parts/'+id+'.dat'])continue;try{const pk=await (await fetch(root+'odyssey/packs/'+id.replace('/','_')+'.json')).json();for(const [k,v] of Object.entries(pk)){ButterLDraw.parts[k]=v;ButterLDraw.parts[(k.startsWith('parts/')||k.startsWith('p/'))?k:'parts/'+k]=v;if(k.startsWith('p/'))ButterLDraw.parts[k.slice(2)]=v;}}catch(e){console.warn('[creatures] no pack',id);}}
+  for(const [key,{f,c,kind}] of want){const ldr=/\.ldr$/.test(f);if(!ldr&&!ButterLDraw.parts[partKey(f)]){const base=String(f).replace(/p[0-9a-z]+$/,'');if(ButterLDraw.parts['parts/'+base+'.dat'])want.set(key,{f:base,c,kind,alias:true});else continue;}
+    const w=want.get(key),l=new THREE.LDrawLoader();l.setFileMap({});Object.assign(l.subobjectCache,ButterLDraw.parts);if(ldr&&mpd[kind]&&mpd[kind][f]!=null){l.subobjectCache[f]=mpd[kind][f];l.subobjectCache[f.toLowerCase()]=mpd[kind][f];}else if(ldr)continue;
+    try{const g=await new Promise((res,rej)=>l.parse(ButterLDraw.colors+'\n1 '+c+' 0 0 0 1 0 0 0 1 0 0 0 1 '+(ldr?f:partKey(w.f)),'creature.ldr',res,rej));g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}for(const m of [].concat(o.material||[]))if(m&&m.color&&!m.userData.lin){m.userData.lin=1;if(renderer.outputEncoding===THREE.sRGBEncoding)m.color.convertSRGBToLinear();}});cache.set(key,g);}catch(e){console.warn('[creatures] parse',f,e);}}
+  const group=new THREE.Group();group.name='creatures';scene.add(group);
+  for(const [id,rig] of Object.entries(rigs)){const g=new THREE.Group();g.name='creature:'+id;group.add(g);rig.attach(THREE,g,(f,c)=>{const t=cache.get(f+'|'+c);return t?t.clone(true):null;});}
+  const M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),Sv=new THREE.Vector3(),Pv=new THREE.Vector3();
+  /* the floor under a creature that carries one (the engine's `floor`): the take's ray down onto the set, cast from a little above that
+     floor (under a cave's roof, not onto it), the props, the figures and the rigs aside; cached by cell */
+  const gCache=new Map(),gRay=new THREE.Raycaster(),gDown=new THREE.Vector3(0,-1,0);let gMeshes=null;
+  const groundUnder=(x,z,near)=>{const sc=filmAsset().scale||1,k=Math.round(x/(4*sc))+'|'+Math.round(z/(4*sc))+'|'+Math.round(near);if(gCache.has(k))return gCache.get(k);
+    if(!gMeshes){gMeshes=[];const skip=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>skip.add(o)));group.traverse(o=>skip.add(o));const shown=o=>{for(let p=o;p;p=p.parent){if(p.visible===false||/^prop:/.test(p.name||''))return false;}return true;};scene.traverse(o=>{if(o.isMesh&&!skip.has(o)&&shown(o))gMeshes.push(o);});}
+    gRay.set(new THREE.Vector3(x,near+60*sc,z),gDown);gRay.far=200*sc;const h=gRay.intersectObjects(gMeshes,false)[0],y=h?h.point.y:null;gCache.set(k,y);return y;};
+  return {rigs,group,
+    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t,{ctx:{ground:groundUnder}});rig.apply(s.v);if(rig.three&&rig.three.group)rig.three.group.visible=!s.hidden;const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
+      for(const r of s.riders||[]){const a=kfActor(r.actor);if(!a||!a.rig||a.rig.figure.visible===false)continue;const m=r.m,f=a.rig.figure;M4.set(m[3],m[4],m[5],m[0],m[6],m[7],m[8],m[1],m[9],m[10],m[11],m[2],0,0,0,1);M4.decompose(Pv,Q,Sv);f.position.copy(Pv);f.quaternion.copy(Q);if(a.rig.pos)a.rig.pos.copy(Pv);}}
+      group.updateMatrixWorld(true);},
+    dispose(){scene.remove(group);for(const id of Object.keys(rigs)){const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=true;}}};}
 /*[choreo]*/ /* the set pieces a sheet's rig names (a ship), as motion.js finds them: the mesh whose box is the piece's box */
 function choreoPieces(label){const want=OdysseyFilm.pieces().filter(p=>p.box&&(p.label===label||p.label.toLowerCase().includes(String(label).toLowerCase())));const out=[];const cands=[];scene.traverse(o=>{if(o.isMesh&&o.userData&&o.userData.partId!=null)cands.push(o);});
   for(const p of want){let best=null,bd=1e9;for(const m of cands){const b=new THREE.Box3().setFromObject(m),d=Math.abs(b.min.x-p.box[0])+Math.abs(b.min.y-p.box[1])+Math.abs(b.min.z-p.box[2])+Math.abs(b.max.x-p.box[3])+Math.abs(b.max.y-p.box[4])+Math.abs(b.max.z-p.box[5]);if(d<bd){bd=d;best=m;}}if(best&&bd<12)out.push(best);}return out;}
@@ -315,7 +361,7 @@ function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prep
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
 function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
 function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
-function end(){if(!T)return;stop();/*[choreo]*/if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
+function end(){if(!T)return;stop();/*[choreo]*/if(T.creatures)T.creatures.dispose();if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the
    page draws it, and the caption sits over the picture ── */
@@ -334,7 +380,7 @@ function play(o={}){return prepare(o).then(inf=>{const orig=renderer.render.bind
 function stop(){if(!live)return;renderer.render=live.orig;live.voice.pause();live.bed.pause();live.cap.remove();live=null;}
 /* the export: the page's own drawing stopped (as the keyframe gate stops it); frames drawn only on request */
 function exportStart(o={}){const orig=renderer.render.bind(renderer);renderer.render=()=>{};renderer.setPixelRatio(1);renderer.setSize(o.w||1280,o.h||720,false);camera.aspect=(o.w||1280)/(o.h||720);camera.updateProjectionMatrix();return prepare(o).then(inf=>{T.render=orig;return inf;});}
-window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),get take(){return filmAsset()?.take||null;}};
+window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/creatures:()=>{if(!T||!T.creatures)return null;const out={};for(const [id,rig] of Object.entries(T.creatures.rigs)){let n=0;const g=T.creatures.group.getObjectByName('creature:'+id);if(g)g.traverse(o=>{if(o.isMesh)n++;});out[id]={kind:rig.kind,meshes:n};}return out;},marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),cineReload:p=>cineReload(p),cineDraw:t=>T&&T.cine&&T.cine.debug?T.cine.debug(t):null,cineAudit:c=>T&&T.cine&&T.cine.audit?T.cine.audit(c):null,get take(){return filmAsset()?.take||null;}};
 /* a Take button beside the forage shelf; ?take (or ?take=cut) plays the current location's scene on load */
 {const b=document.createElement('button');b.id='takeOpen';b.textContent='Take';b.title='Play this scene on its recorded performance (voice, faces, captions, cut)';b.onclick=()=>{if(live){stop();return;}play({mode:new URLSearchParams(location.search).get('take')==='cut'?'cut':'full'}).catch(e=>alert(e.message));};
  (document.getElementById('filmWorldTools')||document.body).appendChild(b);if(b.parentElement===document.body)Object.assign(b.style,{position:'fixed',right:'12px',top:'12px',zIndex:61});}

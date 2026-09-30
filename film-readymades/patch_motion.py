@@ -1,5 +1,5 @@
-"""Embed (or refresh) the motion library (motion.js, window.OdysseyMotion) and the choreography player (choreo.js,
-window.OdysseyChoreo) in the built player as their own classic scripts ahead of the take scripts, and refresh the trailer runtime (odyssey-trailer.js, with its [motion] hooks) beside it, without the 3-minute rebuild.
+"""Embed (or refresh) the motion library (motion.js, window.OdysseyMotion), the choreography player (choreo.js,
+window.OdysseyChoreo) and the creature rigs (creatures.js, window.OdysseyCreatures) in the built player as their own classic scripts ahead of the take scripts, and refresh the trailer runtime (odyssey-trailer.js, with its [motion] hooks) beside it, without the 3-minute rebuild.
 tools/export-trailer.js injects both working-tree files anyway; this is for the player as shipped, for take mode (whose [motion]
 hooks live in odyssey-take.js: pass --take to refresh that too, as patch_take.py does) and for the hand game.
 Note: build_odyssey.py does not know motion.js (it does embed choreo.js); after a rebuild, run this again.
@@ -25,6 +25,14 @@ if CA in s:
     s = s[:a] + CA + cj + s[b:]
 else:
     s = s.replace(B, B + CA + cj + CB, 1)
+# the creature rigs (film-readymades/creatures.js, window.OdysseyCreatures: a sheet's `creatures`, played by the take's [choreo] hooks)
+kj = (R / 'creatures.js').read_text()
+KA, KB = '<script data-odyssey-creatures>', '</script><!--/odyssey-creatures-->'
+if KA in s:
+    a, b = s.index(KA), s.index(KB)
+    s = s[:a] + KA + kj + s[b:]
+else:
+    s = s.replace(CB, CB + KA + kj + KB, 1)
 # the trailer runtime, between its markers (as patch_trailer.py does)
 tr = (R / 'odyssey-trailer.js').read_text()
 if '/*[odyssey-trailer]*/' in s:

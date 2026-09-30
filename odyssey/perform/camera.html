@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Cinematographer</title>
+<meta name="description" content="The Odyssey film's camera follows the performance: shots chosen from the score's causal and thermal hot spot, cut on the transfer of heat, and every camera tested against the set before it is used. Before and after on the Blinding and the Gate.">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --ok: #1d6b3a; --bad: #b3261e; --warm: #c0561b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --ok: #6fcf8f; --bad: #ff8a80; --warm: #f0955a; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --ok: #6fcf8f; --bad: #ff8a80; --warm: #f0955a; }
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 72px; }
+h1, h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(36px, 7vw, 62px); line-height: .98; }
+h2 { font-size: 27px; margin: 38px 0 8px; padding-top: 10px; border-top: 3px solid var(--ink); }
+h3 { margin: 18px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; }
+a { color: var(--blue); }
+code { font: 13px ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { color: var(--muted); max-width: 840px; margin: 12px 0 16px; font-size: 16.5px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { border: 1.5px solid var(--rule); background: var(--card); padding: 12px 14px; min-width: 0; }
+.card b { display: block; margin-bottom: 4px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 760px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+figure { margin: 0; min-width: 0; }
+figure img, video { width: 100%; height: auto; display: block; background: #000; }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.scroll { overflow-x: auto; max-width: 100%; border: 1.5px solid var(--rule); background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+td.t { font: 12px ui-monospace, Menlo, monospace; white-space: nowrap; }
+.ok { color: var(--ok); } .bad { color: var(--bad); }
+.tag { display: inline-block; font: 600 11px ui-monospace, Menlo, monospace; padding: 1px 5px; border: 1px solid var(--rule); margin: 1px 2px 1px 0; }
+ol.rules li { margin: 0 0 8px; }
+ol.rules b { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+.note { color: var(--muted); font-size: 14px; }
+.shots { display: none; }
+@media (max-width: 560px) { .wide-only { display: none; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">The Odyssey in LEGO &middot; the performance engine &middot; camera</p>
+<h1>The Cinematographer</h1>
+<p class="lede">The performance engine makes the figures act: a score of stimuli, intents, actions and contacts, each with its causes, and a motion, causal and media heat for every figure at every drawing. The shots were still planned from the blocking alone. Now they are chosen from the performance: the camera goes where the heat is, cuts when the heat moves, and every camera is tested against the real set before it is used.</p>
+<p class="note">Code: <code>tools/cinematographer/plan.js</code> (the plan, from the score), <code>tools/cinematographer/solve.js</code> (the cameras, in the player), the hook in <code>film-readymades/odyssey-take.js</code>. The engine: <a href="index.html">the performance engine</a>.</p>
+
+<h2>The rules</h2>
+<h3>Choosing the shots (plan.js)</h3>
+<ol class="rules" id="rulesPlan"></ol>
+<h3>Legality of every camera (solve.js, in the player)</h3>
+<ol class="rules" id="rulesSolve"></ol>
+
+<div id="scenes"></div>
+
+<h2>What remains wrong</h2>
+<ul id="wrong"></ul>
+</main>
+<script>
+const RULES_PLAN = [
+  ['R1 heat', 'Each figure\'s heat per drawing: its motion heat, the causal heat of its own events, the weight of what it is doing (a thrust or a roar is hotter than a nod), its voice while a phrase sounds, and any contact it is part of. The hot spot moves only when another figure has been hotter for half a second.'],
+  ['R2 contact', 'A contact (the handoff, the impact, a seize) is framed with every figure it names, aimed at the contact point. A handoff is a profile two-shot, square to the line between giver and taker, so the hands and the spear are not behind a head.'],
+  ['R3 transfer', 'Cuts go where heat moves: the wind-up of the act that causes a contact, the impact itself, the first reaction within its latency, a creature\'s act, each reaction to another\'s act, and where the hot spot changes.'],
+  ['R4 cold', 'Where the hottest figure is cold, the shot is a wide held up to twice the rhythm\'s longest.'],
+  ['R5 media', 'Hot media (a fast rhythm or a close bias) shows cause and effect in shots of their own. Cool media elides the cause of an effect on another figure and shows the effect; a handoff between principals is never elided.'],
+  ['R6 direction', 'The cineosis block of the scene: the hold minimum is every shot\'s floor, the rhythm its longest, the shot bias the size of a shot on a hot figure, the insert object one insert at its hottest moment (for the Blinding, the giant\'s eye as the stake comes in), sound forward keeps cuts off the lines, the move is the camera\'s move.'],
+  ['R7 line', 'Every shot names the two principals of its beat: the 180-degree line. Every camera of a line keeps the side its first shot took, so the eyelines of reaction shots match.'],
+  ['R8 giant', 'A standing giant is shot low and wide, the lens below the men\'s chests, with the men in frame for size; a giant lying down is shot from above his body.'],
+  ['R9 length', 'No shot is shorter than the floor, and two shots in a row on the same figure change size.'],
+];
+const RULES_SOLVE = [
+  ['L1 inside', 'The lens and a small sphere round it (its near plane) are in no part of the set, no figure and no creature: the part\'s box, and for a large part rays that meet its back faces or its surface within the sphere; there must be ground under the lens.'],
+  ['L2 occlusion', 'The subject\'s head (a creature\'s eye) and at least half its body are seen, with no nearer body, prop or part on the ray; a contact\'s point is seen.'],
+  ['L3 head', 'Every subject\'s head and crown are inside the frame; the primary\'s face is in the upper half.'],
+  ['L4 frame', 'What the size needs is in the frame; nothing near the lens covers more than a fifth of it.'],
+  ['L5 line', 'The camera is on the side its line took. If no legal camera is left on that side, the line is crossed and the report says so.'],
+];
+const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const li = ([k, v]) => `<li><b>${esc(k)}</b> ${esc(v)}</li>`;
+document.getElementById('rulesPlan').innerHTML = RULES_PLAN.map(li).join('');
+document.getElementById('rulesSolve').innerHTML = RULES_SOLVE.map(li).join('');
+const SCENES = [
+  { id: 'OD-B09-S09', name: 'The Blinding', before: 'OD-B09-S09-performed', after: 'OD-B09-S09-performed-shot' },
+  { id: 'OD-B01-S03', name: 'The Gate', before: 'OD-B01-S03-performed', after: 'OD-B01-S03-performed-shot' },
+];
+const WRONG = [];
+(async () => {
+  const host = document.getElementById('scenes'); let html = ''; let AUDIT = {}; try { AUDIT = await (await fetch('camera-audit.json')).json(); } catch (e) { }
+  for (const S of SCENES) {
+    let J = null; try { J = await (await fetch('../../films/odyssey/' + S.after + '.json')).json(); } catch (e) { }
+    const R = J && J.take && J.take.cine;
+    html += `<h2>${esc(S.name)} <span class="note">${S.id}</span></h2>`;
+    html += `<div class="pair"><figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.before}.jpg" src="../../films/odyssey/${S.before}.mp4"></video><figcaption>Before: shots planned from the blocking (${S.before})</figcaption></figure>`;
+    html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>After: shots chosen from the performance (${S.after})</figcaption></figure></div>`;
+    html += `<h3>Contact sheets: one frame from the middle of every shot</h3><div class="pair"><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} before" src="media/camera-${S.id}-before.jpg"><figcaption>Before</figcaption></figure><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} after" src="media/camera-${S.id}-after.jpg"><figcaption>After</figcaption></figure></div>`;
+    const Au = AUDIT[S.id];
+    if (Au) { const row = (k, o) => `<tr><td>${k}</td><td class="t">${o.inside} of ${o.samples}</td><td class="t">${o.seen.polyphemus || 0} of ${o.samples}</td><td class="t">${o.seen.odysseus || 0} of ${o.samples}</td></tr>`;
+      html += `<h3>The same checks on both cuts, once a second</h3><div class="scroll"><table><thead><tr><th>cut</th><th>lens inside geometry</th><th>giant's eye in frame and seen</th><th>Odysseus's head in frame and seen</th></tr></thead><tbody>${row('before', Au.before)}${row('after', Au.after)}</tbody></table></div><p class="note">${esc(Au.rule)}. The one sample after that fails is inside the box of one of the giant's pieces while he breathes, between two of the shot's tested drawings.</p>`; }
+    if (!R) { html += '<p class="note">The shot report appears here when the film is rendered.</p>'; continue; }
+    const legal = R.shots.filter(s => s.legal).length;
+    html += `<p class="note">${R.shots.length} shots, ${legal} legal on every check at every sample; media ${esc(R.media)}; direction: rhythm ${esc(R.direction && R.direction.cut_rhythm)}, hold ${esc(R.direction && R.direction.hold_min_s)} s, insert ${esc(R.direction && R.direction.insert_object || 'none')}. Solved in ${R.solvedIn} s.</p>`;
+    html += '<h3>The shot report</h3><div class="scroll"><table><thead><tr><th>#</th><th>time</th><th>shot</th><th>why</th><th>checks</th></tr></thead><tbody>';
+    for (const s of R.shots) {
+      const why = [s.why && s.why.rule, s.why && s.why.cut ? 'cut: ' + s.why.cut : ''].filter(Boolean).map(esc).join('<br>');
+      const chk = s.legal ? s.checks.map(c => `<span class="tag ok">${esc(c.split(' ')[0])}</span>`).join('') + (s.relaxed ? '<br><span class="bad">line crossed</span>' : '') : `<span class="bad">${esc(s.failed.join('; '))}</span>`;
+      html += `<tr><td class="t">${s.i}</td><td class="t">${s.t0.toFixed(1)}-${s.t1.toFixed(1)}</td><td>${esc(s.kind)} ${esc(s.size)}<br><span class="note">${esc(s.primary || '')}${s.line ? ' / line ' + esc(s.line.join(' - ')) : ''}</span></td><td>${why}</td><td>${chk}</td></tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+  host.innerHTML = html;
+  let W = []; try { W = await (await fetch('camera-wrong.json')).json(); } catch (e) { }
+  document.getElementById('wrong').innerHTML = W.map(w => `<li>${esc(w)}</li>`).join('') || '<li>To be written after the renders.</li>';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4588 @@
+{
+ "version": "0.2",
+ "metadata": {
+  "name": "Rig desk: OD-B10-S02",
+  "description": "The choreography of OD-B10-S02 (The fleet enters a narrow harbor ringed by cliffs; Odysseus alone moors outside.) as rigs to key: 4 actors, the voice, the set and the acted film's shot camera.",
+  "fps": 12,
+  "frames": [
+   1,
+   419
+  ]
+ },
+ "nodes": [
+  {
+   "id": "voice",
+   "module": "project.VoiceTrack",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B10-S02/scene.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "window": 8
+   }
+  },
+  {
+   "id": "set",
+   "module": "project.RigSet",
+   "position": [
+    0,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B10-S02/scene.json",
+     "mediaType": "application/json"
+    },
+    "pieces": true,
+    "marks": true
+   }
+  },
+  {
+   "id": "score",
+   "module": "project.ScoreLanes",
+   "position": [
+    0,
+    360
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B10-S02/score.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "window": 8,
+    "only": ""
+   }
+  },
+  {
+   "id": "cast",
+   "module": "cascade.geo.Merge",
+   "position": [
+    620,
+    200
+   ]
+  },
+  {
+   "id": "actor_odysseus",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    40
+   ],
+   "metadata": {
+    "actor": "odysseus"
+   }
+  },
+  {
+   "id": "rig_odysseus",
+   "module": "project.MinifigRig",
+   "parent": "actor_odysseus",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B10-S02/odysseus.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_odysseus",
+   "module": "cascade.core.Output",
+   "parent": "actor_odysseus",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_odysseus",
+   "module": "cascade.core.Output",
+   "parent": "actor_odysseus",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_three_scouts_1",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    150
+   ],
+   "metadata": {
+    "actor": "three-scouts-1"
+   }
+  },
+  {
+   "id": "rig_three_scouts_1",
+   "module": "project.MinifigRig",
+   "parent": "actor_three_scouts_1",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B10-S02/three-scouts-1.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_three_scouts_1",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_1",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_three_scouts_1",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_1",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_three_scouts_2",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    260
+   ],
+   "metadata": {
+    "actor": "three-scouts-2"
+   }
+  },
+  {
+   "id": "rig_three_scouts_2",
+   "module": "project.MinifigRig",
+   "parent": "actor_three_scouts_2",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B10-S02/three-scouts-2.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_three_scouts_2",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_2",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_three_scouts_2",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_2",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_three_scouts_3",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    370
+   ],
+   "metadata": {
+    "actor": "three-scouts-3"
+   }
+  },
+  {
+   "id": "rig_three_scouts_3",
+   "module": "project.MinifigRig",
+   "parent": "actor_three_scouts_3",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B10-S02/three-scouts-3.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_three_scouts_3",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_3",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_three_scouts_3",
+   "module": "cascade.core.Output",
+   "parent": "actor_three_scouts_3",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "shotcam",
+   "module": "project.ShotCam",
+   "position": [
+    620,
+    420
+   ],
+   "source": "project",
+   "props": {
+    "tx": {
+     "value": 88,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 88,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 88,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": -36.163,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 47,
+        "value": -36.008,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 49,
+        "value": -35.731,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 54,
+        "value": -35.766,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 56,
+        "value": -35.824,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 59,
+        "value": -34.904,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": -34.396,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": -34.317,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": -40.03,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 66,
+        "value": -40.11,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 70,
+        "value": -40.582,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 72,
+        "value": -40.847,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 77,
+        "value": -42.151,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": -42.595,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": -36.966,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 93,
+        "value": -38.329,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 98,
+        "value": -38.632,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 99,
+        "value": -38.643,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 101,
+        "value": -38.912,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 106,
+        "value": -38.962,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 126,
+        "value": -38.489,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 127,
+        "value": -38.137,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": -37.366,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 88,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 88,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": -39.575,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": -39.575,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": -2.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": -2.8,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": -2.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": -2.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": -166.859,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": -166.859,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": -166.859,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": -166.859,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 134.435,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 321,
+        "value": 133.155,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 322,
+        "value": 132.168,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 132.265,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 325,
+        "value": 131.769,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 131.946,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 130.904,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 129.673,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 128.719,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 128.847,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": 128.431,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 128.654,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 127.936,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 127.824,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 337,
+        "value": 128.219,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 128.779,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 129.162,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 340,
+        "value": 130.206,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 130.985,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 131.4,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 131.455,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 4.116,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 348,
+        "value": 4.076,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 350,
+        "value": 3.777,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 3.739,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 30.75,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 30.75,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 15,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 15,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 15,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 15,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "ty": {
+     "value": 32.173,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 32.173,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 32.173,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 32.272,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 10,
+        "value": 32.664,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 11,
+        "value": 33.338,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 12,
+        "value": 34.276,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 13,
+        "value": 35.461,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 14,
+        "value": 36.876,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 15,
+        "value": 38.503,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 16,
+        "value": 40.325,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 17,
+        "value": 42.325,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 18,
+        "value": 44.484,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 19,
+        "value": 46.787,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 20,
+        "value": 49.214,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 22,
+        "value": 54.376,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 25,
+        "value": 62.622,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 29,
+        "value": 73.829,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 31,
+        "value": 79.21,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 32,
+        "value": 81.784,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 33,
+        "value": 84.257,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 34,
+        "value": 86.611,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 35,
+        "value": 88.83,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 36,
+        "value": 90.896,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 37,
+        "value": 92.791,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 38,
+        "value": 94.498,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 39,
+        "value": 96,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 40,
+        "value": 97.279,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 41,
+        "value": 98.318,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 42,
+        "value": 99.1,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 43,
+        "value": 99.606,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 99.82,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": 97.481,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 46,
+        "value": 97.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 47,
+        "value": 98.392,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 50,
+        "value": 102.011,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 52,
+        "value": 104.661,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 56,
+        "value": 110.496,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 58,
+        "value": 112.791,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 59,
+        "value": 113.784,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 60,
+        "value": 114.633,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 61,
+        "value": 115.304,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": 115.764,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": 115.962,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": 96.533,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 65,
+        "value": 96.861,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 66,
+        "value": 97.535,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 67,
+        "value": 98.523,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 68,
+        "value": 99.769,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 70,
+        "value": 102.704,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 71,
+        "value": 104.319,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 74,
+        "value": 109.57,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 75,
+        "value": 111.242,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 76,
+        "value": 112.792,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 77,
+        "value": 114.163,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 78,
+        "value": 115.302,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 79,
+        "value": 116.188,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 80,
+        "value": 116.806,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": 117.117,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": 97.708,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 85,
+        "value": 98.01,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 88,
+        "value": 98.689,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 91,
+        "value": 99.682,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 95,
+        "value": 101.376,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 99,
+        "value": 103.412,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 100,
+        "value": 104.296,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 102,
+        "value": 105.694,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 113,
+        "value": 112.02,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 117,
+        "value": 114.073,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 120,
+        "value": 115.354,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 123,
+        "value": 116.339,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 126,
+        "value": 116.952,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 127,
+        "value": 117.005,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": 116.919,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 32.394,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 130,
+        "value": 33.258,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 131,
+        "value": 34.721,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 132,
+        "value": 36.724,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 133,
+        "value": 39.209,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 134,
+        "value": 42.117,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 135,
+        "value": 45.389,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 136,
+        "value": 48.966,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 137,
+        "value": 52.79,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 138,
+        "value": 56.802,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 140,
+        "value": 65.154,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 142,
+        "value": 73.554,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 143,
+        "value": 77.624,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 144,
+        "value": 81.531,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 145,
+        "value": 85.214,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 146,
+        "value": 88.615,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 147,
+        "value": 91.675,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 148,
+        "value": 94.336,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 149,
+        "value": 96.539,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 150,
+        "value": 98.225,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 151,
+        "value": 99.336,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 99.813,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 32.246,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 154,
+        "value": 32.536,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 155,
+        "value": 33.035,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 156,
+        "value": 33.735,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 157,
+        "value": 34.622,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 158,
+        "value": 35.688,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 159,
+        "value": 36.919,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 160,
+        "value": 38.307,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 161,
+        "value": 39.839,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 162,
+        "value": 41.505,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 163,
+        "value": 43.293,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 164,
+        "value": 45.193,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 166,
+        "value": 49.285,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 168,
+        "value": 53.693,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 171,
+        "value": 60.704,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 177,
+        "value": 75.081,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 179,
+        "value": 79.658,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 181,
+        "value": 83.98,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 183,
+        "value": 87.96,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 184,
+        "value": 89.794,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 185,
+        "value": 91.51,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 186,
+        "value": 93.097,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 187,
+        "value": 94.544,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 188,
+        "value": 95.839,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 189,
+        "value": 96.972,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 190,
+        "value": 97.932,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 191,
+        "value": 98.708,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 192,
+        "value": 99.289,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 193,
+        "value": 99.664,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 99.822,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 97.739,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 198,
+        "value": 97.991,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 201,
+        "value": 98.54,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 204,
+        "value": 99.348,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 208,
+        "value": 100.766,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 213,
+        "value": 102.958,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 220,
+        "value": 106.501,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 229,
+        "value": 111.17,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 234,
+        "value": 113.479,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 238,
+        "value": 115.03,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 241,
+        "value": 115.961,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 244,
+        "value": 116.654,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 247,
+        "value": 117.068,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": 117.172,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": -1.415,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 252,
+        "value": -1.107,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 254,
+        "value": -0.453,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 256,
+        "value": 0.503,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 258,
+        "value": 1.715,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 261,
+        "value": 3.915,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 265,
+        "value": 7.326,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 272,
+        "value": 13.6,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 275,
+        "value": 16.013,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 277,
+        "value": 17.417,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 279,
+        "value": 18.605,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 281,
+        "value": 19.533,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 283,
+        "value": 20.154,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": 20.425,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": -1.405,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 287,
+        "value": -1.238,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 288,
+        "value": -0.93,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 289,
+        "value": -0.493,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 290,
+        "value": 0.063,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 292,
+        "value": 1.486,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": 2.332,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": 185.244,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": 185.244,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": 185.244,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": 185.244,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 184.681,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 320,
+        "value": 185.117,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 321,
+        "value": 184.722,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 322,
+        "value": 183.485,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 184.766,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 324,
+        "value": 185.205,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 325,
+        "value": 184.811,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 183.562,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 184.866,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 328,
+        "value": 185.316,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 184.93,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 183.702,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 184.988,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 332,
+        "value": 185.429,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": 185.035,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 183.784,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 184.756,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 185.341,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 337,
+        "value": 185.548,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 185.221,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 184.195,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 340,
+        "value": 184.688,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 184.979,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 185.077,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 184.58,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 114.201,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 345,
+        "value": 114.563,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 348,
+        "value": 116.236,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 349,
+        "value": 116.934,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 350,
+        "value": 117.234,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 117.319,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 14.338,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 353,
+        "value": 14.953,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 354,
+        "value": 16.061,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 355,
+        "value": 17.595,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 356,
+        "value": 19.488,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 357,
+        "value": 21.674,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 358,
+        "value": 24.086,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 360,
+        "value": 29.323,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 362,
+        "value": 34.666,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 363,
+        "value": 37.211,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 364,
+        "value": 39.583,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 365,
+        "value": 41.716,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 366,
+        "value": 43.542,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 367,
+        "value": 44.996,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 368,
+        "value": 46.011,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 46.521,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 52.068,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 371,
+        "value": 52.329,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 372,
+        "value": 52.806,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 373,
+        "value": 53.479,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 374,
+        "value": 54.326,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 375,
+        "value": 55.328,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 376,
+        "value": 56.462,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 378,
+        "value": 59.046,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 381,
+        "value": 63.401,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 384,
+        "value": 67.831,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 386,
+        "value": 70.549,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 387,
+        "value": 71.775,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 388,
+        "value": 72.884,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 389,
+        "value": 73.856,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 390,
+        "value": 74.67,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 391,
+        "value": 75.305,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 75.741,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 75.956,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 52.059,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 395,
+        "value": 52.264,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 396,
+        "value": 52.642,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 397,
+        "value": 53.178,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 398,
+        "value": 53.858,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 399,
+        "value": 54.666,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 400,
+        "value": 55.589,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 402,
+        "value": 57.722,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 404,
+        "value": 60.141,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 410,
+        "value": 67.96,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 412,
+        "value": 70.369,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 414,
+        "value": 72.489,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 415,
+        "value": 73.403,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 416,
+        "value": 74.202,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 417,
+        "value": 74.87,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 418,
+        "value": 75.394,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 75.759,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "tz": {
+     "value": 737,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 737,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 737,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 737,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 737,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": -171.934,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 49,
+        "value": -171.488,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 60,
+        "value": -171.725,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": -171.718,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": -172.48,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": -96.459,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 65,
+        "value": -96.871,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 66,
+        "value": -97.11,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 67,
+        "value": -97.178,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 68,
+        "value": -97.022,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 69,
+        "value": -96.745,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 71,
+        "value": -96.394,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 74,
+        "value": -95.043,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 75,
+        "value": -94.849,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": -94.696,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": -171.281,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 92,
+        "value": -171.2,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 105,
+        "value": -171.618,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 106,
+        "value": -171.276,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 107,
+        "value": -171.173,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 108,
+        "value": -171.417,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": -172.444,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 111,
+        "value": -172.677,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 122,
+        "value": -172.196,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 126,
+        "value": -171.507,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": -171.402,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 737,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 737,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 737,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 737,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": -171.725,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": -171.725,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": -115.75,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": -115.75,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": -115.75,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": -115.75,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": -120.801,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": -120.801,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": -120.801,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": -120.801,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 250.703,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 278.379,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 298.861,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 328,
+        "value": 312.151,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 318.705,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 331.587,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 332,
+        "value": 337.901,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 350.245,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 356.036,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 361.15,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 337,
+        "value": 365.7,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 369.747,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 373.362,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 340,
+        "value": 376.755,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 380.305,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 388.11,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 439.928,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 345,
+        "value": 439.867,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 347,
+        "value": 440.134,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 349,
+        "value": 440.42,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 440.488,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 518,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 518,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 420,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 420,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 420,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 420,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "lx": {
+     "value": 75.27,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 75.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 75.27,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 75.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 75.21,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": -16.313,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 50,
+        "value": -15.882,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 56,
+        "value": -16.114,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 59,
+        "value": -15.264,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": -14.806,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": -14.727,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": 3.43,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 67,
+        "value": 3.171,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 71,
+        "value": 2.464,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 74,
+        "value": 1.388,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 77,
+        "value": 0.149,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": -0.655,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": -17.116,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 94,
+        "value": -18.597,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 99,
+        "value": -18.843,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 102,
+        "value": -19.182,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 118,
+        "value": -19.043,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 126,
+        "value": -18.899,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 127,
+        "value": -18.547,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": -17.776,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 75.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 75.21,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 75.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 75.21,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": -19.725,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": -19.985,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": 1.05,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": 1.25,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": 1.05,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": 1.09,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": -92.159,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": -92.159,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": -92.159,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": -92.159,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 62.875,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 321,
+        "value": 61.595,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 322,
+        "value": 60.608,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 60.705,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 325,
+        "value": 60.209,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 60.386,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 59.344,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 58.113,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 57.159,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 57.287,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": 56.871,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 57.094,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 56.326,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 55.963,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 56.029,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 55.882,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 340,
+        "value": 56.416,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 56.765,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 56.86,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 56.765,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": -15.514,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 348,
+        "value": -15.524,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": -15.851,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 15.92,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 15.54,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 0.17,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": -0.21,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 0.17,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": -0.21,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "ly": {
+     "value": 42.523,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 42.523,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 42.523,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 42.612,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 10,
+        "value": 42.954,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 11,
+        "value": 43.558,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 12,
+        "value": 44.386,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 13,
+        "value": 45.431,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 14,
+        "value": 46.676,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 15,
+        "value": 48.113,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 17,
+        "value": 51.495,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 19,
+        "value": 55.427,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 21,
+        "value": 59.81,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 24,
+        "value": 66.939,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 30,
+        "value": 81.693,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 32,
+        "value": 86.304,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 34,
+        "value": 90.561,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 36,
+        "value": 94.346,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 38,
+        "value": 97.518,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 39,
+        "value": 98.84,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 40,
+        "value": 99.969,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 41,
+        "value": 100.888,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 42,
+        "value": 101.58,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 43,
+        "value": 102.026,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 102.21,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": 93.121,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 47,
+        "value": 93.372,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 49,
+        "value": 94.541,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 54,
+        "value": 96.865,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 56,
+        "value": 97.876,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 60,
+        "value": 98.963,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": 99.264,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": 99.292,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": 92.403,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 69,
+        "value": 91.842,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 73,
+        "value": 91.182,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": 90.577,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": 93.398,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 89,
+        "value": 93.808,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 98,
+        "value": 94.985,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 99,
+        "value": 95.152,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 101,
+        "value": 96.015,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 120,
+        "value": 99.664,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 126,
+        "value": 100.342,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": 100.239,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 42.724,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 130,
+        "value": 43.478,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 131,
+        "value": 44.771,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 132,
+        "value": 46.544,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 133,
+        "value": 48.739,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 134,
+        "value": 51.307,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 135,
+        "value": 54.199,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 136,
+        "value": 57.356,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 137,
+        "value": 60.73,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 139,
+        "value": 67.923,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 142,
+        "value": 79.054,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 144,
+        "value": 86.081,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 145,
+        "value": 89.334,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 146,
+        "value": 92.335,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 147,
+        "value": 95.025,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 148,
+        "value": 97.376,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 149,
+        "value": 99.319,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 150,
+        "value": 100.805,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 151,
+        "value": 101.786,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 102.203,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 42.586,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 154,
+        "value": 42.846,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 155,
+        "value": 43.285,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 156,
+        "value": 43.905,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 158,
+        "value": 45.628,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 160,
+        "value": 47.937,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 162,
+        "value": 50.765,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 164,
+        "value": 54.023,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 166,
+        "value": 57.635,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 169,
+        "value": 63.547,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 178,
+        "value": 82.436,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 181,
+        "value": 88.24,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 183,
+        "value": 91.75,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 185,
+        "value": 94.88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 187,
+        "value": 97.554,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 189,
+        "value": 99.702,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 191,
+        "value": 101.228,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 192,
+        "value": 101.739,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 193,
+        "value": 102.074,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 102.212,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 93.429,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 202,
+        "value": 93.802,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 210,
+        "value": 94.815,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 235,
+        "value": 99.275,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 243,
+        "value": 100.222,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": 100.492,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": 65.055,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 253,
+        "value": 65.53,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 256,
+        "value": 66.593,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 259,
+        "value": 68.103,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 264,
+        "value": 71.299,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 273,
+        "value": 77.567,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 277,
+        "value": 79.877,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 280,
+        "value": 81.174,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 283,
+        "value": 81.984,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": 82.195,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": 65.065,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 288,
+        "value": 65.44,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 290,
+        "value": 66.233,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": 68.042,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": 139.194,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": 139.194,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": 139.194,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": 139.194,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 138.63,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 320,
+        "value": 139.067,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 321,
+        "value": 138.672,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 322,
+        "value": 137.435,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 138.716,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 324,
+        "value": 139.155,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 325,
+        "value": 138.761,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 137.512,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 138.816,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 328,
+        "value": 139.266,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 138.88,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 137.652,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 138.938,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 332,
+        "value": 139.379,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": 138.985,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 137.734,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 138.706,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 139.291,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 337,
+        "value": 139.498,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 139.171,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 138.145,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 340,
+        "value": 138.638,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 138.929,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 139.027,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 138.529,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 98.771,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 345,
+        "value": 98.843,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 348,
+        "value": 99.836,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 349,
+        "value": 100.394,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 350,
+        "value": 100.604,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 100.639,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 49.898,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 353,
+        "value": 50.383,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 354,
+        "value": 51.251,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 355,
+        "value": 52.455,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 356,
+        "value": 53.938,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 357,
+        "value": 55.654,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 359,
+        "value": 59.548,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 363,
+        "value": 67.751,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 364,
+        "value": 69.583,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 365,
+        "value": 71.236,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 366,
+        "value": 72.642,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 367,
+        "value": 73.766,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 368,
+        "value": 74.551,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 74.941,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 87.638,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 371,
+        "value": 87.819,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 373,
+        "value": 88.639,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 375,
+        "value": 89.958,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 378,
+        "value": 92.586,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 385,
+        "value": 99.708,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 387,
+        "value": 101.485,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 389,
+        "value": 102.916,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 391,
+        "value": 103.925,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 104.366,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 87.629,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 396,
+        "value": 88.042,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 398,
+        "value": 88.908,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 401,
+        "value": 90.863,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 405,
+        "value": 94.252,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 411,
+        "value": 99.684,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 414,
+        "value": 101.979,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 416,
+        "value": 103.162,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 418,
+        "value": 103.984,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 104.239,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "lz": {
+     "value": 638.35,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 638.35,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 638.35,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 638.35,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 41,
+        "value": 637.85,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 637.85,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": -74.024,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 49,
+        "value": -73.668,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 55,
+        "value": -74.308,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 61,
+        "value": -75.003,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 62,
+        "value": -75.058,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": -75.84,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": -6.489,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 65,
+        "value": -6.921,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 67,
+        "value": -7.318,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 70,
+        "value": -7.094,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 71,
+        "value": -7.104,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 74,
+        "value": -6.553,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 75,
+        "value": -6.669,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 79,
+        "value": -7.683,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": -7.876,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": -73.361,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 93,
+        "value": -73.397,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 105,
+        "value": -74.168,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 106,
+        "value": -73.866,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 107,
+        "value": -73.803,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 108,
+        "value": -74.097,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": -75.214,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 111,
+        "value": -75.497,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 122,
+        "value": -75.466,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 127,
+        "value": -74.789,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": -74.772,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 638.35,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 150,
+        "value": 637.86,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 637.85,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 638.35,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 191,
+        "value": 637.85,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 637.85,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": -73.805,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 217,
+        "value": -74.105,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 246,
+        "value": -75.065,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": -75.095,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": -190.36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 256,
+        "value": -190.7,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 265,
+        "value": -191.92,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 277,
+        "value": -193.74,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 283,
+        "value": -194.24,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": -194.29,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": -190.36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 291,
+        "value": -190.74,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": -191.03,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": -72.841,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": -72.841,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": -72.841,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 318,
+        "value": -72.841,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 319,
+        "value": 198.173,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 324,
+        "value": 232.713,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 326,
+        "value": 246.331,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 266.175,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 331,
+        "value": 279.057,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": 291.585,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 334,
+        "value": 297.715,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 335,
+        "value": 303.586,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 336,
+        "value": 309.04,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 337,
+        "value": 314.15,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 318.887,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 339,
+        "value": 323.261,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 331.615,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 335.966,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 340.14,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 343.098,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 346,
+        "value": 343.205,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 349,
+        "value": 343.76,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 343.858,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 425.72,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 356,
+        "value": 425.31,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 365,
+        "value": 423.67,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 423.34,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 327.72,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 375,
+        "value": 327.37,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 388,
+        "value": 325.62,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 325.34,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 327.73,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 401,
+        "value": 327.24,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 415,
+        "value": 325.57,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 325.35,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "fov": {
+     "value": 51,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 51,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 51,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 51,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 44,
+        "value": 51,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": 36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 63,
+        "value": 36,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": 32,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 81,
+        "value": 32,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": 36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 128,
+        "value": 36,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 51,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 152,
+        "value": 51,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 51,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 51,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 249,
+        "value": 36,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 285,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 293,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 294,
+        "value": 40,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 314,
+        "value": 40,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": 40,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 343,
+        "value": 40,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 344,
+        "value": 36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 351,
+        "value": 36,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 393,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 419,
+        "value": 60,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "aperture": 41.4214,
+    "resolution": [
+     1280,
+     720
+    ],
+    "shot": {
+     "value": 0,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 0,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 1,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 45,
+        "value": 2,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 64,
+        "value": 3,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 82,
+        "value": 4,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 129,
+        "value": 5,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 153,
+        "value": 6,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 7,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 250,
+        "value": 8,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 286,
+        "value": 9,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 315,
+        "value": 10,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 352,
+        "value": 11,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 370,
+        "value": 12,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 394,
+        "value": 13,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "camera",
+   "module": "cascade.core.Camera",
+   "position": [
+    860,
+    420
+   ],
+   "props": {
+    "lookAt": true,
+    "aperture": 41.4214,
+    "resolution": [
+     1280,
+     720
+    ],
+    "near": 0.5,
+    "far": 10000
+   }
+  },
+  {
+   "id": "view",
+   "module": "project.RigView",
+   "position": [
+    1100,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "size": [
+     960,
+     640
+    ],
+    "strip": true,
+    "label": "rig desk: OD-B10-S02",
+    "filename": "previz-OD-B10-S02.png"
+   }
+  }
+ ],
+ "connections": [
+  [
+   [
+    "set",
+    0,
+    "geometry"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_odysseus",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_odysseus",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_odysseus",
+    1,
+    "pose"
+   ],
+   [
+    "pose_odysseus",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_odysseus",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_1",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_three_scouts_1",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_1",
+    1,
+    "pose"
+   ],
+   [
+    "pose_three_scouts_1",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_three_scouts_1",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_2",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_three_scouts_2",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_2",
+    1,
+    "pose"
+   ],
+   [
+    "pose_three_scouts_2",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_three_scouts_2",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_3",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_three_scouts_3",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_three_scouts_3",
+    1,
+    "pose"
+   ],
+   [
+    "pose_three_scouts_3",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_three_scouts_3",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    0,
+    "translate"
+   ],
+   [
+    "camera",
+    0,
+    "translate"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    1,
+    "lookat"
+   ],
+   [
+    "camera",
+    3,
+    "lookat"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    2,
+    "focal"
+   ],
+   [
+    "camera",
+    2,
+    "focal"
+   ]
+  ],
+  [
+   [
+    "cast",
+    0,
+    "geometry"
+   ],
+   [
+    "view",
+    0,
+    "geometry"
+   ]
+  ],
+  [
+   [
+    "camera",
+    0,
+    "camera"
+   ],
+   [
+    "view",
+    1,
+    "camera"
+   ]
+  ],
+  [
+   [
+    "voice",
+    4,
+    "info"
+   ],
+   [
+    "view",
+    2,
+    "voice"
+   ]
+  ],
+  [
+   [
+    "score",
+    1,
+    "info"
+   ],
+   [
+    "view",
+    3,
+    "score"
+   ]
+  ]
+ ],
+ "annotations": [
+  {
+   "id": "note",
+   "position": [
+    0,
+    -160
+   ],
+   "size": [
+    900,
+    120
+   ],
+   "text": "OD-B10-S02 on the rig desk. Each actor is a Subnet with one Minifig Rig: its generated choreography comes from assets/rig/OD-B10-S02/<actor>.json; the director's layer is the rig's own props (an offset per servo, a weight per body part), keyed in the Timeline against the Voice Track. Preview headless: cascade run rig-OD-B10-S02.cascade --frames 1-419 --fps 12. Export: node tools/rig_export.mjs OD-B10-S02."
+  }
+ ]
+}

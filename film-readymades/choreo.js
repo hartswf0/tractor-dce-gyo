@@ -27,7 +27,7 @@
    choreographer never rewrites (tools/choreograph.js keeps them across regenerations).
    Props: [{t, op:'give', from:'actor:R', to:'actor:R'} | {t, op:'hide'|'show', what:'actor:R'|'prop:<id>'}], evaluated as state
    at t (the latest event for each thing), so scrubbing back gives the spear back.
-   Rigs: {ship: {piece, pivot:[x,y,z], channels: {pitch, roll, heave}, riders:[actor ids]}}: a set piece turned about its pivot,
+   Rigs: {ship: {piece, pivot:[x,y,z], channels: {pitch, roll, heave, dx?, dz?}, riders:[actor id | [actor id, t0, t1]]}}: a set piece turned about its pivot,
    carrying the figures that stand on it (each rider's channels are in the ship's frame at rest). */
 (function (root) {
 'use strict';
@@ -161,13 +161,13 @@ function applyProps(THREE, C, t, ctx, S) {
 }
 function restoreProps(S) { if (!S || !S.props) return; for (const P of S.props.values()) if (P.kind === 'held') P.parts.forEach((p, i) => { if (p.parent !== P.home) P.home.add(p); p.visible = P.vis0[i]; }); }
 /* the ship: a set piece turned about its pivot; its riders turned and lifted with it */
-function applyShip(THREE, R, v, ctx, S) {
+function applyShip(THREE, R, v, ctx, S, t) {
   if (!R || !v) return; S.ship = S.ship || {};
   let st = S.ship[R.piece]; if (!st) { const ms = ctx.pieceMeshes ? ctx.pieceMeshes(R.piece) : []; st = S.ship[R.piece] = { ms: ms.map(m => ({ m, p: m.position.clone(), q: m.quaternion.clone() })) }; }
   const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.pitch || 0, R.yaw || 0, v.roll || 0, 'YXZ')), q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, R.yaw || 0, 0, 'YXZ'));
-  const Q = q.clone().multiply(q0.clone().invert()), piv = new THREE.Vector3(...R.pivot), off = piv.clone().sub(piv.clone().applyQuaternion(Q)); off.y += v.heave || 0;
+  const Q = q.clone().multiply(q0.clone().invert()), piv = new THREE.Vector3(...R.pivot), off = piv.clone().sub(piv.clone().applyQuaternion(Q)); off.y += v.heave || 0; off.x += v.dx || 0; off.z += v.dz || 0;
   for (const s of st.ms) { s.m.quaternion.copy(s.q).premultiply(Q); s.m.position.copy(s.p).applyQuaternion(Q).add(off); s.m.updateMatrixWorld(true); }
-  for (const id of R.riders || []) { const r = ctx.rigOf(id); if (!r || r.figure.visible === false) continue; const f = r.figure; f.position.applyQuaternion(Q).add(off); f.quaternion.premultiply(Q); r.pos.copy(f.position); }
+  for (const rd of R.riders || []) { const id = Array.isArray(rd) ? rd[0] : rd; if (Array.isArray(rd) && (t < rd[1] || (rd[2] != null && t > rd[2]))) continue; const r = ctx.rigOf(id); if (!r || r.figure.visible === false) continue; const f = r.figure; f.position.applyQuaternion(Q).add(off); f.quaternion.premultiply(Q); r.pos.copy(f.position); }
   S.shipQ = Q;
 }
 function restoreShip(S) { if (!S || !S.ship) return; for (const st of Object.values(S.ship)) for (const s of st.ms) { s.m.position.copy(s.p); s.m.quaternion.copy(s.q); s.m.updateMatrixWorld(true); } }
@@ -179,7 +179,7 @@ function player(C, ctx) {
     /* after the take has posed the blocking and the face: the sheet's servos for every actor it names, then the rigs, the props */
     apply(t) {
       for (const id of Object.keys(X.actors)) { const r = ctx.rigOf(id); if (!r || r.figure.visible === false || r.absent) continue; applyRig(THREE, r, sampleActor(C, id, t), { hipsY: ctx.hipsOf(r), layer: C.layer || 'abs' }); }
-      for (const [id, R] of Object.entries(X.rigs)) if (R.type === 'ship' || id === 'ship') applyShip(THREE, R, sampleRig(C, id, t), ctx, S);
+      for (const [id, R] of Object.entries(X.rigs)) if (R.type === 'ship' || id === 'ship') applyShip(THREE, R, sampleRig(C, id, t), ctx, S, t);
       applyProps(THREE, C, t, ctx, S);
     },
     /* whether an actor is travelling at t (the take's camera tracks a walker) */

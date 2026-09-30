@@ -10,6 +10,7 @@ const want = process.argv.slice(2);
 const cli = path.join(here, 'node_modules/cascade/dist/cli/index.js');
 for (const g of graphs) {
   if (want.length && !want.includes(g.name)) continue;
+  if (g.player === false) continue;   /* the rig desk's graphs are opened in Studio, not played on the page */
   const out = path.join(here, 'players', g.name);
   fs.rmSync(out, { recursive: true, force: true });
   execFileSync(process.execPath, [cli, 'build', g.graph, '--out', path.relative(here, out)], { cwd: here, stdio: 'inherit' });
