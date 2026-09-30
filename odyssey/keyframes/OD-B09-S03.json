@@ -62,7 +62,7 @@
     },
     {
      "id": "three-scouts-1",
-     "x": -50,
+     "x": -85,
      "z": 185,
      "y": "floor",
      "face": [
@@ -96,7 +96,7 @@
     },
     {
      "id": "three-scouts-2",
-     "x": 10,
+     "x": -30,
      "z": 205,
      "y": "floor",
      "face": [
@@ -164,18 +164,18 @@
     },
     {
      "id": "lotus-eaters-1",
-     "x": -150,
-     "z": 260,
+     "x": -120,
+     "z": 240,
      "y": "floor",
      "face": [
-      0,
-      190
+      -85,
+      185
      ],
      "props": false,
      "on": "*",
      "pose": {
-      "armRP": [
-       -1.0,
+      "armLP": [
+       -1.3,
        0,
        0
       ]
@@ -262,9 +262,31 @@
      "id": "odysseus",
      "soft": true,
      "min": 0.02
+    },
+    {
+     "id": "prop:lotus",
+     "soft": true,
+     "cut": true
     }
    ],
-   "lensAllow": []
+   "lensAllow": [],
+   "props": [
+    {
+     "name": "lotusHeld",
+     "id": "lotus",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:lotus-eaters-1:L",
+      "dir": [
+       0,
+       -1,
+       0.3
+      ]
+     },
+     "scale": 0.5
+    }
+   ]
   },
   {
    "id": "K2",
@@ -488,25 +510,25 @@
       500
      ],
      "props": false,
-     "on": "*",
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
        -1.4,
        0,
        0
+      ],
+      "legRP": [
+       0,
+       0,
+       0
+      ],
+      "legLP": [
+       0,
+       0,
+       0
       ]
      },
-     "sit": true
+     "lie": true,
+     "free": true
     },
     {
      "id": "three-scouts-2",
@@ -518,25 +540,25 @@
       500
      ],
      "props": false,
-     "on": "*",
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armLP": [
        -0.6,
        0,
        0
+      ],
+      "legRP": [
+       0,
+       0,
+       0
+      ],
+      "legLP": [
+       0,
+       0,
+       0
       ]
      },
-     "sit": true
+     "lie": true,
+     "free": true
     },
     {
      "id": "three-scouts-3",
@@ -548,20 +570,20 @@
       500
      ],
      "props": false,
-     "on": "*",
      "pose": {
       "legRP": [
-       -1.5708,
+       0,
        0,
        0
       ],
       "legLP": [
-       -1.5708,
+       0,
        0,
        0
       ]
      },
-     "sit": true
+     "lie": true,
+     "free": true
     },
     {
      "id": "lotus-eaters-1",
@@ -709,7 +731,38 @@
      "scale": 0.5
     }
    ],
-   "lensAllow": []
+   "lensAllow": [],
+   "note": "The three lie back in the meadow (lie), not seated: languor, the lotus in hand.",
+   "search": {
+    "around": "three-scouts-2",
+    "target": "three-scouts-2",
+    "az": [
+     -0.9,
+     0.9
+    ],
+    "r": [
+     90,
+     190
+    ],
+    "h": [
+     70,
+     150
+    ],
+    "fov": [
+     36,
+     48
+    ],
+    "bounds": [
+     -300,
+     300,
+     110,
+     400
+    ],
+    "size": 0.2,
+    "n": 160,
+    "seed": 3,
+    "place": "L"
+   }
   },
   {
    "id": "K4",
