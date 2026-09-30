@@ -8,7 +8,7 @@
    SLEEP    {breath}                            the eye shut, the head fallen, a slow heavy breath (body.dy)
    TALK     {utterance: gi}                     the jaw on the voice's phrases, the head rolling with the stresses (a drunk giant)
    STIR     {hand}                              a groan: the hand moves, the head turns, the eye does not open
-   BLINDED  {}                                  the eye put out: the head thrown back, both hands to the face, the jaw open
+   BLINDED  {}                                  the eye put out (eye 3, the replacement part): the head thrown back, both hands to the face, the jaw open
    ROAR     {preset: 'roar', place}             rises into the roar (preset faded in), moved to `place` [x, y, z, h] if given
    WALK     {path: [[t, x, z]...], gait}        a heavy giant's walk (heavy) or a quadruped's gait along a path
    GROPE    {center, width, depth, hand}        a blind hand searching a lane (grope)
@@ -32,6 +32,7 @@ function place(kind, scale, preset, o) {
   const v = Object.assign(rig.rest(), rig.preset(preset) || {}, { 'root.x': 0, 'root.y': 0, 'root.z': 0, 'root.h': h }), P = rig.pose(v);
   let lo = [1e9, 1e9], hi = [-1e9, -1e9], ylo = 1e9; for (const n of K.nodes) { const M = P.nodes[n.id]; if (!M) continue; const p = Cr.m.ap(M, n.p); lo = [Math.min(lo[0], p[0]), Math.min(lo[1], p[2])]; hi = [Math.max(hi[0], p[0]), Math.max(hi[1], p[2])]; if (!/^(arm|elbow|hand)/.test(n.id)) ylo = Math.min(ylo, p[1]); }   /* the trunk and legs rest on the floor; an arm may hang lower */
   const c = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2];
+  if (o.anchor && o.to) { const A = rig.anchor(o.anchor, v); if (A) return [r3(o.to[0] - A[0]), r3(o.y != null ? o.y : -ylo), r3(o.to[2] - A[2]), h]; }   /* an anchor (the eye) on a point; the trunk on the floor */
   if (o.box) { const b = o.box, bc = [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2]; return [r3(bc[0] - c[0]), r3(b[1] - ylo), r3(bc[1] - c[1]), h]; }
   if (o.center) return [r3(o.center[0] - c[0]), r3((o.y || 0) - ylo), r3(o.center[1] - c[1]), h];
   return [o.at[0], o.at[1] || 0, o.at[2], h];
@@ -51,11 +52,11 @@ K.TALK = (X, I, e) => { const c = X.M.clips.find(c => c.gi === I.utterance); if 
 K.STIR = (X, I, e) => { const h = (I.params && I.params.hand) || 'R', t = I.t0;
   return X.cmove(I.actor, 'STIR', e, { keys: { ['arm.' + h + '.out@stir']: [[t, 0], [t + 0.5, 0.35], [t + 1.6, 0.1]], 'head.yaw@stir': [[t, 0], [t + 0.7, 0.3], [t + 2, 0.12]], 'jaw@stir': [[t, 0], [t + 0.3, 0.3], [t + 1.1, 0]] } }, { label: I.label || 'a groan: the hand moves' }); };
 K.BLINDED = (X, I, e) => { const t = I.t0;
-  return X.cmove(I.actor, 'BLINDED', e, { keys: { eye: [[t, 2]], 'head.pitch@blind': [[t, 0], [t + 0.25, 0.45], [t + 1.4, 0.25], [I.t1, 0.1]], 'jaw@blind': [[t, 0], [t + 0.2, 0.8], [I.t1, 0.4]],
+  return X.cmove(I.actor, 'BLINDED', e, { keys: { eye: [[t - 0.05, 2], [t, 3]], 'head.pitch@blind': [[t, 0], [t + 0.25, 0.45], [t + 1.4, 0.25], [I.t1, 0.1]], 'jaw@blind': [[t, 0], [t + 0.2, 0.8], [I.t1, 0.4]],
     'arm.R.pitch@blind': [[t + 0.2, 0], [t + 0.8, -1.9], [I.t1, -1.6]], 'arm.L.pitch@blind': [[t + 0.25, 0], [t + 0.85, -1.8], [I.t1, -1.5]], 'elbow.R@blind': [[t + 0.2, 0], [t + 0.8, -1.2]], 'elbow.L@blind': [[t + 0.25, 0], [t + 0.85, -1.2]] } }, { label: I.label || 'the eye put out: hands to the face' }); };
 K.ROAR = (X, I, e) => { const A = X.creatures[I.actor], out = [];
   if (I.params && I.params.place) { const s = cstate(X, I.actor, I.t0).v, a = [s['root.x'], s['root.y'], s['root.z'], s['root.h']]; out.push(X.cmove(I.actor, 'RISE', e, { keys: rootKeys(a, I.params.place, I.t0, I.t0 + (I.params.rise || 1.4)) }, { label: 'rises to his feet' })); }
-  out.push(X.cmove(I.actor, 'ROAR', e, { proc: { type: 'preset', name: (I.params && I.params.preset) || 'roar', from: I.t0, to: I.t1, fade: 0.8 }, keys: { 'jaw@roar': [[I.t0, 0], [I.t0 + 0.4, 1], [I.t1 - 0.3, 0.8], [I.t1, 0.2]] } }, { label: I.label || 'the roar' }));
+  out.push(X.cmove(I.actor, 'ROAR', e, { proc: { type: 'preset', name: (I.params && I.params.preset) || 'roar', from: I.t0, to: I.t1, fade: 0.8 }, keys: Object.assign({ 'jaw@roar': [[I.t0, 0], [I.t0 + 0.4, 1], [I.t1 - 0.3, 0.8], [I.t1, 0.2]] }, I.params && I.params.eye != null ? { eye: [[I.t0 - 0.05, 2], [I.t0 + 0.1, I.params.eye]] } : {}) }, { label: I.label || 'the roar' }));
   void A; return out[out.length - 1]; };
 K.WALK = (X, I, e) => { const A = X.creatures[I.actor], giant = Cr.KINDS[A.kind].family === 'giant', p = I.params;
   /* creatures.js heavy() tabulates its lag from t = 0 on a function path: a path that starts later is held at its first place from 0 */
@@ -87,9 +88,11 @@ K.THROW = (X, I, e) => { const p = I.params || {}, hand = p.hand || 'R', lift = 
   return flight; };
 K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, { proc: { type: 'herd', path: p.path, n: p.n || 4, index: p.index || 0, gait: p.gait || 'walk', spacing: p.spacing || 60, seed: p.seed || 3, from: I.t0, to: I.t1, fade: 0.3 } }, { label: I.label || 'with the flock' }); };
 K.STRIKE = (X, I, e) => { const p = I.params || {}, tg = (p.targets || []).map(id => figPoint(X, id, I.t0 + 0.3, X.H(id) * 0.6)).filter(Boolean);
-  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: I.t1, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
-  (p.targets || []).forEach((id, k) => { X.cmove(I.actor, 'SEIZED', ev1, { riders: [{ actor: id, at: 'jaw' + (k + 1), from: r3(I.t0 + 0.4), to: r3(I.t1) }], from: I.t0 + 0.4, to: I.t1 }, { label: id + ' in jaw ' + (k + 1) });
-    X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor, id], t0: r3(I.t0 + 0.4), t1: r3(I.t1), kind: 'GRIP', label: 'jaw ' + (k + 1) + ' holds ' + id, because: [{ id: ev1.id, latency: 0.4 }], params: { k: 6 } }); });
+  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
+  /* each head reaches its man at t0 + its stagger + the strike (0.35 s); he rides that jaw from then to the end: taken */
+  const D = [0, 0.08, 0.03, 0.12, 0.05, 0.1];
+  (p.targets || []).forEach((id, k) => { const tg = r3(I.t0 + D[k % 6] + 0.36); X.cmove(I.actor, 'SEIZED', ev1, { riders: [{ actor: id, at: 'jaw' + (k + 1), from: tg, to: r3(p.keep === false ? I.t1 : X.T) }], from: tg, to: I.t1 }, { label: id + ' in jaw ' + (k + 1) });
+    X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor, id], t0: tg, t1: r3(I.t1), kind: 'GRIP', label: 'jaw ' + (k + 1) + ' holds ' + id, because: [{ id: ev1.id, latency: 0.4 }], params: { k: 6 } }); });
   return ev1; };
 /* the bearing of a target (a figure, a piece, a point) from a creature's root at t, in its own heading's frame */
 function bearing(X, id, target, t) { const v = cstate(X, id, t).v, p = pointOf(X, target, t); if (!p) return null; const dx = p[0] - (v['root.x'] || 0), dz = p[2] - (v['root.z'] || 0);

@@ -201,7 +201,7 @@ function poseCast(st,t){for(const a of ButterCast.cast){const id=kfShort(a.kind)
   P.last=null;const saveSeated=r.seated;r.seated=s.sat||s.walk>0.1;   /* a seated or walking body keeps the blocking's legs; the performance keeps to the face and the head */
   const v=Perform.apply(P,t);r.seated=saveSeated;
   if(r.seated&&v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}
-  /*[choreo]*/if(T.choreo)T.choreo.apply(t);/*[/choreo]*/}
+  /*[choreo]*/if(T.choreo)T.choreo.apply(t);if(T.creatures)T.creatures.apply(t);/*[/choreo]*/}
 /* the key's world beyond the cast: props, the hidden pieces, the light and the sky, re-staged only when the key changes */
 function worldFor(key){if(T.world===key.id)return;T.world=key.id;const k=key.k,spec=T.spec;
   OdysseyFilm.hide(k.hide||[]);const pl=JSON.stringify([...(spec.props||[]),...(k.props||[])]);if(pl!==T.propsNow){T.propsNow=pl;OdysseyFilm.props(JSON.parse(pl));OdysseyFilm.propsAfter(JSON.parse(pl));}
@@ -283,12 +283,33 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   T.world=null;T.stats=stats;
   /*[choreo]*/ /* the choreography (odyssey/choreo/<scene>.json, film-readymades/choreo.js): every servo of every actor on the voice clock, over the blocking; o.choreo an object, false for none */
   if(window.OdysseyChoreo&&o.choreo!==false){let C=typeof o.choreo==='object'?o.choreo:null;if(!C)try{const r=await fetch(root+'odyssey/choreo/'+sid+'.json',{cache:'no-store'});if(r.ok)C=await r.json();}catch(e){}
-    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);}/*[/choreo]*/
+    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);
+    if(C&&C.creatures&&(C.clock||'cut')===mode&&window.OdysseyCreatures)try{T.creatures=await creaturesStage(C);}catch(e){console.warn('[take] creatures',e);}}/*[/choreo]*/
   /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
   if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
   return info();}
 function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
+/*[choreo]*/ /* creatures (film-readymades/creatures.js, CREATURES.md "Wiring it into the film"): a sheet's `creatures` as rigs in the take. Each
+   rig's pieces are parsed once (library parts from the part packs, as the props are; the cut pieces from odyssey/creatures/parts/<kind>.mpd),
+   attached under one group at the scene's root (the rig's world is the take's), posed every drawing from OdysseyCreatures.sample; the staged
+   prop of the same id (prop:<id>) is hidden while its rig plays; a rider's figure is set in the anchor's frame (a man in a fist, under a ram) */
+async function creaturesStage(C){const Cr=OdysseyCreatures,root=new URL('../../',location.href).href,rigs={},want=new Map(),cache=new Map(),mpd={};
+  for(const [id,A] of Object.entries(C.creatures)){const rig=Cr.define(A.kind,{id,scale:A.scale,colour:A.colour});rigs[id]=rig;rig.attach(THREE,new THREE.Group(),(f,c)=>{want.set(f+'|'+c,{f,c,kind:rig.K.cutFrom||rig.kind});return null;});}
+  const partKey=f=>/\.ldr$/.test(f)?f:'parts/'+String(f).replace(/\.dat$/,'')+'.dat';
+  for(const {f,kind} of want.values()){if(/\.ldr$/.test(f)){if(!mpd[kind]){mpd[kind]={};try{const txt=await (await fetch(root+'odyssey/creatures/parts/'+kind+'.mpd')).text();let cur=null,buf=[];for(const ln of txt.split(/\r?\n/)){const m=ln.match(/^0 FILE (.+)$/);if(m){if(cur)mpd[kind][cur]=buf.join('\n');cur=m[1].trim();buf=[];}else buf.push(ln);}if(cur)mpd[kind][cur]=buf.join('\n');}catch(e){console.warn('[creatures] no parts for',kind);}}continue;}
+    const id=String(f).replace(/\.dat$/,'');if(ButterLDraw.parts['parts/'+id+'.dat'])continue;try{const pk=await (await fetch(root+'odyssey/packs/'+id.replace('/','_')+'.json')).json();for(const [k,v] of Object.entries(pk)){ButterLDraw.parts[k]=v;ButterLDraw.parts[(k.startsWith('parts/')||k.startsWith('p/'))?k:'parts/'+k]=v;if(k.startsWith('p/'))ButterLDraw.parts[k.slice(2)]=v;}}catch(e){console.warn('[creatures] no pack',id);}}
+  for(const [key,{f,c,kind}] of want){const ldr=/\.ldr$/.test(f);if(!ldr&&!ButterLDraw.parts[partKey(f)]){const base=String(f).replace(/p[0-9a-z]+$/,'');if(ButterLDraw.parts['parts/'+base+'.dat'])want.set(key,{f:base,c,kind,alias:true});else continue;}
+    const w=want.get(key),l=new THREE.LDrawLoader();l.setFileMap({});Object.assign(l.subobjectCache,ButterLDraw.parts);if(ldr&&mpd[kind]&&mpd[kind][f]!=null){l.subobjectCache[f]=mpd[kind][f];l.subobjectCache[f.toLowerCase()]=mpd[kind][f];}else if(ldr)continue;
+    try{const g=await new Promise((res,rej)=>l.parse(ButterLDraw.colors+'\n1 '+c+' 0 0 0 1 0 0 0 1 0 0 0 1 '+(ldr?f:partKey(w.f)),'creature.ldr',res,rej));g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}for(const m of [].concat(o.material||[]))if(m&&m.color&&!m.userData.lin){m.userData.lin=1;if(renderer.outputEncoding===THREE.sRGBEncoding)m.color.convertSRGBToLinear();}});cache.set(key,g);}catch(e){console.warn('[creatures] parse',f,e);}}
+  const group=new THREE.Group();group.name='creatures';scene.add(group);
+  for(const [id,rig] of Object.entries(rigs)){const g=new THREE.Group();g.name='creature:'+id;group.add(g);rig.attach(THREE,g,(f,c)=>{const t=cache.get(f+'|'+c);return t?t.clone(true):null;});}
+  const M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),Sv=new THREE.Vector3(),Pv=new THREE.Vector3();
+  return {rigs,group,
+    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t);rig.apply(s.v);const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
+      for(const r of s.riders||[]){const a=kfActor(r.actor);if(!a||!a.rig||a.rig.figure.visible===false)continue;const m=r.m,f=a.rig.figure;M4.set(m[3],m[4],m[5],m[0],m[6],m[7],m[8],m[1],m[9],m[10],m[11],m[2],0,0,0,1);M4.decompose(Pv,Q,Sv);f.position.copy(Pv);f.quaternion.copy(Q);if(a.rig.pos)a.rig.pos.copy(Pv);}}
+      group.updateMatrixWorld(true);},
+    dispose(){scene.remove(group);for(const id of Object.keys(rigs)){const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=true;}}};}
 /*[choreo]*/ /* the set pieces a sheet's rig names (a ship), as motion.js finds them: the mesh whose box is the piece's box */
 function choreoPieces(label){const want=OdysseyFilm.pieces().filter(p=>p.box&&(p.label===label||p.label.toLowerCase().includes(String(label).toLowerCase())));const out=[];const cands=[];scene.traverse(o=>{if(o.isMesh&&o.userData&&o.userData.partId!=null)cands.push(o);});
   for(const p of want){let best=null,bd=1e9;for(const m of cands){const b=new THREE.Box3().setFromObject(m),d=Math.abs(b.min.x-p.box[0])+Math.abs(b.min.y-p.box[1])+Math.abs(b.min.z-p.box[2])+Math.abs(b.max.x-p.box[3])+Math.abs(b.max.y-p.box[4])+Math.abs(b.max.z-p.box[5]);if(d<bd){bd=d;best=m;}}if(best&&bd<12)out.push(best);}return out;}
@@ -317,7 +338,7 @@ function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prep
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
 function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
 function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
-function end(){if(!T)return;stop();/*[choreo]*/if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
+function end(){if(!T)return;stop();/*[choreo]*/if(T.creatures)T.creatures.dispose();if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the
    page draws it, and the caption sits over the picture ── */

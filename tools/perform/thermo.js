@@ -46,7 +46,9 @@ function power(a, b, H) {
   const dt = 1 / F; let P = 0;
   for (const [k, L] of Object.entries(LEVER)) for (let q = 0; q < 3; q++) { const w = (a.j[k][q] - b.j[k][q]) / dt * L; P += w * w; }
   const v = Math.hypot(a.p[0] - b.p[0], a.p[1] - b.p[1], a.p[2] - b.p[2]) / H / dt, tr = Body.wrap(a.rot[1] - b.rot[1]) / dt * 0.2, rr = ((a.rot[0] - b.rot[0]) + (a.rot[2] - b.rot[2])) / dt * 0.8, hy = (a.hipsDy - b.hipsDy) * a.scale / H / dt;
-  return P + v * v + tr * tr + rr * rr + hy * hy;
+  /* a jump faster than 6 heights a second is the staging's discontinuity (a pop between marks, a rider placed), not motion: capped */
+  const vc = Math.min(v, 6);
+  return P + vc * vc + tr * tr + rr * rr + hy * hy;
 }
 
 /* ═════ the causal model: features of the present state, utilities declared per scene ═════ */

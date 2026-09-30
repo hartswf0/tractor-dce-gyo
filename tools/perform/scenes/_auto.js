@@ -37,7 +37,7 @@ module.exports = function author(M, X, N) {
   if (KF) for (const k of KF.keys || []) { const Kt = (M.keys.find(x => x.id === k.id) || {}).t; for (const pp of k.props || []) { const nm = String(pp.name || ''), hit = CKIND.find(([re]) => re.test(nm) || re.test(pp.id || '')); if (!hit || !Array.isArray(pp.at)) continue;
       const cid = pp.id || nm; if (Object.keys(creatures).length >= 6 && !creatures[cid]) continue;
       const pose = /sprawl/i.test(nm) ? 'sprawl' : /roar/i.test(nm) ? 'roar' : /graze/i.test(nm) ? 'graze' : /lie|dead|dying/i.test(nm) ? 'lie' : 'stand', at = [pp.at[0], pp.floor === false ? pp.at[1] : 0, pp.at[2], (pp.rot || [0, 0, 0])[1] || 0];
-      if (!creatures[cid]) { creatures[cid] = { kind: hit[1], scale: pp.scale || 1, at, procs: [] }; cSeen[cid] = []; } cSeen[cid].push({ t: Kt != null ? Kt : 0, pose, at }); } }
+      if (!creatures[cid]) { creatures[cid] = { kind: hit[1], scale: Math.round((pp.scale || 1) * (M.scale || 1) * 1000) / 1000, at, procs: [] };   /* the take draws a prop at its scale x the location's (world units per LDU) */ cSeen[cid] = []; } cSeen[cid].push({ t: Kt != null ? Kt : 0, pose, at }); } }
   for (const [cid, L] of Object.entries(creatures)) { const seq = cSeen[cid].sort((a, b) => a.t - b.t);
     seq.forEach((x, j) => { if (x.pose === 'stand') return; const nx = seq.slice(j + 1).find(y => y.pose !== x.pose); L.procs.push({ type: 'preset', name: x.pose === 'roar' ? 'roar' : x.pose, from: j ? q(x.t) - 0.4 : 0, to: nx ? q(nx.t) - 0.4 : T, fade: j ? 0.6 : 0 }); }); }
   /* a name to creatures: the id, a part of it ('giant-girl' -> girl), or a kind's name for the unnamed of that kind ('laestrygonians' -> g1..g4) */
@@ -61,7 +61,7 @@ module.exports = function author(M, X, N) {
     if (base === 'GESTURE') { kind = 'GESTURE'; params = { shape: sub, at: it.t0 + 0.3 }; } else if (base === 'REACT') { kind = 'REACT'; params = { how: sub }; } else if (base === 'ANIMAL' || NONE.has(base)) { notes.push(kind + ' (' + it.actor + ', ' + it.t0 + ' s): no realiser yet'); return; }
     else if (ALIAS[kind]) { params = { ...ALIAS[kind][1] }; kind = ALIAS[kind][0]; }
     const crs = resolveCs(it.actor); for (const cr of crs.slice(0, 6)) { const CK = { THROW: 'THROW', THRUST: 'REACH', LIFT: null, LISTEN: 'ATTEND', ATTEND: 'ATTEND', RECOGNISE: 'RECOGNISE', GESTURE: 'GESTURE', SEIZE: 'SEIZE', GRAPPLE: 'SEIZE', EAT: 'EAT', GROPE: 'GROPE', STRIKE: 'STRIKE', ROAR: 'ROAR', SLEEP: 'SLEEP', WAKE: 'ROAR', REACH: 'REACH', HERD: 'HERD' }[base === 'GESTURE' ? 'GESTURE' : it.kind];
-      if (CK === null) { notes.push(it.kind + ' for ' + cr + ' (' + it.t0 + ' s): part of the strike before it'); return; }
+      if (CK === null) { const prev = intents.filter(x => x.actor === cr && x.kind === 'STRIKE').pop(); if (prev) { prev.t1 = Math.max(prev.t1, q(it.t1)); prev.params.lift = Math.max(2, q(it.t1) - prev.t0 - 1); } notes.push(it.kind + ' for ' + cr + ' (' + it.t0 + ' s): the lift of the strike before it (its span extended)'); return; }
       if (!CK) { notes.push(it.kind + ' for the creature ' + cr + ' (' + it.t0 + ' s): no creature realiser yet'); return; }
       const tg = it.target ? (resolve(it.target)[0] || resolveC(it.target) || it.target) : null;
       const j = crs.indexOf(cr), dt = 0.35 * j, stepTxt = (chain[(stepAt(it.t0)[0] || { id: 'sC-1' }).id.slice(2) | 0] || {}).what || '';
