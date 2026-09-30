@@ -18,7 +18,7 @@ module.exports = function author(M, X) {
   const K2 = K('K2'), K3 = K('K3'), K5 = K('K5') || M.keys[M.keys.length - 1], O = 'odysseus', sc = Object.keys(M.H).filter(i => /scout/.test(i));
   const clip = gi => M.clips.find(c => c.gi === gi), cMoor = clip(2), cGirl = clip(3), cSeize = clip(4), cCut = clip(6);
   const tSeize = q(cSeize ? cSeize.at + 0.3 : K3.t), crs = Object.keys(A.creatures || {}), girl = crs.find(c => /girl/.test(c)), anti = crs.find(c => /antiphates/.test(c)), giants = crs.filter(c => /^g\d/.test(c));
-  const spec = Ma.harbour({ total: T, seize: tSeize, cutWindow: [q(K5.t - 0.5), q((K5.win ? K5.win[1] : K5.t + 1) + 1)], thresholds: giants.map((_, k) => 0.3 + 0.15 * k) });
+  const spec = Ma.harbour({ total: T, seize: tSeize, cutWindow: [q(K5.t), q((K5.win ? K5.win[1] : K5.t + 1) + 1)], thresholds: giants.map((_, k) => 0.3 + 0.15 * k) });
   const run = Ho.couple(spec, { frozen }), c = run.events, tCut = q(c.cut);
   A.intents = A.intents.filter(I => !crs.includes(I.actor) && !/THROW|THRUST|SEIZE|FLEE|ARM|TOOL_WORK|ROPE/.test(I.kind));
   const stim = A.stimuli, I = o => (A.intents.push(o), o.id), S_ = o => (stim.push(o), o.id), cr = (id, o) => I({ actor: id, ...o });
