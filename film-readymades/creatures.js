@@ -755,7 +755,7 @@ function sampleKeys(K, t) {
 const LIE = { under: [0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0], across: [0, 0, 0, 0, 0, 1, 0, -1, 0, 1, 0, 0], upright: I12 };
 const RIGS = new WeakMap();
 function rigFor(C, id) { let m = RIGS.get(C); if (!m) { m = {}; RIGS.set(C, m); } if (!m[id]) { const A = C.creatures[id]; m[id] = define(A.kind, { id, scale: A.scale, colour: A.colour }); } return m[id]; }
-const PERSIST = { gait: 1, heavy: 1, herd: 1, place: 1 };
+const PERSIST = { gait: 1, heavy: 1, herd: 1, place: 1 }, HERDS = new WeakMap();
 function runProc(rig, p, t, v, ctx = {}) {
   switch (p.type) {
     case 'place': { const u = sm(cl01((t - p.from) / Math.max(1e-6, p.to - p.from))), A = p.a, B = p.b, o = Object.assign({}, v);   /* a move of the whole body from a to b ([x, y, z, h]), held after */
@@ -767,7 +767,7 @@ function runProc(rig, p, t, v, ctx = {}) {
     case 'reach': { if (Array.isArray(p.hand)) return reach(rig, v, p.hand, null, p);   /* both hands: [['R', point], ['L', point]] */
       const tg = typeof p.target === 'function' ? p.target(t) : typeof p.target === 'string' && ctx.point ? ctx.point(p.target, t) : p.target; return tg ? reach(rig, v, p.hand || 'R', tg, p) : v; }   /* a target by name: ctx.point('odysseus:head', t) */
     case 'strike': return Object.assign({}, v, strike(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) })));   /* from the pose sampled so far (where Scylla stands) */
-    case 'herd': { const H = p._herd || (p._herd = herd(p)); return H.channels(rig, p.index || 0, t, p.gait || 'walk', { base: v }); }
+    case 'herd': { let H = HERDS.get(p); if (!H) { H = herd(p); HERDS.set(p, H); } return H.channels(rig, p.index || 0, t, p.gait || 'walk', { base: v }); }   /* memoised off the sheet (a sheet written to JSON keeps no function) */
     default: return v;
   }
 }
