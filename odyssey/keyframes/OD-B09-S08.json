@@ -1,0 +1,1495 @@
+{
+ "scene": "OD-B09-S08",
+ "location": "odyssey-od-b09-s08",
+ "title": "The Name Nobody and the Stake",
+ "source": "Homer, Odyssey IX, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the forage's cave (film-readymades/staging.py adds the two men eaten at dawn). Film Butter units: the floor at y 15, the back wall at z -198, the fire at (-66, 28), the pen at x 47..198 z -141..9, the great stone across the mouth at z 179-255. Four time skips on one set, one key a turn on the Regulars' Cut clock (clock: t0, t1 seconds from the scene's first frame): night (K1), dawn (K2), day (K3), evening (K4, K5); the look carries the hour. The baked Polyphemus, stake and cup are hidden and restaged as props, which the creature rig replaces: polyphemusSprawl asleep (K1), polyphemus standing (K2, K5), scale 1.4. The stake is one prop with states: trunk (K1, K2), stake glowing in the fire (K3), stakeCold under the dung (K4, K5).",
+ "clock": {
+  "cut": 1786.97,
+  "seconds": 68.04,
+  "segments": [
+   {
+    "turn": "OD-B09-S08-T01",
+    "t0": 0.6,
+    "t1": 11.44,
+    "kind": "AUDITORY_ACTION"
+   },
+   {
+    "turn": "OD-B09-S08-T02",
+    "t0": 11.89,
+    "t1": 22.65,
+    "kind": "AUDITORY_ACTION"
+   },
+   {
+    "turn": "OD-B09-S08-T03",
+    "t0": 23.1,
+    "t1": 35.22,
+    "kind": "AUDITORY_ACTION"
+   },
+   {
+    "turn": "OD-B09-S08-T04",
+    "t0": 35.67,
+    "t1": 43.55,
+    "kind": "NARRATION"
+   },
+   {
+    "turn": "OD-B09-S08-T05",
+    "t0": 44,
+    "t1": 67.44,
+    "kind": "DIALOGUE"
+   }
+  ]
+ },
+ "stakeStates": [
+  {
+   "t": 0,
+   "prop": "trunk",
+   "note": "the green olive trunk by the pen"
+  },
+  {
+   "t": 23.1,
+   "prop": "trunk",
+   "note": "cut a fathom long (axe)"
+  },
+  {
+   "t": 27,
+   "prop": "stakeCold",
+   "note": "smoothed by the men"
+  },
+  {
+   "t": 29,
+   "prop": "stake",
+   "note": "pointed, the point hardened in the fire (ember)"
+  },
+  {
+   "t": 35.7,
+   "prop": "stakeCold",
+   "note": "hidden under the dung"
+  }
+ ],
+ "look": {
+  "sky": [
+   "#070a12",
+   "#1a1712"
+  ],
+  "fog": [
+   520,
+   1500
+  ],
+  "dim": 0.22,
+  "fill": {
+   "sky": "#5b6f99",
+   "ground": "#1f1a15",
+   "intensity": 0.32
+  },
+  "exposure": 0.92
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Odysseus considers killing the sleeping giant but realizes the entrance stone would trap them forever",
+   "text": "My first thought was to draw my sword, and stab him in the vitals; but I reflected that if I did we should all certainly be lost, for we should never be able to shift the stone which the monster had put in front of the door.",
+   "clock": {
+    "turn": "OD-B09-S08-T01",
+    "t0": 0.6,
+    "t1": 11.44,
+    "kind": "AUDITORY_ACTION"
+   },
+   "hide": [
+    "polyphemus",
+    "olivewood stake",
+    "wine cup"
+   ],
+   "props": [
+    {
+     "name": "polyphemusSprawl",
+     "id": "polyphemus",
+     "at": [
+      -20,
+      15,
+      -130
+     ],
+     "rot": [
+      -0.75,
+      0.4,
+      0
+     ],
+     "scale": 1.4
+    },
+    {
+     "name": "bowl",
+     "id": "bowl",
+     "at": "@polyphemus.handR",
+     "off": [
+      20,
+      0,
+      14
+     ],
+     "rot": [
+      1.2,
+      0,
+      0.4
+     ],
+     "floor": true,
+     "sink": 6
+    },
+    {
+     "name": "trunk",
+     "id": "trunk",
+     "at": [
+      230,
+      0,
+      -20
+     ],
+     "rot": [
+      1.5708,
+      0,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "y": "floor",
+     "face": [
+      -10,
+      217
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.15,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0.5,
+       0
+      ]
+     },
+     "x": 10,
+     "z": -40
+    },
+    {
+     "id": "four-chosen-helpers-1",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     },
+     "x": -150,
+     "z": 80
+    },
+    {
+     "id": "four-chosen-helpers-2",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": -200,
+     "z": 130
+    },
+    {
+     "id": "four-chosen-helpers-3",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": -140,
+     "z": 150
+    },
+    {
+     "id": "four-chosen-helpers-4",
+     "y": "floor",
+     "face": "odysseus",
+     "props": false,
+     "x": -80,
+     "z": 130
+    },
+    {
+     "id": "crewman-1",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": 120,
+     "z": 60
+    },
+    {
+     "id": "crewman-2",
+     "y": "floor",
+     "face": "odysseus",
+     "props": false,
+     "x": 170,
+     "z": 60
+    }
+   ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       -66,
+       70,
+       28
+      ],
+      "color": "#ff8a3a",
+      "intensity": 2.4,
+      "distance": 600,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       0,
+       240,
+       -150
+      ],
+      "color": "#6f86c2",
+      "intensity": 0.8,
+      "distance": 500
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     69.5,
+     95.4,
+     71.7
+    ],
+    "target": "odysseus",
+    "fov": 55.9,
+    "subject": "odysseus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "face": true,
+     "min": 0.12,
+     "primary": true
+    },
+    {
+     "id": "prop:polyphemus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "search": {
+    "around": "odysseus",
+    "target": "odysseus",
+    "az": [
+     0.2,
+     2.6
+    ],
+    "r": [
+     90,
+     200
+    ],
+    "h": [
+     40,
+     110
+    ],
+    "fov": [
+     40,
+     56
+    ],
+    "bounds": [
+     -300,
+     300,
+     -190,
+     170
+    ],
+    "size": 0.3,
+    "n": 160,
+    "seed": 3,
+    "place": "L"
+   },
+   "note": "Night. The giant sprawled asleep mid-cave; Odysseus over his chest, the right hand toward the hilt, his head turned to the great stone; the men pressed to the walls by the pen and the racks."
+  },
+  {
+   "id": "K2",
+   "beat": "At dawn Polyphemus eats two more men and leaves with the flock, sealing the cave again",
+   "text": "He lit his fire and milked his goats all in due course, putting the lambs to their mothers. As soon as he had got through with all his work, he clutched up two more of my men, and made his morning meal of them.",
+   "clock": {
+    "turn": "OD-B09-S08-T02",
+    "t0": 11.89,
+    "t1": 22.65,
+    "kind": "AUDITORY_ACTION"
+   },
+   "hide": [
+    "polyphemus",
+    "olivewood stake",
+    "wine cup"
+   ],
+   "props": [
+    {
+     "name": "polyphemus",
+     "id": "polyphemus",
+     "at": [
+      20,
+      15,
+      -110
+     ],
+     "rot": [
+      0,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "ram",
+     "id": "ram1",
+     "at": [
+      -40,
+      0,
+      110
+     ],
+     "floor": true,
+     "scale": 1.5,
+     "rot": [
+      0,
+      3.1416,
+      0
+     ]
+    },
+    {
+     "name": "ram",
+     "id": "ram2",
+     "at": [
+      40,
+      0,
+      130
+     ],
+     "floor": true,
+     "scale": 1.5,
+     "rot": [
+      0,
+      3.1416,
+      0
+     ]
+    },
+    {
+     "name": "ramBlack",
+     "id": "ram3",
+     "at": [
+      0,
+      0,
+      70
+     ],
+     "floor": true,
+     "scale": 1.5,
+     "rot": [
+      0,
+      3,
+      0
+     ]
+    },
+    {
+     "name": "trunk",
+     "id": "trunk",
+     "at": [
+      230,
+      0,
+      -20
+     ],
+     "rot": [
+      1.5708,
+      0,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "crewman-1",
+     "y": 85,
+     "face": [
+      400,
+      0
+     ],
+     "props": false,
+     "air": true,
+     "tilt": [
+      0,
+      1.3
+     ],
+     "free": true,
+     "at": "@polyphemus.handR",
+     "off": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "crewman-2",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       0
+      ],
+      "legRP": [
+       -0.4,
+       0,
+       0
+      ],
+      "legLP": [
+       0.3,
+       0,
+       0
+      ]
+     },
+     "x": 100,
+     "z": 40
+    },
+    {
+     "id": "odysseus",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "armLP": [
+       0.3,
+       0,
+       0
+      ]
+     },
+     "x": -80,
+     "z": 130
+    },
+    {
+     "id": "four-chosen-helpers-1",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.4,
+       0,
+       0
+      ]
+     },
+     "x": -200,
+     "z": 110
+    },
+    {
+     "id": "four-chosen-helpers-2",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.3,
+       0,
+       0
+      ]
+     },
+     "x": -140,
+     "z": 100
+    },
+    {
+     "id": "four-chosen-helpers-3",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": -200,
+     "z": 170
+    },
+    {
+     "id": "four-chosen-helpers-4",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.5,
+       0,
+       0
+      ]
+     },
+     "x": -140,
+     "z": 165
+    }
+   ],
+   "look": {
+    "sky": [
+     "#1b2233",
+     "#6b7a94"
+    ],
+    "dim": 0.3,
+    "exposure": 0.95,
+    "fill": {
+     "sky": "#8fa3c8",
+     "ground": "#2a221a",
+     "intensity": 0.45
+    },
+    "lights": [
+     {
+      "at": [
+       -10,
+       150,
+       300
+      ],
+      "color": "#c9d8ff",
+      "intensity": 2.2,
+      "distance": 900,
+      "decay": 1,
+      "shadow": true
+     },
+     {
+      "at": [
+       -66,
+       50,
+       28
+      ],
+      "color": "#ff7a2a",
+      "intensity": 1,
+      "distance": 300
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -207.7,
+     55.2,
+     21.9
+    ],
+    "target": "@polyphemus.chest",
+    "fov": 60.7,
+    "subject": "prop:polyphemus",
+    "eye": 0.5
+   },
+   "subjects": [
+    {
+     "id": "prop:polyphemus",
+     "min": 0.35,
+     "cut": true,
+     "primary": true
+    },
+    {
+     "id": "crewman-1",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "search": {
+    "around": "@polyphemus.chest",
+    "target": "@polyphemus.chest",
+    "az": [
+     3.4,
+     5.6
+    ],
+    "r": [
+     180,
+     300
+    ],
+    "h": [
+     20,
+     90
+    ],
+    "fov": [
+     46,
+     62
+    ],
+    "bounds": [
+     -300,
+     300,
+     -190,
+     170
+    ],
+    "size": 0.6,
+    "n": 180,
+    "seed": 5,
+    "place": "L"
+   },
+   "note": "Dawn from the mouth. The giant standing by the pen with a man in his right fist; the second man recoils, arms over his head; the helpers and Odysseus flattened against the west wall; the flock gathered at the stone."
+  },
+  {
+   "id": "K3",
+   "beat": "Odysseus selects a green olive trunk, cuts and smooths it into a stake, and hardens its point in the fire",
+   "text": "I cut off about a fathom's length of it, handed it over to my men and bade them smooth it; when they had done so I pointed it, and hardened the point in the fire.",
+   "clock": {
+    "turn": "OD-B09-S08-T03",
+    "t0": 23.1,
+    "t1": 35.22,
+    "kind": "AUDITORY_ACTION"
+   },
+   "hide": [
+    "polyphemus",
+    "olivewood stake",
+    "wine cup"
+   ],
+   "props": [
+    {
+     "name": "stake",
+     "id": "stake",
+     "aim": {
+      "anchor": "tip",
+      "to": [
+       -66,
+       24,
+       28
+      ],
+      "dir": [
+       -0.9,
+       -0.2,
+       -0.4
+      ],
+      "sink": 0
+     },
+     "scale": 0.7
+    },
+    {
+     "name": "ember",
+     "id": "ember",
+     "at": "@stake.tip",
+     "off": [
+      0,
+      -4,
+      0
+     ]
+    },
+    {
+     "name": "trunk",
+     "id": "trunk",
+     "at": [
+      230,
+      0,
+      -20
+     ],
+     "rot": [
+      1.5708,
+      0,
+      0
+     ],
+     "floor": true
+    },
+    {
+     "name": "axe",
+     "id": "axe",
+     "at": [
+      200,
+      0,
+      60
+     ],
+     "rot": [
+      1.5708,
+      0.6,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.1,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.1,
+       0,
+       0
+      ]
+     },
+     "at": "@stake.g2",
+     "off": [
+      9,
+      0,
+      -20
+     ]
+    },
+    {
+     "id": "four-chosen-helpers-1",
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.1,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.1,
+       0,
+       0
+      ]
+     },
+     "at": "@stake.g4",
+     "off": [
+      -9,
+      0,
+      20
+     ]
+    },
+    {
+     "id": "four-chosen-helpers-2",
+     "y": "floor",
+     "face": "@stake.mid",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.7,
+       0,
+       0
+      ]
+     },
+     "x": 40,
+     "z": 150
+    },
+    {
+     "id": "four-chosen-helpers-3",
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "x": -150,
+     "z": 110
+    },
+    {
+     "id": "four-chosen-helpers-4",
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ]
+     },
+     "x": -10,
+     "z": -60
+    },
+    {
+     "id": "crewman-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "crewman-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "dim": 0.3,
+    "exposure": 1,
+    "fill": {
+     "sky": "#8f9fb8",
+     "ground": "#2a221a",
+     "intensity": 0.5
+    },
+    "lights": [
+     {
+      "at": [
+       -66,
+       60,
+       28
+      ],
+      "color": "#ff9a40",
+      "intensity": 2.4,
+      "distance": 520,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       -10,
+       170,
+       240
+      ],
+      "color": "#b8c8e8",
+      "intensity": 1.2,
+      "distance": 700,
+      "decay": 1
+     },
+     {
+      "at": "@stake.tip",
+      "off": [
+       0,
+       8,
+       0
+      ],
+      "color": "#ffb24a",
+      "intensity": 3,
+      "distance": 180,
+      "decay": 1.3
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     60,
+     70,
+     160
+    ],
+    "target": "odysseus",
+    "fov": 50,
+    "subject": "odysseus",
+    "place": "L",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "face": true,
+     "min": 0.12,
+     "primary": true
+    },
+    {
+     "id": "prop:ember",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "search": {
+    "around": "odysseus",
+    "target": "odysseus",
+    "az": [
+     -0.6,
+     2.2
+    ],
+    "r": [
+     80,
+     180
+    ],
+    "h": [
+     30,
+     100
+    ],
+    "fov": [
+     40,
+     56
+    ],
+    "bounds": [
+     -300,
+     300,
+     -190,
+     170
+    ],
+    "size": 0.28,
+    "n": 180,
+    "seed": 7,
+    "place": "L"
+   },
+   "touch": [
+    [
+     "prop:stake",
+     "odysseus"
+    ],
+    [
+     "prop:stake",
+     "four-chosen-helpers-1"
+    ]
+   ],
+   "note": "Day, the giant out with the flock. The trunk cut, its offcut and the axe by the pen; the fathom-long stake smoothed, its point held in the fire by Odysseus and a helper until it chars."
+  },
+  {
+   "id": "K4",
+   "beat": "The men hide the stake beneath dung and draw lots for four helpers",
+   "text": "Then I hid it under dung, which was lying about all over the cave, and told the men to cast lots which of them should venture along with me to lift it and bore it into the monster's eye.",
+   "clock": {
+    "turn": "OD-B09-S08-T04",
+    "t0": 35.67,
+    "t1": 43.55,
+    "kind": "NARRATION"
+   },
+   "hide": [
+    "polyphemus",
+    "olivewood stake",
+    "wine cup"
+   ],
+   "props": [
+    {
+     "name": "stakeCold",
+     "id": "stake",
+     "at": [
+      30,
+      0,
+      -170
+     ],
+     "rot": [
+      1.5708,
+      1.5708,
+      0
+     ],
+     "floor": true,
+     "scale": 0.7
+    },
+    {
+     "name": "dung",
+     "id": "dung",
+     "at": [
+      30,
+      0,
+      -170
+     ],
+     "floor": true,
+     "scale": 1.2
+    },
+    {
+     "name": "bowl",
+     "id": "bowl",
+     "at": [
+      20,
+      0,
+      110
+     ],
+     "floor": true
+    },
+    {
+     "name": "ember",
+     "id": "ember",
+     "at": [
+      -66,
+      15,
+      28
+     ]
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "y": "floor",
+     "face": "@bowl.rim",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ]
+     },
+     "x": 20,
+     "z": 55
+    },
+    {
+     "id": "four-chosen-helpers-1",
+     "y": "floor",
+     "face": "@bowl.rim",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1,
+       0,
+       0
+      ]
+     },
+     "x": -32,
+     "z": 93
+    },
+    {
+     "id": "four-chosen-helpers-2",
+     "y": "floor",
+     "face": "@bowl.rim",
+     "props": false,
+     "x": -12,
+     "z": 154
+    },
+    {
+     "id": "four-chosen-helpers-3",
+     "y": "floor",
+     "face": "@bowl.rim",
+     "props": false,
+     "pose": {
+      "armLP": [
+       -1,
+       0,
+       0
+      ]
+     },
+     "x": 52,
+     "z": 154
+    },
+    {
+     "id": "four-chosen-helpers-4",
+     "y": "floor",
+     "face": "@bowl.rim",
+     "props": false,
+     "x": 72,
+     "z": 93
+    },
+    {
+     "id": "crewman-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "crewman-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       -66,
+       40,
+       28
+      ],
+      "color": "#ff6a14",
+      "intensity": 1.8,
+      "distance": 420,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       0,
+       240,
+       -150
+      ],
+      "color": "#6f86c2",
+      "intensity": 0.7,
+      "distance": 500
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     20,
+     110,
+     -40
+    ],
+    "target": [
+     20,
+     30,
+     110
+    ],
+    "fov": 50,
+    "subject": "odysseus",
+    "place": "C",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "face": true,
+     "min": 0.1,
+     "primary": true
+    },
+    {
+     "id": "prop:dung",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "search": {
+    "around": [
+     20,
+     30,
+     110
+    ],
+    "target": [
+     20,
+     30,
+     110
+    ],
+    "r": [
+     110,
+     220
+    ],
+    "h": [
+     60,
+     150
+    ],
+    "fov": [
+     42,
+     58
+    ],
+    "bounds": [
+     -300,
+     300,
+     -190,
+     170
+    ],
+    "size": 0.22,
+    "n": 180,
+    "seed": 9,
+    "place": "C"
+   },
+   "note": "Evening coming. The stake lies under the dung heap by the pen; the men crouch round the bowl in the ember light, drawing the lots."
+  },
+  {
+   "id": "K5",
+   "beat": "When the giant returns, Odysseus offers the potent wine and says his name is Nobody",
+   "text": "Look here, Cyclops, you have been eating a great deal of man's flesh, so take this and drink some wine... my name is Noman; this is what my father and mother and my friends have always called me.",
+   "clock": {
+    "turn": "OD-B09-S08-T05",
+    "t0": 44,
+    "t1": 67.44,
+    "kind": "DIALOGUE"
+   },
+   "hide": [
+    "polyphemus",
+    "olivewood stake",
+    "wine cup"
+   ],
+   "props": [
+    {
+     "name": "polyphemus",
+     "id": "polyphemus",
+     "at": [
+      -20,
+      15,
+      -80
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "stakeCold",
+     "id": "stake",
+     "at": [
+      30,
+      0,
+      -170
+     ],
+     "rot": [
+      1.5708,
+      1.5708,
+      0
+     ],
+     "floor": true,
+     "scale": 0.7
+    },
+    {
+     "name": "dung",
+     "id": "dung",
+     "at": [
+      30,
+      0,
+      -170
+     ],
+     "floor": true,
+     "scale": 1.2
+    },
+    {
+     "name": "bowl",
+     "id": "bowl",
+     "after": true,
+     "aim": {
+      "anchor": "rim",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -1,
+       0
+      ],
+      "off": [
+       0,
+       6,
+       0
+      ]
+     }
+    },
+    {
+     "name": "ram",
+     "id": "ram1",
+     "at": [
+      120,
+      0,
+      165
+     ],
+     "floor": true,
+     "scale": 1.5,
+     "rot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "ramBlack",
+     "id": "ram2",
+     "at": [
+      -150,
+      0,
+      30
+     ],
+     "floor": true,
+     "scale": 1.5,
+     "rot": [
+      0,
+      1,
+      0
+     ]
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     },
+     "x": 0,
+     "z": 30
+    },
+    {
+     "id": "four-chosen-helpers-1",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": -170,
+     "z": 100
+    },
+    {
+     "id": "four-chosen-helpers-2",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": -110,
+     "z": 150
+    },
+    {
+     "id": "four-chosen-helpers-3",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": 100,
+     "z": 80
+    },
+    {
+     "id": "four-chosen-helpers-4",
+     "y": "floor",
+     "face": "@polyphemus.chest",
+     "props": false,
+     "x": 160,
+     "z": 130
+    },
+    {
+     "id": "crewman-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "crewman-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "dim": 0.22,
+    "exposure": 0.9,
+    "lights": [
+     {
+      "at": [
+       -66,
+       70,
+       28
+      ],
+      "color": "#ff8a3a",
+      "intensity": 2.2,
+      "distance": 600,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       -10,
+       180,
+       260
+      ],
+      "color": "#e8a070",
+      "intensity": 1.4,
+      "distance": 700,
+      "decay": 1
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     30,
+     110
+    ],
+    "target": "@polyphemus.chest",
+    "fov": 58,
+    "subject": "prop:polyphemus",
+    "place": "L",
+    "eye": 0.5
+   },
+   "subjects": [
+    {
+     "id": "prop:polyphemus",
+     "min": 0.4,
+     "cut": true,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.04,
+     "cut": true
+    }
+   ],
+   "search": {
+    "around": "odysseus",
+    "target": "@polyphemus.chest",
+    "az": [
+     -0.8,
+     0.8
+    ],
+    "r": [
+     70,
+     170
+    ],
+    "h": [
+     10,
+     50
+    ],
+    "fov": [
+     48,
+     64
+    ],
+    "size": 0.7,
+    "n": 180,
+    "seed": 11,
+    "bounds": [
+     -300,
+     300,
+     -190,
+     170
+    ]
+   },
+   "touch": [
+    [
+     "prop:bowl",
+     "odysseus"
+    ]
+   ],
+   "note": "Evening, the flock back in. The giant looms over Odysseus, who lifts the ivy-wood bowl of Maron's wine up at arm's length; low under him, the offer rises three figure-heights to the hand."
+  }
+ ]
+}

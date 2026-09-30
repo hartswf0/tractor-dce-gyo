@@ -19,6 +19,7 @@ import json, gzip, base64, hashlib, re, sys, math
 import numpy as np
 import geometry_compiler as G
 from catalogue import parse, placements
+import staging
 import odyssey_take   # the recorded performance joined to the location: voice, cast, bed, the Regulars' Cut
 
 R = Path(__file__).parent; REPO = R.parent; OUT = R / 'production'
@@ -51,9 +52,11 @@ def leaves(sec, key, A, a, color, bare=False):
     else: yield key, color, A, a
 
 def scene(sid):
-    text = (REPO / 'odyssey/cards' / (sid + '.mpd')).read_text(); sec = parse(text, sid + '.ldr')
-    G.LITE = text.count('\n1 ') > 6000   # a great set (a city): lighter geometry, so a browser drawing it in software keeps up
+    text = (REPO / 'odyssey/cards' / (sid + '.mpd')).read_text()
     pv = json.loads((REPO / 'odyssey/previs' / (sid + '.json')).read_text())
+    text, pv = staging.card(sid, text, pv)   # a staging overlay (film-readymades/staging.py): the set the scene is played on, where the forage's card is not yet it
+    sec = parse(text, sid + '.ldr')
+    G.LITE = text.count('\n1 ') > 6000   # a great set (a city): lighter geometry, so a browser drawing it in software keeps up
     main = sid.lower() + '.ldr'; kids = list(world_children(sec, main))
     plate = kids[0]; top = kids[1]; tops = list(world_children(sec, top[0], top[2], top[3]))
     stage, cast_places = tops[0], tops[1:]
@@ -169,7 +172,7 @@ def clear_mark(target, dist, rise, want, boxes, subj):
     return target + np.array([math.sin(want) * dist, rise * 3, math.cos(want) * dist])
 
 # the scenes the Odyssey player carries: the opening (the gods in council, the stranger at the gate), the Cyclops's cave, then the sea
-SCENES = ['OD-B01-S01', 'OD-B01-S03', 'OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
+SCENES = ['OD-B01-S01', 'OD-B01-S02', 'OD-B01-S03', 'OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S08', 'OD-B09-S09', 'OD-B09-S10', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()
