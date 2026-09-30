@@ -1,0 +1,8434 @@
+{
+ "format": "odyssey-needs/1",
+ "updated": "2026-09-30",
+ "note": "What each voiced scene asks of the performance engine (tools/perform), read from the take (cut plan, clips, blocking), the Halfworld script (drive-script, spoken-lines, performance-turns, _direction.mjs) and the cineosis direction block. Times are on the take's cut clock (seconds from the scene's start). Coverage is derived: intent kinds with a realiser in tools/perform/intents.js (engine), kinds a motion.js clip sketches but no realiser plays (clip), and the rest (missing); combat relations and machinery have no realiser yet.",
+ "engine": {
+  "read": [
+   "tools/perform/intents.js",
+   "tools/perform/intents-action.js",
+   "tools/perform/machinery.js"
+  ],
+  "intents": [
+   "ADVANCE",
+   "APPROACH",
+   "ARRIVE",
+   "ATTEND",
+   "CARRY",
+   "CLING",
+   "DECIDE",
+   "DRINK",
+   "DUCK",
+   "EVADE",
+   "FALL",
+   "FOLLOW",
+   "GAMBLE",
+   "GESTURE",
+   "GUARDED_WELCOME",
+   "HEAT",
+   "HIDE",
+   "HOLD",
+   "HOLD_BACK",
+   "IMPACT",
+   "KNOCK",
+   "LEAD",
+   "LEAP",
+   "LISTEN",
+   "NOTICE",
+   "OFFER",
+   "POUR",
+   "POUR_OUT",
+   "PURSUIT",
+   "REACT",
+   "RECOIL",
+   "RECOVER",
+   "RETARGET",
+   "RISE",
+   "SEARCH",
+   "SEPARATION",
+   "SET_DOWN",
+   "SHAME",
+   "SHOOT",
+   "SIGNAL",
+   "STEP",
+   "STRAIN",
+   "TAKE",
+   "THREAT",
+   "THRUST",
+   "TWIST",
+   "WELCOME"
+  ],
+  "gestureShapes": [
+   "chest",
+   "chop",
+   "dismiss",
+   "fist",
+   "open",
+   "plead",
+   "point",
+   "recoil"
+  ],
+  "reactHows": [
+   "lean",
+   "flinch",
+   "startle",
+   "turn",
+   "nod"
+  ],
+  "clips": [
+   "beckon",
+   "climb",
+   "embrace",
+   "fall",
+   "parry",
+   "point",
+   "row",
+   "stagger",
+   "strike",
+   "swim",
+   "wake",
+   "walk",
+   "weave",
+   "weep"
+  ],
+  "machinery": [],
+  "relations": {
+   "THREAT": "engine",
+   "ATTACK": "partial: SHOOT, THRUST",
+   "EVADE": "engine",
+   "BLOCK": "partial: DUCK (an evasion, not a parry)",
+   "CONTACT": "partial: IMPACT (a blow), no sustained grip/touch",
+   "IMPACT": "engine",
+   "RECOVER": "engine",
+   "RETARGET": "engine",
+   "PURSUIT": "engine",
+   "SEPARATION": "engine"
+  }
+ },
+ "order": [
+  "OD-B09-S08",
+  "OD-B09-S10",
+  "OD-B09-S11",
+  "OD-B09-S03",
+  "OD-B10-S02",
+  "OD-B10-S04",
+  "OD-B10-S05",
+  "OD-B12-S04",
+  "OD-B12-S07",
+  "OD-B05-S05",
+  "OD-B21-S07",
+  "OD-B23-S04",
+  "OD-B04-S04",
+  "OD-B04-S05",
+  "OD-B16-S03",
+  "OD-B19-S04",
+  "OD-B14-S01",
+  "OD-B12-S06",
+  "OD-B05-S04",
+  "OD-B01-S01",
+  "OD-B10-S01",
+  "OD-B13-S01",
+  "OD-B11-S01",
+  "OD-B24-S03",
+  "OD-B06-S03",
+  "OD-B08-S05",
+  "OD-B02-S02",
+  "OD-B17-S03",
+  "OD-B24-S05",
+  "OD-B01-S02"
+ ],
+ "scenes": {
+  "OD-B09-S08": {
+   "scene": "OD-B09-S08",
+   "rank": 1,
+   "title": "The Name Nobody and the Stake",
+   "type": "labour",
+   "total": 68.04,
+   "hard": "Four time-skipped phases in 68 s (night, dawn meal, day labour, evening offer) on one set; a giant at 3-4 figure heights who eats men; a prop that is made on screen (trunk -> stake -> charred point -> hidden); the offer reaches up to a giant hand.",
+   "essential": [
+    "giant scale: eye lines and reaches up 3-4 H",
+    "the stake's stages as one prop with states",
+    "time-of-day skips inside one take (fire light)",
+    "crew fear held without going dead",
+    "the offer upward (bowl lifted over the head)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus stands over the sleeping giant, hand on the hilt, sword not drawn",
+     "causes": "he looks to the door stone: no man can move it -> the impulse is checked (Im: the pressure stored)"
+    },
+    {
+     "t": 11.9,
+     "what": "dawn: Polyphemus wakes, seizes two men, eats, milks, rolls the stone aside, drives the flock out, re-seals",
+     "causes": "crew recoil to the wall; the cave is shut again"
+    },
+    {
+     "t": 23.1,
+     "what": "Odysseus picks the green olive trunk by the pen, cuts a fathom; the men smooth it; he sharpens it and hardens the point in the fire",
+     "causes": "the stake exists (Fe: insert of the glowing point)"
+    },
+    {
+     "t": 35.7,
+     "what": "the men hide the stake under the dung; they draw lots, four helpers chosen",
+     "causes": "the plan is set; the stake waits, lit by one ember"
+    },
+    {
+     "t": 44.0,
+     "what": "evening: the giant returns; Odysseus lifts the wine bowl up to him and names himself Nobody",
+     "causes": "Polyphemus drinks (the next scene's collapse)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 6,
+     "t": 44.0,
+     "speaker": "odysseus",
+     "to": "polyphemus",
+     "act": "ASSERT (offer + false name)",
+     "affect": "contempt",
+     "gist": "drink wine on that man-flesh... Nobody is my name",
+     "body": "OFFER",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "HOLD",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 8,
+     "note": "hand on hilt, restraint",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 6,
+     "target": "door-stone",
+     "cover": "engine"
+    },
+    {
+     "kind": "DECIDE",
+     "actor": "odysseus",
+     "t0": 6,
+     "t1": 8,
+     "cover": "engine"
+    },
+    {
+     "kind": "WAKE",
+     "actor": "polyphemus",
+     "t0": 11.9,
+     "t1": 13,
+     "cover": "clip"
+    },
+    {
+     "kind": "SEIZE",
+     "actor": "polyphemus",
+     "t0": 13,
+     "t1": 15,
+     "target": "crew-1",
+     "note": "giant hand closes on a man; carried",
+     "cover": "missing"
+    },
+    {
+     "kind": "EAT",
+     "actor": "polyphemus",
+     "t0": 15,
+     "t1": 18,
+     "cover": "missing"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "crew",
+     "t0": 13,
+     "t1": 20,
+     "target": "polyphemus",
+     "verb": "COWER",
+     "cover": "missing"
+    },
+    {
+     "kind": "HERD",
+     "actor": "polyphemus",
+     "t0": 18,
+     "t1": 22,
+     "target": "flock",
+     "cover": "missing"
+    },
+    {
+     "kind": "MOVE_STONE",
+     "actor": "polyphemus",
+     "t0": 19,
+     "t1": 22,
+     "target": "door-stone",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 23.1,
+     "t1": 27,
+     "target": "olive-trunk",
+     "verb": "CHOP",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "crew",
+     "t0": 27,
+     "t1": 31,
+     "target": "stake",
+     "note": "smooth",
+     "verb": "CARVE",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 29,
+     "t1": 32,
+     "target": "stake",
+     "verb": "SHARPEN",
+     "cover": "missing"
+    },
+    {
+     "kind": "HEAT",
+     "actor": "odysseus",
+     "t0": 32,
+     "t1": 35.5,
+     "target": "stake",
+     "note": "point turned in the fire",
+     "cover": "engine"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "crew",
+     "t0": 35.7,
+     "t1": 39,
+     "target": "stake",
+     "note": "under dung",
+     "verb": "HIDE_OBJECT",
+     "cover": "engine"
+    },
+    {
+     "kind": "GAMBLE",
+     "actor": "crew",
+     "t0": 39,
+     "t1": 43.5,
+     "note": "four chosen: each reacts",
+     "verb": "CAST_LOTS",
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "odysseus",
+     "t0": 45,
+     "t1": 50,
+     "target": "polyphemus",
+     "note": "bowl lifted over the head to a giant",
+     "cover": "engine"
+    },
+    {
+     "kind": "DRINK",
+     "actor": "polyphemus",
+     "t0": 50,
+     "t1": 56,
+     "note": "giant scale",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "polyphemus",
+     "b": "crew",
+     "t": 11.9
+    },
+    {
+     "rel": "ATTACK",
+     "a": "polyphemus",
+     "b": "crew-1",
+     "t": 13,
+     "note": "seize"
+    },
+    {
+     "rel": "EVADE",
+     "a": "crew",
+     "b": "polyphemus",
+     "t": 13,
+     "note": "press to the wall"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "polyphemus",
+     "b": "crew-1",
+     "t": 13.5,
+     "note": "hand closes"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "door-stone",
+     "b": "crew",
+     "t": 21,
+     "note": "sealed in"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "DOOR_STONE",
+     "note": "rolled aside and back by the giant only; seals the set"
+    },
+    {
+     "kind": "STAKE",
+     "note": "one prop with states: trunk, stake, charred point, hidden"
+    },
+    {
+     "kind": "FIRE",
+     "note": "hearth light; the point glows (emissive state)"
+    },
+    {
+     "kind": "FLOCK",
+     "note": "sheep driven out past the stone"
+    },
+    {
+     "kind": "GIANT_RIG",
+     "note": "Polyphemus as a scaled body with reach and grasp, not a restaged prop"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 13.5,
+     "what": "polyphemus seizes crew-1 and crew-2 (bodies carried)",
+     "owner": "polyphemus"
+    },
+    {
+     "t": 23.5,
+     "what": "odysseus takes the olive trunk (sword as axe)",
+     "owner": "odysseus"
+    },
+    {
+     "t": 27,
+     "what": "stake passed to two crew to smooth, back to odysseus",
+     "owner": "crew -> odysseus"
+    },
+    {
+     "t": 32,
+     "what": "stake point into the fire",
+     "owner": "odysseus"
+    },
+    {
+     "t": 36,
+     "what": "stake laid under dung",
+     "owner": "the floor"
+    },
+    {
+     "t": 45,
+     "what": "wine bowl odysseus -> polyphemus",
+     "owner": "polyphemus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 8,
+     "why": "restraint: the stone would trap them; the hand stays on the hilt"
+    },
+    {
+     "actor": "stake",
+     "t0": 36,
+     "t1": 44,
+     "why": "the charged object waits (Fe insert, one ember)"
+    },
+    {
+     "actor": "crew",
+     "t0": 20,
+     "t1": 23,
+     "why": "shock after the meal: breath only"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "DECIDE",
+     "DRINK",
+     "GAMBLE",
+     "HEAT",
+     "HOLD",
+     "OFFER",
+     "SET_DOWN"
+    ],
+    "clip": [
+     "WAKE"
+    ],
+    "missing": [
+     "EAT",
+     "HERD",
+     "MOVE_STONE",
+     "POSTURE",
+     "SEIZE",
+     "TOOL_WORK"
+    ],
+    "relations": [
+     "ATTACK",
+     "CONTACT",
+     "EVADE",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "CONTACT",
+     "EVADE",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "DOOR_STONE",
+     "FIRE",
+     "FLOCK",
+     "GIANT_RIG",
+     "STAKE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B09-S10": {
+   "scene": "OD-B09-S10",
+   "rank": 2,
+   "title": "Escape beneath the Rams",
+   "type": "escape",
+   "total": 72.44,
+   "hard": "Men carried upside down under walking rams, the giant's hands passing over every back at the door on a fixed rhythm, a blind search that must miss; then outside: unbinding, driving the flock, boarding, rowing, a sacrifice.",
+   "essential": [
+    "a rider slung under a quadruped (hands in wool, legs round the belly)",
+    "the hand search as a timed contact test that misses",
+    "breath held against the speech over his head",
+    "the matched triad framings (Dm/Mk)",
+    "no quadruped walk in the engine"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "dawn: Polyphemus rolls back the stone and sits in the mouth, hands out, feeling every back",
+     "causes": "the flock must pass under his hands"
+    },
+    {
+     "t": 10.9,
+     "what": "Odysseus binds rams three abreast with withies; a man under each middle ram",
+     "causes": "the triads walk out, hands pass over the tops"
+    },
+    {
+     "t": 23.4,
+     "what": "last, the lead ram with Odysseus clinging under its belly; the giant stops it and speaks to it",
+     "causes": "Odysseus freezes; the hand strokes the ram's back above him; the ram is let go"
+    },
+    {
+     "t": 53.9,
+     "what": "outside: the men drop from the rams, drive the flock to the ship, row away",
+     "causes": "distance from the cave"
+    },
+    {
+     "t": 63.9,
+     "what": "Odysseus divides the animals, sacrifices the great ram to Zeus",
+     "causes": "the next scene's boast"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 4,
+     "t": 23.4,
+     "speaker": "odysseus",
+     "to": "polyphemus",
+     "act": "RECOUNT (quoting the giant)",
+     "affect": "resolve",
+     "gist": "I hung beneath his belly... Sweet ram, why last from the cave today",
+     "body": "HOLD",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "MOVE_STONE",
+     "actor": "polyphemus",
+     "t0": 0.6,
+     "t1": 4,
+     "target": "door-stone",
+     "cover": "missing"
+    },
+    {
+     "kind": "GROPE",
+     "actor": "polyphemus",
+     "t0": 4,
+     "t1": 50,
+     "target": "flock",
+     "note": "hands pass over each back",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 10.9,
+     "t1": 20,
+     "target": "rams",
+     "note": "withies, three abreast",
+     "verb": "BIND",
+     "cover": "missing"
+    },
+    {
+     "kind": "CLING",
+     "actor": "crew",
+     "t0": 12,
+     "t1": 50,
+     "target": "ram",
+     "note": "under the middle ram",
+     "cover": "engine"
+    },
+    {
+     "kind": "CLING",
+     "actor": "odysseus",
+     "t0": 23.4,
+     "t1": 53,
+     "target": "lead-ram",
+     "cover": "engine"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 50,
+     "note": "breath held",
+     "cover": "engine"
+    },
+    {
+     "kind": "CARESS",
+     "actor": "polyphemus",
+     "t0": 30,
+     "t1": 50,
+     "target": "lead-ram",
+     "cover": "missing"
+    },
+    {
+     "kind": "CARESS",
+     "actor": "polyphemus",
+     "t0": 30,
+     "t1": 50,
+     "target": "lead-ram",
+     "verb": "SPEAK_TO_ANIMAL",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "crew",
+     "t0": 54,
+     "t1": 58,
+     "verb": "UNBIND",
+     "cover": "missing"
+    },
+    {
+     "kind": "HERD",
+     "actor": "crew",
+     "t0": 56,
+     "t1": 62,
+     "target": "flock",
+     "cover": "missing"
+    },
+    {
+     "kind": "CLIMB",
+     "actor": "crew",
+     "t0": 58,
+     "t1": 62,
+     "target": "ship",
+     "verb": "BOARD",
+     "cover": "clip"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 60,
+     "t1": 64,
+     "cover": "clip"
+    },
+    {
+     "kind": "SACRIFICE",
+     "actor": "odysseus",
+     "t0": 63.9,
+     "t1": 72,
+     "target": "lead-ram",
+     "cover": "missing"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "polyphemus",
+     "b": "odysseus",
+     "t": 4,
+     "note": "the search"
+    },
+    {
+     "rel": "EVADE",
+     "a": "odysseus",
+     "b": "polyphemus",
+     "t": 23.4,
+     "note": "concealment under the ram"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "polyphemus",
+     "b": "lead-ram",
+     "t": 30,
+     "note": "hand on the back, a hand-width from Odysseus"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "crew",
+     "b": "polyphemus",
+     "t": 54
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "DOOR_STONE",
+     "note": "opened at dawn"
+    },
+    {
+     "kind": "FLOCK",
+     "note": "rams in triads walking a gate lane at a steady cadence; riders slung underneath"
+    },
+    {
+     "kind": "ROPE",
+     "note": "withies binding three rams; released outside"
+    },
+    {
+     "kind": "SHIP",
+     "note": "boarding and pushing off"
+    },
+    {
+     "kind": "OARS",
+     "note": "shared phase clock from 60 s"
+    },
+    {
+     "kind": "GIANT_RIG",
+     "note": "seated giant, two searching hands"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 12,
+     "what": "crew bound under the middle rams (riders of the ram)",
+     "owner": "ram"
+    },
+    {
+     "t": 23.4,
+     "what": "odysseus grips the lead ram's wool",
+     "owner": "lead-ram"
+    },
+    {
+     "t": 30,
+     "what": "giant hand on the lead ram's back"
+    },
+    {
+     "t": 54,
+     "what": "men drop from the rams",
+     "owner": "crew"
+    },
+    {
+     "t": 64,
+     "what": "lead ram led to the altar; the knife",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 50,
+     "why": "held breath under the ram while the giant speaks (concealment)"
+    },
+    {
+     "actor": "polyphemus",
+     "t0": 30,
+     "t1": 50,
+     "why": "the stillness of grief over the ram, the hand moving only"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "CLING",
+     "HOLD"
+    ],
+    "clip": [
+     "CLIMB",
+     "ROW"
+    ],
+    "missing": [
+     "CARESS",
+     "GROPE",
+     "HERD",
+     "MOVE_STONE",
+     "ROPE_WORK",
+     "SACRIFICE"
+    ],
+    "relations": [
+     "CONTACT",
+     "EVADE",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "CONTACT",
+     "EVADE",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "DOOR_STONE",
+     "FLOCK",
+     "GIANT_RIG",
+     "OARS",
+     "ROPE",
+     "SHIP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B09-S11": {
+   "scene": "OD-B09-S11",
+   "rank": 3,
+   "title": "The Boast and the Curse",
+   "type": "fight",
+   "total": 100.52,
+   "hard": "Two sets on one axis (ship and shore) with a thrown mountain crossing it; the rock's splash drives a wave that pushes the ship back to shore; a blind thrower aims by the voice; a long curse (45 s) that must stay alive on a single figure.",
+   "essential": [
+    "ship as a dynamic body pushed by a wave (not just pitch/roll)",
+    "ballistic rock with a splash and wave front",
+    "aim by sound: the giant re-orients on each shout",
+    "crew restraining their captain (hands on him)",
+    "a 45 s speech from one body: prayer arms, recognition grief, curse"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "from the stern Odysseus jeers at the Cyclops; the crew plead with him to stop",
+     "causes": "the voice reaches the shore"
+    },
+    {
+     "t": 17.7,
+     "what": "Polyphemus tears off a peak and hurls it; it lands ahead; the wave drives the ship back toward shore",
+     "causes": "Odysseus poles off; the crew row hard"
+    },
+    {
+     "t": 28.7,
+     "what": "further out, Odysseus names himself: Odysseus, sacker of cities, Laertes' son of Ithaca",
+     "causes": "the crew grab at him; the giant has a name"
+    },
+    {
+     "t": 47.4,
+     "what": "Polyphemus remembers the prophecy, then lifts his hands and prays to Poseidon: late, broken, alone",
+     "causes": "the curse the rest of the poem pays"
+    },
+    {
+     "t": 92.5,
+     "what": "a second, bigger rock falls just astern; its wave carries the ship to the fleet",
+     "causes": "escape"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "odysseus",
+     "to": "polyphemus",
+     "act": "TAUNT",
+     "affect": "triumph",
+     "gist": "Cyclops! It was no weak man's friends you ate",
+     "body": "GESTURE:taunt",
+     "cover": "missing-shape"
+    },
+    {
+     "gi": 4,
+     "t": 28.7,
+     "speaker": "odysseus",
+     "to": "polyphemus",
+     "act": "REVEAL",
+     "affect": "pride",
+     "gist": "it was Odysseus, sacker of cities",
+     "body": "GESTURE:chest",
+     "cover": "engine"
+    },
+    {
+     "gi": 6,
+     "t": 47.4,
+     "speaker": "polyphemus",
+     "to": "poseidon",
+     "act": "CURSE (prayer)",
+     "affect": "anguish",
+     "gist": "So the old prophecy comes home... Hear me, Poseidon",
+     "body": "GESTURE:invoke",
+     "cover": "missing-shape"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "GESTURE:plead",
+     "actor": "crew",
+     "t0": 3,
+     "t1": 16,
+     "target": "odysseus",
+     "note": "hands on his arm",
+     "verb": "PLEAD",
+     "cover": "engine"
+    },
+    {
+     "kind": "LISTEN",
+     "actor": "polyphemus",
+     "t0": 1,
+     "t1": 16,
+     "target": "odysseus",
+     "note": "by ear, head cocked",
+     "cover": "engine"
+    },
+    {
+     "kind": "THROW",
+     "actor": "polyphemus",
+     "t0": 17.7,
+     "t1": 20,
+     "target": "ship",
+     "note": "two-handed overhead, rock torn from the peak",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 20,
+     "t1": 28,
+     "note": "tempo up",
+     "cover": "clip"
+    },
+    {
+     "kind": "STEER",
+     "actor": "odysseus",
+     "t0": 21,
+     "t1": 25,
+     "target": "shore",
+     "verb": "POLE_OFF",
+     "cover": "missing"
+    },
+    {
+     "kind": "HOLD_BACK",
+     "actor": "crew",
+     "t0": 29,
+     "t1": 40,
+     "target": "odysseus",
+     "verb": "RESTRAIN",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "polyphemus",
+     "t0": 29,
+     "t1": 46,
+     "target": "odysseus",
+     "note": "by ear",
+     "cover": "engine"
+    },
+    {
+     "kind": "RECOGNISE",
+     "actor": "polyphemus",
+     "t0": 47.4,
+     "t1": 60,
+     "note": "the prophecy",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:invoke",
+     "actor": "polyphemus",
+     "t0": 62,
+     "t1": 90,
+     "target": "sky",
+     "note": "arms raised",
+     "verb": "PRAY",
+     "cover": "missing-shape"
+    },
+    {
+     "kind": "THROW",
+     "actor": "polyphemus",
+     "t0": 92.5,
+     "t1": 95,
+     "target": "ship",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 95,
+     "t1": 100.5,
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "odysseus",
+     "b": "polyphemus",
+     "t": 0.6,
+     "note": "the taunt"
+    },
+    {
+     "rel": "RETARGET",
+     "a": "polyphemus",
+     "b": "ship",
+     "t": 17,
+     "note": "aim from the voice"
+    },
+    {
+     "rel": "ATTACK",
+     "a": "polyphemus",
+     "b": "ship",
+     "t": 17.7,
+     "note": "rock"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "rock",
+     "b": "sea",
+     "t": 19.5,
+     "note": "ahead of the bow"
+    },
+    {
+     "rel": "EVADE",
+     "a": "ship",
+     "b": "rock",
+     "t": 20
+    },
+    {
+     "rel": "RECOVER",
+     "a": "ship",
+     "b": "wave",
+     "t": 22,
+     "note": "pole off the shallows"
+    },
+    {
+     "rel": "RETARGET",
+     "a": "polyphemus",
+     "b": "ship",
+     "t": 30,
+     "note": "on the name"
+    },
+    {
+     "rel": "ATTACK",
+     "a": "polyphemus",
+     "b": "ship",
+     "t": 92.5
+    },
+    {
+     "rel": "IMPACT",
+     "a": "rock",
+     "b": "sea",
+     "t": 94,
+     "note": "astern"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "ship",
+     "b": "shore",
+     "t": 96
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "pitch/roll/heave plus translation: pushed by the wave toward shore, then away"
+    },
+    {
+     "kind": "OARS",
+     "note": "shared phase clock, tempo rising after each rock"
+    },
+    {
+     "kind": "SEA",
+     "note": "splash and a travelling wave front from each impact"
+    },
+    {
+     "kind": "BOULDER",
+     "note": "ballistic arc from the giant's hands to the water"
+    },
+    {
+     "kind": "POLE",
+     "note": "a pole planted on the bottom, the ship pushed off"
+    },
+    {
+     "kind": "GIANT_RIG",
+     "note": "standing giant on the shore, throw and prayer poses"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 3,
+     "what": "crew hands on Odysseus' arms (plea)"
+    },
+    {
+     "t": 17.7,
+     "what": "the peak torn off: rock owned by Polyphemus",
+     "owner": "polyphemus"
+    },
+    {
+     "t": 19.5,
+     "what": "rock released to the air",
+     "owner": "none"
+    },
+    {
+     "t": 29,
+     "what": "crew grip Odysseus (restraint)"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "crew",
+     "t0": 19.5,
+     "t1": 21,
+     "why": "the splash: a beat of shock before the oars"
+    },
+    {
+     "actor": "polyphemus",
+     "t0": 60,
+     "t1": 62,
+     "why": "the recognition lands before the prayer"
+    }
+   ],
+   "prepared": {
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": true,
+    "previz": true
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "GESTURE:chest",
+     "GESTURE:plead",
+     "HOLD_BACK",
+     "LISTEN"
+    ],
+    "clip": [
+     "ROW"
+    ],
+    "missing": [
+     "GESTURE:invoke",
+     "GESTURE:taunt",
+     "RECOGNISE",
+     "STEER",
+     "THROW"
+    ],
+    "relations": [
+     "ATTACK",
+     "EVADE",
+     "IMPACT",
+     "RECOVER",
+     "RETARGET",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "EVADE",
+     "IMPACT",
+     "RECOVER",
+     "RETARGET",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "BOULDER",
+     "GIANT_RIG",
+     "OARS",
+     "POLE",
+     "SEA",
+     "SHIP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B09-S03": {
+   "scene": "OD-B09-S03",
+   "rank": 4,
+   "title": "The Lotus-Eaters",
+   "type": "labour",
+   "total": 43.12,
+   "hard": "A stillness that must read as bliss, not a dead frame (7 s holds, Ba sign: \"no movement but breath\"), then a violent rescue: men dragged weeping, bound under benches, the rest sent to the oars.",
+   "essential": [
+    "sanctioned stillness vs the dead-frame metric (lotus languor)",
+    "drag: two coupled bodies, the dragged resisting and weeping",
+    "binding a figure under a bench (rope and pose)",
+    "the storm (nine days) as ship machinery in the first 8 s"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "a north wind drives the ships nine days",
+     "causes": "landfall"
+    },
+    {
+     "t": 8.0,
+     "what": "they land; Odysseus sends three scouts inland",
+     "causes": "the scouts meet the Lotus-eaters"
+    },
+    {
+     "t": 16.2,
+     "what": "the Lotus-eaters offer lotus; the scouts take it and eat",
+     "causes": "they forget home"
+    },
+    {
+     "t": 21.1,
+     "what": "the scouts lie in the meadow among the eaters, breathing only",
+     "causes": "Odysseus must fetch them"
+    },
+    {
+     "t": 28.2,
+     "what": "Odysseus drags the weeping scouts to the ship, binds them under the benches, orders the rest to the oars",
+     "causes": "departure"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 6,
+     "t": 28.2,
+     "speaker": "odysseus",
+     "to": "crew",
+     "act": "COMMAND",
+     "affect": "command",
+     "gist": "bind them under the benches... to your oars now",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "STEER",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 8,
+     "target": "ship",
+     "cover": "missing"
+    },
+    {
+     "kind": "LEAD",
+     "actor": "odysseus",
+     "t0": 8,
+     "t1": 12,
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:point",
+     "actor": "odysseus",
+     "t0": 9,
+     "t1": 10,
+     "note": "send the scouts",
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "lotus-eater",
+     "t0": 16.2,
+     "t1": 18,
+     "target": "scout-1",
+     "note": "lotus",
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "scout-1",
+     "t0": 17,
+     "t1": 18.5,
+     "cover": "engine"
+    },
+    {
+     "kind": "EAT",
+     "actor": "scout-1",
+     "t0": 18.5,
+     "t1": 21,
+     "cover": "missing"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "scout-1",
+     "t0": 21,
+     "t1": 23,
+     "verb": "LIE_DOWN",
+     "cover": "missing"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "scout-1",
+     "t0": 23,
+     "t1": 28,
+     "note": "languor: breath only",
+     "cover": "engine"
+    },
+    {
+     "kind": "DRAG",
+     "actor": "odysseus",
+     "t0": 28.2,
+     "t1": 34,
+     "target": "scout-1",
+     "cover": "missing"
+    },
+    {
+     "kind": "STRUGGLE",
+     "actor": "scout-1",
+     "t0": 28.5,
+     "t1": 34,
+     "target": "odysseus",
+     "verb": "RESIST",
+     "cover": "missing"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "scout-1",
+     "t0": 28.5,
+     "t1": 38,
+     "cover": "clip"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 34,
+     "t1": 38,
+     "target": "scout-1",
+     "note": "under the bench",
+     "verb": "BIND",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 38,
+     "t1": 43,
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "CONTACT",
+     "a": "odysseus",
+     "b": "scout-1",
+     "t": 28.5,
+     "note": "grip on the arm"
+    },
+    {
+     "rel": "BLOCK",
+     "a": "scout-1",
+     "b": "odysseus",
+     "t": 29,
+     "note": "passive resistance: dead weight"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "storm pitch in the opening, beached, then rowed off"
+    },
+    {
+     "kind": "SAIL",
+     "note": "north wind: the sail full, the mast straining"
+    },
+    {
+     "kind": "ROPE",
+     "note": "bonds under the benches"
+    },
+    {
+     "kind": "OARS",
+     "note": "from 38 s"
+    },
+    {
+     "kind": "BENCH",
+     "note": "a figure bound lying under a thwart"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 17,
+     "what": "lotus eater -> scout",
+     "owner": "scout-1"
+    },
+    {
+     "t": 28.5,
+     "what": "odysseus grips the scout",
+     "owner": "odysseus"
+    },
+    {
+     "t": 34,
+     "what": "scout bound to the bench",
+     "owner": "ship"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "scouts",
+     "t0": 23,
+     "t1": 28,
+     "why": "lotus languor: the stillness is the point (Ba); breath only, never zero"
+    },
+    {
+     "actor": "lotus-eaters",
+     "t0": 16,
+     "t1": 28,
+     "why": "gentle, unhurried: slow breath and sway"
+    }
+   ],
+   "prepared": {
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:point",
+     "HOLD",
+     "LEAD",
+     "OFFER",
+     "TAKE"
+    ],
+    "clip": [
+     "ROW",
+     "WEEP"
+    ],
+    "missing": [
+     "DRAG",
+     "EAT",
+     "POSTURE",
+     "ROPE_WORK",
+     "STEER",
+     "STRUGGLE"
+    ],
+    "relations": [
+     "BLOCK",
+     "CONTACT"
+    ],
+    "relationsRealised": [
+     "BLOCK",
+     "CONTACT"
+    ],
+    "machinery": [
+     "BENCH",
+     "OARS",
+     "ROPE",
+     "SAIL",
+     "SHIP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B10-S02": {
+   "scene": "OD-B10-S02",
+   "rank": 5,
+   "title": "The Laestrygonian Harbor",
+   "type": "fight",
+   "total": 34.96,
+   "hard": "A massacre in 35 s at a fast cut: a fleet of ships in a ring of cliffs, giants hurling boulders and spearing men like fish, one ship outside on a cable that is cut; many agents and several ships each needing its own motion.",
+   "essential": [
+    "several ships, each its own rig (the fleet)",
+    "boulders from above with impacts and sinking",
+    "mooring cable under tension, cut, the ship released",
+    "giants vs minifigs (scale); spearing men in the water",
+    "rowing at maximum tempo to escape"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the fleet rows into the narrow harbour ringed by cliffs",
+     "causes": "trapped"
+    },
+    {
+     "t": 8.2,
+     "what": "Odysseus alone moors outside, cable to a rock",
+     "causes": "his ship can still leave"
+    },
+    {
+     "t": 14.9,
+     "what": "three scouts meet the giant girl, who points them to her parents' house",
+     "causes": "they meet the queen"
+    },
+    {
+     "t": 18.4,
+     "what": "the queen summons Antiphates; he seizes and eats a scout; two flee",
+     "causes": "the town is roused"
+    },
+    {
+     "t": 22,
+     "what": "(cut from the voice, in the keys) giants mass on the cliffs, hurl boulders, spear the crews",
+     "causes": "the fleet is crushed"
+    },
+    {
+     "t": 27.3,
+     "what": "Odysseus draws his sword, cuts the cable, orders the oars; one ship escapes",
+     "causes": "alone"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "ROW",
+     "actor": "fleet-crews",
+     "t0": 0.6,
+     "t1": 8,
+     "cover": "clip"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 8.2,
+     "t1": 14,
+     "target": "rock",
+     "note": "cable made fast",
+     "verb": "MOOR",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:point",
+     "actor": "giant-girl",
+     "t0": 15,
+     "t1": 16.5,
+     "target": "house",
+     "cover": "engine"
+    },
+    {
+     "kind": "SEIZE",
+     "actor": "antiphates",
+     "t0": 18.4,
+     "t1": 20,
+     "target": "scout-1",
+     "cover": "missing"
+    },
+    {
+     "kind": "FLEE",
+     "actor": "scout-2",
+     "t0": 19,
+     "t1": 24,
+     "target": "ship",
+     "cover": "missing"
+    },
+    {
+     "kind": "THROW",
+     "actor": "laestrygonians",
+     "t0": 22,
+     "t1": 27,
+     "target": "fleet",
+     "cover": "missing"
+    },
+    {
+     "kind": "THRUST",
+     "actor": "laestrygonians",
+     "t0": 23,
+     "t1": 27,
+     "target": "crew-in-water",
+     "verb": "SPEAR",
+     "cover": "engine"
+    },
+    {
+     "kind": "ARM",
+     "actor": "odysseus",
+     "t0": 27.3,
+     "t1": 28,
+     "target": "sword",
+     "verb": "DRAW_WEAPON",
+     "cover": "missing"
+    },
+    {
+     "kind": "CUT",
+     "actor": "odysseus",
+     "t0": 28,
+     "t1": 29,
+     "target": "cable",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:chop",
+     "actor": "odysseus",
+     "t0": 29,
+     "t1": 30,
+     "target": "crew",
+     "note": "row!",
+     "cover": "engine"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 29.5,
+     "t1": 35,
+     "note": "maximum tempo",
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "PURSUIT",
+     "a": "laestrygonians",
+     "b": "scout-2",
+     "t": 19
+    },
+    {
+     "rel": "ATTACK",
+     "a": "laestrygonians",
+     "b": "fleet",
+     "t": 22,
+     "note": "boulders"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "boulder",
+     "b": "ship",
+     "t": 23
+    },
+    {
+     "rel": "ATTACK",
+     "a": "laestrygonians",
+     "b": "crew-in-water",
+     "t": 24,
+     "note": "spear"
+    },
+    {
+     "rel": "EVADE",
+     "a": "odysseus-ship",
+     "b": "harbour",
+     "t": 29
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "odysseus-ship",
+     "b": "fleet",
+     "t": 31
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "a fleet (several hulls), each pitched and rolled; crushed and sinking hulls"
+    },
+    {
+     "kind": "OARS",
+     "note": "phase clock per ship; tempo ramp at the escape"
+    },
+    {
+     "kind": "ROPE",
+     "note": "mooring cable: tension, cut, slack"
+    },
+    {
+     "kind": "BOULDER",
+     "note": "ballistic from the cliffs, many"
+    },
+    {
+     "kind": "SEA",
+     "note": "splashes, spouts"
+    },
+    {
+     "kind": "GIANT_RIG",
+     "note": "giants on the cliff tops, throwing and spearing"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 8.5,
+     "what": "cable odysseus-ship -> rock",
+     "owner": "rock"
+    },
+    {
+     "t": 18.8,
+     "what": "antiphates seizes scout-1",
+     "owner": "antiphates"
+    },
+    {
+     "t": 28,
+     "what": "cable cut: ship released",
+     "owner": "none"
+    }
+   ],
+   "holds": [],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:chop",
+     "GESTURE:point",
+     "THRUST"
+    ],
+    "clip": [
+     "ROW"
+    ],
+    "missing": [
+     "ARM",
+     "CUT",
+     "FLEE",
+     "ROPE_WORK",
+     "SEIZE",
+     "THROW"
+    ],
+    "relations": [
+     "ATTACK",
+     "EVADE",
+     "IMPACT",
+     "PURSUIT",
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "EVADE",
+     "IMPACT",
+     "PURSUIT",
+     "SEPARATION"
+    ],
+    "machinery": [
+     "BOULDER",
+     "GIANT_RIG",
+     "OARS",
+     "ROPE",
+     "SEA",
+     "SHIP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B10-S04": {
+   "scene": "OD-B10-S04",
+   "rank": 6,
+   "title": "Circe Transforms the Crew",
+   "type": "transformation",
+   "total": 52.09,
+   "hard": "Beasts fawning around men (quadrupeds with intent), a host turning jailer, a wand strike that swaps bodies (minifig to pig by replacement on twos, torso held), pigs herded into pens, and a hidden witness who flees.",
+   "essential": [
+    "body replacement mid-scene (figure -> pig) with identity carried (the same actor id)",
+    "wolves and lions that fawn (quadruped business)",
+    "a watcher hidden and still, then fleeing",
+    "the loom and the song at the start"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the scouts reach Circe's house; she sings at her loom; wolves and lions fawn round them",
+     "causes": "the men are drawn in"
+    },
+    {
+     "t": 11.7,
+     "what": "all enter but Eurylochus, who hangs back at the edge",
+     "causes": "a witness outside"
+    },
+    {
+     "t": 16.2,
+     "what": "Circe seats them, serves drugged food and wine; when they have drunk she strikes them with her wand",
+     "causes": "they turn"
+    },
+    {
+     "t": 24.1,
+     "what": "the men become pigs, minds intact",
+     "causes": "they grunt and weep"
+    },
+    {
+     "t": 31.7,
+     "what": "Circe drives them into the sties, throws acorns",
+     "causes": "penned"
+    },
+    {
+     "t": 38.1,
+     "what": "Eurylochus runs back and reports: they are gone",
+     "causes": "Odysseus goes (next scene)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 7,
+     "t": 38.1,
+     "speaker": "eurylochus",
+     "to": "odysseus",
+     "act": "REPORT",
+     "affect": "fear",
+     "gist": "They are gone, Odysseus, all of them!",
+     "body": "GESTURE:plead",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "WEAVE",
+     "actor": "circe",
+     "t0": 0.6,
+     "t1": 12,
+     "cover": "clip"
+    },
+    {
+     "kind": "SING",
+     "actor": "circe",
+     "t0": 0.6,
+     "t1": 12,
+     "cover": "missing"
+    },
+    {
+     "kind": "ANIMAL:fawn",
+     "actor": "wolves-lions",
+     "t0": 0.6,
+     "t1": 12,
+     "target": "crew",
+     "verb": "FAWN",
+     "cover": "missing"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "crew",
+     "t0": 3,
+     "t1": 12,
+     "target": "circe",
+     "cover": "engine"
+    },
+    {
+     "kind": "WELCOME",
+     "actor": "circe",
+     "t0": 11.7,
+     "t1": 14,
+     "target": "crew",
+     "cover": "engine"
+    },
+    {
+     "kind": "HIDE",
+     "actor": "eurylochus",
+     "t0": 11.7,
+     "t1": 37,
+     "note": "watches from cover",
+     "cover": "engine"
+    },
+    {
+     "kind": "POUR",
+     "actor": "circe",
+     "t0": 16.2,
+     "t1": 18,
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "circe",
+     "t0": 17,
+     "t1": 19,
+     "target": "crew",
+     "cover": "engine"
+    },
+    {
+     "kind": "DRINK",
+     "actor": "crew",
+     "t0": 18,
+     "t1": 21,
+     "cover": "engine"
+    },
+    {
+     "kind": "STRIKE",
+     "actor": "circe",
+     "t0": 21,
+     "t1": 23,
+     "target": "crew",
+     "verb": "STRIKE_WAND",
+     "cover": "clip"
+    },
+    {
+     "kind": "TRANSFORM",
+     "actor": "crew",
+     "t0": 23,
+     "t1": 26,
+     "note": "figure -> pig, identity kept",
+     "cover": "missing"
+    },
+    {
+     "kind": "HERD",
+     "actor": "circe",
+     "t0": 31.7,
+     "t1": 35,
+     "target": "pigs",
+     "cover": "missing"
+    },
+    {
+     "kind": "THROW",
+     "actor": "circe",
+     "t0": 34,
+     "t1": 36,
+     "target": "pen",
+     "note": "acorns",
+     "cover": "missing"
+    },
+    {
+     "kind": "FLEE",
+     "actor": "eurylochus",
+     "t0": 36,
+     "t1": 38,
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:plead",
+     "actor": "eurylochus",
+     "t0": 38.1,
+     "t1": 52,
+     "target": "odysseus",
+     "verb": "REPORT",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "ATTACK",
+     "a": "circe",
+     "b": "crew",
+     "t": 21,
+     "note": "the wand"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "wand",
+     "b": "crew",
+     "t": 21.5
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "eurylochus",
+     "b": "house",
+     "t": 36
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "LOOM",
+     "note": "Circe weaving: shuttle and beater on the song's beat"
+    },
+    {
+     "kind": "TRANSFORM",
+     "note": "mesh swap figure -> pig over four drawings on twos, torso held"
+    },
+    {
+     "kind": "QUADRUPEDS",
+     "note": "wolves, lions, pigs: walk, fawn, crowd"
+    },
+    {
+     "kind": "PEN",
+     "note": "sty gate shut on the pigs"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 17,
+     "what": "cups circe -> crew",
+     "owner": "crew"
+    },
+    {
+     "t": 21.5,
+     "what": "wand touches each man"
+    },
+    {
+     "t": 34,
+     "what": "acorns thrown into the pen"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "eurylochus",
+     "t0": 12,
+     "t1": 36,
+     "why": "hidden and frozen in dread (not dead: shallow breath, eyes tracking)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "DRINK",
+     "GESTURE:plead",
+     "HIDE",
+     "OFFER",
+     "POUR",
+     "WELCOME"
+    ],
+    "clip": [
+     "STRIKE",
+     "WEAVE"
+    ],
+    "missing": [
+     "ANIMAL:fawn",
+     "FLEE",
+     "HERD",
+     "SING",
+     "THROW",
+     "TRANSFORM"
+    ],
+    "relations": [
+     "ATTACK",
+     "CONTACT",
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "CONTACT",
+     "SEPARATION"
+    ],
+    "machinery": [
+     "LOOM",
+     "PEN",
+     "QUADRUPEDS",
+     "TRANSFORM"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B10-S05": {
+   "scene": "OD-B10-S05",
+   "rank": 7,
+   "title": "Hermes Gives the Moly",
+   "type": "dialogue",
+   "total": 68.11,
+   "hard": "A two-hander that is mostly instruction (three long Hermes lines) with one charged prop pulled from the earth and handed over; the instruction rehearses a future fight (wand, sword, oath) that the body should pre-enact without doing it.",
+   "essential": [
+    "the moly: dug, lifted, shown (root and flower), handed; ownership to Odysseus",
+    "Hermes interrupting a walk (step into the path)",
+    "rehearsal gestures that mime the future (draw sword, rush) at small amplitude",
+    "arming at the start (sword over shoulder, bow)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus slings on his sword, takes his bow, and sets off alone despite Eurylochus",
+     "causes": "walking the valley"
+    },
+    {
+     "t": 10.8,
+     "what": "Hermes, as a young man, steps into his path: where now, unlucky man?",
+     "causes": "Odysseus stops"
+    },
+    {
+     "t": 28.5,
+     "what": "Hermes pulls the moly from the earth, shows it, gives it",
+     "causes": "Odysseus holds the charm"
+    },
+    {
+     "t": 48.1,
+     "what": "Hermes instructs: when she strikes, draw and rush her; make her swear the oath",
+     "causes": "the plan for the next scene"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 3,
+     "t": 10.8,
+     "speaker": "hermes",
+     "to": "odysseus",
+     "act": "WARN",
+     "affect": "irony",
+     "gist": "Where now, unlucky man...",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    },
+    {
+     "gi": 4,
+     "t": 28.5,
+     "speaker": "hermes",
+     "to": "odysseus",
+     "act": "GIVE",
+     "affect": "wonder",
+     "gist": "take this herb of power... moly",
+     "body": "OFFER",
+     "cover": "engine"
+    },
+    {
+     "gi": 5,
+     "t": 48.1,
+     "speaker": "hermes",
+     "to": "odysseus",
+     "act": "INSTRUCT",
+     "affect": "command",
+     "gist": "draw your sword and rush her...",
+     "body": "GESTURE:chop",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "ARM",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 4,
+     "note": "sword over the shoulder, bow",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:plead",
+     "actor": "eurylochus",
+     "t0": 1,
+     "t1": 6,
+     "target": "odysseus",
+     "note": "holds his arm",
+     "verb": "PLEAD",
+     "cover": "engine"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "odysseus",
+     "t0": 4,
+     "t1": 11,
+     "verb": "WALK",
+     "cover": "engine"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "hermes",
+     "t0": 10,
+     "t1": 11.5,
+     "target": "odysseus",
+     "verb": "INTERCEPT",
+     "cover": "engine"
+    },
+    {
+     "kind": "NOTICE",
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 12,
+     "target": "hermes",
+     "cover": "engine"
+    },
+    {
+     "kind": "LISTEN",
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 68,
+     "cover": "engine"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "hermes",
+     "t0": 28.5,
+     "t1": 32,
+     "target": "moly",
+     "verb": "DIG",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:show",
+     "actor": "hermes",
+     "t0": 32,
+     "t1": 36,
+     "target": "moly",
+     "note": "root and flower in one frame",
+     "verb": "SHOW",
+     "cover": "missing-shape"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "hermes",
+     "t0": 36,
+     "t1": 38,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "odysseus",
+     "t0": 37,
+     "t1": 39,
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:mime",
+     "actor": "hermes",
+     "t0": 50,
+     "t1": 58,
+     "note": "draw and rush, small",
+     "verb": "MIME",
+     "cover": "missing-shape"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "CONTACT",
+     "a": "eurylochus",
+     "b": "odysseus",
+     "t": 2,
+     "note": "restraining hand, shaken off"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "PROP_STATE",
+     "note": "moly: in the earth, pulled (root black, flower white), carried"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 2,
+     "what": "eurylochus grips odysseus' arm; released"
+    },
+    {
+     "t": 30,
+     "what": "moly from the earth",
+     "owner": "hermes"
+    },
+    {
+     "t": 37.5,
+     "what": "moly hermes -> odysseus",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 12,
+     "why": "stopped dead by the stranger in the path"
+    },
+    {
+     "actor": "moly",
+     "t0": 33,
+     "t1": 36,
+     "why": "the insert: root and flower held up (Fe)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "GESTURE:chop",
+     "GESTURE:open",
+     "GESTURE:plead",
+     "LISTEN",
+     "NOTICE",
+     "OFFER",
+     "TAKE"
+    ],
+    "clip": [],
+    "missing": [
+     "ARM",
+     "GESTURE:mime",
+     "GESTURE:show",
+     "TOOL_WORK"
+    ],
+    "relations": [
+     "CONTACT"
+    ],
+    "relationsRealised": [
+     "CONTACT"
+    ],
+    "machinery": [
+     "PROP_STATE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B12-S04": {
+   "scene": "OD-B12-S04",
+   "rank": 8,
+   "title": "Between Scylla and Charybdis",
+   "type": "fight",
+   "total": 53.52,
+   "hard": "A ship under oars between a whirlpool and a cliff; six serpent heads strike at once and lift six rowers up the rock; an armed captain looking the wrong way; the survivors row on under the screams.",
+   "essential": [
+    "six simultaneous strikes out of the rowing (pose-to-pose on twos)",
+    "bodies lifted out of the ship (ownership to the monster)",
+    "the whirlpool rings rotating (sea machinery)",
+    "oars that keep their clock while men are taken (gaps in the bank)",
+    "Odysseus' search: attention on the cliff face, armed, futile"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the crew hear Charybdis roar and see the spray; oars falter",
+     "causes": "Odysseus steadies them"
+    },
+    {
+     "t": 10.9,
+     "what": "Odysseus: row, hold her off the smoke, hug the cliff",
+     "causes": "the ship hugs Scylla's rock (he keeps her secret)"
+    },
+    {
+     "t": 25.7,
+     "what": "he arms himself, two spears, goes to the bow and searches the rock face",
+     "causes": "looking at the wrong place"
+    },
+    {
+     "t": 34.3,
+     "what": "Scylla's six heads strike and lift six rowers screaming his name",
+     "causes": "six gaps in the benches"
+    },
+    {
+     "t": 42.6,
+     "what": "the survivors row past both monsters, watching their companions die above",
+     "causes": "grief under the oars"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 3,
+     "t": 10.9,
+     "speaker": "odysseus",
+     "to": "crew",
+     "act": "COMMAND",
+     "affect": "resolve",
+     "gist": "Row, friends... hug the cliff",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 0.6,
+     "t1": 53.5,
+     "cover": "clip"
+    },
+    {
+     "kind": "REACT:startle",
+     "actor": "crew",
+     "t0": 1,
+     "t1": 2,
+     "note": "Charybdis roar",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:point",
+     "actor": "odysseus",
+     "t0": 12,
+     "t1": 13,
+     "target": "cliff",
+     "cover": "engine"
+    },
+    {
+     "kind": "STEER",
+     "actor": "helmsman",
+     "t0": 11,
+     "t1": 53.5,
+     "cover": "missing"
+    },
+    {
+     "kind": "ARM",
+     "actor": "odysseus",
+     "t0": 25.7,
+     "t1": 29,
+     "note": "armour and two spears",
+     "cover": "missing"
+    },
+    {
+     "kind": "SEARCH",
+     "actor": "odysseus",
+     "t0": 29,
+     "t1": 34,
+     "target": "cliff-face",
+     "cover": "engine"
+    },
+    {
+     "kind": "STRIKE",
+     "actor": "scylla",
+     "t0": 34.3,
+     "t1": 36,
+     "target": "rowers",
+     "note": "six heads at once",
+     "verb": "STRIKE_DOWN",
+     "cover": "clip"
+    },
+    {
+     "kind": "LIFT",
+     "actor": "scylla",
+     "t0": 36,
+     "t1": 42,
+     "target": "rowers",
+     "cover": "missing"
+    },
+    {
+     "kind": "STRUGGLE",
+     "actor": "rowers",
+     "t0": 36,
+     "t1": 45,
+     "note": "hands and feet in the air",
+     "cover": "missing"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "crew",
+     "t0": 42.6,
+     "t1": 53.5,
+     "target": "rowers",
+     "verb": "LOOK_UP",
+     "cover": "engine"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 42.6,
+     "t1": 53.5,
+     "verb": "GRIEF",
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "charybdis",
+     "b": "ship",
+     "t": 0.6
+    },
+    {
+     "rel": "EVADE",
+     "a": "ship",
+     "b": "charybdis",
+     "t": 11
+    },
+    {
+     "rel": "ATTACK",
+     "a": "scylla",
+     "b": "rowers",
+     "t": 34.3,
+     "note": "six heads"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "scylla",
+     "b": "rowers",
+     "t": 35
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "rowers",
+     "b": "ship",
+     "t": 37,
+     "note": "lifted away"
+    },
+    {
+     "rel": "RECOVER",
+     "a": "crew",
+     "b": "ship",
+     "t": 40,
+     "note": "oars back on the clock"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "ship",
+     "b": "monsters",
+     "t": 48
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "rolling in the strait, hugging the cliff"
+    },
+    {
+     "kind": "OARS",
+     "note": "shared phase clock; six oars drop out at 34 s, the rest keep time"
+    },
+    {
+     "kind": "SEA",
+     "note": "whirlpool: concentric rings rotating, spray columns"
+    },
+    {
+     "kind": "SCYLLA_RIG",
+     "note": "six necks from the cliff: strike, grip, lift (IK chains)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 35,
+     "what": "six rowers seized from the benches",
+     "owner": "scylla"
+    },
+    {
+     "t": 27,
+     "what": "odysseus takes two spears",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 42.6,
+     "t1": 48,
+     "why": "the icon: face turned up, the men out of frame (the grief held)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "GESTURE:point",
+     "REACT:startle",
+     "SEARCH"
+    ],
+    "clip": [
+     "ROW",
+     "STRIKE",
+     "WEEP"
+    ],
+    "missing": [
+     "ARM",
+     "LIFT",
+     "STEER",
+     "STRUGGLE"
+    ],
+    "relations": [
+     "ATTACK",
+     "CONTACT",
+     "EVADE",
+     "RECOVER",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "CONTACT",
+     "EVADE",
+     "RECOVER",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "OARS",
+     "SCYLLA_RIG",
+     "SEA",
+     "SHIP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B12-S07": {
+   "scene": "OD-B12-S07",
+   "rank": 9,
+   "title": "Zeus Destroys the Last Ship",
+   "type": "storm",
+   "total": 60.73,
+   "hard": "Accusation, departure, a thunderbolt to the mast, the ship shattering and every man drowning, a raft lashed from keel and mast, and a man hanging from a fig tree over a whirlpool: five situations and a lone survivor, mostly held in extreme wides.",
+   "essential": [
+    "ship break-up: the hull into pieces (keel, mast) with men thrown into the sea",
+    "drowning crowd (swim then sink)",
+    "lashing keel and mast (rope) and riding them",
+    "hang from the fig tree: a sustained grip hold with the body swinging",
+    "the only moving thing is the whirlpool (hold, Ba)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus wakes, smells the roasting meat, and condemns the crew",
+     "causes": "the crew feast six days regardless"
+    },
+    {
+     "t": 18.1,
+     "what": "on the seventh day the wind drops; they raise the mast and sail",
+     "causes": "at sea, no land"
+    },
+    {
+     "t": 27.5,
+     "what": "Zeus gathers a black cloud and strikes the mast with lightning",
+     "causes": "the mast falls on the helmsman; the ship fills with fire"
+    },
+    {
+     "t": 34.5,
+     "what": "the ship shatters; every crewman drowns",
+     "causes": "Odysseus alone"
+    },
+    {
+     "t": 41.6,
+     "what": "he lashes keel and mast together and rides them",
+     "causes": "drifting"
+    },
+    {
+     "t": 47.4,
+     "what": "driven back to Charybdis, he leaps to the fig tree and hangs until the timbers come up, then drops and drifts",
+     "causes": "to Calypso"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "odysseus",
+     "to": "crew",
+     "act": "CONDEMN",
+     "affect": "anguish",
+     "gist": "What have you done... O father Zeus",
+     "body": "GESTURE:invoke",
+     "cover": "missing-shape"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "WAKE",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 2,
+     "cover": "clip"
+    },
+    {
+     "kind": "GESTURE:point",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 17,
+     "target": "crew",
+     "verb": "ACCUSE",
+     "cover": "engine"
+    },
+    {
+     "kind": "EAT",
+     "actor": "crew",
+     "t0": 3,
+     "t1": 17,
+     "note": "feasting, ignoring",
+     "cover": "missing"
+    },
+    {
+     "kind": "HAUL",
+     "actor": "crew",
+     "t0": 18.1,
+     "t1": 26,
+     "target": "mast",
+     "note": "raise mast, spread sail",
+     "verb": "HOIST",
+     "cover": "missing"
+    },
+    {
+     "kind": "FALL",
+     "actor": "helmsman",
+     "t0": 29,
+     "t1": 31,
+     "cover": "engine"
+    },
+    {
+     "kind": "FALL",
+     "actor": "crew",
+     "t0": 34.5,
+     "t1": 36,
+     "note": "thrown into the sea",
+     "cover": "engine"
+    },
+    {
+     "kind": "SWIM",
+     "actor": "crew",
+     "t0": 35,
+     "t1": 40,
+     "cover": "clip"
+    },
+    {
+     "kind": "DROWN",
+     "actor": "crew",
+     "t0": 37,
+     "t1": 41,
+     "cover": "missing"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 41.6,
+     "t1": 46,
+     "target": "keel+mast",
+     "verb": "BIND",
+     "cover": "missing"
+    },
+    {
+     "kind": "RIDE",
+     "actor": "odysseus",
+     "t0": 45,
+     "t1": 50,
+     "target": "raft",
+     "cover": "missing"
+    },
+    {
+     "kind": "LEAP",
+     "actor": "odysseus",
+     "t0": 50,
+     "t1": 51,
+     "target": "fig-tree",
+     "cover": "engine"
+    },
+    {
+     "kind": "CLING",
+     "actor": "odysseus",
+     "t0": 51,
+     "t1": 58,
+     "target": "fig-tree",
+     "verb": "HANG",
+     "cover": "engine"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "odysseus",
+     "t0": 58,
+     "t1": 60,
+     "verb": "DROP",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "ATTACK",
+     "a": "zeus",
+     "b": "ship",
+     "t": 27.5,
+     "note": "thunderbolt"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "bolt",
+     "b": "mast",
+     "t": 28
+    },
+    {
+     "rel": "IMPACT",
+     "a": "mast",
+     "b": "helmsman",
+     "t": 29.5,
+     "note": "skull crushed"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "crew",
+     "b": "ship",
+     "t": 34.5
+    },
+    {
+     "rel": "RECOVER",
+     "a": "odysseus",
+     "b": "wreck",
+     "t": 42,
+     "note": "lashes a raft"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "sailing, then break-up into keel and mast pieces"
+    },
+    {
+     "kind": "SAIL",
+     "note": "raised at 18 s"
+    },
+    {
+     "kind": "LIGHTNING",
+     "note": "bolt, flash, fire on deck"
+    },
+    {
+     "kind": "SEA",
+     "note": "storm swell; whirlpool (Charybdis) rings"
+    },
+    {
+     "kind": "ROPE",
+     "note": "the lashing of keel to mast"
+    },
+    {
+     "kind": "RAFT",
+     "note": "keel and mast as a rideable pair"
+    },
+    {
+     "kind": "TREE",
+     "note": "fig tree over the whirlpool: a grip anchor"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 41.6,
+     "what": "odysseus grips keel and mast, lashes them",
+     "owner": "odysseus"
+    },
+    {
+     "t": 51,
+     "what": "hands on the fig branch",
+     "owner": "fig-tree"
+    },
+    {
+     "t": 58,
+     "what": "releases, falls to the timbers",
+     "owner": "raft"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 51,
+     "t1": 58,
+     "why": "hanging like a bat: only the whirlpool moves (Ba, En); breath and grip strain only"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "CLING",
+     "FALL",
+     "GESTURE:point",
+     "LEAP",
+     "SET_DOWN"
+    ],
+    "clip": [
+     "SWIM",
+     "WAKE"
+    ],
+    "missing": [
+     "DROWN",
+     "EAT",
+     "GESTURE:invoke",
+     "HAUL",
+     "RIDE",
+     "ROPE_WORK"
+    ],
+    "relations": [
+     "ATTACK",
+     "IMPACT",
+     "RECOVER",
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "IMPACT",
+     "RECOVER",
+     "SEPARATION"
+    ],
+    "machinery": [
+     "LIGHTNING",
+     "RAFT",
+     "ROPE",
+     "SAIL",
+     "SEA",
+     "SHIP",
+     "TREE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B05-S05": {
+   "scene": "OD-B05-S05",
+   "rank": 10,
+   "title": "Poseidon Breaks the Sea",
+   "type": "storm",
+   "total": 47.25,
+   "hard": "A man alone on a raft in a four-wind storm: the raft rolls, he is swept off and swims back, a sea goddess climbs aboard with a veil, he strips and swims; the god on the headland; the sea is the other actor.",
+   "essential": [
+    "the raft as a body in heavy sea (roll, pitch, heave, a capsize-level roll)",
+    "a figure swept overboard and regaining the raft (swim, climb)",
+    "the veil: given, tied round the chest (prop attached to the body)",
+    "Poseidon at a distance on one axis with the raft (Bi)",
+    "the steering oar in hand for the first 11 s"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "seventeen days Odysseus steers by the stars; Scheria rises ahead",
+     "causes": "hope"
+    },
+    {
+     "t": 11.6,
+     "what": "Poseidon sees him from the Solymi mountains, gathers clouds, stirs the sea with the trident",
+     "causes": "the four winds storm"
+    },
+    {
+     "t": 21.7,
+     "what": "the raft rolls; the mast snaps",
+     "causes": "he is thrown"
+    },
+    {
+     "t": 26.4,
+     "what": "swept away, he swims, drags himself back aboard",
+     "causes": "barely holding on"
+    },
+    {
+     "t": 32.8,
+     "what": "Ino rises, sits on the raft: leave it, swim; gives her veil",
+     "causes": "he ties on the veil"
+    },
+    {
+     "t": 37.3,
+     "what": "Athena stills all winds but the north; he swims toward land",
+     "causes": "the next scene"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "STEER",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 11.6,
+     "target": "raft",
+     "note": "the steering oar",
+     "cover": "missing"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 8,
+     "target": "stars",
+     "verb": "LOOK_UP",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:invoke",
+     "actor": "poseidon",
+     "t0": 11.6,
+     "t1": 16,
+     "note": "trident stirs the sea",
+     "verb": "INVOKE",
+     "cover": "missing-shape"
+    },
+    {
+     "kind": "BRACE",
+     "actor": "odysseus",
+     "t0": 16,
+     "t1": 22,
+     "target": "raft",
+     "cover": "missing"
+    },
+    {
+     "kind": "FALL",
+     "actor": "odysseus",
+     "t0": 22,
+     "t1": 24,
+     "note": "thrown overboard",
+     "cover": "engine"
+    },
+    {
+     "kind": "SWIM",
+     "actor": "odysseus",
+     "t0": 24,
+     "t1": 28,
+     "cover": "clip"
+    },
+    {
+     "kind": "CLIMB",
+     "actor": "odysseus",
+     "t0": 28,
+     "t1": 31,
+     "target": "raft",
+     "cover": "clip"
+    },
+    {
+     "kind": "ARRIVE",
+     "actor": "ino",
+     "t0": 32.8,
+     "t1": 34,
+     "note": "rises from the sea, sits on the raft",
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "ino",
+     "t0": 34,
+     "t1": 35.5,
+     "target": "odysseus",
+     "note": "the veil",
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "odysseus",
+     "t0": 35,
+     "t1": 36,
+     "cover": "engine"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 36,
+     "t1": 38,
+     "target": "veil",
+     "verb": "TIE_ON",
+     "cover": "missing"
+    },
+    {
+     "kind": "SWIM",
+     "actor": "odysseus",
+     "t0": 40,
+     "t1": 47,
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "ATTACK",
+     "a": "poseidon",
+     "b": "raft",
+     "t": 11.6,
+     "note": "the storm"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "wave",
+     "b": "raft",
+     "t": 21.7
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "odysseus",
+     "b": "raft",
+     "t": 22
+    },
+    {
+     "rel": "RECOVER",
+     "a": "odysseus",
+     "b": "raft",
+     "t": 28
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "odysseus",
+     "b": "raft",
+     "t": 39,
+     "note": "abandons it"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "RAFT",
+     "note": "heavy sea motion; a roll past 60 degrees; mast broken"
+    },
+    {
+     "kind": "SEA",
+     "note": "storm swell, breaking waves, spouts"
+    },
+    {
+     "kind": "SAIL",
+     "note": "the raft's sail and mast (snap)"
+    },
+    {
+     "kind": "STEERING_OAR",
+     "note": "held and worked"
+    },
+    {
+     "kind": "VEIL",
+     "note": "cloth prop tied round the chest"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 1,
+     "what": "hands on the steering oar",
+     "owner": "odysseus"
+    },
+    {
+     "t": 22,
+     "what": "loses the oar; thrown off",
+     "owner": "none"
+    },
+    {
+     "t": 28,
+     "what": "grips the raft's edge, climbs back"
+    },
+    {
+     "t": 34.5,
+     "what": "veil ino -> odysseus",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 10,
+     "why": "the long watch: steady at the oar, only the head to the stars and the sea moving (hold_min 5 s)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ARRIVE",
+     "ATTEND",
+     "FALL",
+     "OFFER",
+     "TAKE"
+    ],
+    "clip": [
+     "CLIMB",
+     "SWIM"
+    ],
+    "missing": [
+     "BRACE",
+     "GESTURE:invoke",
+     "ROPE_WORK",
+     "STEER"
+    ],
+    "relations": [
+     "ATTACK",
+     "IMPACT",
+     "RECOVER",
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "IMPACT",
+     "RECOVER",
+     "SEPARATION"
+    ],
+    "machinery": [
+     "RAFT",
+     "SAIL",
+     "SEA",
+     "STEERING_OAR",
+     "VEIL"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B21-S07": {
+   "scene": "OD-B21-S07",
+   "rank": 11,
+   "title": "The Bow Sings",
+   "type": "revelation",
+   "total": 51.45,
+   "hard": "The bow is the actor: strung by bending it against the body, the string plucked (a note), an arrow nocked, drawn and loosed through twelve axe rings in a line; a beggar's posture falling away through handling; a hall of seated suitors reacting to a sound; thunder answering.",
+   "essential": [
+    "bow machinery: bend, string, pluck, nock, draw (string tension), release",
+    "arrow flight through 12 aligned rings (a path constraint)",
+    "posture change beggar -> king over the scene (a continuous affect parameter)",
+    "Telemachus arming and taking position (sword and spear handoff to himself)",
+    "a hall of seated listeners reacting to a sound (string, thunder)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus turns the bow in his hands, bends it and strings it without effort, as a bard strings a lyre",
+     "causes": "the suitors go pale"
+    },
+    {
+     "t": 10.1,
+     "what": "he plucks the string: it sings like a swallow",
+     "causes": "Zeus answers with thunder"
+    },
+    {
+     "t": 14.3,
+     "what": "thunder: Zeus' sign on the day",
+     "causes": "Odysseus is glad; suitors dismayed"
+    },
+    {
+     "t": 22.1,
+     "what": "Telemachus girds on his sword, takes his spear, stands at his father's side",
+     "causes": "two armed men at the threshold"
+    },
+    {
+     "t": 32.4,
+     "what": "Odysseus nocks an arrow and shoots, seated, through all twelve axes",
+     "causes": "the mark is made"
+    },
+    {
+     "t": 41.5,
+     "what": "he tells Telemachus the stranger has not disgraced him: supper, then other sport",
+     "causes": "the slaughter (Book 22)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 3,
+     "t": 10.1,
+     "speaker": "odysseus",
+     "to": "telemachus",
+     "act": "SONG (aside)",
+     "affect": "resolve",
+     "gist": "Hear that. It still sings.",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    },
+    {
+     "gi": 5,
+     "t": 14.3,
+     "speaker": "zeus",
+     "to": "odysseus",
+     "act": "REPLY (sign)",
+     "affect": "command",
+     "gist": "It is time, son of Laertes"
+    },
+    {
+     "gi": 8,
+     "t": 41.5,
+     "speaker": "odysseus",
+     "to": "telemachus",
+     "act": "DIRECT",
+     "affect": "resolve",
+     "gist": "the stranger... has not disgraced you... other sport in this house",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "ATTEND",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 3,
+     "target": "bow",
+     "note": "turned in the hands",
+     "verb": "INSPECT",
+     "cover": "engine"
+    },
+    {
+     "kind": "STRING_BOW",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 9,
+     "target": "bow",
+     "cover": "missing"
+    },
+    {
+     "kind": "PLUCK",
+     "actor": "odysseus",
+     "t0": 10.1,
+     "t1": 11,
+     "target": "bowstring",
+     "cover": "missing"
+    },
+    {
+     "kind": "REACT:startle",
+     "actor": "suitors",
+     "t0": 11,
+     "t1": 12,
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "odysseus",
+     "t0": 14.3,
+     "t1": 16,
+     "target": "sky",
+     "note": "thunder",
+     "verb": "LOOK_UP",
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:flinch",
+     "actor": "suitors",
+     "t0": 14.5,
+     "t1": 15.5,
+     "cover": "engine"
+    },
+    {
+     "kind": "ARM",
+     "actor": "telemachus",
+     "t0": 22.1,
+     "t1": 26,
+     "note": "sword and spear",
+     "cover": "missing"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "telemachus",
+     "t0": 26,
+     "t1": 31,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "SHOOT",
+     "actor": "odysseus",
+     "t0": 32.4,
+     "t1": 34,
+     "verb": "NOCK",
+     "cover": "engine"
+    },
+    {
+     "kind": "SHOOT",
+     "actor": "odysseus",
+     "t0": 34,
+     "t1": 36,
+     "verb": "DRAW_BOW",
+     "cover": "engine"
+    },
+    {
+     "kind": "SHOOT",
+     "actor": "odysseus",
+     "t0": 36,
+     "t1": 36.5,
+     "target": "axes",
+     "cover": "engine"
+    },
+    {
+     "kind": "SHAME",
+     "actor": "suitors",
+     "t0": 37,
+     "t1": 41,
+     "cover": "engine"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "telemachus",
+     "t0": 31,
+     "t1": 51,
+     "note": "armed at his side",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "odysseus",
+     "b": "suitors",
+     "t": 10.1,
+     "note": "the bow strung"
+    },
+    {
+     "rel": "THREAT",
+     "a": "telemachus",
+     "b": "suitors",
+     "t": 31,
+     "note": "armed"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "arrow",
+     "b": "axes",
+     "t": 36.3,
+     "note": "passes, touching none"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "BOW",
+     "note": "bend to string, string tension on the draw, the release snap; the note on the pluck"
+    },
+    {
+     "kind": "ARROW",
+     "note": "nock, flight on a straight line through 12 rings"
+    },
+    {
+     "kind": "AXES",
+     "note": "twelve axe heads in a row, holes aligned (path constraint)"
+    },
+    {
+     "kind": "THUNDER",
+     "note": "sound stimulus with a light flicker"
+    },
+    {
+     "kind": "SEATED_CROWD",
+     "note": "suitors seated in a row behind (Dm framing)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 3,
+     "what": "bow tip braced against the body; string hooked",
+     "owner": "odysseus"
+    },
+    {
+     "t": 22.5,
+     "what": "telemachus takes sword and spear",
+     "owner": "telemachus"
+    },
+    {
+     "t": 32.4,
+     "what": "arrow from the quiver to the string",
+     "owner": "odysseus"
+    },
+    {
+     "t": 36.2,
+     "what": "arrow released",
+     "owner": "none"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "suitors",
+     "t0": 11,
+     "t1": 14,
+     "why": "dismay at the note: they freeze (turned pale), a held breath"
+    },
+    {
+     "actor": "odysseus",
+     "t0": 36.5,
+     "t1": 39,
+     "why": "the follow-through held after the release"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "ATTEND",
+     "GESTURE:open",
+     "GESTURE:point",
+     "HOLD",
+     "REACT:flinch",
+     "REACT:startle",
+     "SHAME",
+     "SHOOT"
+    ],
+    "clip": [],
+    "missing": [
+     "ARM",
+     "PLUCK",
+     "STRING_BOW"
+    ],
+    "relations": [
+     "IMPACT",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "IMPACT",
+     "THREAT"
+    ],
+    "machinery": [
+     "ARROW",
+     "AXES",
+     "BOW",
+     "SEATED_CROWD",
+     "THUNDER"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B23-S04": {
+   "scene": "OD-B23-S04",
+   "rank": 12,
+   "title": "The Bed Test",
+   "type": "recognition",
+   "total": 45.53,
+   "hard": "A trick by speech, an eruption of anger through craft memory (building the bed round a living olive), the recognition as a run and an embrace, then the lovers holding each other a long time; the bed itself is a rooted object that cannot move.",
+   "essential": [
+    "anger that turns into exact description (gestures describe the trunk, the frame, the drilling)",
+    "recognition: stillness, knees giving, then a run into an embrace (two bodies coupled)",
+    "a long held embrace that stays alive (weeping, rocking)",
+    "the olive-trunk bed as an immovable set piece (insert, flashback)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Penelope, calm, orders Eurycleia to carry the bed out of the chamber for him",
+     "causes": "Odysseus hears his bed has been moved"
+    },
+    {
+     "t": 5.8,
+     "what": "Odysseus erupts: who moved my bed? He built it round a living olive; its trunk is the post",
+     "causes": "the sign only the two of them know"
+    },
+    {
+     "t": 19.0,
+     "what": "the secret proves him",
+     "causes": "her knees give, her heart melts"
+    },
+    {
+     "t": 24.6,
+     "what": "Penelope runs to him, throws her arms round his neck, kisses him",
+     "causes": "embrace"
+    },
+    {
+     "t": 30.3,
+     "what": "she explains: she feared a stranger with a smooth story",
+     "causes": "he weeps holding her"
+    },
+    {
+     "t": 35.2,
+     "what": "Athena holds back the dawn while they weep and reunite",
+     "causes": "the long night"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "penelope",
+     "to": "eurycleia",
+     "act": "COMMAND (a test)",
+     "affect": "guarded",
+     "gist": "carry the great bed out of the bridal chamber",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    },
+    {
+     "gi": 7,
+     "t": 30.3,
+     "speaker": "penelope",
+     "to": "odysseus",
+     "act": "EXPLAIN",
+     "affect": "recognition",
+     "gist": "Do not be angry with me... as dry land to swimmers",
+     "body": "EMBRACE",
+     "cover": "clip"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "GUARDED_WELCOME",
+     "actor": "penelope",
+     "t0": 0.6,
+     "t1": 5,
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:startle",
+     "actor": "odysseus",
+     "t0": 5.5,
+     "t1": 6.5,
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:point",
+     "actor": "odysseus",
+     "t0": 5.8,
+     "t1": 19,
+     "target": "penelope",
+     "verb": "ACCUSE",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:describe",
+     "actor": "odysseus",
+     "t0": 7,
+     "t1": 18,
+     "note": "hands build the bed: trunk, frame, drill",
+     "verb": "DESCRIBE",
+     "cover": "missing-shape"
+    },
+    {
+     "kind": "RECOGNISE",
+     "actor": "penelope",
+     "t0": 19,
+     "t1": 24,
+     "cover": "missing"
+    },
+    {
+     "kind": "LOCOMOTE",
+     "actor": "penelope",
+     "t0": 24.6,
+     "t1": 26.5,
+     "target": "odysseus",
+     "verb": "RUN",
+     "cover": "missing"
+    },
+    {
+     "kind": "EMBRACE",
+     "actor": "penelope",
+     "t0": 26.5,
+     "t1": 45.5,
+     "target": "odysseus",
+     "cover": "clip"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 45.5,
+     "cover": "clip"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "penelope",
+     "t0": 26.5,
+     "t1": 45.5,
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "CONTACT",
+     "a": "penelope",
+     "b": "odysseus",
+     "t": 26.5,
+     "note": "arms round his neck"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "BED",
+     "note": "the olive bed: rooted, immovable; a lamp-lit insert"
+    },
+    {
+     "kind": "LAMP",
+     "note": "lamp light held low; dawn held back (light that does not change)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 26.5,
+     "what": "embrace: two bodies coupled until the end"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "penelope",
+     "t0": 19,
+     "t1": 24,
+     "why": "recognition lands: knees go, stillness before the run"
+    },
+    {
+     "actor": "both",
+     "t0": 35.2,
+     "t1": 45.5,
+     "why": "the long embrace under the held dawn (weeping, never frozen)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:open",
+     "GESTURE:point",
+     "GUARDED_WELCOME",
+     "REACT:startle"
+    ],
+    "clip": [
+     "EMBRACE",
+     "WEEP"
+    ],
+    "missing": [
+     "GESTURE:describe",
+     "LOCOMOTE",
+     "RECOGNISE"
+    ],
+    "relations": [
+     "CONTACT"
+    ],
+    "relationsRealised": [
+     "CONTACT"
+    ],
+    "machinery": [
+     "BED",
+     "LAMP"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B04-S04": {
+   "scene": "OD-B04-S04",
+   "rank": 13,
+   "title": "The Wooden Horse",
+   "type": "dialogue",
+   "total": 47.72,
+   "hard": "A told scene staged as a memory: men crushed inside a dark horse, a voice outside imitating their wives, the urge to answer, one man's mouth held shut by Odysseus; plus the listeners at Menelaus' table (Telemachus, Helen).",
+   "essential": [
+    "two frames: the telling table and the remembered horse (layered time)",
+    "crouched bodies packed in a small volume, still and tense (not dead)",
+    "the urge to answer: a lean and a breath in, checked",
+    "a hand over another's mouth held for seconds (contact hold)",
+    "Helen circling outside, patting the horse (a walk round an object)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Menelaus answers Helen: hear the horse's tale from within",
+     "causes": "the telling"
+    },
+    {
+     "t": 19.4,
+     "what": "Helen circles the horse three times, patting it, calling each chief in his wife's voice",
+     "causes": "the men inside ache to answer"
+    },
+    {
+     "t": 28.2,
+     "what": "the hidden Greeks nearly answer; Diomedes and Menelaus start up",
+     "causes": "Odysseus holds them"
+    },
+    {
+     "t": 33.6,
+     "what": "Odysseus holds them back; Anticlus alone would speak; Odysseus clamps his hands on his mouth",
+     "causes": "silence until Athena leads Helen away"
+    },
+    {
+     "t": 39.7,
+     "what": "Telemachus hears the proof of his father's endurance",
+     "causes": "grief and pride at the table"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "menelaus",
+     "to": "helen",
+     "act": "REPLY (recount)",
+     "affect": "irony",
+     "gist": "True, wife, yet you tell only half",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "POSTURE",
+     "actor": "hidden-greeks",
+     "t0": 0,
+     "t1": 47.7,
+     "note": "inside the horse",
+     "verb": "CROUCH",
+     "cover": "missing"
+    },
+    {
+     "kind": "CIRCLE",
+     "actor": "helen",
+     "t0": 19.4,
+     "t1": 28,
+     "target": "horse",
+     "note": "three times, patting",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:open",
+     "actor": "helen",
+     "t0": 20,
+     "t1": 28,
+     "note": "another's voice",
+     "verb": "MIMIC",
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:lean",
+     "actor": "hidden-greeks",
+     "t0": 28.2,
+     "t1": 30,
+     "target": "voice",
+     "verb": "LEAN_IN",
+     "cover": "engine"
+    },
+    {
+     "kind": "HOLD_BACK",
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 33.6,
+     "target": "diomedes",
+     "verb": "RESTRAIN",
+     "cover": "engine"
+    },
+    {
+     "kind": "HOLD_BACK",
+     "actor": "odysseus",
+     "t0": 33.6,
+     "t1": 40,
+     "target": "anticlus",
+     "verb": "COVER_MOUTH",
+     "cover": "engine"
+    },
+    {
+     "kind": "STRUGGLE",
+     "actor": "anticlus",
+     "t0": 33.6,
+     "t1": 37,
+     "cover": "missing"
+    },
+    {
+     "kind": "LISTEN",
+     "actor": "telemachus",
+     "t0": 0.6,
+     "t1": 47.7,
+     "target": "menelaus",
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:nod",
+     "actor": "telemachus",
+     "t0": 40,
+     "t1": 42,
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "helen",
+     "b": "hidden-greeks",
+     "t": 19.4,
+     "note": "the lure"
+    },
+    {
+     "rel": "BLOCK",
+     "a": "odysseus",
+     "b": "diomedes",
+     "t": 30,
+     "note": "hand on the chest"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "odysseus",
+     "b": "anticlus",
+     "t": 33.6,
+     "note": "hands over the mouth"
+    },
+    {
+     "rel": "RECOVER",
+     "a": "anticlus",
+     "b": "odysseus",
+     "t": 38,
+     "note": "gives up"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "HORSE",
+     "note": "the wooden horse: an enclosure with men inside, dark; opened in the keys (horseOpen)"
+    },
+    {
+     "kind": "MEMORY_FRAME",
+     "note": "the table in the present, the horse in the past: two sets cut together"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 20,
+     "what": "helen pats the horse"
+    },
+    {
+     "t": 33.6,
+     "what": "odysseus' hands on anticlus' mouth until Athena takes Helen away",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "hidden-greeks",
+     "t0": 0,
+     "t1": 28,
+     "why": "packed stillness inside the horse: tense breath (Sn: faces barely lit, frozen listeners)"
+    },
+    {
+     "actor": "odysseus",
+     "t0": 33.6,
+     "t1": 40,
+     "why": "the hand over the mouth held"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:open",
+     "HOLD_BACK",
+     "LISTEN",
+     "REACT:lean",
+     "REACT:nod"
+    ],
+    "clip": [],
+    "missing": [
+     "CIRCLE",
+     "POSTURE",
+     "STRUGGLE"
+    ],
+    "relations": [
+     "BLOCK",
+     "CONTACT",
+     "RECOVER",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "BLOCK",
+     "CONTACT",
+     "RECOVER",
+     "THREAT"
+    ],
+    "machinery": [
+     "HORSE",
+     "MEMORY_FRAME"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B04-S05": {
+   "scene": "OD-B04-S05",
+   "rank": 14,
+   "title": "Menelaus Wrestles Proteus",
+   "type": "fight",
+   "total": 30.14,
+   "hard": "An ambush from under sealskins and a grapple with a shape-changer: the held body becomes a lion, a serpent, water, a tree, while the men's hands stay constant; then the defeated god speaks.",
+   "essential": [
+    "grapple: four men on one body, holds kept through the changes",
+    "replacement on twos: the held body swapped for beasts, water, a tree (hands constant)",
+    "the ambush: men lying hidden under skins among seals, then springing",
+    "the telling frame (Telemachus asks at the table)"
+   ],
+   "chain": [
+    {
+     "t": 0,
+     "what": "(cut) Telemachus asks for news of his father; Menelaus begins the tale of Pharos",
+     "causes": "the telling"
+    },
+    {
+     "t": 0.6,
+     "what": "Menelaus and three men lie under sealskins among the seals; Proteus counts his seals and lies down",
+     "causes": "they spring and seize him"
+    },
+    {
+     "t": 10.6,
+     "what": "Proteus becomes a lion, a serpent, a leopard, a boar, water, a tree; they hold on",
+     "causes": "he tires and yields"
+    },
+    {
+     "t": 20.4,
+     "what": "Proteus, himself again, tells that Odysseus lives, held by Calypso",
+     "causes": "Telemachus' hope"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "HIDE",
+     "actor": "menelaus",
+     "t0": 0.6,
+     "t1": 5,
+     "note": "under a sealskin",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "proteus",
+     "t0": 2,
+     "t1": 5,
+     "target": "seals",
+     "verb": "COUNT",
+     "cover": "engine"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "proteus",
+     "t0": 4.5,
+     "t1": 5.5,
+     "verb": "LIE_DOWN",
+     "cover": "missing"
+    },
+    {
+     "kind": "SEIZE",
+     "actor": "menelaus",
+     "t0": 5.5,
+     "t1": 6.5,
+     "target": "proteus",
+     "verb": "AMBUSH",
+     "cover": "missing"
+    },
+    {
+     "kind": "GRAPPLE",
+     "actor": "menelaus",
+     "t0": 6.5,
+     "t1": 20,
+     "target": "proteus",
+     "cover": "missing"
+    },
+    {
+     "kind": "GRAPPLE",
+     "actor": "men",
+     "t0": 6.5,
+     "t1": 20,
+     "target": "proteus",
+     "cover": "missing"
+    },
+    {
+     "kind": "TRANSFORM",
+     "actor": "proteus",
+     "t0": 10.6,
+     "t1": 19,
+     "note": "lion, serpent, leopard, boar, water, tree",
+     "cover": "missing"
+    },
+    {
+     "kind": "STRUGGLE",
+     "actor": "proteus",
+     "t0": 6.5,
+     "t1": 19,
+     "cover": "missing"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "proteus",
+     "t0": 19,
+     "t1": 20.4,
+     "verb": "YIELD",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:open",
+     "actor": "proteus",
+     "t0": 20.4,
+     "t1": 30,
+     "verb": "PROPHESY",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "ATTACK",
+     "a": "menelaus",
+     "b": "proteus",
+     "t": 5.5,
+     "note": "ambush"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "men",
+     "b": "proteus",
+     "t": 6.5,
+     "note": "four holds"
+    },
+    {
+     "rel": "EVADE",
+     "a": "proteus",
+     "b": "men",
+     "t": 10.6,
+     "note": "by changing"
+    },
+    {
+     "rel": "BLOCK",
+     "a": "men",
+     "b": "proteus",
+     "t": 11,
+     "note": "hold kept"
+    },
+    {
+     "rel": "RECOVER",
+     "a": "proteus",
+     "b": "men",
+     "t": 19,
+     "note": "yields"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "TRANSFORM",
+     "note": "the held body replaced on twos (lion, snake, water column, tree), the grips constant"
+    },
+    {
+     "kind": "SEALSKIN",
+     "note": "cloth props covering lying men"
+    },
+    {
+     "kind": "QUADRUPEDS",
+     "note": "seals lying and flopping on the beach"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 6.5,
+     "what": "four men grip proteus (arms, legs, neck)",
+     "owner": "the men"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "menelaus",
+     "t0": 0.6,
+     "t1": 5.5,
+     "why": "hidden under the skin, the stench endured: still, breath only"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "GESTURE:open",
+     "HIDE"
+    ],
+    "clip": [],
+    "missing": [
+     "GRAPPLE",
+     "POSTURE",
+     "SEIZE",
+     "STRUGGLE",
+     "TRANSFORM"
+    ],
+    "relations": [
+     "ATTACK",
+     "BLOCK",
+     "CONTACT",
+     "EVADE",
+     "RECOVER"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "BLOCK",
+     "CONTACT",
+     "EVADE",
+     "RECOVER"
+    ],
+    "machinery": [
+     "QUADRUPEDS",
+     "SEALSKIN",
+     "TRANSFORM"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B16-S03": {
+   "scene": "OD-B16-S03",
+   "rank": 15,
+   "title": "The Father Reveals Himself",
+   "type": "recognition",
+   "total": 42.61,
+   "hard": "A body transformed off-screen and re-entering changed (beggar -> king: costume swap with the same actor), a son recoiling in terror, a declaration, a refusal, then an embrace with the force of birds robbed of their young.",
+   "essential": [
+    "the costume/figure swap for one actor id across a cut (odysseus-as-beggar -> odysseus-restored)",
+    "fear: recoil and averted eyes held (not doubt: terror)",
+    "the embrace as a crash of two bodies with sustained weeping",
+    "Athena at the threshold (a goddess only Odysseus sees)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "outside the hut Athena touches Odysseus with her wand: strength, clothes, skin, dark hair restored",
+     "causes": "he re-enters changed"
+    },
+    {
+     "t": 11.1,
+     "what": "he re-enters transformed",
+     "causes": "Telemachus sees a god"
+    },
+    {
+     "t": 17.1,
+     "what": "Telemachus recoils, eyes averted, offers sacrifice",
+     "causes": "Odysseus must say who he is"
+    },
+    {
+     "t": 24.1,
+     "what": "Odysseus: I am no god; I am your father",
+     "causes": "Telemachus refuses: a god mocking his grief"
+    },
+    {
+     "t": 29.9,
+     "what": "Telemachus: you are not my father",
+     "causes": "Odysseus tells him it is Athena's doing"
+    },
+    {
+     "t": 34.0,
+     "what": "they embrace and weep like birds robbed of their young",
+     "causes": "the reunion"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 5,
+     "t": 24.1,
+     "speaker": "odysseus",
+     "to": "telemachus",
+     "act": "DECLARE",
+     "affect": "tenderness",
+     "gist": "I am no god... I am your father",
+     "body": "GESTURE:chest",
+     "cover": "engine"
+    },
+    {
+     "gi": 7,
+     "t": 29.9,
+     "speaker": "telemachus",
+     "to": "odysseus",
+     "act": "REFUSE",
+     "affect": "fear",
+     "gist": "You are not my father",
+     "body": "GESTURE:recoil",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "BECKON",
+     "actor": "athena",
+     "t0": 0.6,
+     "t1": 3,
+     "target": "odysseus",
+     "cover": "clip"
+    },
+    {
+     "kind": "STRIKE",
+     "actor": "athena",
+     "t0": 3,
+     "t1": 5,
+     "target": "odysseus",
+     "verb": "STRIKE_WAND",
+     "cover": "clip"
+    },
+    {
+     "kind": "TRANSFORM",
+     "actor": "odysseus",
+     "t0": 5,
+     "t1": 10,
+     "note": "beggar -> restored, the same actor",
+     "cover": "missing"
+    },
+    {
+     "kind": "ARRIVE",
+     "actor": "odysseus",
+     "t0": 11.1,
+     "t1": 14,
+     "cover": "engine"
+    },
+    {
+     "kind": "RECOIL",
+     "actor": "telemachus",
+     "t0": 17.1,
+     "t1": 20,
+     "cover": "engine"
+    },
+    {
+     "kind": "TURN_AWAY",
+     "actor": "telemachus",
+     "t0": 18,
+     "t1": 29,
+     "target": "odysseus",
+     "verb": "AVERT",
+     "cover": "missing"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "odysseus",
+     "t0": 24,
+     "t1": 27,
+     "target": "telemachus",
+     "cover": "engine"
+    },
+    {
+     "kind": "RECOGNISE",
+     "actor": "telemachus",
+     "t0": 32,
+     "t1": 34,
+     "cover": "missing"
+    },
+    {
+     "kind": "EMBRACE",
+     "actor": "odysseus",
+     "t0": 34,
+     "t1": 42.6,
+     "target": "telemachus",
+     "cover": "clip"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "telemachus",
+     "t0": 34,
+     "t1": 42.6,
+     "cover": "clip"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 34,
+     "t1": 42.6,
+     "cover": "clip"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "SEPARATION",
+     "a": "telemachus",
+     "b": "odysseus",
+     "t": 17.1,
+     "note": "recoil to the wall"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "odysseus",
+     "b": "telemachus",
+     "t": 34,
+     "note": "embrace"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "TRANSFORM",
+     "note": "costume and figure swap of one actor (beggar -> restored)"
+    },
+    {
+     "kind": "WAND",
+     "note": "Athena's golden wand touch"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 3.5,
+     "what": "athena's wand on odysseus"
+    },
+    {
+     "t": 34,
+     "what": "embrace until the end"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "telemachus",
+     "t0": 18,
+     "t1": 24,
+     "why": "terror: frozen, eyes averted (Ic: close held long)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "ARRIVE",
+     "GESTURE:chest",
+     "GESTURE:recoil",
+     "RECOIL"
+    ],
+    "clip": [
+     "BECKON",
+     "EMBRACE",
+     "STRIKE",
+     "WEEP"
+    ],
+    "missing": [
+     "RECOGNISE",
+     "TRANSFORM",
+     "TURN_AWAY"
+    ],
+    "relations": [
+     "CONTACT",
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "CONTACT",
+     "SEPARATION"
+    ],
+    "machinery": [
+     "TRANSFORM",
+     "WAND"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B19-S04": {
+   "scene": "OD-B19-S04",
+   "rank": 16,
+   "title": "Eurycleia Finds the Scar",
+   "type": "recognition",
+   "total": 45.11,
+   "hard": "A foot-washing by an old nurse: the basin, the hands on the leg, the scar under the fingers, the foot dropped and the basin tipped, then a grip at the throat to swear her silence while Penelope must not see.",
+   "essential": [
+    "hand-on-body contact (washing the foot and shin) that must stay on the surface",
+    "the basin tipping and water spilling (prop physics)",
+    "the throat grip: firm but gentle, held through a whispered oath",
+    "Penelope in the room kept unaware (attention turned away by Athena)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Penelope bids Eurycleia wash the stranger's feet: his hands and feet must be like Odysseus' now",
+     "causes": "the nurse fetches the basin"
+    },
+    {
+     "t": 18.2,
+     "what": "Odysseus turns from the fire: the scar will give him away, but he cannot refuse",
+     "causes": "he sits into the dark"
+    },
+    {
+     "t": 22,
+     "what": "(cut) she washes the leg, her hand finds the boar scar, she knows him",
+     "causes": "she drops the foot"
+    },
+    {
+     "t": 26.5,
+     "what": "the foot drops into the basin, it tips, the water spills; she reaches toward Penelope",
+     "causes": "Odysseus stops her"
+    },
+    {
+     "t": 35.9,
+     "what": "he grips her throat and makes her swear silence",
+     "causes": "she swears"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "penelope",
+     "to": "eurycleia",
+     "act": "COMMAND",
+     "affect": "weariness",
+     "gist": "wash the feet of your master's age-mate",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "CARRY",
+     "actor": "eurycleia",
+     "t0": 17,
+     "t1": 20,
+     "target": "basin",
+     "verb": "FETCH",
+     "cover": "engine"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "eurycleia",
+     "t0": 20,
+     "t1": 21,
+     "cover": "engine"
+    },
+    {
+     "kind": "TURN_AWAY",
+     "actor": "odysseus",
+     "t0": 18.2,
+     "t1": 21,
+     "target": "fire",
+     "cover": "missing"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "odysseus",
+     "t0": 20,
+     "t1": 22,
+     "verb": "SIT",
+     "cover": "missing"
+    },
+    {
+     "kind": "TEND",
+     "actor": "eurycleia",
+     "t0": 21,
+     "t1": 25,
+     "target": "foot",
+     "verb": "WASH",
+     "cover": "missing"
+    },
+    {
+     "kind": "RECOGNISE",
+     "actor": "eurycleia",
+     "t0": 25,
+     "t1": 26.5,
+     "cover": "missing"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "eurycleia",
+     "t0": 26.5,
+     "t1": 27,
+     "target": "foot",
+     "verb": "DROP",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:reach",
+     "actor": "eurycleia",
+     "t0": 27.5,
+     "t1": 30,
+     "target": "penelope",
+     "verb": "REACH",
+     "cover": "missing-shape"
+    },
+    {
+     "kind": "SEIZE",
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 31,
+     "target": "eurycleia",
+     "note": "throat",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:oath",
+     "actor": "eurycleia",
+     "t0": 36,
+     "t1": 45,
+     "verb": "SWEAR",
+     "cover": "missing-shape"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "CONTACT",
+     "a": "eurycleia",
+     "b": "odysseus",
+     "t": 21,
+     "note": "hands on the shin"
+    },
+    {
+     "rel": "IMPACT",
+     "a": "foot",
+     "b": "basin",
+     "t": 26.8,
+     "note": "tips"
+    },
+    {
+     "rel": "BLOCK",
+     "a": "odysseus",
+     "b": "eurycleia",
+     "t": 30,
+     "note": "stops the reach"
+    },
+    {
+     "rel": "CONTACT",
+     "a": "odysseus",
+     "b": "eurycleia",
+     "t": 31,
+     "note": "hand at the throat"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "BASIN",
+     "note": "bronze basin with water: set down, tipped, spilled"
+    },
+    {
+     "kind": "FIRE",
+     "note": "hearth light he turns from"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 21,
+     "what": "eurycleia holds odysseus' foot",
+     "owner": "eurycleia"
+    },
+    {
+     "t": 26.5,
+     "what": "foot dropped into the basin",
+     "owner": "none"
+    },
+    {
+     "t": 31,
+     "what": "odysseus' right hand on her throat, left draws her close"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "eurycleia",
+     "t0": 25,
+     "t1": 26.5,
+     "why": "the recognition under her fingers"
+    },
+    {
+     "actor": "penelope",
+     "t0": 25,
+     "t1": 45,
+     "why": "Athena turns her mind away: she looks elsewhere (a held look, not dead)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "CARRY",
+     "GESTURE:open",
+     "SET_DOWN"
+    ],
+    "clip": [],
+    "missing": [
+     "GESTURE:oath",
+     "GESTURE:reach",
+     "POSTURE",
+     "RECOGNISE",
+     "SEIZE",
+     "TEND",
+     "TURN_AWAY"
+    ],
+    "relations": [
+     "BLOCK",
+     "CONTACT",
+     "IMPACT"
+    ],
+    "relationsRealised": [
+     "BLOCK",
+     "CONTACT",
+     "IMPACT"
+    ],
+    "machinery": [
+     "BASIN",
+     "FIRE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B14-S01": {
+   "scene": "OD-B14-S01",
+   "rank": 17,
+   "title": "The Dogs at Eumaeus's Yard",
+   "type": "fight",
+   "total": 25.18,
+   "hard": "Four dogs rush a sitting beggar, a swineherd runs out throwing stones to scatter them, then turns to hospitality: pursuit by quadrupeds, a defensive sit, thrown stones, and the switch to welcome in 25 s.",
+   "essential": [
+    "dogs as pursuers with a rush path and a stop distance",
+    "the defensive drop: staff let fall, the man sits",
+    "stones thrown (small ballistic props) and the dogs scattering",
+    "the switch from protection to welcome"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the disguised Odysseus comes up the path to the farm",
+     "causes": "the dogs see him"
+    },
+    {
+     "t": 3,
+     "what": "(cut) four dogs rush him barking; he drops his staff and sits",
+     "causes": "they stop short"
+    },
+    {
+     "t": 7.6,
+     "what": "Eumaeus runs out, shouting, scatters the dogs with stones, leads him in",
+     "causes": "the stranger is safe"
+    },
+    {
+     "t": 16.6,
+     "what": "Eumaeus gives him his own seat of brushwood and a skin, prepares two piglets",
+     "causes": "hospitality"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "APPROACH",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 3,
+     "target": "gate",
+     "cover": "engine"
+    },
+    {
+     "kind": "PURSUE",
+     "actor": "dogs",
+     "t0": 3,
+     "t1": 6,
+     "target": "odysseus",
+     "verb": "CHARGE",
+     "cover": "missing"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "odysseus",
+     "t0": 3.5,
+     "t1": 4,
+     "target": "staff",
+     "verb": "DROP_ITEM",
+     "cover": "engine"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "odysseus",
+     "t0": 4,
+     "t1": 5,
+     "note": "to avoid attack",
+     "verb": "SIT",
+     "cover": "missing"
+    },
+    {
+     "kind": "LOCOMOTE",
+     "actor": "eumaeus",
+     "t0": 7.6,
+     "t1": 9,
+     "target": "dogs",
+     "verb": "RUN",
+     "cover": "missing"
+    },
+    {
+     "kind": "THROW",
+     "actor": "eumaeus",
+     "t0": 9,
+     "t1": 11,
+     "target": "dogs",
+     "note": "stones",
+     "cover": "missing"
+    },
+    {
+     "kind": "FLEE",
+     "actor": "dogs",
+     "t0": 10,
+     "t1": 12,
+     "cover": "missing"
+    },
+    {
+     "kind": "WELCOME",
+     "actor": "eumaeus",
+     "t0": 12,
+     "t1": 16,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "LEAD",
+     "actor": "eumaeus",
+     "t0": 13,
+     "t1": 16.6,
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "eumaeus",
+     "t0": 16.6,
+     "t1": 19,
+     "target": "odysseus",
+     "note": "his own seat",
+     "cover": "engine"
+    },
+    {
+     "kind": "SACRIFICE",
+     "actor": "eumaeus",
+     "t0": 19,
+     "t1": 25,
+     "target": "piglets",
+     "verb": "BUTCHER",
+     "cover": "missing"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "PURSUIT",
+     "a": "dogs",
+     "b": "odysseus",
+     "t": 3
+    },
+    {
+     "rel": "THREAT",
+     "a": "dogs",
+     "b": "odysseus",
+     "t": 4.5,
+     "note": "at the stop distance"
+    },
+    {
+     "rel": "EVADE",
+     "a": "odysseus",
+     "b": "dogs",
+     "t": 4,
+     "note": "sits: submission"
+    },
+    {
+     "rel": "ATTACK",
+     "a": "eumaeus",
+     "b": "dogs",
+     "t": 9,
+     "note": "stones"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "dogs",
+     "b": "odysseus",
+     "t": 11
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "QUADRUPEDS",
+     "note": "four dogs: run, bark, stop, scatter"
+    },
+    {
+     "kind": "STONES",
+     "note": "small thrown props"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 3.5,
+     "what": "staff dropped",
+     "owner": "none"
+    },
+    {
+     "t": 9,
+     "what": "stones from eumaeus' hand",
+     "owner": "none"
+    },
+    {
+     "t": 13,
+     "what": "eumaeus takes the stranger's arm"
+    },
+    {
+     "t": 17,
+     "what": "brushwood seat and goatskin given",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 4,
+     "t1": 7.6,
+     "why": "sitting still to avoid the dogs (a chosen stillness)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "LEAD",
+     "OFFER",
+     "SET_DOWN",
+     "WELCOME"
+    ],
+    "clip": [],
+    "missing": [
+     "FLEE",
+     "LOCOMOTE",
+     "POSTURE",
+     "PURSUE",
+     "SACRIFICE",
+     "THROW"
+    ],
+    "relations": [
+     "ATTACK",
+     "EVADE",
+     "PURSUIT",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "ATTACK",
+     "EVADE",
+     "PURSUIT",
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "QUADRUPEDS",
+     "STONES"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B12-S06": {
+   "scene": "OD-B12-S06",
+   "rank": 18,
+   "title": "The Cattle Are Slaughtered",
+   "type": "labour",
+   "total": 38.19,
+   "hard": "Persuasion of a crowd, then the sacrifice with substitutes (oak leaves for barley, water for wine), the slaughter and roasting, and an omen: the hides crawl and the meat bellows on the spits.",
+   "essential": [
+    "a persuader working a crowd (turning heads, the crowd yielding)",
+    "slaughter and butchery kept offscreen-ish but the labour on screen",
+    "spits turning over a fire (a row, regular)",
+    "the omen: a hide crawling (a prop moving by itself), the meat bellowing (sound)"
+   ],
+   "chain": [
+    {
+     "t": 0,
+     "what": "(cut) food gone; Odysseus goes inland to pray and sleeps",
+     "causes": "the crew alone"
+    },
+    {
+     "t": 0.6,
+     "what": "Eurylochus persuades them: every death is hateful, but hunger is the worst",
+     "causes": "they drive in the best cattle"
+    },
+    {
+     "t": 10.0,
+     "what": "they sacrifice with oak leaves for barley, water for wine, kill, butcher, roast",
+     "causes": "the meat on the spits"
+    },
+    {
+     "t": 22.7,
+     "what": "the hides crawl, the meat bellows on the spits",
+     "causes": "dread, but they eat"
+    },
+    {
+     "t": 30.0,
+     "what": "Lampetie tells Helios, who demands Zeus punish them",
+     "causes": "the next scene's bolt"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "GESTURE:open",
+     "actor": "eurylochus",
+     "t0": 0.6,
+     "t1": 10,
+     "target": "crew",
+     "verb": "PERSUADE",
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:nod",
+     "actor": "crew",
+     "t0": 6,
+     "t1": 9,
+     "cover": "engine"
+    },
+    {
+     "kind": "HERD",
+     "actor": "crew",
+     "t0": 9,
+     "t1": 11,
+     "target": "cattle",
+     "cover": "missing"
+    },
+    {
+     "kind": "SACRIFICE",
+     "actor": "eurylochus",
+     "t0": 10,
+     "t1": 14,
+     "target": "cattle",
+     "cover": "missing"
+    },
+    {
+     "kind": "POUR",
+     "actor": "eurylochus",
+     "t0": 12,
+     "t1": 13,
+     "note": "water for wine",
+     "cover": "engine"
+    },
+    {
+     "kind": "SACRIFICE",
+     "actor": "crew",
+     "t0": 14,
+     "t1": 18,
+     "verb": "BUTCHER",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "crew",
+     "t0": 18,
+     "t1": 30,
+     "target": "spits",
+     "note": "turning",
+     "verb": "ROAST",
+     "cover": "missing"
+    },
+    {
+     "kind": "REACT:startle",
+     "actor": "crew",
+     "t0": 23,
+     "t1": 24.5,
+     "cover": "engine"
+    },
+    {
+     "kind": "EAT",
+     "actor": "crew",
+     "t0": 26,
+     "t1": 38,
+     "cover": "missing"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "SPITS",
+     "note": "a row of spits turning over a fire"
+    },
+    {
+     "kind": "FIRE",
+     "note": "cooking fire, smoke"
+    },
+    {
+     "kind": "QUADRUPEDS",
+     "note": "cattle driven in"
+    },
+    {
+     "kind": "PROP_STATE",
+     "note": "the hides crawling (an omen: a prop moves)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 12,
+     "what": "oak leaves and water in place of barley and wine"
+    },
+    {
+     "t": 18,
+     "what": "meat onto the spits"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "crew",
+     "t0": 24,
+     "t1": 26,
+     "why": "dread at the omen before they eat"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:open",
+     "POUR",
+     "REACT:nod",
+     "REACT:startle"
+    ],
+    "clip": [],
+    "missing": [
+     "EAT",
+     "HERD",
+     "SACRIFICE",
+     "TOOL_WORK"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "FIRE",
+     "PROP_STATE",
+     "QUADRUPEDS",
+     "SPITS"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B05-S04": {
+   "scene": "OD-B05-S04",
+   "rank": 19,
+   "title": "Building the Raft",
+   "type": "labour",
+   "total": 61.91,
+   "hard": "Four days of carpentry in 62 s as quotidian held mediums: felling, trimming, boring, joining, decking, rigging; the raft is a prop built in stages (Mk: booklet steps); the script's action lines name Calypso as the builder (a script error: Odysseus builds).",
+   "essential": [
+    "tool actions with contact (axe, adze, auger) on timbers",
+    "the raft as one prop in stages",
+    "a supplier who gives and withdraws (Calypso: axe, adze, cloth, cord)",
+    "long holds of work that must not read as dead"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Calypso leads him to the tall trees, gives axe, adze, cloth and cord",
+     "causes": "he begins"
+    },
+    {
+     "t": 28.4,
+     "what": "he fells twenty trees, trims, bores, joins and decks them (four days)",
+     "causes": "the raft grows"
+    },
+    {
+     "t": 40.7,
+     "what": "he rigs mast, yard, sail, steering oar and ballast",
+     "causes": "the raft is ready"
+    },
+    {
+     "t": 49.9,
+     "what": "Calypso bathes and clothes him, loads food and water, sends a warm wind",
+     "causes": "he sails (the next scene)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "calypso",
+     "to": "odysseus",
+     "act": "DECLARE (give)",
+     "affect": "tenderness",
+     "gist": "Take the great bronze axe and the adze...",
+     "body": "OFFER",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "LEAD",
+     "actor": "calypso",
+     "t0": 0.6,
+     "t1": 8,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "OFFER",
+     "actor": "calypso",
+     "t0": 10,
+     "t1": 26,
+     "target": "odysseus",
+     "note": "axe, adze, cloth, cord",
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 27,
+     "cover": "engine"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 28.4,
+     "t1": 32,
+     "target": "trees",
+     "verb": "CHOP",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 32,
+     "t1": 35,
+     "target": "timbers",
+     "note": "adze",
+     "verb": "CARVE",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 35,
+     "t1": 37,
+     "target": "timbers",
+     "verb": "BORE",
+     "cover": "missing"
+    },
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 37,
+     "t1": 40,
+     "target": "pegs",
+     "verb": "HAMMER",
+     "cover": "missing"
+    },
+    {
+     "kind": "HAUL",
+     "actor": "odysseus",
+     "t0": 40.7,
+     "t1": 45,
+     "target": "mast",
+     "verb": "HOIST",
+     "cover": "missing"
+    },
+    {
+     "kind": "ROPE_WORK",
+     "actor": "odysseus",
+     "t0": 45,
+     "t1": 49.9,
+     "target": "sail",
+     "verb": "RIG",
+     "cover": "missing"
+    },
+    {
+     "kind": "TEND",
+     "actor": "calypso",
+     "t0": 50,
+     "t1": 54,
+     "target": "odysseus",
+     "verb": "DRESS",
+     "cover": "missing"
+    },
+    {
+     "kind": "CARRY",
+     "actor": "calypso",
+     "t0": 54,
+     "t1": 58,
+     "target": "provisions",
+     "cover": "engine"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "RAFT",
+     "note": "built in stages (logs, deck, rail, mast, sail)"
+    },
+    {
+     "kind": "TOOLS",
+     "note": "axe, adze, auger, mallet: contact on the timber"
+    },
+    {
+     "kind": "SAIL",
+     "note": "rigged at the end, filling with the warm wind"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 11,
+     "what": "axe calypso -> odysseus",
+     "owner": "odysseus"
+    },
+    {
+     "t": 20,
+     "what": "adze calypso -> odysseus",
+     "owner": "odysseus"
+    },
+    {
+     "t": 26,
+     "what": "cloth and cord",
+     "owner": "odysseus"
+    },
+    {
+     "t": 54,
+     "what": "provisions loaded",
+     "owner": "raft"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 28.4,
+     "t1": 49.9,
+     "why": "long quotidian holds (7 s) of work: the labour itself is the motion, never a freeze"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "CARRY",
+     "LEAD",
+     "OFFER",
+     "TAKE"
+    ],
+    "clip": [],
+    "missing": [
+     "HAUL",
+     "ROPE_WORK",
+     "TEND",
+     "TOOL_WORK"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "RAFT",
+     "SAIL",
+     "TOOLS"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B01-S01": {
+   "scene": "OD-B01-S01",
+   "rank": 20,
+   "title": "The Gods Consider Odysseus",
+   "type": "dialogue",
+   "total": 71.22,
+   "hard": "A council of seated gods with three long speeches; the ring must listen and turn from Zeus to Athena; Athena petitions (not commands); an empty throne is the most important object.",
+   "essential": [
+    "group attention shifts (ring of listeners) on the speaker change",
+    "appeal vs command: petition gesture vocabulary",
+    "seated speakers who rise inside the order (Mi)",
+    "the empty throne as a held insert"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the gods take their places in a ring; Poseidon's seat is empty",
+     "causes": "the council opens without him"
+    },
+    {
+     "t": 4,
+     "what": "(cut) Zeus on Aegisthus: mortals blame the gods",
+     "causes": "Athena seizes the turn"
+    },
+    {
+     "t": 12.8,
+     "what": "Athena: it is Odysseus my heart breaks for, held on Calypso's island",
+     "causes": "Zeus answers"
+    },
+    {
+     "t": 40.7,
+     "what": "Zeus: how could I forget him; Poseidon rages; let us shape his return",
+     "causes": "the plan (next scene)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 5,
+     "t": 12.8,
+     "speaker": "athena",
+     "to": "zeus",
+     "act": "PETITION",
+     "affect": "appeal",
+     "gist": "Father Zeus... it is Odysseus my heart breaks for",
+     "body": "GESTURE:plead",
+     "cover": "engine"
+    },
+    {
+     "gi": 6,
+     "t": 40.7,
+     "speaker": "zeus",
+     "to": "athena",
+     "act": "DECLARE",
+     "affect": "command",
+     "gist": "My child, how could I forget godlike Odysseus?",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "POSTURE",
+     "actor": "gods",
+     "t0": 0.6,
+     "t1": 4,
+     "note": "take their places",
+     "verb": "SIT",
+     "cover": "missing"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "gods",
+     "t0": 4,
+     "t1": 12.8,
+     "target": "zeus",
+     "cover": "engine"
+    },
+    {
+     "kind": "RISE",
+     "actor": "athena",
+     "t0": 12,
+     "t1": 13.5,
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "gods",
+     "t0": 13,
+     "t1": 40,
+     "target": "athena",
+     "cover": "engine"
+    },
+    {
+     "kind": "NOTICE",
+     "actor": "gods",
+     "t0": 3,
+     "t1": 5,
+     "target": "empty-throne",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "gods",
+     "t0": 41,
+     "t1": 71,
+     "target": "zeus",
+     "cover": "engine"
+    },
+    {
+     "kind": "REACT:nod",
+     "actor": "athena",
+     "t0": 60,
+     "t1": 62,
+     "cover": "engine"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "SEATED_CROWD",
+     "note": "a ring of thrones; the empty one kept empty"
+    }
+   ],
+   "contacts": [],
+   "holds": [
+    {
+     "actor": "empty-throne",
+     "t0": 3,
+     "t1": 6,
+     "why": "the absence as an insert (Dm)"
+    },
+    {
+     "actor": "athena",
+     "t0": 38,
+     "t1": 40.5,
+     "why": "held two beats after her key line (Ic push)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "GESTURE:open",
+     "GESTURE:plead",
+     "NOTICE",
+     "REACT:nod",
+     "RISE"
+    ],
+    "clip": [],
+    "missing": [
+     "POSTURE"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "SEATED_CROWD"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B10-S01": {
+   "scene": "OD-B10-S01",
+   "rank": 21,
+   "title": "Aeolus and the Bag of Winds",
+   "type": "dialogue",
+   "total": 31.53,
+   "hard": "A gift (the bag) made fast under the deck, nine days at sea, sleep at the helm, the crew opening the bag, a blast of winds that spins the ship back; then the host's horrified refusal. Most of the action is cut from the voice.",
+   "essential": [
+    "the bag as a charged prop (silver wire, lashed under the deck)",
+    "the crew's hands on the cord (pose-to-pose, Sy)",
+    "sleep at the helm (a head that drops)",
+    "a ship spun by a blast (time-lapse, Ga)",
+    "refusal: the host's dismissal gesture"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Aeolus gives the oxhide bag, silver-wired, and looses only the West Wind",
+     "causes": "the voyage home"
+    },
+    {
+     "t": 8,
+     "what": "(cut) nine days; Ithaca in sight; Odysseus falls asleep at the helm",
+     "causes": "the crew open the bag"
+    },
+    {
+     "t": 10,
+     "what": "(cut) the winds burst out and blow them back to Aeolia",
+     "causes": "they return disgraced"
+    },
+    {
+     "t": 16.7,
+     "what": "Aeolus: out of my island, worst of living men; the gods hate you",
+     "causes": "expelled"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 3,
+     "t": 0.6,
+     "speaker": "aeolus",
+     "to": "odysseus",
+     "act": "DECLARE (give)",
+     "affect": "tenderness",
+     "gist": "Take this bag of oxhide...",
+     "body": "OFFER",
+     "cover": "engine"
+    },
+    {
+     "gi": 6,
+     "t": 16.7,
+     "speaker": "aeolus",
+     "to": "odysseus",
+     "act": "REFUSE",
+     "affect": "confrontation",
+     "gist": "Out of my island, out, worst of living men",
+     "body": "GESTURE:dismiss",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "OFFER",
+     "actor": "aeolus",
+     "t0": 1,
+     "t1": 4,
+     "target": "odysseus",
+     "note": "the bag",
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 5,
+     "cover": "engine"
+    },
+    {
+     "kind": "SHAME",
+     "actor": "odysseus",
+     "t0": 17,
+     "t1": 31,
+     "cover": "engine"
+    },
+    {
+     "kind": "RECOIL",
+     "actor": "aeolus",
+     "t0": 16.7,
+     "t1": 18,
+     "target": "odysseus",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "SEPARATION",
+     "a": "aeolus",
+     "b": "odysseus",
+     "t": 17,
+     "note": "expelled"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "WIND_BAG",
+     "note": "oxhide bag with silver wire: lashed, opened, bursting"
+    },
+    {
+     "kind": "SHIP",
+     "note": "sailing, then spun back"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 3,
+     "what": "bag aeolus -> odysseus",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 17,
+     "t1": 31,
+     "why": "shamed stillness under the refusal: head down"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:dismiss",
+     "OFFER",
+     "RECOIL",
+     "SHAME",
+     "TAKE"
+    ],
+    "clip": [],
+    "missing": [],
+    "relations": [
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "SEPARATION"
+    ],
+    "machinery": [
+     "SHIP",
+     "WIND_BAG"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B13-S01": {
+   "scene": "OD-B13-S01",
+   "rank": 22,
+   "title": "The Phaeacians Carry Odysseus Home",
+   "type": "ritual",
+   "total": 43.99,
+   "hard": "A silent hall after the tale, a command of gifts, the boarding at sunset, a sleeper on a stern bed while the ship runs, and the crew carrying him and his treasure ashore without waking him.",
+   "essential": [
+    "a silence held by a whole hall (group stillness that breathes)",
+    "a sleeping body carried by several (limp, cradled)",
+    "the ship running fast (hawk speed) under oars",
+    "treasure carried and set down (tripods, cauldrons)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus finishes; the Phaeacians sit spellbound in silence",
+     "causes": "Alcinous speaks"
+    },
+    {
+     "t": 9.2,
+     "what": "Alcinous: one more chest, a tripod and cauldron from every lord; feast; he sails at sundown",
+     "causes": "the gifts"
+    },
+    {
+     "t": 25.8,
+     "what": "at sunset Odysseus boards and lies on the bed in the stern",
+     "causes": "he sleeps"
+    },
+    {
+     "t": 30,
+     "what": "(cut) the ship runs faster than a hawk to Ithaca",
+     "causes": "arrival before dawn"
+    },
+    {
+     "t": 36.8,
+     "what": "the crew lift the sleeper ashore with his treasure and leave",
+     "causes": "he wakes alone (next scene)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 3,
+     "t": 9.2,
+     "speaker": "alcinous",
+     "to": "lords",
+     "act": "COMMAND",
+     "affect": "command",
+     "gist": "Bring out one more chest...",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "HOLD",
+     "actor": "phaeacians",
+     "t0": 0.6,
+     "t1": 9,
+     "note": "spellbound silence",
+     "cover": "engine"
+    },
+    {
+     "kind": "CLIMB",
+     "actor": "odysseus",
+     "t0": 25.8,
+     "t1": 28,
+     "target": "ship",
+     "verb": "BOARD",
+     "cover": "clip"
+    },
+    {
+     "kind": "POSTURE",
+     "actor": "odysseus",
+     "t0": 28,
+     "t1": 30,
+     "verb": "LIE_DOWN",
+     "cover": "missing"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 44,
+     "verb": "SLEEP",
+     "cover": "engine"
+    },
+    {
+     "kind": "ROW",
+     "actor": "crew",
+     "t0": 30,
+     "t1": 37,
+     "cover": "clip"
+    },
+    {
+     "kind": "CARRY",
+     "actor": "crew",
+     "t0": 36.8,
+     "t1": 42,
+     "target": "odysseus",
+     "note": "limp, on his bedding",
+     "cover": "engine"
+    },
+    {
+     "kind": "CARRY",
+     "actor": "crew",
+     "t0": 38,
+     "t1": 43,
+     "target": "treasure",
+     "cover": "engine"
+    },
+    {
+     "kind": "SET_DOWN",
+     "actor": "crew",
+     "t0": 41,
+     "t1": 43,
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "SEPARATION",
+     "a": "ship",
+     "b": "odysseus",
+     "t": 43,
+     "note": "they leave him"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "SHIP",
+     "note": "running fast, the stern bed"
+    },
+    {
+     "kind": "OARS",
+     "note": "shared phase clock"
+    },
+    {
+     "kind": "TREASURE",
+     "note": "tripods, cauldrons, a chest: carried and set down"
+    },
+    {
+     "kind": "SLEEPER",
+     "note": "a limp body lifted by several hands"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 37,
+     "what": "crew lift odysseus with his bedding",
+     "owner": "crew"
+    },
+    {
+     "t": 41,
+     "what": "odysseus laid on the sand",
+     "owner": "the shore"
+    },
+    {
+     "t": 42,
+     "what": "treasure set by the olive",
+     "owner": "the shore"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "phaeacians",
+     "t0": 0.6,
+     "t1": 9,
+     "why": "spellbound silence after the tale (Ma: listeners still, breathing)"
+    },
+    {
+     "actor": "odysseus",
+     "t0": 30,
+     "t1": 44,
+     "why": "asleep: breath only, carried limp"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "CARRY",
+     "GESTURE:point",
+     "HOLD",
+     "SET_DOWN"
+    ],
+    "clip": [
+     "CLIMB",
+     "ROW"
+    ],
+    "missing": [
+     "POSTURE"
+    ],
+    "relations": [
+     "SEPARATION"
+    ],
+    "relationsRealised": [
+     "SEPARATION"
+    ],
+    "machinery": [
+     "OARS",
+     "SHIP",
+     "SLEEPER",
+     "TREASURE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B11-S01": {
+   "scene": "OD-B11-S01",
+   "rank": 23,
+   "title": "The Blood Pit Opens",
+   "type": "ritual",
+   "total": 41.55,
+   "hard": "A rite as repeated gesture (dig, pour three libations, cut sheep's throats over the pit), a crowd of shades of every age rising and pressing in, and a man holding them back with a drawn sword until the right one comes.",
+   "essential": [
+    "ritual steps as a repeated frontal gesture (Bg)",
+    "a crowd of shades pressing toward a pit (crowd attraction with a barrier)",
+    "the sword held out as a boundary (a held threat pose that keeps a crowd off)",
+    "empty frames (As) before the rite"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "the ship reaches the misty land of the Cimmerians",
+     "causes": "they land"
+    },
+    {
+     "t": 9.2,
+     "what": "Odysseus digs a trench, pours libations, cuts the sheep's throats over it",
+     "causes": "the blood runs"
+    },
+    {
+     "t": 23.6,
+     "what": "the dead gather in multitudes, crying round the blood",
+     "causes": "they press in"
+    },
+    {
+     "t": 32.3,
+     "what": "Odysseus sits by the trench, sword drawn, keeping all back until Tiresias",
+     "causes": "the wait"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "TOOL_WORK",
+     "actor": "odysseus",
+     "t0": 9.2,
+     "t1": 12,
+     "target": "trench",
+     "verb": "DIG",
+     "cover": "missing"
+    },
+    {
+     "kind": "POUR",
+     "actor": "odysseus",
+     "t0": 12,
+     "t1": 16,
+     "note": "milk-honey, wine, water",
+     "cover": "engine"
+    },
+    {
+     "kind": "SACRIFICE",
+     "actor": "odysseus",
+     "t0": 16,
+     "t1": 22,
+     "target": "sheep",
+     "cover": "missing"
+    },
+    {
+     "kind": "ARM",
+     "actor": "odysseus",
+     "t0": 23.6,
+     "t1": 24.5,
+     "target": "sword",
+     "verb": "DRAW_WEAPON",
+     "cover": "missing"
+    },
+    {
+     "kind": "CROWD",
+     "actor": "shades",
+     "t0": 23.6,
+     "t1": 41.5,
+     "target": "pit",
+     "verb": "CROWD_IN",
+     "cover": "missing"
+    },
+    {
+     "kind": "GUARD",
+     "actor": "odysseus",
+     "t0": 25,
+     "t1": 41.5,
+     "target": "shades",
+     "verb": "WARD_OFF",
+     "cover": "missing"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "odysseus",
+     "t0": 32.3,
+     "t1": 41.5,
+     "note": "waiting for Tiresias",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "odysseus",
+     "b": "shades",
+     "t": 25,
+     "note": "sword out"
+    },
+    {
+     "rel": "BLOCK",
+     "a": "odysseus",
+     "b": "shades",
+     "t": 26,
+     "note": "boundary at the trench"
+    },
+    {
+     "rel": "PURSUIT",
+     "a": "shades",
+     "b": "pit",
+     "t": 23.6,
+     "note": "drawn to the blood"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "TRENCH",
+     "note": "a pit dug, filling with libations and blood"
+    },
+    {
+     "kind": "QUADRUPEDS",
+     "note": "sheep led and killed"
+    },
+    {
+     "kind": "SHADES",
+     "note": "a crowd of translucent figures rising and pressing (spawned)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 16,
+     "what": "sheep held over the trench",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 32.3,
+     "t1": 41.5,
+     "why": "guarding the blood: still, sword out, head tracking the shades"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "HOLD",
+     "POUR"
+    ],
+    "clip": [],
+    "missing": [
+     "ARM",
+     "CROWD",
+     "GUARD",
+     "SACRIFICE",
+     "TOOL_WORK"
+    ],
+    "relations": [
+     "BLOCK",
+     "PURSUIT",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "BLOCK",
+     "PURSUIT",
+     "THREAT"
+    ],
+    "machinery": [
+     "QUADRUPEDS",
+     "SHADES",
+     "TRENCH"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B24-S03": {
+   "scene": "OD-B24-S03",
+   "rank": 24,
+   "title": "Odysseus Tests Laertes",
+   "type": "recognition",
+   "total": null,
+   "hard": "Not in the Regulars' Cut (no cut clock): a son finding his father digging round a tree, a false tale that breaks the old man (he pours dust on his head), a declaration and a demand for proof. The two DIALOGUE recordings speak the summary, not the lines.",
+   "essential": [
+    "an old man at labour (digging round a vine) with slow weight",
+    "grief: dust poured over the head (a two-hand gesture with a prop: dust)",
+    "the son breaking the test (rushes, embraces)",
+    "recordings too short for the lines"
+   ],
+   "chain": [
+    {
+     "t": "gi1",
+     "what": "Odysseus finds Laertes alone in patched clothes, digging round a tree",
+     "causes": "he decides to test him"
+    },
+    {
+     "t": "gi2",
+     "what": "he sends the companions to prepare food",
+     "causes": "alone with his father"
+    },
+    {
+     "t": "gi3",
+     "what": "he claims to have hosted Odysseus years ago; Laertes pours dust on his head and groans",
+     "causes": "the son breaks"
+    },
+    {
+     "t": "gi5",
+     "what": "Odysseus: I am the man you are grieving",
+     "causes": "Laertes demands a sign"
+    },
+    {
+     "t": "gi7",
+     "what": "Laertes: give me a sign I cannot argue with",
+     "causes": "the scar and the trees (next scene)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 5,
+     "t": "gi5",
+     "speaker": "odysseus",
+     "to": "laertes",
+     "act": "DECLARE",
+     "affect": "tenderness",
+     "gist": "Father, put down the dust. I am the man you are grieving.",
+     "body": "EMBRACE",
+     "cover": "clip"
+    },
+    {
+     "gi": 7,
+     "t": "gi7",
+     "speaker": "laertes",
+     "to": "odysseus",
+     "act": "QUESTION",
+     "affect": "skepticism",
+     "gist": "give me a sign I cannot argue with",
+     "body": "GESTURE:recoil",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "TOOL_WORK",
+     "actor": "laertes",
+     "t0": "gi1",
+     "t1": "gi2",
+     "target": "tree",
+     "verb": "DIG",
+     "cover": "missing"
+    },
+    {
+     "kind": "GESTURE:dismiss",
+     "actor": "odysseus",
+     "t0": "gi2",
+     "t1": "gi2",
+     "note": "sends the companions",
+     "cover": "engine"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "odysseus",
+     "t0": "gi2",
+     "t1": "gi3",
+     "target": "laertes",
+     "cover": "engine"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "laertes",
+     "t0": "gi3",
+     "t1": "gi5",
+     "note": "dust on the head",
+     "verb": "GRIEF",
+     "cover": "clip"
+    },
+    {
+     "kind": "EMBRACE",
+     "actor": "odysseus",
+     "t0": "gi5",
+     "t1": "gi5",
+     "target": "laertes",
+     "cover": "clip"
+    },
+    {
+     "kind": "RECOIL",
+     "actor": "laertes",
+     "t0": "gi7",
+     "t1": "gi7",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "CONTACT",
+     "a": "odysseus",
+     "b": "laertes",
+     "t": "gi5",
+     "note": "the embrace, refused"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "PROP_STATE",
+     "note": "dust handfuls poured over the head"
+    }
+   ],
+   "contacts": [
+    {
+     "t": "gi3",
+     "what": "laertes scoops dust"
+    },
+    {
+     "t": "gi5",
+     "what": "odysseus holds him"
+    }
+   ],
+   "holds": [],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "GESTURE:dismiss",
+     "GESTURE:recoil",
+     "RECOIL"
+    ],
+    "clip": [
+     "EMBRACE",
+     "WEEP"
+    ],
+    "missing": [
+     "TOOL_WORK"
+    ],
+    "relations": [
+     "CONTACT"
+    ],
+    "relationsRealised": [
+     "CONTACT"
+    ],
+    "machinery": [
+     "PROP_STATE"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B06-S03": {
+   "scene": "OD-B06-S03",
+   "rank": 25,
+   "title": "The Naked Stranger Emerges",
+   "type": "dialogue",
+   "total": 43.09,
+   "hard": "A wild man emerging from bushes with a branch over his nakedness, maids scattering, one girl standing her ground; distance kept on purpose (he does not touch her knees); much of the action is cut from the voice.",
+   "essential": [
+    "the branch as a held cover prop (two hands low)",
+    "maids fleeing in a scatter (group flight)",
+    "deliberate distance kept (proxemics as intent)",
+    "the plea without contact (supplication at a distance)"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Odysseus debates clasping her knees or speaking from afar",
+     "causes": "he breaks a leafy branch"
+    },
+    {
+     "t": 3,
+     "what": "(cut) he emerges like a mountain lion; the maids flee; Athena keeps Nausicaa steady",
+     "causes": "she stands alone"
+    },
+    {
+     "t": 5,
+     "what": "(cut) he pleads from a distance: goddess or mortal?",
+     "causes": "she answers"
+    },
+    {
+     "t": 9.9,
+     "what": "Nausicaa: you shall lack nothing; stand, girls, this man is no enemy",
+     "causes": "the maids return"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 7,
+     "t": 9.9,
+     "speaker": "nausicaa",
+     "to": "odysseus",
+     "act": "REPLY (welcome)",
+     "affect": "tenderness",
+     "gist": "Stranger, you seem neither base nor witless...",
+     "body": "WELCOME",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "DECIDE",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 3,
+     "cover": "engine"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "odysseus",
+     "t0": 2,
+     "t1": 3,
+     "verb": "BREAK_BRANCH",
+     "cover": "engine"
+    },
+    {
+     "kind": "ARRIVE",
+     "actor": "odysseus",
+     "t0": 3,
+     "t1": 5,
+     "verb": "EMERGE",
+     "cover": "engine"
+    },
+    {
+     "kind": "FLEE",
+     "actor": "maids",
+     "t0": 3.5,
+     "t1": 6,
+     "cover": "missing"
+    },
+    {
+     "kind": "HOLD",
+     "actor": "nausicaa",
+     "t0": 3.5,
+     "t1": 9.9,
+     "note": "stands her ground",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:plead",
+     "actor": "odysseus",
+     "t0": 5,
+     "t1": 9.9,
+     "target": "nausicaa",
+     "note": "at a distance",
+     "verb": "PLEAD",
+     "cover": "engine"
+    },
+    {
+     "kind": "WELCOME",
+     "actor": "nausicaa",
+     "t0": 9.9,
+     "t1": 20,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "BECKON",
+     "actor": "nausicaa",
+     "t0": 30,
+     "t1": 34,
+     "target": "maids",
+     "cover": "clip"
+    },
+    {
+     "kind": "APPROACH",
+     "actor": "maids",
+     "t0": 34,
+     "t1": 43,
+     "verb": "RETURN",
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "odysseus",
+     "b": "maids",
+     "t": 3,
+     "note": "read as a lion"
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "maids",
+     "b": "odysseus",
+     "t": 3.5
+    },
+    {
+     "rel": "SEPARATION",
+     "a": "odysseus",
+     "b": "nausicaa",
+     "t": 5,
+     "note": "kept on purpose"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "BRANCH",
+     "note": "a leafy branch held as cover"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 2.5,
+     "what": "odysseus breaks off a branch",
+     "owner": "odysseus"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "nausicaa",
+     "t0": 3.5,
+     "t1": 9.9,
+     "why": "steadied by Athena: she holds her ground (not frozen: breath, eyes on him)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "APPROACH",
+     "ARRIVE",
+     "DECIDE",
+     "GESTURE:plead",
+     "HOLD",
+     "TAKE",
+     "WELCOME"
+    ],
+    "clip": [
+     "BECKON"
+    ],
+    "missing": [
+     "FLEE"
+    ],
+    "relations": [
+     "SEPARATION",
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "SEPARATION",
+     "THREAT"
+    ],
+    "machinery": [
+     "BRANCH"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B08-S05": {
+   "scene": "OD-B08-S05",
+   "rank": 26,
+   "title": "The Trojan Horse Song and the Name",
+   "type": "revelation",
+   "total": 56.47,
+   "hard": "A singer and a listener: the song carried by the voice, the listener breaking into tears under his cloak, a host who notices and stops the lyre; weeping as the main action for long stretches.",
+   "essential": [
+    "weeping hidden under a cloak (cloak over the head, one eye)",
+    "the lyre played (string hand, the song's beat)",
+    "the host noticing the guest (NOTICE, then speech)",
+    "a hall that listens (seated group)"
+   ],
+   "chain": [
+    {
+     "t": 0,
+     "what": "(cut) Odysseus honours Demodocus with meat and asks for the horse song",
+     "causes": "the singer begins"
+    },
+    {
+     "t": 0.6,
+     "what": "Demodocus sings the Greeks' emergence, the sack, Odysseus at Deiphobus' house",
+     "causes": "Odysseus melts"
+    },
+    {
+     "t": 10.9,
+     "what": "Odysseus weeps like a woman over her fallen husband, cloak over his head",
+     "causes": "Alcinous notices"
+    },
+    {
+     "t": 18.9,
+     "what": "Alcinous stops the lyre and asks the stranger's name, land, and why he weeps",
+     "causes": "he must answer"
+    },
+    {
+     "t": 49.8,
+     "what": "Odysseus gathers himself to tell his wanderings",
+     "causes": "Book 9"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 6,
+     "t": 18.9,
+     "speaker": "alcinous",
+     "to": "odysseus",
+     "act": "QUESTION",
+     "affect": "concern",
+     "gist": "Stop the lyre, Demodocus... tell me the name",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "PLAY_INSTRUMENT",
+     "actor": "demodocus",
+     "t0": 0.6,
+     "t1": 18.9,
+     "verb": "PLAY_LYRE",
+     "cover": "missing"
+    },
+    {
+     "kind": "SING",
+     "actor": "demodocus",
+     "t0": 0.6,
+     "t1": 18.9,
+     "cover": "missing"
+    },
+    {
+     "kind": "LISTEN",
+     "actor": "phaeacians",
+     "t0": 0.6,
+     "t1": 18.9,
+     "target": "demodocus",
+     "cover": "engine"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 10.9,
+     "t1": 49.8,
+     "cover": "clip"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 18.9,
+     "note": "cloak over the head",
+     "verb": "COVER_FACE",
+     "cover": "clip"
+    },
+    {
+     "kind": "NOTICE",
+     "actor": "alcinous",
+     "t0": 15,
+     "t1": 17,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "GESTURE:chop",
+     "actor": "alcinous",
+     "t0": 19,
+     "t1": 20,
+     "target": "demodocus",
+     "note": "stop",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "phaeacians",
+     "t0": 20,
+     "t1": 49.8,
+     "target": "odysseus",
+     "cover": "engine"
+    },
+    {
+     "kind": "RISE",
+     "actor": "odysseus",
+     "t0": 49.8,
+     "t1": 53,
+     "cover": "engine"
+    },
+    {
+     "kind": "DECIDE",
+     "actor": "odysseus",
+     "t0": 52,
+     "t1": 56,
+     "cover": "engine"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "LYRE",
+     "note": "plucked on the song's beat, stopped at 19 s"
+    },
+    {
+     "kind": "CLOAK",
+     "note": "drawn over the head; lowered at 49 s"
+    },
+    {
+     "kind": "SEATED_CROWD",
+     "note": "the feasting hall"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 11,
+     "what": "cloak drawn over the head"
+    },
+    {
+     "t": 49.8,
+     "what": "cloak lowered"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "odysseus",
+     "t0": 11,
+     "t1": 18.9,
+     "why": "hidden weeping: the cloak still, the shoulders shaking (Ic)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "DECIDE",
+     "GESTURE:chop",
+     "GESTURE:open",
+     "LISTEN",
+     "NOTICE",
+     "RISE"
+    ],
+    "clip": [
+     "WEEP"
+    ],
+    "missing": [
+     "PLAY_INSTRUMENT",
+     "SING"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "CLOAK",
+     "LYRE",
+     "SEATED_CROWD"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B02-S02": {
+   "scene": "OD-B02-S02",
+   "rank": 27,
+   "title": "The Secret of Penelope's Loom",
+   "type": "dialogue",
+   "total": 59.98,
+   "hard": "An assembly speech by one accuser against a young man with a staff; the loom story told as inserts (web full, unpicked by torchlight, full again, a maid in the doorway) that the rough pass cannot stage as the same frame three times.",
+   "essential": [
+    "a hostile speech with a crowd split behind each side (Bi)",
+    "the loom as a prop with states (woven, unpicked) and a torch",
+    "Telemachus with the herald's staff (held, the speaker's right)",
+    "the maid's betrayal as an insert"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Antinous rounds on Telemachus: the fault is your mother's",
+     "causes": "the assembly listens"
+    },
+    {
+     "t": 21.6,
+     "what": "he tells of the web: woven by day, unpicked by torchlight, three years",
+     "causes": "the trick"
+    },
+    {
+     "t": 45,
+     "what": "(cut) a maid betrayed it; they caught her at the loom and forced the web to its end",
+     "causes": "the demand"
+    },
+    {
+     "t": 50.4,
+     "what": "send her back to her father Icarius and let her marry",
+     "causes": "Telemachus must answer"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "antinous",
+     "to": "telemachus",
+     "act": "REFUSE (accuse)",
+     "affect": "contempt",
+     "gist": "do not lay your blame at our door",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    },
+    {
+     "gi": 3,
+     "t": 21.6,
+     "speaker": "antinous",
+     "to": "telemachus",
+     "act": "RECOUNT",
+     "affect": "irony",
+     "gist": "She set up her great loom...",
+     "body": "GESTURE:open",
+     "cover": "engine"
+    },
+    {
+     "gi": 5,
+     "t": 50.4,
+     "speaker": "antinous",
+     "to": "telemachus",
+     "act": "DEMAND",
+     "affect": "contempt",
+     "gist": "Send her back to her father Icarius",
+     "body": "GESTURE:dismiss",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "HOLD",
+     "actor": "telemachus",
+     "t0": 0.6,
+     "t1": 60,
+     "note": "the staff held, jaw set",
+     "cover": "engine"
+    },
+    {
+     "kind": "ATTEND",
+     "actor": "assembly",
+     "t0": 0.6,
+     "t1": 60,
+     "target": "antinous",
+     "cover": "engine"
+    },
+    {
+     "kind": "WEAVE",
+     "actor": "penelope",
+     "t0": 22,
+     "t1": 35,
+     "note": "insert",
+     "cover": "clip"
+    },
+    {
+     "kind": "WEAVE",
+     "actor": "penelope",
+     "t0": 30,
+     "t1": 40,
+     "note": "insert, by torchlight",
+     "verb": "UNRAVEL",
+     "cover": "clip"
+    },
+    {
+     "kind": "REACT:nod",
+     "actor": "suitors",
+     "t0": 40,
+     "t1": 45,
+     "cover": "engine"
+    },
+    {
+     "kind": "SHAME",
+     "actor": "telemachus",
+     "t0": 50.4,
+     "t1": 60,
+     "cover": "engine"
+    }
+   ],
+   "relations": [
+    {
+     "rel": "THREAT",
+     "a": "antinous",
+     "b": "telemachus",
+     "t": 0.6,
+     "note": "verbal"
+    }
+   ],
+   "machinery": [
+    {
+     "kind": "LOOM",
+     "note": "the web with states: full, unpicked, full; the torch beside it"
+    },
+    {
+     "kind": "STAFF",
+     "note": "the herald's staff in Telemachus' hand"
+    }
+   ],
+   "contacts": [],
+   "holds": [
+    {
+     "actor": "loom",
+     "t0": 22,
+     "t1": 45,
+     "why": "three matched overhead frames of the loom (Mk)"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ATTEND",
+     "GESTURE:dismiss",
+     "GESTURE:open",
+     "GESTURE:point",
+     "HOLD",
+     "REACT:nod",
+     "SHAME"
+    ],
+    "clip": [
+     "WEAVE"
+    ],
+    "missing": [],
+    "relations": [
+     "THREAT"
+    ],
+    "relationsRealised": [
+     "THREAT"
+    ],
+    "machinery": [
+     "LOOM",
+     "STAFF"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B17-S03": {
+   "scene": "OD-B17-S03",
+   "rank": 28,
+   "title": "Argos Recognizes His Master",
+   "type": "recognition",
+   "total": 31.94,
+   "hard": "The actor is a dying dog on a dung heap: lift of the head, ears dropping, the tail moving, then death; the man turns aside to hide a tear. Almost no motion, all of it meaningful.",
+   "essential": [
+    "a quadruped with head, ears and tail channels (no dog rig)",
+    "death as a chosen stillness after recognition (a HOLD with reason: dead)",
+    "the tear hidden by turning aside",
+    "Eumaeus answering about the dog"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "near the palace Odysseus sees Argos lying neglected on the dung",
+     "causes": "the dog knows him"
+    },
+    {
+     "t": 5,
+     "what": "(cut) Argos lifts his head, drops his ears, wags his tail",
+     "causes": "Odysseus cannot go to him"
+    },
+    {
+     "t": 10.9,
+     "what": "Odysseus turns aside and wipes a tear, asks Eumaeus about the dog",
+     "causes": "Eumaeus tells of the dog's glory"
+    },
+    {
+     "t": 19.9,
+     "what": "after twenty years Argos dies, having seen his master",
+     "causes": "they go in"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "NOTICE",
+     "actor": "odysseus",
+     "t0": 0.6,
+     "t1": 3,
+     "target": "argos",
+     "cover": "engine"
+    },
+    {
+     "kind": "ANIMAL:lift-head",
+     "actor": "argos",
+     "t0": 5,
+     "t1": 7,
+     "verb": "LIFT_HEAD",
+     "cover": "missing"
+    },
+    {
+     "kind": "ANIMAL:wag",
+     "actor": "argos",
+     "t0": 6,
+     "t1": 12,
+     "verb": "WAG",
+     "cover": "missing"
+    },
+    {
+     "kind": "TURN_AWAY",
+     "actor": "odysseus",
+     "t0": 10.9,
+     "t1": 13,
+     "cover": "missing"
+    },
+    {
+     "kind": "WEEP",
+     "actor": "odysseus",
+     "t0": 12,
+     "t1": 14,
+     "verb": "WIPE_TEAR",
+     "cover": "clip"
+    },
+    {
+     "kind": "GESTURE:open",
+     "actor": "odysseus",
+     "t0": 14,
+     "t1": 18,
+     "target": "eumaeus",
+     "verb": "ASK",
+     "cover": "engine"
+    },
+    {
+     "kind": "DIE",
+     "actor": "argos",
+     "t0": 19.9,
+     "t1": 23,
+     "cover": "missing"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "QUADRUPEDS",
+     "note": "Argos: head, ears, tail; a death"
+    }
+   ],
+   "contacts": [
+    {
+     "t": 12,
+     "what": "hand to the eye"
+    }
+   ],
+   "holds": [
+    {
+     "actor": "argos",
+     "t0": 23,
+     "t1": 31.9,
+     "why": "dead: a chosen stillness (breath off)"
+    },
+    {
+     "actor": "odysseus",
+     "t0": 13,
+     "t1": 19,
+     "why": "turned aside (Op): no move"
+    }
+   ],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:open",
+     "NOTICE"
+    ],
+    "clip": [
+     "WEEP"
+    ],
+    "missing": [
+     "ANIMAL:lift-head",
+     "ANIMAL:wag",
+     "DIE",
+     "TURN_AWAY"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "QUADRUPEDS"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B24-S05": {
+   "scene": "OD-B24-S05",
+   "rank": 29,
+   "title": "Laertes Is Restored",
+   "type": "ritual",
+   "total": null,
+   "hard": "Not in the Regulars' Cut (no cut clock): a bath and anointing, a goddess making an old man taller, servants returning from the fields in recognition, a feast. Narration only.",
+   "essential": [
+    "a transformation of stature (scale up) on one actor",
+    "a group entering and recognising (Dolius and sons)",
+    "a feast (seated eating)"
+   ],
+   "chain": [
+    {
+     "t": "gi1",
+     "what": "Laertes is bathed and anointed",
+     "causes": "Athena restores him"
+    },
+    {
+     "t": "gi2",
+     "what": "Athena makes him taller and stronger",
+     "causes": "Odysseus marvels"
+    },
+    {
+     "t": "gi3",
+     "what": "Dolius and his sons come from the fields, recognise Odysseus, take his hands",
+     "causes": "they join the feast"
+    },
+    {
+     "t": "gi4",
+     "what": "the household eats while rumour of the massacre spreads",
+     "causes": "the town rises (next scene)"
+    }
+   ],
+   "lines": [],
+   "intents": [
+    {
+     "kind": "TEND",
+     "actor": "servant",
+     "t0": "gi1",
+     "t1": "gi1",
+     "target": "laertes",
+     "verb": "BATHE",
+     "cover": "missing"
+    },
+    {
+     "kind": "TRANSFORM",
+     "actor": "laertes",
+     "t0": "gi2",
+     "t1": "gi2",
+     "note": "taller",
+     "cover": "missing"
+    },
+    {
+     "kind": "ARRIVE",
+     "actor": "dolius",
+     "t0": "gi3",
+     "t1": "gi3",
+     "cover": "engine"
+    },
+    {
+     "kind": "RECOGNISE",
+     "actor": "dolius",
+     "t0": "gi3",
+     "t1": "gi3",
+     "target": "odysseus",
+     "cover": "missing"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "dolius",
+     "t0": "gi3",
+     "t1": "gi3",
+     "target": "odysseus",
+     "note": "his hands, kissed",
+     "cover": "engine"
+    },
+    {
+     "kind": "EAT",
+     "actor": "household",
+     "t0": "gi4",
+     "t1": "gi4",
+     "cover": "missing"
+    }
+   ],
+   "relations": [],
+   "machinery": [
+    {
+     "kind": "TRANSFORM",
+     "note": "scale of one actor up (stature)"
+    }
+   ],
+   "contacts": [
+    {
+     "t": "gi3",
+     "what": "dolius takes odysseus' hands"
+    }
+   ],
+   "holds": [],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "ARRIVE",
+     "TAKE"
+    ],
+    "clip": [],
+    "missing": [
+     "EAT",
+     "RECOGNISE",
+     "TEND",
+     "TRANSFORM"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [
+     "TRANSFORM"
+    ],
+    "machineryRealised": []
+   }
+  },
+  "OD-B01-S02": {
+   "scene": "OD-B01-S02",
+   "rank": 30,
+   "title": "Athena's Two-Part Plan",
+   "type": "dialogue",
+   "total": 50.3,
+   "hard": "Not in the film: no location to probe. Two errands assigned in speech, then Athena fastens her golden sandals, takes the spear and drops from Olympus.",
+   "essential": [
+    "assignment gestures toward two absent destinations (vector)",
+    "fastening sandals (a seated two-hand action on the feet)",
+    "the spear taken; a drop/descent"
+   ],
+   "chain": [
+    {
+     "t": 0.6,
+     "what": "Athena: send Hermes to Calypso with the decree",
+     "causes": "Hermes lifts his wand"
+    },
+    {
+     "t": 18.5,
+     "what": "Athena: I go to Ithaca to rouse the son",
+     "causes": "the plan"
+    },
+    {
+     "t": 39.2,
+     "what": "Athena fastens her gold sandals, takes her spear, drops from Olympus",
+     "causes": "the Gate (B01-S03)"
+    }
+   ],
+   "lines": [
+    {
+     "gi": 2,
+     "t": 0.6,
+     "speaker": "athena",
+     "to": "zeus",
+     "act": "PROPOSE",
+     "affect": "resolve",
+     "gist": "Then send Hermes... to Ogygia",
+     "body": "GESTURE:point",
+     "cover": "engine"
+    },
+    {
+     "gi": 3,
+     "t": 18.5,
+     "speaker": "athena",
+     "to": "zeus",
+     "act": "DECLARE",
+     "affect": "resolve",
+     "gist": "And I go to Ithaca myself",
+     "body": "GESTURE:chest",
+     "cover": "engine"
+    }
+   ],
+   "intents": [
+    {
+     "kind": "POSTURE",
+     "actor": "athena",
+     "t0": 39.2,
+     "t1": 40,
+     "verb": "SIT",
+     "cover": "missing"
+    },
+    {
+     "kind": "TEND",
+     "actor": "athena",
+     "t0": 40,
+     "t1": 44,
+     "target": "sandals",
+     "verb": "FASTEN",
+     "cover": "missing"
+    },
+    {
+     "kind": "TAKE",
+     "actor": "athena",
+     "t0": 44,
+     "t1": 45.5,
+     "target": "spear",
+     "cover": "engine"
+    },
+    {
+     "kind": "LEAVE",
+     "actor": "athena",
+     "t0": 46,
+     "t1": 50.3,
+     "note": "drops from Olympus",
+     "verb": "DEPART",
+     "cover": "missing"
+    },
+    {
+     "kind": "RISE",
+     "actor": "hermes",
+     "t0": 12,
+     "t1": 14,
+     "cover": "engine"
+    }
+   ],
+   "relations": [],
+   "machinery": [],
+   "contacts": [
+    {
+     "t": 44.5,
+     "what": "spear to athena's hand",
+     "owner": "athena"
+    }
+   ],
+   "holds": [],
+   "prepared": {
+    "marks": false,
+    "sheet": false,
+    "cameras": false,
+    "rig": false,
+    "previz": false
+   },
+   "coverage": {
+    "engine": [
+     "GESTURE:chest",
+     "GESTURE:point",
+     "RISE",
+     "TAKE"
+    ],
+    "clip": [],
+    "missing": [
+     "LEAVE",
+     "POSTURE",
+     "TEND"
+    ],
+    "relations": [],
+    "relationsRealised": [],
+    "machinery": [],
+    "machineryRealised": []
+   }
+  }
+ },
+ "totals": {
+  "missingIntentKinds": [
+   {
+    "kind": "POSTURE",
+    "scenes": 9,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S03",
+     "OD-B04-S04",
+     "OD-B04-S05",
+     "OD-B19-S04",
+     "OD-B14-S01",
+     "OD-B01-S01",
+     "OD-B13-S01",
+     "OD-B01-S02"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "WEEP",
+    "scenes": 7,
+    "where": [
+     "OD-B09-S03",
+     "OD-B12-S04",
+     "OD-B23-S04",
+     "OD-B16-S03",
+     "OD-B24-S03",
+     "OD-B08-S05",
+     "OD-B17-S03"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "ROPE_WORK",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S10",
+     "OD-B09-S03",
+     "OD-B10-S02",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B05-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "ROW",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B09-S03",
+     "OD-B10-S02",
+     "OD-B12-S04",
+     "OD-B13-S01"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "TOOL_WORK",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S08",
+     "OD-B10-S05",
+     "OD-B12-S06",
+     "OD-B05-S04",
+     "OD-B11-S01",
+     "OD-B24-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "ARM",
+    "scenes": 5,
+    "where": [
+     "OD-B10-S02",
+     "OD-B10-S05",
+     "OD-B12-S04",
+     "OD-B21-S07",
+     "OD-B11-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "EAT",
+    "scenes": 5,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S03",
+     "OD-B12-S07",
+     "OD-B12-S06",
+     "OD-B24-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "RECOGNISE",
+    "scenes": 5,
+    "where": [
+     "OD-B09-S11",
+     "OD-B23-S04",
+     "OD-B16-S03",
+     "OD-B19-S04",
+     "OD-B24-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "FLEE",
+    "scenes": 4,
+    "where": [
+     "OD-B10-S02",
+     "OD-B10-S04",
+     "OD-B14-S01",
+     "OD-B06-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "HERD",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B10-S04",
+     "OD-B12-S06"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "SACRIFICE",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S10",
+     "OD-B14-S01",
+     "OD-B12-S06",
+     "OD-B11-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "SEIZE",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S08",
+     "OD-B10-S02",
+     "OD-B04-S05",
+     "OD-B19-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "STEER",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S11",
+     "OD-B09-S03",
+     "OD-B12-S04",
+     "OD-B05-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "STRUGGLE",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S03",
+     "OD-B12-S04",
+     "OD-B04-S04",
+     "OD-B04-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "TEND",
+    "scenes": 4,
+    "where": [
+     "OD-B19-S04",
+     "OD-B05-S04",
+     "OD-B24-S05",
+     "OD-B01-S02"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "THROW",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B10-S04",
+     "OD-B14-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "TRANSFORM",
+    "scenes": 4,
+    "where": [
+     "OD-B10-S04",
+     "OD-B04-S05",
+     "OD-B16-S03",
+     "OD-B24-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "CLIMB",
+    "scenes": 3,
+    "where": [
+     "OD-B09-S10",
+     "OD-B05-S05",
+     "OD-B13-S01"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "EMBRACE",
+    "scenes": 3,
+    "where": [
+     "OD-B23-S04",
+     "OD-B16-S03",
+     "OD-B24-S03"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "GESTURE:invoke",
+    "scenes": 3,
+    "where": [
+     "OD-B09-S11",
+     "OD-B12-S07",
+     "OD-B05-S05"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "STRIKE",
+    "scenes": 3,
+    "where": [
+     "OD-B10-S04",
+     "OD-B12-S04",
+     "OD-B16-S03"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "TURN_AWAY",
+    "scenes": 3,
+    "where": [
+     "OD-B16-S03",
+     "OD-B19-S04",
+     "OD-B17-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "BECKON",
+    "scenes": 2,
+    "where": [
+     "OD-B16-S03",
+     "OD-B06-S03"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "HAUL",
+    "scenes": 2,
+    "where": [
+     "OD-B12-S07",
+     "OD-B05-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "LOCOMOTE",
+    "scenes": 2,
+    "where": [
+     "OD-B23-S04",
+     "OD-B14-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "MOVE_STONE",
+    "scenes": 2,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "SING",
+    "scenes": 2,
+    "where": [
+     "OD-B10-S04",
+     "OD-B08-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "SWIM",
+    "scenes": 2,
+    "where": [
+     "OD-B12-S07",
+     "OD-B05-S05"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "WAKE",
+    "scenes": 2,
+    "where": [
+     "OD-B09-S08",
+     "OD-B12-S07"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "WEAVE",
+    "scenes": 2,
+    "where": [
+     "OD-B10-S04",
+     "OD-B02-S02"
+    ],
+    "cover": "clip"
+   },
+   {
+    "kind": "ANIMAL:fawn",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "ANIMAL:lift-head",
+    "scenes": 1,
+    "where": [
+     "OD-B17-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "ANIMAL:wag",
+    "scenes": 1,
+    "where": [
+     "OD-B17-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "BRACE",
+    "scenes": 1,
+    "where": [
+     "OD-B05-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "CARESS",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S10"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "CIRCLE",
+    "scenes": 1,
+    "where": [
+     "OD-B04-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "CROWD",
+    "scenes": 1,
+    "where": [
+     "OD-B11-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "CUT",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S02"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "DIE",
+    "scenes": 1,
+    "where": [
+     "OD-B17-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "DRAG",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S03"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "DROWN",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S07"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "GESTURE:describe",
+    "scenes": 1,
+    "where": [
+     "OD-B23-S04"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GESTURE:mime",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S05"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GESTURE:oath",
+    "scenes": 1,
+    "where": [
+     "OD-B19-S04"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GESTURE:reach",
+    "scenes": 1,
+    "where": [
+     "OD-B19-S04"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GESTURE:show",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S05"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GESTURE:taunt",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S11"
+    ],
+    "cover": "missing-shape"
+   },
+   {
+    "kind": "GRAPPLE",
+    "scenes": 1,
+    "where": [
+     "OD-B04-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "GROPE",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S10"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "GUARD",
+    "scenes": 1,
+    "where": [
+     "OD-B11-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "LEAVE",
+    "scenes": 1,
+    "where": [
+     "OD-B01-S02"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "LIFT",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S04"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "PLAY_INSTRUMENT",
+    "scenes": 1,
+    "where": [
+     "OD-B08-S05"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "PLUCK",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "PURSUE",
+    "scenes": 1,
+    "where": [
+     "OD-B14-S01"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "RIDE",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S07"
+    ],
+    "cover": "missing"
+   },
+   {
+    "kind": "STRING_BOW",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ],
+    "cover": "missing"
+   }
+  ],
+  "relations": [
+   {
+    "kind": "SEPARATION",
+    "scenes": 13,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B10-S04",
+     "OD-B12-S04",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B16-S03",
+     "OD-B14-S01",
+     "OD-B10-S01",
+     "OD-B13-S01",
+     "OD-B06-S03"
+    ]
+   },
+   {
+    "kind": "CONTACT",
+    "scenes": 12,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B09-S03",
+     "OD-B10-S04",
+     "OD-B10-S05",
+     "OD-B12-S04",
+     "OD-B23-S04",
+     "OD-B04-S04",
+     "OD-B04-S05",
+     "OD-B16-S03",
+     "OD-B19-S04",
+     "OD-B24-S03"
+    ]
+   },
+   {
+    "kind": "THREAT",
+    "scenes": 10,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B12-S04",
+     "OD-B21-S07",
+     "OD-B04-S04",
+     "OD-B14-S01",
+     "OD-B11-S01",
+     "OD-B06-S03",
+     "OD-B02-S02"
+    ]
+   },
+   {
+    "kind": "ATTACK",
+    "scenes": 9,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B10-S04",
+     "OD-B12-S04",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B04-S05",
+     "OD-B14-S01"
+    ]
+   },
+   {
+    "kind": "EVADE",
+    "scenes": 7,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B12-S04",
+     "OD-B04-S05",
+     "OD-B14-S01"
+    ]
+   },
+   {
+    "kind": "IMPACT",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B21-S07",
+     "OD-B19-S04"
+    ]
+   },
+   {
+    "kind": "RECOVER",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S11",
+     "OD-B12-S04",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B04-S04",
+     "OD-B04-S05"
+    ]
+   },
+   {
+    "kind": "BLOCK",
+    "scenes": 5,
+    "where": [
+     "OD-B09-S03",
+     "OD-B04-S04",
+     "OD-B04-S05",
+     "OD-B19-S04",
+     "OD-B11-S01"
+    ]
+   },
+   {
+    "kind": "PURSUIT",
+    "scenes": 3,
+    "where": [
+     "OD-B10-S02",
+     "OD-B14-S01",
+     "OD-B11-S01"
+    ]
+   },
+   {
+    "kind": "RETARGET",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S11"
+    ]
+   }
+  ],
+  "machinery": [
+   {
+    "kind": "SHIP",
+    "scenes": 8,
+    "where": [
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B09-S03",
+     "OD-B10-S02",
+     "OD-B12-S04",
+     "OD-B12-S07",
+     "OD-B10-S01",
+     "OD-B13-S01"
+    ]
+   },
+   {
+    "kind": "OARS",
+    "scenes": 6,
+    "where": [
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B09-S03",
+     "OD-B10-S02",
+     "OD-B12-S04",
+     "OD-B13-S01"
+    ]
+   },
+   {
+    "kind": "QUADRUPEDS",
+    "scenes": 6,
+    "where": [
+     "OD-B10-S04",
+     "OD-B04-S05",
+     "OD-B14-S01",
+     "OD-B12-S06",
+     "OD-B11-S01",
+     "OD-B17-S03"
+    ]
+   },
+   {
+    "kind": "SEA",
+    "scenes": 5,
+    "where": [
+     "OD-B09-S11",
+     "OD-B10-S02",
+     "OD-B12-S04",
+     "OD-B12-S07",
+     "OD-B05-S05"
+    ]
+   },
+   {
+    "kind": "GIANT_RIG",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10",
+     "OD-B09-S11",
+     "OD-B10-S02"
+    ]
+   },
+   {
+    "kind": "ROPE",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S10",
+     "OD-B09-S03",
+     "OD-B10-S02",
+     "OD-B12-S07"
+    ]
+   },
+   {
+    "kind": "SAIL",
+    "scenes": 4,
+    "where": [
+     "OD-B09-S03",
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B05-S04"
+    ]
+   },
+   {
+    "kind": "TRANSFORM",
+    "scenes": 4,
+    "where": [
+     "OD-B10-S04",
+     "OD-B04-S05",
+     "OD-B16-S03",
+     "OD-B24-S05"
+    ]
+   },
+   {
+    "kind": "FIRE",
+    "scenes": 3,
+    "where": [
+     "OD-B09-S08",
+     "OD-B19-S04",
+     "OD-B12-S06"
+    ]
+   },
+   {
+    "kind": "PROP_STATE",
+    "scenes": 3,
+    "where": [
+     "OD-B10-S05",
+     "OD-B12-S06",
+     "OD-B24-S03"
+    ]
+   },
+   {
+    "kind": "RAFT",
+    "scenes": 3,
+    "where": [
+     "OD-B12-S07",
+     "OD-B05-S05",
+     "OD-B05-S04"
+    ]
+   },
+   {
+    "kind": "SEATED_CROWD",
+    "scenes": 3,
+    "where": [
+     "OD-B21-S07",
+     "OD-B01-S01",
+     "OD-B08-S05"
+    ]
+   },
+   {
+    "kind": "BOULDER",
+    "scenes": 2,
+    "where": [
+     "OD-B09-S11",
+     "OD-B10-S02"
+    ]
+   },
+   {
+    "kind": "DOOR_STONE",
+    "scenes": 2,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10"
+    ]
+   },
+   {
+    "kind": "FLOCK",
+    "scenes": 2,
+    "where": [
+     "OD-B09-S08",
+     "OD-B09-S10"
+    ]
+   },
+   {
+    "kind": "LOOM",
+    "scenes": 2,
+    "where": [
+     "OD-B10-S04",
+     "OD-B02-S02"
+    ]
+   },
+   {
+    "kind": "ARROW",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ]
+   },
+   {
+    "kind": "AXES",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ]
+   },
+   {
+    "kind": "BASIN",
+    "scenes": 1,
+    "where": [
+     "OD-B19-S04"
+    ]
+   },
+   {
+    "kind": "BED",
+    "scenes": 1,
+    "where": [
+     "OD-B23-S04"
+    ]
+   },
+   {
+    "kind": "BENCH",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S03"
+    ]
+   },
+   {
+    "kind": "BOW",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ]
+   },
+   {
+    "kind": "BRANCH",
+    "scenes": 1,
+    "where": [
+     "OD-B06-S03"
+    ]
+   },
+   {
+    "kind": "CLOAK",
+    "scenes": 1,
+    "where": [
+     "OD-B08-S05"
+    ]
+   },
+   {
+    "kind": "HORSE",
+    "scenes": 1,
+    "where": [
+     "OD-B04-S04"
+    ]
+   },
+   {
+    "kind": "LAMP",
+    "scenes": 1,
+    "where": [
+     "OD-B23-S04"
+    ]
+   },
+   {
+    "kind": "LIGHTNING",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S07"
+    ]
+   },
+   {
+    "kind": "LYRE",
+    "scenes": 1,
+    "where": [
+     "OD-B08-S05"
+    ]
+   },
+   {
+    "kind": "MEMORY_FRAME",
+    "scenes": 1,
+    "where": [
+     "OD-B04-S04"
+    ]
+   },
+   {
+    "kind": "PEN",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S04"
+    ]
+   },
+   {
+    "kind": "POLE",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S11"
+    ]
+   },
+   {
+    "kind": "SCYLLA_RIG",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S04"
+    ]
+   },
+   {
+    "kind": "SEALSKIN",
+    "scenes": 1,
+    "where": [
+     "OD-B04-S05"
+    ]
+   },
+   {
+    "kind": "SHADES",
+    "scenes": 1,
+    "where": [
+     "OD-B11-S01"
+    ]
+   },
+   {
+    "kind": "SLEEPER",
+    "scenes": 1,
+    "where": [
+     "OD-B13-S01"
+    ]
+   },
+   {
+    "kind": "SPITS",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S06"
+    ]
+   },
+   {
+    "kind": "STAFF",
+    "scenes": 1,
+    "where": [
+     "OD-B02-S02"
+    ]
+   },
+   {
+    "kind": "STAKE",
+    "scenes": 1,
+    "where": [
+     "OD-B09-S08"
+    ]
+   },
+   {
+    "kind": "STEERING_OAR",
+    "scenes": 1,
+    "where": [
+     "OD-B05-S05"
+    ]
+   },
+   {
+    "kind": "STONES",
+    "scenes": 1,
+    "where": [
+     "OD-B14-S01"
+    ]
+   },
+   {
+    "kind": "THUNDER",
+    "scenes": 1,
+    "where": [
+     "OD-B21-S07"
+    ]
+   },
+   {
+    "kind": "TOOLS",
+    "scenes": 1,
+    "where": [
+     "OD-B05-S04"
+    ]
+   },
+   {
+    "kind": "TREASURE",
+    "scenes": 1,
+    "where": [
+     "OD-B13-S01"
+    ]
+   },
+   {
+    "kind": "TREE",
+    "scenes": 1,
+    "where": [
+     "OD-B12-S07"
+    ]
+   },
+   {
+    "kind": "TRENCH",
+    "scenes": 1,
+    "where": [
+     "OD-B11-S01"
+    ]
+   },
+   {
+    "kind": "VEIL",
+    "scenes": 1,
+    "where": [
+     "OD-B05-S05"
+    ]
+   },
+   {
+    "kind": "WAND",
+    "scenes": 1,
+    "where": [
+     "OD-B16-S03"
+    ]
+   },
+   {
+    "kind": "WIND_BAG",
+    "scenes": 1,
+    "where": [
+     "OD-B10-S01"
+    ]
+   }
+  ],
+  "sceneTypes": {
+   "dialogue": [
+    "OD-B10-S05",
+    "OD-B04-S04",
+    "OD-B01-S01",
+    "OD-B10-S01",
+    "OD-B06-S03",
+    "OD-B02-S02",
+    "OD-B01-S02"
+   ],
+   "fight": [
+    "OD-B09-S11",
+    "OD-B10-S02",
+    "OD-B12-S04",
+    "OD-B04-S05",
+    "OD-B14-S01"
+   ],
+   "recognition": [
+    "OD-B23-S04",
+    "OD-B16-S03",
+    "OD-B19-S04",
+    "OD-B24-S03",
+    "OD-B17-S03"
+   ],
+   "labour": [
+    "OD-B09-S08",
+    "OD-B09-S03",
+    "OD-B12-S06",
+    "OD-B05-S04"
+   ],
+   "ritual": [
+    "OD-B13-S01",
+    "OD-B11-S01",
+    "OD-B24-S05"
+   ],
+   "storm": [
+    "OD-B12-S07",
+    "OD-B05-S05"
+   ],
+   "revelation": [
+    "OD-B21-S07",
+    "OD-B08-S05"
+   ],
+   "escape": [
+    "OD-B09-S10"
+   ],
+   "transformation": [
+    "OD-B10-S04"
+   ]
+  }
+ },
+ "recordings": {
+  "method": "No speech recogniser in the container, so each DIALOGUE segment's duration is tested against the text the build would have recorded (harness/build-drive-audio.mjs: the authored spoken-lines line, else the drive-script text): the cast speaks 9-12 characters a second; a segment far too short for the authored line but right for the script text speaks the script's summary. The takes in odyssey/take/voice are byte-identical to the Halfworld drive/voice files.",
+  "note": "Seven DIALOGUE segments in the 34 voiced takes speak the drive-script's summary, not the authored line (all in Books XVI-XXIV: audio recorded before the authored lines landed; halfworld d540c51 says those books were re-voiced, these segments were not). Two more cannot be decided by duration (the line and the summary are the same length); with them the count is nine. The take captions these segments with the authored line, so caption and sound disagree. Also listed: narration segments that speak a fragment of a summary (script-level, not a recording fault).",
+  "bad": [
+   {
+    "scene": "OD-B16-S03",
+    "gi": 5,
+    "speaker": "Odysseus",
+    "turn": "OD-B16-S03-T04",
+    "dur": 5.36,
+    "verdict": "summary",
+    "line": "I am no god. Why do you liken me to the immortals? I am your father, Telemachus, the man you have grieved for all these years.",
+    "script": "Himself the father for whom Telemachus has suffered.",
+    "lineCharsPerSec": 23.5,
+    "scriptCharsPerSec": 9.7,
+    "evidence": "5.36 s holds the 52-char script text at 9.7 chars/s (the cast speaks 9-12) but not the 126-char authored line (23.5 chars/s): it speaks \"Himself the father for whom Telemachus has suffered.\""
+   },
+   {
+    "scene": "OD-B16-S03",
+    "gi": 7,
+    "speaker": "Telemachus",
+    "turn": "OD-B16-S03-T05",
+    "dur": 3.68,
+    "verdict": "summary",
+    "line": "You are not my father. No mortal man makes himself young at will, and no beggar puts on a king in one breath. This is a god's work, and it is mocking my grief.",
+    "script": "Athena's control of his appearance.",
+    "lineCharsPerSec": 43.2,
+    "scriptCharsPerSec": 9.5,
+    "evidence": "3.68 s holds the 35-char script text at 9.5 chars/s (the cast speaks 9-12) but not the 159-char authored line (43.2 chars/s): it speaks \"Athena's control of his appearance.\""
+   },
+   {
+    "scene": "OD-B21-S07",
+    "gi": 8,
+    "speaker": "Odysseus",
+    "turn": "OD-B21-S07-T06",
+    "dur": 9.32,
+    "verdict": "summary",
+    "line": "Telemachus, the stranger sitting in your hall has not disgraced you. I did not miss the mark, and the bow did not wear me out. Now it is the hour for supper, while there is still light, and after supper there is other sport in this house.",
+    "script": "Tells you that the stranger has not disgraced the house and signals the next phase.",
+    "lineCharsPerSec": 25.5,
+    "scriptCharsPerSec": 8.9,
+    "evidence": "9.32 s holds the 83-char script text at 8.9 chars/s (the cast speaks 9-12) but not the 238-char authored line (25.5 chars/s): it speaks \"Tells you that the stranger has not disgraced the house and signals the next phase.\""
+   },
+   {
+    "scene": "OD-B23-S04",
+    "gi": 2,
+    "speaker": "Penelope",
+    "turn": "OD-B23-S04-T01",
+    "dur": 4.72,
+    "verdict": "summary",
+    "line": "Eurycleia, carry the great bed out of the bridal chamber and set it up in the hall. Spread the fleeces and the bright blankets on it for him there.",
+    "script": "Move the marriage bed outside the chamber for the stranger.",
+    "lineCharsPerSec": 31.1,
+    "scriptCharsPerSec": 12.5,
+    "evidence": "4.72 s holds the 59-char script text at 12.5 chars/s (the cast speaks 9-12) but not the 147-char authored line (31.1 chars/s): it speaks \"Move the marriage bed outside the chamber for the stranger.\""
+   },
+   {
+    "scene": "OD-B23-S04",
+    "gi": 7,
+    "speaker": "Penelope",
+    "turn": "OD-B23-S04-T05",
+    "dur": 4.4,
+    "verdict": "summary",
+    "line": "Do not be angry with me; of all men you were always the shrewdest. I was afraid some stranger would come with a smooth story and take me with it. Now the sign has come and my heart gives way, and you are as welcome to me as dry land to swimmers.",
+    "script": "Fear of deception caused her delay.",
+    "lineCharsPerSec": 55.7,
+    "scriptCharsPerSec": 8.0,
+    "evidence": "4.40 s holds the 35-char script text at 8.0 chars/s (the cast speaks 9-12) but not the 245-char authored line (55.7 chars/s): it speaks \"Fear of deception caused her delay.\""
+   },
+   {
+    "scene": "OD-B24-S03",
+    "gi": 5,
+    "speaker": "Odysseus",
+    "turn": "OD-B24-S03-T04",
+    "dur": 6.92,
+    "verdict": "summary",
+    "line": "Father, put down the dust. I am the man you are grieving. I am Odysseus, home in the twentieth year, and the suitors lie dead in my hall.",
+    "script": "Unable to continue, I embraces him and names himself.",
+    "lineCharsPerSec": 19.8,
+    "scriptCharsPerSec": 7.7,
+    "evidence": "6.92 s holds the 53-char script text at 7.7 chars/s (the cast speaks 9-12) but not the 137-char authored line (19.8 chars/s): it speaks \"Unable to continue, I embraces him and names himself.\""
+   },
+   {
+    "scene": "OD-B24-S03",
+    "gi": 7,
+    "speaker": "Laertes",
+    "turn": "OD-B24-S03-T05",
+    "dur": 3.88,
+    "verdict": "summary",
+    "line": "If you are truly my son, give me a sign I cannot argue with. Grief has made me easy to fool, and I will not be fooled a second time. Tell me something no stranger on earth could know.",
+    "script": "For proof beyond desire?",
+    "lineCharsPerSec": 47.2,
+    "scriptCharsPerSec": 6.2,
+    "evidence": "3.88 s holds the 24-char script text at 6.2 chars/s (the cast speaks 9-12) but not the 183-char authored line (47.2 chars/s): it speaks \"For proof beyond desire?\""
+   },
+   {
+    "scene": "OD-B21-S07",
+    "gi": 3,
+    "speaker": "Odysseus",
+    "turn": "OD-B21-S07-T02",
+    "dur": 3.8,
+    "verdict": "undecidable",
+    "line": "Hear that. It still sings.",
+    "script": "Sing now: like a swallow.",
+    "lineCharsPerSec": 6.8,
+    "scriptCharsPerSec": 6.6,
+    "evidence": "line and script text are the same length (26 vs 25 chars in 3.80 s): the duration cannot tell them apart; listen: line \"Hear that. It still sings.\" / script \"Sing now: like a swallow.\""
+   },
+   {
+    "scene": "OD-B02-S02",
+    "gi": 5,
+    "speaker": "Antinous",
+    "turn": "OD-B02-S02-T04",
+    "dur": 9,
+    "verdict": "undecidable",
+    "line": "Send her back to her father Icarius, and let her marry the man he names, and the man she chooses.",
+    "script": "Send her to her father. Let Icarius arrange the marriage, and this house will be free of us.",
+    "lineCharsPerSec": 10.8,
+    "scriptCharsPerSec": 10.2,
+    "evidence": "line and script text are the same length (97 vs 92 chars in 9.00 s): the duration cannot tell them apart; listen: line \"Send her back to her father Icarius, and let her marry the man he names, and the man she chooses.\" / script \"Send her to her father. Let Icarius arrange the marriage, and this house will be free of us.\""
+   }
+  ],
+  "fragments": [
+   {
+    "scene": "OD-B05-S05",
+    "gi": 3,
+    "kind": "NARRATION",
+    "dur": 4.32,
+    "text": "The raft rolls."
+   },
+   {
+    "scene": "OD-B05-S05",
+    "gi": 5,
+    "kind": "NARRATION",
+    "dur": 4.04,
+    "text": "Abandon the raft and swim."
+   },
+   {
+    "scene": "OD-B09-S03",
+    "gi": 3,
+    "kind": "NARRATION",
+    "dur": 4.44,
+    "text": "The inhabitants offer lotus."
+   },
+   {
+    "scene": "OD-B10-S02",
+    "gi": 2,
+    "kind": "AUDITORY_ACTION",
+    "dur": 6.28,
+    "text": "Odysseus alone moors outside."
+   },
+   {
+    "scene": "OD-B10-S02",
+    "gi": 3,
+    "kind": "NARRATION",
+    "dur": 3.08,
+    "text": "Your parents' house."
+   },
+   {
+    "scene": "OD-B10-S04",
+    "gi": 2,
+    "kind": "AUDITORY_ACTION",
+    "dur": 4.04,
+    "text": "All but Eurylochus enter."
+   },
+   {
+    "scene": "OD-B16-S03",
+    "gi": 2,
+    "kind": "AUDITORY_ACTION",
+    "dur": 5.56,
+    "text": "Athena reenters transformed."
+   },
+   {
+    "scene": "OD-B23-S04",
+    "gi": 4,
+    "kind": "NARRATION",
+    "dur": 5.16,
+    "text": "The secret proves identity."
+   }
+  ]
+ }
+}

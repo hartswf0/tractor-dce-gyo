@@ -20,7 +20,9 @@ const require = createRequire(path.join(here, 'node_modules', 'cascade', 'packag
 const { loadImage, createCanvas } = require('@napi-rs/canvas');
 /* the project's launcher: the CLI with its per-instance node compile serialized (tools/cascade.mjs); races below stay counted */
 const cli = path.join(here, 'tools/cascade.mjs');
-const { graphs } = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8'));
+/* --only <regex>: verify just the graphs whose name matches (a new rig desk), merged into verify.json over the last full run */
+const onlyI = process.argv.indexOf('--only'), only = onlyI > 0 ? new RegExp(process.argv[onlyI + 1]) : null;
+const graphs = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8')).graphs.filter(g => !only || only.test(g.name));
 const score = JSON.parse(fs.readFileSync(path.join(root, 'odyssey/cineosis/score.json'), 'utf8'));
 const signOf = id => { const s = score.scenes.find(x => x.id === id); return s ? { scene: id, title: s.title, sign: s.primary.symbol, signName: s.primary.name, question: s.primary.question } : { scene: id }; };
 
@@ -124,6 +126,9 @@ for (const g of graphs) {
   console.log(`${r.ok ? 'ok  ' : 'FAIL'} ${g.name.padEnd(10)} check ${r.check ? 'passed' : 'FAILED'} · ${r.run.status} ${r.run.files ?? 0} frames, ${r.run.distinctFrames ?? 0} distinct, ${r.run.wallMs ?? '?'} ms · critic ${r.critic ? (r.critic.ok ? 'passed' : 'FAILED') : 'none'}`);
 }
 report.ok = failed === 0; report.compileRacesRetried = races;
+if (only && fs.existsSync(path.join(here, 'verify.json'))) { const prev = JSON.parse(fs.readFileSync(path.join(here, 'verify.json'), 'utf8')), mine = new Set(report.graphs.map(r => r.name)), order = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8')).graphs.map(g => g.name);
+  const all = prev.graphs.filter(r => !mine.has(r.name)).concat(report.graphs).sort((x, y) => order.indexOf(x.name) - order.indexOf(y.name));
+  Object.assign(report, { ran: prev.ran, partial: [...(prev.partial || []).filter(p => !mine.has(p.name)), ...report.graphs.map(r => ({ name: r.name, ran: new Date().toISOString() }))], graphs: all, ok: all.every(r => r.ok), compileRacesRetried: (prev.compileRacesRetried || 0) + races }); }
 fs.writeFileSync(path.join(here, 'verify.json'), JSON.stringify(report, null, 1) + '\n');
 console.log(failed ? `${failed} graph(s) failed` : 'every graph cooked, every output present, every critic answered');
 process.exit(failed ? 1 : 0);
