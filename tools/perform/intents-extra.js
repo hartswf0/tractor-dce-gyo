@@ -148,4 +148,22 @@ E_.WAKE = (X, I, e) => { const id = I.actor, t = I.t0, s = X.at(id, t);
   const m = X.move(id, 'act', 'WAKE', e, k => { k(t, { 'head.pitch': rel(X), 'head.yaw': rel(X), 'torso.lean': rel(X), 'arm.R.pitch': rel(X) }); k(t + 0.6, { 'head.pitch': -0.12 }); k(t + 1.2, { 'head.yaw': 0.4, 'head.pitch': -0.05 }); k(t + 2.0, { 'head.yaw': -0.3, 'arm.R.pitch': -0.3 }); k(t + 2.8, { 'head.yaw': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'torso.lean': 0 }); }, { label: I.label || 'wakes' });
   if ((I.params || {}).rise && s && (s.sat || X.B.lying(s))) I_.RISE(X, { ...I, t0: t + 1.6 }, e); return m; };
 E_.DIE = (X, I, e) => { const r = A_.FALL(X, I, e); const K = X.M.keys.find(k => k.id === (I.params || {}).key), w = K && K.win ? K.win : [I.t0, I.t1]; (X.dead = X.dead || []).push({ actor: I.actor, t0: w[1] + 0.2 }); return r; };
+/* ═════ the bow (OD-B21-S07): STRING_BOW and PLUCK ═════ */
+/* STRING_BOW {params: bends (the pulses of the bend), side}: the lower horn braced against the left thigh, the left hand bearing the upper
+   horn down, the right hand running the string's loop up to its notch; each bend a short push of the weight into it; a CONTACT BOW (the
+   horn on the thigh) while it lasts and a STRUNG stimulus at its end */
+E_.STRING_BOW = (X, I, e) => { const id = I.actor, p = I.params || {}, n = p.bends || 3, t0 = I.t0, t1 = I.t1, d = (t1 - t0 - 0.8) / n, a = X.ampOf(I);
+  X.move(id, 'act', 'STRING THE BOW', e, k => { k(t0, { 'arm.L.pitch': rel(X), 'arm.R.pitch': rel(X), 'arm.R.out': rel(X), 'torso.lean': rel(X), 'torso.twist': rel(X), 'head.pitch': rel(X), 'leg.L.pitch': rel(X) });
+    k(t0 + 0.5, { 'arm.L.pitch': { abs: -0.9 }, 'arm.R.pitch': { abs: -0.55 }, 'arm.R.out': -0.1, 'torso.lean': 0.12 * a, 'torso.twist': 0.12, 'head.pitch': 0.18, 'leg.L.pitch': -0.35 });
+    for (let j = 0; j < n; j++) { const t = t0 + 0.6 + j * d, u = (j + 1) / n;
+      k(t + d * 0.45, { 'arm.L.pitch': { abs: -0.7 }, 'torso.lean': 0.2 * a, 'arm.R.pitch': { abs: -0.6 - 0.55 * u } }, 'out');   /* the weight into the bend; the loop runs up */
+      k(t + d * 0.9, { 'arm.L.pitch': { abs: -0.85 }, 'torso.lean': 0.13 * a }); }
+    k(t1, { 'arm.L.pitch': { abs: -1.0 }, 'arm.R.pitch': { abs: -1.2 }, 'arm.R.out': 0.05, 'torso.lean': 0.03, 'torso.twist': 0.05, 'head.pitch': 0.08, 'leg.L.pitch': 0 }); }, { label: I.label || 'strings the bow, as a bard strings a lyre' });
+  X.ev({ lane: 'CONTACT', actor: id, actors: [id], t0: t0 + 0.5, t1: t1, kind: 'BOW', label: 'the horn braced on the thigh, the string run up to its notch', because: [{ id: e.id, latency: 0.5 }], params: { k: 3 } });
+  X.ev({ id: p.strungId || ('strung:' + id), lane: 'STIMULUS', t0: t1 - 0.1, t1: t1 + 0.2, kind: 'SIGHT', label: 'the bow strung, without effort', actor: id, because: [{ id: e.id, latency: X.r3(t1 - t0) }] }); };
+/* PLUCK {params: soundId, side}: the string drawn a little and let go by one finger; the head tilted to it; a SOUND stimulus (the note) */
+E_.PLUCK = (X, I, e) => { const id = I.actor, p = I.params || {}, t = I.t0, a = X.ampOf(I);
+  X.move(id, 'act', 'PLUCK', e, k => { k(t - 0.3, { 'arm.R.pitch': rel(X), 'arm.R.out': rel(X), 'torso.roll': rel(X), 'head.pitch': rel(X) }); k(t, { 'arm.R.pitch': { abs: -1.3 }, 'arm.R.out': 0.12, 'torso.roll': 0.06, 'head.pitch': 0.12 }); k(t + 1 / X.F, { 'arm.R.out': 0.3 * a }, 'out');
+    k(t + 0.6, { 'arm.R.out': 0.2, 'torso.roll': 0.09 }); k(I.t1, { 'arm.R.pitch': { abs: -1.2 }, 'arm.R.out': 0.05, 'torso.roll': 0, 'head.pitch': 0.05 }); }, { label: I.label || 'plucks the string' });
+  X.ev({ id: p.soundId || ('pluck:' + id), lane: 'STIMULUS', t0: t + 0.05, t1: t + 1.2, kind: 'SOUND', label: 'the string sings like a swallow', actor: id, because: [{ id: e.id, latency: 0.05 }] }); };
 module.exports = E_;
