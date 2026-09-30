@@ -8,8 +8,9 @@
                          their seam windows, and every keyed layer of the channels the hand's kinematics read (root, hips, torso,
                          arms, hands). The graph samples them itself (project.ChoreoHand), the way film-readymades/choreo.js does.
    assets/hall.json      the twelve figures of OD-B01-S03 at their marks, and for each, per drawing (12 a second), how much the
-                         choreography moves it WITHOUT its fill layer (the invented business) and WITH it: the measure the attention
-                         knob starts from.
+                         choreography moves it with the scene's scripted layers alone (act, work, walk, beat, react, song) and
+                         with the life the choreographer invents as well (breath, look, shift, the fill layer's business): the
+                         measure the attention knob starts from.
    assets/clashes.json   written by clashes.py (the illegal Odyssey), not here. */
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -38,7 +39,8 @@ fs.writeFileSync(path.join(OUT, 'gestures.json'), JSON.stringify(gestures));
 
 /* the hall: marks per key, and per drawing each figure's motion as the choreographer measures it (tools/choreograph.js, its last
    pass: the largest channel change times its lever, a fraction of the figure's height; the blocking's travel between marks too),
-   once without the fill layer and once with it */
+   once with only the scripted layers (act, work, walk, beat, react, song) and once with the whole sheet, the invented life included
+   (breath, look, shift and the fill layer's business) */
 const LEVER = { 'arm.R.pitch': 0.3, 'arm.L.pitch': 0.3, 'arm.R.out': 0.3, 'arm.L.out': 0.3, 'torso.lean': 0.5, 'torso.twist': 0.25, 'torso.roll': 0.5, 'head.yaw': 0.12, 'head.pitch': 0.12,
   'root.h': 0.2, 'root.pitch': 0.8, 'root.roll': 0.8, 'leg.R.pitch': 0.3, 'leg.L.pitch': 0.3, 'hand.R.roll': 0.05, 'hand.L.roll': 0.05 };
 function hall(scene) {
@@ -50,9 +52,10 @@ function hall(scene) {
     return { p: A.p.map((v, q) => v + (B.p[q] - v) * e), h: A.h + (B.h - A.h) * e }; };
   for (const id of Object.keys(C.actors)) {
     const H = M.H[id], scale = M.scale, lanes = Object.entries(C.actors[id].channels).map(([k, L]) => [k, k.split('@')[0], L]);
+    const LIFE = /@(fill|breath|look|shift)$/;   /* the life the choreographer invents; the rest is scripted by the scene (act, work, walk, beat, react, song) */
     const series = (skipFill) => { const out = []; let prev = null, pb = null;
       for (let i = 0; i <= n; i++) { const t = i / 12, v = {};
-        for (const [k, ch, L] of lanes) { if (skipFill && k.endsWith('@fill')) continue; v[ch] = (v[ch] || 0) + Choreo.sampleKeys(L, t, ch); }
+        for (const [k, ch, L] of lanes) { if (skipFill && LIFE.test(k)) continue; v[ch] = (v[ch] || 0) + Choreo.sampleKeys(L, t, ch); }
         const b = at(id, t); let d = 0;
         if (prev) { for (const ch in v) d = Math.max(d, Math.abs(v[ch] - (prev[ch] || 0)) * (LEVER[ch] != null ? LEVER[ch] * H : ch === 'hips.dy' ? scale : 1));
           d = Math.max(d, Math.hypot(b.p[0] - pb.p[0], b.p[2] - pb.p[2]), Math.abs(b.p[1] - pb.p[1])); }
