@@ -223,7 +223,10 @@ function compile(M, S, opts = {}) {
   for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });
   /* the scene's creatures, placed (a preset over the take's piece box, or at a point), before their intents */
   const INTC = require('./intents-creature.js');
-  for (const [cid, d] of Object.entries(A.creatures || {})) X.creature(cid, d.kind, { scale: d.scale || 1, at: d.at || (d.place ? INTC.place(d.kind, d.scale || 1, d.place.preset, d.place) : [0, 0, 0, 0]), procs: d.procs ? JSON.parse(JSON.stringify(d.procs)) : [] });
+  /* each creature stands on the ground the take finds under it (tools/perform/ground.js); its `floor` goes in the sheet, so the player's
+     own ray under the rig corrects it where the set differs (creatures.js sample, ctx.ground) */
+  for (const [cid, d] of Object.entries(A.creatures || {})) { const pl = d.at ? { at: d.at, floor: d.floor != null ? d.floor : null } : d.place ? INTC.placeAt(d.kind, d.scale || 1, d.place.preset, { ...d.place, M }) : { at: [0, 0, 0, 0], floor: null };
+    X.creature(cid, d.kind, { scale: d.scale || 1, at: pl.at, floor: pl.floor, procs: d.procs ? JSON.parse(JSON.stringify(d.procs)) : [] }); }
   for (const I of intents) { const f = creatures[I.actor] ? INTC[I.kind] : INT[I.kind]; if (!f) { notes.push('no realiser for ' + (creatures[I.actor] ? 'creature ' : '') + 'intent ' + I.kind + ' (' + I.id + ')'); continue; } f(X, I, E.get(I.id)); }
   /* 3. machinery (clocks, couplings, constraints) the scene declares */
   if (A.machinery) { const Mach = require('./machinery.js'); for (const m of [].concat(A.machinery)) if (Mach[m.kind]) Mach[m.kind](X, m); else notes.push('no machinery ' + m.kind); }

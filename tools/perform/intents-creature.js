@@ -20,24 +20,29 @@
    HERD     {path, n, index}                    one animal of a flock (herd): its place in the file, separation, the leader's path
    STRIKE   {targets: [actor ids], lift}        Scylla's heads: coil, strike at the rowers, seize, lift (riders on the jaws) */
 'use strict';
-const Cr = require('../../film-readymades/creatures.js');
+const Cr = require('../../film-readymades/creatures.js'), Ground = require('./ground.js');
 const r3 = v => Math.round(v * 1000) / 1000;
 const rigOf = (X, id) => { const A = X.creatures[id]; return Cr.define(A.kind, { id, scale: A.scale }); };
 /* where a creature is, and its pose, at t (the sheet as written so far) */
-const cstate = (X, id, t) => Cr.sample({ creatures: X.creatures, step: 'twos' }, id, t, { stepped: false });
+const cstate = (X, id, t) => Cr.sample({ creatures: X.creatures, step: 'twos' }, id, t, { stepped: false, ctx: Ground.ctxFor(X.sid) });
 const figPoint = (X, target, t, y) => { if (Array.isArray(target)) return target; const s = X.at(target, t); return s ? [s.p[0], (s.p[1] || 0) + (y != null ? y : X.H(target) * 0.5), s.p[2]] : null; };
-/* the place for a creature in a preset so that its body covers a box (the take's set piece) or sits at a point, heading h */
-function place(kind, scale, preset, o) {
+/* the place for a creature in a preset so that its body covers a box (the take's set piece) or sits at a point, heading h: {at: [x, y,
+   z, h], floor} where floor is the ground it was stood on. With o.M (the marks) and no height given, that ground is the take's own
+   (tools/perform/ground.js: the probed ray, else the piece boxes); the player casts the same ray under the rig as it moves and lifts
+   or lowers it by the difference (film-readymades/creatures.js sample, ctx.ground) */
+function placeAt(kind, scale, preset, o) {
   const rig = Cr.define(kind, { scale }), K = Cr.kinds().find(k => k.kind === kind), h = o.h || 0;
   const v = Object.assign(rig.rest(), rig.preset(preset) || {}, { 'root.x': 0, 'root.y': 0, 'root.z': 0, 'root.h': h }), P = rig.pose(v);
   let lo = [1e9, 1e9], hi = [-1e9, -1e9], ylo = 1e9, yall = 1e9; for (const n of K.nodes) { const M = P.nodes[n.id]; if (!M) continue; const p = Cr.m.ap(M, n.p); lo = [Math.min(lo[0], p[0]), Math.min(lo[1], p[2])]; hi = [Math.max(hi[0], p[0]), Math.max(hi[1], p[2])]; yall = Math.min(yall, p[1]); if (!/^(arm|elbow|hand)/.test(n.id)) ylo = Math.min(ylo, p[1]); }   /* the trunk and legs rest on the floor; an arm may hang lower */
-  const c = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2];
-  if (o.floor != null && o.at) return [o.at[0], r3(o.floor - (yall < 1e8 ? yall : 0)), o.at[2], h];   /* as the take sets a floor prop: its lowest point on the ground under it */
-  if (o.anchor && o.to) { const A = rig.anchor(o.anchor, v); if (A) return [r3(o.to[0] - A[0]), r3(o.y != null ? o.y : -ylo), r3(o.to[2] - A[2]), h]; }   /* an anchor (the eye) on a point; the trunk on the floor */
-  if (o.box) { const b = o.box, bc = [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2]; return [r3(bc[0] - c[0]), r3(b[1] - ylo), r3(bc[1] - c[1]), h]; }
-  if (o.center) return [r3(o.center[0] - c[0]), r3((o.y || 0) - ylo), r3(o.center[1] - c[1]), h];
-  return [o.at[0], o.at[1] || 0, o.at[2], h];
+  if (ylo > 1e8) ylo = 0; if (yall > 1e8) yall = 0;
+  const c = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2], ground = (x, z, near) => (o.M && o.ground !== false ? Ground.at(o.M, x, z, near).y : near != null ? near : 0);
+  if (o.floor != null && o.at) return { at: [o.at[0], r3(o.floor - yall), o.at[2], h], floor: o.floor };   /* as the take sets a floor prop: its lowest point on the ground under it */
+  if (o.anchor && o.to) { const A = rig.anchor(o.anchor, v); if (A) { const x = r3(o.to[0] - A[0]), z = r3(o.to[2] - A[2]), f = o.y != null ? o.y + ylo : ground(x + c[0], z + c[1], 0); return { at: [x, r3(f - ylo), z, h], floor: r3(f) }; } }   /* an anchor (the eye) on a point; the trunk on the floor */
+  if (o.box) { const b = o.box, bc = [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2], f = ground(bc[0], bc[1], b[1]); return { at: [r3(bc[0] - c[0]), r3(f - ylo), r3(bc[1] - c[1]), h], floor: r3(f) }; }
+  if (o.center) { const f = o.y != null ? o.y : ground(o.center[0], o.center[1], 0); return { at: [r3(o.center[0] - c[0]), r3(f - ylo), r3(o.center[1] - c[1]), h], floor: r3(f) }; }
+  return { at: [o.at[0], o.at[1] || 0, o.at[2], h], floor: null };
 }
+const place = (kind, scale, preset, o) => placeAt(kind, scale, preset, o).at;
 const rootKeys = (a, b, t0, t1) => ({ 'root.x': [[t0, a[0]], [t1, b[0]]], 'root.y': [[t0, a[1]], [t1, b[1]]], 'root.z': [[t0, a[2]], [t1, b[2]]], 'root.h': [[t0, a[3]], [t1, b[3]]] });
 const K = {};
 K.POSE = (X, I, e) => X.cmove(I.actor, 'POSE', e, { proc: { type: 'preset', name: I.params.preset, from: I.t0, to: I.t1, fade: I.params.fade != null ? I.params.fade : 0.6 } }, { label: I.params.preset });
@@ -111,4 +116,4 @@ K.INVOKE = (X, I, e) => { const t0 = I.t0, t1 = I.t1, sw = []; for (let t = t0 +
   return X.cmove(I.actor, 'INVOKE', e, { keys: { 'arm.R.pitch@inv': [[t0, 0], [t0 + 1.4, -2.7], ...sw, [t1, -2.5], [t1 + 1, 0]], 'arm.L.pitch@inv': [[t0 + 0.1, 0], [t0 + 1.5, -2.6], ...sw.map(([t, v]) => [r3(t + 0.2), v + 0.1]), [t1, -2.4], [t1 + 1, 0]],
     'arm.R.out@inv': [[t0, 0], [t0 + 1.4, 0.4], [t1, 0.4], [t1 + 1, 0]], 'arm.L.out@inv': [[t0, 0], [t0 + 1.4, 0.4], [t1, 0.4], [t1 + 1, 0]], 'head.pitch@inv': [[t0, 0], [t0 + 1.2, 0.45], [t1, 0.4], [t1 + 1, 0]], 'jaw@inv': [[t0, 0], [t0 + 1.5, 0.5], [t1, 0.4], [t1 + 0.5, 0]] } }, { label: I.label || 'hands to the sky: the prayer' }); };
 K.GESTURE = (X, I, e) => (I.params && /invoke|pray|oath/.test(I.params.shape || '') ? K.INVOKE : K.ATTEND)(X, I, e);
-module.exports = Object.assign(K, { place, cstate, pointOf });
+module.exports = Object.assign(K, { place, placeAt, cstate, pointOf });

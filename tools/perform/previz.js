@@ -44,7 +44,7 @@ function build(sid, o) {
       const T = th.T[id][i]; f.glow.push({ x: pts.hips[0], y: pts.hips[1], r: Math.min(0.4, size * 0.9), T }); const w = T * (prin ? 3 : 1) + (prin ? 0.05 : 0); if (w > hv) { hv = w; hot = id; } }
     /* creatures: the rig posed at t, its nodes' pivots (creatures.js kinds) projected, parent to child */
     f.creatures = []; const crHeads = {};
-    for (const [cid, A] of Object.entries((C && C.creatures) || {})) { const sm = Cr.sample(C, cid, t), P0 = sm.rig.pose(sm.v), K = crKinds[A.kind], pos = {};
+    for (const [cid, A] of Object.entries((C && C.creatures) || {})) { const sm = Cr.sample(C, cid, t, { ctx: require('./ground.js').ctxFor(sid) }), P0 = sm.rig.pose(sm.v), K = crKinds[A.kind], pos = {};
       for (const nd of K.nodes) if (P0.nodes[nd.id]) pos[nd.id] = Cr.m.ap(P0.nodes[nd.id], nd.p);
       /* a chain (Scylla's necks): each segment drawn from the one before it along the neck, the head from the last segment (their tree
          parent is the root, which would draw a star from the cliff) */

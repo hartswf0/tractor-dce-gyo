@@ -112,7 +112,7 @@ function poseAt(ctx, id, t, extra) {
     const e = toYXZ(mul(Q, eYXZ(P.rot[0], P.rot[1], P.rot[2]))); P.rot = e; P.ship = { pitch: sv.pitch || 0, roll: sv.roll || 0, heave: sv.heave || 0 }; }
   /* a creature's rider (a man in a giant's fist, in Scylla's jaw): the figure hangs from the anchor (its hips there), carried */
   if (C && C.creatures) for (const [cid, A] of Object.entries(C.creatures)) for (const R of A.riders || []) { if (R.actor !== id || (R.from != null && t < R.from) || (R.to != null && t > R.to)) continue;
-    const Cr = require('../../film-readymades/creatures.js'), sm = Cr.sample(C, cid, t), r = sm.riders.find(x => x.actor === id); if (!r) continue;
+    const Cr = require('../../film-readymades/creatures.js'), sm = Cr.sample(C, cid, t, { ctx: require('./ground.js').ctxFor(C.scene) }), r = sm.riders.find(x => x.actor === id); if (!r) continue;
     const hh = (M.H && M.H[id]) || 60; P.p = [r.m[0], r.m[1] - hh * 0.45, r.m[2]]; P.carried = cid; }
   return P;
 }

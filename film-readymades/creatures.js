@@ -44,7 +44,8 @@
      OdysseyCreatures.throwArc(t, params)              a thrown rock's flight (a prop's world position at t)
      OdysseyCreatures.fragment(id, kind, opts)         an odyssey-choreo/1 creature actor, for a scene sheet's `creatures`
      OdysseyCreatures.sample(C, id, t, {ctx}) -> {v, fx, riders}   a sheet's creature actor at t (keys over its procedures); ctx gives
-                                                       what a sheet cannot hold: surface(x, z) for a grope, point(name, t) for a reach */
+                                                       what a sheet cannot hold: surface(x, z) for a grope, point(name, t) for a reach,
+                                                       ground(x, z, near) the floor under a creature that carries `floor` */
 (function (root) {
 'use strict';
 /* ═════════════ matrices: [x y z a b c d e f g h i], p' = t + R p ═════════════ */
@@ -721,6 +722,9 @@ function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
   }
   const keyed = {}; for (const [key, K] of Object.entries(A.channels || {})) { const x = sampleKeys(K, tq); if (x == null) continue; const c = key.split('@')[0]; keyed[c] = (keyed[c] || 0) + x; }
   for (const c in keyed) v[c] = (A.layer === 'add' ? (v[c] || 0) : 0) + keyed[c];
+  /* the ground: a creature stood on `floor` (the engine's reading of the set) is lifted or lowered to the floor the caller's ray finds
+     under it now (ctx.ground(x, z, near): the take's own ray in the player, the probed grid in the tools), so it walks on the set */
+  if (A.floor != null && ctx.ground) { const g = ctx.ground(v['root.x'] || 0, v['root.z'] || 0, A.floor); if (g != null && isFinite(g)) { v['root.y'] = (v['root.y'] || 0) + g - A.floor; fx.ground = g; } }
   v = rig.clamp(v);
   const riders = [];
   for (const R of A.riders || []) { if ((R.from != null && tq < R.from) || (R.to != null && tq > R.to)) continue;
@@ -731,7 +735,7 @@ function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
 /* a creature actor for a sheet, ready to be given keys and procedures */
 function fragment(id, kind, opts = {}) {
   const K = KINDS[kind]; if (!K) throw new Error('no such creature: ' + kind);
-  return { [id]: Object.assign({ kind, scale: opts.scale || 1, colour: opts.colour != null ? opts.colour : undefined, layer: opts.layer || 'abs', at: opts.at || [0, 0, 0, 0], procs: opts.procs || [], channels: opts.channels || {}, riders: opts.riders || [] }) };
+  return { [id]: Object.assign({ kind, scale: opts.scale || 1, colour: opts.colour != null ? opts.colour : undefined, layer: opts.layer || 'abs', at: opts.at || [0, 0, 0, 0], procs: opts.procs || [], channels: opts.channels || {}, riders: opts.riders || [] }, opts.floor != null ? { floor: opts.floor } : {}) };
 }
 function kinds() { return Object.values(KINDS).map(K => ({ kind: K.kind, title: K.title, family: K.family, blurb: K.blurb, scenes: K.scenes, needs: K.needs, card: K.card,
   nodes: K.nodes.filter(n => !n.chain || n.chain.head || n.chain.i === 0).map(n => ({ id: n.id, parent: n.parent, p: n.p, channels: (n.rot || []).concat(n.move || []).map(r => r[0]).concat(n.swap ? [n.swap.ch] : []) })),

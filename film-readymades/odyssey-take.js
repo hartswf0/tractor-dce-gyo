@@ -322,8 +322,14 @@ async function creaturesStage(C){const Cr=OdysseyCreatures,root=new URL('../../'
   const group=new THREE.Group();group.name='creatures';scene.add(group);
   for(const [id,rig] of Object.entries(rigs)){const g=new THREE.Group();g.name='creature:'+id;group.add(g);rig.attach(THREE,g,(f,c)=>{const t=cache.get(f+'|'+c);return t?t.clone(true):null;});}
   const M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),Sv=new THREE.Vector3(),Pv=new THREE.Vector3();
+  /* the floor under a creature that carries one (the engine's `floor`): the take's ray down onto the set, cast from a little above that
+     floor (under a cave's roof, not onto it), the props, the figures and the rigs aside; cached by cell */
+  const gCache=new Map(),gRay=new THREE.Raycaster(),gDown=new THREE.Vector3(0,-1,0);let gMeshes=null;
+  const groundUnder=(x,z,near)=>{const sc=filmAsset().scale||1,k=Math.round(x/(4*sc))+'|'+Math.round(z/(4*sc))+'|'+Math.round(near);if(gCache.has(k))return gCache.get(k);
+    if(!gMeshes){gMeshes=[];const skip=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>skip.add(o)));group.traverse(o=>skip.add(o));const shown=o=>{for(let p=o;p;p=p.parent){if(p.visible===false||/^prop:/.test(p.name||''))return false;}return true;};scene.traverse(o=>{if(o.isMesh&&!skip.has(o)&&shown(o))gMeshes.push(o);});}
+    gRay.set(new THREE.Vector3(x,near+60*sc,z),gDown);gRay.far=200*sc;const h=gRay.intersectObjects(gMeshes,false)[0],y=h?h.point.y:null;gCache.set(k,y);return y;};
   return {rigs,group,
-    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t);rig.apply(s.v);const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
+    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t,{ctx:{ground:groundUnder}});rig.apply(s.v);const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
       for(const r of s.riders||[]){const a=kfActor(r.actor);if(!a||!a.rig||a.rig.figure.visible===false)continue;const m=r.m,f=a.rig.figure;M4.set(m[3],m[4],m[5],m[0],m[6],m[7],m[8],m[1],m[9],m[10],m[11],m[2],0,0,0,1);M4.decompose(Pv,Q,Sv);f.position.copy(Pv);f.quaternion.copy(Q);if(a.rig.pos)a.rig.pos.copy(Pv);}}
       group.updateMatrixWorld(true);},
     dispose(){scene.remove(group);for(const id of Object.keys(rigs)){const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=true;}}};}
