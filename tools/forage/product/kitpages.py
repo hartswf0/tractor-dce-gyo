@@ -290,6 +290,7 @@ def hub(kits, frames):
     <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
     <li><a href="../trailers/index.html">The trailers</a>: three options and a teaser with voice and sound (films/trailers/*.mp4), each through three rounds of review</li>
     <li><a href="../perform/index.html">The performance engine</a>: the score (meaning above mechanics), the intent compiler, the metrics of motivated state change, three temperatures and an Ashby homeostat (tools/perform)</li>
+    <li><a href="../creatures/index.html">The creature rigs</a>: Polyphemus, the Laestrygonians, Scylla, the rams, the dogs, Argos and the cattle as articulated LDraw rigs, with gaits, a giant's heavy walk, reach and grope, a herd, and their test films (film-readymades/creatures.js)</li>
     <li><a href="../choreo/index.html">The dope sheet</a>: every figure's servos keyed on the voice clock (tools/choreograph.js), over the rendered scene, with the acting density before and after</li>
     <li><a href="../cascade/index.html">The Odyssey in Cascade</a>: five live node graphs (FIELD.IO's Cascade) grown from the project's failures, each cooked to print, motion, a web player and, for a gesture, a checked LDraw kit</li>
     <li><a href="cineosis.html">Cineosis</a>: every scene of the cut read by Deleuze's cinematic signs, and the moving images the film still has to master</li>

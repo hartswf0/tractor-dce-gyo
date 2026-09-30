@@ -20,8 +20,8 @@ function note(film, k, v) { (checks[film] = checks[film] || {})[k] = Math.max(ch
 function footCheck(film, rig, v, mem) {
   if (!v._feet) return; const P = rig.pose(v);
   for (const [leg, F2] of Object.entries(rig.K.feet)) { const ft = v._feet[leg]; if (!ft) continue; const p = ap(P.nodes[F2.knee || F2.hip], F2.foot);
-    const key = rig.id + leg, m = mem[key]; if (ft.planted && m && m.planted && m.cyc === ft.cyc) note(film, 'foot slide per frame (LDU)', Math.hypot(p[0] - m.p[0], p[2] - m.p[2]));
-    note(film, 'foot below ground (LDU)', Math.max(0, -p[1])); mem[key] = { p, planted: ft.planted, cyc: ft.cyc }; }
+    const key = rig.id + leg, m = mem[key]; if (ft.planted && m && m.planted && m.cyc === ft.cyc) note(film, 'foot slide per frame (LDU)', Math.hypot(p[0] - m.p[0], p[2] - m.p[2]) / rig.scale);
+    if (ft.planted) note(film, 'planted foot below ground (LDU)', Math.max(0, -p[1]) / rig.scale); mem[key] = { p, planted: ft.planted, cyc: ft.cyc }; }
 }
 const RENDER = (cam, meshes, extra = {}) => R.render(Object.assign({ W, H, ss: 2, cam, meshes, sun: [-0.5, 1, -0.45], ground: { y: 0, size: 1400, tile: 40, cx: extra.gx || 0, cz: extra.gz || 0 } }, extra));
 async function shoot(name, dur, frame) {
@@ -117,7 +117,7 @@ const FILMS = {
       } }) };
     /* the dung heap: a low mound of plates in two browns, three plates deep in the middle */
     const hp = []; [[0, 0, 0, 0, '3034', 6], [0, 24, 0, 0, '3034', 308], [0, -24, 0, 0, '3034', 6], [-10, 12, 8, 0.2, '3020', 308], [14, -8, 8, -0.3, '3020', 6], [0, 36, 0, 0, '3710', 308],
-      [-6, 0, 16, 0.1, '3021', 6], [30, -30, 0, 1.2, '3710', 6], [-40, 30, 0, 0.8, '3710', 308]].forEach(([x, z, y, r, pt, c]) => hp.push(part(pt, c === 6 ? 28 : 6, x, y + 8, z, 1.1, r - 0.5, 1)));
+      [-6, 0, 16, 0.1, '3021', 6], [30, -30, 0, 1.2, '3710', 6], [-40, 30, 0, 0.8, '3710', 308]].forEach(([x, z, y, r, pt, c]) => hp.push(part(pt, c === 6 ? 70 : 308, x, y + 8, z, 0.9, r - 0.5, 1)));
     const heap = S.figure(hp);
     return shoot('argos', 14, t => {
       const s = C.sample(sheet, 'argos', t), v = Object.assign({}, s.v);
@@ -137,7 +137,7 @@ const FILMS = {
       rowers.forEach((r, i) => { const N = i + 1, seized = t > 4.2 + 0.6 + [0, 0.08, 0.03, 0.12, 0.05, 0.1][i];
         if (!seized) ms.push(...S.figure(sitter(r.x, r.y, r.z, Math.PI, { arms: [-0.8 + 0.3 * Math.sin(t * 3 + i), -0.8 + 0.3 * Math.sin(t * 3 + i + 0.4)], colours: { torso: [320, 4, 272, 19, 71, 28][i], legs: 19, hair: 6 } })));
         else ms.push(...S.figure(hung(rig.anchor('jaw' + N, v), [0, 30, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], { arms: [-2.6 + 0.5 * Math.sin(t * 9 + i), -2.8 + 0.5 * Math.cos(t * 8 + i)], legs: [0.5 * Math.sin(t * 10 + i), -0.5 * Math.sin(t * 10 + i)], colours: { torso: [320, 4, 272, 19, 71, 28][i], legs: 19, hair: 6 } }))); });
-      return RENDER(S.cam([0, 170, 60], 820, 18, 12), ms, { ground: Object.assign({ y: 0, size: 1600, tile: 60 }, SEA) });
+      return RENDER(S.cam([0, 170, 60], 820, 18, 12), ms, { sun: [-0.45, 1, 0.55], ground: Object.assign({ y: 0, size: 1600, tile: 60 }, SEA) });
     });
   },
   /* the cattle of the Sun driven in along the shore, and one felled for the sacrifice: it goes down onto its side (B12-S06) */
@@ -146,14 +146,14 @@ const FILMS = {
     const H = C.herd({ n: rigs.length, path: [[0, 420, 40], [0.4, 420, 40], [6.5, -60, 0], [12, -60, 0]], spacing: 95, spread: 0.6, seed: 11, speed: 90, separation: 70 });
     return shoot('cattle', 10, t => {
       const ms = [];
-      rigs.forEach((r, i) => { const v = H.channels(r, i, t, 'walk'); footCheck('cattle', r, v, mem);
+      rigs.forEach((r, i) => { const v = H.channels(r, i, t, 'walk'); if (i !== 1 || t < 7.2) footCheck('cattle', r, v, mem);
         if (i === 1) { const u = smooth((t - 7.2) / 1.1), h = v['root.h'];   /* felled: over onto its side, the legs out stiff */
           v['root.roll'] = 1.42 * u; v['root.y'] = (v['root.y'] || 0) + 26 * r.scale * Math.sin(1.42 * u) * 0.9; v['root.x'] += -Math.cos(h) * 30 * u; v['root.z'] += Math.sin(h) * 30 * u;
           for (const L of ['FL', 'FR', 'HL', 'HR']) { v['leg.' + L] = v['leg.' + L] * (1 - u) + (L[0] === 'F' ? -0.5 : 0.4) * u; v['knee.' + L] *= 1 - u; }
           v['head.pitch'] = v['head.pitch'] * (1 - u) - 0.3 * u; v['tail.pitch'] = -0.5 * u; }
         if (i !== 1 && t > 6.8) v['head.pitch'] = -0.8 * smooth((t - 6.8 - i * 0.3) / 1.2);   /* the rest graze on */
         ms.push(...S.meshes(r, v)); });
-      return RENDER(S.cam([60, 40, 0], 640, 30, 18), ms, { ground: { y: 0, size: 1400, tile: 40, c0: [150, 170, 110], c1: [142, 162, 104] } });
+      return RENDER(S.cam([80, 40, 0], 720, 12, 14), ms, { ground: { y: 0, size: 1400, tile: 40, c0: [150, 170, 110], c1: [142, 162, 104] } });
     });
   },
   /* Eumaeus' four dogs rush the stranger, stop short barking, and scatter when the stones fly (B14-S01) */

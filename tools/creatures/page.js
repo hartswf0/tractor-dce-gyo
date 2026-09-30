@@ -66,7 +66,7 @@ function page() {
     const K = C.KINDS[k.kind], img = rigImage(k.kind), films = Object.entries(FILMS).filter(([, f]) => f.kinds.includes(k.kind));
     const chans = K.kind === 'scylla' ? K.channels.filter(c => c.name.startsWith('neck1.')) : K.channels;
     const scenes = scenesOf(K);
-    const partsList = K.cuts ? K.cuts.from.map(s => s.part) : [...new Set(K.nodes.flatMap(n => (n.mesh || []).map(m => m.part).filter(Boolean)))];
+    const partsList = [...new Set((K.cuts ? K.cuts.from.map(s => s.part) : []).concat(K.nodes.flatMap(n => (n.mesh || []).map(m => m.part).filter(Boolean))).concat(K.nodes.flatMap(n => n.swap ? n.swap.parts.map(q => Array.isArray(q) ? q[0] : q) : [])))];
     cards.push(`
   <section class="creature" id="${E(k.kind)}">
     <h2>${E(K.title)}</h2>
@@ -81,7 +81,7 @@ function page() {
     </div>
     <h3>Channels${K.kind === 'scylla' ? ' (neck 1 shown; necks 2 to 6 the same)' : ''}</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-${chans.map(c => `      <tr><td class="n">${E(c.name)}</td><td class="n">${c.min} to ${c.max}${c.unit === 'rad' ? '' : ' ' + E(c.unit)}</td><td>${E(c.doc)}</td></tr>`).join('\n')}
+${chans.map(c => `      <tr><td class="n">${E(c.name).replace(/\./g, '.<wbr>')}</td><td class="n">${c.min} to ${c.max}${c.unit === 'rad' ? '' : ' ' + E(c.unit)}</td><td>${E(c.doc)}</td></tr>`).join('\n')}
     </table></div>
     ${films.map(([name, f]) => `
     <h3>${E(f.title)}</h3>
@@ -131,7 +131,7 @@ video { width: 100%; max-width: 720px; height: auto; display: block; background:
 .tbl th, .tbl td { border-bottom: 1px solid var(--rule); padding: 5px 6px; text-align: left; vertical-align: top; }
 .tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
 .tbl td.n { font: 13px ui-monospace, Menlo, monospace; white-space: nowrap; }
-@media (max-width: 520px) { .tbl td.n { white-space: normal; word-break: break-word; font-size: 12px; } .tbl { font-size: 12.5px; } }
+@media (max-width: 520px) { .tbl td.n { white-space: normal; font-size: 12px; } .tbl { font-size: 12.5px; } }
 .scroll { overflow-x: auto; max-width: 100%; }
 .scenes { margin: 0; padding-left: 18px; }
 .toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; padding: 0; list-style: none; }

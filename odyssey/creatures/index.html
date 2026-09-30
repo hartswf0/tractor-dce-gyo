@@ -37,7 +37,7 @@ video { width: 100%; max-width: 720px; height: auto; display: block; background:
 .tbl th, .tbl td { border-bottom: 1px solid var(--rule); padding: 5px 6px; text-align: left; vertical-align: top; }
 .tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
 .tbl td.n { font: 13px ui-monospace, Menlo, monospace; white-space: nowrap; }
-@media (max-width: 520px) { .tbl td.n { white-space: normal; word-break: break-word; font-size: 12px; } .tbl { font-size: 12.5px; } }
+@media (max-width: 520px) { .tbl td.n { white-space: normal; font-size: 12px; } .tbl { font-size: 12.5px; } }
 .scroll { overflow-x: auto; max-width: 100%; }
 .scenes { margin: 0; padding-left: 18px; }
 .toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; padding: 0; list-style: none; }
@@ -56,7 +56,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     <h2>Polyphemus</h2>
     <p class="lede">The Cyclops: the troll big figure of the set piece on its own shoulders and wrists, cut at the waist, the legs, the elbows, the face and the tusked jaw, with the set piece's one eye (a pupil that looks about and is swapped: open, half shut, shut, put out).</p>
     <div class="grid">
-      <figure><img src="media/polyphemus-rig.jpg" alt="Polyphemus at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>; the set piece is <a href="../cards/kit.prop-polyphemus.mpd"><code>kit.prop-polyphemus</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
+      <figure><img src="media/polyphemus-rig.jpg" alt="Polyphemus at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>, <code>60634</code>, <code>14769</code>, <code>60640</code>, <code>60641</code>, <code>98138</code>, <code>98138p0b</code>, <code>98138p0c</code>; the set piece is <a href="../cards/kit.prop-polyphemus.mpd"><code>kit.prop-polyphemus</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
       <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>hips</b> <span class="ch">body.yaw body.pitch body.roll hips.dy</span><ul><li><b>leg.R</b> <span class="ch">leg.R.pitch leg.R.out</span><ul><li><b>knee.R</b> <span class="ch">knee.R</span></li></ul></li><li><b>leg.L</b> <span class="ch">leg.L.pitch leg.L.out</span><ul><li><b>knee.L</b> <span class="ch">knee.L</span></li></ul></li><li><b>torso</b> <span class="ch">torso.twist torso.lean torso.roll</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span><ul><li><b>jaw</b> <span class="ch">jaw</span></li><li><b>eye</b> <span class="ch">eye.x eye.y eye</span></li></ul></li><li><b>arm.R</b> <span class="ch">arm.R.pitch arm.R.out</span><ul><li><b>elbow.R</b> <span class="ch">elbow.R</span><ul><li><b>hand.R</b> <span class="ch">hand.R.roll</span></li></ul></li></ul></li><li><b>arm.L</b> <span class="ch">arm.L.pitch arm.L.out</span><ul><li><b>elbow.L</b> <span class="ch">elbow.L</span><ul><li><b>hand.L</b> <span class="ch">hand.L.roll</span></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul>
         <h3>Anchors</h3><p class="muted"><code>grip.R</code> <code>grip.L</code> <code>head</code> <code>brow</code> <code>eye</code> <code>mouth</code> <code>lap</code> <code>foot.R</code> <code>foot.L</code> (a rider, a held man, a rock, a camera's aim)</p>
         <h3>Presets</h3><p class="muted"><code>stand</code> <code>sit</code> <code>crouch</code> <code>roar</code> <code>sprawl</code></p>
@@ -66,32 +66,32 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     <h3>Channels</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
       <tr><td class="n">eye</td><td class="n">0 to 3 index</td><td>the pupil: 0 open, 1 half shut, 2 shut, 3 put out (a replacement part)</td></tr>
-      <tr><td class="n">eye.x</td><td class="n">-9 to 9 ldu</td><td>the pupil to its left (+)</td></tr>
-      <tr><td class="n">eye.y</td><td class="n">-9 to 9 ldu</td><td>the pupil up (+)</td></tr>
-      <tr><td class="n">hips.dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
-      <tr><td class="n">body.yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
-      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
-      <tr><td class="n">body.roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
-      <tr><td class="n">torso.lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
-      <tr><td class="n">torso.twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
-      <tr><td class="n">torso.roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
-      <tr><td class="n">head.yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
-      <tr><td class="n">head.pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
+      <tr><td class="n">eye.<wbr>x</td><td class="n">-9 to 9 ldu</td><td>the pupil to its left (+)</td></tr>
+      <tr><td class="n">eye.<wbr>y</td><td class="n">-9 to 9 ldu</td><td>the pupil up (+)</td></tr>
+      <tr><td class="n">hips.<wbr>dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
+      <tr><td class="n">body.<wbr>yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
+      <tr><td class="n">body.<wbr>pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
+      <tr><td class="n">body.<wbr>roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
+      <tr><td class="n">torso.<wbr>lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
+      <tr><td class="n">torso.<wbr>twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
+      <tr><td class="n">torso.<wbr>roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
+      <tr><td class="n">head.<wbr>yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
+      <tr><td class="n">head.<wbr>pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
       <tr><td class="n">jaw</td><td class="n">-0.05 to 0.6</td><td>the tusked jaw open (+): a roar, a bite, a drink</td></tr>
-      <tr><td class="n">arm.R.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
-      <tr><td class="n">arm.L.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
-      <tr><td class="n">arm.R.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
-      <tr><td class="n">arm.L.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
-      <tr><td class="n">elbow.R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
-      <tr><td class="n">elbow.L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
-      <tr><td class="n">hand.R.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
-      <tr><td class="n">hand.L.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
-      <tr><td class="n">leg.R.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
-      <tr><td class="n">leg.L.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
-      <tr><td class="n">leg.R.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">leg.L.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
-      <tr><td class="n">knee.L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
+      <tr><td class="n">arm.<wbr>R.<wbr>pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
+      <tr><td class="n">arm.<wbr>L.<wbr>pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
+      <tr><td class="n">arm.<wbr>R.<wbr>out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">arm.<wbr>L.<wbr>out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">elbow.<wbr>R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">elbow.<wbr>L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">hand.<wbr>R.<wbr>roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
+      <tr><td class="n">hand.<wbr>L.<wbr>roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
+      <tr><td class="n">leg.<wbr>R.<wbr>pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
+      <tr><td class="n">leg.<wbr>L.<wbr>pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>R.<wbr>out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">leg.<wbr>L.<wbr>out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
+      <tr><td class="n">knee.<wbr>L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
     </table></div>
     
     <h3>Polyphemus gropes at the cave mouth</h3>
@@ -106,7 +106,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     <h2>Laestrygonian</h2>
     <p class="lede">The cannibal giants of Telepylus: the same troll body in the harbour colours, the helmet for a head, a boulder in the grip; Antiphates and the giant girl are the same rig recoloured and rescaled.</p>
     <div class="grid">
-      <figure><img src="media/laestrygon-rig.jpg" alt="Laestrygonian at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>; the set piece is <a href="../cards/kit.prop-laestrygon.mpd"><code>kit.prop-laestrygon</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
+      <figure><img src="media/laestrygon-rig.jpg" alt="Laestrygonian at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>, <code>60634</code>, <code>60636</code>, <code>60640</code>, <code>60641</code>; the set piece is <a href="../cards/kit.prop-laestrygon.mpd"><code>kit.prop-laestrygon</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
       <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>hips</b> <span class="ch">body.yaw body.pitch body.roll hips.dy</span><ul><li><b>leg.R</b> <span class="ch">leg.R.pitch leg.R.out</span><ul><li><b>knee.R</b> <span class="ch">knee.R</span></li></ul></li><li><b>leg.L</b> <span class="ch">leg.L.pitch leg.L.out</span><ul><li><b>knee.L</b> <span class="ch">knee.L</span></li></ul></li><li><b>torso</b> <span class="ch">torso.twist torso.lean torso.roll</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span><ul><li><b>jaw</b> <span class="ch">jaw</span></li></ul></li><li><b>arm.R</b> <span class="ch">arm.R.pitch arm.R.out</span><ul><li><b>elbow.R</b> <span class="ch">elbow.R</span><ul><li><b>hand.R</b> <span class="ch">hand.R.roll</span></li></ul></li></ul></li><li><b>arm.L</b> <span class="ch">arm.L.pitch arm.L.out</span><ul><li><b>elbow.L</b> <span class="ch">elbow.L</span><ul><li><b>hand.L</b> <span class="ch">hand.L.roll</span></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul>
         <h3>Anchors</h3><p class="muted"><code>grip.R</code> <code>grip.L</code> <code>head</code> <code>brow</code> <code>eye</code> <code>mouth</code> <code>lap</code> <code>foot.R</code> <code>foot.L</code> (a rider, a held man, a rock, a camera's aim)</p>
         <h3>Presets</h3><p class="muted"><code>stand</code> <code>sit</code> <code>crouch</code> <code>roar</code> <code>sprawl</code></p>
@@ -115,35 +115,35 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     </div>
     <h3>Channels</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-      <tr><td class="n">hips.dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
-      <tr><td class="n">body.yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
-      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
-      <tr><td class="n">body.roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
-      <tr><td class="n">torso.lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
-      <tr><td class="n">torso.twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
-      <tr><td class="n">torso.roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
-      <tr><td class="n">head.yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
-      <tr><td class="n">head.pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
+      <tr><td class="n">hips.<wbr>dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
+      <tr><td class="n">body.<wbr>yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
+      <tr><td class="n">body.<wbr>pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
+      <tr><td class="n">body.<wbr>roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
+      <tr><td class="n">torso.<wbr>lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
+      <tr><td class="n">torso.<wbr>twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
+      <tr><td class="n">torso.<wbr>roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
+      <tr><td class="n">head.<wbr>yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
+      <tr><td class="n">head.<wbr>pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
       <tr><td class="n">jaw</td><td class="n">-0.05 to 0.6</td><td>the tusked jaw open (+): a roar, a bite, a drink</td></tr>
-      <tr><td class="n">arm.R.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
-      <tr><td class="n">arm.L.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
-      <tr><td class="n">arm.R.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
-      <tr><td class="n">arm.L.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
-      <tr><td class="n">elbow.R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
-      <tr><td class="n">elbow.L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
-      <tr><td class="n">hand.R.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
-      <tr><td class="n">hand.L.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
-      <tr><td class="n">leg.R.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
-      <tr><td class="n">leg.L.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
-      <tr><td class="n">leg.R.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">leg.L.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
-      <tr><td class="n">knee.L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
+      <tr><td class="n">arm.<wbr>R.<wbr>pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
+      <tr><td class="n">arm.<wbr>L.<wbr>pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
+      <tr><td class="n">arm.<wbr>R.<wbr>out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">arm.<wbr>L.<wbr>out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">elbow.<wbr>R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">elbow.<wbr>L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">hand.<wbr>R.<wbr>roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
+      <tr><td class="n">hand.<wbr>L.<wbr>roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
+      <tr><td class="n">leg.<wbr>R.<wbr>pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
+      <tr><td class="n">leg.<wbr>L.<wbr>pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>R.<wbr>out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">leg.<wbr>L.<wbr>out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
+      <tr><td class="n">knee.<wbr>L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
     </table></div>
     
     <h3>A Laestrygonian's heavy walk and throw</h3>
     <video controls muted playsinline loop preload="none" poster="media/giant-walk.jpg" width="480" height="270"><source src="media/giant-walk.mp4" type="video/mp4"></video>
-    <p class="muted">The body follows the path through a spring (it lags, then carries on past the stop), the waddle rolls it over the planted foot, each footfall shakes the camera (fx.shake); then a boulder two-handed overhead, released on a ballistic arc (B10-S02).</p>
+    <p class="muted">The body follows the path through a spring (it lags, then carries on past the stop), the waddle rolls it over the planted foot, each footfall shakes the camera (fx.shake); then a boulder two-handed overhead, released on a ballistic arc (B10-S02). Checks: foot below ground (LDU) 0; foot slide per frame (LDU) 1.26.</p>
     <h3>The scenes that need it</h3>
     <ul class="scenes"><li><code>OD-B10-S02</code> The Laestrygonian Harbor<br><span class="muted">GESTURE:point giant-girl &gt; house 15-16.5 s; SEIZE antiphates &gt; scout-1 18.4-20 s; THROW laestrygonians &gt; fleet 22-27 s; THRUST(spear) laestrygonians &gt; crew-in-water 23-27 s</span></li></ul>
     <p class="muted">SEIZE a scout (carried); PURSUE on the shore; THROW boulders at the fleet; THRUST spears at men in the water.</p>
@@ -162,34 +162,34 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     </div>
     <h3>Channels</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
-      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
-      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
-      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
-      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
-      <tr><td class="n">head.pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
-      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
-      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
-      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
-      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">body.<wbr>dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.<wbr>pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.<wbr>roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.<wbr>yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.<wbr>yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.<wbr>pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.<wbr>pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.<wbr>yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">leg.<wbr>FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
     </table></div>
     
     <h3>A ram walking with a man beneath</h3>
     <video controls muted playsinline loop preload="none" poster="media/ram-rider.jpg" width="480" height="270"><source src="media/ram-rider.mp4" type="video/mp4"></video>
-    <p class="muted">The lead ram scaled 2.4 walks on a planted-foot gait with its stance widened; Odysseus hangs on the belly anchor, face up, hands in the wool (B09-S10).</p>
+    <p class="muted">The lead ram scaled 2.4 walks on a planted-foot gait with its stance widened; Odysseus hangs on the belly anchor, face up, hands in the wool (B09-S10). Checks: foot below ground (LDU) 0; rider into the belly (LDU) 4.55; foot slide per frame (LDU) 0.29.</p>
     <h3>The flock leaves the cave</h3>
     <video controls muted playsinline loop preload="none" poster="media/herd.jpg" width="480" height="270"><source src="media/herd.mp4" type="video/mp4"></video>
-    <p class="muted">Seven rams and sheep of three sizes and colours follow the leader's path out of the mouth with separation, each on its own gait clock (B09-S08, B09-S10).</p>
+    <p class="muted">Seven rams and sheep of three sizes and colours follow the leader's path out of the mouth with separation, each on its own gait clock (B09-S08, B09-S10). Checks: foot below ground (LDU) 0; closest two animals (world units) 59.73; foot slide per frame (LDU) 0.28.</p>
     <h3>Polyphemus gropes at the cave mouth</h3>
     <video controls muted playsinline loop preload="none" poster="media/polyphemus-grope.jpg" width="480" height="270"><source src="media/polyphemus-grope.mp4" type="video/mp4"></video>
     <p class="muted">Seated in the door (the sit preset), eye shut, both hands solved together over torso, shoulders and elbows: sweeping, reaching in, patting down onto the backs that pass in threes; the men under the middle rams and under the lead ram pass beneath the search (B09-S10).</p>
@@ -211,38 +211,38 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     </div>
     <h3>Channels</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
-      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
-      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
-      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
-      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
-      <tr><td class="n">head.pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
-      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
-      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
-      <tr><td class="n">ear.L</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
-      <tr><td class="n">ear.L.flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
-      <tr><td class="n">ear.R</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
-      <tr><td class="n">ear.R.flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
-      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
-      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">body.<wbr>dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.<wbr>pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.<wbr>roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.<wbr>yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.<wbr>yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.<wbr>pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.<wbr>pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.<wbr>yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">ear.<wbr>L</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
+      <tr><td class="n">ear.<wbr>L.<wbr>flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
+      <tr><td class="n">ear.<wbr>R</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
+      <tr><td class="n">ear.<wbr>R.<wbr>flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
+      <tr><td class="n">leg.<wbr>FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
     </table></div>
     
     <h3>Argos knows his master</h3>
     <video controls muted playsinline loop preload="none" poster="media/argos.jpg" width="480" height="270"><source src="media/argos.mp4" type="video/mp4"></video>
-    <p class="muted">Played from a scene sheet's creature actor through OdysseyCreatures.sample (keys over the lie preset, on twos): the head lifts, the ears prick then drop, the tail beats; the breath stops and he goes over onto his side, and holds (B17-S03).</p>
+    <p class="muted">Played from a scene sheet's creature actor through OdysseyCreatures.sample (keys over the lie preset, on twos): the head lifts, the ears prick then drop, the tail beats; the breath stops and he goes over onto his side, and holds (B17-S03). Checks: .</p>
     <h3>Eumaeus' dogs</h3>
     <video controls muted playsinline loop preload="none" poster="media/dogs.jpg" width="480" height="270"><source src="media/dogs.mp4" type="video/mp4"></video>
-    <p class="muted">Four dogs on a gait schedule (run, trot, walk, run, blended on each leg's phase clock) rush the sitting stranger, stop short barking (head, ears, tail), and scatter when the stones fly (B14-S01).</p>
+    <p class="muted">Four dogs on a gait schedule (run, trot, walk, run, blended on each leg's phase clock) rush the sitting stranger, stop short barking (head, ears, tail), and scatter when the stones fly (B14-S01). Checks: foot below ground (LDU) 1.8; foot slide per frame (LDU) 5.53.</p>
     <h3>The scenes that need it</h3>
     <ul class="scenes"><li><code>OD-B14-S01</code> The Dogs at Eumaeus's Yard<br><span class="muted">PURSUE(charge) dogs &gt; odysseus 3-6 s; LOCOMOTE(run) eumaeus &gt; dogs 7.6-9 s; THROW eumaeus &gt; dogs 9-11 s (stones); FLEE dogs 10-12 s</span></li><li><code>OD-B17-S03</code> Argos Recognizes His Master<br><span class="muted">NOTICE odysseus &gt; argos 0.6-3 s; ANIMAL:lift-head(lift_head) argos 5-7 s; ANIMAL:wag(wag) argos 6-12 s; DIE argos 19.9-23 s</span></li></ul>
     <p class="muted">PURSUE(charge) the stranger, bark, stop at a distance; FLEE when stones fly; Argos: lift the head, drop the ears, wag, DIE (a held stillness, breath off).</p>
@@ -252,7 +252,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     <h2>Cattle of the Sun</h2>
     <p class="lede">Helios' cattle: the cow of the set pieces, its head on the toy's own joint, the body cut at the shoulders, hips, knees and tail; driven in, and felled (the root rolls it onto its side).</p>
     <div class="grid">
-      <figure><img src="media/cattle-rig.jpg" alt="Cattle of the Sun at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>64779c01</code>; the set piece is <a href="../cards/kit.prop-cow.mpd"><code>kit.prop-cow</code></a>; the cut pieces are in <a href="parts/cattle.mpd"><code>parts/cattle.mpd</code></a>.</figcaption></figure>
+      <figure><img src="media/cattle-rig.jpg" alt="Cattle of the Sun at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>64779c01</code>, <code>64835p01c01</code>, <code>13564</code>; the set piece is <a href="../cards/kit.prop-cow.mpd"><code>kit.prop-cow</code></a>; the cut pieces are in <a href="parts/cattle.mpd"><code>parts/cattle.mpd</code></a>.</figcaption></figure>
       <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>body</b> <span class="ch">body.yaw body.pitch body.roll body.dy</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span></li><li><b>tail</b> <span class="ch">tail.yaw tail.pitch</span></li><li><b>leg.FL</b> <span class="ch">leg.FL leg.FL.out</span><ul><li><b>knee.FL</b> <span class="ch">knee.FL</span></li></ul></li><li><b>leg.FR</b> <span class="ch">leg.FR leg.FR.out</span><ul><li><b>knee.FR</b> <span class="ch">knee.FR</span></li></ul></li><li><b>leg.HL</b> <span class="ch">leg.HL leg.HL.out</span><ul><li><b>knee.HL</b> <span class="ch">knee.HL</span></li></ul></li><li><b>leg.HR</b> <span class="ch">leg.HR leg.HR.out</span><ul><li><b>knee.HR</b> <span class="ch">knee.HR</span></li></ul></li></ul></li></ul></li></ul>
         <h3>Anchors</h3><p class="muted"><code>back</code> <code>head</code> <code>mouth</code> <code>belly</code> (a rider, a held man, a rock, a camera's aim)</p>
         <h3>Presets</h3><p class="muted"><code>stand</code> <code>graze</code> <code>fallen</code></p>
@@ -261,31 +261,31 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     </div>
     <h3>Channels</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
-      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
-      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
-      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
-      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
-      <tr><td class="n">head.pitch</td><td class="n">-1 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
-      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
-      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
-      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
-      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
-      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
-      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
-      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">body.<wbr>dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.<wbr>pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.<wbr>roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.<wbr>yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.<wbr>yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.<wbr>pitch</td><td class="n">-1 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.<wbr>pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.<wbr>yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">leg.<wbr>FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>FR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.<wbr>HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HL.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.<wbr>HR.<wbr>out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.<wbr>HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
     </table></div>
     
     <h3>The cattle of the Sun</h3>
     <video controls muted playsinline loop preload="none" poster="media/cattle.jpg" width="480" height="270"><source src="media/cattle.mp4" type="video/mp4"></video>
-    <p class="muted">Five cattle driven in along the shore as a loose herd, one felled for the sacrifice: over onto its side, legs out (B12-S06).</p>
+    <p class="muted">Five cattle driven in along the shore as a loose herd, one felled for the sacrifice: over onto its side, legs out (B12-S06). Checks: foot below ground (LDU) 0; foot slide per frame (LDU) 9.18.</p>
     <h3>The scenes that need it</h3>
     <ul class="scenes"><li><code>OD-B12-S06</code> The Cattle Are Slaughtered<br><span class="muted">HERD crew &gt; cattle 9-11 s; SACRIFICE eurylochus &gt; cattle 10-14 s</span></li></ul>
     <p class="muted">HERD: the cattle driven in; SACRIFICE: felled (a fall to the side); the omen: the hides crawl, the meat lows on the spits.</p>
@@ -304,16 +304,16 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     </div>
     <h3>Channels (neck 1 shown; necks 2 to 6 the same)</h3>
     <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
-      <tr><td class="n">neck1.x</td><td class="n">-260 to 260 ldu</td><td>head 1's target across the cliff (+ to Scylla's left)</td></tr>
-      <tr><td class="n">neck1.y</td><td class="n">-120 to 300 ldu</td><td>head 1's target below its root (+ down)</td></tr>
-      <tr><td class="n">neck1.z</td><td class="n">-285.2 to 40 ldu</td><td>head 1's target out from the cliff (- out)</td></tr>
-      <tr><td class="n">neck1.slack</td><td class="n">0 to 1</td><td>the neck's coil (0 a bow, 1 an S)</td></tr>
-      <tr><td class="n">neck1.head</td><td class="n">-1.2 to 1.2</td><td>head 1 nodding (+ snout up)</td></tr>
+      <tr><td class="n">neck1.<wbr>x</td><td class="n">-260 to 260 ldu</td><td>head 1's target across the cliff (+ to Scylla's left)</td></tr>
+      <tr><td class="n">neck1.<wbr>y</td><td class="n">-120 to 300 ldu</td><td>head 1's target below its root (+ down)</td></tr>
+      <tr><td class="n">neck1.<wbr>z</td><td class="n">-285.2 to 40 ldu</td><td>head 1's target out from the cliff (- out)</td></tr>
+      <tr><td class="n">neck1.<wbr>slack</td><td class="n">0 to 1</td><td>the neck's coil (0 a bow, 1 an S)</td></tr>
+      <tr><td class="n">neck1.<wbr>head</td><td class="n">-1.2 to 1.2</td><td>head 1 nodding (+ snout up)</td></tr>
     </table></div>
     
     <h3>Scylla strikes</h3>
     <video controls muted playsinline loop preload="none" poster="media/scylla.jpg" width="480" height="270"><source src="media/scylla.mp4" type="video/mp4"></video>
-    <p class="muted">Six necks of hose segments of fixed length, each laid along a curve from its root to its head: coiled and swaying, drawn back, striking together at six rowers, holding, lifting them to the cleft (B12-S04).</p>
+    <p class="muted">Six necks of hose segments of fixed length, each laid along a curve from its root to its head: coiled and swaying, drawn back, striking together at six rowers, holding, lifting them to the cleft (B12-S04). Checks: .</p>
     <h3>The scenes that need it</h3>
     <ul class="scenes"><li><code>OD-B12-S04</code> Between Scylla and Charybdis<br><span class="muted">STRIKE(strike_down) scylla &gt; rowers 34.3-36 s (six heads at once); LIFT scylla &gt; rowers 36-42 s</span></li></ul>
     <p class="muted">STRIKE(strike_down): six heads at once; LIFT six rowers (hands and feet in the air); hold them up while the ship pulls away.</p>
