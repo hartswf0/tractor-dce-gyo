@@ -86,7 +86,7 @@ const li = ([k, v]) => `<li><b>${esc(k)}</b> ${esc(v)}</li>`;
 document.getElementById('rulesPlan').innerHTML = RULES_PLAN.map(li).join('');
 document.getElementById('rulesSolve').innerHTML = RULES_SOLVE.map(li).join('');
 const SCENES = [
-  { id: 'OD-B09-S09', name: 'The Blinding', before: 'OD-B09-S09-performed', after: 'OD-B09-S09-performed-shot' },
+  { id: 'OD-B09-S09', name: 'The Blinding', before: 'OD-B09-S09-performed', after: 'OD-B09-S09-performed-shot', clutter: 'media/camera-OD-B09-S09-clutter.jpg' },
   { id: 'OD-B01-S03', name: 'The Gate', before: 'OD-B01-S03-performed', after: 'OD-B01-S03-performed-shot' },
   { id: 'OD-B12-S03', name: 'The Sirens', before: null, after: 'OD-B12-S03-performed', note: 'the rowers on one clock, the binding' },
   { id: 'OD-B22-S01', name: "The Hall", before: null, after: 'OD-B22-S01-performed', note: "The Hall, performed" },
@@ -106,6 +106,7 @@ const WRONG = [];
     html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>Shot from the performance (${S.after}): ${esc(S.note || '')}</figcaption></figure>`;
     html += `<h3>Contact sheet: one frame from the middle of every shot</h3><figure><img loading="lazy" alt="Contact sheet of ${esc(S.name)}" src="media/camera-${S.id}-after.jpg"></figure>`;
     }
+    if (S.clutter) html += `<h3>The far clutter, weighed</h3><figure><img loading="lazy" alt="The Blinding at the same five times: the cameras before the far-clutter penalty (left) and after (right)" src="${S.clutter}"><figcaption>The same five drawings (11, 44, 63, 68 and 74 s): the solver before the far clutter was weighed (left) and after (right). The closes find a side with less rock between the lens and the act; the high wides of the giant in the door keep their place (the only legal wides there).</figcaption></figure>`;
     const Au = AUDIT[S.id];
     if (Au) { const row = (k, o) => `<tr><td>${k}</td><td class="t">${o.inside} of ${o.samples}</td><td class="t">${o.seen.polyphemus || 0} of ${o.samples}</td><td class="t">${o.seen.odysseus || 0} of ${o.samples}</td></tr>`;
       html += `<h3>The same checks on both cuts, once a second</h3><div class="scroll"><table><thead><tr><th>cut</th><th>lens inside geometry</th><th>giant's eye in frame and seen</th><th>Odysseus's head in frame and seen</th></tr></thead><tbody>${row('before', Au.before)}${row('after', Au.after)}</tbody></table></div><p class="note">${esc(Au.rule)}. The one sample after that fails is inside the box of one of the giant's pieces while he breathes, between two of the shot's tested drawings.</p>`; }

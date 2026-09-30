@@ -258,7 +258,7 @@ async function solve(plan, api) {
     /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
     const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
     if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
-    s -= 1.5 * (I.clutter || 0) + 3 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
+    s -= 1.5 * (I.clutter || 0) + 5 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
     if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
     return s;
