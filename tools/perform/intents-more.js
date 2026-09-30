@@ -11,7 +11,8 @@ const rel = X => X.sheet.rel(0);
 
 /* POSTURE params.to: sit | lie | crouch | cower | slump | kneel | stand; entered over params.enter s, held (the breath goes on), left
    at I.t1 over params.leave s unless params.stay */
-const POSES = { crouch: { 'hips.dy': -6, 'torso.lean': 0.3, 'leg.R.pitch': -0.5, 'leg.L.pitch': -0.5, 'head.pitch': -0.08 }, cower: { 'hips.dy': -7, 'torso.lean': 0.36, 'arm.R.pitch': { abs: -2.4 }, 'arm.L.pitch': { abs: -2.3 }, 'head.pitch': 0.2, 'leg.R.pitch': -0.6, 'leg.L.pitch': -0.6 },
+/* crouch and cower keep the centre of mass over the feet (the legs forward under the lean: tools/perform/metrics.js balance) */
+const POSES = { crouch: { 'hips.dy': -6, 'torso.lean': 0.16, 'leg.R.pitch': -0.2, 'leg.L.pitch': -0.2, 'head.pitch': -0.08 }, cower: { 'hips.dy': -7, 'torso.lean': 0.12, 'arm.R.pitch': { abs: -2.4 }, 'arm.L.pitch': { abs: -2.3 }, 'head.pitch': 0.2, 'leg.R.pitch': -0.2, 'leg.L.pitch': -0.2 },
   slump: { 'hips.dy': -2.5, 'torso.lean': 0.28, 'head.pitch': 0.2, 'arm.R.pitch': { abs: 0.15 }, 'arm.L.pitch': { abs: 0.15 } }, kneel: { 'hips.dy': -9, 'leg.R.pitch': -1.4, 'leg.L.pitch': 0.3, 'torso.lean': 0.05 },
   sit: { 'hips.dy': -10, 'leg.R.pitch': -1.5, 'leg.L.pitch': -1.5, 'torso.lean': -0.04 }, lie: { 'root.pitch': -1.45, 'root.y': 6, 'arm.R.pitch': { abs: 0.2 }, 'arm.L.pitch': { abs: 0.2 }, 'head.pitch': 0.1 }, stand: {} };
 M_.POSTURE = (X, I, e) => { const id = I.actor, p = I.params || {}, to = POSES[p.to || 'crouch'] || POSES.crouch, en = p.enter || 0.6, lv = p.leave || 0.7;
