@@ -8,8 +8,8 @@ This builds them in real LDraw parts with the line's own kitlib: 48 x 48 basepla
 list) beside it, and checked with clicks.py through kitlib.check: 0 loose and 0 clashes, or it exits 1.
 
   cascade.beflix-key       the key frame (t 34.4 s: the Sirens promise, the song in the field), 144 x 96 studs on 6 baseplates
-  cascade.beflix-flipbook  12 frames of the film, 48 x 32 studs each, stacked as a strip with a black frame line of 4 studs
-                           between frames, on 9 baseplates in a column
+  cascade.beflix-flipbook  12 frames of the film, one 48 x 48 baseplate each: a 48 x 34 picture between black film edges of
+                           7 studs with sprocket holes, the twelve plates side by side as a strip
 
   python3 odyssey/cascade/tools/beflix_kit.py [--only key|flipbook] [--no-check]
 """
@@ -72,12 +72,14 @@ def main():
         out.append(s)
     if a.only in (None, 'flipbook'):
         fb = json.load(open(os.path.join(KIT, 'beflix-flipbook.json')))['frames']
-        strip = []
-        for n, f in enumerate(fb):
-            if n: strip += [[0] * 48 for _ in range(4)]          # the frame line: 4 rows of black tiles
-            strip += f['rows']
+        strip = [[] for _ in range(48)]
+        for f in fb:                                              # one 48 x 48 baseplate a frame, side by side
+            for r in range(48):
+                if 7 <= r < 41: strip[r] += f['rows'][r - 7]
+                else: strip[r] += [LBG if r in (2, 3, 44, 45) and c % 6 in (2, 3) else 0 for c in range(48)]
         s = build('cascade.beflix-flipbook', 'BEFLIX in Cascade: twelve frames of the film as a LEGO film strip', strip,
-                  {'frames': [{'frame': f['frame'], 't': f['t']} for f in fb], 'frameStuds': [48, 32], 'frameLine': 4}, not a.no_check)
+                  {'frames': [{'frame': f['frame'], 't': f['t']} for f in fb], 'frameStuds': [48, 34], 'edge': 'black, 7 studs, sprocket holes in light bluish grey'},
+                  not a.no_check)
         out.append(s)
     for s in out:
         if s.get('loose') or s.get('clash'): bad = True

@@ -18,7 +18,8 @@ const here = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const root = path.resolve(here, '..', '..');
 const require = createRequire(path.join(here, 'node_modules', 'cascade', 'package.json'));
 const { loadImage, createCanvas } = require('@napi-rs/canvas');
-const cli = path.join(here, 'node_modules/cascade/dist/cli/index.js');
+/* the project's launcher: the CLI with its per-instance node compile serialized (tools/cascade.mjs); races below stay counted */
+const cli = path.join(here, 'tools/cascade.mjs');
 const { graphs } = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8'));
 const score = JSON.parse(fs.readFileSync(path.join(root, 'odyssey/cineosis/score.json'), 'utf8'));
 const signOf = id => { const s = score.scenes.find(x => x.id === id); return s ? { scene: id, title: s.title, sign: s.primary.symbol, signName: s.primary.name, question: s.primary.question } : { scene: id }; };
@@ -84,6 +85,13 @@ const CRITICS = {
     const g = graphs.find(x => x.name === 'facing'), grey = near(77, 74, 69, 30);
     const on = await variant(g, { 'field/explicit': true }, 120, grey), off = await variant(g, { 'field/explicit': false }, 120, grey);
     return { ok: on.ok && off.ok && on.count > 0 && off.count > 0 && on.count !== off.count, explicitInkPixels: on.count, implicitInkPixels: off.count }; } },
+  beflix: { ask: 'Does the song reach the ship: is the Poem Field\'s ink there only while the Sirens sing, does the voice thicken the ink, and is the same frame a LEGO mosaic?', run: async () => {
+    const g = graphs.find(x => x.name === 'beflix'), INK = (r, g2, b) => r < 90 && g2 < 90 && b < 90, TAN = near(215, 186, 140, 22);
+    const sung = await variant(g, {}, 827, INK), unsung = await variant(g, { 'poem/on': 0 }, 827, INK);
+    const loud = await variant(g, { 'camera/driveGain': 1.5 }, 827, INK), mute = await variant(g, { 'camera/driveGain': 0 }, 827, INK);
+    const lego = await variant(g, { 'camera/mode': 'lego' }, 827, TAN);
+    return { ok: [sung, unsung, loud, mute, lego].every(v => v.ok) && sung.count > unsung.count + 2000 && loud.count > mute.count && lego.count > 5000,
+      songInkPixels: sung.count, noSongInkPixels: unsung.count, voiceDrivenInkPixels: loud.count, voiceMutedInkPixels: mute.count, legoTanPixels: lego.count }; } },
 };
 
 const report = { ran: new Date().toISOString(), cascade: JSON.parse(fs.readFileSync(path.join(here, 'node_modules/cascade/package.json'), 'utf8')).version, graphs: [] };

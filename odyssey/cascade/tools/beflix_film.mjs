@@ -8,7 +8,7 @@
      3. media/beflix.mp4 (frames + sound), media/beflix.m4a and .ogg (the sound alone, the player's clock), media/beflix.jpg (the key frame);
      4. the key frame in the camera's three looks: media/beflix-cells.png, beflix-halftone.png, beflix-lego.jpg;
      5. the key frame's print (BxPrint's SVG) -> media/beflix.svg;
-     6. LEGO grids (BxLego with a filename) for the key frame at 144 x 96 studs and for the flip-book's twelve frames at 48 x 32,
+     6. LEGO grids (BxLego with a filename) for the key frame at 144 x 96 studs and for the flip-book's twelve frames at 48 x 34,
         -> kit/beflix-key.json, kit/beflix-flipbook.json, read by tools/beflix_kit.py.
    node tools/beflix_film.mjs [--skip-frames]      HW=<halfworld repo> (default /home/user/odyssey-halfworld) */
 import { execFileSync } from 'node:child_process';
@@ -21,7 +21,9 @@ const ffmpeg = process.env.FFMPEG || execFileSync('python3', ['-c', 'import imag
 const graph = JSON.parse(fs.readFileSync(path.join(here, 'beflix.cascade'), 'utf8'));
 const [F0, F1] = graph.metadata.frames, FPS = graph.metadata.fps;
 export const KEY = 827;                                          /* t = 34.4 s: the Sirens promise, the song in the field, his face inset */
-const FLIP = Array.from({ length: 12 }, (_, i) => Math.round(F0 + (i + 0.5) * (F1 - F0) / 12));
+/* the flip-book: twelve moments (seconds) - the wind dies, the rays, the wax, the stroke, the binding, his face, the song begins,
+   the promise, the struggle, the ropes, the song fading, the Sirens withdrawing */
+const FLIP = [6.5, 10, 15, 18, 24, 28.6, 31.5, 34.4, 38, 40.8, 43.6, 47].map(t => Math.round(t * FPS) + 1);
 const voice = JSON.parse(fs.readFileSync(path.join(here, 'assets/beflix/voice.json'), 'utf8'));
 const R = p => path.join(here, p), cache = R('.cascade-cache');
 fs.mkdirSync(R('media'), { recursive: true }); fs.mkdirSync(R('kit'), { recursive: true }); fs.mkdirSync(R('renders/beflix'), { recursive: true });
@@ -92,7 +94,7 @@ fs.writeFileSync(R('kit/beflix-key.json'), JSON.stringify({ frame: KEY, t: +((KE
 const flip = [];
 for (const f of FLIP) {
   for (const x of fs.readdirSync(cache)) if (/^beflix-lego\./.test(x)) fs.rmSync(path.join(cache, x));
-  variant('flip', { 'lego/filename': 'beflix-lego.json', 'lego/studs': [48, 32] }, ['--frames', String(f), '--fps', String(FPS), '--json', '--timeout', '600000', '--out', 'renders/beflix/flip']);
+  variant('flip', { 'lego/filename': 'beflix-lego.json', 'lego/studs': [48, 34] }, ['--frames', String(f), '--fps', String(FPS), '--json', '--timeout', '600000', '--out', 'renders/beflix/flip']);
   flip.push({ frame: f, t: +((f - 1) / FPS).toFixed(3), ...JSON.parse(fs.readFileSync(newest('beflix-lego', '.json'), 'utf8')) });
 }
 fs.writeFileSync(R('kit/beflix-flipbook.json'), JSON.stringify({ frames: flip }));

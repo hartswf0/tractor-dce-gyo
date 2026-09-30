@@ -187,6 +187,8 @@ WATCH = [
      'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
     ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
      'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
+    ('../cascade/beflix.html', '../cascade/media/beflix.jpg', 'Cascade · BEFLIX film',
+     'BEFLIX in Cascade: the Sirens', 'Knowlton\'s 1963 film machine as a node graph, running Halfworld\'s Sirens with its voice: 52 seconds with sound, a live player, and every frame a buildable LEGO mosaic.'),
     ('../cascade/index.html', '../cascade/kit/cascade.gesture-welcome.jpg', 'Cascade · live graphs',
      'The Odyssey in Cascade', 'Five node graphs you can scrub and turn: Telemachus\'s welcome as a buildable kit, the attention knob, two clocks on Ogygia, the illegal Odyssey, the facing field.'),
     ('../../films/odyssey/OD-B01-S03.mp4', '../../films/odyssey/OD-B01-S03.jpg', 'Film · voiced scene',

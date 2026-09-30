@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const here = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const cli = path.join(here, 'node_modules/cascade/dist/cli/index.js');
+const cli = path.join(here, 'tools/cascade.mjs');          /* the CLI with its per-instance compile serialized */
 const ffmpeg = process.env.FFMPEG || execFileSync('python3', ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())'], { encoding: 'utf8' }).trim();
 const { graphs } = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8'));
 const want = process.argv.slice(2);
@@ -26,6 +26,7 @@ function run(args) {
 
 for (const g of graphs) {
   if (want.length && !want.includes(g.name)) continue;
+  if (g.media) { console.log(`${g.name}: made by ${g.media}`); continue; }
   const out = path.join(here, 'renders', 'media', g.name), t0 = Date.now();
   fs.rmSync(out, { recursive: true, force: true });
   const res = run([cli, 'run', g.graph, '--frames', `${g.frames[0]}-${g.frames[1]}`, '--fps', String(g.fps), '--json', '--timeout', '1800000',
