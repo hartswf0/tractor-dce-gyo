@@ -98,7 +98,8 @@ K.THROW = (X, I, e) => { const p = I.params || {}, hand = p.hand || 'R', lift = 
   X.ev({ lane: 'FX', t0: r3(rel + fl), t1: r3(rel + fl + 0.8), kind: 'SPLASH', label: 'the rock lands', because: [{ id: flight.id, latency: fl }], params: { at: to } });
   X.S.objects = X.S.objects || {}; X.S.objects[p.prop || 'rock'] = { kind: 'rock', material: 'stone', track: [[0, over], ...track], affords: [] };
   return flight; };
-K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, { proc: { type: 'herd', path: p.path, n: p.n || 4, index: p.index || 0, gait: p.gait || 'walk', spacing: p.spacing || 60, seed: p.seed || 3, from: I.t0, to: I.t1, fade: 0.3 } }, { label: I.label || 'with the flock' }); };
+K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, { proc: Object.assign({ type: 'herd', path: p.path, n: p.n || 4, index: p.index || 0, gait: p.gait || 'walk', spacing: p.spacing || 60, seed: p.seed || 3, from: I.t0, to: I.t1, fade: 0.3 },
+  ...['abreast', 'gap', 'spread', 'speed', 'separation', 'y'].filter(k => p[k] != null).map(k => ({ [k]: p[k] }))) }, { label: I.label || 'with the flock' }); };   /* a formation: rows abreast, gap, spread */
 K.STRIKE = (X, I, e) => { const p = I.params || {}, tg = (p.targets || []).map(id => figPoint(X, id, I.t0 + 0.3, X.H(id) * 0.6)).filter(Boolean);
   /* strike() starts from the pose sampled so far (creatures.js runProc passes it): the targets are read in Scylla's own frame */
   const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });

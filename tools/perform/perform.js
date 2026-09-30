@@ -81,8 +81,9 @@ if (require.main !== module) return;
     return; }
   if (cmd === 'measure') { const S = J(scoreF(sid)), before = J(path.join(ROOT, 'odyssey/choreo', sid + '.json')), after = J(sheetF(sid));
     const mb = measureSheet(sid, before, S, [], { cues: before.cues, holds: before.holds }), ma = measureSheet(sid, after, S, S.events);
-    save(path.join(SC, 'measures', sid + '.json'), { scene: sid, measured: new Date().toISOString().slice(0, 10), before: { sheet: 'odyssey/choreo/' + sid + '.json', ...mb }, after: { sheet: 'odyssey/score/' + sid + '.choreo.json', ...ma } });
-    S.measures = { file: 'odyssey/score/measures/' + sid + '.json', before: { ...mb.metrics.summary, essentials: mb.essentials }, after: { ...ma.metrics.summary, essentials: ma.essentials } };
+    const mfile = path.join(SC, 'measures', sid + vtag + '.json');   /* a variant's measures beside the baseline's, not over them */
+    save(mfile, { scene: sid, variant: VAR ? { name: VAR, frozen: FROZEN } : undefined, measured: new Date().toISOString().slice(0, 10), before: { sheet: 'odyssey/choreo/' + sid + '.json', ...mb }, after: { sheet: path.relative(ROOT, sheetF(sid)), ...ma } });
+    S.measures = { file: path.relative(ROOT, mfile), before: { ...mb.metrics.summary, essentials: mb.essentials }, after: { ...ma.metrics.summary, essentials: ma.essentials } };
     for (const e of S.events) { const h = ma.eventHeat[e.id]; if (h) e.heat = { Tm: h.Tm, Tc: h.Tc, dS: h.dS }; }
     save(scoreF(sid), S);
     const row = (n, x) => console.log(n.padEnd(7), 'coverage', x.coverage, 'literal', x.literal, 'dead', x.share.DEAD, 'freeze', x.unmotivatedFreeze, 'unmotivated', x.unmotivatedAction, 'latency', JSON.stringify(x.reactionLatency), 'gestures/phrase', x.gestureDensity, 'diversity', x.diversity, 'slide', x.contact.footSlide, 'handoffs', JSON.stringify(x.contact.handoffs.map(h => h.gap)), 'legality', x.legality.clampRequests + '/' + x.legality.selfCollisions + '/' + x.legality.bodyOverlaps + '/' + x.legality.balance);

@@ -26,10 +26,10 @@ module.exports = function author(M, X) {
   /* the flock at the door: six triads three abreast, a man under each middle ram (the K1 blocking's order); the lane runs out toward +z */
   const teams = [1, 2, 3, 4, 5, 6], abreast = ['a', 'b', 'c'], rs = 1.6 * sc, lead = 'lead', gs = 1.5 * sc;
   const doorZ = 40, laneX = 30, gAt = [-75, 40];
-  const herdPath0 = [[laneX, -10], [laneX, 60], [laneX + 10, 420]];
-  const spacing = 60 * sc, gap = 34 * sc;
+  const spacing = Math.round(82 * rs), gap = Math.round(34 * rs / 1.12);   /* a ram's length between rows; three abreast as the take stages them */
+  const herdPath0 = [[laneX, -10], [laneX, 60], [laneX + 10, doorZ + 6 * spacing + 160]];
   const lW1t0 = q(K3.win ? K3.win[0] : s3 - 2), stopAt = q(Math.max(lW1t0 + 6, s3 + 2));   /* the heavy ram's walk from the pen to the door (about 250 units) */
-  const spec = Ma.rams({ total: T, K1: [s1 + 0.6, s2], K3: [s3, s4], door: (doorZ - (-10)) , back0: 0, spacing, rows: 6, riders: [1, 1, 1, 1, 1, 1], v0: 34 * sc, quoteAt, lastAt: lastW ? q(lastW.t) : null, stopAt, disturb: variant });
+  const spec = Ma.rams({ total: T, K1: [s1 + 0.6, s2], K3: [s3, s4], door: (doorZ - (-10)) , back0: 0, spacing, rows: 6, riders: [1, 1, 1, 1, 1, 1], v0: 44, quoteAt, lastAt: lastW ? q(lastW.t) : null, stopAt, disturb: variant });
   const run = Ho.couple(spec, { frozen }), c = run.events;
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), S_ = o => (stimuli.push(o), o.id), gi = o => (intents.push({ actor: G, ...o }), o.id);
   const needle = (id, t, unit, label, because) => S_({ id, t0: q(t), t1: q(t) + 0.3, kind: 'NEEDLE', label: unit + ': ' + label, because: because || [], params: { unit } });
@@ -64,7 +64,7 @@ module.exports = function author(M, X) {
     const pres = [[0, s2]]; if (K2pos[id]) pres.push([s2, s3]);
     creatures[id] = { kind: 'ram', scale: rs, colour: (idx % 5 === 2) ? 'black' : 'white', at: [laneX, fl, -10, 0], floor: fl, present: pres, procs: [] };
     ramIds.push(id);
-    intents.push({ id: 'rH' + idx, actor: id, kind: 'HERD', t0: s1, t1: s2, label: 'out past the hands, three abreast', params: { path: pathH, n: 18, index: idx, abreast: 3, gap, spacing, spread: 0.12, gait: 'walk', seed: 5 }, because: [{ id: 'sDawn' }] });
+    intents.push({ id: 'rH' + idx, actor: id, kind: 'HERD', t0: s1, t1: s2, label: 'out past the hands, three abreast', params: { path: pathH, n: 18, index: idx, abreast: 3, gap, spacing, spread: 0.12, gait: [[0, 'walk'], [s1 + 2, 'trot']], seed: 5, separation: Math.round(gap * 0.85), speed: 90 }, because: [{ id: 'sDawn' }] });
     if (K2pos[id]) { const [x, z] = K2pos[id], y = Ground.at(M, x, z).y; creatures[id].channels = { 'root.x@span': [[s2, x, 'step'], [s3, x, 'step']], 'root.z@span': [[s2, z, 'step'], [s3, z, 'step']], 'root.y@span': [[s2, y, 'step'], [s3, y, 'step']], 'root.h@span': [[s2, 0, 'step'], [s3, 0, 'step']] };
       intents.push({ id: 'rG' + idx, actor: id, kind: 'GRAZE', t0: s2 + 0.5 + 0.3 * col, t1: s3 - 0.3, label: 'stands to be bound, the head down', because: [{ id: 'sBind' }] }); } }));
   /* the men under the middle rams: riders (belly, face up) from the start to the end of K1; crewman-1 again in K2 */
