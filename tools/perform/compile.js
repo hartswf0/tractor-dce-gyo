@@ -20,7 +20,7 @@
 'use strict';
 const path = require('path');
 const Body = require('./body.js'), Score = require('./score.js');
-const Choreo = require('../../film-readymades/choreo.js');
+const Choreo = require('../../film-readymades/choreo.js'), Creatures = require('../../film-readymades/creatures.js');
 const F = 12, q = t => Math.round(t * F) / F, r3 = v => Math.round(v * 1000) / 1000, r4 = v => Math.round(v * 1e4) / 1e4;
 const cl = (v, a, b) => Math.max(a, Math.min(b, v)), sm = u => { u = cl(u, 0, 1); return u * u * (3 - 2 * u); }, lerp = (a, b, u) => a + (b - a) * u, wrap = Body.wrap;
 function hash32(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
@@ -85,10 +85,15 @@ function Sheet() {
   return { actors, key, begin, end, write, rel: d => ({ rel: d || 0 }) };
 }
 
+/* a creature's channel to the score's body lanes (its legs and knees to the legs, its elbows to the arms, its eye and jaw to the face) */
+const CPROC = { gait: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch'], heavy: ['root.x', 'root.z', 'leg.R.pitch', 'leg.L.pitch', 'torso.roll'], grope: ['arm.R.pitch', 'arm.L.pitch', 'torso.lean'], reach: ['arm.R.pitch', 'elbow.R', 'torso.lean'], strike: ['neck'], herd: ['root.x', 'root.z', 'leg'] };
+function creatureLane(c) { if (Score.CH_LANE[c]) return Score.CH_LANE[c]; const [a, b] = c.split('.');
+  if (a === 'root') return 'ROOT'; if (a === 'body' || a === 'hips') return 'WEIGHT'; if (a === 'elbow' || a === 'hand') return b === 'L' ? 'ARM.L' : 'ARM.R'; if (a === 'knee' || a === 'leg') return /L$/.test(b || '') ? 'LEG.L' : 'LEG.R';
+  if (a === 'eye' || a === 'jaw' || a === 'ear' || a === 'tail') return 'FACE'; if (a === 'neck' || /^neck\d/.test(a)) return 'HEAD'; if (a === 'rider') return 'PROP'; return null; }
 /* ═════ the compile ═════ */
 function compile(M, S, opts = {}) {
   const A = S.authored || {}, θ = Object.assign(defaults(), S.params || {}, opts.params || {}), sid = M.scene, T = M.total;
-  const B = Body.Blocking(M), bctx = { M, C: null, B }, sheet = Sheet(), E = Score.Events([]), props = [], rigs = {}, notes = [];
+  const B = Body.Blocking(M), bctx = { M, C: null, B }, sheet = Sheet(), E = Score.Events([]), props = [], rigs = {}, creatures = {}, notes = [];
   const ids = B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis));
   const H = id => (M.H && M.H[id]) || 60, aff = id => Object.assign({ fear: 0, weight: 1, suspicion: 0, cunning: 0, heat: 1 }, ((S.actors || {})[id] || {}).affect || {});
   const scale = M.scale || 1, stud = 20 * scale;
@@ -177,7 +182,17 @@ function compile(M, S, opts = {}) {
     /* an intent's amplitude: the compiler's amp x the intent's own params.amp */
     ampOf: I => ((I && I.params && I.params.amp) || 1),   /* the intent's own amplitude; the compiler's amp is applied to every expressive move */
     /* the exits an afraid actor looks to first: the scene's objects of kind door */
-    exits: () => Object.entries(S.objects || {}).filter(([, o]) => o.kind === 'door' || o.exit).map(([k]) => k) };
+    exits: () => Object.entries(S.objects || {}).filter(([, o]) => o.kind === 'door' || o.exit).map(([k]) => k),
+    /* creatures (film-readymades/creatures.js): a giant, a ram, Scylla as an actor of the sheet's `creatures`; a creature's moves are
+       procedures (gait, heavy, grope, reach, strike, herd, preset) or keys, each an ACTION event with its causes, like a figure's */
+    creatures, creature: (id, kind, o = {}) => { if (!creatures[id]) Object.assign(creatures, Creatures.fragment(id, kind, o)); return creatures[id]; },
+    cmove: (id, kind, why, spec, o = {}) => { const Cr = creatures[id]; if (!Cr) { notes.push('no creature ' + id); return null; } let t0 = spec.from, t1 = spec.to; const chs = new Set();
+      if (spec.proc) { Cr.procs.push(spec.proc); t0 = spec.proc.from != null ? spec.proc.from : 0; t1 = spec.proc.to != null ? spec.proc.to : T; for (const c of CPROC[spec.proc.type] || []) chs.add(c); if (spec.proc.type === 'preset') for (const c of Object.keys(Creatures.define(Cr.kind).preset(spec.proc.name) || {})) chs.add(c); }
+      for (const [ch, K] of Object.entries(spec.keys || {})) { if (!K.length) continue; const L = Cr.channels[ch] || (Cr.channels[ch] = []); for (const k of K) { while (L.length && L[L.length - 1][0] > k[0] + 1e-6) L.pop(); L.push([r4(k[0]), r4(k[1])].concat(k[2] ? [k[2]] : [])); }
+        chs.add(ch.split('@')[0]); t0 = Math.min(t0 != null ? t0 : 1e9, K[0][0]); t1 = Math.max(t1 != null ? t1 : -1e9, K[K.length - 1][0]); }
+      for (const R of spec.riders || []) { Cr.riders.push(R); chs.add('rider'); }
+      const lanes = [...new Set([...chs].map(creatureLane).filter(Boolean))];
+      return ev({ lane: 'ACTION', actor: id, t0: r3(t0), t1: r3(t1), kind, label: o.label || '', because: because(why).map(b => { const c = E.get(b.id); return c ? { id: c.id, latency: r3(t0 - c.t0), rel: b.rel || (t0 < c.t0 - 1e-6 ? 'anticipates' : undefined) } : b; }), layer: 'creature', lanes, params: o.params }); } };
 
   /* 1. VOICE: every clip on the clock; a spoken line is an UTTERANCE {speaker, addressee, phrases, stress, speech_act, affect, goal} */
   const clips = (M.clips || []).filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
@@ -206,7 +221,10 @@ function compile(M, S, opts = {}) {
   for (const s of A.stimuli || []) ev({ ...s, lane: 'STIMULUS', because: because(s.because).map(b => ({ ...b })) });
   const intents = (A.intents || []).concat((A.holds || []).map(h => ({ ...h, kind: 'HOLD' }))).map(I => ({ ...I })).sort((a, b) => a.t0 - b.t0);
   for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });
-  for (const I of intents) { const f = INT[I.kind]; if (!f) { notes.push('no realiser for intent ' + I.kind + ' (' + I.id + ')'); continue; } f(X, I, E.get(I.id)); }
+  /* the scene's creatures, placed (a preset over the take's piece box, or at a point), before their intents */
+  const INTC = require('./intents-creature.js');
+  for (const [cid, d] of Object.entries(A.creatures || {})) X.creature(cid, d.kind, { scale: d.scale || 1, at: d.at || (d.place ? INTC.place(d.kind, d.scale || 1, d.place.preset, d.place) : [0, 0, 0, 0]), procs: d.procs ? JSON.parse(JSON.stringify(d.procs)) : [] });
+  for (const I of intents) { const f = creatures[I.actor] ? INTC[I.kind] : INT[I.kind]; if (!f) { notes.push('no realiser for ' + (creatures[I.actor] ? 'creature ' : '') + 'intent ' + I.kind + ' (' + I.id + ')'); continue; } f(X, I, E.get(I.id)); }
   /* 3. machinery (clocks, couplings, constraints) the scene declares */
   if (A.machinery) { const Mach = require('./machinery.js'); for (const m of [].concat(A.machinery)) if (Mach[m.kind]) Mach[m.kind](X, m); else notes.push('no machinery ' + m.kind); }
   /* 4. the walks the blocking gives: the body goes with the take's walk (bob, lean), owned by the intent that wants the move */
@@ -273,6 +291,7 @@ function compile(M, S, opts = {}) {
       cues: E.list.filter(e => e.lane === 'ACTION' && !e.derived).map(e => ({ t: r3(e.t0), actor: e.actor, what: e.kind.toLowerCase() + (e.label ? ' ' + e.label : '') })).sort((a, b) => a.t - b.t),
       holds: E.list.filter(e => e.lane === 'INTENT' && e.kind === 'HOLD').map(e => ({ actor: e.actor, t0: e.t0, t1: e.t1, why: e.label })),
       notes, actors, props: props.slice().sort((a, b) => a.t - b.t), rigs, overrides: opts.overrides || {} };
+    if (Object.keys(creatures).length) C.creatures = JSON.parse(JSON.stringify(creatures));
     Choreo.compile(C); return C;
   }
 }

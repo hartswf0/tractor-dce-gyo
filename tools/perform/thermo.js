@@ -102,7 +102,16 @@ function thermo(Tr, S, o = {}) {
   /* 1. motion power and T_m per actor, then conduction through couplings */
   const P = {}, T = {};
   for (const id of ids) { const p = new Float32Array(n); for (let i = 1; i < n; i++) { const a = frames[i].a[id], b = frames[i - 1].a[id]; if (a && b) p[i] = power(a.s, b.s, H(id)); } P[id] = p; }
-  const objs = S.objects || {}, nodes = [...ids, ...Object.keys(objs)], idx = new Map(nodes.map((x, i) => [x, i])), mat = x => objs[x] ? (MATERIAL[objs[x].material] || MATERIAL.wood) : MATERIAL.flesh;
+  /* a creature of the sheet (film-readymades/creatures.js) that is also an object of the score: its own motion is a heat source
+     (0.02 x the sum of its joints' squared angular speeds + its root's speed in hundreds of units a second, squared), beside any
+     authored source (the Blinding's arousal needle): the larger of the two */
+  const objs0 = S.objects || {}, objs = {}; for (const [k, ob] of Object.entries(objs0)) objs[k] = ob;
+  const CRs = Tr.C && Tr.C.creatures; if (CRs) { const Cr = require('../../film-readymades/creatures.js');
+    for (const cid of Object.keys(CRs)) { if (!objs[cid]) continue; const src = new Float32Array(n); let prev = null;
+      for (let i = 0; i < n; i++) { const v = Cr.sample(Tr.C, cid, i / F).v; if (prev) { let w = 0; for (const k in v) { if (/^root\.[xyz]$/.test(k) || k === 'hips.dy' || k === 'body.dy' || /^neck\d\.[xyz]$/.test(k)) continue; const d = (v[k] || 0) - (prev[k] || 0); w += d * d * F * F; }
+          const sp = Math.hypot((v['root.x'] || 0) - (prev['root.x'] || 0), (v['root.y'] || 0) - (prev['root.y'] || 0), (v['root.z'] || 0) - (prev['root.z'] || 0)) * F / 100; src[i] = Math.min(3, 0.02 * w + sp * sp); } prev = v; }
+      const au = objs[cid].sourceSeries; objs[cid] = { ...objs[cid], motionSeries: Array.from(src), sourceSeries: Array.from(src, (x, i) => Math.max(x, au ? (au[Math.min(au.length - 1, i)] || 0) : 0)) }; } }
+  const nodes = [...ids, ...Object.keys(objs)], idx = new Map(nodes.map((x, i) => [x, i])), mat = x => objs[x] ? (MATERIAL[objs[x].material] || MATERIAL.wood) : MATERIAL.flesh;
   const group = id => ((S.actors || {})[id] || {}).group;
   /* edges at drawing i: [a, b, k] */
   function edges(i) { const out = [], t = i / F, own = Choreo.propsAt(Tr.C || { props: [] }, t).own;
@@ -162,13 +171,14 @@ function thermo(Tr, S, o = {}) {
   /* bodies that are props (the giant: S.actors[id].body 'prop', with a heat of their own) count as figures: on screen if their mark
      projects inside the frame */
   const propBodies = Object.keys(objs).filter(k => ((S.actors || {})[k] || {}).body === 'prop');
-  const markAt = (ob, t) => { if (ob.track) { let p = ob.track[0][1]; for (const [tt, pp] of ob.track) if (tt <= t) p = pp; return p; } return ob.at; };
+  const crHead = (k, t) => { if (!CRs || !CRs[k]) return null; const Cr = require('../../film-readymades/creatures.js'), sm = Cr.sample(Tr.C, k, t), M = sm.rig.anchor('head', sm.v) || sm.rig.anchor('back', sm.v); return M ? M.slice(0, 3) : [sm.v['root.x'] || 0, sm.v['root.y'] || 0, sm.v['root.z'] || 0]; };
+  const markAt = (ob, t, k) => { const c = k != null ? crHead(k, t) : null; if (c) return c; if (ob.track) { let p = ob.track[0][1]; for (const [tt, pp] of ob.track) if (tt <= t) p = pp; return p; } return ob.at; };
   /* a stage of one or two figures: the room they must read against includes the environment objects marked room (the storm's sea):
      a lone swimmer is hot only if he is hotter than the sea */
   const roomObjs = Object.keys(objs).filter(k => objs[k].room && T[k]);
   for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).concat(propBodies.map(k => T[k][i])).concat(here.length < 3 ? roomObjs.map(k => T[k][i]) : []).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
     const shown = here.filter(id => frames[i].a[id].on !== false).map(id => T[id][i]);
-    for (const k of propBodies) { const P = frames[i].P, p = markAt(objs[k], i / F), q = P && p ? P(p) : null; if (!P || (q && Math.abs(q[0]) <= 1.2 && Math.abs(q[1]) <= 1.2)) shown.push(T[k][i]); }
+    for (const k of propBodies) { const P = frames[i].P, p = markAt(objs[k], i / F, k), q = P && p ? P(p) : null; if (!P || (q && Math.abs(q[0]) <= 1.2 && Math.abs(q[1]) <= 1.2)) shown.push(T[k][i]); }
     CT[i] = Math.max(0, (shown.length ? Math.max(...shown) : xs[xs.length - 1]) - med); Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }
   for (const c of cuts) { const i = Math.round(c.t * F); c.dT = r3((CT[i] || 0) - (CT[Math.max(0, i - 1)] || 0)); c.transfer = c.hotBefore !== c.hotAfter; }
   /* 5. the field: nodes splatted on a floor grid over the set, one grid a second */

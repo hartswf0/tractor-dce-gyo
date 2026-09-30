@@ -21,6 +21,12 @@ function frame(g, W, H, D, f) {
     const gr = g.createRadialGradient(X(b.x), Y(b.y), 0, X(b.x), Y(b.y), r); gr.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`); gr.addColorStop(1, `rgba(${cr},${cg},${cb},0)`); g.fillStyle = gr; g.beginPath(); g.arc(X(b.x), Y(b.y), r, 0, Math.PI * 2); g.fill(); }
   g.globalCompositeOperation = 'source-over';
   /* the giant (a prop in the take: his pose is his needle) */
+  /* creatures (film-readymades/creatures.js rigs): their pivot tree as sticks, the head a disc, the eye */
+  for (const Cq of f.creatures || []) { g.lineCap = 'round'; g.strokeStyle = dark ? 'rgba(214,190,160,0.9)' : 'rgba(96,64,40,0.9)';
+    for (const [ax, ay, bx, by, w] of Cq.segs) { g.lineWidth = Math.max(2, w * H); g.beginPath(); g.moveTo(X(ax), Y(ay)); g.lineTo(X(bx), Y(by)); g.stroke(); }
+    if (Cq.head) { g.fillStyle = dark ? 'rgba(150,120,95,0.9)' : 'rgba(170,140,110,0.8)'; g.beginPath(); g.arc(X(Cq.head[0]), Y(Cq.head[1]), Math.max(3, Cq.head[2] * H), 0, 7); g.fill(); }
+    if (Cq.eye) { g.fillStyle = Cq.eye[2] >= 1.5 ? '#b3261e' : '#f4f0e6'; g.beginPath(); g.arc(X(Cq.eye[0]), Y(Cq.eye[1]), Math.max(2, Cq.head ? Cq.head[2] * H * 0.3 : 3), 0, 7); g.fill(); }
+    if (Cq.label) { g.fillStyle = dark ? 'rgba(230,220,200,0.8)' : 'rgba(60,40,30,0.8)'; g.font = '11px monospace'; g.fillText(Cq.label, X(Cq.lx) + 6, Y(Cq.ly) - 6); } }
   for (const G of f.giants || []) { const s = G.s * H, x = X(G.x), y = Y(G.y); g.strokeStyle = dark ? 'rgba(210,190,170,0.85)' : 'rgba(90,60,40,0.85)'; g.lineWidth = Math.max(2, s * 0.05); g.fillStyle = dark ? 'rgba(120,95,80,0.55)' : 'rgba(150,120,100,0.35)';
     const up = G.up; g.save(); g.translate(x, y); g.rotate(-(1 - up) * 1.2);
     g.beginPath(); g.ellipse(0, -s * 0.35, s * 0.18, s * 0.38, 0, 0, Math.PI * 2); g.fill(); g.stroke();

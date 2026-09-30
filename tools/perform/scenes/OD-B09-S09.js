@@ -13,7 +13,7 @@
    (X.variant: 'wake-early' disturbs POLYPHEMUS with a bowl knocked over at 33 s; X.frozen: the uniselectors held) re-derives the
    whole scene from the new needles: the regulated re-choreography, or the failure. */
 'use strict';
-const Ho = require('../homeostat.js'), Ma = require('../machinery.js');
+const Ho = require('../homeostat.js'), Ma = require('../machinery.js'), Ic = require('../intents-creature.js');
 module.exports = function author(M, X) {
   const K = id => M.keys.find(k => k.id === id), K2 = K('K2'), K3 = K('K3'), K4 = K('K4'), K5 = K('K5'), T = M.total;
   const variant = X.variant || null, frozen = !!X.frozen;
@@ -98,6 +98,21 @@ module.exports = function author(M, X) {
   I({ id: 'iRam', actor: O, kind: 'APPROACH', t0: K5.win[0], t1: K5.win[1], key: 'K5', target: 'ram', label: 'under the ram', because: [{ id: 'sCall' }] });
   I({ id: 'iCling', actor: O, kind: 'CLING', t0: K5.win[1] + 0.1, t1: T, label: 'holds on under the ram as the giant\'s hands pass', because: [{ id: 'iRam' }] });
   holds.push({ id: 'hCling', actor: O, t0: K5.win[1] + 0.1, t1: T, reason: 'under the ram, still: the giant\'s hands pass over the fleece', params: { weight: false }, because: [{ id: 'iRam' }] });
+  /* the giant as a creature (film-readymades/creatures.js, the polyphemus rig): placed over the take's piece (sprawled), the jaw on
+     his own voice, asleep on the needle's crossing, the stir, the eye put out by the thrust, the roar on his feet at the K4 place, the
+     heavy walk to the door, sitting there, the blind hands groping the backs of the flock. The take still shows its staged prop until the
+     player loads the rig (film-readymades/CREATURES.md); the previz, the metrics and the heat use the rig. */
+  const gPiece = (M.pieces || []).find(p => p.label === 'polyphemus'), gScale = 1.25, placeK4 = [10, 0, -120, 0.35];
+  const placeK5 = Ic.place('polyphemus', gScale, 'sit', { center: [-40, 110], y: 0, h: 2.2 });
+  const G = giant, gi = o => (intents.push({ actor: G, ...o }), o.id);
+  gi({ id: 'gTalk', kind: 'TALK', t0: talk.at, t1: talk.at + talk.dur, utterance: talk.gi, label: 'the jaw on his drunken words', because: [{ id: 'sTalk' }] });
+  gi({ id: 'gSleep', kind: 'SLEEP', t0: q(c.asleep), t1: q(c.roar || c.stir || T), label: 'the wine takes him: the eye shuts, the slow breath', because: [{ id: 'sSleep' }] });
+  if (c.stir) gi({ id: 'gStir', kind: 'STIR', t0: q(c.stir), t1: q(c.stir) + 2, label: 'a groan; the great hand moves', because: [{ id: 'sStir' }] });
+  if (c.thrust && !c.failed) gi({ id: 'gBlind', kind: 'BLINDED', t0: q(c.thrust) + 0.1, t1: q(c.roar || c.thrust + 4), label: 'the eye put out: the head thrown back, the hands to the face', because: [{ id: 'iThrust' }] });
+  if (c.roar) gi({ id: 'gRoar', kind: 'ROAR', t0: q(c.roar), t1: Math.max(q(c.roar) + 3, K4.win[1]), label: c.failed ? 'awake, and seeing: the roar' : 'on his feet, the roar', params: { place: placeK4, rise: 1.4 }, because: [{ id: 'sRoar' }] });
+  gi({ id: 'gWalk', kind: 'WALK', t0: K5.win[0], t1: K5.win[1], label: 'the heavy walk to the door', params: { path: [[K5.win[0], placeK4[0], placeK4[2]], [K5.win[1], placeK5[0], placeK5[2]]] }, because: [{ id: c.roar ? 'sRoar' : 'sCall' }] });
+  gi({ id: 'gSit', kind: 'POSE', t0: K5.win[1], t1: T, label: 'sits in the doorway', params: { preset: 'sit', fade: 0.8 }, because: [{ id: 'gWalk' }] });
+  gi({ id: 'gGrope', kind: 'GROPE', t0: K5.win[1] + 0.6, t1: T, label: 'feels the backs of the rams as they pass', params: { center: [70, 40, 55], width: 110, depth: 30 }, because: [{ id: 'gSit' }] });
   /* the giant's arousal as his heat (he is a prop: his body is the needle) */
   const xs = run.x[1], hz = run.hz, sourceSeries = []; for (let i = 0; i < Math.floor(T * 12); i++) { const v = xs[Math.min(xs.length - 1, Math.round(i / 12 * hz))]; sourceSeries.push(Math.round(Math.max(0, v + 0.2) * 2.5 * 1000) / 1000); }
   const giantTrack = [[0, [-15, 70, -165]], [K4.win[0] + (K4.win[1] - K4.win[0]) / 2, [10, 150, -120]], [K5.win[0] + (K5.win[1] - K5.win[0]) / 2, [-40, 60, 110]]];
@@ -107,7 +122,7 @@ module.exports = function author(M, X) {
     objects: { [giant]: { kind: 'giant', material: 'flesh', track: giantTrack, sourceSeries, affords: ['wake', 'seize', 'roar'] }, [fire]: { kind: 'fire', material: 'fire', at: [-57, 30, -28], affords: ['heat the stake'] },
       [stake]: { kind: 'stake', material: 'weapon', track: [[0, [60, 10, -205]], [K2.win[0] + 2, [0, 40, -10]], [c.thrust || K3.win[1], [-15, 70, -160]], [K4.win[0] + 2.5, [-150, 5, 40]]], touches: [O, ...men], affords: ['heat', 'carry', 'thrust', 'twist'] },
       [stone]: { kind: 'door', material: 'stone', at: [-10, 60, 125], exit: true, affords: ['block the way out'] }, ram: { kind: 'animal', material: 'flesh', at: [70, 30, 55], affords: ['hide under'] } },
-    authored: { intents, holds, stimuli, goals: { [O]: 'blind him without waking him before the point is in', [men[0]]: 'do not let go' },
+    authored: { intents, holds, stimuli, creatures: { [giant]: { kind: 'polyphemus', scale: gScale, place: { preset: 'sprawl', box: gPiece ? gPiece.box : [-87, 6, -208, 52, 152, -91], h: 0.15 }, procs: [{ type: 'preset', name: 'sprawl', from: 0, to: c.roar ? q(c.roar) + 0.6 : T, fade: 0.8 }] } }, goals: { [O]: 'blind him without waking him before the point is in', [men[0]]: 'do not let go' },
       couplings: [{ from: O, to: stake, via: 'weapon', t0: K2.win[1], t1: c.roar || c.brokeAt || T }, ...men.map(m => ({ from: m, to: stake, via: 'weapon', t0: K2.win[1], t1: c.roar || c.brokeAt || T })), { from: stake, to: giant, via: 'weapon', t0: c.thrust || T, t1: c.roar || T, env: true }, { from: fire, to: stake, via: 'fire', t0: K2.win[1], t1: c.decide || K3.win[0] }],
       coupled: { variant, frozen, units: run.units, hz: run.hz, x: run.x, drives: run.drives, W0: run.W0, W: run.W, steps: run.steps, events: c, model: 'tools/perform/machinery.js blinding' },
       /* the causal model: each one's reachable actions over the next two seconds; the giant's heat (his arousal needle) is the threat,

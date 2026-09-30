@@ -105,11 +105,42 @@ Every realiser writes through `X.move(actor, layer, kind, cause, k => { k(t, {ch
 `authored.machinery: [{kind: 'ROWING', clock: {period, t0, t1}, offsets: {actor: fraction}, amp, busy}, {kind: 'SIRENS_CHAIN', ...}]`
 (see `machinery.js`). Couplings for the heat: `authored.couplings: [{from, to, via (a material), k?, t0, t1, env?}]`.
 
+`{kind: 'SEA', level: [[t, 0..1]], causes: [{t, id}], hulls: [{id, piece, pivot, riders, gain, omega, zeta, impulses: [{t, roll,
+pitch, id, label}]}], swimmers: [{actor, t0, t1}], rowers: [ids], fx}`: the sea as an actor. A wave field of three crests scaled by
+the level; each change of level is a `SEA RISES` / `SEA FALLS` event caused by the scene step named in `causes`. Each hull is a
+damped oscillator in pitch and roll, driven by the slope under its pivot and by the impulses; its heave is the crest. It writes
+`rigs[id]` (a ship rig: the player turns the piece and its riders). Standing riders who are not rowers get a BALANCE move against the
+deck. Swimmers ride the swell (`root.y`, lean, roll). SPLASH FX mark breaking crests. The sea is an object of water with a heat
+source (level x crest speed) marked `room`: on a stage of one or two figures, contrast is read against it.
+
+Ship riders are an id or `[id, t0, t1]` (a window: thrown off at a SEPARATION, back aboard at a RECOVER). choreo.js, body.js,
+metrics.js and thermo.js all honour the window (`Body.rides(R, id, t)`).
+
+### Creatures
+
+`authored.creatures: {id: {kind, scale, at: [x, y, z, h] | place: {preset, box | center, y, h}, procs}}` declares a giant, a ram,
+a dog or Scylla (film-readymades/creatures.js kinds: polyphemus, laestrygon, ram, dog, cattle, scylla). `place` fits a preset's body
+over the take's set piece (the box's centre and floor). The compiled sheet carries them in `creatures` (the rig's own format:
+`procs` and `channels`, see film-readymades/CREATURES.md). An intent whose actor is a creature is realised by `intents-creature.js`:
+POSE, SLEEP, TALK (the jaw on the voice's phrases), STIR, BLINDED, ROAR {place}, WALK {path} (heavy for giants, a gait for animals),
+GROPE, REACH, SEIZE (the man rides grip.R from the grip: a CONTACT GRIP event), EAT, THROW (a rock's parabola as a PROP FLIGHT event
+and a `rock` object with a track), HERD, STRIKE {targets} (Scylla: riders on the jaws), ATTEND/LISTEN, RECOGNISE, INVOKE, GESTURE.
+Each is an ACTION event on the creature with lanes mapped from its channels (elbows to the arms, knees to the legs, jaw and eye to
+FACE). A creature that is also an object of the score (`objects[id]`, `actors[id].body: 'prop'`) gets a heat source from its own
+motion (the larger of that and any authored source), and its head decides whether it is on screen for C_T. A figure a creature
+carries (`riders`) is placed at the anchor by body.js (`carried`) and skipped by the slide and balance checks. The first-score
+builder finds creatures in the take's keyframes (odyssey/keyframes/<scene>.json: a prop named polyphemus..., laestrygon..., ram...)
+and places them where the take puts the prop. The film's player does not load the rigs yet (CREATURES.md, "Wiring it into the
+film"): the take shows its staged prop; the previz, the metrics and the heat use the rig.
+
 ### The causal model
 
 `authored.causal: {tau, actions: {actor: [{a, base, f: {'feature:arg:arg': weight}, uses: [object ids]}]}}`. Features (thermo.js):
 `dist:x`, `near:x:r`, `sees:x`, `seated[:x]`, `walking[:x]`, `holds:prop`, `intent:KIND`, `after:eventId`, `threat:x`,
-`speaking[:x]`, `open:door`. p = softmax(u / tau), S_c = -sum p log2 p.
+`speaking[:x]`, `open:door`. p = softmax(u / tau), S_c = -sum p log2 p. A first score from the needs catalogue (`scenes/_auto.js`) declares a
+generic model, marked `generic: true`: stay; each of the figure's own intents (rising while it runs and after its chain step); turn
+to a principal (more while he speaks, less once seen); leave (non-principals, under a principal's heat); answer each chain step
+(principals, until the next). H2 is then the change rate of those options, not of a director's.
 
 ## Compiler parameters (the homeostat's selectors, 25 positions each)
 
@@ -131,7 +162,7 @@ current reading.
   to choreo.js's CLAMP and applyRig, and write GIANT_RIG / QUADRUPED intents (SEIZE, EAT, THROW, HERD) here.
 - The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for. Present: the three intent files above, ROPE (bind,
   haul), SEAL, SING, BECKON, STEER, PLEAD_BOUND, ROWING and SIRENS_CHAIN machinery; gesture shapes open point chop fist chest dismiss plead
-  recoil offer invoke taunt describe mime oath reach show. Missing: TRANSFORM (needs a body swap in the take), a generic SHIP rig beyond
-  the Sirens' chain (waves pushing a ship, a raft capsizing, a fleet), SEA as an actor, giant and quadruped rigs (film-readymades/
-  creatures.js, in progress by another agent).
+  recoil offer invoke taunt describe mime oath reach show, SEA (hulls, rafts, swimmers, rowers on one clock). Missing: TRANSFORM
+  (needs a body swap in the take), a hull breaking up, the player loading the creature rigs. Ships translate (a rock's wave pushes a
+  hull toward the shore: `dx`, `dz` channels) and creatures act (see Creatures).
 - `tools/perform/pagedata.js` builds the page's data; `perform.js desk <scene>` writes the engine's lanes into the rig desk's score.

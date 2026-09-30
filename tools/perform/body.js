@@ -108,8 +108,12 @@ function poseAt(ctx, id, t, extra) {
   /* the ship: its riders turned about the pivot with the hull and lifted with its heave (choreo.js applyShip) */
   if (C && C.rigs) for (const [rid, R] of Object.entries(C.rigs)) { if (!(R.type === 'ship' || rid === 'ship') || !rides(R, id, t)) continue;
     const sv = Choreo.sampleRig(C, rid, t) || {}, Q = mul(eYXZ(sv.pitch || 0, R.yaw || 0, sv.roll || 0), eYXZ(0, -(R.yaw || 0), 0)), piv = R.pivot, qp = apR(Q, piv);
-    const off = [piv[0] - qp[0], piv[1] - qp[1] + (sv.heave || 0), piv[2] - qp[2]], np = apR(Q, P.p); P.p = [np[0] + off[0], np[1] + off[1], np[2] + off[2]];
+    const off = [piv[0] - qp[0] + (sv.dx || 0), piv[1] - qp[1] + (sv.heave || 0), piv[2] - qp[2] + (sv.dz || 0)], np = apR(Q, P.p); P.p = [np[0] + off[0], np[1] + off[1], np[2] + off[2]];
     const e = toYXZ(mul(Q, eYXZ(P.rot[0], P.rot[1], P.rot[2]))); P.rot = e; P.ship = { pitch: sv.pitch || 0, roll: sv.roll || 0, heave: sv.heave || 0 }; }
+  /* a creature's rider (a man in a giant's fist, in Scylla's jaw): the figure hangs from the anchor (its hips there), carried */
+  if (C && C.creatures) for (const [cid, A] of Object.entries(C.creatures)) for (const R of A.riders || []) { if (R.actor !== id || (R.from != null && t < R.from) || (R.to != null && t > R.to)) continue;
+    const Cr = require('../../film-readymades/creatures.js'), sm = Cr.sample(C, cid, t), r = sm.riders.find(x => x.actor === id); if (!r) continue;
+    const hh = (M.H && M.H[id]) || 60; P.p = [r.m[0], r.m[1] - hh * 0.45, r.m[2]]; P.carried = cid; }
   return P;
 }
 

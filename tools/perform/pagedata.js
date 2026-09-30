@@ -15,11 +15,11 @@ function summary(s) { if (!s) return null; return { coverage: s.coverage, litera
   slide: s.contact.footSlide, handoffs: s.contact.handoffs, legality: { requests: s.legality.clampRequests, collisions: s.legality.selfCollisions, overlaps: s.legality.bodyOverlaps, balance: s.legality.balance } }; }
 for (const sid of SCENES) {
   const S = J('odyssey/score/' + sid + '.json'), M = J('odyssey/choreo/marks/' + sid + '.json'), Ms = ex('odyssey/score/measures/' + sid + '.json') ? J('odyssey/score/measures/' + sid + '.json') : null;
-  const ids = Object.keys(M.H || {}), colors = Object.fromEntries(ids.map((id, k) => [id, PAL[k % PAL.length]]));
+  const ids = Object.keys(M.H || {}).concat(Object.keys((S.authored || {}).creatures || {})), colors = Object.fromEntries(ids.map((id, k) => [id, PAL[k % PAL.length]]));
   const bands = S.bands || Homeostat.bandsFor(S.type);
   const out = { scene: sid, title: S.title, type: S.type, direction: (S.source || {}).direction || '', autoNotes: ((S.authored || {}).notes || []).slice(0, 20), compileNotes: ((S.compiled || {}).notes || []).slice(0, 8), total: M.total, built: new Date().toISOString().slice(0, 10),
     media: { previz: 'media/previz-' + sid + '.mp4', previzActed: ex('odyssey/perform/media/previz-' + sid + '-acted.mp4') ? 'media/previz-' + sid + '-acted.mp4' : null, poster: 'media/previz-' + sid + '.jpg', film: ex('films/odyssey/' + sid + '-performed.mp4') ? '../../films/odyssey/' + sid + '-performed.mp4' : null, acted: ex('films/odyssey/' + sid + '-acted.mp4') ? '../../films/odyssey/' + sid + '-acted.mp4' : null },
-    lanes: Score.LANES, actors: Object.fromEntries(ids.map(id => [id, { short: Score.short(id), color: colors[id], role: ((S.actors || {})[id] || {}).role || '', principal: !!((S.actors || {})[id] || {}).principal }])),
+    lanes: Score.LANES, actors: Object.fromEntries(ids.map(id => [id, { short: Score.short(id), color: colors[id], role: ((S.actors || {})[id] || {}).role || '', creature: ((S.authored || {}).creatures || {})[id] ? ((S.authored || {}).creatures || {})[id].kind : undefined, principal: !!((S.actors || {})[id] || {}).principal }])),
     objects: Object.fromEntries(Object.entries(S.objects || {}).map(([k, o]) => [k, { kind: o.kind, material: o.material, affords: o.affords || [] }])),
     events: events(S), params: S.params, params0: S.params0, paramDefs: Compile.PARAMS, bands,
     measures: Ms ? { before: { sheet: Ms.before.sheet, summary: summary(Ms.before.metrics.summary), essentials: Ms.before.essentials, actors: Ms.before.metrics.actors },

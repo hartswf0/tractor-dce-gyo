@@ -11,7 +11,7 @@
 const fs = require('fs'), path = require('path'), { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const Body = require('./body.js'), Metrics = require('./metrics.js'), Thermo = require('./thermo.js'), Score = require('./score.js'), Choreo = require('../../film-readymades/choreo.js');
-const P = require('./perform.js');
+const P = require('./perform.js'), Cr = require('../../film-readymades/creatures.js'), crKinds = Object.fromEntries(Cr.kinds().map(k => [k.kind, k]));
 const args = process.argv.slice(2), sid = args.find(a => /^OD-B\d\d-S\d\d$/.test(a)), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const PAL = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#d35400', '#c0392b', '#7f8c8d', '#16a085', '#8e44ad', '#27ae60', '#e67e22', '#2980b9'];
 const FF = (() => { try { return execFileSync('python3', ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim(); } catch (e) { return 'ffmpeg'; } })();
@@ -31,10 +31,10 @@ function build(sid, o) {
   for (let i = i0; i < i1; i++) { const t = i / 12, fr = Tr.frames[i], Pj = fr.P || (() => null), f = { t, shot: fr.cam ? fr.cam.kind : '', set: [], glow: [], figs: [], props: [], giants: [] };
     const pr = p => { const q = Pj(p); return q ? [r4(q[0]), r4(q[1]), r4(q[2])] : null; };
     /* a piece a ship rig turns (the SEA or the Sirens' hull): its box about the pivot, lifted by the heave (as choreo.js applyShip) */
-    const rigOf = pc => { for (const [rid, R] of Object.entries((C && C.rigs) || {})) if ((R.type === 'ship' || rid === 'ship') && R.piece === pc.label) { const v = Choreo.sampleRig(C, rid, t) || {}, Q = Body.mul(Body.eYXZ(v.pitch || 0, R.yaw || 0, v.roll || 0), Body.eYXZ(0, -(R.yaw || 0), 0)); return p => { const q = Body.apR(Q, [p[0] - R.pivot[0], p[1] - R.pivot[1], p[2] - R.pivot[2]]); return [q[0] + R.pivot[0], q[1] + R.pivot[1] + (v.heave || 0), q[2] + R.pivot[2]]; }; } return null; };
+    const rigOf = pc => { for (const [rid, R] of Object.entries((C && C.rigs) || {})) if ((R.type === 'ship' || rid === 'ship') && R.piece === pc.label) { const v = Choreo.sampleRig(C, rid, t) || {}, Q = Body.mul(Body.eYXZ(v.pitch || 0, R.yaw || 0, v.roll || 0), Body.eYXZ(0, -(R.yaw || 0), 0)); return p => { const q = Body.apR(Q, [p[0] - R.pivot[0], p[1] - R.pivot[1], p[2] - R.pivot[2]]); return [q[0] + R.pivot[0] + (v.dx || 0), q[1] + R.pivot[1] + (v.heave || 0), q[2] + R.pivot[2] + (v.dz || 0)]; }; } return null; };
     for (const pc of pieces) { const tf = rigOf(pc); if (!tf) continue; for (const [a, b] of edgesOf(pc.box)) { const qa = pr(tf(a)), qb = pr(tf(b)); if (qa && qb && Math.abs(qa[0]) < 4 && Math.abs(qb[0]) < 4 && Math.abs(qa[1]) < 4 && Math.abs(qb[1]) < 4) f.set.push([qa[0], qa[1], qb[0], qb[1]]); } }
     if (seaM) { const L = (() => { const lv = seaM.level; return lv[Math.min(lv.length - 1, Math.round(t * 12))][1]; })(), [x0, y0, z0, x1, y1, z1] = seaBox; f.sea = [];
-      for (const u of [0.25, 0.5, 0.75]) { const z = z0 + (z1 - z0) * u, pts = []; for (let k = 0; k <= 40; k++) { const x = x0 + (x1 - x0) * k / 40, hh = L * seaM.waves.reduce((s2, q) => s2 + q.A * Math.sin(q.kx * x + q.kz * z - q.w * t + q.ph), 0), q = pr([x, y1 + hh, z]); if (q && Math.abs(q[0]) < 3 && Math.abs(q[1]) < 3) pts.push([q[0], q[1]]); } if (pts.length > 1) f.sea.push({ l: L, pts }); } }
+      for (const u of [0.25, 0.5, 0.75]) { const z = z0 + (z1 - z0) * u, pts = []; for (let k = 0; k <= 40; k++) { const x = x0 + (x1 - x0) * k / 40, hh = L * seaM.waves.reduce((s2, q) => s2 + q.A * Math.sin(q.kx * x + q.kz * z - q.w * t + q.ph), 0), q = pr([x, y1 + hh, z]); if (q && Math.abs(q[0]) < 1.6 && Math.abs(q[1]) < 1.6) pts.push([q[0], q[1]]); else { if (pts.length > 1) f.sea.push({ l: L, pts: pts.slice() }); pts.length = 0; } } if (pts.length > 1) f.sea.push({ l: L, pts }); } }
     for (const pc of pieces) if (!rigOf(pc)) for (const [a, b] of edgesOf(pc.box)) { const qa = pr(a), qb = pr(b); if (qa && qb && Math.abs(qa[0]) < 4 && Math.abs(qb[0]) < 4 && Math.abs(qa[1]) < 4 && Math.abs(qb[1]) < 4) f.set.push([qa[0], qa[1], qb[0], qb[1]]); }
     let hot = null, hv = -1;
     for (const id of ids) { const a = fr.a[id]; if (!a) continue; const s = a.s, pts = {}; for (const k of ['head', 'headTop', 'crown', 'face', 'faceC', 'shR', 'shL', 'elR', 'elL', 'handR', 'handL', 'hipR', 'hipL', 'kneeR', 'kneeL', 'footR', 'footL', 'hips', 'neck']) pts[k] = pr(s.pts[k]);
@@ -42,10 +42,21 @@ function build(sid, o) {
       if (!pts.hips) continue; const size = pts.crown && pts.footR ? Math.abs(pts.crown[1] - pts.footR[1]) / 2 : 0.05;
       const st = (m.states[id] || '')[i] || null, prin = ((S.actors || {})[id] || {}).principal; f.figs.push({ id, p: pts, c: color[id], s: size, z: pts.hips[2], label: Score.short(id), state: st, principal: prin });
       const T = th.T[id][i]; f.glow.push({ x: pts.hips[0], y: pts.hips[1], r: Math.min(0.4, size * 0.9), T }); const w = T * (prin ? 3 : 1) + (prin ? 0.05 : 0); if (w > hv) { hv = w; hot = id; } }
+    /* creatures: the rig posed at t, its nodes' pivots (creatures.js kinds) projected, parent to child */
+    f.creatures = []; const crHeads = {};
+    for (const [cid, A] of Object.entries((C && C.creatures) || {})) { const sm = Cr.sample(C, cid, t), P0 = sm.rig.pose(sm.v), K = crKinds[A.kind], pos = {};
+      for (const nd of K.nodes) if (P0.nodes[nd.id]) pos[nd.id] = Cr.m.ap(P0.nodes[nd.id], nd.p);
+      const segs = []; for (const nd of K.nodes) if (nd.parent && pos[nd.parent] && pos[nd.id]) { const a = pr(pos[nd.parent]), b = pr(pos[nd.id]); if (a && b && Math.abs(a[0]) < 3 && Math.abs(b[0]) < 3 && Math.abs(a[1]) < 3 && Math.abs(b[1]) < 3) segs.push([a[0], a[1], b[0], b[1], 0.012 * (A.scale || 1)]); }
+      const hm = sm.rig.anchor('head', sm.v), em = sm.rig.anchor('eye', sm.v), hq = hm ? pr(hm.slice(0, 3)) : null, hq2 = hm ? pr([hm[0], hm[1] + 30 * (A.scale || 1), hm[2]]) : null, eq = em ? pr(em.slice(0, 3)) : null;
+      const head = hq && hq2 ? [hq[0], hq[1], Math.min(0.2, Math.abs(hq2[1] - hq[1]) / 2)] : null; if (hq) crHeads[cid] = hq;
+      if (segs.length || head) f.creatures.push({ segs, head, eye: eq ? [eq[0], eq[1], sm.v.eye || 0] : null, label: cid, lx: hq ? hq[0] : segs.length ? segs[0][0] : 0, ly: hq ? hq[1] : segs.length ? segs[0][1] : 0 }); }
+    const crGlow = (cid, Tn) => crHeads[cid] ? [{ x: crHeads[cid][0], y: crHeads[cid][1], r: 0.18, T: Tn }] : [];
     /* objects: held (a spear), a line through many hands (the stake), a heat source (the fire), a giant */
     const own = Choreo.propsAt(C, t).own;
     for (const [oid, ob] of Object.entries(objs)) {
       const Tn = th.T[oid] ? th.T[oid][i] : 0;
+      if (ob.kind === 'rock' && ob.track && ob.track.length > 1) { const tr = ob.track, ta = tr[1][0], tb = tr[tr.length - 1][0]; if (t < ta || t > tb + 0.3) continue; const p0 = markAt(ob, t), qa = pr(p0), qb = pr([p0[0] + 14, p0[1] + 6, p0[2]]); if (qa && qb) f.props.push({ a: qa, b: qb, w: 12, c: '#8c8577' }); continue; }
+      if (C && C.creatures && C.creatures[oid]) { f.glow.push(...crGlow(oid, Tn)); continue; }
       if (ob.kind === 'giant') { const p = markAt(ob, t), q = pr(p); if (!q) continue; const qh = pr([p[0], p[1] + 100, p[2]]); const s = qh ? Math.abs(qh[1] - q[1]) / 2 : 0.2;
         let up = 0.3; if (coupled) { const x = coupled.x[1][Math.min(coupled.x[1].length - 1, Math.round(t * coupled.hz))]; up = Math.max(0, Math.min(1, (x + 1) / 2)); }
         f.giants.push({ x: q[0], y: q[1], s: s * 1.2, up, eye: true, blind: !!(thrust && t >= thrust.t0) }); f.glow.push({ x: q[0], y: q[1], r: s * 0.8, T: Tn }); continue; }

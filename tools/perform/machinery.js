@@ -134,7 +134,7 @@ MACH.SIRENS_CHAIN = (X, m) => {
    carries ═════
    m {kind:'SEA', level: [[t, 0..1], ...] (calm 0 .. storm 1; linear between), causes: [{t, id}] (the events that raise or lower it: the
       SEA event's causes), hulls: [{id, piece, pivot, riders: [id | [id, t0, t1]], gain (a raft 2, a ship 1), omega, zeta, impulses:
-      [{t, roll, pitch, id?}] (a wave's blow)}], swimmers: [{actor, t0, t1}], aboard: [ids] (balance against the deck), fx: true}
+      [{t, roll, pitch, id?, push?: [dx, dz], backAt?, back?}] (a wave's blow; a push carries the hull, taken back from backAt over back s)}], swimmers: [{actor, t0, t1}], aboard: [ids] (balance against the deck), fx: true}
    the field: h(x, z, t) = L(t) (A1 sin(k1.x - w1 t) + A2 sin(k2.x - w2 t) + A3 sin(k3.x - w3 t)), three long crests from two quarters
    a hull: pitch and roll each a damped oscillator driven by the field's slope under its pivot (x gain) plus the impulses; heave = h at the
      pivot. It writes rigs[id] (the player turns the piece and its riders)
@@ -148,17 +148,23 @@ MACH.SEA = (X, m) => {
   const h = (x, z, t) => L(t) * W.reduce((s, q, k) => s + q.A * Math.sin(q.kx * x + q.kz * z - q.w * t + k * 1.7), 0);
   const slope = (x, z, t) => { const e = 4 * U; return [(h(x + e, z, t) - h(x - e, z, t)) / (2 * e), (h(x, z + e, t) - h(x, z - e, t)) / (2 * e)]; };
   const speed = (x, z, t) => Math.abs(h(x, z, t + 0.05) - h(x, z, t - 0.05)) / 0.1 / U;
-  const seaEv = X.ev({ id: m.id || 'sea', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'SEA', label: 'the sea: a wave field of three crests, its level ' + Lv.map(([t, v]) => v.toFixed(2) + '@' + t).join(', '), because: (m.causes || []).map(c => ({ id: c.id, latency: 0, rel: 'raises' })), params: { level: Lv } });
+  const seaEv = X.ev({ id: m.id || 'sea', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'SEA', label: 'the sea: a wave field of three crests, its level ' + Lv.map(([t, v]) => v.toFixed(2) + '@' + t).join(', '), because: [], params: { level: Lv } });
+  /* each change of level is an event caused by the scene's step that makes it (a god's anger, a calm) */
+  for (const c of m.causes || []) { const a = L(c.t - 0.3), b = L(c.t + 2.5); if (Math.abs(b - a) < 0.05) continue; X.ev({ lane: 'SET/VEHICLE', t0: r3(c.t), t1: r3(c.t + 2.5), kind: b > a ? 'SEA RISES' : 'SEA FALLS', label: 'the sea ' + (b > a ? 'rises' : 'falls') + ' ' + a.toFixed(2) + ' -> ' + b.toFixed(2), because: [{ id: c.id, latency: 0 }, { id: seaEv.id, latency: r3(c.t) }], params: { from: r3(a), to: r3(b) } }); }
   const out = { level: [], hulls: {}, waves: W.map((q, k) => ({ kx: q.kx, kz: q.kz, w: q.w, A: q.A, ph: r3(k * 1.7) })) }, hz = 12;
   for (let i = 0; i <= T * hz; i++) out.level.push([r3(i / hz), r3(L(i / hz))]);
   /* the hulls */
   for (const Hh of m.hulls || []) { const [px, py, pz] = Hh.pivot, g = Hh.gain || 1, w = Hh.omega || 1.4, z = Hh.zeta || 0.3, dt = 1 / 120; let p = 0, pv = 0, r = 0, rv = 0; const ch = { pitch: [], roll: [], heave: [] };
     const imp = (Hh.impulses || []).map(q => ({ ...q, done: false }));
+    const pushes = (Hh.impulses || []).filter(q => q.push);
     for (let t = 0, j = 0; t <= T + 1e-6; t += dt, j++) { const [sx, sz] = slope(px, pz, t);
       let pa = -w * w * p - 2 * z * w * pv + w * w * g * Math.atan(sz) * 0.9, ra = -w * w * r - 2 * z * w * rv + w * w * g * Math.atan(sx) * 0.9;
       for (const q of imp) if (!q.done && t >= q.t) { q.done = true; rv += (q.roll || 0) * w * 1.6; pv += (q.pitch || 0) * w * 1.6; }
       pv += pa * dt; p += pv * dt; rv += ra * dt; r += rv * dt;
-      if (j % 10 === 0) { const tq = r3(j / 120); ch.pitch.push([tq, r3(p), 'linear']); ch.roll.push([tq, r3(r), 'linear']); ch.heave.push([tq, r3(h(px, pz, t)), 'linear']); } }
+      if (j % 10 === 0) { const tq = r3(j / 120); ch.pitch.push([tq, r3(p), 'linear']); ch.roll.push([tq, r3(r), 'linear']); ch.heave.push([tq, r3(h(px, pz, t)), 'linear']);
+        /* a push (a wave front carrying the hull): rises over 1.5 s, held, then taken back over its 'back' seconds (oars, a pole) */
+        if (pushes.length) { let dx = 0, dz = 0; for (const q of pushes) { const u = t - q.t; if (u <= 0) continue; const up = Math.min(1, u / 1.5), bk = q.back ? Math.max(0, Math.min(1, (t - (q.backAt || q.t + 4)) / q.back)) : 0, f = X.sm ? X.sm(up) * (1 - X.sm(bk)) : up * (1 - bk); dx += q.push[0] * f; dz += q.push[1] * f; }
+          (ch.dx = ch.dx || []).push([tq, r3(dx), 'linear']); (ch.dz = ch.dz || []).push([tq, r3(dz), 'linear']); } } }
     const rid = Hh.id || 'ship'; X.rigs[rid] = { type: 'ship', piece: Hh.piece, pivot: Hh.pivot, channels: ch, riders: Hh.riders || [] };
     const hullEv = X.ev({ id: 'hull:' + rid, lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'HULL', label: (Hh.piece || rid) + ' on the sea (pitch and roll: damped oscillators driven by the slope under it; heave: the crest)', because: [{ id: seaEv.id, latency: 0 }], params: { gain: g, omega: w, zeta: z } });
     for (const q of Hh.impulses || []) X.ev({ lane: 'SET/VEHICLE', t0: q.t, t1: q.t + 0.6, kind: 'IMPACT', label: q.label || 'a wave strikes ' + (Hh.piece || rid), because: [{ id: q.id || seaEv.id, latency: 0 }, { id: hullEv.id, latency: 0 }], params: { roll: q.roll, pitch: q.pitch } });
