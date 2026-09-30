@@ -1,0 +1,1835 @@
+{
+ "version": "0.2",
+ "metadata": {
+  "name": "Rig desk: OD-B04-S04",
+  "description": "The choreography of OD-B04-S04 (Menelaus answers with the story of the wooden horse.) as rigs to key: 5 actors, the voice, the set and the acted film's shot camera.",
+  "fps": 12,
+  "frames": [
+   1,
+   572
+  ]
+ },
+ "nodes": [
+  {
+   "id": "voice",
+   "module": "project.VoiceTrack",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B04-S04/scene.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "window": 8
+   }
+  },
+  {
+   "id": "set",
+   "module": "project.RigSet",
+   "position": [
+    0,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B04-S04/scene.json",
+     "mediaType": "application/json"
+    },
+    "pieces": true,
+    "marks": true
+   }
+  },
+  {
+   "id": "score",
+   "module": "project.ScoreLanes",
+   "position": [
+    0,
+    360
+   ],
+   "source": "project",
+   "props": {
+    "track": {
+     "path": "assets/rig/OD-B04-S04/score.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "window": 8,
+    "only": ""
+   }
+  },
+  {
+   "id": "cast",
+   "module": "cascade.geo.Merge",
+   "position": [
+    620,
+    200
+   ]
+  },
+  {
+   "id": "actor_odysseus",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    40
+   ],
+   "metadata": {
+    "actor": "odysseus"
+   }
+  },
+  {
+   "id": "rig_odysseus",
+   "module": "project.MinifigRig",
+   "parent": "actor_odysseus",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B04-S04/odysseus.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_odysseus",
+   "module": "cascade.core.Output",
+   "parent": "actor_odysseus",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_odysseus",
+   "module": "cascade.core.Output",
+   "parent": "actor_odysseus",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_helen_at_the_horse",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    150
+   ],
+   "metadata": {
+    "actor": "helen-at-the-horse"
+   }
+  },
+  {
+   "id": "rig_helen_at_the_horse",
+   "module": "project.MinifigRig",
+   "parent": "actor_helen_at_the_horse",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B04-S04/helen-at-the-horse.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_helen_at_the_horse",
+   "module": "cascade.core.Output",
+   "parent": "actor_helen_at_the_horse",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_helen_at_the_horse",
+   "module": "cascade.core.Output",
+   "parent": "actor_helen_at_the_horse",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_hidden_greek_warriors_1",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    260
+   ],
+   "metadata": {
+    "actor": "hidden-greek-warriors-1"
+   }
+  },
+  {
+   "id": "rig_hidden_greek_warriors_1",
+   "module": "project.MinifigRig",
+   "parent": "actor_hidden_greek_warriors_1",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B04-S04/hidden-greek-warriors-1.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_hidden_greek_warriors_1",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_1",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_hidden_greek_warriors_1",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_1",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_hidden_greek_warriors_3",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    370
+   ],
+   "metadata": {
+    "actor": "hidden-greek-warriors-3"
+   }
+  },
+  {
+   "id": "rig_hidden_greek_warriors_3",
+   "module": "project.MinifigRig",
+   "parent": "actor_hidden_greek_warriors_3",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B04-S04/hidden-greek-warriors-3.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_hidden_greek_warriors_3",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_3",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_hidden_greek_warriors_3",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_3",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "actor_hidden_greek_warriors_4",
+   "module": "cascade.core.Subnet",
+   "position": [
+    300,
+    480
+   ],
+   "metadata": {
+    "actor": "hidden-greek-warriors-4"
+   }
+  },
+  {
+   "id": "rig_hidden_greek_warriors_4",
+   "module": "project.MinifigRig",
+   "parent": "actor_hidden_greek_warriors_4",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "sheet": {
+     "path": "assets/rig/OD-B04-S04/hidden-greek-warriors-4.json",
+     "mediaType": "application/json"
+    },
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "solo": false,
+    "rootX": 0,
+    "rootZ": 0,
+    "rootY": 0,
+    "rootH": 0,
+    "rootPitch": 0,
+    "rootRoll": 0,
+    "hipsDy": 0,
+    "torsoLean": 0,
+    "torsoTwist": 0,
+    "torsoRoll": 0,
+    "headYaw": 0,
+    "headPitch": 0,
+    "armRPitch": 0,
+    "armLPitch": 0,
+    "armROut": 0,
+    "armLOut": 0,
+    "handRRoll": 0,
+    "handLRoll": 0,
+    "legRPitch": 0,
+    "legLPitch": 0,
+    "wRoot": 1,
+    "wTorso": 1,
+    "wHead": 1,
+    "wArmR": 1,
+    "wArmL": 1,
+    "wLegs": 1
+   }
+  },
+  {
+   "id": "geo_hidden_greek_warriors_4",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_4",
+   "position": [
+    260,
+    0
+   ],
+   "props": {
+    "outputIndex": 0,
+    "outputName": "geometry",
+    "dataType": "geometry"
+   }
+  },
+  {
+   "id": "pose_hidden_greek_warriors_4",
+   "module": "cascade.core.Output",
+   "parent": "actor_hidden_greek_warriors_4",
+   "position": [
+    260,
+    100
+   ],
+   "props": {
+    "outputIndex": 1,
+    "outputName": "pose",
+    "dataType": "object"
+   }
+  },
+  {
+   "id": "shotcam",
+   "module": "project.ShotCam",
+   "position": [
+    620,
+    420
+   ],
+   "source": "project",
+   "props": {
+    "tx": {
+     "value": 270.165,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 270.165,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 270.165,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 270.165,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 270.165,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 186.9,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 186.9,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 270.165,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 270.165,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 5.217,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 323,
+        "value": 4.57,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 4.511,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 4.363,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 354,
+        "value": 4.603,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 358,
+        "value": 4.961,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 363,
+        "value": 5.508,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 369,
+        "value": 5.738,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 5.562,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 93.5,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": 93.5,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": 28.3,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 28.3,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "ty": {
+     "value": 226.055,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 226.055,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 226.055,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 226.055,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 226.055,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 198.3,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 198.3,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 226.055,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 226.055,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 31.461,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 31.507,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 329,
+        "value": 31.776,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 342,
+        "value": 31.744,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 365,
+        "value": 31.359,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 367,
+        "value": 31.611,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 386,
+        "value": 31.781,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 31.718,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 132,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": 132,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": 137.7,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 137.7,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "tz": {
+     "value": 776.425,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 776.425,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 776.425,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 776.425,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 776.425,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 572.2,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 572.2,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 776.425,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 776.425,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 223.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 338,
+        "value": 223.571,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 359,
+        "value": 223.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 388,
+        "value": 223.571,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 223.612,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 185.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": 185.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": 156.4,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 156.4,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "lx": {
+     "value": 232.705,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 232.705,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 232.705,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 232.705,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 232.705,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 149.44,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 149.44,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 232.705,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 232.705,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": -37.753,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 325,
+        "value": -38.442,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 333,
+        "value": -38.602,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 355,
+        "value": -38.312,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 364,
+        "value": -37.407,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 372,
+        "value": -37.235,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": -37.408,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 26.69,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 396,
+        "value": 23.32,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 397,
+        "value": 22.29,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 400,
+        "value": 18.6,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 401,
+        "value": 17.48,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 405,
+        "value": 12.29,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 406,
+        "value": 11.11,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 409,
+        "value": 7.21,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 412,
+        "value": 3.6,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 415,
+        "value": 0.54,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 417,
+        "value": -1.36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 420,
+        "value": -3.49,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 422,
+        "value": -4.6,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 423,
+        "value": -3.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": -3.27,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": -71.36,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": -71.36,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "ly": {
+     "value": 213.565,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 213.565,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 213.565,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 213.565,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 213.565,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 185.81,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 185.81,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 213.565,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 213.565,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 15.951,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 327,
+        "value": 15.997,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 330,
+        "value": 16.296,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 350,
+        "value": 16.079,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 365,
+        "value": 15.849,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 368,
+        "value": 16.149,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 391,
+        "value": 16.224,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 16.208,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 109.34,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 394,
+        "value": 110.13,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 395,
+        "value": 110.39,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 396,
+        "value": 111.21,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 397,
+        "value": 111.48,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 398,
+        "value": 112.4,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 399,
+        "value": 112.73,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 400,
+        "value": 113.69,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 401,
+        "value": 114.05,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 402,
+        "value": 115.11,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 404,
+        "value": 116.31,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 405,
+        "value": 117.48,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 406,
+        "value": 117.96,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 407,
+        "value": 119.22,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 408,
+        "value": 119.76,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 409,
+        "value": 121.1,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 410,
+        "value": 121.67,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 411,
+        "value": 123.09,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 412,
+        "value": 123.7,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 413,
+        "value": 125.18,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 414,
+        "value": 126.15,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 415,
+        "value": 126.91,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 416,
+        "value": 128.44,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 417,
+        "value": 129.14,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 418,
+        "value": 130.58,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 420,
+        "value": 132.55,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 422,
+        "value": 134.77,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 423,
+        "value": 127.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": 127.8,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": 134.69,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 134.69,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "lz": {
+     "value": 684.555,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 684.555,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 684.555,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 684.555,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 684.555,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 480.33,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 480.33,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 684.555,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 684.555,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 134.85,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 341,
+        "value": 134.649,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 362,
+        "value": 134.834,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 391,
+        "value": 134.649,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 134.662,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 114.93,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 397,
+        "value": 118.65,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 398,
+        "value": 119.76,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 399,
+        "value": 121.04,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 400,
+        "value": 122.12,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 402,
+        "value": 124.76,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 406,
+        "value": 130.89,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 410,
+        "value": 138.38,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 415,
+        "value": 149.31,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 417,
+        "value": 154.29,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 418,
+        "value": 156.55,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 420,
+        "value": 161.46,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 422,
+        "value": 166.62,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 423,
+        "value": 160.95,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 477,
+        "value": 160.95,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 478,
+        "value": 148.76,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 148.76,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "fov": {
+     "value": 60,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 8,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 110,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 194,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 60,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 308,
+        "value": 60,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 32,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 392,
+        "value": 32,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 44,
+        "interpolation": "linear"
+       },
+       {
+        "frame": 572,
+        "value": 44,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    },
+    "aperture": 41.4214,
+    "resolution": [
+     1280,
+     720
+    ],
+    "shot": {
+     "value": 0,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 0,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 9,
+        "value": 1,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 111,
+        "value": 2,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 195,
+        "value": 3,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 309,
+        "value": 4,
+        "interpolation": "constant"
+       },
+       {
+        "frame": 393,
+        "value": 5,
+        "interpolation": "constant"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "camera",
+   "module": "cascade.core.Camera",
+   "position": [
+    860,
+    420
+   ],
+   "props": {
+    "lookAt": true,
+    "aperture": 41.4214,
+    "resolution": [
+     1280,
+     720
+    ],
+    "near": 0.5,
+    "far": 10000
+   }
+  },
+  {
+   "id": "view",
+   "module": "project.RigView",
+   "position": [
+    1100,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "size": [
+     960,
+     640
+    ],
+    "strip": true,
+    "label": "rig desk: OD-B04-S04",
+    "filename": "previz-OD-B04-S04.png"
+   }
+  }
+ ],
+ "connections": [
+  [
+   [
+    "set",
+    0,
+    "geometry"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_odysseus",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_odysseus",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_odysseus",
+    1,
+    "pose"
+   ],
+   [
+    "pose_odysseus",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_odysseus",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_helen_at_the_horse",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_helen_at_the_horse",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_helen_at_the_horse",
+    1,
+    "pose"
+   ],
+   [
+    "pose_helen_at_the_horse",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_helen_at_the_horse",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_1",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_hidden_greek_warriors_1",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_1",
+    1,
+    "pose"
+   ],
+   [
+    "pose_hidden_greek_warriors_1",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_hidden_greek_warriors_1",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_3",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_hidden_greek_warriors_3",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_3",
+    1,
+    "pose"
+   ],
+   [
+    "pose_hidden_greek_warriors_3",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_hidden_greek_warriors_3",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_4",
+    0,
+    "geometry"
+   ],
+   [
+    "geo_hidden_greek_warriors_4",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "rig_hidden_greek_warriors_4",
+    1,
+    "pose"
+   ],
+   [
+    "pose_hidden_greek_warriors_4",
+    0,
+    "input"
+   ]
+  ],
+  [
+   [
+    "geo_hidden_greek_warriors_4",
+    0,
+    "output"
+   ],
+   [
+    "cast",
+    0,
+    "inputs"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    0,
+    "translate"
+   ],
+   [
+    "camera",
+    0,
+    "translate"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    1,
+    "lookat"
+   ],
+   [
+    "camera",
+    3,
+    "lookat"
+   ]
+  ],
+  [
+   [
+    "shotcam",
+    2,
+    "focal"
+   ],
+   [
+    "camera",
+    2,
+    "focal"
+   ]
+  ],
+  [
+   [
+    "cast",
+    0,
+    "geometry"
+   ],
+   [
+    "view",
+    0,
+    "geometry"
+   ]
+  ],
+  [
+   [
+    "camera",
+    0,
+    "camera"
+   ],
+   [
+    "view",
+    1,
+    "camera"
+   ]
+  ],
+  [
+   [
+    "voice",
+    4,
+    "info"
+   ],
+   [
+    "view",
+    2,
+    "voice"
+   ]
+  ],
+  [
+   [
+    "score",
+    1,
+    "info"
+   ],
+   [
+    "view",
+    3,
+    "score"
+   ]
+  ]
+ ],
+ "annotations": [
+  {
+   "id": "note",
+   "position": [
+    0,
+    -160
+   ],
+   "size": [
+    900,
+    120
+   ],
+   "text": "OD-B04-S04 on the rig desk. Each actor is a Subnet with one Minifig Rig: its generated choreography comes from assets/rig/OD-B04-S04/<actor>.json; the director's layer is the rig's own props (an offset per servo, a weight per body part), keyed in the Timeline against the Voice Track. Preview headless: cascade run rig-OD-B04-S04.cascade --frames 1-572 --fps 12. Export: node tools/rig_export.mjs OD-B04-S04."
+  }
+ ]
+}

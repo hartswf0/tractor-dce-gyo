@@ -477,7 +477,7 @@ Holds: odysseus 0.6-10.0: the long watch: steady at the oar, only the head to th
 
 ### OD-B21-S07 The Bow Sings
 
-**Type** revelation. **Total** 51.45 s. **Prepared**: marks, sheet, cameras, rig.
+**Type** revelation. **Total** 51.45 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: The bow is the actor: strung by bending it against the body, the string plucked (a note), an arrow nocked, drawn and loosed through twelve axe rings in a line; a beggar's posture falling away through handling; a hall of seated suitors reacting to a sound; thunder answering.
 
@@ -512,9 +512,11 @@ Holds: suitors 11.0-14.0: dismay at the note: they freeze (turned pale), a held 
 
 ### OD-B23-S04 The Bed Test
 
-**Type** recognition. **Total** 45.53 s. **Prepared**: nothing.
+**Type** recognition. **Total** 45.53 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A trick by speech, an eruption of anger through craft memory (building the bed round a living olive), the recognition as a run and an embrace, then the lovers holding each other a long time; the bed itself is a rooted object that cannot move.
+
+**The take**: cast penelope, odysseus, eurycleia; 5 keys, 7 shots; rough-pass density (after) 0.521, longest still 3.75 s.
 
 **Essential variables**: anger that turns into exact description (gestures describe the trunk, the frame, the drilling); recognition: stillness, knees giving, then a run into an embrace (two bodies coupled); a long held embrace that stays alive (weeping, rocking); the olive-trunk bed as an immovable set piece (insert, flashback)
 
@@ -544,9 +546,11 @@ Holds: penelope 19.0-24.0: recognition lands: knees go, stillness before the run
 
 ### OD-B04-S04 The Wooden Horse
 
-**Type** dialogue. **Total** 47.72 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 47.72 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A told scene staged as a memory: men crushed inside a dark horse, a voice outside imitating their wives, the urge to answer, one man's mouth held shut by Odysseus; plus the listeners at Menelaus' table (Telemachus, Helen).
+
+**The take**: cast odysseus, helen-at-the-horse, hidden-greek-warriors-1, hidden-greek-warriors-2, hidden-greek-warriors-3, hidden-greek-warriors-4, hidden-greek-warriors-5; 4 keys, 5 shots; not in the take's cast: anticlus, hidden-greeks, menelaus, telemachus; rough-pass density (after) 0.518, longest still 4.667 s.
 
 **Essential variables**: two frames: the telling table and the remembered horse (layered time); crouched bodies packed in a small volume, still and tense (not dead); the urge to answer: a lean and a breath in, checked; a hand over another's mouth held for seconds (contact hold); Helen circling outside, patting the horse (a walk round an object)
 
@@ -574,9 +578,11 @@ Holds: hidden-greeks 0.0-28.0: packed stillness inside the horse: tense breath (
 
 ### OD-B04-S05 Menelaus Wrestles Proteus
 
-**Type** fight. **Total** 30.14 s. **Prepared**: nothing.
+**Type** fight. **Total** 30.14 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: An ambush from under sealskins and a grapple with a shape-changer: the held body becomes a lion, a serpent, water, a tree, while the men's hands stay constant; then the defeated god speaks.
+
+**The take**: cast menelaus, proteus, eidothea, three-men-1, three-men-2, three-men-3; 3 keys, 8 shots; rough-pass density (after) 0.74, longest still 2.583 s.
 
 **Essential variables**: grapple: four men on one body, holds kept through the changes; replacement on twos: the held body swapped for beasts, water, a tree (hands constant); the ambush: men lying hidden under skins among seals, then springing; the telling frame (Telemachus asks at the table)
 
@@ -710,9 +716,11 @@ Holds: crew 24.0-26.0: dread at the omen before they eat
 
 ### OD-B05-S04 Building the Raft
 
-**Type** labour. **Total** 61.91 s. **Prepared**: nothing.
+**Type** labour. **Total** 61.91 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: Four days of carpentry in 62 s as quotidian held mediums: felling, trimming, boring, joining, decking, rigging; the raft is a prop built in stages (Mk: booklet steps); the script's action lines name Calypso as the builder (a script error: Odysseus builds).
+
+**The take**: cast odysseus, calypso; 4 keys, 6 shots; rough-pass density (after) 0.676, longest still 3.167 s.
 
 **Essential variables**: tool actions with contact (axe, adze, auger) on timbers; the raft as one prop in stages; a supplier who gives and withdraws (Calypso: axe, adze, cloth, cord); long holds of work that must not read as dead
 
@@ -737,9 +745,11 @@ Holds: odysseus 28.4-49.9: long quotidian holds (7 s) of work: the labour itself
 
 ### OD-B01-S01 The Gods Consider Odysseus
 
-**Type** dialogue. **Total** 71.22 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 71.22 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A council of seated gods with three long speeches; the ring must listen and turn from Zeus to Athena; Athena petitions (not commands); an empty throne is the most important object.
+
+**The take**: cast zeus, athena, assembly-of-gods-1, assembly-of-gods-2, assembly-of-gods-3, assembly-of-gods-4, assembly-of-gods-5; 3 keys, 10 shots; rough-pass density (after) 0.383, longest still 3.083 s.
 
 **Essential variables**: group attention shifts (ring of listeners) on the speaker change; appeal vs command: petition gesture vocabulary; seated speakers who rise inside the order (Mi); the empty throne as a held insert
 
@@ -934,9 +944,11 @@ Holds: odysseus 11.0-18.9: hidden weeping: the cloak still, the shoulders shakin
 
 ### OD-B02-S02 The Secret of Penelope's Loom
 
-**Type** dialogue. **Total** 59.98 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 59.98 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: An assembly speech by one accuser against a young man with a staff; the loom story told as inserts (web full, unpicked by torchlight, full again, a maid in the doorway) that the rough pass cannot stage as the same frame three times.
+
+**The take**: cast antinous, telemachus, penelope-at-the-loom, melantho, four-suitors-1, four-suitors-2, four-suitors-3, four-suitors-4; 3 keys, 17 shots; not in the take's cast: assembly; rough-pass density (after) 0.63, longest still 3.167 s.
 
 **Essential variables**: a hostile speech with a crowd split behind each side (Bi); the loom as a prop with states (woven, unpicked) and a torch; Telemachus with the herald's staff (held, the speaker's right); the maid's betrayal as an insert
 
