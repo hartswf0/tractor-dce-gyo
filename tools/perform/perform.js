@@ -64,7 +64,9 @@ function measureSheet(s, C, S, events, o = {}) {
     eventHeat: th.eventHeat, cuts: th.cuts, field: th.field, causal: th.causal, objects: Object.fromEntries(Object.keys(S.objects || {}).map(k => [k, r(th.T[k] || [])])) };
 }
 const CHAINS = { default: ['make it more dramatic', 'less gesturing while they speak', 'cool this scene down', 'more fighting', 'focus this on the fight'],
-  'OD-B01-S03': ['make Telemachus more suspicious', 'less gesturing while they speak', 'make it more dramatic', 'keep the choreography but make Telemachus more afraid', 'cool this scene down'] };
+  'OD-B01-S03': ['make Telemachus more suspicious', 'less gesturing while they speak', 'make it more dramatic', 'keep the choreography but make Telemachus more afraid', 'cool this scene down'],
+  'OD-B09-S09': ['make Odysseus cunning', 'Polyphemus should feel heavier', 'make it more dramatic', 'keep the choreography but make bearers more afraid', 'focus this on the fight'],
+  'OD-B22-S01': ['more fighting', 'make Antinous more suspicious', 'less gesturing while they speak', 'Odysseus should feel heavier', 'cool this scene down'] };
 module.exports = { author, compileScene, marksOf, scoreF, sheetF, save, overridesOf, J, ROOT, measureSheet };
 if (require.main !== module) return;
 
