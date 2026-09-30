@@ -97,7 +97,8 @@ function cutAt(c,t){if(T.dir){const L=cutList();const q=L.find(s=>t>=s.t0&&t<s.t
 function sizeOf(c,t){if(t<2||!c||c.kind==='SCENE_HEADER'||!c.speaker)return 'WIDE';if(T.tk.keyGi>=0&&c.gi===T.tk.keyGi)return 'CLOSE';return 'MID';}
 /* the authored inserts; where a scene has none, the sign score's insert_object: one insert, seeded between 40% and 60% of the scene, held the floor */
 function insertAt(t){const D=T.dir&&T.dir.d,L=INSERTS[T.sid]||(D&&D.insert_object?(T.insDir||(T.insDir=[{at:0.4+0.2*(hash32(T.sid+':insert')%1000)/1000,on:String(D.insert_object).toLowerCase().split(/[^a-z]+/).filter(w=>w.length>2).pop()||'thing',what:D.insert_object,fill:0.8,hold:Math.max(2.6,D.hold_min_s||0)}])):null);if(!L)return null;for(const x of L){const t0=x.at*T.total;if(t>=t0&&t<t0+(x.hold||2.5))return x;}return null;}
-function shotAt(t){let c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
+function shotAt(t){if(T.cine)return T.cine.shotAt(t);   /* the cinematographer's plan (tools/cinematographer): shots chosen from the performance */
+  let c=clipAt(t);if(!c)return {id:'wide',kind:'WIDE',t0:0,dur:T.total,c:null};
   if(c.kind==='SCENE_HEADER'){const nx=T.clips[T.clips.indexOf(c)+1];return {id:'header:'+c.gi,kind:'HEADER',t0:c.at,dur:(nx?nx.at:c.at+c.dur)-c.at,c};}
   const ins=insertAt(t);if(ins)return {id:'insert:'+ins.on,kind:'INSERT',ins,t0:ins.at*T.total,dur:ins.hold,c};
   /* the syncwatch's resolution of a cut: no addressee, the speaker; no speaker, the wide; the key beat holds the speaker (its
@@ -144,7 +145,7 @@ function wideFor(k){const kc=keyCam(k),R0=resolved(kc),p=new V3(...R0.pos),tg=ne
     if(!prim||!kfActor(prim))return spec;OdysseyFilm.rig(spec);const s=OdysseyFilm.score([{id:prim}])[prim];if(s&&!s.behind&&s.visible>=0.5&&OdysseyFilm.lens(prim,k.lensAllow||[])<=0.1)return spec;}
   return null;}
 /* the camera for a shot at t, with the cast where it is at t: the plan's spec resolved against the live rigs, eased by u */
-function shootAt(sh,t){const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan.get(sh.id);
+function shootAt(sh,t){if(sh.cine){T.cine.shoot(sh,t);return;}const u=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur))),P=T.plan.get(sh.id);
   if(sh.kind==='HEADER'&&P){const a=P.from,b=P.to,v=sm(cl01((t-sh.t0)/Math.max(0.5,sh.dur)));
     kfShoot({pos:a.pos.map((x,i)=>lerp(x,b.pos[i],v)),target:a.target.map((x,i)=>lerp(x,b.target[i],v)),fov:lerp(a.fov,b.fov,v)});return;}
   const sub=sh.c&&(sh.kind==='REACT'?sh.c.addressee:sh.c.speaker),mv=T.moving&&T.win&&sub&&T.win.moves[sub];
@@ -256,9 +257,13 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
     P.base={'arm.R.pitch':s?s.j.armRP[0]:0,'arm.L.pitch':s?s.j.armLP[0]:0};const sl=env.slice(Math.floor(c.start*hz),Math.ceil((c.start+c.dur)*hz)+2);
     Perform.speak(P,{t:c.at,sec:c.dur,text:c.caption,env:sl,hz});P.speeches.push(P.speech);P.speech=null;P.base={};
     if(tk.beat&&c.gi===tk.keyGi&&Perform.PHRASES[tk.beat.emotion])Perform.phrase(P,tk.beat.emotion,c.at-0.25,{enter:0.6,hold:c.dur,release:0.9});}
+  /* the cinematographer's plan (tools/cinematographer/plan.js -> plans/<scene>.json): shots chosen from the performance's score (the
+     causal and thermal hot spot, contacts, reactions, creatures) and solved here against the real set (solve.js). o.shots: a plan,
+     or false for none; else the scene's plan is read when the take plays the sheet it was planned on (o.choreo, as --choreo gives it) */
+  const cinePlan=o.shots===false?null:typeof o.shots==='object'&&o.shots?o.shots:(o.choreo&&typeof o.choreo==='object')?await cineFetch(sid,mode,o.choreo):null;
   /* the walks: a tracking shot for each figure that crosses the set, its bearing chosen so that nothing (an olive, a column)
      comes between it and the walker anywhere along the way */
-  for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
+  if(!cinePlan)for(const K of order){if(!K.win)continue;for(const [id,m] of Object.entries(K.moves)){if(!m.walk)continue;const H=T.H[id]||60;let best=null;
     /* a camera that travels with him, or one of the two keys' own marks turning to follow him (the gate's still frames him arriving) */
     const cands=[];for(const yaw of [0.6,-0.6,1.0,-1.0])for(const h of [0.4,1.3])cands.push({yaw,h,cam:{type:'hero',a:id,yaw,dist:2.9*H,height:h*H,fov:40,subject:id,eye:0.42}});
     for(const kk of spec.keys){const kc=keyCam(kk);if(Array.isArray(kc.pos))cands.push({fixed:true,cam:{type:'wide',pos:kc.pos,target:id,fov:Math.max(kc.fov||40,40),subject:id,eye:0.42}});}
@@ -268,7 +273,7 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       if(!best||worst<best.worst)best={...c,worst};}
     m.follow=best;}}
   /* the shot plan: every shot the clock can reach, its camera found and scored at its key's staging */
-  const ids=new Map();for(let t=0;t<T.total;t+=0.05){const sh=shotAt(t);if(!ids.has(sh.id))ids.set(sh.id,{sh,t});}
+  const ids=new Map();if(!cinePlan)for(let t=0;t<T.total;t+=0.05){const sh=shotAt(t);if(!ids.has(sh.id))ids.set(sh.id,{sh,t});}
   const byKey=new Map();for(const [id,v] of ids){const K=T.keys[keyIndexAt(v.t)];if(!byKey.has(K))byKey.set(K,[]);byKey.get(K).push(v);}
   const stats={};for(const [K,list] of byKey){worldFor(K);poseCast(K.snap?Object.fromEntries(Object.entries(K.snap).map(([i,s])=>[i,{...s,walk:0}])):{},K.t);scene.updateMatrixWorld(true);
     const kc=keyCam(K.k),prim=kc.subject||((K.k.subjects||[]).find(s=>s.primary)||{}).id;
@@ -287,8 +292,20 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
     if(C&&C.creatures&&(C.clock||'cut')===mode&&window.OdysseyCreatures)try{T.creatures=await creaturesStage(C);}catch(e){console.warn('[take] creatures',e);}}/*[/choreo]*/
   /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
   if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
+  if(cinePlan)await cineStart(cinePlan);
   return info();}
-function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.stats,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
+/* ── the cinematographer (tools/cinematographer/solve.js, read from the repository as the keyframes are): the plan's shots solved
+   against the set at the cast's poses, every camera tested for legality (inside geometry, occlusion, the head in frame) ── */
+async function cineFetch(sid,mode,C){try{const r=await fetch(root+'tools/cinematographer/plans/'+sid+'.json',{cache:'no-store'});if(!r.ok)return null;const P=await r.json();
+    const g=(C.generated||{}).from||null;if(P.clock!==mode||(P.sheet&&P.sheet.from!==g)||Math.abs((P.total||0)-(C.total||0))>0.05){console.warn('[take] the shot plan was made for another sheet or clock: not used');return null;}return P;}
+  catch(e){console.warn('[take] no shot plan',e);return null;}}
+function cineApi(){return {THREE,scene,camera,renderer,T,V3,kfActor,kfHead,kfHand,kfSolid,kfShort,rigOf,figHeight,OdysseyFilm,shoot:kfShoot,
+  poseAt:t=>{const {state,key}=castAt(t);worldFor(key);poseCast(state,t);/*[motion]*/if(T.motion)T.motion.frame(t,key);/*[/motion]*/scene.updateMatrixWorld(true);return key;},
+  keyCam:k=>keyCam(k),resolved:spec=>resolved(spec),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind))};}
+async function cineStart(plan){if(!window.OdysseyCine||T.cineReload){const src=await (await fetch(root+'tools/cinematographer/solve.js',{cache:'no-store'})).text();(0,eval)(src);}
+  const S=await OdysseyCine.solve(plan,cineApi());T.cine=S;T.world=null;return S.report();}
+async function cineReload(plan){if(!T)return null;T.cine=null;T.cineReload=true;const P=plan||await cineFetch(T.sid,T.mode,T.choreo?T.choreo.C:{});if(!P)return null;return cineStart(P);}
+function info(){return {follow:T.keys.filter(k=>k.moves).map(k=>Object.entries(k.moves).filter(([i,m])=>m.follow).map(([i,m])=>i+':'+JSON.stringify({fixed:!!m.follow.fixed,yaw:m.follow.yaw,worst:+m.follow.worst.toFixed(2)}))).flat(),scene:T.sid,mode:T.mode,total:T.total,direction:T.dir?{sign:T.dir.p,...T.dir.d}:null,cut:T.cutList?T.cutList.map(q=>({t0:+q.t0.toFixed(2),dur:+q.dur.toFixed(2),kind:q.kind,close:!!q.close,series:!!q.series,edge:q.edge||null})):null,keys:T.keys.map(k=>({id:k.id,t:+k.t.toFixed(2),win:k.win&&k.win.map(v=>+v.toFixed(2))})),faces:[...T.faces.keys()],shots:T.cine?T.cine.stats():T.stats,cine:T.cine?T.cine.report():null,clips:T.clips.map(c=>({gi:c.gi,at:c.at,dur:c.dur,kind:c.kind,key:c.key,speaker:c.speaker,addressee:c.addressee}))};}
 
 /*[choreo]*/ /* creatures (film-readymades/creatures.js, CREATURES.md "Wiring it into the film"): a sheet's `creatures` as rigs in the take. Each
    rig's pieces are parsed once (library parts from the part packs, as the props are; the cut pieces from odyssey/creatures/parts/<kind>.mpd),
@@ -357,7 +374,7 @@ function play(o={}){return prepare(o).then(inf=>{const orig=renderer.render.bind
 function stop(){if(!live)return;renderer.render=live.orig;live.voice.pause();live.bed.pause();live.cap.remove();live=null;}
 /* the export: the page's own drawing stopped (as the keyframe gate stops it); frames drawn only on request */
 function exportStart(o={}){const orig=renderer.render.bind(renderer);renderer.render=()=>{};renderer.setPixelRatio(1);renderer.setSize(o.w||1280,o.h||720,false);camera.aspect=(o.w||1280)/(o.h||720);camera.updateProjectionMatrix();return prepare(o).then(inf=>{T.render=orig;return inf;});}
-window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/creatures:()=>{if(!T||!T.creatures)return null;const out={};for(const [id,rig] of Object.entries(T.creatures.rigs)){let n=0;const g=T.creatures.group.getObjectByName('creature:'+id);if(g)g.traverse(o=>{if(o.isMesh)n++;});out[id]={kind:rig.kind,meshes:n};}return out;},marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),get take(){return filmAsset()?.take||null;}};
+window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/creatures:()=>{if(!T||!T.creatures)return null;const out={};for(const [id,rig] of Object.entries(T.creatures.rigs)){let n=0;const g=T.creatures.group.getObjectByName('creature:'+id);if(g)g.traverse(o=>{if(o.isMesh)n++;});out[id]={kind:rig.kind,meshes:n};}return out;},marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),cineReload:p=>cineReload(p),cineDraw:t=>T&&T.cine&&T.cine.debug?T.cine.debug(t):null,get take(){return filmAsset()?.take||null;}};
 /* a Take button beside the forage shelf; ?take (or ?take=cut) plays the current location's scene on load */
 {const b=document.createElement('button');b.id='takeOpen';b.textContent='Take';b.title='Play this scene on its recorded performance (voice, faces, captions, cut)';b.onclick=()=>{if(live){stop();return;}play({mode:new URLSearchParams(location.search).get('take')==='cut'?'cut':'full'}).catch(e=>alert(e.message));};
  (document.getElementById('filmWorldTools')||document.body).appendChild(b);if(b.parentElement===document.body)Object.assign(b.style,{position:'fixed',right:'12px',top:'12px',zIndex:61});}
