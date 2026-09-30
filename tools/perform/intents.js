@@ -214,7 +214,7 @@ I_.TAKE = (X, I, e) => {
    cycle (legs, the counter-swing of a free arm, the hips' bob), the path through params.path (world x,z points), speed params.speed
    (figure heights a second); FOLLOW takes the leader's path params.lag seconds behind ═════ */
 function walkPath(X, id, t0, pts, speed, cause, o = {}) {
-  const s = X.at(id, t0); if (!s) return null; const H = X.H(id), v = speed * H, base = s.p, h0 = s.h;
+  const s = X.at(id, t0); if (!s || !Array.isArray(pts) || !pts.length) { if (!Array.isArray(pts)) X.notes.push('a walk for ' + id + ' at ' + t0.toFixed(2) + ' s has no path: not walked'); return null; } const H = X.H(id), v = speed * H, base = s.p, h0 = s.h;
   const P = [[base[0], base[2]], ...pts], seg = []; let tot = 0; for (let i = 1; i < P.length; i++) { const d = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); seg.push(d); tot += d; }
   const dir0 = Math.atan2(P[1][0] - P[0][0], P[1][1] - P[0][1]), turn = X.wrap(dir0 - h0), tTurn = 0.25 + Math.abs(turn) * 0.12, tw = t0 + tTurn, dur = tot / v;
   const posAt = u => { let d = u * tot; for (let i = 0; i < seg.length; i++) { if (d <= seg[i] || i === seg.length - 1) { const w = seg[i] ? Math.min(1, d / seg[i]) : 1; return [P[i][0] + (P[i + 1][0] - P[i][0]) * w, P[i][1] + (P[i + 1][1] - P[i][1]) * w, Math.atan2(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1])]; } d -= seg[i]; } return [P[P.length - 1][0], P[P.length - 1][1], dir0]; };

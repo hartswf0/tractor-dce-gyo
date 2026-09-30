@@ -36,10 +36,12 @@ function save(f, o, pretty) { fs.mkdirSync(path.dirname(f), { recursive: true })
 function author(s, force) {
   const f = scoreF(s), prev = fs.existsSync(f) ? J(f) : null;
   if (prev && prev.authored && !force) return prev;
-  const M = marksOf(s), mod = require('./scenes/' + s + '.js');
-  const X = { voiceOf: c => Compile.voiceOf(M, c), variant: VAR, frozen: FROZEN }, a = mod(M, X);
+  const M = marksOf(s), own = path.join(__dirname, 'scenes', s + '.js');
+  const X = { voiceOf: c => Compile.voiceOf(M, c), variant: VAR, frozen: FROZEN };
+  /* a scene with no direction module of its own gets a first score from the needs catalogue */
+  let a; if (fs.existsSync(own)) a = require(own)(M, X); else { const N = J(path.join(ROOT, 'odyssey/perform/needs.json')); const e = N.scenes[s]; if (!e) throw Error('no direction module and no needs entry for ' + s); a = require('./scenes/_auto.js')(M, X, e); }
   const S = { format: Score.format, scene: s, variant: VAR ? { name: VAR, frozen: FROZEN } : null, title: a.title, type: a.type, total: M.total, clock: M.mode || 'cut', marks: 'odyssey/choreo/marks/' + s + '.json',
-    source: { take: 'odyssey/take/voice/' + s + '.m4a', direction: 'tools/perform/scenes/' + s + '.js' },
+    source: { take: 'odyssey/take/voice/' + s + '.m4a', direction: fs.existsSync(path.join(__dirname, 'scenes', s + '.js')) ? 'tools/perform/scenes/' + s + '.js' : 'tools/perform/scenes/_auto.js (odyssey/perform/needs.json)' },
     actors: a.actors || {}, objects: a.objects || {}, authored: a.authored, params: Object.assign(Compile.defaults(), a.params || {}), params0: Object.assign(Compile.defaults(), a.params || {}),
     bands: a.bands || null, events: [], measures: null, log: { homeostat: [], patches: [] } };
   save(f, S, true); return S;

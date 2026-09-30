@@ -18,7 +18,7 @@ for (const sid of SCENES) {
   const ids = Object.keys(M.H || {}), colors = Object.fromEntries(ids.map((id, k) => [id, PAL[k % PAL.length]]));
   const bands = S.bands || Homeostat.bandsFor(S.type);
   const out = { scene: sid, title: S.title, type: S.type, total: M.total, built: new Date().toISOString().slice(0, 10),
-    media: { previz: 'media/previz-' + sid + '.mp4', poster: 'media/previz-' + sid + '.jpg', film: ex('films/odyssey/' + sid + '-performed.mp4') ? '../../films/odyssey/' + sid + '-performed.mp4' : null, acted: ex('films/odyssey/' + sid + '-acted.mp4') ? '../../films/odyssey/' + sid + '-acted.mp4' : null },
+    media: { previz: 'media/previz-' + sid + '.mp4', previzActed: ex('odyssey/perform/media/previz-' + sid + '-acted.mp4') ? 'media/previz-' + sid + '-acted.mp4' : null, poster: 'media/previz-' + sid + '.jpg', film: ex('films/odyssey/' + sid + '-performed.mp4') ? '../../films/odyssey/' + sid + '-performed.mp4' : null, acted: ex('films/odyssey/' + sid + '-acted.mp4') ? '../../films/odyssey/' + sid + '-acted.mp4' : null },
     lanes: Score.LANES, actors: Object.fromEntries(ids.map(id => [id, { short: Score.short(id), color: colors[id], role: ((S.actors || {})[id] || {}).role || '', principal: !!((S.actors || {})[id] || {}).principal }])),
     objects: Object.fromEntries(Object.entries(S.objects || {}).map(([k, o]) => [k, { kind: o.kind, material: o.material, affords: o.affords || [] }])),
     events: events(S), params: S.params, params0: S.params0, paramDefs: Compile.PARAMS, bands,
