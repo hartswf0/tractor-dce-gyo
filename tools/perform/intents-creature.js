@@ -18,7 +18,14 @@
    THROW    {hand, from, to, flight}            a rock torn up and lifted overhead, the throw, and the rock's arc (a PROP track the
                                                 previz draws and the take can follow)
    HERD     {path, n, index}                    one animal of a flock (herd): its place in the file, separation, the leader's path
-   STRIKE   {targets: [actor ids], lift}        Scylla's heads: coil, strike at the rowers, seize, lift (riders on the jaws) */
+   STRIKE   {targets: [actor ids], lift}        Scylla's heads: coil, strike at the rowers, seize, lift (riders on the jaws)
+   MOVE_STONE {target, to}                      the door stone rolled aside by both hands (a PROP track)
+   DRINK    {gulps}                             the bowl to the mouth, the head back, a gulp at a time
+   CARESS   {target, anchor, strokes}           the hand drawn along a ram's back (reach procedures along the back)
+   FAWN     {target, path}                      a beast fawning (head low, tail going, a nuzzle)
+   GRAZE    {}                                  the head to the ground and up
+   CARRY    {riders: [{actor, at, lie}]}        men under a ram's belly or across a back (CONTACT RIDER)
+   CHANGE   {man, at}                           the beast's half of TRANSFORM: the face on the man for one drawing, then the beast */
 'use strict';
 const Cr = require('../../film-readymades/creatures.js'), Ground = require('./ground.js');
 const r3 = v => Math.round(v * 1000) / 1000;
@@ -116,4 +123,66 @@ K.INVOKE = (X, I, e) => { const t0 = I.t0, t1 = I.t1, sw = []; for (let t = t0 +
   return X.cmove(I.actor, 'INVOKE', e, { keys: { 'arm.R.pitch@inv': [[t0, 0], [t0 + 1.4, -2.7], ...sw, [t1, -2.5], [t1 + 1, 0]], 'arm.L.pitch@inv': [[t0 + 0.1, 0], [t0 + 1.5, -2.6], ...sw.map(([t, v]) => [r3(t + 0.2), v + 0.1]), [t1, -2.4], [t1 + 1, 0]],
     'arm.R.out@inv': [[t0, 0], [t0 + 1.4, 0.4], [t1, 0.4], [t1 + 1, 0]], 'arm.L.out@inv': [[t0, 0], [t0 + 1.4, 0.4], [t1, 0.4], [t1 + 1, 0]], 'head.pitch@inv': [[t0, 0], [t0 + 1.2, 0.45], [t1, 0.4], [t1 + 1, 0]], 'jaw@inv': [[t0, 0], [t0 + 1.5, 0.5], [t1, 0.4], [t1 + 0.5, 0]] } }, { label: I.label || 'hands to the sky: the prayer' }); };
 K.GESTURE = (X, I, e) => (I.params && /invoke|pray|oath/.test(I.params.shape || '') ? K.INVOKE : K.ATTEND)(X, I, e);
+/* ═════ more creature kinds: the giant's household work, a beast's manner, riders carried, the change of a man into a beast ═════ */
+/* MOVE_STONE {target (a piece or a point), params: to [x, z] (where it goes), dur}: both hands to the stone, the weight into it, the
+   stone carried along (a PROP event with its track, an object with that track for the previz and the heat) */
+K.MOVE_STONE = (X, I, e) => { const p = I.params || {}, from = pointOf(X, I.target || 'the great stone', I.t0) || [0, 60, 0], to = p.to ? [p.to[0], from[1], p.to[1]] : [from[0] + 60, from[1], from[2]], t0 = I.t0, t1 = I.t1, d = Math.max(0.6, t1 - t0 - 1.0);
+  const sc = X.creatures[I.actor].scale || 1, hands = (a) => [['R', [a[0] - 14 * sc, a[1], a[2]]], ['L', [a[0] + 14 * sc, a[1], a[2]]]];
+  const ev1 = X.cmove(I.actor, 'MOVE STONE', e, { proc: { type: 'reach', hand: hands(from), from: t0, to: t0 + 1.0, fade: 0.5 }, keys: { 'torso.lean@stone': [[t0, 0], [t0 + 0.8, 0.5], [t1, 0.45], [t1 + 0.8, 0]], 'hips.dy@stone': [[t0, 0], [t0 + 0.8, -10 * sc], [t1, -8 * sc], [t1 + 0.8, 0]] } }, { label: I.label || 'the stone rolled aside' });
+  const track = []; for (let t = t0 + 1.0; t <= t0 + 1.0 + d + 1e-6; t += 1 / 12) { const u = X.sm((t - t0 - 1.0) / d); track.push([X.r3(t), [X.r3(X.lerp(from[0], to[0], u)), from[1], X.r3(X.lerp(from[2], to[2], u))]]); }
+  X.cmove(I.actor, 'PUSH', ev1, { proc: { type: 'reach', hand: [['R', [to[0] - 14 * sc, to[1], to[2]]], ['L', [to[0] + 14 * sc, to[1], to[2]]]], from: t0 + 1.0, to: t1, fade: 0.6 } }, { label: 'the weight carried round' });
+  const mv = X.ev({ lane: 'PROP', actor: I.actor, t0: X.r3(t0 + 1.0), t1: X.r3(t0 + 1.0 + d), kind: 'MOVED', label: (I.target || 'the stone') + ' rolled from the door', because: [{ id: ev1.id, latency: 1.0 }], params: { prop: I.target || 'stone', track: track.filter((_, i) => i % 3 === 0) } });
+  X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor], t0: X.r3(t0 + 0.9), t1: X.r3(t1), kind: 'PUSH', label: 'both hands on the stone', because: [{ id: ev1.id, latency: 0.9 }], params: { k: 5 } });
+  X.S.objects = X.S.objects || {}; const oid = p.object || 'door-stone'; X.S.objects[oid] = Object.assign({ kind: 'door', material: 'stone', affords: ['block the way out'] }, X.S.objects[oid] || {}, { track: [[0, from], ...track] });
+  return mv; };
+/* DRINK {params: gulps}: the bowl in the right hand to the mouth, the head back, the jaw working; a STIMULUS at each gulp */
+K.DRINK = (X, I, e) => { const p = I.params || {}, rig = rigOf(X, I.actor), t0 = I.t0, s = cstate(X, I.actor, t0), m = rig.anchor('mouth', s.v); if (!m) return null; const sc = X.creatures[I.actor].scale || 1;
+  const at = [m[0], m[1] - 6 * sc, m[2]], n = p.gulps || Math.max(1, Math.floor((I.t1 - t0 - 1.2) / 1.1)), jaw = [[t0, 0]], hp = [[t0, 0], [t0 + 0.9, 0.3]];
+  for (let j = 0; j < n; j++) { const t = t0 + 1.0 + j * 1.1; jaw.push([X.r3(t), 0.35], [X.r3(t + 0.45), 0.05]); hp.push([X.r3(t + 0.5), 0.36], [X.r3(t + 1.0), 0.3]); }
+  jaw.push([I.t1 + 0.3, 0]); hp.push([I.t1, 0.25], [I.t1 + 0.8, 0]);
+  const ev1 = X.cmove(I.actor, 'DRINK', e, { proc: { type: 'reach', hand: 'R', target: at, from: t0, to: I.t1, fade: 0.7 }, keys: { 'jaw@drink': jaw, 'head.pitch@drink': hp } }, { label: I.label || 'drains the bowl' });
+  for (let j = 0; j < n; j++) X.ev({ lane: 'STIMULUS', actor: I.actor, t0: X.r3(t0 + 1.0 + j * 1.1), t1: X.r3(t0 + 1.3 + j * 1.1), kind: 'SOUND', label: 'a gulp', because: [{ id: ev1.id, latency: X.r3(1.0 + j * 1.1) }] });
+  return ev1; };
+/* CARESS {target (a creature or a figure), params: anchor ('back'), hand, strokes}: the hand laid on the target's back and drawn along
+   it, stroke after stroke (reach procedures to points along the back, each a little further), a CONTACT TOUCH over the span */
+K.CARESS = (X, I, e) => { const p = I.params || {}, hand = p.hand || 'R', tg = I.target, n = p.strokes || Math.max(2, Math.floor((I.t1 - I.t0 - 0.8) / 1.8));
+  const backAt = t => { if (X.creatures[tg]) { const st = cstate(X, tg, t), r = rigOf(X, tg), a = r.anchor(p.anchor || 'back', st.v); return a ? { p: [a[0], a[1], a[2]], h: st.v['root.h'] || 0 } : null; } const f = figPoint(X, tg, t, X.H(tg) * 0.9); return f ? { p: f, h: (X.at(tg, t) || { h: 0 }).h } : null; };
+  const sc = X.creatures[tg] ? (X.creatures[tg].scale || 1) : 1, d = (I.t1 - I.t0 - 0.6) / n; let first = null;
+  for (let j = 0; j < n; j++) { const t = I.t0 + 0.6 + j * d, B = backAt(t); if (!B) continue; const fw = [Math.sin(B.h), Math.cos(B.h)], L = 14 * sc;
+    const a = [B.p[0] + fw[0] * L, B.p[1] + 4, B.p[2] + fw[1] * L], b = [B.p[0] - fw[0] * L, B.p[1] + 2, B.p[2] - fw[1] * L];
+    const ev1 = X.cmove(I.actor, j ? 'STROKE' : 'CARESS', j ? first : e, { proc: { type: 'reach', hand, target: a, from: X.r3(t), to: X.r3(t + d * 0.35), fade: j ? 0.2 : 0.6 } }, { label: j ? 'the hand along the back (' + (j + 1) + ')' : I.label || 'the hand on ' + tg });
+    X.cmove(I.actor, 'STROKE', ev1, { proc: { type: 'reach', hand, target: b, from: X.r3(t + d * 0.35), to: X.r3(t + d * (j === n - 1 ? 1.2 : 0.95)), fade: 0.25 } }, { label: 'drawn along' });
+    if (!first) first = ev1; }
+  if (first) X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor, tg], t0: X.r3(I.t0 + 0.6), t1: X.r3(I.t1), kind: 'TOUCH', label: 'the hand on ' + tg + "'s " + (p.anchor || 'back') + ', ' + n + ' strokes', because: [{ id: first.id, latency: 0 }], params: { k: 2, strokes: n } });
+  return first; };
+/* FAWN {target, params: path}: a beast come to the men like a dog to its master: the head low, the tail going, the body swinging, a
+   nuzzle at the one it comes to (the gait along the path if given) */
+K.FAWN = (X, I, e) => { const p = I.params || {}, t0 = I.t0, t1 = I.t1, R = X.rng(I.id), wag = [[t0, 0]], hy = [[t0, 0]];
+  for (let t = t0 + 0.3, j = 0; t < t1; t += 0.28 + R() * 0.1, j++) wag.push([X.r3(t), (j % 2 ? 1 : -1) * 0.6]);
+  wag.push([t1 + 0.3, 0]); if (p.path) X.cmove(I.actor, 'WALK', e, { proc: { type: 'gait', path: p.path, gait: p.gait || 'walk', from: t0, to: t1, fade: 0.3 } }, { label: 'comes to ' + (I.target || 'them') });
+  const b = I.target ? bearing(X, I.actor, I.target, t1 - 1) : null; if (b) hy.push([t1 - 1.2, Math.max(-0.8, Math.min(0.8, b.yaw))], [t1 + 0.6, 0]);
+  return X.cmove(I.actor, 'FAWN', e, { proc: { type: 'preset', name: 'fawn', from: t0, to: t1, fade: 0.5 }, keys: { 'tail.yaw@fawn': wag, 'head.yaw@fawn': hy, 'body.roll@fawn': wag.map(([t, v]) => [t, v * 0.08]) } }, { label: I.label || 'fawns on ' + (I.target || 'them') }); };
+/* GRAZE: the head down to the ground and up, in no hurry (the pigs at the acorns, the flock) */
+K.GRAZE = (X, I, e) => { const R = X.rng(I.id), hp = [[I.t0, 0]]; for (let t = I.t0 + 0.6; t < I.t1; t += 1.4 + R()) hp.push([X.r3(t), -0.6 - 0.2 * R()], [X.r3(t + 0.7), -0.35]); hp.push([I.t1 + 0.5, 0]);
+  return X.cmove(I.actor, 'GRAZE', e, { keys: { 'head.pitch@graze': hp } }, { label: I.label || 'roots at the ground' }); };
+/* CARRY {params: riders [{actor, at: 'belly' | 'back', lie: 'under' | 'across' | 'upright', from, to, offset}]}: men carried (under a
+   ram, across a back); each a CONTACT RIDER for its span */
+K.CARRY = (X, I, e) => { const rs = ((I.params || {}).riders || []).map(r => ({ at: 'belly', lie: 'under', from: I.t0, to: I.t1, ...r, from: X.r3(r.from != null ? r.from : I.t0), to: X.r3(r.to != null ? r.to : I.t1) }));
+  const ev1 = X.cmove(I.actor, 'CARRY', e, { riders: rs, from: I.t0, to: I.t1 }, { label: I.label || 'carries ' + rs.map(r => r.actor).join(', ') });
+  for (const r of rs) X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor, r.actor], t0: r.from, t1: r.to, kind: 'RIDER', label: r.actor + ' ' + (r.lie === 'under' ? 'under the ' : 'on the ') + (r.at || 'belly') + ' of ' + I.actor, because: [{ id: ev1.id, latency: 0 }], params: { k: 5, at: r.at, lie: r.lie } });
+  return ev1; };
+/* CHANGE {params: man (the figure changed into this beast), at (the swap: the key where the take stages the beast)}: the beast's half of
+   TRANSFORM, a part-swap sequence on twos: not drawn until the in-between; the drawing before the swap its head (the pig's face, the
+   headdress) set on the man's head as he goes down, the man still drawn; at the swap the beast in its own place (the take hides the
+   man there). The head's place comes from the man's pose as the sheet has him (a solver, after his TRANSFORM is written) */
+K.CHANGE = (X, I, e) => { const p = I.params || {}, man = p.man, tS = X.q(p.at != null ? p.at : I.t1), tA = X.q(tS - 2 / 12), A = X.creatures[I.actor];
+  A.present = [[X.r3(tA), X.T + 1]];
+  const ev1 = X.cmove(I.actor, 'CHANGE', e, { keys: { 'morph@span': [[tA, 2, 'step'], [tS, 0, 'step']] } }, { label: I.label || man + ' into ' + I.actor + ': the face first, then the beast' });
+  X.after((X2, C0) => { const Body = require('./body.js'), bctx = Body.context(X.M, C0), P = Body.sample(bctx, man, tA); if (!P) { X.notes.push('CHANGE ' + I.actor + ': ' + man + ' not drawn at ' + tA); return; }
+    const hd = P.pts.headTop || P.pts.head, sm = X.at(man, tA), h = sm ? sm.h : 0, sc = A.scale || 1, kind = Cr.KINDS[A.kind];
+    /* the pig's headdress sits on the head as a minifig's hat does: the root there, its heading his (the wolf's and lion's head node: the root put so that the head pivot is on his) */
+    const at = kind.morphShows && kind.morphShows[0] === 'morph' ? hd : (() => { const r = rigOf(X, I.actor), v = Object.assign(r.rest(), { 'root.x': 0, 'root.y': 0, 'root.z': 0, 'root.h': h }), a = r.anchor('head', v); return [hd[0] - a[0], hd[1] - a[1], hd[2] - a[2]]; })();
+    for (const [c, v] of [['root.x', at[0]], ['root.y', at[1]], ['root.z', at[2]], ['root.h', h]]) A.channels[c + '@span'] = [[X.r3(tA), X.r3(v), 'step'], [X.r3(tS), X.r3(v), 'step']];
+    X.ev({ lane: 'SET/VEHICLE', actor: I.actor, t0: X.r3(tA), t1: X.r3(tS), kind: 'IN-BETWEEN', label: 'the ' + A.kind + "'s face on " + man + ' (one drawing on twos before the swap)', because: [{ id: ev1.id, latency: 0 }], params: { man, at: at.map(X.r3), scale: sc } }); });
+  return ev1; };
 module.exports = Object.assign(K, { place, placeAt, cstate, pointOf });

@@ -217,7 +217,7 @@ function compile(M, S, opts = {}) {
   for (const K of M.keys) { const e = ev({ lane: 'STIMULUS', t0: K.win ? K.win[0] : K.t, t1: K.win ? K.win[1] : K.t + 0.1, kind: 'BLOCKING', label: K.id + ': ' + String(K.beat).slice(0, 80), derived: true }); keyEv[K.id] = e; }
   X.keyEv = keyEv;
   /* 2. the authored stimuli and intents (and holds), in time order, each realised by its kind */
-  const INT = Object.assign({}, require('./intents.js'), require('./intents-action.js'), require('./intents-more.js'));
+  const INT = Object.assign({}, require('./intents.js'), require('./intents-action.js'), require('./intents-more.js'), require('./intents-extra.js'));
   for (const s of A.stimuli || []) ev({ ...s, lane: 'STIMULUS', because: because(s.because).map(b => ({ ...b })) });
   const intents = (A.intents || []).concat((A.holds || []).map(h => ({ ...h, kind: 'HOLD' }))).map(I => ({ ...I })).sort((a, b) => a.t0 - b.t0);
   for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });
@@ -226,7 +226,7 @@ function compile(M, S, opts = {}) {
   /* each creature stands on the ground the take finds under it (tools/perform/ground.js); its `floor` goes in the sheet, so the player's
      own ray under the rig corrects it where the set differs (creatures.js sample, ctx.ground) */
   for (const [cid, d] of Object.entries(A.creatures || {})) { const pl = d.at ? { at: d.at, floor: d.floor != null ? d.floor : null } : d.place ? INTC.placeAt(d.kind, d.scale || 1, d.place.preset, { ...d.place, M }) : { at: [0, 0, 0, 0], floor: null };
-    X.creature(cid, d.kind, { scale: d.scale || 1, at: pl.at, floor: pl.floor, procs: d.procs ? JSON.parse(JSON.stringify(d.procs)) : [] }); }
+    X.creature(cid, d.kind, { scale: d.scale || 1, at: pl.at, floor: pl.floor, colour: d.colour, procs: d.procs ? JSON.parse(JSON.stringify(d.procs)) : [] }); if (d.present) creatures[cid].present = d.present.map(w => w.slice()); }
   for (const I of intents) { const f = creatures[I.actor] ? INTC[I.kind] : INT[I.kind]; if (!f) { notes.push('no realiser for ' + (creatures[I.actor] ? 'creature ' : '') + 'intent ' + I.kind + ' (' + I.id + ')'); continue; } f(X, I, E.get(I.id)); }
   /* 3. machinery (clocks, couplings, constraints) the scene declares */
   if (A.machinery) { const Mach = require('./machinery.js'); for (const m of [].concat(A.machinery)) if (Mach[m.kind]) Mach[m.kind](X, m); else notes.push('no machinery ' + m.kind); }
@@ -236,7 +236,7 @@ function compile(M, S, opts = {}) {
       const owner = intents.find(I => I.actor === id && (I.key === K.id || (I.keys || []).includes(K.id))); INT._walkBlocking(X, id, K, owner ? E.get(owner.id) : keyEv[K.id]); } }
   /* 5. breath: every living figure, the whole time, staggered (it keeps a hold alive; it is never counted as a performance by itself) */
   for (const id of ids) { if ((A.noBreath || []).includes(id)) continue; const R = rng(sid + id + 'breath'), P = 3.2 + R() * 1.2; let t = R() * P, up = true;
-    const dead = (A.holds || []).filter(h => h.actor === id && /dead|lifeless/.test(h.reason || '')), isDead = t => dead.some(h => t >= h.t0 && t <= h.t1);
+    const dead = (A.holds || []).filter(h => h.actor === id && /dead|lifeless/.test(h.reason || '')).concat((X.dead || []).filter(d => d.actor === id).map(d => ({ t0: d.t0, t1: 1e9 }))), isDead = t => dead.some(h => t >= h.t0 && t <= h.t1);   /* X.dead: a DIE or DROWN ends the breath */
     const e = ev({ lane: 'WEIGHT', actor: id, t0: 0, t1: T, kind: 'BREATH', label: 'the idle breath', because: [], derived: true, life: true });
     sheet.begin(); while (t < T + P) { const s = at(id, Math.min(T, t)); if (s && !isDead(t)) { const st = !s.sat && !B.lying(s), k = up ? 1 : 0;
       sheet.key(id, 'weight', t, { 'torso.lean': -0.03 * k, 'head.pitch': -0.025 * k, 'hips.dy': st ? 0.7 * k : 0 }, 'inOut'); } t += up ? P * 0.42 : P * 0.58; up = !up; } sheet.end(); void e; }

@@ -66,16 +66,20 @@ MACH.ROWING = (X, m) => {
     const busy = (m.busy || {})[id] || [];
     let n = Math.ceil((t0 - (off * P)) / P) - 1;
     for (let tc = t0 + off * P; tc < t1; tc += P, n++) { if (tc < t0 - 1e-6 || busy.some(([x, y]) => tc + P > x && tc < y)) continue;
-      /* catch (arms forward, body forward) -> drive (arms back, body back, legs push) -> finish -> recovery */
-      X.move(id, 'mech', 'STROKE', { id: clockEv.id, latency: r3(tc - t0), rel: 'on the clock' }, k => {
+      stroke(X, id, tc, P, a, { id: clockEv.id, latency: r3(tc - t0), rel: 'on the clock' }, 'stroke ' + (n + 1) + ' (offset ' + (off >= 0 ? '+' : '') + off + ')', off); }
+    X.move(id, 'mech', 'SHIP OARS', clockEv, k => { k(t1, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0) }); k(t1 + 0.8, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0 }); }, { silent: true }); }
+};
+/* one stroke of an oar at tc on a clock of period P (the ROWING machinery's and the ROW intent's): catch (arms forward, body
+   forward) -> drive (arms back, body back, legs push) -> finish -> recovery */
+function stroke(X, id, tc, P, a, cause, label, off) {
+      X.move(id, 'mech', 'STROKE', cause, k => {
         k(tc, { 'arm.R.pitch': { abs: -1.7 * a }, 'arm.L.pitch': { abs: -1.7 * a }, 'torso.lean': 0.22 * a, 'hips.dy': -0.4, 'head.pitch': 0.04 });   /* the catch: arms forward, the body forward */
         k(tc + P * 0.12, { 'arm.R.pitch': { abs: -1.5 * a }, 'arm.L.pitch': { abs: -1.5 * a }, 'torso.lean': 0.12 * a }, 'in');
         k(tc + P * 0.42, { 'arm.R.pitch': { abs: -0.55 * a }, 'arm.L.pitch': { abs: -0.55 * a }, 'torso.lean': -0.16 * a, 'hips.dy': -1.4, 'head.pitch': -0.04 }, 'out');   /* the drive: pulled through */
         k(tc + P * 0.55, { 'arm.R.pitch': { abs: -0.6 * a }, 'arm.L.pitch': { abs: -0.6 * a }, 'torso.lean': -0.14 * a });   /* the finish */
         k(tc + P * 0.99, { 'arm.R.pitch': { abs: -1.65 * a }, 'arm.L.pitch': { abs: -1.65 * a }, 'torso.lean': 0.2 * a, 'hips.dy': -0.4, 'head.pitch': 0.03 });   /* the recovery */
-      }, { label: 'stroke ' + (n + 1) + ' (offset ' + (off >= 0 ? '+' : '') + off + ')', params: { phase: r3(off), force: r3(a) }, rigid: true }); }
-    X.move(id, 'mech', 'SHIP OARS', clockEv, k => { k(t1, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0) }); k(t1 + 0.8, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0 }); }, { silent: true }); }
-};
+      }, { label, params: { phase: r3(off || 0), force: r3(a) }, rigid: true }); }
+MACH.stroke = stroke;
 /* the crew's summed force on the water at t (a drive-phase profile per body, on the shared clock) */
 function crewForce(m, t) { const P = m.clock.period; let F = 0; for (const off of Object.values(m.offsets)) { const u = ((t - (m.clock.t0 || 0)) / P - off) % 1, v = u < 0 ? u + 1 : u; if (v >= 0.12 && v <= 0.45) F += Math.sin(Math.PI * (v - 0.12) / 0.33); } return F; }
 MACH.crewForce = crewForce;

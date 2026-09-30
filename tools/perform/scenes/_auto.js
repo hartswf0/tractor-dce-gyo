@@ -9,11 +9,11 @@
      the walks         the layout's walks owned by an APPROACH toward the nearest principal
      everyone          a HOLD with a reason (present, attending the principals and whoever speaks), so a stillness is a chosen one */
 'use strict';
-const ALIAS = { ROPE_WORK: ['ROPE', { how: 'haul' }], HAUL: ['ROPE', { how: 'haul' }], STRIKE: ['SWING', { hit: true }], GRAPPLE: ['SEIZE', {}], CARESS: ['HOLD_ON', {}], WAKE: ['RISE', {}],
-  CLIMB: ['STRAIN', {}], BRACE: ['STRAIN', {}], LIFT: ['STRAIN', {}], MOVE_STONE: ['STRAIN', {}], STRING_BOW: ['STRAIN', {}], SWIM: ['STRUGGLE', {}], DROWN: ['STRUGGLE', {}], DIE: ['FALL', {}],
-  WEAVE: ['TOOL_WORK', { how: 'carve' }], PLUCK: ['TOOL_WORK', { how: 'carve' }], PLAY_INSTRUMENT: ['TOOL_WORK', { how: 'carve' }], CUT: ['TOOL_WORK', { how: 'chop' }], GUARD: ['HOLD', {}], CROWD: ['HOLD', {}],
-  PURSUE: ['PURSUIT', {}], TURN_AWAY: ['ATTEND', { front: true }], ROW: ['ROW', {}] };
-const NONE = new Set(['GROPE', 'RIDE', 'LOCOMOTE', 'LEAVE', 'CIRCLE']);
+const ALIAS = { ROPE_WORK: ['ROPE', { how: 'haul' }], HAUL: ['ROPE', { how: 'haul' }], STRIKE: ['SWING', { hit: true }], GRAPPLE: ['GRIP', { point: 'shoulder', answer: 'struggle' }], CARESS: ['CARESS', {}], WAKE: ['WAKE', { rise: true }],
+  CLIMB: ['CLIMB', {}], BRACE: ['STRAIN', {}], LIFT: ['STRAIN', {}], MOVE_STONE: ['MOVE_STONE', {}], STRING_BOW: ['STRAIN', {}], SWIM: ['SWIM', {}], DROWN: ['DROWN', {}], DIE: ['DIE', {}],
+  WEAVE: ['WEAVE', {}], PLUCK: ['TOOL_WORK', { how: 'carve' }], PLAY_INSTRUMENT: ['TOOL_WORK', { how: 'carve' }], CUT: ['TOOL_WORK', { how: 'chop' }], GUARD: ['HOLD', {}], CROWD: ['HOLD', {}],
+  PURSUE: ['PURSUIT', {}], TURN_AWAY: ['ATTEND', { front: true }], ROW: ['ROW', { clock: 'row', period: 2.6 }], LOCOMOTE: ['LOCOMOTE', {}], LEAVE: ['LEAVE', {}], CIRCLE: ['CIRCLE', {}], RIDE: ['RIDE', {}] };
+const NONE = new Set(['GROPE']);
 const SPEECH = { GREET: 'WELCOME', WELCOME: 'WELCOME' };
 module.exports = function author(M, X, N) {
   const T = M.total, ids = Object.keys(M.H || {}).filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis)), q = t => Math.round(t * 12) / 12;
@@ -41,6 +41,12 @@ module.exports = function author(M, X, N) {
       if (!creatures[cid]) { const sc = Math.round((pp.scale || 1) * (M.scale || 1) * 1000) / 1000;
         const fl = pp.floor ? Ground.at(M, at[0], at[2]).y : null;
         creatures[cid] = { kind: hit[1], scale: sc, at: pp.floor ? require('../intents-creature.js').place(hit[1], sc, pose === 'stand' ? (hit[1] === 'scylla' ? 'coil' : 'stand') : pose, { at: [at[0], 0, at[2]], floor: fl, h: at[3] }) : at, ...(fl != null ? { floor: fl } : {}), procs: [] };   /* the take draws a prop at its scale x the location's (world units per LDU) */ cSeen[cid] = []; } cSeen[cid].push({ t: Kt != null ? Kt : 0, pose, at }); } }
+  /* when the take stages each creature: from the middle of the window of the first key that has its prop (the take switches the set's
+     props there) to the middle of the window of the first key that does not */
+  const swAt = j => { if (j <= 0) return 0; const K = M.keys[j]; return K ? q(K.win ? (K.win[0] + K.win[1]) / 2 : K.t) : T + 1; };
+  if (KF) for (const cid of Object.keys(creatures)) { const inKey = M.keys.map(K => { const kf = (KF.keys || []).find(k => k.id === K.id); return !!(kf && (kf.props || []).some(pp => (pp.id || pp.name) === cid)); }), win = [];
+    inKey.forEach((on, j) => { if (!on) return; const a = swAt(j), b = swAt(j + 1); if (win.length && Math.abs(win[win.length - 1][1] - a) < 1e-6) win[win.length - 1][1] = b; else win.push([a, b]); });
+    if (win.length && !(win.length === 1 && win[0][0] === 0 && win[0][1] > T)) creatures[cid].present = win; }
   for (const [cid, L] of Object.entries(creatures)) { const seq = cSeen[cid].sort((a, b) => a.t - b.t);
     seq.forEach((x, j) => { if (x.pose === 'stand') return; const nx = seq.slice(j + 1).find(y => y.pose !== x.pose); L.procs.push({ type: 'preset', name: x.pose === 'roar' ? 'roar' : x.pose, from: j ? q(x.t) - 0.4 : 0, to: nx ? q(nx.t) - 0.4 : T, fade: j ? 0.6 : 0 }); }); }
   /* a name to creatures: the id, a part of it ('giant-girl' -> girl), or a kind's name for the unnamed of that kind ('laestrygonians' -> g1..g4) */
@@ -78,7 +84,8 @@ module.exports = function author(M, X, N) {
       const I = { id: 'iN' + k + '_' + j, actor: a, kind, t0, t1, target: tgt && tgt !== a ? tgt : (['SEIZE', 'EMBRACE', 'HOLD_ON', 'TEND', 'RECOGNISE', 'OFFER', 'TAKE', 'SWING', 'THROW', 'SHOOT', 'PURSUIT', 'ATTEND', 'NOTICE', 'LISTEN', 'THREAT'].includes(kind) ? [...principals].find(p => p !== a) || null : null), label: (it.verb || it.note || kind).toString().toLowerCase().slice(0, 60), params: { ...params, ...(it.params || {}) }, because: stepAt(it.t0) };
       if (['SEIZE', 'EMBRACE', 'HOLD_ON', 'TEND', 'RECOGNISE', 'SWING', 'THROW', 'SHOOT', 'PURSUIT', 'ATTEND', 'NOTICE', 'LISTEN', 'OFFER', 'TAKE', 'THREAT', 'DRAG'].includes(kind) && !I.target) { notes.push(kind + ' for ' + a + ': no one to do it to'); return; }
       if (kind === 'TAKE' || kind === 'OFFER') { I.kind = kind === 'TAKE' ? 'REACT' : 'GESTURE'; I.params = kind === 'TAKE' ? { how: 'lean', lookAt: I.target } : { shape: 'offer', at: t0 + 0.3 }; }
-      if (kind === 'ROW') { I.kind = 'TOOL_WORK'; I.params = { how: 'dig', period: 2.6 }; I.label = 'rows'; }
+      if (kind === 'ROW') { I.params = { clock: 'row', period: 2.6 }; I.label = 'rows (the shared stroke)'; }   /* a ROW off the sea: the ROW intent's shared clock */
+      if (kind === 'LOCOMOTE' && !I.params.path) { if (!I.target) { notes.push('LOCOMOTE for ' + a + ': no path and no one to go to'); return; } I.kind = 'STEP'; I.params = { dist: 1.0, dur: Math.min(3, t1 - t0) }; }   /* toward the one it goes to */
       if (kind === 'FALL') I.params = { key: (M.keys.find(K => K.win && K.win[0] <= t1 && K.win[1] >= t0) || {}).id };
       intents.push(I); }); });
   /* the layout's walks: owned by an approach to the nearest principal */
@@ -118,7 +125,7 @@ module.exports = function author(M, X, N) {
     machinery.push({ kind: 'SEA', level, causes, hulls, swimmers, rowers });
     notes.push('the sea: level ' + level.map(([t, v]) => v.toFixed(2) + '@' + t.toFixed(1)).join(' ') + '; hulls ' + hulls.map(h => h.piece + ' (' + h.riders.length + ' rider windows)').join(', ') + (swimmers.length ? '; swimmers ' + swimmers.length : '') + (rowers.length ? '; rowers ' + rowers.length + ' on one clock' : ''));
     /* the rowers' ROW intents are the clock's, not a TOOL_WORK */
-    for (let i = intents.length - 1; i >= 0; i--) if (intents[i].kind === 'TOOL_WORK' && intents[i].label === 'rows' && rowers.includes(intents[i].actor)) intents.splice(i, 1); }
+    for (let i = intents.length - 1; i >= 0; i--) if (intents[i].kind === 'ROW' && rowers.includes(intents[i].actor)) intents.splice(i, 1); }
   /* a generic causal model (declared, so the entropy is of these options and no others): every figure may stay as it is; its own
      intents are options that rise while they run and once their chain step has come; it may turn to a principal (more so while he
      speaks, less once it already sees him); a figure who is not a principal may leave, more so under a principal's heat; a
@@ -131,7 +138,7 @@ module.exports = function author(M, X, N) {
     if (!principals.has(id) && P.length) acts.push({ a: 'leave', base: -2.6, f: { ['threat:' + P[0]]: 0.7, walking: 0.6 } });
     if (principals.has(id)) chain.slice(0, 6).forEach((c, k) => acts.push({ a: 'answer: ' + String(c.what).slice(0, 34), base: -3.0, f: { ['after:sC' + k]: 2.6, ...(k + 1 < chain.length ? { ['after:sC' + (k + 1)]: -2.6 } : {}) } }));
     causal.actions[id] = acts; });
-  return { type: /fight|battle/.test(N.type || '') ? 'fight' : /reveal|recogn/.test(N.type || '') ? 'revelation' : /labour|machine|ship|sea/.test(N.type || '') ? 'machinery' : 'dialogue', title: (N.title || M.scene) + ' (a first score from the needs catalogue)',
+  return { type: /transform|metamorph/.test(N.type || '') ? 'transformation' : /escape|stealth|suspense|conceal/.test(N.type || '') ? 'escape' : /fight|battle|massacre/.test(N.type || '') ? 'fight' : /reveal|recogn/.test(N.type || '') ? 'revelation' : /labour|machine|ship|sea|storm/.test(N.type || '') ? 'machinery' : 'dialogue', title: (N.title || M.scene) + ' (a first score from the needs catalogue)',
     actors: { ...Object.fromEntries(ids.map(id => [id, { role: principals.has(id) ? 'principal' : 'present', body: 'minifig', principal: principals.has(id), group: id.replace(/-\d+$/, '') !== id ? id.replace(/-\d+$/, '') : undefined }])), ...Object.fromEntries(Object.entries(creatures).map(([k, c]) => [k, { role: 'a creature (' + c.kind + ')', body: 'prop' }])) },
     objects: Object.fromEntries(Object.entries(creatures).map(([k, c]) => [k, { kind: /polyphemus|laestrygon/.test(c.kind) ? 'giant' : c.kind, material: 'flesh', at: [c.at[0], 100, c.at[2]], affords: [] }])), authored: { intents, holds, stimuli, notes, causal, machinery, creatures, from: 'odyssey/perform/needs.json (' + (N.updated || '') + ')' } };
 };

@@ -733,7 +733,8 @@ function throwArc(t, { from, to, t0, t1, g = 980 }) {
 /* ═════════════ the scene sheet: creature actors in odyssey-choreo/1 ═════════════ */
 /* A sheet (odyssey/choreo/<scene>.json) holds its creatures beside its actors, so the minifig player never clamps a creature's channel
    with a minifig's limits:
-     creatures: { polyphemus: { kind: 'polyphemus', scale: 1.4, colour: 84, layer: 'abs' | 'add',
+     creatures: { polyphemus: { kind: 'polyphemus', scale: 1.4, colour: 84, layer: 'abs' | 'add', floor: y (the ground it stands on),
+                   present: [[t0, t1], ...] (when the take stages it; absent: always),
                    procs: [{ type: 'gait'|'heavy'|'grope'|'reach'|'strike'|'preset'|'herd', from, to, fade, ...params }],
                    channels: { 'arm.R.pitch': [[t, v, ease], ...], 'head.yaw@life': [...] },
                    riders: [{ actor: 'odysseus', at: 'belly', from, to, offset: [x, y, z], lie: 'under' | 'across' | 'upright', turn: [rx, ry, rz] }] } }
@@ -759,7 +760,8 @@ function runProc(rig, p, t, v, ctx = {}) {
     case 'gait': return gait(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) }));
     case 'heavy': return heavy(rig, t, Object.assign(p, { base: Object.assign({}, v, p.base || {}) }));
     case 'grope': return grope(rig, t, Object.assign({}, p, { surface: p.surface || ctx.surface, base: Object.assign({}, v, p.base || {}) }));   /* ctx.surface(x, z): the backs under the hands */
-    case 'reach': { const tg = typeof p.target === 'function' ? p.target(t) : typeof p.target === 'string' && ctx.point ? ctx.point(p.target, t) : p.target; return tg ? reach(rig, v, p.hand || 'R', tg, p) : v; }   /* a target by name: ctx.point('odysseus:head', t) */
+    case 'reach': { if (Array.isArray(p.hand)) return reach(rig, v, p.hand, null, p);   /* both hands: [['R', point], ['L', point]] */
+      const tg = typeof p.target === 'function' ? p.target(t) : typeof p.target === 'string' && ctx.point ? ctx.point(p.target, t) : p.target; return tg ? reach(rig, v, p.hand || 'R', tg, p) : v; }   /* a target by name: ctx.point('odysseus:head', t) */
     case 'strike': return Object.assign({}, v, strike(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) })));   /* from the pose sampled so far (where Scylla stands) */
     case 'herd': { const H = p._herd || (p._herd = herd(p)); return H.channels(rig, p.index || 0, t, p.gait || 'walk', { base: v }); }
     default: return v;
@@ -774,7 +776,8 @@ function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
     if (out._fx) fx = Object.assign(fx, out._fx); if (out._feet) fx.feet = out._feet; if (out._touch != null) fx.touch = out._touch;
     const nv = {}; for (const k of Object.keys(Object.assign({}, v, out))) { if (k[0] === '_') continue; const x0 = v[k] || 0, x1 = out[k] != null ? out[k] : x0; nv[k] = k === 'root.h' ? x0 + wrapPi(x1 - x0) * w : lerp(x0, x1, w); } v = nv;
   }
-  const keyed = {}; for (const [key, K] of Object.entries(A.channels || {})) { const x = sampleKeys(K, tq); if (x == null) continue; const c = key.split('@')[0]; keyed[c] = (keyed[c] || 0) + x; }
+  /* a lane keyed '@span' holds only between its first and last key (a place taken for a moment: the in-between of a change) */
+  const keyed = {}; for (const [key, K] of Object.entries(A.channels || {})) { if (/@span$/.test(key) && K.length && (tq < K[0][0] - 1e-6 || tq >= K[K.length - 1][0] - 1e-6)) continue; const x = sampleKeys(K, tq); if (x == null) continue; const c = key.split('@')[0]; keyed[c] = (keyed[c] || 0) + x; }
   for (const c in keyed) v[c] = (A.layer === 'add' ? (v[c] || 0) : 0) + keyed[c];
   /* the ground: a creature stood on `floor` (the engine's reading of the set) is lifted or lowered to the floor the caller's ray finds
      under it now (ctx.ground(x, z, near): the take's own ray in the player, the probed grid in the tools), so it walks on the set */
@@ -784,7 +787,9 @@ function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
   for (const R of A.riders || []) { if ((R.from != null && tq < R.from) || (R.to != null && tq > R.to)) continue;
     let M = rig.anchor(R.at, v); if (!M) continue; if (R.offset) M = mul(M, T(...R.offset)); if (R.lie && LIE[R.lie]) M = mul(M, LIE[R.lie]); if (R.turn) M = mul(mul(mul(M, RX(R.turn[0] || 0)), RY(R.turn[1] || 0)), RZ(R.turn[2] || 0));
     riders.push({ actor: R.actor, at: R.at, m: M }); }
-  return { v, fx, riders, rig };
+  /* present: the windows [[t0, t1], ...] in which the take stages this creature (its prop is in those keys); outside them it is not drawn */
+  const hidden = Array.isArray(A.present) && !A.present.some(([a, b]) => tq >= a - 1e-6 && tq < b - 1e-6);
+  return { v, fx, riders: hidden ? [] : riders, rig, hidden };
 }
 /* a creature actor for a sheet, ready to be given keys and procedures */
 function fragment(id, kind, opts = {}) {

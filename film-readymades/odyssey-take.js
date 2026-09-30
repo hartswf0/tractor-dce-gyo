@@ -329,7 +329,7 @@ async function creaturesStage(C){const Cr=OdysseyCreatures,root=new URL('../../'
     if(!gMeshes){gMeshes=[];const skip=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>skip.add(o)));group.traverse(o=>skip.add(o));const shown=o=>{for(let p=o;p;p=p.parent){if(p.visible===false||/^prop:/.test(p.name||''))return false;}return true;};scene.traverse(o=>{if(o.isMesh&&!skip.has(o)&&shown(o))gMeshes.push(o);});}
     gRay.set(new THREE.Vector3(x,near+60*sc,z),gDown);gRay.far=200*sc;const h=gRay.intersectObjects(gMeshes,false)[0],y=h?h.point.y:null;gCache.set(k,y);return y;};
   return {rigs,group,
-    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t,{ctx:{ground:groundUnder}});rig.apply(s.v);const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
+    apply(t){for(const [id,rig] of Object.entries(rigs)){const s=Cr.sample(C,id,t,{ctx:{ground:groundUnder}});rig.apply(s.v);if(rig.three&&rig.three.group)rig.three.group.visible=!s.hidden;const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=false;
       for(const r of s.riders||[]){const a=kfActor(r.actor);if(!a||!a.rig||a.rig.figure.visible===false)continue;const m=r.m,f=a.rig.figure;M4.set(m[3],m[4],m[5],m[0],m[6],m[7],m[8],m[1],m[9],m[10],m[11],m[2],0,0,0,1);M4.decompose(Pv,Q,Sv);f.position.copy(Pv);f.quaternion.copy(Q);if(a.rig.pos)a.rig.pos.copy(Pv);}}
       group.updateMatrixWorld(true);},
     dispose(){scene.remove(group);for(const id of Object.keys(rigs)){const pr=scene.getObjectByName('prop:'+id);if(pr)pr.visible=true;}}};}

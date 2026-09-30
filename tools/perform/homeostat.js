@@ -30,7 +30,12 @@ const WORD = {
   H3: { cool: [0, 0.15], warm: [0.15, 0.5], high: [0.45, 1.5], 'very high': [1.2, 5] },
   H4: { zero: [0, 0.02] } };
 const TYPES = { dialogue: { H1: 'cool', H2: 'warm', H3: 'warm', H4: 'zero' }, fight: { H1: 'hot', H2: 'very hot', H3: 'high', H4: 'zero' },
-  revelation: { H1: 'near zero', H2: 'very hot', H3: 'very high', H4: 'zero' }, machinery: { H1: 'warm', H2: 'warm', H3: 'warm', H4: 'zero' } };
+  revelation: { H1: 'near zero', H2: 'very hot', H3: 'very high', H4: 'zero' }, machinery: { H1: 'warm', H2: 'warm', H3: 'warm', H4: 'zero' },
+  /* a change of body (Circe's): the bodies move a good deal (the fawning beasts, the men going down), the causes many, one hot body
+     against a watching room */
+  transformation: { H1: 'warm', H2: 'hot', H3: 'high', H4: 'zero' },
+  /* concealment under threat (the rams): the hidden hold still, the searcher's hands and the flock move; the causes many; the searcher hot */
+  escape: { H1: 'cool', H2: 'hot', H3: 'high', H4: 'zero' } };
 function bandsFor(type) { const w = TYPES[type] || TYPES.dialogue; return Object.fromEntries(Object.entries(w).map(([k, x]) => [k, { word: x, band: WORD[k][x].slice() }])); }
 /* each unit's uniselector is wired to these compiler parameters */
 /* each unit steps its own parameters (disjoint, as each of Ashby's units stepped its own input resistances) */
