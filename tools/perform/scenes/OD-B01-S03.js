@@ -21,15 +21,15 @@ module.exports = function author(M, X) {
   I({ id: 'iA2', actor: A, kind: 'KNOCK', t0: 15.0, t1: 15.8, label: 'the spear\'s butt on the threshold stone', params: { side: 'R' }, because: [{ id: 'hA1' }] });
   stimuli.push({ id: 'sA0', t0: 0.2, t1: 0.3, kind: 'SCENE', label: 'a stranger at the outer gate (Athena as Mentes)' });
   /* ── the suitors: the game and the wine, never the gate ── */
-  const game = { 'the-suitors-2': [12.4, 17.3, 25.2], 'the-suitors-3': [14.2, 22.8, 28.6], 'the-suitors-4': [13.1, 20.4, 27.0] };
+  const game = { 'the-suitors-2': [2.6, 8.2, 12.4, 17.3, 25.2, 34.6], 'the-suitors-3': [5.1, 14.2, 22.8, 28.6, 39.0], 'the-suitors-4': [3.8, 9.6, 13.1, 20.4, 27.0, 36.2] };
   for (const [id, th] of Object.entries(game)) I({ id: 'iG' + id.slice(-1), actor: id, kind: 'GAMBLE', t0: th[0] - 0.6, t1: th[th.length - 1] + 1.5, label: 'the dice', params: { throws: th }, because: [{ id: 'sS0' }] });
   stimuli.push({ id: 'sS0', t0: 0.1, t1: 0.2, kind: 'SCENE', label: 'the suitors at their game (the feast in the court)' });
-  I({ id: 'iD1', actor: 'the-suitors-1', kind: 'DRINK', t0: 13.4, t1: 27.5, label: 'drains his cup', params: { at: [13.4, 20.6, 27.0] }, because: [{ id: 'sS0' }] });
+  I({ id: 'iD1', actor: 'the-suitors-1', kind: 'DRINK', t0: 6.4, t1: 33.5, label: 'drains his cup', params: { at: [6.4, 13.4, 20.6, 27.0, 33.0] }, because: [{ id: 'sS0' }] });
   /* the table answers each throw: laughter from the others at that table (a reaction to the dice, with the compiler's latency) */
   const tables = { 'the-suitors-2': ['the-suitors-1', 'the-suitors-3'], 'the-suitors-3': ['the-suitors-2'], 'the-suitors-4': ['the-suitors-5'] };
   for (const [id, th] of Object.entries(game)) th.forEach((t, k) => { for (const o of tables[id]) if ((k + o.length) % 2 === 0 || id === 'the-suitors-4') I({ id: 'iL' + id.slice(-1) + o.slice(-1) + k, actor: o, kind: 'REACT', t0: t + 0.1, t1: t + 2.0, label: 'laughs at the throw', params: { how: 'laugh', lookAt: id, to: 'dice' }, because: [{ id: 'dice:' + id + ':' + k }] }); });
   for (const id of ['the-suitors-1', 'the-suitors-2', 'the-suitors-3', 'the-suitors-4', 'the-suitors-5'])
-    holds.push({ id: 'hS' + id.slice(-1), actor: id, t0: 11.8, t1: T, reason: 'absorbed in the game: they never look toward the gate', params: { look: [[tables[id] ? tables[id][0] : 'the-suitors-2', 2.4], [id === 'the-suitors-5' ? 'the-suitors-4' : 'the-suitors-3', 2.0]], weight: true, offset: 0.3 + 0.4 * (+id.slice(-1)) }, because: [{ id: 'sS0' }] });
+    holds.push({ id: 'hS' + id.slice(-1), actor: id, t0: 0.3, t1: T, reason: 'absorbed in the game: they never look toward the gate', params: { look: [[tables[id] ? tables[id][0] : 'the-suitors-2', 2.4], [id === 'the-suitors-5' ? 'the-suitors-4' : 'the-suitors-3', 2.0]], weight: true, offset: 0.3 + 0.4 * (+id.slice(-1)) }, because: [{ id: 'sS0' }] });
   /* one of them sees Telemachus rise (not the stranger), and turns back to the game */
   I({ id: 'iS3', actor: 'the-suitors-3', kind: 'REACT', t0: K3.win[0] + 0.3, t1: K3.win[0] + 2.2, label: 'glances at the rising prince, back to the dice', params: { how: 'turn', lookAt: Tm }, because: [{ id: 'iT6' }] });
   /* ── the servants: the wine for whoever raises a cup ── */

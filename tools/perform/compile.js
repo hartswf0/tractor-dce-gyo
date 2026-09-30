@@ -109,6 +109,10 @@ function compile(M, S, opts = {}) {
   }
   const relBearing = (s, p) => wrap(Math.atan2(p[0] - s.p[0], p[2] - s.p[2]) - s.h);
   /* when the blocking has the figure standing on its mark again at or after t (the end of a walk window it is inside) */
+  /* the blocking's own value of a channel at t (for absolute targets) */
+  const baseOf = (id, ch, t) => { const s = at(id, t); if (!s) return 0; const j = s.j, m = ch.match(/^(arm|leg)\.([RL])\.(pitch|out)$/);
+    if (m) { const v = j[m[1] + m[2] + 'P']; return m[3] === 'pitch' ? v[0] : v[2] * (m[2] === 'R' ? -1 : 1); }
+    return ch === 'torso.lean' ? j.torsoP[0] : ch === 'torso.twist' ? -j.torsoP[1] : ch === 'torso.roll' ? -j.torsoP[2] : ch === 'head.pitch' ? j.headP[0] : ch === 'head.yaw' ? -j.headP[1] : 0; };
   const settled = (id, t) => { const s = at(id, t); return s && s.moving && s.win ? s.win[1] + 0.05 : t; };
 
   /* ── events ── */
@@ -117,7 +121,8 @@ function compile(M, S, opts = {}) {
   const lat = (cause, t) => { const c = typeof cause === 'string' ? E.get(cause) : cause; return c ? { id: c.id, latency: r3(t - c.t0) } : null; };
   /* a move: keys on one actor's layer, recorded as an ACTION with the body lanes it moves, caused by `why` */
   function move(id, layer, kind, why, fn, o = {}) {
-    sheet.begin(); const keys = []; const k = (t, vals, ease) => { keys.push({ t: q(t), vals }); sheet.key(id, layer, t, vals, ease); };
+    /* a value {abs: v} is the joint's absolute angle: the offset over the blocking's own pose at that drawing */
+    sheet.begin(); const keys = []; const k = (t, vals, ease) => { const vv = {}; for (const [c, v] of Object.entries(vals)) vv[c] = v && typeof v === 'object' && v.abs != null ? v.abs - baseOf(id, c, t) : v; keys.push({ t: q(t), vals: vv }); sheet.key(id, layer, t, vv, ease); };
     try { fn(k); } finally { sheet.end(); }
     if (!keys.length) return null;
     const t0 = Math.min(...keys.map(x => x.t)), t1 = Math.max(...keys.map(x => x.t)), chs = new Set(keys.flatMap(x => Object.keys(x.vals)));
@@ -156,7 +161,7 @@ function compile(M, S, opts = {}) {
   function track(id, target, t0, t1, why, o = {}) { const out = []; for (let t = t0; t < t1 - 0.05; t += o.every || 0.5) { const e = look(id, target, t, why, { ...o, overshoot: false, dip: false, speed: 0.7, kind: 'TRACK', walking: true }); if (e) out.push(e); } return out; }
 
   /* ── the context the intents write through ── */
-  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
+  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, baseOf, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
     after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c) };
 
   /* 1. VOICE: every clip on the clock; a spoken line is an UTTERANCE {speaker, addressee, phrases, stress, speech_act, affect, goal} */
