@@ -149,7 +149,7 @@ MACH.SEA = (X, m) => {
   const slope = (x, z, t) => { const e = 4 * U; return [(h(x + e, z, t) - h(x - e, z, t)) / (2 * e), (h(x, z + e, t) - h(x, z - e, t)) / (2 * e)]; };
   const speed = (x, z, t) => Math.abs(h(x, z, t + 0.05) - h(x, z, t - 0.05)) / 0.1 / U;
   const seaEv = X.ev({ id: m.id || 'sea', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'SEA', label: 'the sea: a wave field of three crests, its level ' + Lv.map(([t, v]) => v.toFixed(2) + '@' + t).join(', '), because: (m.causes || []).map(c => ({ id: c.id, latency: 0, rel: 'raises' })), params: { level: Lv } });
-  const out = { level: [], hulls: {} }, hz = 12;
+  const out = { level: [], hulls: {}, waves: W.map((q, k) => ({ kx: q.kx, kz: q.kz, w: q.w, A: q.A, ph: r3(k * 1.7) })) }, hz = 12;
   for (let i = 0; i <= T * hz; i++) out.level.push([r3(i / hz), r3(L(i / hz))]);
   /* the hulls */
   for (const Hh of m.hulls || []) { const [px, py, pz] = Hh.pivot, g = Hh.gain || 1, w = Hh.omega || 1.4, z = Hh.zeta || 0.3, dt = 1 / 120; let p = 0, pv = 0, r = 0, rv = 0; const ch = { pitch: [], roll: [], heave: [] };

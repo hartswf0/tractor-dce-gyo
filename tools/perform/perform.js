@@ -72,7 +72,7 @@ if (require.main !== module) return;
   if (cmd === 'author') { const S = author(sid, args.includes('--force')); console.log('authored', path.relative(ROOT, scoreF(sid)), (S.authored.intents || []).length, 'intents,', (S.authored.holds || []).length, 'holds'); return; }
   if (cmd === 'compile') {
     const S = J(scoreF(sid)), R = compileScene(sid, S);
-    S.events = R.events; S.params = R.params; S.compiled = { at: new Date().toISOString().slice(0, 19), notes: R.notes, sheet: 'odyssey/score/' + sid + '.choreo.json' };
+    S.events = R.events; S.params = R.params; S.compiled = { at: new Date().toISOString().slice(0, 19), notes: R.notes, sheet: 'odyssey/score/' + sid + '.choreo.json', machine: R.machine && R.machine.sea ? { sea: R.machine.sea } : undefined };
     const errs = Score.validate(S); S.compiled.errors = errs;
     save(sheetF(sid), R.sheet); save(scoreF(sid), S);
     const n = Object.values(R.sheet.actors).reduce((a, A) => a + Object.values(A.channels).reduce((b, k) => b + k.length, 0), 0);

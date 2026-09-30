@@ -225,7 +225,7 @@ function compile(M, S, opts = {}) {
   /* 7. legality: what the layers ask for, summed, kept inside the toy's joint limits, and hands kept out of the torso and the head
      (tools/perform/metrics.js's part extents), on an @limit layer: the corrections are visible in the sheet and in the score */
   if (opts.legal !== false) legalize(finish());
-  return { sheet: finish(), events: E.list, notes, params: θ };
+  return { sheet: finish(), events: E.list, notes, params: θ, machine: X.machine || null };
 
   function legalize(C0) {
     const bctx0 = Body.context(M, C0), TB = { x: 19, y1: 32, z: 10 }, HB = { x: 13, y0: -25, z: 13 };
