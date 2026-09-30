@@ -22,7 +22,7 @@ module.exports = function author(M, X) {
   I({ id: 'oListen', actor: O, kind: 'LISTEN', target: Ae, t0: q(tBag + 2.3), t1: q(tHome - 0.1), label: 'hears what is sewn in the bag', params: { nods: [q(w(V3, 'wire', 8.9) + 0.2)] }, because: [{ id: 'aeGive' }] });
   stimuli.push({ id: 'sHome', t0: tHome, t1: tHome + 0.3, kind: 'WORD', label: '"home to Ithaca"', actor: Ae, because: [{ id: 'aeGive' }] });
   I({ id: 'oThanks', actor: O, kind: 'REACT', t0: tHome + 0.2, t1: tHome + 1.3, label: 'home', params: { how: 'nod', lookAt: Ae }, because: [{ id: 'sHome' }] });
-  stimuli.push({ id: 'sWinds', t0: q(c3.at + c3.dur + 0.1), t1: c6.at, kind: 'SOUND', label: 'the bag opened in sight of Ithaca: the winds loosed drive them back', because: [{ id: 'oThanks' }] });
+  stimuli.push({ id: 'sWinds', t0: q(c3.at + c3.dur - 0.4), t1: c6.at, kind: 'SOUND', label: 'the bag opened in sight of Ithaca: the winds loosed drive them back', because: [{ id: 'oThanks' }] });
   I({ id: 'oPlead', actor: O, kind: 'GESTURE', target: Ae, t0: q(c6.at - 0.6), t1: q(c6.at + 1.0), label: 'back as a suppliant: help us again', params: { shape: 'plead', at: q(c6.at - 0.2), side: 'R', amp: 0.9, hold: 0.6 }, because: [{ id: 'sWinds' }] });
   I({ id: 'aeOut', actor: Ae, kind: 'DECLARE', target: O, utterance: c6.gi, t0: c6.at - 0.2, t1: c6.at + c6.dur, label: 'out of my island, worst of living men: the gods hate you', params: { shapes: ['dismiss', 'point', 'chop', 'point', 'fist', 'dismiss'], side: 'R' }, because: [{ id: 'v' + c6.gi, rel: 'realises' }, { id: 'oPlead' }] });
   stimuli.push({ id: 'sCursed', t0: tCursed, t1: tCursed + 0.3, kind: 'WORD', label: '"you come back cursed"', actor: Ae, because: [{ id: 'aeOut' }] });
