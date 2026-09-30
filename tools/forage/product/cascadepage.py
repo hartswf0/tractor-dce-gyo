@@ -116,7 +116,8 @@ def main():
     n_clash = sum(len(c['clashes']) for c in clashes)
     with_plate = sum(1 for c in clashes for q in c['clashes'] if '3034' in q[6:8])
     tile = sum(1 for c in clashes for q in c['clashes'] if sorted(q[6:8]) == ['3034', '87079'])
-    players = {n: size(os.path.join(CAS, 'players', n)) for n in graphs}
+    players = {s['name']: size(os.path.join(CAS, 'players', s['name'])) for s in STONES}
+    bflx = json.load(open(os.path.join(CAS, 'media/beflix.json'))) if os.path.exists(os.path.join(CAS, 'media/beflix.json')) else None
     nodes = sorted(os.listdir(os.path.join(CAS, 'nodes')))
     fps = {g['name']: g for g in verify['graphs']}
     media = json.load(open(os.path.join(CAS, 'media/media.json')))
@@ -137,11 +138,23 @@ def main():
     below is live: scrub it, change its parameters.</p>''')
     total_players = sum(players.values())
     out.append(f'''  <div class="stats">
-    <div><b>{len(graphs)}</b><span>graphs</span></div>
+    <div><b>{len(STONES)}</b><span>graphs grown from failures</span></div>
     <div><b>{len(nodes)}</b><span>project nodes</span></div>
     <div><b>{kb(total_players)}</b><span>all five players</span></div>
     <div><b>{kit["pieces"]}</b><span>pieces in the gesture kit · {kit["loose"]} loose · {kit["clash"]} clashes</span></div>
   </div>''')
+    if bflx:
+        out.append(f'''  <h2 id="beflix">New · BEFLIX in Cascade</h2>
+  <div class="stone"><div class="outs">
+    <figure><a href="beflix.html"><img src="media/beflix.jpg" alt="A BEFLIX frame of the Sirens: the song in mosaic letters travelling from the Sirens to the ship, Odysseus inset" loading="lazy"></a>
+      <figcaption><a href="beflix.html">BEFLIX in Cascade</a>: {bflx["seconds"]} s with sound, {bflx["frames"]} frames</figcaption></figure>
+    <div><p class="sub">Ken Knowlton's BEFLIX (Bell Labs, 1963) rebuilt as a node graph: a 252 x 184 mosaic of ink levels 0 to 7 worked
+      by his operations, one node each (PAINT, LINE, TEXT, SHIFT, ZOOM, EXPAND and SHRINK, COPY, DISSOLVE) and photographed as BEFLIX
+      cells, as Halfworld's halftone, or as LEGO tiles. The footage is Halfworld's <i>The Sirens' Song</i>, drawn by Halfworld's own
+      programs; the clock is Halfworld's recording of the scene, whose loudness drives the cuts, the zoom, the ink and a Poem Field of
+      Homer's words. Every frame is a buildable LEGO mosaic; the key frame and a twelve-frame film strip are built and checked.</p>
+      <p><a href="beflix.html">Watch it, play it, build it</a> · <a href="players/beflix.html">the player</a></p></div>
+  </div></div>''')
     for s in STONES:
         g, v = graphs[s['name']], fps[s['name']]
         pl = os.path.join(CAS, 'players', s['name'])
@@ -182,7 +195,7 @@ def main():
         meas = ', '.join(f'{k} {v}' for k, v in c.items() if k not in ('ask', 'ok') and not isinstance(v, dict))
         if isinstance(c.get('kit'), dict): meas += (', ' if meas else '') + ', '.join(f'kit {k} {v}' for k, v in c['kit'].items())
         ok = lambda b: 'ok' if b else 'bad'
-        out.append(f'    <tr><td><a href="#{r["name"]}">{E(r["name"])}</a></td><td>{E(r.get("sign", ""))} · {E(r.get("signName", ""))}</td>'
+        out.append(f'    <tr><td><a href="{"beflix.html#critic" if r["name"] == "beflix" else "#" + r["name"]}">{E(r["name"])}</a></td><td>{E(r.get("sign", ""))} · {E(r.get("signName", ""))}</td>'
                    f'<td class="{ok(r["check"])}">{"passed" if r["check"] else "failed"}</td><td class="n">{r["run"].get("files", 0)}</td>'
                    f'<td class="n">{r["run"].get("ms", "")}</td><td>{E(c.get("ask", ""))}</td><td class="{ok(c.get("ok"))}">{"yes" if c.get("ok") else "no"}: {E(meas)}</td></tr>')
     out.append(f'  </table></div>\n  <p class="facts">Run {E(verify["ran"][:16].replace("T", " "))} UTC with Cascade {E(verify["cascade"])}: '

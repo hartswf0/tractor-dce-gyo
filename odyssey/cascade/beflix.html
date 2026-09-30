@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEFLIX in Cascade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, minmax(0, 1fr)); } .ribbon a, .ribbon div { min-width: 0; overflow-wrap: anywhere; } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+
+.film { width: 100%; display: block; background: #000; border: 1px solid var(--rule); aspect-ratio: 1008 / 736; }
+.facts { font-size: 13px; color: var(--muted); }
+.looks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.looks img { width: 100%; display: block; background: #fff; image-rendering: auto; }
+.player { width: 100%; border: 1px solid var(--rule); background: var(--card); display: block; height: 1180px; }
+.ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 12px; }
+.ops figure { border: 1px solid var(--rule); background: var(--card); padding: 8px; }
+.ops img { width: 100%; display: block; image-rendering: pixelated; }
+.ops b { font-family: ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+.env { width: 100%; height: auto; display: block; color: var(--ink); margin: 10px 0 4px; }
+.env .seg { fill: var(--blue); opacity: .12; } .env .lbl { font: 11px Inter, sans-serif; fill: var(--muted); }
+.parts { font-size: 14px; } .parts td.n { white-space: nowrap; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(128,128,128,.6); }
+.kitfig img { width: 100%; display: block; background: #111; }
+ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; }
+.limits li::marker { color: var(--bad); }
+blockquote.song { font-size: 22px; }
+@media (max-width: 800px) { .looks { grid-template-columns: 1fr; } .player { height: 1500px; } .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker">Word to World · the Odyssey in Cascade</div>
+  <h1>BEFLIX in Cascade</h1>
+  <p class="lede">In 1963 Ken Knowlton at Bell Labs wrote BEFLIX, a language for making films on a computer. A frame was a mosaic of
+    252 by 184 cells, each holding an ink level from 0 to 7; a film was a program of operations on that mosaic (paint a region, draw
+    a line, write letters, shift, zoom, expand, copy, dissolve), and a camera photographed the grid, frame after frame. This page is
+    that machine rebuilt as a Cascade node graph, one node per operation. Its footage is Halfworld's <i>The Sirens' Song</i>, drawn by
+    Halfworld's own programs; its clock is Halfworld's recording of the scene, whose loudness drives the dissolves, the zoom, the
+    words and the ink. And every frame it makes is also a LEGO mosaic you could build.</p>
+  <video class="film" src="media/beflix.mp4" poster="media/beflix.jpg" controls playsinline preload="metadata"></video>
+  <p class="facts">The film, with sound: <a href="media/beflix.mp4">media/beflix.mp4</a>, 51.71 s, 1241 frames at
+    24 a second, 9 MB,
+    every frame cooked headless by <code>cascade run --frames</code> from <code>beflix.cascade</code>. The sound is Halfworld's
+    recording of OD-B12-S03 over its book's bed (Bronze Council, <i>The Cattle of the Sun</i>, looped as Halfworld's own film
+    loops it), the bed at 0.18 ducked to 0.1 while the voice speaks.</p>
+  <div class="stats">
+    <div><b>252 x 184</b><span>cells, ink 0 to 7</span></div>
+    <div><b>15</b><span>BEFLIX nodes · 35 in the graph</span></div>
+    <div><b>504 KB</b><span>the live player</span></div>
+    <div><b>13,830</b><span>pieces in the key frame · 0 loose · 0 clashes</span></div>
+  </div>
+  <h2 id="voice">The scene, the voice and the line</h2>
+  <p class="sub">Book XII, OD-B12-S03, <i>The Sirens' Song</i>: the wind dies, Odysseus seals his crew's ears with wax, they bind him to
+    the mast, the Sirens promise him all knowledge, he strains to be loosed, and Perimedes and Eurylochus tie him tighter until the
+    song fades. It was chosen over Polyphemus because its recording is clean: Halfworld's voice manifest cuts the recording into seven
+    segments, and each speaks the drive script's sentence for it, a narrator throughout. The Cyclops scenes' dialogue segments speak
+    the scene's summary in the first person instead of a line ("I promise: Nobody the last death as a guest-gift, and collapses"), and
+    only one dialogue segment in the whole manifest is close to the line Halfworld authored for it.</p>
+  <svg class="env" viewBox="0 0 1000 120" role="img" aria-label="The recording's amplitude over its 51.7 seconds, the seven spoken segments shaded"><rect class="seg" x="0.0" y="4" width="95.9" height="98"/><text class="lbl" x="3.0" y="116">0</text><rect class="seg" x="109.5" y="4" width="135.4" height="98"/><text class="lbl" x="112.5" y="116">1</text><rect class="seg" x="253.0" y="4" width="143.1" height="98"/><text class="lbl" x="256.0" y="116">2</text><rect class="seg" x="401.9" y="4" width="177.2" height="98"/><text class="lbl" x="404.9" y="116">3</text><rect class="seg" x="587.2" y="4" width="107.5" height="98"/><text class="lbl" x="590.2" y="116">4</text><rect class="seg" x="700.6" y="4" width="103.7" height="98"/><text class="lbl" x="703.6" y="116">5</text><rect class="seg" x="810.1" y="4" width="181.8" height="98"/><text class="lbl" x="813.1" y="116">6</text><polyline points="0.0,99.4 1.9,99.4 3.9,99.8 5.8,94.4 7.7,93.1 9.7,60.3 11.6,41.7 13.5,42.1 15.5,44.8 17.4,51.0 19.3,74.5 21.3,69.6 23.2,58.9 25.2,63.4 27.1,77.7 29.0,88.7 31.0,94.1 32.9,97.1 34.8,98.8 36.8,98.9 38.7,98.8 40.6,98.6 42.6,99.5 44.5,99.2 46.4,98.7 48.4,65.7 50.3,68.2 52.2,83.2 54.2,88.8 56.1,61.6 58.0,59.1 60.0,60.3 61.9,70.7 63.9,73.6 65.8,83.7 67.7,90.3 69.7,91.5 71.6,87.7 73.5,65.8 75.5,61.5 77.4,64.7 79.3,74.2 81.3,87.3 83.2,94.0 85.1,96.9 87.1,98.0 89.0,98.6 90.9,99.0 92.9,99.7 94.8,100.3 96.7,101.2 98.7,101.7 100.6,101.9 102.6,101.9 104.5,101.9 106.4,102.0 108.4,100.5 110.3,96.1 112.2,92.4 114.2,86.0 116.1,50.6 118.0,13.5 120.0,19.1 121.9,16.7 123.8,12.1 125.8,12.0 127.7,13.2 129.6,12.7 131.6,33.5 133.5,53.7 135.4,19.4 137.4,21.0 139.3,29.9 141.3,31.8 143.2,33.6 145.1,39.8 147.1,53.3 149.0,65.7 150.9,78.9 152.9,88.2 154.8,92.8 156.7,94.5 158.7,95.8 160.6,96.0 162.5,62.5 164.5,65.6 166.4,70.9 168.3,64.2 170.3,45.2 172.2,42.4 174.1,39.4 176.1,67.0 178.0,74.1 180.0,73.9 181.9,86.3 183.8,89.3 185.8,18.4 187.7,22.2 189.6,59.8 191.6,66.4 193.5,70.2 195.4,79.1 197.4,85.9 199.3,77.4 201.2,77.6 203.2,80.8 205.1,53.8 207.0,45.4 209.0,52.6 210.9,60.8 212.8,67.0 214.8,71.1 216.7,77.4 218.7,80.9 220.6,25.7 222.5,27.9 224.5,50.6 226.4,68.3 228.3,75.4 230.3,85.3 232.2,90.4 234.1,94.3 236.1,95.1 238.0,96.6 239.9,98.7 241.9,99.6 243.8,100.1 245.7,101.1 247.7,101.6 249.6,101.8 251.5,101.7 253.5,100.5 255.4,100.3 257.4,90.0 259.3,32.7 261.2,44.7 263.2,21.5 265.1,35.3 267.0,64.3 269.0,62.9 270.9,66.8 272.8,81.9 274.8,86.2 276.7,92.1 278.6,87.1 280.6,81.6 282.5,18.0 284.4,21.1 286.4,52.6 288.3,56.9 290.2,53.0 292.2,57.5 294.1,70.4 296.1,69.6 298.0,59.2 299.9,66.1 301.9,77.0 303.8,89.9 305.7,91.9 307.7,92.1 309.6,92.6 311.5,93.5 313.5,92.7 315.4,27.3 317.3,18.0 319.3,44.5 321.2,71.6 323.1,55.2 325.1,54.5 327.0,38.2 328.9,42.6 330.9,45.8 332.8,56.3 334.8,73.7 336.7,84.0 338.6,24.0 340.6,21.2 342.5,48.7 344.4,64.5 346.4,44.0 348.3,49.3 350.2,66.2 352.2,38.9 354.1,20.5 356.0,22.8 358.0,25.3 359.9,19.5 361.8,20.2 363.8,41.3 365.7,66.0 367.6,51.8 369.6,64.6 371.5,65.0 373.5,70.3 375.4,79.9 377.3,84.8 379.3,87.5 381.2,89.4 383.1,90.7 385.1,92.8 387.0,95.5 388.9,98.1 390.9,99.4 392.8,100.3 394.7,100.5 396.7,101.2 398.6,101.7 400.5,101.7 402.5,101.5 404.4,101.5 406.3,94.7 408.3,73.4 410.2,19.3 412.2,20.0 414.1,28.2 416.0,16.4 418.0,15.7 419.9,20.3 421.8,28.7 423.8,35.1 425.7,23.2 427.6,13.7 429.6,13.7 431.5,12.9 433.4,13.3 435.4,14.6 437.3,45.9 439.2,24.0 441.2,23.5 443.1,31.2 445.0,60.0 447.0,35.7 448.9,51.1 450.9,78.7 452.8,41.0 454.7,41.7 456.7,57.2 458.6,79.7 460.5,88.3 462.5,91.8 464.4,76.7 466.3,41.3 468.3,46.1 470.2,45.6 472.1,53.4 474.1,57.7 476.0,58.5 477.9,72.2 479.9,83.9 481.8,88.9 483.7,92.4 485.7,92.9 487.6,97.5 489.6,99.8 491.5,100.7 493.4,101.2 495.4,101.5 497.3,101.6 499.2,101.3 501.2,57.6 503.1,23.3 505.0,37.2 507.0,33.6 508.9,15.2 510.8,12.5 512.8,20.1 514.7,28.2 516.6,63.6 518.6,56.8 520.5,54.7 522.4,63.1 524.4,70.9 526.3,83.7 528.3,90.0 530.2,93.7 532.1,94.7 534.1,96.2 536.0,41.3 537.9,50.8 539.9,77.5 541.8,61.4 543.7,52.2 545.7,52.4 547.6,54.7 549.5,60.4 551.5,72.0 553.4,83.1 555.3,63.8 557.3,46.4 559.2,48.8 561.1,62.5 563.1,73.8 565.0,82.3 567.0,86.3 568.9,88.9 570.8,91.6 572.8,95.7 574.7,98.7 576.6,100.3 578.6,101.2 580.5,101.6 582.4,101.8 584.4,101.9 586.3,101.6 588.2,101.4 590.2,101.0 592.1,85.0 594.0,66.3 596.0,44.1 597.9,60.4 599.8,79.1 601.8,81.0 603.7,55.5 605.7,53.5 607.6,56.5 609.5,61.4 611.5,70.0 613.4,74.6 615.3,82.1 617.3,84.3 619.2,86.7 621.1,83.1 623.1,85.5 625.0,80.9 626.9,28.9 628.9,13.0 630.8,26.5 632.7,49.4 634.7,66.4 636.6,76.2 638.5,85.9 640.5,94.5 642.4,70.1 644.3,71.5 646.3,19.0 648.2,24.6 650.2,63.2 652.1,69.8 654.0,70.4 656.0,76.6 657.9,80.7 659.8,63.0 661.8,51.1 663.7,31.7 665.6,25.8 667.6,33.5 669.5,65.8 671.4,76.4 673.4,84.1 675.3,93.7 677.2,86.2 679.2,84.6 681.1,79.3 683.0,77.4 685.0,79.3 686.9,86.5 688.9,94.4 690.8,98.3 692.7,100.2 694.7,101.1 696.6,101.6 698.5,101.8 700.5,101.2 702.4,101.1 704.3,87.8 706.3,55.0 708.2,57.0 710.1,37.7 712.1,38.5 714.0,65.8 715.9,69.0 717.9,69.0 719.8,75.5 721.7,84.6 723.7,83.4 725.6,89.1 727.6,89.6 729.5,74.2 731.4,74.7 733.4,55.4 735.3,15.5 737.2,12.6 739.2,36.9 741.1,66.5 743.0,78.5 745.0,88.4 746.9,91.9 748.8,87.9 750.8,92.3 752.7,29.0 754.6,18.7 756.6,50.4 758.5,75.2 760.4,21.6 762.4,27.6 764.3,28.2 766.3,29.6 768.2,39.3 770.1,59.9 772.1,76.5 774.0,21.4 775.9,19.4 777.9,26.6 779.8,14.1 781.7,19.2 783.7,25.0 785.6,34.5 787.5,64.5 789.5,79.4 791.4,88.5 793.3,93.7 795.3,94.1 797.2,98.0 799.1,100.1 801.1,101.0 803.0,101.4 805.0,101.7 806.9,101.9 808.8,101.1 810.8,98.7 812.7,98.8 814.6,98.5 816.6,98.2 818.5,30.9 820.4,12.3 822.4,12.1 824.3,12.8 826.2,12.0 828.2,12.0 830.1,15.2 832.0,35.4 834.0,40.5 835.9,52.0 837.8,66.1 839.8,80.9 841.7,87.3 843.7,89.6 845.6,91.6 847.5,31.8 849.5,33.3 851.4,30.8 853.3,13.2 855.3,14.1 857.2,19.6 859.1,37.9 861.1,46.9 863.0,70.8 864.9,77.7 866.9,86.2 868.8,87.2 870.7,88.2 872.7,90.5 874.6,78.8 876.5,55.8 878.5,23.8 880.4,30.3 882.4,65.7 884.3,45.9 886.2,43.9 888.2,50.6 890.1,60.6 892.0,68.6 894.0,71.6 895.9,78.1 897.8,87.7 899.8,86.9 901.7,87.5 903.6,92.1 905.6,94.8 907.5,96.7 909.4,98.1 911.4,98.5 913.3,99.1 915.2,99.4 917.2,99.6 919.1,19.2 921.1,13.1 923.0,13.6 924.9,50.0 926.9,34.7 928.8,39.8 930.7,57.6 932.7,68.4 934.6,75.8 936.5,79.9 938.5,50.9 940.4,53.8 942.3,76.6 944.3,77.1 946.2,48.8 948.1,47.4 950.1,50.4 952.0,54.9 953.9,63.6 955.9,69.1 957.8,74.4 959.8,85.4 961.7,92.4 963.6,70.4 965.6,74.8 967.5,86.5 969.4,93.3 971.4,97.1 973.3,98.6 975.2,99.4 977.2,93.4 979.1,96.0 981.0,97.7 983.0,98.4 984.9,98.7 986.8,99.5 988.8,99.4 990.7,98.9 992.6,99.7 994.6,101.0 996.5,101.5 998.5,101.8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+  <div class="tablewrap"><table>
+    <tr><th class="n">Segment</th><th class="n">Starts (s)</th><th class="n">Lasts (s)</th><th>Kind</th><th>What the recording says</th></tr>
+    <tr><td class="n">0</td><td class="n">0.00</td><td class="n">4.96</td><td>scene header</td><td>Scene three. The Sirens&#x27; Song.</td></tr><tr><td class="n">1</td><td class="n">5.66</td><td class="n">7.00</td><td>narration</td><td>The wind dies as the ship approaches the Sirens&#x27; island.</td></tr><tr><td class="n">2</td><td class="n">13.08</td><td class="n">7.40</td><td>auditory action</td><td>Odysseus softens wax and seals every crewman&#x27;s ears.</td></tr><tr><td class="n">3</td><td class="n">20.78</td><td class="n">9.16</td><td>narration</td><td>The men bind him upright to the mast and row past the flowered shore.</td></tr><tr><td class="n">4</td><td class="n">30.36</td><td class="n">5.56</td><td>auditory action</td><td>The Sirens promise total knowledge.</td></tr><tr><td class="n">5</td><td class="n">36.22</td><td class="n">5.36</td><td>auditory action</td><td>Odysseus struggles and signals to be released.</td></tr><tr><td class="n">6</td><td class="n">41.88</td><td class="n">9.40</td><td>narration</td><td>Perimedes and Eurylochus tighten the ropes until the song fades.</td></tr>
+  </table></div>
+  <p class="sub">So what the voice says is set as it is said: <code>project.BxVoice</code> reads the envelope and the segments at
+    <code>$T</code>, and a TEXT node types each sentence word by word across the bottom of the frame. Homer's line is not in the
+    recording. The Sirens' song, as Halfworld wrote it for this scene (spoken-lines, turn T04), is the Poem Field: it goes out from
+    the Sirens' mouths as rings of words while the narrator says "The Sirens promise total knowledge", and it is silent. The crew
+    have wax in their ears; the audience, like Odysseus, is the one who takes it in.</p>
+  <blockquote class="song">Come here, far-famed Odysseus, great glory of the Achaeans — stay your ship and hear our voices. No man has ever rowed past us till he heard the honeyed song from our lips, and went away delighted, knowing more than he knew. For we know all that Argives and Trojans suffered on Troy&#x27;s wide plain by the will of the gods — we know everything that comes to pass on the nourishing earth.</blockquote>
+  <h2 id="looks">One frame, three looks</h2>
+  <p class="sub">The key frame, 34.42 s: the Sirens promise, the song in the field, his face inset. The same mosaic, the
+    camera node's <code>mode</code> changed: Knowlton's cells, Halfworld's halftone (its post-pass ported: black dots on warm paper, one
+    a cell, after the ink law's floor and S-curve), and the LEGO mosaic (144 x 96 studs of 1 x 1 round tiles).</p>
+  <div class="looks">
+    <figure><img src="media/beflix-cells.png" alt="The key frame as BEFLIX cells: square grey levels on a grid" loading="lazy"><figcaption>cells: the 1963 grain</figcaption></figure>
+    <figure><img src="media/beflix-halftone.png" alt="The key frame as Halfworld halftone: black dots on paper" loading="lazy"><figcaption>halftone: Halfworld's print</figcaption></figure>
+    <figure><img src="media/beflix-lego.jpg" alt="The key frame as LEGO round tiles in white, tan, greys and black" loading="lazy"><figcaption>lego: round tiles on baseplates</figcaption></figure>
+  </div>
+  <p class="facts">And a print: <a href="media/beflix.svg">media/beflix.svg</a> (1,028 KB), the key frame's halftone as
+    vectors, one disc per inked cell, written by the graph's <code>project.BxPrint</code>.</p>
+  <h2 id="player">The machine, live</h2>
+  <p class="sub">The graph's static player (<code>cascade build</code>, 504 KB, of which the baked plates are 304 KB and the
+    voice envelope 7 KB), with the recording as its clock: press Play and
+    the frame shown is the sound's time (the player cooks the newest frame asked for and skips the rest, so the picture keeps the
+    voice's time). Change the look, the LEGO resolution and colours, the ink; the parts count follows every frame.</p>
+  <iframe class="player" src="players/beflix.html" title="BEFLIX in Cascade: the live player" loading="lazy"></iframe>
+  <h2 id="lego">Every frame is a LEGO mosaic</h2>
+  <p class="sub"><code>project.BxLego</code> resamples the mosaic to a grid of studs, prints each stud's mean darkness through
+    Halfworld's ink law, and maps the eight ink levels to LEGO colours that fall in the same order of lightness, paper to ink: White,
+    Tan, Light Bluish Grey, Dark Tan, Dark Bluish Grey, Black. One 1 x 1 round tile on every stud, 48 x 48 baseplates beneath, as the
+    LEGO Art mosaics are built. Offline, <code>tools/beflix_kit.py</code> writes the grid as an LDraw model with the line's kitlib and
+    checks it: every part on the grid, none loose, none in the same space as another.</p>
+  <div class="two">
+    <figure class="kitfig"><img src="kit/cascade.beflix-key-plan.png" alt="The key frame built in LEGO: six baseplates of round tiles" loading="lazy">
+      <figcaption>The key frame built: <a href="kit/cascade.beflix-key.mpd">kit/cascade.beflix-key.mpd</a>, 144 x 96 studs,
+      13,830 pieces, 0 loose, 0 clashes (kitlib.check); drawn from the LDraw file from above.</figcaption></figure>
+    <div><table class="parts"><tr><th>Colour</th><th>Part</th><th class="n">Pieces</th></tr><tr><td><span class="sw" style="background:#f4f4f4"></span>White</td><td>98138, 1 x 1 round tile</td><td class="n">6,067</td></tr><tr><td><span class="sw" style="background:#d7ba8c"></span>Tan</td><td>98138, 1 x 1 round tile</td><td class="n">3,015</td></tr><tr><td><span class="sw" style="background:#897d62"></span>Dark Tan</td><td>98138, 1 x 1 round tile</td><td class="n">1,711</td></tr><tr><td><span class="sw" style="background:#1b2a34"></span>Black</td><td>98138, 1 x 1 round tile</td><td class="n">1,560</td></tr><tr><td><span class="sw" style="background:#969696"></span>Light Bluish Grey</td><td>98138, 1 x 1 round tile</td><td class="n">800</td></tr><tr><td><span class="sw" style="background:#646464"></span>Dark Bluish Grey</td><td>98138, 1 x 1 round tile</td><td class="n">671</td></tr>
+      <tr><td>Light Bluish Grey</td><td>4186, 48 x 48 baseplate</td><td class="n">6</td></tr>
+      <tr><td><b>Total</b></td><td></td><td class="n"><b>13,830</b></td></tr></table>
+      <p class="facts">At the player's other resolutions the same frame is 48 x 32 studs on one baseplate, 96 x 64 on four, or the whole mosaic,
+      252 x 184, one tile a cell: 46,368 tiles on 24 baseplates.</p></div>
+  </div>
+  <figure class="kitfig" style="margin-top:14px"><img src="kit/cascade.beflix-key-plate.jpg" alt="One baseplate of the key frame built in LEGO, rendered: Odysseus's face in its window, in round tiles" loading="lazy">
+    <figcaption>One of the six baseplates, built and rendered in real parts by the line's renderer (tools/forage/look.js): the one holding his
+    face in its window. <a href="kit/cascade.beflix-key-plate.mpd">kit/cascade.beflix-key-plate.mpd</a>, 2,305 pieces, 0 loose,
+    0 clashes. The whole model, 13,830 parts, is past what the renderer loads in its ten minutes with software GL, so above it is
+    drawn from its LDraw file, tile by tile (tools/beflix_plan.py).</figcaption></figure>
+  <h3 style="margin-top:28px">The flip-book: a film strip in LEGO</h3>
+  <p class="sub">Twelve moments of the film, each a 48 x 34 mosaic on its own 48 x 48 baseplate between black film edges with
+    sprocket holes, the twelve plates side by side: <a href="kit/cascade.beflix-flipbook.mpd">kit/cascade.beflix-flipbook.mpd</a>,
+    27,660 pieces (27,648 round tiles, 12 baseplates), 0 loose, 0 clashes.
+    Frames at 6.5, 10.0, 15.0, 18.0, 24.0, 28.6, 31.5, 34.4, 38.0, 40.8, 43.6, 47.0 s.</p>
+  <figure class="kitfig"><img src="kit/cascade.beflix-flipbook-plan.png" alt="Twelve frames of the film as LEGO mosaics on a strip of baseplates with sprocket holes" loading="lazy">
+    <figcaption>Plan, from above, drawn from the LDraw file in two rows of six plates (tools/beflix_plan.py).</figcaption></figure>
+  <h2 id="operators">Knowlton's operations, one node each</h2>
+  <p class="sub">Each picture is that node alone applied to the same Halfworld plate (Odysseus close, straining) and photographed in the
+    cells look, cooked by Cascade (<code>tools/beflix_ops.mjs</code>). The mosaic travels on the wires as a project type,
+    <code>project.mosaic</code>: width, height and one byte a cell. Every node makes a new one; nothing is changed in place.</p>
+  <div class="ops"><figure><img src="media/beflix-op-plate.png" alt="Halfworld plate applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>Halfworld plate</b> · <code>project.BxPlate</code><br>The footage. A layer of the Sirens&#x27; scene, drawn by Halfworld&#x27;s own asset program, placed by the scene&#x27;s own stage(), baked to ink levels; posed by state (a stroke cycle is a phase expression), moved by a keyframe channel (the shore panning past).</figcaption></figure><figure><img src="media/beflix-op-paint.png" alt="PAINT applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>PAINT</b> · <code>project.BxPaint</code><br>Fill a region (rectangle, ellipse or frame) with an ink level by a combining rule: set, darken, lighten, add, subtract, invert, xor. The film uses it for the flash when the song begins.</figcaption></figure><figure><img src="media/beflix-op-line.png" alt="LINE applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>LINE</b> · <code>project.BxLine</code><br>A line of cells, or a fan of them, dashed and marching: the Sirens&#x27; song reaching the mast. The voice lengthens the dashes.</figcaption></figure><figure><img src="media/beflix-op-text.png" alt="TEXT applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>TEXT</b> · <code>project.BxText</code><br>Words in the mosaic&#x27;s own 5 x 7 letters, magnified by whole cells. Wired to the voice, it types what the narrator says as he says it.</figcaption></figure><figure><img src="media/beflix-op-shift.png" alt="SHIFT applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>SHIFT</b> · <code>project.BxShift</code><br>Move a region of cells, wrapping or leaving paper. With the voice on its drive input it shakes: Odysseus against the ropes.</figcaption></figure><figure><img src="media/beflix-op-zoom.png" alt="ZOOM applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>ZOOM</b> · <code>project.BxZoom</code><br>Cell magnification about a centre, nearest cell: the grain grows. The camera closes on Odysseus at the mast this way before the film cuts to the true close shot.</figcaption></figure><figure><img src="media/beflix-op-expand.png" alt="EXPAND applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>EXPAND</b> · <code>project.BxExpand</code><br>Ink takes the darkest of its neighbours. On the title it swells with the voice.</figcaption></figure><figure><img src="media/beflix-op-shrink.png" alt="SHRINK applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>SHRINK</b> · <code>project.BxExpand</code><br>Ink withdraws to the lightest of its neighbours: the song fading, the last seconds of the film.</figcaption></figure><figure><img src="media/beflix-op-copy.png" alt="COPY applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>COPY</b> · <code>project.BxCopy</code><br>A region laid elsewhere, magnified, framed, from the field or a second mosaic: while the Sirens promise, his face in a window of the wide shot.</figcaption></figure><figure><img src="media/beflix-op-dissolve.png" alt="DISSOLVE applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>DISSOLVE</b> · <code>project.BxDissolve</code><br>A to B cell by cell, each cell turning when the amount passes its threshold in a field: noise, radial, ordered (Bayer), rows, rain. Every cut in the film is one; the voice pushes a dissolve under way.</figcaption></figure><figure><img src="media/beflix-op-poem.png" alt="Poem Field applied to Odysseus close, in BEFLIX cells" loading="lazy"><figcaption><b>Poem Field</b> · <code>project.BxPoemField</code><br>After Knowlton and VanDerBeek: Homer&#x27;s words as rings from the Sirens&#x27; mouths, each ring the next word, repeated along its arc, multiplying as it travels, moving only while the voice sounds.</figcaption></figure></div>
+  <p class="facts">Also in the graph: <code>project.BxMosaic</code> (a fresh frame), <code>project.BxVoice</code> (the recording as data:
+    amplitude, seconds voiced so far, the line and its progress), <code>project.BxLego</code>, <code>project.BxCamera</code> and
+    <code>project.BxPrint</code>. The edit is expressions on <code>$T</code> and one keyframe channel; the voice reaches the operators
+    through wires into their <code>drive</code> inputs.</p>
+  <h2 id="lineage">Where this comes from</h2>
+  <p class="sub">Knowlton wrote BEFLIX in 1963 to make <i>A Computer Technique for the Production of Animated Movies</i>, a film that
+    explains itself; the mosaic was photographed from a Stromberg-Carlson 4020 microfilm recorder, so a film was only ever a grid of
+    numbers and a program. From 1964 to 1967 he and the filmmaker Stan VanDerBeek made the <i>Poem Fields</i> with it: words moving
+    through fields of pattern, coloured afterwards on film. Halfworld, the Odyssey's procedural atlas, says in its methods paper that
+    it is the same machine with three substitutions: the cell grid became a halftone lattice, the ink level became continuous
+    darkness, and the operations became the canvas calls of four hundred asset programs; its engine still carries an eight-step
+    quantizer, <code>inkLevel(l)</code>, as a homage. This graph turns the substitution back: Halfworld's programs are run, and what
+    they draw is quantized with that same function to Knowlton's 252 by 184 by eight levels, then worked by his operations. LEGO Art
+    closes the loop from the other side: its mosaics are grids of 1 x 1 round tiles in a few colours, which is to say a BEFLIX frame you
+    press into a baseplate.</p>
+  <h2 id="critic">The critic</h2>
+  <p class="sub"><code>tools/verify.mjs</code> cooks the graph headless (static check, 6 frames across the film, all
+    distinct) and asks: Does the song reach the ship: is the Poem Field&#x27;s ink there only while the Sirens sing, does the voice thicken the ink, and is the same frame a LEGO mosaic? Answer: <b>yes</b> (songInkPixels 252,708, noSongInkPixels 236,178, voiceDrivenInkPixels 334,106, voiceMutedInkPixels 137,324, legoTanPixels 58,996). Run 2026-09-30 02:52 UTC,
+    with the five other graphs of the project; <a href="verify.json">verify.json</a>.</p>
+  <h2 id="limits">What Cascade could not do</h2>
+  <ul class="plain limits">
+    <li><b>Many instances of one node race.</b> Cascade 0.7.1's command line compiles a project node once per instance into one cache
+      file, concurrently; this graph holds six plates, five dissolves and five texts, and most runs failed with "does not export
+      execute". <code>tools/cascade.mjs</code> launches the same CLI with that one function serialized as it loads (nothing in
+      node_modules is changed); every run since has succeeded first time.</li>
+    <li><b>No cache across frames.</b> A node may not keep module state, so each plate parses its baked layer at every frame (the
+      plates are split one file a layer to keep that small). In the browser a frame cooks in about a quarter of a second, so the player
+      plays at the sound's time by skipping frames rather than showing all 24 a second.</li>
+    <li><b>The player has no sound.</b> Nothing in a graph can play audio, so the page plays the recording and drives the player's
+      <code>seek</code> from it.</li>
+    <li><b>Skia draws many small arcs slowly.</b> One path of five thousand dots took three seconds headless, so the camera draws into
+      a pixel buffer: a dot of each ink level computed once a frame and stamped on every cell that holds it.</li>
+    <li><b>Only images come out of a frame sequence.</b> The LEGO grids and the SVG print are assets the CLI writes into
+      <code>.cascade-cache/</code> under a hash, found by a second, whole-graph run; naming a node narrows the cook to its inputs.</li>
+    <li><b>Keyframe channels are scalar, and inputs take no expressions.</b> The shore's pan is one channel and the Sirens follow it
+      by <code>ch("island/pan")</code>; a point that moves is an expression returning <code>[x, y]</code>; every value the voice drives
+      comes in on a <code>drive</code> input beside a prop, since a wire and an expression cannot share a port.</li>
+    <li><b>No shaded 3D.</b> The LEGO look in the player is drawn by the camera node from above; the built model is rendered by the
+      line's own three.js renderer.</li>
+  </ul>
+  <h2>The files</h2>
+  <ul class="links">
+    <li><code>beflix.cascade</code>: the graph (35 nodes)</li>
+    <li><code>nodes/</code>: BxCamera, BxCopy, BxDissolve, BxExpand, BxLego, BxLine, BxMosaic, BxPaint, BxPlate, BxPoemField, BxPrint, BxShift, BxText, BxVoice, BxZoom</li>
+    <li><code>lib/mosaic.ts</code>, <code>lib/camera.ts</code>: the mosaic, the font, the ink law, the LEGO colours; the three looks</li>
+    <li><code>assets/beflix/</code>: the baked plates and the voice (<code>tools/bake_halfworld.mjs</code>, <code>tools/bake_voice.mjs</code>)</li>
+    <li><code>tools/beflix_film.mjs</code>, <code>beflix_ops.mjs</code>, <code>beflix_kit.py</code>, <code>beflix_plan.py</code>, <code>cascade.mjs</code></li>
+    <li><a href="players/beflix.html">players/beflix.html</a> (the player page) and <code>players/beflix/</code> (cascade build)</li>
+    <li><a href="index.html">The Odyssey in Cascade</a> · <a href="../kits/index.html">the Odyssey line</a></li>
+  </ul>
+  <footer>Made by <code>tools/forage/product/beflixpage.py</code>; every number read from the project when it ran.</footer>
+</main>
+<script>
+for (const f of document.querySelectorAll('iframe.player')) {
+  const fit = () => { try { const h = f.contentDocument && f.contentDocument.documentElement.scrollHeight; if (h > 200) f.style.height = h + 'px'; } catch (e) {} };
+  f.addEventListener('load', () => { fit(); setTimeout(fit, 800); setTimeout(fit, 3000); });
+  addEventListener('resize', fit);
+}
+</script>
+</body>
+</html>

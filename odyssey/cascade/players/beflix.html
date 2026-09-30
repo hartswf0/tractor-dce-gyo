@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEFLIX player</title>
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.4 Inter, system-ui, sans-serif; }
+#stage { width: 100%; aspect-ratio: 252 / 184; background: #111; position: relative; }
+#status { position: absolute; inset: auto 8px 8px auto; font-size: 12px; color: #ddd; background: rgba(0,0,0,.55); padding: 2px 8px; pointer-events: none; }
+.bar { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+.bar button { font: 600 13px Inter, system-ui, sans-serif; padding: 5px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; min-width: 64px; }
+.bar input[type=range] { flex: 1; min-width: 0; }
+.bar output { font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; color: var(--muted); font-size: 12px; }
+#params { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; padding: 10px; }
+#params label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 12px; color: var(--muted); align-items: center; }
+#params label input[type=range], #params label select { grid-column: 1 / -1; width: 100%; min-width: 0; }
+#params select { font: 13px Inter, system-ui, sans-serif; background: var(--card); color: var(--ink); border: 1px solid var(--rule); padding: 3px; }
+#params output { color: var(--ink); font-variant-numeric: tabular-nums; }
+#parts { padding: 4px 10px 12px; font-size: 13px; color: var(--muted); }
+#parts b { color: var(--ink); font-variant-numeric: tabular-nums; }
+#parts .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid rgba(128,128,128,.5); }
+#line { padding: 0 10px 10px; font-size: 13px; color: var(--muted); min-height: 1.4em; }
+#err { color: #b3261e; padding: 8px 10px; white-space: pre-wrap; display: none; }
+</style>
+</head>
+<body>
+<div id="stage"><div id="status">loading</div></div>
+<div class="bar"><button id="play" type="button">Play</button><input id="scrub" type="range" min="1" max="1241" value="827" aria-label="Frame"><output id="tc">34.4 s</output></div>
+<div id="line" aria-live="polite"></div>
+<div id="parts"></div>
+<div id="params"></div>
+<audio id="voice" preload="auto"><source src="../media/beflix.ogg" type="audio/ogg; codecs=opus"><source src="../media/beflix.m4a" type="audio/mp4"></audio>
+<div id="err"></div>
+<script type="module">
+/* The BEFLIX graph's static player (cascade build -> players/beflix/) with its sound. The recording is the clock: while playing,
+   the frame shown is the audio's time x 24 (the player cooks the latest frame asked for and skips the rest, so the picture keeps
+   the voice's time whatever the cook costs); scrubbing moves the audio. The look, the LEGO resolution and colours and the ink
+   go through the player's setProp; the LEGO node's info output gives the live parts count. */
+const $ = s => document.querySelector(s), status = $('#status'), audio = $('#voice'), scrub = $('#scrub');
+const q = new URLSearchParams(location.search);
+const spec = (await (await fetch('../graphs.json')).json()).graphs.find(g => g.name === 'beflix');
+const [f0, f1] = spec.frames, fps = spec.fps;
+scrub.min = f0; scrub.max = f1; scrub.value = q.get('frame') || spec.key;
+const NAMES = { 15: ['White', '#f4f4f4'], 19: ['Tan', '#d7ba8c'], 71: ['Light Bluish Grey', '#969696'], 28: ['Dark Tan', '#897d62'], 72: ['Dark Bluish Grey', '#646464'], 0: ['Black', '#1b2a34'] };
+let player;
+try {
+  const { mount } = await import('./beflix/embed.js');
+  player = await mount($('#stage'), { frame: +scrub.value, fps, autoplay: false, output: { nodeId: 'camera', port: 'image' } });
+  window.__player = player;
+  const doc = $('#stage iframe') && $('#stage iframe').contentDocument, bar = doc && doc.querySelector('[data-cascade-controls]');
+  if (bar) bar.style.display = 'none';
+} catch (e) { $('#err').style.display = 'block'; $('#err').textContent = 'The player could not start: ' + (e && e.message || e); throw e; }
+
+async function showInfo() {
+  try {
+    const info = await player.getOutput('lego', 'info'), v = await player.getOutput('voice', 'info');
+    if (info) $('#parts').innerHTML = `LEGO mosaic: <b>${info.studs[0]} x ${info.studs[1]}</b> studs, <b>${info.tileCount.toLocaleString('en')}</b> round tiles on <b>${info.plates}</b> baseplate${info.plates > 1 ? 's' : ''} (48 x 48): <b>${info.pieces.toLocaleString('en')}</b> pieces.<br>` +
+      info.tiles.map(t => `<span class="sw" style="background:${(NAMES[t.code] || ['', '#888'])[1]}"></span>${t.name} ${t.n.toLocaleString('en')}`).join('');
+    $('#line').textContent = v && v.line ? '“' + v.line + '”' : '';
+  } catch (e) { /* an output not cooked yet */ }
+}
+let busy = false, want = null;
+async function go(frame) {
+  want = frame; if (busy) return; busy = true;
+  while (want != null) {
+    const f = want; want = null; const t = performance.now();
+    await player.seek(f);
+    $('#tc').textContent = ((f - 1) / fps).toFixed(1) + ' s';
+    status.textContent = `frame ${f} · ${Math.round(performance.now() - t)} ms`;
+    await showInfo();
+  }
+  busy = false;
+}
+scrub.addEventListener('input', () => { audio.currentTime = (scrub.value - 1) / fps; go(+scrub.value); });
+let playing = false;
+function tick() {
+  if (!playing) return;
+  const f = Math.min(f1, f0 + Math.floor(audio.currentTime * fps));
+  if (+scrub.value !== f) { scrub.value = f; go(f); }
+  if (audio.ended) { playing = false; $('#play').textContent = 'Play'; return; }
+  requestAnimationFrame(tick);
+}
+$('#play').addEventListener('click', async () => {
+  playing = !playing; $('#play').textContent = playing ? 'Pause' : 'Play';
+  if (playing) { if (+scrub.value >= f1) scrub.value = f0; audio.currentTime = (scrub.value - 1) / fps; try { await audio.play(); } catch (e) { status.textContent = 'sound blocked: ' + e.message; } requestAnimationFrame(tick); }
+  else audio.pause();
+});
+for (const p of spec.params) {
+  const L = document.createElement('label'), span = document.createElement('span'), out = document.createElement('output');
+  span.textContent = p.label; L.append(span, out);
+  let input;
+  if (p.type === 'select') { input = document.createElement('select'); for (const [v, t] of p.options) { const o = document.createElement('option'); o.value = String(v); o.textContent = t; input.append(o); } input.value = String(p.value); }
+  else { input = document.createElement('input'); input.type = 'range'; input.min = p.min; input.max = p.max; input.step = p.step; input.value = p.value; out.textContent = p.value; }
+  L.append(input); input.setAttribute('aria-label', p.label);
+  if (p.type === 'range') input.addEventListener('input', () => { out.textContent = input.value; });
+  input.addEventListener('change', async () => {
+    const v = p.vector ? input.value.split(',').map(Number) : p.type === 'range' ? Number(input.value) : input.value;
+    const t = performance.now(); status.textContent = 'cooking';
+    try { await player.setProp(p.node, p.prop, v); status.textContent = `${p.node}.${p.prop} = ${v} · ${Math.round(performance.now() - t)} ms`; await showInfo(); }
+    catch (e) { status.textContent = 'error: ' + (e && e.message || e); }
+  });
+  $('#params').append(L);
+}
+if (q.get('look')) { const s = $('#params select'); s.value = q.get('look'); s.dispatchEvent(new Event('change')); }
+$('#tc').textContent = ((scrub.value - 1) / fps).toFixed(1) + ' s';
+status.textContent = `frame ${scrub.value}`; showInfo();
+</script>
+</body>
+</html>

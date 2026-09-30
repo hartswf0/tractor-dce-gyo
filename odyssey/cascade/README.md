@@ -11,6 +11,7 @@ game or the kits. The page that shows them is `index.html` (made by `tools/forag
 | `clocks.cascade` | Two clocks | nothing: two parameters | the raft laid at the performer's rate, sun and moon arcs at the world's rate; the ratio is a parameter |
 | `forbidden.cascade` | The illegal Odyssey | `assets/clashes.json` (from `tools/clashes.py`, the line's checker on the pre-strict Troy and Ithaca modules) | only the volumes where two parts fill the same space, per card |
 | `facing.cascade` | The facing field | nothing: seeded | objects in the Cyclops' cave facing away from a groping point by an explicit `N`, turned by `cascade.geo.CopyToPoints` |
+| `beflix.cascade` | BEFLIX in Cascade (`beflix.html`) | `assets/beflix/plates/*.json` (Halfworld's OD-B12-S03 baked by `tools/bake_halfworld.mjs`), `assets/beflix/voice.json` (its recording, `tools/bake_voice.mjs`) | Knowlton's 252 x 184 ink mosaic worked by his operations (the `Bx*` nodes), the voice as clock; the film with sound, three looks of a frame, an SVG print, and LEGO mosaics (`tools/beflix_film.mjs`, `tools/beflix_kit.py`) |
 
 ## Layout
 
@@ -25,6 +26,28 @@ game or the kits. The page that shows them is `index.html` (made by `tools/forag
 - `media/`: the print (`<name>.svg`) and motion (`<name>.mp4`, `<name>.jpg`) of each graph, from `tools/media.mjs`.
 - `kit/`: the gestures built in LDraw parts (`cascade.gesture-welcome.mpd`, Telemachus; `cascade.gesture-bow.mpd`, Odysseus, from the same graph with `gesture` set to `bow`), their checks and renders.
 - `verify.json`: the last headless verification (`tools/verify.mjs`).
+
+## BEFLIX in Cascade
+
+`beflix.cascade` is Ken Knowlton's BEFLIX (Bell Labs, 1963) as a graph. The mosaic travels on the wires as `project.mosaic`
+({ w, h, ink: one byte a cell, 0 paper to 7 ink }; `lib/mosaic.ts`); every operator node makes a new one: `BxPaint` (PAINT),
+`BxLine` (LINE), `BxText` (TEXT, a 5 x 7 mosaic font), `BxShift` (SHIFT), `BxZoom` (ZOOM), `BxExpand` (EXPAND and SHRINK), `BxCopy`
+(COPY), `BxDissolve` (DISSOLVE), `BxPoemField` (after the Poem Fields). `BxPlate` lays a baked Halfworld layer; `BxVoice` gives the
+recording's amplitude, voiced seconds, line and progress at `$T`, wired into the operators' `drive` inputs; `BxCamera` photographs
+the mosaic as cells, as Halfworld's halftone or as LEGO tiles (`lib/camera.ts`); `BxLego` maps it to LEGO colours at a stud
+resolution with a parts count; `BxPrint` writes the halftone as SVG.
+
+```sh
+NODE_PATH=<playwright> node tools/bake_halfworld.mjs   # Halfworld's programs in headless Chromium -> assets/beflix/plates/ (reads /home/user/odyssey-halfworld)
+node tools/bake_voice.mjs                              # the recording -> assets/beflix/voice.json
+node tools/beflix_film.mjs                             # frames, sound, media/beflix.mp4 .m4a .ogg .jpg .svg, the three looks, the LEGO grids
+python3 tools/beflix_kit.py                            # kit/cascade.beflix-key.mpd and cascade.beflix-flipbook.mpd, checked (0 loose, 0 clashes)
+node tools/beflix_ops.mjs && python3 tools/beflix_plan.py   # the operator pictures and the kits' plan drawings
+python3 ../../tools/forage/product/beflixpage.py       # beflix.html
+```
+
+`tools/cascade.mjs` is the CLI with its per-instance node compile serialized as it loads (a graph with several instances of one node
+otherwise fails most runs with "does not export execute"); `verify.mjs`, `media.mjs` and the BEFLIX tools use it.
 
 ## Commands (from this folder, after `npm install`)
 
