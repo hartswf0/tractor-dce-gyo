@@ -58,7 +58,7 @@ def scan(sid):
             H = a['H']; p = a['p']; face, crown, feet = p[0], p[1], [p[5], p[6]]
             axis = [(feet[0][0] + feet[1][0]) / 2, (feet[0][2] + feet[1][2]) / 2]; chest = p[2]
             lo_y = min(f[1] for f in feet); hi_y = crown[1]
-            upright = hi_y - lo_y > 0.6 * H
+            upright = hi_y - lo_y > 0.6 * H and chest[1] - lo_y > 0.45 * H   # standing: a seated figure's feet come up to its hips
             ax = [(axis[0] + chest[0]) / 2, (axis[1] + chest[2]) / 2] if upright else [chest[0], chest[2]]
             r = math.hypot(cp[0] - ax[0], cp[2] - ax[1])
             if (upright and r < 0.2 * H and lo_y - 0.05 * H <= cp[1] <= hi_y + 0.05 * H) or math.dist(cp, face) < 0.2 * H: hit('cam-in-figure', k, i, t)
