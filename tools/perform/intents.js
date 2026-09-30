@@ -279,7 +279,7 @@ I_._gesture = gesture; I_._walkPath = walkPath;
 
 /* ARRIVE params.from [dx, dz]: comes in from that offset to the mark (a walk the blocking starts on), then plants what the hand holds */
 I_.ARRIVE = (X, I, e) => { const id = I.actor, p = I.params || {}, s = X.at(id, I.t0); if (!s) return; const [dx, dz] = p.from || [0, 40], dur = p.dur || 1.8, H = X.H(id), stride = 0.42 * H, d = Math.hypot(dx, dz);
-  const w = X.move(id, 'loco', 'WALK IN', e, k => { k(I.t0, { 'root.x': dx, 'root.z': dz, 'leg.R.pitch': 0, 'leg.L.pitch': 0, 'arm.L.pitch': 0, 'hips.dy': 0 }, 'step');
+  const w = X.move(id, 'loco', 'WALK IN', e, k => { if (I.t0 > 0) k(0, { 'root.x': dx, 'root.z': dz }, 'step'); k(I.t0, { 'root.x': dx, 'root.z': dz, 'leg.R.pitch': 0, 'leg.L.pitch': 0, 'arm.L.pitch': 0, 'hips.dy': 0 }, 'step');
     for (let t = I.t0 + 1 / X.F; t <= I.t0 + dur + 1e-6; t += 1 / X.F) { const u = (t - I.t0) / dur, e2 = u * u * (3 - 2 * u) * 0.3 + u * 0.7, ph = e2 * d / stride * Math.PI, amt = X.sm(Math.min(1, u * 5)) * X.sm(Math.min(1, (1 - u) * 5));
       k(t, { 'root.x': dx * (1 - e2), 'root.z': dz * (1 - e2), 'leg.R.pitch': 0.55 * amt * Math.sin(ph), 'leg.L.pitch': -0.55 * amt * Math.sin(ph), 'arm.L.pitch': 0.35 * amt * Math.sin(ph), 'hips.dy': -1.2 * amt * Math.abs(Math.sin(ph)) }, 'linear'); }
     k(I.t0 + dur + 0.25, { 'leg.R.pitch': 0, 'leg.L.pitch': 0, 'arm.L.pitch': 0, 'hips.dy': 0 }); }, { label: 'up to the threshold' });

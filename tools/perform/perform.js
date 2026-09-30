@@ -112,6 +112,13 @@ if (require.main !== module) return;
       save(path.join(SC, 'chains', sid + '.last.choreo.json'), prev.R.sheet); author(sid, true); }
     else { S.events = prev.R.events; save(scoreF(sid), S); save(sheetF(sid), prev.R.sheet); }
     return; }
+  if (cmd === 'hardware') { const Hw = require('./hardware.js'), S = J(scoreF(sid)), C = J(sheetF(sid)), M = marksOf(sid);
+    const mf = path.join(SC, 'measures', sid + '.json'), states = fs.existsSync(mf) ? J(mf).after.metrics.states : {};
+    const ps = Hw.posesheet(M, C, S, { states }), sv = Hw.servo(M, C, S), dir = path.join(SC, 'hardware'); fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, sid + '.posesheet.csv'), Hw.csv(ps.head, ps.rows, ['stop-motion pose sheet for ' + sid + ' (tools/perform/hardware.js): each drawing on twos (frames at 24), the principals; angles in degrees as set on the toy; x, z in studs, y and hips in plates', 'state: A action, R reaction, H alive hold, h authored hold, D dead; holds_R/L: what the hand holds (ownership at that drawing); why: the score\'s causal chain']));
+    fs.writeFileSync(path.join(dir, sid + '.servo.csv'), Hw.csv(sv.head, sv.rows, ['servo timeline for ' + sid + ' (tools/perform/hardware.js): rows where a channel moves (and where it stops); power is an estimate from a stated model (a 0.30 m puppet; see the file header of hardware.js), not a measurement', 'calibration on a rig: encoder velocity -> angular velocity; IMU -> root acceleration; V x I -> electrical power; motor thermistor -> a first-order response to I^2 R, the same form as the motion heat T_m']));
+    save(path.join(dir, sid + '.energy.json'), { scene: sid, note: 'estimated electrical energy per channel over the scene (J), from the servo model', energyJ: sv.energyJ });
+    console.log('hardware', sid, ps.rows.length, 'pose-sheet rows,', sv.rows.length, 'servo rows'); return; }
   if (cmd === 'why') { const S = J(scoreF(sid)), E = Score.Events(S.events), who = args[2] && !/^OD-/.test(args[2]) ? args[2] : args[3], t = +args[args.length - 1];
     const w = E.why(who, t); console.log(w.text); for (const c of w.chain) console.log('  '.repeat(c.depth + 1) + c.lane.padEnd(9), c.kind.padEnd(16), (c.actor || '').padEnd(18), c.t0.toFixed(2) + '-' + c.t1.toFixed(2), c.latency != null ? '(+' + c.latency + ' s)' : '', c.label || ''); return; }
   console.log('see the header of tools/perform/perform.js'); process.exit(1);
