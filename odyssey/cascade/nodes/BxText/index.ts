@@ -25,6 +25,7 @@ export const definition = {
     level: { type: 'int', default: 7, min: 0, max: 7, label: 'Ink level' },
     mode: { type: 'string', default: 'set', control: 'select', options: ['set', 'darken', 'lighten', 'add', 'sub', 'invert', 'xor'], label: 'Rule' },
     band: { type: 'int', default: -1, min: -1, max: 7, label: 'Band under the lines (level; -1 none)' },
+    typed: { type: 'float', default: 1, min: 0, max: 1, step: 0.001, label: 'Typed so far (the wired progress, if lower, wins)' },
     reveal: { type: 'string', default: 'words', control: 'select', options: ['all', 'chars', 'words'], label: 'Reveal by progress' },
     on: { type: 'float', default: 1, min: 0, max: 1, step: 0.01, label: 'On (at 0.5 and above)' }
   },
@@ -36,7 +37,7 @@ export function execute(context: NodeExecutionContext<typeof definition>) {
   const text = (inputs.line && String(inputs.line).trim()) || props.text;
   if (props.on < 0.5 || !text) { context.outputs.mosaic.set(src); return; }
   const m = clone(src), s = props.size, lines = textLayout(text, props.wrap), flat = lines.join(' '), total = flat.length;
-  const p = Math.max(0, Math.min(1, inputs.progress ?? 1));
+  const p = Math.max(0, Math.min(1, props.typed, inputs.progress ?? 1));
   /* how many characters are shown: all, a proportion, or up to the end of the word the proportion falls in */
   let shown = total;
   if (props.reveal !== 'all') {

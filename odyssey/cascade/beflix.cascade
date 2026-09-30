@@ -1,0 +1,1400 @@
+{
+ "version": "0.2",
+ "metadata": {
+  "name": "BEFLIX in Cascade",
+  "description": "Ken Knowlton's BEFLIX (Bell Labs, 1963) as a node graph: a 252 x 184 mosaic of ink levels 0-7, mutated by his operations (PAINT, LINE, TEXT, SHIFT, ZOOM, EXPAND/SHRINK, COPY, DISSOLVE) and photographed. Its footage is Halfworld's The Sirens' Song (OD-B12-S03), baked from Halfworld's own asset programs and staging; its clock is Halfworld's recording of the scene, whose amplitude drives the dissolves, the zoom, the Poem Field and the ink. Every frame is also a LEGO mosaic.",
+  "fps": 24,
+  "frames": [
+   1,
+   1241
+  ]
+ },
+ "nodes": [
+  {
+   "id": "voice",
+   "module": "project.BxVoice",
+   "position": [
+    0,
+    600
+   ],
+   "source": "project",
+   "props": {
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    }
+   }
+  },
+  {
+   "id": "paper",
+   "module": "project.BxMosaic",
+   "position": [
+    0,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "size": [
+     252,
+     184
+    ],
+    "level": 0
+   }
+  },
+  {
+   "id": "island",
+   "module": "project.BxPlate",
+   "position": [
+    220,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "layer": "island",
+    "states": "calm",
+    "pan": {
+     "value": 0,
+     "channel": {
+      "keys": [
+       {
+        "frame": 1,
+        "value": 0
+       },
+       {
+        "frame": 1241,
+        "value": -64,
+        "interpolation": "linear"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "sirens",
+   "module": "project.BxPlate",
+   "position": [
+    440,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "layer": "sirens",
+    "states": "full,half,fading",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 43 ? 0 : ($T < 46.5 ? 1 : 2)"
+    },
+    "pan": {
+     "value": 0,
+     "expression": "ch(\"island/pan\")"
+    }
+   }
+  },
+  {
+   "id": "crew",
+   "module": "project.BxPlate",
+   "position": [
+    660,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "layer": "crew",
+    "states": "stroke0,stroke1,stroke2,stroke3,stroke4,stroke5,stroke6,stroke7,haul0,haul2,haul4,haul6",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 42 ? floor($T * 3.2) % 8 : 8 + floor($T * 2.4) % 4"
+    }
+   }
+  },
+  {
+   "id": "mast",
+   "module": "project.BxPlate",
+   "position": [
+    880,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "layer": "mast",
+    "states": "apply,secure,tighten",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 20.8 ? 0 : ($T < 41.9 ? 1 : 2)"
+    }
+   }
+  },
+  {
+   "id": "ody",
+   "module": "project.BxPlate",
+   "position": [
+    1100,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "layer": "odysseus",
+    "states": "longing,straining,subdued",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 36.2 ? 0 : ($T < 41.9 ? 1 : 2)"
+    }
+   }
+  },
+  {
+   "id": "rays",
+   "module": "project.BxLine",
+   "position": [
+    1320,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "from": {
+     "value": [
+      58,
+      36
+     ],
+     "expression": "[58 + ch(\"island/pan\"), 36]"
+    },
+    "to": [
+     128,
+     80
+    ],
+    "rays": 5,
+    "spread": 36,
+    "width": 1,
+    "dash": 7,
+    "phase": {
+     "value": 0,
+     "expression": "$T * 16"
+    },
+    "level": 7,
+    "mode": "xor",
+    "on": {
+     "value": 0,
+     "expression": "($T >= 5.4 && $T < 30.35 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "poem",
+   "module": "project.BxPoemField",
+   "position": [
+    1540,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "text": "Come here, far-famed Odysseus, great glory of the Achaeans - stay your ship and hear our voices. No man has ever rowed past us till he heard the honeyed song from our lips, and went away delighted, knowing more than he knew.",
+    "origin": {
+     "value": [
+      58,
+      34
+     ],
+     "expression": "[58 + ch(\"island/pan\"), 34]"
+    },
+    "direction": 34,
+    "spread": 150,
+    "time": {
+     "value": 0,
+     "expression": "$T - 30.3"
+    },
+    "clockGain": 1.6,
+    "clockStart": 10.185,
+    "speed": 11,
+    "spacing": 12,
+    "gap": 5,
+    "size": 1,
+    "level": 7,
+    "mode": "xor",
+    "bands": 0.4,
+    "flicker": 0.25,
+    "seed": 12,
+    "fade": {
+     "value": 1,
+     "expression": "1 - clamp(($T-41.5)/3.299999999999997, 0, 1)"
+    },
+    "on": {
+     "value": 0,
+     "expression": "($T >= 30.3 && $T < 47 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "cuOdy",
+   "module": "project.BxPlate",
+   "position": [
+    220,
+    260
+   ],
+   "source": "project",
+   "props": {
+    "layer": "cu_odysseus",
+    "states": "longing,straining,subdued",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 36.2 ? 0 : ($T < 41.9 ? 1 : 2)"
+    }
+   }
+  },
+  {
+   "id": "poemCu",
+   "module": "project.BxPoemField",
+   "position": [
+    440,
+    260
+   ],
+   "source": "project",
+   "props": {
+    "text": "Come here, far-famed Odysseus, great glory of the Achaeans - stay your ship and hear our voices. No man has ever rowed past us till he heard the honeyed song from our lips, and went away delighted, knowing more than he knew.",
+    "origin": [
+     -70,
+     30
+    ],
+    "direction": 12,
+    "spread": 46,
+    "time": {
+     "value": 0,
+     "expression": "$T - 30.3"
+    },
+    "clockGain": 1.6,
+    "clockStart": 10.185,
+    "speed": 20,
+    "spacing": 34,
+    "gap": 18,
+    "size": 2,
+    "level": 7,
+    "mode": "xor",
+    "bands": 0.2,
+    "flicker": 0.2,
+    "seed": 5,
+    "on": {
+     "value": 0,
+     "expression": "($T >= 35.8 && $T < 42.3 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "struggle",
+   "module": "project.BxShift",
+   "position": [
+    660,
+    260
+   ],
+   "source": "project",
+   "props": {
+    "shake": 4,
+    "seed": {
+     "value": 1,
+     "expression": "$F"
+    },
+    "fill": 0,
+    "on": {
+     "value": 0,
+     "expression": "($T >= 36.2 && $T < 41.9 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "cuSirens",
+   "module": "project.BxPlate",
+   "position": [
+    220,
+    400
+   ],
+   "source": "project",
+   "props": {
+    "layer": "cu_sirens",
+    "states": "full,fading",
+    "phase": {
+     "value": 0,
+     "expression": "$T < 44 ? 0 : 1"
+    }
+   }
+  },
+  {
+   "id": "mcuCrew",
+   "module": "project.BxPlate",
+   "position": [
+    220,
+    520
+   ],
+   "source": "project",
+   "props": {
+    "layer": "mcu_crew",
+    "states": "stroke0,stroke1,stroke2,stroke3,stroke4,stroke5,stroke6,stroke7",
+    "phase": {
+     "value": 0,
+     "expression": "floor($T * 3.2) % 8"
+    }
+   }
+  },
+  {
+   "id": "toCrew",
+   "module": "project.BxDissolve",
+   "position": [
+    1760,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "field": "rain",
+    "seed": 21,
+    "driveGain": 0.4,
+    "amount": {
+     "value": 0,
+     "expression": "clamp(($T-12.7)/0.9000000000000004, 0, 1) - clamp(($T-20.3)/0.6999999999999993, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "closeIn",
+   "module": "project.BxZoom",
+   "position": [
+    1980,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "centre": [
+     127,
+     84
+    ],
+    "factor": {
+     "value": 1,
+     "expression": "$T < 21 || $T >= 30.6 ? 1 : 1 + 1.5 * pow(clamp(($T-21.0)/7.399999999999999, 0, 1), 1.6)"
+    }
+   }
+  },
+  {
+   "id": "toOdysseus",
+   "module": "project.BxDissolve",
+   "position": [
+    2200,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "field": "radial",
+    "centre": [
+     126,
+     70
+    ],
+    "seed": 4,
+    "driveGain": 0.5,
+    "amount": {
+     "value": 0,
+     "expression": "clamp(($T-26.6)/1.5999999999999979, 0, 1) - clamp(($T-30.0)/0.6000000000000014, 0, 1) + clamp(($T-35.9)/0.6000000000000014, 0, 1) - clamp(($T-41.7)/0.5999999999999943, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "inset",
+   "module": "project.BxCopy",
+   "position": [
+    2420,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "from": [
+     96,
+     14,
+     168,
+     96
+    ],
+    "to": [
+     196,
+     8
+    ],
+    "scale": 0.62,
+    "border": 7,
+    "on": {
+     "value": 0,
+     "expression": "($T >= 32.2 && $T < 35.9 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "flash",
+   "module": "project.BxPaint",
+   "position": [
+    2640,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "region": [
+     0,
+     0,
+     252,
+     184
+    ],
+    "level": 7,
+    "mode": "invert",
+    "on": {
+     "value": 0,
+     "expression": "($T >= 30.30 && $T < 30.42) || ($T >= 36.20 && $T < 36.29) ? 1 : 0"
+    }
+   }
+  },
+  {
+   "id": "toSirens",
+   "module": "project.BxDissolve",
+   "position": [
+    2860,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "field": "noise",
+    "seed": 9,
+    "amount": {
+     "value": 0,
+     "expression": "clamp(($T-45.2)/1.1999999999999957, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "withdraw",
+   "module": "project.BxExpand",
+   "position": [
+    3080,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "mode": "shrink",
+    "steps": {
+     "value": 0,
+     "expression": "3 * clamp(($T-47.4)/2.8000000000000043, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "titleBands",
+   "module": "project.BxPoemField",
+   "position": [
+    220,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "text": "",
+    "origin": [
+     126,
+     88
+    ],
+    "direction": 0,
+    "spread": 360,
+    "time": {
+     "value": 0,
+     "expression": "$T"
+    },
+    "clockGain": 3,
+    "speed": 9,
+    "spacing": 8,
+    "bands": 1,
+    "on": 1
+   }
+  },
+  {
+   "id": "titleCard",
+   "module": "project.BxPaint",
+   "position": [
+    440,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "region": [
+     40,
+     44,
+     212,
+     136
+    ],
+    "level": 0,
+    "mode": "set",
+    "shape": "ellipse"
+   }
+  },
+  {
+   "id": "titleBook",
+   "module": "project.BxText",
+   "position": [
+    660,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "text": "ODYSSEY  BOOK XII",
+    "position": [
+     126,
+     50
+    ],
+    "size": 1,
+    "level": 7,
+    "reveal": "all"
+   }
+  },
+  {
+   "id": "titleName",
+   "module": "project.BxText",
+   "position": [
+    880,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "text": "THE SIRENS' SONG",
+    "position": [
+     126,
+     64
+    ],
+    "size": 3,
+    "wrap": 11,
+    "leading": 5,
+    "level": 7,
+    "reveal": "chars",
+    "typed": {
+     "value": 1,
+     "expression": "clamp(($T-1.0)/2.5, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "titleCredit",
+   "module": "project.BxText",
+   "position": [
+    1100,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "text": "BEFLIX 252 X 184 - HALFWORLD",
+    "position": [
+     126,
+     126
+    ],
+    "size": 1,
+    "level": 5,
+    "reveal": "all"
+   }
+  },
+  {
+   "id": "titleSwell",
+   "module": "project.BxExpand",
+   "position": [
+    1320,
+    760
+   ],
+   "source": "project",
+   "props": {
+    "mode": "expand",
+    "steps": 0,
+    "driveSteps": 1.4,
+    "region": [
+     18,
+     60,
+     234,
+     118
+    ]
+   }
+  },
+  {
+   "id": "fromTitle",
+   "module": "project.BxDissolve",
+   "position": [
+    3300,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "field": "ordered",
+    "amount": {
+     "value": 0,
+     "expression": "clamp(($T-4.7)/1.0, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "endHomer",
+   "module": "project.BxText",
+   "position": [
+    660,
+    900
+   ],
+   "source": "project",
+   "props": {
+    "text": "HOMER, ODYSSEY XII",
+    "position": [
+     126,
+     70
+    ],
+    "size": 2,
+    "level": 7,
+    "reveal": "all"
+   }
+  },
+  {
+   "id": "endCredit",
+   "module": "project.BxText",
+   "position": [
+    880,
+    900
+   ],
+   "source": "project",
+   "props": {
+    "text": "KNOWLTON, BELL LABS 1963 - HALFWORLD - CASCADE",
+    "position": [
+     126,
+     100
+    ],
+    "size": 1,
+    "level": 5,
+    "reveal": "all"
+   }
+  },
+  {
+   "id": "toEnd",
+   "module": "project.BxDissolve",
+   "position": [
+    3520,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "field": "rain",
+    "seed": 33,
+    "amount": {
+     "value": 0,
+     "expression": "clamp(($T-49.9)/1.2000000000000028, 0, 1)"
+    }
+   }
+  },
+  {
+   "id": "words",
+   "module": "project.BxText",
+   "position": [
+    3740,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "text": "",
+    "position": [
+     126,
+     168
+    ],
+    "size": 1,
+    "wrap": 40,
+    "leading": 2,
+    "level": 7,
+    "band": 0,
+    "reveal": "words",
+    "on": {
+     "value": 0,
+     "expression": "($T >= 5.3 && $T < 49.9 ? 1 : 0)"
+    }
+   }
+  },
+  {
+   "id": "lego",
+   "module": "project.BxLego",
+   "position": [
+    3960,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "studs": [
+     144,
+     96
+    ],
+    "ramp": "paper"
+   }
+  },
+  {
+   "id": "camera",
+   "module": "project.BxCamera",
+   "position": [
+    4180,
+    0
+   ],
+   "source": "project",
+   "props": {
+    "mode": "halftone",
+    "cell": 4,
+    "gain": 1,
+    "driveGain": 0.35,
+    "grid": 0.14
+   }
+  },
+  {
+   "id": "print",
+   "module": "project.BxPrint",
+   "position": [
+    4180,
+    200
+   ],
+   "source": "project",
+   "props": {
+    "filename": "beflix-print.svg",
+    "cell": 4
+   }
+  }
+ ],
+ "connections": [
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "island",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "island",
+    0,
+    "mosaic"
+   ],
+   [
+    "sirens",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "sirens",
+    0,
+    "mosaic"
+   ],
+   [
+    "crew",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "crew",
+    0,
+    "mosaic"
+   ],
+   [
+    "mast",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "mast",
+    0,
+    "mosaic"
+   ],
+   [
+    "ody",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "ody",
+    0,
+    "mosaic"
+   ],
+   [
+    "rays",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "rays",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "rays",
+    0,
+    "mosaic"
+   ],
+   [
+    "poem",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "spoken"
+   ],
+   [
+    "poem",
+    0,
+    "clock"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "poem",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "cuOdy",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "cuOdy",
+    0,
+    "mosaic"
+   ],
+   [
+    "poemCu",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "spoken"
+   ],
+   [
+    "poemCu",
+    0,
+    "clock"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "poemCu",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "poemCu",
+    0,
+    "mosaic"
+   ],
+   [
+    "struggle",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "struggle",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "cuSirens",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "mcuCrew",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "poem",
+    0,
+    "mosaic"
+   ],
+   [
+    "toCrew",
+    0,
+    "a"
+   ]
+  ],
+  [
+   [
+    "mcuCrew",
+    0,
+    "mosaic"
+   ],
+   [
+    "toCrew",
+    0,
+    "b"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "toCrew",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "toCrew",
+    0,
+    "mosaic"
+   ],
+   [
+    "closeIn",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "closeIn",
+    0,
+    "mosaic"
+   ],
+   [
+    "toOdysseus",
+    0,
+    "a"
+   ]
+  ],
+  [
+   [
+    "struggle",
+    0,
+    "mosaic"
+   ],
+   [
+    "toOdysseus",
+    0,
+    "b"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "toOdysseus",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "toOdysseus",
+    0,
+    "mosaic"
+   ],
+   [
+    "inset",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "cuOdy",
+    0,
+    "mosaic"
+   ],
+   [
+    "inset",
+    0,
+    "source"
+   ]
+  ],
+  [
+   [
+    "inset",
+    0,
+    "mosaic"
+   ],
+   [
+    "flash",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "flash",
+    0,
+    "mosaic"
+   ],
+   [
+    "toSirens",
+    0,
+    "a"
+   ]
+  ],
+  [
+   [
+    "cuSirens",
+    0,
+    "mosaic"
+   ],
+   [
+    "toSirens",
+    0,
+    "b"
+   ]
+  ],
+  [
+   [
+    "toSirens",
+    0,
+    "mosaic"
+   ],
+   [
+    "withdraw",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleBands",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "spoken"
+   ],
+   [
+    "titleBands",
+    0,
+    "clock"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "titleBands",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "titleBands",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleCard",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "titleCard",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleBook",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "titleBook",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleName",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "titleName",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleCredit",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "titleCredit",
+    0,
+    "mosaic"
+   ],
+   [
+    "titleSwell",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "titleSwell",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "titleSwell",
+    0,
+    "mosaic"
+   ],
+   [
+    "fromTitle",
+    0,
+    "a"
+   ]
+  ],
+  [
+   [
+    "withdraw",
+    0,
+    "mosaic"
+   ],
+   [
+    "fromTitle",
+    0,
+    "b"
+   ]
+  ],
+  [
+   [
+    "paper",
+    0,
+    "mosaic"
+   ],
+   [
+    "endHomer",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "endHomer",
+    0,
+    "mosaic"
+   ],
+   [
+    "endCredit",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "fromTitle",
+    0,
+    "mosaic"
+   ],
+   [
+    "toEnd",
+    0,
+    "a"
+   ]
+  ],
+  [
+   [
+    "endCredit",
+    0,
+    "mosaic"
+   ],
+   [
+    "toEnd",
+    0,
+    "b"
+   ]
+  ],
+  [
+   [
+    "toEnd",
+    0,
+    "mosaic"
+   ],
+   [
+    "words",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "line"
+   ],
+   [
+    "words",
+    0,
+    "line"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "progress"
+   ],
+   [
+    "words",
+    0,
+    "progress"
+   ]
+  ],
+  [
+   [
+    "words",
+    0,
+    "mosaic"
+   ],
+   [
+    "lego",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "words",
+    0,
+    "mosaic"
+   ],
+   [
+    "camera",
+    0,
+    "field"
+   ]
+  ],
+  [
+   [
+    "lego",
+    0,
+    "lego"
+   ],
+   [
+    "camera",
+    0,
+    "lego"
+   ]
+  ],
+  [
+   [
+    "voice",
+    0,
+    "amp"
+   ],
+   [
+    "camera",
+    0,
+    "drive"
+   ]
+  ],
+  [
+   [
+    "words",
+    0,
+    "mosaic"
+   ],
+   [
+    "print",
+    0,
+    "field"
+   ]
+  ]
+ ],
+ "annotations": []
+}
