@@ -216,4 +216,11 @@ K.CRAWL = (X, I, e) => { const p = I.params || {}, P = p.period || 0.7, t0 = I.t
   const sh = [[t0, 0]]; for (let t = t0 + 0.1, j = 0; t < t1; t += 1 / 6, j++) sh.push([r3(t), (j % 2 ? -1 : 1) * 0.025]); sh.push([r3(t1 + 0.2), 0]); ch['body.roll@crawl'] = sh;
   if (p.bellow) { const b = p.bellow; ch['head.pitch@bellow'] = [[b - 0.15, 0], [b, 0.35, 'out'], [b + 1.2, 0.25], [b + 2.0, 0]]; ch['head.yaw@bellow'] = [[b - 0.1, 0], [b + 0.3, 0.2], [b + 1.8, 0]]; }
   return X.cmove(I.actor, 'CRAWL', e, { keys: ch }, { label: I.label || 'the hide creeps' }); };
+/* BARK {target, params: period}: the head thrown up and forward with each bark, the forelegs braced, the ears pricked, the tail up; the
+   head kept on the target between barks */
+K.BARK = (X, I, e) => { const p = I.params || {}, P = p.period || 0.45, t0 = I.t0, t1 = I.t1, R = X.rng(I.id), hp = [[t0, 0]], bp = [[t0, 0]];
+  for (let t = t0 + 0.1; t < t1; t += P * (0.8 + 0.4 * R())) { hp.push([r3(t), 0.3], [r3(t + 0.12), 0.05]); bp.push([r3(t), -0.06], [r3(t + 0.15), 0]); }
+  hp.push([r3(t1 + 0.2), 0]); bp.push([r3(t1 + 0.2), 0]); const b = I.target ? bearing(X, I.actor, I.target, t0) : null, y = b ? Math.max(-1, Math.min(1, b.yaw)) : 0;
+  return X.cmove(I.actor, 'BARK', e, { keys: { 'head.pitch@bark': hp, 'body.pitch@bark': bp, 'head.yaw@bark': [[t0, 0], [t0 + 0.3, y], [t1, y], [t1 + 0.4, 0]], 'ear.L@bark': [[t0, 0], [t0 + 0.2, -0.3], [t1, -0.3], [t1 + 0.4, 0]], 'ear.R@bark': [[t0, 0], [t0 + 0.2, -0.3], [t1, -0.3], [t1 + 0.4, 0]],
+    'tail.pitch@bark': [[t0, 0], [t0 + 0.3, 0.6], [t1, 0.6], [t1 + 0.5, 0]], 'leg.FL@bark': [[t0, 0], [t0 + 0.2, -0.25], [t1, -0.25], [t1 + 0.4, 0]], 'leg.FR@bark': [[t0, 0], [t0 + 0.2, -0.25], [t1, -0.25], [t1 + 0.4, 0]] } }, { label: I.label || 'barks' }); };
 module.exports = Object.assign(K, { place, placeAt, cstate, pointOf });
