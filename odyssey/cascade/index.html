@@ -83,6 +83,12 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
 .limits li::marker { color: var(--bad); }
 .gains li::marker { color: var(--ok); }
 @media (max-width: 800px) { .outs { grid-template-columns: 1fr; } .player { height: 900px; } }
+.outs figure.wide { grid-column: 1 / -1; }
+.loop { max-width: 900px; padding-left: 22px; } .loop li { margin: 4px 0; }
+.dim { color: var(--muted); font-size: 0.9em; }
+.tablewrap { overflow-x: auto; max-width: 100%; } .tablewrap table { border-collapse: collapse; min-width: 560px; font-size: 14px; }
+.tablewrap th, .tablewrap td { border-bottom: 1px solid var(--rule); padding: 6px 8px; text-align: left; vertical-align: top; }
+pre { overflow-x: auto; max-width: 100%; background: var(--card); border: 1px solid var(--rule); padding: 10px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -90,6 +96,67 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
 
   <div class="kicker">Word to World · the Odyssey in Cascade</div>
   <h1>The Odyssey in Cascade</h1>
+  <h2 id="rigdesk">Cascade on the film: the rig desk</h2>
+  <div class="stone">
+    <p class="sub">The film's characters are practical rigs programmed like animatronics: a choreography sheet
+      (<code>odyssey/choreo/&lt;scene&gt;.json</code>) keys every servo of every figure on the voice's clock. Until now the sheet was
+      written by a script and could only be changed as raw <code>overrides</code> in JSON, and the only way to see a change was the full
+      render: about 5.5 s a frame, 40 to 60 minutes a scene, after a page load of 10 to 14 minutes. The rig desk makes Cascade the
+      place where that choreography is programmed. Each scene is a graph: one Subnet per actor holding a <code>project.MinifigRig</code>
+      (forward kinematics on the film's own skeleton: the take's blocking, the choreographer's layers, and the take's performance layer
+      baked from the page, so the rig lands on the page's poses), the voice as a track, the set's pieces and floor marks, and the acted
+      film's shot camera as keyed props into a <code>cascade.core.Camera</code>. The director's layer is the rig's own props, an offset
+      per servo and a weight per body part on the generated layers, set as keyframe channels in Studio's Inspector and Timeline, or as
+      expressions where the motion is procedural (a breath).</p>
+    <ol class="loop">
+      <li><b>Open</b> the scene in Studio and key the rig against the voice.</li>
+      <li><b>Preview</b> headless, the whole scene through the film's cameras with its sound: 8.4 frames a second
+        (0.12 s a frame, 62 to 80 s a scene) against about 5.5 s a frame for the film,
+        about 46 times faster.</li>
+      <li><b>Export</b>: the director's props, resolved at every drawing by Cascade's own channel and expression code, become the
+        sheet's <code>overrides</code>, which the choreographer keeps and the film's renderer plays.</li>
+      <li><b>Render</b> with the real renderer; <code>--from</code> and <code>--to</code> re-shoot just the span that changed.</li>
+    </ol>
+    <div class="tablewrap"><table>
+      <tr><th>Scene</th><th>Frames</th><th>Previz cook</th><th>Film render</th><th>Import, export: no-op</th><th>Moving drawings: rig / page / with the director's keys</th><th>Rig density</th></tr>
+      <tr><td>OD-B01-S03<br><span class="dim">Athena at the gate</span></td><td>534</td><td>62.9 s</td><td>about 49 min</td><td>yes</td><td>85% / 84% / 86%</td><td>388 ms</td></tr><tr><td>OD-B12-S03<br><span class="dim">The Sirens</span></td><td>567</td><td>80.1 s</td><td>about 52 min</td><td>yes</td><td>98% / 97% / 98%</td><td>380 ms</td></tr><tr><td>OD-B22-S01<br><span class="dim">The first arrow</span></td><td>626</td><td>62.3 s</td><td>about 57 min</td><td>yes</td><td>81% / 81% / 83%</td><td>296 ms</td></tr>
+    </table></div>
+    <p class="facts">Acting density (the share of drawings in which a figure in frame visibly moves) is raw data here, not a target:
+      stillness can be the strongest part of a performance. From the rig it takes under half a second a scene, against about 15
+      minutes in the page, and agrees with the page's measure to a point or two.</p>
+    <div class="outs">
+    <figure><video src="media/previz-OD-B01-S03.mp4" poster="media/previz-OD-B01-S03.jpg" controls playsinline preload="none"></video><figcaption>OD-B01-S03, Athena at the gate: <a href="media/previz-OD-B01-S03.mp4">the previz</a> with the film's sound, <a href="rig-OD-B01-S03.cascade">the rig graph</a></figcaption></figure>
+    <figure><video src="media/previz-OD-B12-S03.mp4" poster="media/previz-OD-B12-S03.jpg" controls playsinline preload="none"></video><figcaption>OD-B12-S03, The Sirens: <a href="media/previz-OD-B12-S03.mp4">the previz</a> with the film's sound, <a href="rig-OD-B12-S03.cascade">the rig graph</a></figcaption></figure>
+    <figure><video src="media/previz-OD-B22-S01.mp4" poster="media/previz-OD-B22-S01.jpg" controls playsinline preload="none"></video><figcaption>OD-B22-S01, The first arrow: <a href="media/previz-OD-B22-S01.mp4">the previz</a> with the film's sound, <a href="rig-OD-B22-S01.cascade">the rig graph</a></figcaption></figure>
+    </div>
+    <h3>The director's keys for three defects</h3>
+    <p class="sub">Keyed in the graphs, previewed headless, exported into the sheets' overrides. Each picture: the acted film as it is, the
+      rig with the choreographer's pass, the rig with the director's keys. The films have not been re-rendered; the next render of each
+      scene plays these overrides.</p>
+    <div class="outs">
+    <figure class="wide"><img src="media/rigfix-OD-B12-S03.jpg" alt="The wax: the acted film, the rig with the choreographer's pass, the rig with the director's keys" loading="lazy"><figcaption><b>The wax</b> (OD-B12-S03). Sealing the crew&#x27;s ears, Odysseus raised his hand overhead, beside his own head (19 units from it, 24 to 46 from the nearest crewman&#x27;s ear). On the desk the right arm&#x27;s generated layers are weighted out for the three seals and the arm, torso and heading are keyed to each ear; the crewmen step in and turn their heads to him. Hand to the crewman&#x27;s ear at the three seals: 2.6, 1.6 and 2.3 units.</figcaption></figure>
+    <figure class="wide"><img src="media/rigfix-OD-B01-S03.jpg" alt="Athena&#x27;s wait: the acted film, the rig with the choreographer's pass, the rig with the director's keys" loading="lazy"><figcaption><b>Athena&#x27;s wait</b> (OD-B01-S03). Her longest still stretch was 2.2 s at 9.25 s, a hold that did not breathe. On the desk the wait is a hold that breathes: torso, hips and head carry an expression (a 2.4 s breath faded in and out around the wait) and two keyed looks, to the house and to the road, with a re-grip of the spear. Longest still stretch on the rig now: 0.75 s.</figcaption></figure>
+    <figure class="wide"><img src="media/rigfix-OD-B22-S01-throat.jpg" alt="The hand to the throat: the acted film, the rig with the choreographer's pass, the rig with the director's keys" loading="lazy"><figcaption><b>The hand to the throat</b> (OD-B22-S01). Antinous&#x27;s &quot;hand to the throat&quot; read as both arms flung up (the generated act layer over a raised cup arm). On the desk both arms&#x27; generated layers are weighted out from the arrow to the fall; the left hand is keyed up to the chin (a minifigure cannot reach its own throat: 19 units is as near as the joints allow), the cup arm drops, the head snaps back.</figcaption></figure>
+    <figure class="wide"><img src="media/rigfix-OD-B22-S01-bow.jpg" alt="The bow in the accusation: the acted film, the rig with the choreographer's pass, the rig with the director's keys" loading="lazy"><figcaption><b>The bow in the accusation</b> (OD-B22-S01). The bow in Odysseus&#x27;s left hand, held level at the shoulder, crossed his face in the accusation close-ups. The left arm is keyed down under the lines, further where his speaking gestures lift it. Drawings from 38 s with the bow in front of his face, measured on the rig through the film&#x27;s cameras: none.</figcaption></figure>
+    </div>
+    <h3>Run it on your machine</h3>
+    <pre><code>cd odyssey/cascade && npm install
+npx cascade rig-OD-B12-S03.cascade        # Studio: open an actor's Subnet, select its Minifig Rig, key it
+node tools/rig_previz.mjs OD-B12-S03       # the scene headless, film cameras and sound
+node tools/rig_density.mjs OD-B12-S03 --compare
+node tools/rig_export.mjs OD-B12-S03       # into odyssey/choreo/OD-B12-S03.json overrides
+cd ../.. && node tools/export-odyssey.js OD-B12-S03 --mode cut --fps 12 --suffix acted --from 9 --to 17</code></pre>
+    <p class="facts">A scene's score and measurements attach at <code>assets/rig/&lt;scene&gt;/score.json</code> (format odyssey-score/0:
+      envelope, event, span and metric lanes on the take's clock), shown by <code>project.ScoreLanes</code> as rows under the previz;
+      the voice and its words are there now, and <code>tools/rig_density.mjs --score</code> adds each figure's motion as a metric.
+      What Cascade could not do: a keyframe channel holds one number, so a camera position is three props; node inputs cannot hold
+      keys, so the camera's keys live on <code>project.ShotCam</code>; there is no shaded 3D render, so the previz is boxes drawn by a
+      project node; the headless runner saves only images, so export and density read the graph with Cascade's own PropAnimator
+      beside the cook; and the film's hero cameras follow a figure the director moves, while the previz keeps the take's camera as
+      recorded.</p>
+  </div>
+
+  <h2 id="stones">The five stepping stones</h2>
   <p class="lede">Cascade is FIELD.IO's open-source node-graph runtime (MIT, <a href="https://github.com/marcuswendt/cascade">github.com/marcuswendt/cascade</a>,
     npm <code>@field/cascade</code> 0.7.1): Houdini's way of working (small typed operators, explicit data flow, parameters that hold
     values, expressions or keyframes, explicit feedback, particles whose trails are geometry) in TypeScript, with a project that is an
@@ -99,7 +166,7 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
     below is live: scrub it, change its parameters.</p>
   <div class="stats">
     <div><b>5</b><span>graphs grown from failures</span></div>
-    <div><b>28</b><span>project nodes</span></div>
+    <div><b>34</b><span>project nodes</span></div>
     <div><b>966 KB</b><span>all five players</span></div>
     <div><b>186</b><span>pieces in the gesture kit · 0 loose · 0 clashes</span></div>
   </div>
@@ -184,14 +251,17 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
     graph with a parameter changed is cooked and its pixels counted. No browser is opened.</p>
   <div class="tablewrap"><table>
     <tr><th>Graph</th><th>Sign</th><th>Static check</th><th class="n">Frames</th><th class="n">Cook (ms)</th><th>The critic asks</th><th>Answer</th></tr>
-    <tr><td><a href="#kit">kit</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">4</td><td class="n">975</td><td>Is the hand&#x27;s world solid: does the gesture quantize to cells, and does the offline kit check clean?</td><td class="ok">yes: cells 18, kit pieces 186, kit loose 0, kit clash 0</td></tr>
-    <tr><td><a href="#attention">attention</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">5</td><td class="n">1156</td><td>Whose world is this: at threshold 0 with no script the hall stands still (no business), at 300 it is all business?</td><td class="ok">yes: statuesOrangePixels 0, frenzyOrangePixels 2932</td></tr>
-    <tr><td><a href="#clocks">clocks</a></td><td>Qu · Quotidian</td><td class="ok">passed</td><td class="n">3</td><td class="n">551</td><td>Has everyday life become heroic: four days of sky under the raft, or seven years (more sun arcs at the higher ratio)?</td><td class="ok">yes: fourDaysSunPixels 739, sevenYearsSunPixels 37393</td></tr>
+    <tr><td><a href="#kit">kit</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">4</td><td class="n">689</td><td>Is the hand&#x27;s world solid: does the gesture quantize to cells, and does the offline kit check clean?</td><td class="ok">yes: cells 18, kit pieces 186, kit loose 0, kit clash 0</td></tr>
+    <tr><td><a href="#attention">attention</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">5</td><td class="n">809</td><td>Whose world is this: at threshold 0 with no script the hall stands still (no business), at 300 it is all business?</td><td class="ok">yes: statuesOrangePixels 0, frenzyOrangePixels 2932</td></tr>
+    <tr><td><a href="#clocks">clocks</a></td><td>Qu · Quotidian</td><td class="ok">passed</td><td class="n">3</td><td class="n">669</td><td>Has everyday life become heroic: four days of sky under the raft, or seven years (more sun arcs at the higher ratio)?</td><td class="ok">yes: fourDaysSunPixels 739, sevenYearsSunPixels 37393</td></tr>
     <tr><td><a href="#forbidden">forbidden</a></td><td>Sn · Sonsign</td><td class="ok">passed</td><td class="n">2</td><td class="n">351</td><td>Does the clash stand alone, answered by no build: nothing drawn at reveal 0, the forbidden volumes at reveal 1?</td><td class="ok">yes: revealedNothingRedPixels 0, revealedAllRedPixels 43267</td></tr>
-    <tr><td><a href="#facing">facing</a></td><td>Im · Imprint</td><td class="ok">passed</td><td class="n">3</td><td class="n">389</td><td>How has the world got inside the objects: with facing implicit, does every copy face the same way (the image changes)?</td><td class="ok">yes: explicitInkPixels 33085, implicitInkPixels 33039</td></tr>
-    <tr><td><a href="beflix.html#critic">beflix</a></td><td>Sn · Sonsign</td><td class="ok">passed</td><td class="n">6</td><td class="n">1378</td><td>Does the song reach the ship: is the Poem Field&#x27;s ink there only while the Sirens sing, does the voice thicken the ink, and is the same frame a LEGO mosaic?</td><td class="ok">yes: songInkPixels 252708, noSongInkPixels 236178, voiceDrivenInkPixels 334106, voiceMutedInkPixels 137324, legoTanPixels 58996</td></tr>
+    <tr><td><a href="#facing">facing</a></td><td>Im · Imprint</td><td class="ok">passed</td><td class="n">3</td><td class="n">364</td><td>How has the world got inside the objects: with facing implicit, does every copy face the same way (the image changes)?</td><td class="ok">yes: explicitInkPixels 33085, implicitInkPixels 33039</td></tr>
+    <tr><td><a href="beflix.html#critic">beflix</a></td><td>Sn · Sonsign</td><td class="ok">passed</td><td class="n">6</td><td class="n">1128</td><td>Does the song reach the ship: is the Poem Field&#x27;s ink there only while the Sirens sing, does the voice thicken the ink, and is the same frame a LEGO mosaic?</td><td class="ok">yes: songInkPixels 252708, noSongInkPixels 236178, voiceDrivenInkPixels 334106, voiceMutedInkPixels 137324, legoTanPixels 58996</td></tr>
+    <tr><td><a href="#rig-OD-B01-S03">rig-OD-B01-S03</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">5</td><td class="n">918</td><td>Is the film playing what the director keyed: the sheet in step with the graph, and the rig&#x27;s density close to the take&#x27;s?</td><td class="ok">yes: sheetInStep True, rigDensity 0.856, pageDensity 0.845, rigWorstStill 1.167</td></tr>
+    <tr><td><a href="#rig-OD-B12-S03">rig-OD-B12-S03</a></td><td>Sn · Sonsign</td><td class="ok">passed</td><td class="n">5</td><td class="n">792</td><td>Is the film playing what the director keyed: the sheet in step with the graph, and the rig&#x27;s density close to the take&#x27;s?</td><td class="ok">yes: sheetInStep True, rigDensity 0.977, pageDensity 0.974, rigWorstStill 0.75</td></tr>
+    <tr><td><a href="#rig-OD-B22-S01">rig-OD-B22-S01</a></td><td>Bi · Binomial</td><td class="ok">passed</td><td class="n">5</td><td class="n">655</td><td>Is the film playing what the director keyed: the sheet in step with the graph, and the rig&#x27;s density close to the take&#x27;s?</td><td class="ok">yes: sheetInStep True, rigDensity 0.833, pageDensity 0.811, rigWorstStill 1.083</td></tr>
   </table></div>
-  <p class="facts">Run 2026-09-30 02:52 UTC with Cascade 0.7.1: every graph passed. The report is <a href="verify.json">verify.json</a>.</p>
+  <p class="facts">Run 2026-09-30 07:06 UTC with Cascade 0.7.1: every graph passed. The report is <a href="verify.json">verify.json</a>.</p>
   <h2 id="where">Where Cascade takes us</h2>
   <ul class="plain gains">
     <li><b>One graph cooks to print, motion, web and LDraw.</b> The gesture graph is the SVG, the frame sequence, the player and (through
@@ -229,7 +299,7 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
   <ul class="links">
     <li><code>odyssey/cascade/</code>: the Cascade project (<code>cascade.json</code>, <code>package.json</code> pinning 0.7.1, <code>AGENTS.md</code>, <code>README.md</code>)</li>
     <li><code>kit.cascade</code>, <code>attention.cascade</code>, <code>clocks.cascade</code>, <code>forbidden.cascade</code>, <code>facing.cascade</code>: the graphs</li>
-    <li><code>nodes/</code>: Bricks, Business, BxCamera, BxCopy, BxDissolve, BxExpand, BxLego, BxLine, BxMosaic, BxPaint, BxPlate, BxPoemField, BxPrint, BxShift, BxText, BxVoice, BxZoom, ChoreoHand, FacingField, Forbidden, Hall, Marks, Paint, Planks, Plot, SkyArcs, StudGrid, View</li>
+    <li><code>nodes/</code>: Bricks, Business, BxCamera, BxCopy, BxDissolve, BxExpand, BxLego, BxLine, BxMosaic, BxPaint, BxPlate, BxPoemField, BxPrint, BxShift, BxText, BxVoice, BxZoom, ChoreoHand, FacingField, Forbidden, Hall, Marks, MinifigRig, Paint, Planks, Plot, RigSet, RigView, ScoreLanes, ShotCam, SkyArcs, StudGrid, View, VoiceTrack</li>
     <li><code>lib/</code>: the choreography sampler and minifigure kinematics, the hall, the view</li>
     <li><code>assets/</code>: gestures.json, hall.json, clashes.json, cut small from odyssey/choreo and odyssey/cards</li>
     <li><code>tools/</code>: extract.cjs, clashes.py, gesture_kit.py, build.mjs, media.mjs, verify.mjs</li>

@@ -15,7 +15,8 @@ export const definition = {
   inputs: {
     geometry: { kind: 'data', type: 'geometry' },
     camera: { kind: 'data', type: 'camera' },
-    voice: { kind: 'data', type: 'object' }
+    voice: { kind: 'data', type: 'object' },
+    score: { kind: 'data', type: 'object' }
   },
   props: {
     size: { type: 'vec2i', default: [960, 640], min: 16, max: 4096, label: 'Size (the picture is 16:9 over the strip)' },
@@ -65,6 +66,17 @@ export async function execute(context: NodeExecutionContext<typeof definition>) 
   if (V) {
     ctx.fillStyle = 'rgba(20,20,20,0.8)'; ctx.fillText(`${V.scene}  ${V.t.toFixed(2)} s  d${Math.round(V.t * 12) + 1}  ${V.shot}`, 10 * px, 8 * px);
     ctx.textAlign = 'right'; ctx.fillText(p.label || 'rig desk previz', W - 10 * px, 8 * px); ctx.textAlign = 'left';
+  }
+  /* the score's other lanes (project.ScoreLanes), one thin row each over the foot of the picture */
+  const SC = context.inputs.score as unknown as { window: number[]; lanes: { id: string; label: string; kind: string; window?: number[]; events?: { t: number; label?: string }[]; spans?: { t0: number; t1: number; label?: string }[] }[] } | undefined;
+  if (SC && SC.lanes) {
+    const rows = SC.lanes.filter(l => l.id !== 'voice' && l.id !== 'words'), rh = Math.round(16 * px), [a, b] = SC.window, X = (t: number) => (t - a) / (b - a) * W;
+    rows.forEach((l, r) => { const y = H - 30 * px - (rows.length - r) * rh; ctx.fillStyle = 'rgba(22,22,26,0.55)'; ctx.fillRect(0, y, W, rh - 2);
+      ctx.strokeStyle = l.kind === 'metric' ? '#7fb2ff' : '#f0f0ec'; ctx.fillStyle = '#f0f0ec'; ctx.lineWidth = 1.2;
+      if (l.window) { ctx.beginPath(); l.window.forEach((v, i) => { const x = i / (l.window!.length - 1) * W, yy = y + rh - 3 - Math.max(0, Math.min(1, v)) * (rh - 5); i ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); }); ctx.stroke(); }
+      for (const e of l.events || []) ctx.fillRect(X(e.t), y, 2, rh - 2);
+      for (const s of l.spans || []) ctx.fillRect(X(s.t0), y + rh / 2 - 2, X(s.t1) - X(s.t0), 3);
+      ctx.font = `500 ${Math.round(10 * px)}px monospace`; ctx.fillText(l.label, 4 * px, y + 2); });
   }
   if (SH > 0) {
     ctx.fillStyle = '#16161a'; ctx.fillRect(0, H, W, SH);

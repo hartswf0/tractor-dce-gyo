@@ -17,7 +17,10 @@ framework. What follows the project notes is the guide `cascade new` wrote, kept
   it colour first (`project.Paint`, or a `Cd` of its own).
 - Before committing: `npm run check`, `npm run check:graphs`, `npm run verify`; after a graph changes, `npm run build` (players)
   and `npm run media`, then `python3 ../../tools/forage/product/cascadepage.py`.
-- Never change the data this project reads (`odyssey/choreo`, `odyssey/cards`, `odyssey/cineosis`, `tools/forage/product/*.py`).
+- Never change the data this project reads (`odyssey/choreo`, `odyssey/cards`, `odyssey/cineosis`, `tools/forage/product/*.py`), with one
+  exception: `tools/rig_export.mjs` writes the rig desk's lanes into `odyssey/choreo/<scene>.json` `overrides` (listed in `overrides._desk`).
+- The rig graphs (`rig-*.cascade`) are opened in Studio, not played on the page (`player: false` in graphs.json). A director's key goes on
+  a MinifigRig prop; hand-edit channels as `{ value, channel: { keys: [{ frame, value, interpolation? }] } }`, frame = t * 12 + 1.
 
 ## The guide `cascade new` wrote
 

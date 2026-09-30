@@ -13,6 +13,7 @@ import html, json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kitpages import STYLE, HEAD
+from rigdesksection import section as rigdesk_section
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CAS = os.path.join(ROOT, 'odyssey/cascade')
@@ -46,6 +47,12 @@ ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; 
 .limits li::marker { color: var(--bad); }
 .gains li::marker { color: var(--ok); }
 @media (max-width: 800px) { .outs { grid-template-columns: 1fr; } .player { height: 900px; } }
+.outs figure.wide { grid-column: 1 / -1; }
+.loop { max-width: 900px; padding-left: 22px; } .loop li { margin: 4px 0; }
+.dim { color: var(--muted); font-size: 0.9em; }
+.tablewrap { overflow-x: auto; max-width: 100%; } .tablewrap table { border-collapse: collapse; min-width: 560px; font-size: 14px; }
+.tablewrap th, .tablewrap td { border-bottom: 1px solid var(--rule); padding: 6px 8px; text-align: left; vertical-align: top; }
+pre { overflow-x: auto; max-width: 100%; background: var(--card); border: 1px solid var(--rule); padding: 10px; font-size: 13px; }
 '''
 
 STONES = [
@@ -128,7 +135,9 @@ def main():
 
     out = [HEAD.format(title='The Odyssey in Cascade', style=STYLE + EXTRA)]
     out.append('''  <div class="kicker">Word to World · the Odyssey in Cascade</div>
-  <h1>The Odyssey in Cascade</h1>
+  <h1>The Odyssey in Cascade</h1>''')
+    out.append(rigdesk_section(CAS))
+    out.append('''  <h2 id="stones">The five stepping stones</h2>
   <p class="lede">Cascade is FIELD.IO's open-source node-graph runtime (MIT, <a href="https://github.com/marcuswendt/cascade">github.com/marcuswendt/cascade</a>,
     npm <code>@field/cascade</code> 0.7.1): Houdini's way of working (small typed operators, explicit data flow, parameters that hold
     values, expressions or keyframes, explicit feedback, particles whose trails are geometry) in TypeScript, with a project that is an

@@ -79,6 +79,13 @@ const marks = []; for (const k of M.keys) for (const [id, s] of Object.entries(k
 const title = (M.keys[0] && M.keys[0].beat) || sid;
 fs.writeFileSync(path.join(OUT, 'scene.json'), JSON.stringify({ scene: sid, title, total: C.total, hz, env, clips: M.clips.map(c => ({ at: c.at, dur: c.dur, caption: c.caption, who: c.speaker || '', kind: c.kind })), words, shots, pieces: M.pieces, marks }));
 
+/* ── the score: the place lanes and metric tracks attach (project.ScoreLanes); the voice is written here, other lanes kept ── */
+{ const sf = path.join(OUT, 'score.json'), prev = fs.existsSync(sf) ? JSON.parse(fs.readFileSync(sf, 'utf8')) : null;
+  const lanes = [{ id: 'voice', label: 'voice', kind: 'envelope', hz, values: env, range: [0, 1], by: 'tools/rig_import.mjs (odyssey/choreo/marks)' },
+    { id: 'words', label: 'words', kind: 'events', events: words.map(w => ({ t: w.t, label: w.w })), by: 'tools/rig_import.mjs' },
+    ...((prev && prev.lanes) || []).filter(l => l.id !== 'voice' && l.id !== 'words')];
+  fs.writeFileSync(sf, JSON.stringify({ format: 'odyssey-score/0', scene: sid, total: C.total, note: 'lanes on the take\'s clock: envelope|metric {hz, values, range?}, events {events:[{t,label}]}, spans {spans:[{t0,t1,label}]}; add a lane by id (stimulus, intent, action, contact, a metric) and project.ScoreLanes shows it', lanes })); }
+
 /* ── the shot camera as keyframe channels (a key where the camera changes, a constant key before each cut) ── */
 function channelOf(series, cuts, tol) {
   /* series[i] at drawing i (frame i + 1); linear keys kept greedily within tol; constant keys at the drawing before a cut */
@@ -114,6 +121,7 @@ const DIRPROPS = [...CH.map(c => PROP_OF[c]), ...GROUPS];
 const nodes = [], conns = [], annotations = [];
 nodes.push({ id: 'voice', module: 'project.VoiceTrack', position: [0, 0], source: 'project', props: { track: { path: `assets/rig/${sid}/scene.json`, mediaType: 'application/json' }, time: { value: 0, expression: '$T' }, window: 8 } });
 nodes.push({ id: 'set', module: 'project.RigSet', position: [0, 200], source: 'project', props: { track: { path: `assets/rig/${sid}/scene.json`, mediaType: 'application/json' }, pieces: true, marks: true } });
+nodes.push({ id: 'score', module: 'project.ScoreLanes', position: [0, 360], source: 'project', props: { track: { path: `assets/rig/${sid}/score.json`, mediaType: 'application/json' }, time: { value: 0, expression: '$T' }, window: 8, only: '' } });
 nodes.push({ id: 'cast', module: 'cascade.geo.Merge', position: [620, 200] });
 conns.push([['set', 0, 'geometry'], ['cast', 0, 'inputs']]);
 actors.forEach((S, i) => {
@@ -132,7 +140,7 @@ nodes.push({ id: 'shotcam', module: 'project.ShotCam', position: [620, 420], sou
 nodes.push({ id: 'camera', module: 'cascade.core.Camera', position: [860, 420], props: { lookAt: true, aperture: 41.4214, resolution: [1280, 720], near: 0.5, far: 10000 } });
 conns.push([['shotcam', 0, 'translate'], ['camera', 0, 'translate']], [['shotcam', 1, 'lookat'], ['camera', 3, 'lookat']], [['shotcam', 2, 'focal'], ['camera', 2, 'focal']]);
 nodes.push({ id: 'view', module: 'project.RigView', position: [1100, 200], source: 'project', props: { size: [960, 640], strip: true, label: `rig desk: ${sid}`, filename: `previz-${sid}.png` } });
-conns.push([['cast', 0, 'geometry'], ['view', 0, 'geometry']], [['camera', 0, 'camera'], ['view', 1, 'camera']], [['voice', 4, 'info'], ['view', 2, 'voice']]);
+conns.push([['cast', 0, 'geometry'], ['view', 0, 'geometry']], [['camera', 0, 'camera'], ['view', 1, 'camera']], [['voice', 4, 'info'], ['view', 2, 'voice']], [['score', 1, 'info'], ['view', 3, 'score']]);
 annotations.push({ id: 'note', position: [0, -160], size: [900, 120], text: `${sid} on the rig desk. Each actor is a Subnet with one Minifig Rig: its generated choreography comes from assets/rig/${sid}/<actor>.json; the director's layer is the rig's own props (an offset per servo, a weight per body part), keyed in the Timeline against the Voice Track. Preview headless: cascade run rig-${sid}.cascade --frames 1-${Math.floor(C.total * 12)} --fps 12. Export: node tools/rig_export.mjs ${sid}.` });
 const doc = { version: '0.2', metadata: { name: `Rig desk: ${sid}`, description: `The choreography of ${sid} (${title}) as rigs to key: ${ids.length} actors, the voice, the set and the acted film's shot camera.`, fps: 12, frames: [1, Math.floor(C.total * 12)] }, nodes, connections: conns, annotations };
 fs.writeFileSync(gfile, JSON.stringify(doc, null, 1));
