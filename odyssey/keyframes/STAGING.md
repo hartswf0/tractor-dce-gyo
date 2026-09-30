@@ -9,7 +9,7 @@ defects that remain.
 | scene | set | cast (actors) | keys | notes for the engine |
 |---|---|---|---|---|
 | OD-B09-S08 The Name Nobody and the Stake | the forage's cave (card as foraged) | Odysseus, four chosen helpers, crewman-1 and crewman-2 (added by `film-readymades/staging.py`: the two eaten at dawn) | K1 night, K2 dawn, K3 day, K4 and K5 evening, one per voiced turn on the Regulars' Cut clock (`clock` in the spec) | Polyphemus is a prop the rig replaces: `polyphemusSprawl` asleep (K1), `polyphemus` standing (K2, K5), scale 1.4. crewman-1 hangs in the giant's right fist in K2 (`@polyphemus.handR`): the rider for `grip.R` (SEIZE, EAT). The stake is one prop with states (`stakeStates`): trunk, stakeCold, stake (glowing, in the fire), stakeCold under the `dung` prop. The offer: the `bowl` in Odysseus's raised hands, the giant three heights over him (K5). The flock (`ram`, `ramBlack`) at the door in K2 and K5 |
-| OD-B09-S10 Escape beneath the Rams | the cave mouth: the Cyclops kit's headland and shore (`tools/forage/product/cyclops.py`) without its posed moment, nameplate or yard rams, turned so the lane runs out toward +z (`staging.py`) | Odysseus, crewman-1 to crewman-6 | K1 dawn at the door, K2 the binding (night), K3 the lead ram stopped, K4 down to the ship, K5 the sacrifice on the shore | Polyphemus `polyphemusSprawl` sitting in the door at (-75, 40), scale 1.5 (the rig's `sit`; GROPE across the lane, then `reach` to `lead:back`). The flock: `team<n>-a/b/c` three abreast, scale 1.6, the man under each `b` (riders `belly`, lie `under`); the lead ram `lead`, scale 2.6, Odysseus beneath it (K3). The men beneath are tilted face up and held just off the floor (`tilt`, `air`), not laid with `lie`: under the headland's roof `lie` finds the roof, not the floor (see below) |
+| OD-B09-S10 Escape beneath the Rams | the cave mouth: the Cyclops kit's headland and shore (`tools/forage/product/cyclops.py`) without its posed moment, nameplate or yard rams, turned so the lane runs out toward +z, and opened above the vault as the forage's caves are, keeping the arch over the mouth tunnel (`staging.py`). World units: the vault z -295..-49, the tunnel x -56..84 out to the mouth at z ~70, the fire (-70, -165), the cheese racks (112, -137), the yard wall z 4..102, the strip of turf and sand z 74..130, the water beyond (the black ship afloat, x -337..-28) | Odysseus, crewman-1 to crewman-6 | K1 dawn at the door, K2 the binding (night), K3 the lead ram stopped, K4 west along the strip to the ship, K5 the great ram for Zeus | Polyphemus `polyphemusSprawl` sitting in the door at (-75, 40), scale 1.5 (the rig's `sit`; GROPE across the lane, then `reach` to `lead:back`). The flock: `team<n>-a/b/c` three abreast (scale 1.4, 30 apart), the man under each `b` (riders `belly`, lie `under`); K1 has four teams in single file down the lane and two already out on the strip (the floor holds no more at once: they pass one after another). The lead ram `lead`, scale 2.6, Odysseus beneath it (K3). The men beneath are tilted face up and held just off the floor (`tilt`, `air`, arms up into the fleece) |
 | OD-B01-S02 Athena's Two-Part Plan | the forage's Olympus (the OD-B01-S01 frame) | Athena, Hermes | K1 the errand to Hermes, K2 Ithaca for herself, K3 the sandals and the spear (T03, narration, is cut) | K3 seats Athena on her throne leaning to her feet (SIT, TEND); the `spear` prop stands by the throne for the TAKE; the descent (the frame of light at (-175, -79)) is the LEAVE. The baked sandals and spear are hidden |
 
 Props added to `odyssey/keyframes/props.json`: `dung` (a heap over the stake), `spear` (Athena's bronze-shod spear, 4497 in gold),
@@ -47,8 +47,9 @@ Props added to `odyssey/keyframes/props.json`: `dung` (a heap over the stake), `
   The runs of three to five drawings in `in-figure` (OD-B02-S02 49.8 s, OD-B04-S04 34.5 s, OD-B05-S05 32.3 s, OD-B10-S04 10.7 s,
   OD-B12-S03 14.7 s, 33.9 s, 36 s, OD-B12-S07 39.8 s) are figures crossing while the take eases them between two keys' marks: the
   marks are clear, the path between them is not (a walk that steps round is the engine's).
-- **`lie` and `y: ground` under a roof.** `kfGround` casts from y 2000, so inside a cave it finds the roof. Blocked around it in OD-B09-S10;
-  a fix in `odyssey-runtime.js` (cast from the figure's own height) waits for the next rebuild.
+- **`lie` and `y: ground` under a roof.** `kfGround` casts from y 2000, so under any roof (a vault, a palm) it finds the roof, and a
+  `floor: true` prop lands on it. The cave mouth is opened above the vault for this reason; a set with a roof over its cast needs
+  `kfGround` to cast from the figure's own height (`odyssey-runtime.js`), not yet done.
 
 ## The scan
 
@@ -164,6 +165,23 @@ whose blocking changed above are re-probed when they are prepared again.
 | OD-B09-S03 | sunk | odysseus | 28-28.17 | 3 | d:2:WIDE:WIDE | blocking |
 | OD-B09-S03 | float | odysseus | 28.17-28.33 | 3 | d:2:WIDE:WIDE | blocking |
 | OD-B09-S03 | cam-in-set | the lotus eaters land | 28.75-43 | 172 | d:3:SPK:CLOSE | take camera (cutter) |
+| OD-B09-S08 | float | crewman-1 | 9.42-10.25 | 11 | d:1:OBJ:INSERT | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-1 / four-chosen-helpers-2 | 10-10.75 | 10 | d:1:OBJ:INSERT | blocking |
+| OD-B09-S08 | sunk | odysseus | 10.83-11.5 | 9 | d:1:OBJ:INSERT | blocking |
+| OD-B09-S08 | float | crewman-1 | 11.17-11.42 | 4 | d:1:OBJ:INSERT | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-1 / four-chosen-helpers-4 | 21.5-21.67 | 3 | d:2:OBJ:INSERT | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-1 / four-chosen-helpers-2 | 21.83-22.42 | 8 | d:2:OBJ:INSERT | blocking |
+| OD-B09-S08 | sunk | four-chosen-helpers-3 | 35.08-35.92 | 11 | d:4:OBJ:INSERT | blocking |
+| OD-B09-S08 | sunk | four-chosen-helpers-1 | 35.58-35.83 | 4 | d:4:OBJ:INSERT | blocking |
+| OD-B09-S08 | sunk | four-chosen-helpers-4 | 36.08-36.33 | 4 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | cam-in-figure | four-chosen-helpers-2 | 39-39.42 | 6 | d:5:SPK:CLOSE | take camera (cutter) |
+| OD-B09-S08 | sunk | four-chosen-helpers-4 | 39.5-42.08 | 32 | insert:stake | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-2 / four-chosen-helpers-3 | 42.25-42.58 | 5 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-1 / four-chosen-helpers-4 | 42.58-42.75 | 3 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | sunk | four-chosen-helpers-2 | 42.75-43.42 | 9 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | in-figure | four-chosen-helpers-3 / four-chosen-helpers-4 | 43.08-43.58 | 7 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | sunk | four-chosen-helpers-1 | 43.25-43.67 | 6 | d:5:SPK:CLOSE | blocking |
+| OD-B09-S08 | cam-in-set | polyphemus | 51-60.42 | 114 | d:7:SPK:CLOSE | take camera (cutter) |
 | OD-B09-S11 | float | odysseus-s-crew-5 | 0-17.67 | 213 | d:48:WIDE:WIDE | blocking |
 | OD-B09-S11 | sunk | odysseus-s-crew-5 | 0-17.67 | 213 | d:48:WIDE:WIDE | blocking |
 | OD-B09-S11 | float | odysseus-s-crew-5 | 19.25-20.75 | 19 | d:8:SPK:CLOSE | blocking |
