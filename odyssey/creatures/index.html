@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Creature Rigs</title>
+<meta name="description" content="The giants and animals of the LEGO Odyssey film as articulated LDraw rigs: Polyphemus, the Laestrygonians, Scylla, the rams, the dogs, Argos and the cattle of the Sun, with gaits, a giant's heavy walk, reach and grope, a herd, and their test films.">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; }
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 72px; }
+h1, h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(36px, 7vw, 66px); line-height: .98; }
+h2 { font-size: 27px; margin: 38px 0 8px; padding-top: 10px; border-top: 3px solid var(--ink); }
+h3 { margin: 18px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; }
+a { color: var(--blue); }
+code { font: 13px ui-monospace, Menlo, monospace; word-break: break-word; }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { color: var(--muted); max-width: 840px; margin: 12px 0 16px; font-size: 16.5px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+figure { margin: 0; } figure img { width: 100%; height: auto; display: block; border: 1.5px solid var(--rule); }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.card { border: 1.5px solid var(--rule); background: var(--card); padding: 12px 14px; min-width: 0; }
+.card h3:first-child { margin-top: 0; }
+.tree, .tree ul { list-style: none; margin: 0; padding-left: 14px; }
+.tree { padding-left: 0; font-size: 13.5px; }
+.tree li { border-left: 2px solid var(--rule); padding: 1px 0 1px 8px; margin: 1px 0; }
+.tree .ch { font: 12px ui-monospace, Menlo, monospace; color: var(--gold); word-break: break-word; }
+video { width: 100%; max-width: 720px; height: auto; display: block; background: #000; aspect-ratio: 16 / 9; }
+.muted { color: var(--muted); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--rule); padding: 5px 6px; text-align: left; vertical-align: top; }
+.tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.tbl td.n { font: 13px ui-monospace, Menlo, monospace; white-space: nowrap; }
+@media (max-width: 520px) { .tbl td.n { white-space: normal; word-break: break-word; font-size: 12px; } .tbl { font-size: 12.5px; } }
+.scroll { overflow-x: auto; max-width: 100%; }
+.scenes { margin: 0; padding-left: 18px; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; padding: 0; list-style: none; }
+pre { background: var(--card); border: 1.5px solid var(--rule); padding: 10px 12px; overflow-x: auto; font: 12.5px/1.5 ui-monospace, Menlo, monospace; max-width: 100%; }
+footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">The Odyssey line, the workshop</div>
+  <h1>The creature rigs</h1>
+  <p class="lede">The giants and the animals were set pieces the performance engine could not give an intent. Here each is a pivot tree of real LDraw parts: the toy's own joints where it has them (the troll's shoulders and wrists, the cow's head, the hose segments of Scylla's necks), and the set pieces' animal parts cut on straight seams into the pieces that move (the goat, the German shepherd, the cow's body, the troll's face, jaw, forearms and legs). Every pose, gait, herd and heavy step is a pure function of time, so a frame rendered offline is the frame the player shows, scrubbed either way.</p>
+  <ul class="toc"><li><a href="#polyphemus">Polyphemus</a></li><li><a href="#laestrygon">Laestrygonian</a></li><li><a href="#ram">Ram</a></li><li><a href="#dog">Dog</a></li><li><a href="#cattle">Cattle of the Sun</a></li><li><a href="#scylla">Scylla</a></li><li><a href="#api">The API</a></li></ul>
+
+  <section class="creature" id="polyphemus">
+    <h2>Polyphemus</h2>
+    <p class="lede">The Cyclops: the troll big figure of the set piece on its own shoulders and wrists, cut at the waist, the legs, the elbows, the face and the tusked jaw, with the set piece's one eye (a pupil that looks about and is swapped: open, half shut, shut, put out).</p>
+    <div class="grid">
+      <figure><img src="media/polyphemus-rig.jpg" alt="Polyphemus at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>; the set piece is <a href="../cards/kit.prop-polyphemus.mpd"><code>kit.prop-polyphemus</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>hips</b> <span class="ch">body.yaw body.pitch body.roll hips.dy</span><ul><li><b>leg.R</b> <span class="ch">leg.R.pitch leg.R.out</span><ul><li><b>knee.R</b> <span class="ch">knee.R</span></li></ul></li><li><b>leg.L</b> <span class="ch">leg.L.pitch leg.L.out</span><ul><li><b>knee.L</b> <span class="ch">knee.L</span></li></ul></li><li><b>torso</b> <span class="ch">torso.twist torso.lean torso.roll</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span><ul><li><b>jaw</b> <span class="ch">jaw</span></li><li><b>eye</b> <span class="ch">eye.x eye.y eye</span></li></ul></li><li><b>arm.R</b> <span class="ch">arm.R.pitch arm.R.out</span><ul><li><b>elbow.R</b> <span class="ch">elbow.R</span><ul><li><b>hand.R</b> <span class="ch">hand.R.roll</span></li></ul></li></ul></li><li><b>arm.L</b> <span class="ch">arm.L.pitch arm.L.out</span><ul><li><b>elbow.L</b> <span class="ch">elbow.L</span><ul><li><b>hand.L</b> <span class="ch">hand.L.roll</span></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>grip.R</code> <code>grip.L</code> <code>head</code> <code>brow</code> <code>eye</code> <code>mouth</code> <code>lap</code> <code>foot.R</code> <code>foot.L</code> (a rider, a held man, a rock, a camera's aim)</p>
+        <h3>Presets</h3><p class="muted"><code>stand</code> <code>sit</code> <code>crouch</code> <code>roar</code> <code>sprawl</code></p>
+        
+      </div>
+    </div>
+    <h3>Channels</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">eye</td><td class="n">0 to 3 index</td><td>the pupil: 0 open, 1 half shut, 2 shut, 3 put out (a replacement part)</td></tr>
+      <tr><td class="n">eye.x</td><td class="n">-9 to 9 ldu</td><td>the pupil to its left (+)</td></tr>
+      <tr><td class="n">eye.y</td><td class="n">-9 to 9 ldu</td><td>the pupil up (+)</td></tr>
+      <tr><td class="n">hips.dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
+      <tr><td class="n">body.yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
+      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
+      <tr><td class="n">body.roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
+      <tr><td class="n">torso.lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
+      <tr><td class="n">torso.twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
+      <tr><td class="n">torso.roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
+      <tr><td class="n">head.yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
+      <tr><td class="n">head.pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
+      <tr><td class="n">jaw</td><td class="n">-0.05 to 0.6</td><td>the tusked jaw open (+): a roar, a bite, a drink</td></tr>
+      <tr><td class="n">arm.R.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
+      <tr><td class="n">arm.L.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
+      <tr><td class="n">arm.R.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">arm.L.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">elbow.R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">elbow.L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">hand.R.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
+      <tr><td class="n">hand.L.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
+      <tr><td class="n">leg.R.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
+      <tr><td class="n">leg.L.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
+      <tr><td class="n">leg.R.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">leg.L.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
+      <tr><td class="n">knee.L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
+    </table></div>
+    
+    <h3>Polyphemus gropes at the cave mouth</h3>
+    <video controls muted playsinline loop preload="none" poster="media/polyphemus-grope.jpg" width="480" height="270"><source src="media/polyphemus-grope.mp4" type="video/mp4"></video>
+    <p class="muted">Seated in the door (the sit preset), eye shut, both hands solved together over torso, shoulders and elbows: sweeping, reaching in, patting down onto the backs that pass in threes; the men under the middle rams and under the lead ram pass beneath the search (B09-S10).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B09-S07</code></li><li><code>OD-B09-S08</code> The Name Nobody and the Stake<br><span class="muted">WAKE polyphemus 11.9-13 s; SEIZE polyphemus &gt; crew-1 13-15 s (giant hand closes on a man; carried); EAT polyphemus 15-18 s; POSTURE(cower) crew &gt; polyphemus 13-20 s; HERD polyphemus &gt; flock 18-22 s; MOVE_STONE polyphemus &gt; door-stone 19-22 s; OFFER odysseus &gt; polyphemus 45-50 s (bowl lifted over the head to a giant); DRINK polyphemus 50-56 s (giant scale)</span></li><li><code>OD-B09-S09</code></li><li><code>OD-B09-S10</code> Escape beneath the Rams<br><span class="muted">MOVE_STONE polyphemus &gt; door-stone 0.6-4 s; GROPE polyphemus &gt; flock 4-50 s (hands pass over each back); CARESS polyphemus &gt; lead-ram 30-50 s; CARESS(speak_to_animal) polyphemus &gt; lead-ram 30-50 s</span></li><li><code>OD-B09-S11</code> The Boast and the Curse<br><span class="muted">LISTEN polyphemus &gt; odysseus 1-16 s (by ear, head cocked); THROW polyphemus &gt; ship 17.7-20 s (two-handed overhead, rock torn from the peak); ATTEND polyphemus &gt; odysseus 29-46 s (by ear); RECOGNISE polyphemus 47.4-60 s (the prophecy); GESTURE:invoke(pray) polyphemus &gt; sky 62-90 s (arms raised); THROW polyphemus &gt; ship 92.5-95 s</span></li></ul>
+    <p class="muted">WAKE; SEIZE (a man in the hand, carried); EAT; HERD the flock; MOVE_STONE; DRINK at giant scale; GROPE the rams' backs at the door (a search that must miss); CARESS the lead ram; THROW a torn-off peak; the curse: arms raised.</p>
+  </section>
+
+  <section class="creature" id="laestrygon">
+    <h2>Laestrygonian</h2>
+    <p class="lede">The cannibal giants of Telepylus: the same troll body in the harbour colours, the helmet for a head, a boulder in the grip; Antiphates and the giant girl are the same rig recoloured and rescaled.</p>
+    <div class="grid">
+      <figure><img src="media/laestrygon-rig.jpg" alt="Laestrygonian at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>60635</code>, <code>60637</code>, <code>60672</code>, <code>60673</code>, <code>60638</code>, <code>60644</code>; the set piece is <a href="../cards/kit.prop-laestrygon.mpd"><code>kit.prop-laestrygon</code></a>; the cut pieces are in <a href="parts/polyphemus.mpd"><code>parts/polyphemus.mpd</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>hips</b> <span class="ch">body.yaw body.pitch body.roll hips.dy</span><ul><li><b>leg.R</b> <span class="ch">leg.R.pitch leg.R.out</span><ul><li><b>knee.R</b> <span class="ch">knee.R</span></li></ul></li><li><b>leg.L</b> <span class="ch">leg.L.pitch leg.L.out</span><ul><li><b>knee.L</b> <span class="ch">knee.L</span></li></ul></li><li><b>torso</b> <span class="ch">torso.twist torso.lean torso.roll</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span><ul><li><b>jaw</b> <span class="ch">jaw</span></li></ul></li><li><b>arm.R</b> <span class="ch">arm.R.pitch arm.R.out</span><ul><li><b>elbow.R</b> <span class="ch">elbow.R</span><ul><li><b>hand.R</b> <span class="ch">hand.R.roll</span></li></ul></li></ul></li><li><b>arm.L</b> <span class="ch">arm.L.pitch arm.L.out</span><ul><li><b>elbow.L</b> <span class="ch">elbow.L</span><ul><li><b>hand.L</b> <span class="ch">hand.L.roll</span></li></ul></li></ul></li></ul></li></ul></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>grip.R</code> <code>grip.L</code> <code>head</code> <code>brow</code> <code>eye</code> <code>mouth</code> <code>lap</code> <code>foot.R</code> <code>foot.L</code> (a rider, a held man, a rock, a camera's aim)</p>
+        <h3>Presets</h3><p class="muted"><code>stand</code> <code>sit</code> <code>crouch</code> <code>roar</code> <code>sprawl</code></p>
+        
+      </div>
+    </div>
+    <h3>Channels</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">hips.dy</td><td class="n">-150 to 30 ldu</td><td>the whole body up (+) or down on the hips: a sit is about -40, a crouch -20</td></tr>
+      <tr><td class="n">body.yaw</td><td class="n">-0.8 to 0.8</td><td>the trunk turned on the hips</td></tr>
+      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 1.2</td><td>the body tipped back (+) or forward</td></tr>
+      <tr><td class="n">body.roll</td><td class="n">-0.4 to 0.4</td><td>the waddle: + lifts its left hip</td></tr>
+      <tr><td class="n">torso.lean</td><td class="n">-0.35 to 0.9</td><td>the waist: + bows forward</td></tr>
+      <tr><td class="n">torso.twist</td><td class="n">-0.8 to 0.8</td><td>the waist turned to its left (+)</td></tr>
+      <tr><td class="n">torso.roll</td><td class="n">-0.35 to 0.35</td><td>the waist bent sideways</td></tr>
+      <tr><td class="n">head.yaw</td><td class="n">-0.5 to 0.5</td><td>the face turned to its left (+): the head is the front of the body, so a little</td></tr>
+      <tr><td class="n">head.pitch</td><td class="n">-0.3 to 0.45</td><td>the face up (+)</td></tr>
+      <tr><td class="n">jaw</td><td class="n">-0.05 to 0.6</td><td>the tusked jaw open (+): a roar, a bite, a drink</td></tr>
+      <tr><td class="n">arm.R.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward (-1.57 level, -3.1 overhead)</td></tr>
+      <tr><td class="n">arm.L.pitch</td><td class="n">-3.2 to 0.9</td><td>the shoulder: - raises the arm forward</td></tr>
+      <tr><td class="n">arm.R.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">arm.L.out</td><td class="n">-0.3 to 1.4</td><td>the arm away from the body</td></tr>
+      <tr><td class="n">elbow.R</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">elbow.L</td><td class="n">-1.2 to 0.5</td><td>the elbow: - bends the forearm up</td></tr>
+      <tr><td class="n">hand.R.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned (the grip turns with it)</td></tr>
+      <tr><td class="n">hand.L.roll</td><td class="n">-1.6 to 1.6</td><td>the wrist turned</td></tr>
+      <tr><td class="n">leg.R.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward (a sit is -1.5)</td></tr>
+      <tr><td class="n">leg.L.pitch</td><td class="n">-1.6 to 0.6</td><td>the hip: - swings the leg forward</td></tr>
+      <tr><td class="n">leg.R.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">leg.L.out</td><td class="n">-0.2 to 0.5</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.R</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back (a kneel is 1.5)</td></tr>
+      <tr><td class="n">knee.L</td><td class="n">-0.1 to 1.6</td><td>the knee: + folds the shin back</td></tr>
+    </table></div>
+    
+    <h3>A Laestrygonian's heavy walk and throw</h3>
+    <video controls muted playsinline loop preload="none" poster="media/giant-walk.jpg" width="480" height="270"><source src="media/giant-walk.mp4" type="video/mp4"></video>
+    <p class="muted">The body follows the path through a spring (it lags, then carries on past the stop), the waddle rolls it over the planted foot, each footfall shakes the camera (fx.shake); then a boulder two-handed overhead, released on a ballistic arc (B10-S02).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B10-S02</code> The Laestrygonian Harbor<br><span class="muted">GESTURE:point giant-girl &gt; house 15-16.5 s; SEIZE antiphates &gt; scout-1 18.4-20 s; THROW laestrygonians &gt; fleet 22-27 s; THRUST(spear) laestrygonians &gt; crew-in-water 23-27 s</span></li></ul>
+    <p class="muted">SEIZE a scout (carried); PURSUE on the shore; THROW boulders at the fleet; THRUST spears at men in the water.</p>
+  </section>
+
+  <section class="creature" id="ram">
+    <h2>Ram</h2>
+    <p class="lede">The Cyclops' rams and the flock (the goat of the set pieces, scaled up to carry a man beneath): cut at the neck, both shoulders and hips, the knees and the tail; a man rides under the belly.</p>
+    <div class="grid">
+      <figure><img src="media/ram-rig.jpg" alt="Ram at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>95341</code>; the set piece is <a href="../cards/kit.prop-ram.mpd"><code>kit.prop-ram</code></a>; the cut pieces are in <a href="parts/ram.mpd"><code>parts/ram.mpd</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>body</b> <span class="ch">body.yaw body.pitch body.roll body.dy</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span></li><li><b>tail</b> <span class="ch">tail.yaw tail.pitch</span></li><li><b>leg.FL</b> <span class="ch">leg.FL leg.FL.out</span><ul><li><b>knee.FL</b> <span class="ch">knee.FL</span></li></ul></li><li><b>leg.FR</b> <span class="ch">leg.FR leg.FR.out</span><ul><li><b>knee.FR</b> <span class="ch">knee.FR</span></li></ul></li><li><b>leg.HL</b> <span class="ch">leg.HL leg.HL.out</span><ul><li><b>knee.HL</b> <span class="ch">knee.HL</span></li></ul></li><li><b>leg.HR</b> <span class="ch">leg.HR leg.HR.out</span><ul><li><b>knee.HR</b> <span class="ch">knee.HR</span></li></ul></li></ul></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>belly</code> <code>back</code> <code>head</code> <code>mouth</code> (a rider, a held man, a rock, a camera's aim)</p>
+        <h3>Presets</h3><p class="muted"><code>stand</code> <code>graze</code> <code>lie</code></p>
+        <h3>Gaits</h3><p class="muted"><code>walk</code> stride 28, duty 0.62; <code>trot</code> stride 36, duty 0.45; <code>run</code> stride 56, duty 0.3 (LDU, at scale 1)</p>
+      </div>
+    </div>
+    <h3>Channels</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+    </table></div>
+    
+    <h3>A ram walking with a man beneath</h3>
+    <video controls muted playsinline loop preload="none" poster="media/ram-rider.jpg" width="480" height="270"><source src="media/ram-rider.mp4" type="video/mp4"></video>
+    <p class="muted">The lead ram scaled 2.4 walks on a planted-foot gait with its stance widened; Odysseus hangs on the belly anchor, face up, hands in the wool (B09-S10).</p>
+    <h3>The flock leaves the cave</h3>
+    <video controls muted playsinline loop preload="none" poster="media/herd.jpg" width="480" height="270"><source src="media/herd.mp4" type="video/mp4"></video>
+    <p class="muted">Seven rams and sheep of three sizes and colours follow the leader's path out of the mouth with separation, each on its own gait clock (B09-S08, B09-S10).</p>
+    <h3>Polyphemus gropes at the cave mouth</h3>
+    <video controls muted playsinline loop preload="none" poster="media/polyphemus-grope.jpg" width="480" height="270"><source src="media/polyphemus-grope.mp4" type="video/mp4"></video>
+    <p class="muted">Seated in the door (the sit preset), eye shut, both hands solved together over torso, shoulders and elbows: sweeping, reaching in, patting down onto the backs that pass in threes; the men under the middle rams and under the lead ram pass beneath the search (B09-S10).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B09-S08</code> The Name Nobody and the Stake<br><span class="muted">HERD polyphemus &gt; flock 18-22 s</span></li><li><code>OD-B09-S09</code></li><li><code>OD-B09-S10</code> Escape beneath the Rams<br><span class="muted">GROPE polyphemus &gt; flock 4-50 s (hands pass over each back); ROPE_WORK(bind) odysseus &gt; rams 10.9-20 s (withies, three abreast); CLING crew &gt; ram 12-50 s (under the middle ram); CLING odysseus &gt; lead-ram 23.4-53 s; CARESS polyphemus &gt; lead-ram 30-50 s; CARESS(speak_to_animal) polyphemus &gt; lead-ram 30-50 s; HERD crew &gt; flock 56-62 s; SACRIFICE odysseus &gt; lead-ram 63.9-72 s</span></li><li><code>OD-B09-S11</code> The Boast and the Curse</li></ul>
+    <p class="muted">HERD: the flock driven out past the stone; walk in triads bound with withies, a man slung beneath the middle ram; the lead ram last, Odysseus under its belly; stopped, stroked, let go; SACRIFICE: the great ram led to the altar.</p>
+  </section>
+
+  <section class="creature" id="dog">
+    <h2>Dog</h2>
+    <p class="lede">The German shepherd of the set pieces, cut at the neck, shoulders and hips, knees, tail and both ears: Eumaeus' four dogs (rush, bark, stop short, scatter) and Argos (lift the head, drop the ears, thump the tail, die).</p>
+    <div class="grid">
+      <figure><img src="media/dog-rig.jpg" alt="Dog at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>92586</code>; the set piece is <a href="../cards/kit.prop-dog.mpd"><code>kit.prop-dog</code></a>; the cut pieces are in <a href="parts/dog.mpd"><code>parts/dog.mpd</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>body</b> <span class="ch">body.yaw body.pitch body.roll body.dy</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span><ul><li><b>ear.L</b> <span class="ch">ear.L ear.L.flick</span></li><li><b>ear.R</b> <span class="ch">ear.R ear.R.flick</span></li></ul></li><li><b>tail</b> <span class="ch">tail.yaw tail.pitch</span></li><li><b>leg.FL</b> <span class="ch">leg.FL leg.FL.out</span><ul><li><b>knee.FL</b> <span class="ch">knee.FL</span></li></ul></li><li><b>leg.FR</b> <span class="ch">leg.FR leg.FR.out</span><ul><li><b>knee.FR</b> <span class="ch">knee.FR</span></li></ul></li><li><b>leg.HL</b> <span class="ch">leg.HL leg.HL.out</span><ul><li><b>knee.HL</b> <span class="ch">knee.HL</span></li></ul></li><li><b>leg.HR</b> <span class="ch">leg.HR leg.HR.out</span><ul><li><b>knee.HR</b> <span class="ch">knee.HR</span></li></ul></li></ul></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>back</code> <code>head</code> <code>mouth</code> <code>belly</code> (a rider, a held man, a rock, a camera's aim)</p>
+        <h3>Presets</h3><p class="muted"><code>stand</code> <code>bark</code> <code>lie</code> <code>sit</code></p>
+        <h3>Gaits</h3><p class="muted"><code>walk</code> stride 28, duty 0.6; <code>trot</code> stride 38, duty 0.45; <code>run</code> stride 60, duty 0.3 (LDU, at scale 1)</p>
+      </div>
+    </div>
+    <h3>Channels</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.pitch</td><td class="n">-0.9 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">ear.L</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
+      <tr><td class="n">ear.L.flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
+      <tr><td class="n">ear.R</td><td class="n">-0.4 to 1.3</td><td>the ear laid back (+), pricked (-)</td></tr>
+      <tr><td class="n">ear.R.flick</td><td class="n">-0.4 to 0.6</td><td>the ear turned out</td></tr>
+      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+    </table></div>
+    
+    <h3>Argos knows his master</h3>
+    <video controls muted playsinline loop preload="none" poster="media/argos.jpg" width="480" height="270"><source src="media/argos.mp4" type="video/mp4"></video>
+    <p class="muted">Played from a scene sheet's creature actor through OdysseyCreatures.sample (keys over the lie preset, on twos): the head lifts, the ears prick then drop, the tail beats; the breath stops and he goes over onto his side, and holds (B17-S03).</p>
+    <h3>Eumaeus' dogs</h3>
+    <video controls muted playsinline loop preload="none" poster="media/dogs.jpg" width="480" height="270"><source src="media/dogs.mp4" type="video/mp4"></video>
+    <p class="muted">Four dogs on a gait schedule (run, trot, walk, run, blended on each leg's phase clock) rush the sitting stranger, stop short barking (head, ears, tail), and scatter when the stones fly (B14-S01).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B14-S01</code> The Dogs at Eumaeus's Yard<br><span class="muted">PURSUE(charge) dogs &gt; odysseus 3-6 s; LOCOMOTE(run) eumaeus &gt; dogs 7.6-9 s; THROW eumaeus &gt; dogs 9-11 s (stones); FLEE dogs 10-12 s</span></li><li><code>OD-B17-S03</code> Argos Recognizes His Master<br><span class="muted">NOTICE odysseus &gt; argos 0.6-3 s; ANIMAL:lift-head(lift_head) argos 5-7 s; ANIMAL:wag(wag) argos 6-12 s; DIE argos 19.9-23 s</span></li></ul>
+    <p class="muted">PURSUE(charge) the stranger, bark, stop at a distance; FLEE when stones fly; Argos: lift the head, drop the ears, wag, DIE (a held stillness, breath off).</p>
+  </section>
+
+  <section class="creature" id="cattle">
+    <h2>Cattle of the Sun</h2>
+    <p class="lede">Helios' cattle: the cow of the set pieces, its head on the toy's own joint, the body cut at the shoulders, hips, knees and tail; driven in, and felled (the root rolls it onto its side).</p>
+    <div class="grid">
+      <figure><img src="media/cattle-rig.jpg" alt="Cattle of the Sun at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>64779c01</code>; the set piece is <a href="../cards/kit.prop-cow.mpd"><code>kit.prop-cow</code></a>; the cut pieces are in <a href="parts/cattle.mpd"><code>parts/cattle.mpd</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>body</b> <span class="ch">body.yaw body.pitch body.roll body.dy</span><ul><li><b>head</b> <span class="ch">head.yaw head.pitch</span></li><li><b>tail</b> <span class="ch">tail.yaw tail.pitch</span></li><li><b>leg.FL</b> <span class="ch">leg.FL leg.FL.out</span><ul><li><b>knee.FL</b> <span class="ch">knee.FL</span></li></ul></li><li><b>leg.FR</b> <span class="ch">leg.FR leg.FR.out</span><ul><li><b>knee.FR</b> <span class="ch">knee.FR</span></li></ul></li><li><b>leg.HL</b> <span class="ch">leg.HL leg.HL.out</span><ul><li><b>knee.HL</b> <span class="ch">knee.HL</span></li></ul></li><li><b>leg.HR</b> <span class="ch">leg.HR leg.HR.out</span><ul><li><b>knee.HR</b> <span class="ch">knee.HR</span></li></ul></li></ul></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>back</code> <code>head</code> <code>mouth</code> <code>belly</code> (a rider, a held man, a rock, a camera's aim)</p>
+        <h3>Presets</h3><p class="muted"><code>stand</code> <code>graze</code> <code>fallen</code></p>
+        <h3>Gaits</h3><p class="muted"><code>walk</code> stride 32, duty 0.64; <code>trot</code> stride 42, duty 0.45; <code>run</code> stride 64, duty 0.3 (LDU, at scale 1)</p>
+      </div>
+    </div>
+    <h3>Channels</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">body.dy</td><td class="n">-60 to 20 ldu</td><td>the body up (+) or down: a lie is the belly on the ground</td></tr>
+      <tr><td class="n">body.pitch</td><td class="n">-0.6 to 0.6</td><td>the body nose-up (+)</td></tr>
+      <tr><td class="n">body.roll</td><td class="n">-0.5 to 0.5</td><td>the body rolled: + lifts its left side</td></tr>
+      <tr><td class="n">body.yaw</td><td class="n">-0.3 to 0.3</td><td>the body turned on its legs</td></tr>
+      <tr><td class="n">head.yaw</td><td class="n">-1.2 to 1.2</td><td>the head to its left (+)</td></tr>
+      <tr><td class="n">head.pitch</td><td class="n">-1 to 0.7</td><td>the head up (+), down to graze or to rest on the paws (-)</td></tr>
+      <tr><td class="n">tail.pitch</td><td class="n">-0.9 to 1.1</td><td>the tail up (+) or tucked</td></tr>
+      <tr><td class="n">tail.yaw</td><td class="n">-0.9 to 0.9</td><td>the tail to its left (+): a wag</td></tr>
+      <tr><td class="n">leg.FL</td><td class="n">-1.6 to 1</td><td>the shoulder (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FL</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.FR</td><td class="n">-1.6 to 1</td><td>the shoulder (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.FR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.FR</td><td class="n">-0.2 to 1.9</td><td>the knee: + folds the foreleg back</td></tr>
+      <tr><td class="n">leg.HL</td><td class="n">-1.6 to 1</td><td>the hip (left): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HL.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HL</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+      <tr><td class="n">leg.HR</td><td class="n">-1.6 to 1</td><td>the hip (right): - swings the leg forward</td></tr>
+      <tr><td class="n">leg.HR.out</td><td class="n">-0.2 to 0.6</td><td>the leg out to the side</td></tr>
+      <tr><td class="n">knee.HR</td><td class="n">-1.8 to 0.3</td><td>the hock: - folds the hind foot forward</td></tr>
+    </table></div>
+    
+    <h3>The cattle of the Sun</h3>
+    <video controls muted playsinline loop preload="none" poster="media/cattle.jpg" width="480" height="270"><source src="media/cattle.mp4" type="video/mp4"></video>
+    <p class="muted">Five cattle driven in along the shore as a loose herd, one felled for the sacrifice: over onto its side, legs out (B12-S06).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B12-S06</code> The Cattle Are Slaughtered<br><span class="muted">HERD crew &gt; cattle 9-11 s; SACRIFICE eurylochus &gt; cattle 10-14 s</span></li></ul>
+    <p class="muted">HERD: the cattle driven in; SACRIFICE: felled (a fall to the side); the omen: the hides crawl, the meat lows on the spits.</p>
+  </section>
+
+  <section class="creature" id="scylla">
+    <h2>Scylla</h2>
+    <p class="lede">Six necks from a cleft in the cliff, each a chain of ribbed-hose segments (the set piece's) of fixed length laid along a curve from its root to a dragon head: they coil back, strike together at six rowers, seize and lift them.</p>
+    <div class="grid">
+      <figure><img src="media/scylla-rig.jpg" alt="Scylla at rest, each moving piece in its own colour, the pivots marked" loading="lazy" width="720" height="300"><figcaption>At rest, each moving piece its own colour, the pivots marked. Built from <code>71944k02</code>, <code>6027</code>; the set piece is <a href="../cards/kit.prop-scyllastrike.mpd"><code>kit.prop-scyllastrike</code></a>.</figcaption></figure>
+      <div class="card"><h3>The pivot tree</h3><ul class="tree"><li><b>root</b><ul><li><b>neck 1: 46 hose segments</b> <span class="ch">laid along the curve of neck1.x .y .z .slack</span></li><li><b>head1</b></li><li><b>neck 2: 46 hose segments</b> <span class="ch">laid along the curve of neck2.x .y .z .slack</span></li><li><b>head2</b></li><li><b>neck 3: 46 hose segments</b> <span class="ch">laid along the curve of neck3.x .y .z .slack</span></li><li><b>head3</b></li><li><b>neck 4: 46 hose segments</b> <span class="ch">laid along the curve of neck4.x .y .z .slack</span></li><li><b>head4</b></li><li><b>neck 5: 46 hose segments</b> <span class="ch">laid along the curve of neck5.x .y .z .slack</span></li><li><b>head5</b></li><li><b>neck 6: 46 hose segments</b> <span class="ch">laid along the curve of neck6.x .y .z .slack</span></li><li><b>head6</b></li></ul></li></ul>
+        <h3>Anchors</h3><p class="muted"><code>jaw1</code> <code>jaw2</code> <code>jaw3</code> <code>jaw4</code> <code>jaw5</code> <code>jaw6</code> (a rider, a held man, a rock, a camera's aim)</p>
+        
+        
+      </div>
+    </div>
+    <h3>Channels (neck 1 shown; necks 2 to 6 the same)</h3>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Limits</th><th>What it does</th></tr>
+      <tr><td class="n">neck1.x</td><td class="n">-260 to 260 ldu</td><td>head 1's target across the cliff (+ to Scylla's left)</td></tr>
+      <tr><td class="n">neck1.y</td><td class="n">-120 to 300 ldu</td><td>head 1's target below its root (+ down)</td></tr>
+      <tr><td class="n">neck1.z</td><td class="n">-285.2 to 40 ldu</td><td>head 1's target out from the cliff (- out)</td></tr>
+      <tr><td class="n">neck1.slack</td><td class="n">0 to 1</td><td>the neck's coil (0 a bow, 1 an S)</td></tr>
+      <tr><td class="n">neck1.head</td><td class="n">-1.2 to 1.2</td><td>head 1 nodding (+ snout up)</td></tr>
+    </table></div>
+    
+    <h3>Scylla strikes</h3>
+    <video controls muted playsinline loop preload="none" poster="media/scylla.jpg" width="480" height="270"><source src="media/scylla.mp4" type="video/mp4"></video>
+    <p class="muted">Six necks of hose segments of fixed length, each laid along a curve from its root to its head: coiled and swaying, drawn back, striking together at six rowers, holding, lifting them to the cleft (B12-S04).</p>
+    <h3>The scenes that need it</h3>
+    <ul class="scenes"><li><code>OD-B12-S04</code> Between Scylla and Charybdis<br><span class="muted">STRIKE(strike_down) scylla &gt; rowers 34.3-36 s (six heads at once); LIFT scylla &gt; rowers 36-42 s</span></li></ul>
+    <p class="muted">STRIKE(strike_down): six heads at once; LIFT six rowers (hands and feet in the air); hold them up while the ship pulls away.</p>
+  </section>
+  <section id="api">
+    <h2>The API</h2>
+    <p class="lede"><code>film-readymades/creatures.js</code> (<code>window.OdysseyCreatures</code>, and a CommonJS module for the tools), documented in <a href="../../film-readymades/CREATURES.md"><code>film-readymades/CREATURES.md</code></a>.</p>
+    <pre>const rig = OdysseyCreatures.define('ram', { scale: 2.4, colour: 'white' });
+const v = OdysseyCreatures.gait(rig, t, { path: [[0, -260, 0], [8, 220, 0]], gait: 'walk', stance: 5 });
+rig.attach(THREE, group, (fileOrPart, colour) => meshFor(fileOrPart, colour));   // once
+rig.apply(v);                                                                   // every frame
+const belly = rig.anchor('belly', v);                                           // where Odysseus clings
+
+// in a scene sheet (odyssey-choreo/1): a creature actor with procedures and keys
+sheet.creatures = OdysseyCreatures.fragment('argos', 'dog', { scale: 1.3, colour: 'brown', procs: [{ type: 'preset', name: 'lie' }], channels: { 'head.pitch': [[2, -0.25], [2.8, 0.45, 'out']] } });
+const { v: pose, fx, riders } = OdysseyCreatures.sample(sheet, 'argos', t);</pre>
+  </section>
+  <footer>Made by <code>tools/creatures/page.js</code>; the films by <code>tools/creatures/films.js</code> on the CPU (<code>tools/creatures/raster.js</code>), the cut pieces by <code>tools/creatures/build.js</code>, the checks by <code>tools/creatures/test.js</code>. LDraw parts under CCAL 2.0.</footer>
+</main>
+</body>
+</html>

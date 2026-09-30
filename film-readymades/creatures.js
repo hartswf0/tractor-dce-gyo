@@ -258,19 +258,19 @@ KINDS.cattle = quad('cattle', {
 });
 /* Scylla: six necks of Technic ribbed-hose segments (the set piece's), each a chain laid along a curve of fixed length from its
    root in the cliff to a head (the classic dragon head) that strikes at a target and lifts what it seized */
-const SEG = 6.2, NSEG = 34;
+const SEG = 6.2, NSEG = 46;
 function scylla() {
   const nodes = [{ id: 'root', parent: null, p: [0, 0, 0] }], chans = [], anchors = {};
   const roots = [[-60, -10, 0], [-36, -30, -4], [-12, -4, -2], [12, -34, -2], [36, -8, -4], [60, -26, 0]];
   roots.forEach((r, n) => { const N = n + 1;
     for (let i = 0; i < NSEG; i++) nodes.push({ id: `n${N}.${i}`, parent: 'root', p: [r[0], r[1], r[2] - i * SEG], chain: { neck: N, i }, mesh: [{ part: '71944k02', col: 288, m: [r[0], r[1], r[2] - i * SEG, 1, 0, 0, 0, 0, -1, 0, 1, 0] }] });
     nodes.push({ id: `head${N}`, parent: 'root', p: [r[0], r[1], r[2] - NSEG * SEG], chain: { neck: N, head: true }, mesh: [{ part: '6027', col: 288, m: T(r[0], r[1] + 3, r[2] - NSEG * SEG) }] });
-    chans.push(ch(`neck${N}.x`, -260, 260, `head ${N}'s target across the cliff (+ to Scylla's left)`, 'ldu'), ch(`neck${N}.y`, -80, 260, `head ${N}'s target height below its root (+ down)`, 'ldu'),
-      ch(`neck${N}.z`, -NSEG * SEG, 40, `head ${N}'s target out from the cliff (- out)`, 'ldu', -120), ch(`neck${N}.slack`, 0, 1, `the neck's coil (0 a bow, 1 an S)`), ch(`neck${N}.head`, -1.2, 1.2, `head ${N} nodding (+ snout up)`));
+    chans.push(ch(`neck${N}.x`, -260, 260, `head ${N}'s target across the cliff (+ to Scylla's left)`, 'ldu', [-40, -20, -6, 6, 20, 40][n]), ch(`neck${N}.y`, -120, 300, `head ${N}'s target below its root (+ down)`, 'ldu', 60),
+      ch(`neck${N}.z`, -NSEG * SEG, 40, `head ${N}'s target out from the cliff (- out)`, 'ldu', -230), ch(`neck${N}.slack`, 0, 1, `the neck's coil (0 a bow, 1 an S)`), ch(`neck${N}.head`, -1.2, 1.2, `head ${N} nodding (+ snout up)`));
     anchors[`jaw${N}`] = { node: `head${N}`, p: [r[0], r[1] + 8, r[2] - NSEG * SEG - 52] };
   });
   return {
-    kind: 'scylla', title: 'Scylla', family: 'serpent', height: 60, nodes, channels: chans, anchors, roots,
+    kind: 'scylla', title: 'Scylla', family: 'serpent', height: 300, nodes, channels: chans, anchors, roots,
     blurb: 'Six necks from a cleft in the cliff, each a chain of ribbed-hose segments (the set piece\'s) of fixed length laid along a curve from its root to a dragon head: they coil back, strike together at six rowers, seize and lift them.',
     scenes: ['OD-B12-S04'], needs: ['STRIKE(strike_down): six heads at once', 'LIFT six rowers (hands and feet in the air)', 'hold them up while the ship pulls away'],
     card: 'kit.prop-scyllastrike', presets: { coil: {}, },
@@ -352,7 +352,7 @@ function setM(THREE, o, M) { o.matrixAutoUpdate = false; o.matrix.set(M[3], M[4]
    the root along -z (out of the cleft) and arrives at the head; its length is the neck's, so a near target bows the neck out (the
    bow found by bisection), a far one is brought in to reach, and `slack` turns the bow into an S (a coil ready to strike). ── */
 function neckCurve(root, v, N, len) {
-  const tx = v[`neck${N}.x`] || 0, ty = v[`neck${N}.y`] || 0, tz = v[`neck${N}.z`] != null ? v[`neck${N}.z`] : -120, slack = v[`neck${N}.slack`] || 0;
+  const tx = v[`neck${N}.x`] || 0, ty = v[`neck${N}.y`] || 0, tz = v[`neck${N}.z`] != null ? v[`neck${N}.z`] : -230, slack = v[`neck${N}.slack`] || 0;
   let tgt = [root[0] + tx, root[1] + ty, root[2] + tz];
   const d0 = Math.hypot(tx, ty, tz); if (d0 > len * 0.97) { const k = len * 0.97 / d0; tgt = [root[0] + tx * k, root[1] + ty * k, root[2] + tz * k]; }
   /* the curve: a cubic from the root (tangent out of the cliff, -z) to the target, pushed sideways by a bow (b) along the normal */
@@ -363,7 +363,8 @@ function neckCurve(root, v, N, len) {
     return [B[0] + b * 0.25 * w, B[1] - b * w, B[2] + b * 0.35 * w];
   };
   const arc = (b, n = 60) => { let s = 0, p = P(b, 0); for (let i = 1; i <= n; i++) { const q = P(b, i / n); s += Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]); p = q; } return s; };
-  let lo = 0, hi = len * 1.2; if (arc(0) < len) { for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; if (arc(m) < len) lo = m; else hi = m; } } else lo = 0;
+  let lo = 0, hi = len * 0.6; for (let k = 0; k < 12 && arc(hi) < len; k++) hi *= 1.6;   /* a bow big enough, then bisect to the length */
+  if (arc(0) < len) { for (let k = 0; k < 34; k++) { const m = (lo + hi) / 2; if (arc(m) < len) lo = m; else hi = m; } } else lo = 0;
   const b = lo, tab = [[0, P(b, 0)]]; let s = 0; for (let i = 1; i <= 200; i++) { const q = P(b, i / 200), p = tab[i - 1][1]; s += Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]); tab.push([s, q]); }
   /* the point at arc length x along it (beyond its end, straight on) */
   return x => { if (x >= s) { const a = tab[199][1], c = tab[200][1], L = Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]) || 1, e = x - s; return [c[0] + (c[0] - a[0]) / L * e, c[1] + (c[1] - a[1]) / L * e, c[2] + (c[2] - a[2]) / L * e]; }
@@ -602,7 +603,8 @@ function grope(rig, t, params = {}) {
     const x = c[0] + left[0] * side + fwd[0] * reachIn, z = c[2] + left[1] * side + fwd[1] * reachIn;
     const pat = Math.max(0, Math.sin(2 * Math.PI * (params.pat || 1.6) * t + seed)) ** 3;
     let y = c[1] + (params.hover != null ? params.hover : 14) * rig.scale * (1 - pat), touch = false;
-    const top = params.surface ? params.surface(x, z) : null; if (top != null && y < top + 3 * rig.scale) { y = top + 3 * rig.scale; touch = true; }
+    const top = params.surface ? params.surface(x, z) : null, clear = (params.palm != null ? params.palm : 11) * rig.scale;   /* the grip sits a palm's depth above what it touches */
+    if (top != null && y < top + clear) { y = top + clear; touch = true; }
     base[`hand.${hand}.roll`] = (base[`hand.${hand}.roll`] || 0) + (hand === 'R' ? 1 : -1) * 1.2;   // the palm turned down
     goals.push([hand, [x, y, z]]); out.targets[hand] = [x, y, z]; out.touch[hand] = touch;
   }
@@ -638,9 +640,10 @@ function herd(params) {
   };
 }
 /* Scylla's heads: each coils back, strikes at its target at t0 + delay, holds (the seizing), then lifts toward the cleft.
-   params {targets: [[x, y, z] (world) x6], t0, strike: 0.35, hold: 0.6, lift: 4, liftTo: [dx, dy, dz] (Scylla frame), delays} */
+   params {targets: [[x, y, z] (world) x6], t0, strike: 0.35, hold: 0.6, lift: 4, liftTo: [dx, dy, dz] (Scylla frame), delays, base (where
+   Scylla is: root.x, root.y, root.z, root.h)} */
 function strike(rig, t, params = {}) {
-  const v = rig.rest(), W = rig.world(v), Wi = inv(W), n = 6, fx = { seized: [] };
+  const v = Object.assign(rig.rest(), params.base || {}), W = rig.world(v), Wi = inv(W), n = 6, fx = { seized: [] };
   for (let N = 1; N <= n; N++) {
     const r = rig.K.roots[N - 1], d = (params.delays || [0, 0.08, 0.03, 0.12, 0.05, 0.1])[N - 1], t0 = (params.t0 || 0) + d, ts = params.strike || 0.35, th = params.hold || 0.6, tl = params.lift || 4;
     const tgt = params.targets && params.targets[N - 1] ? ap(Wi, params.targets[N - 1]) : [r[0], r[1] + 160, r[2] - 150];

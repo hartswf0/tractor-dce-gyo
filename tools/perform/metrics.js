@@ -154,7 +154,7 @@ function measure(Tr, o = {}) {
   const contact = { footSlide: 0, footSlideMax: 0, handoffs: [], constraint: [] }, viol = new Float32Array(n);
   for (const id of ids) { const L = byActor[id]; for (let i = 1; i < n; i++) { const x = L[i], y = L[i - 1]; if (!x || !y || x.s.sat || x.s.lying || x.s.walk > 0.05 || y.s.walk > 0.05) continue;
     const legs = Math.abs(x.s.j.legRP[0] - y.s.j.legRP[0]) + Math.abs(x.s.j.legLP[0] - y.s.j.legLP[0]), d = Math.hypot(x.s.p[0] - y.s.p[0], x.s.p[2] - y.s.p[2]) / H(id);
-    if (d > 0.004 && legs < 0.02 && !(Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => (R.riders || []).includes(id)))) { contact.footSlide++; contact.footSlideMax = Math.max(contact.footSlideMax, d * F); viol[i] += Math.min(1, d * 50); } } }
+    if (d > 0.004 && legs < 0.02 && !(Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => Body.rides(R, id, i / F)))) { contact.footSlide++; contact.footSlideMax = Math.max(contact.footSlideMax, d * F); viol[i] += Math.min(1, d * 50); } } }
   for (const p of (Tr.C && Tr.C.props) || []) if (p.op === 'give') { const i = Math.min(n - 1, Math.round(p.t * F)), [ga, gs] = p.from.split(':'), [ra, rs] = p.to.split(':'), g = frames[i].a[ga], r = frames[i].a[ra];
     if (g && r) { const hg = g.s.pts['hand' + (gs || 'R')], hr = r.s.pts['hand' + (rs || 'R')], gap = Math.hypot(hg[0] - hr[0], hg[1] - hr[1], hg[2] - hr[2]); viol[i] += Math.min(3, Math.max(0, gap / H(ra) - 0.05) * 10) + ((gs || 'R') !== (rs || 'R') ? 1 : 0); contact.handoffs.push({ t: p.t, from: p.from, to: p.to, gap: r3(gap), gapH: r3(gap / H(ra)), mirrored: (gs || 'R') !== (rs || 'R') }); } }
   for (const c of o.constraints || []) { let worst = 0; for (let i = 0; i < n; i++) { const x = frames[i].a[c.actor]; if (!x || i / F < c.t0 || i / F > c.t1) continue; const d = Math.hypot(x.s.pts.hips[0] - c.at[0], x.s.pts.hips[2] - c.at[2]); worst = Math.max(worst, d); if (d > (c.tol || 6)) viol[i] += 1; } contact.constraint.push({ actor: c.actor, what: c.what, worst: r3(worst), ok: worst <= (c.tol || 6) }); }
@@ -184,7 +184,7 @@ function measure(Tr, o = {}) {
     gestureDensity: pN ? r3(gN / pN) : null, gestures: gN, phrases: pN, perLine, diversity: r3(Object.values(out.actors).reduce((a, b) => a + b.diversity, 0) / Math.max(1, ids.length)),
     contact, legality: legal };
   /* balance: the centre of mass (hips half, chest a third, head the rest) over the feet, for a standing figure not walking */
-  let balance = 0; for (let i = 0; i < n; i++) for (const id of ids) { const x = frames[i].a[id]; if (!x || x.s.sat || x.s.lying || x.s.walk > 0.05 || (Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => (R.riders || []).includes(id)))) continue;
+  let balance = 0; for (let i = 0; i < n; i++) for (const id of ids) { const x = frames[i].a[id]; if (!x || x.s.sat || x.s.lying || x.s.walk > 0.05 || (Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => Body.rides(R, id, i / F)))) continue;
     const P = x.s.pts, cm = [0, 2].map(k => P.hips[k] * 0.5 + P.chest[k] * 0.3 + P.head[k] * 0.2), a = [P.footR[0], P.footR[2]], b = [P.footL[0], P.footL[2]], ab = [b[0] - a[0], b[1] - a[1]], L2 = ab[0] ** 2 + ab[1] ** 2 || 1, u = Math.max(0, Math.min(1, ((cm[0] - a[0]) * ab[0] + (cm[1] - a[1]) * ab[1]) / L2)), d = Math.hypot(cm[0] - a[0] - ab[0] * u, cm[1] - a[1] - ab[1] * u);
     if (d > 13 * x.s.scale) { balance++; viol[i] += Math.min(1, (d - 13 * x.s.scale) / (8 * x.s.scale)); } }
   out.summary.legality.balance = balance;

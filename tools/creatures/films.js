@@ -10,9 +10,9 @@ const fs = require('fs'), path = require('path');
 const C = require('../../film-readymades/creatures.js'), S = require('./stage'), R = require('./raster'), F = require('./minifig');
 const { mul, ap, T, RX, RY, RZ } = C.m;
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
-const OUT = opt('out', process.env.CREATURES_OUT || path.join(__dirname, '../../odyssey/creatures/media'));
+const OUT = opt('out', process.env.CREATURES_OUT || path.join(__dirname, '../../odyssey/creatures/media')), SHEETS = opt('sheets', OUT);
 const SMALL = args.includes('--small'), W = SMALL ? 320 : 480, H = SMALL ? 180 : 270, FPS = 24;
-const names = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--out');
+const names = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--out' && args[i - 1] !== '--sheets');
 const LIE_UNDER = [0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0];   // a figure on its back under a creature: its head to the creature's head, its face up
 const checks = {};
 function note(film, k, v) { (checks[film] = checks[film] || {})[k] = Math.max(checks[film][k] || 0, v); }
@@ -28,8 +28,12 @@ async function shoot(name, dur, frame) {
   const n = Math.round(dur * FPS), file = path.join(OUT, name + '.mp4'); const t0 = Date.now();
   const kept = await S.film(file, W, H, FPS, n, i => frame(i / FPS, i), { keep: 12 });
   const lab = kept.map(k => R.label(k.img, `${name} ${(k.i / FPS).toFixed(2)} S`, { scale: 1, h: 12 }));
-  S.jpeg(path.join(OUT, name + '-sheet.jpg'), R.sheet(lab, 4), 4); S.jpeg(path.join(OUT, name + '.jpg'), kept[Math.min(kept.length - 1, Math.floor(kept.length * 0.6))].img, 3);
+  S.jpeg(path.join(SHEETS, name + '-sheet.jpg'), R.sheet(lab, 4), 4); S.jpeg(path.join(OUT, name + '.jpg'), kept[Math.min(kept.length - 1, Math.floor(kept.length * 0.6))].img, 3);
   console.log(`${name}: ${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)} s -> ${path.relative(process.cwd(), file)}`, JSON.stringify(checks[name] || {}));
+  /* the checks kept beside the films, for the page */
+  const cf = path.join(OUT, 'checks.json'); let all = {}; try { all = JSON.parse(fs.readFileSync(cf, 'utf8')); } catch (e) { /* first */ }
+  all[name] = Object.fromEntries(Object.entries(checks[name] || {}).map(([k, v]) => [k, Math.round(v * 100) / 100])); all[name].seconds = dur; all[name].frames = n;
+  fs.writeFileSync(cf, JSON.stringify(all, null, 1) + '\n');
 }
 /* scenery: a real LDraw part set in the world (y up) at (x, y, z), scaled by k, turned by ry */
 const part = (p, col, x, y, z, k = 1, ry = 0, ky = k) => ({ part: p, col, m: mul(mul(T(x, y, z), RY(ry)), [0, 0, 0, k, 0, 0, 0, -ky, 0, 0, 0, -k]) });
@@ -58,7 +62,7 @@ const FILMS = {
   herd: () => {
     const n = 7, rigs = [], mem = {};
     for (let i = 0; i < n; i++) rigs.push(C.define('ram', { id: 'ram' + i, scale: i === n - 1 ? 2.4 : 1.5 + 0.12 * (i % 4), colour: i === 2 ? 'black' : i === 4 ? 'grey' : 'white' }));
-    const H = C.herd({ n, path: [[0, 0, -520], [0.5, 0, -520], [7, 0, 120], [10, 260, 330]], spacing: 70, spread: 0.5, seed: 7, speed: 110 });
+    const H = C.herd({ n, path: [[0, 0, -330], [0.5, 0, -330], [6, 0, 150], [10, 280, 360]], spacing: 80, spread: 0.5, seed: 7, speed: 110 });
     /* the cave mouth: rock panels either side of the lane, the door stone rolled aside */
     const set = [part('6083', 72, -170, 168 * 1.5, -60, 1.5, 0.25), part('6083', 71, 170, 168 * 1.5, -60, 1.5, -0.25), part('6083', 72, -330, 168 * 1.3, -120, 1.3, 0.1), part('6083', 72, 330, 168 * 1.3, -120, 1.3, -0.1),
       part('6083', 72, 0, 168 * 1.2 + 190, -110, 1.6, 0), rock(-150, 60, 0.9, 0.7)];
@@ -68,7 +72,7 @@ const FILMS = {
       for (let i = 0; i < n; i++) { const v = H.channels(rigs[i], i, t, 'walk'); footCheck('herd', rigs[i], v, mem); ms.push(...S.meshes(rigs[i], v)); }
       /* separation: the closest two animals' centres */
       let dmin = 1e9; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const a = H.at(i, t), b = H.at(j, t); dmin = Math.min(dmin, Math.hypot(a.x - b.x, a.z - b.z)); }
-      note('herd', 'closest two (world units, want > 30)', -dmin);
+      checks.herd = checks.herd || {}; checks.herd['closest two animals (world units)'] = Math.min(checks.herd['closest two animals (world units)'] || 1e9, dmin);
       return RENDER(S.cam([40, 40, 40], 620, 28, 16), ms);
     });
   },
@@ -93,7 +97,7 @@ const FILMS = {
       vs.forEach((vv, i) => { ms.push(...S.meshes(rigs[i], vv)); footCheck('polyphemus-grope', rigs[i], vv, mem);
         if (i % 3 === 1 || i === n - 1) ms.push(...S.figure(hung(rigs[i].anchor('belly', vv), [0, 22, -8], LIE_UNDER, { arms: [-1.45, -1.45], legs: [-1.55, -1.55], colours: { torso: i === n - 1 ? 272 : 320, legs: 19, hair: 0 } }))); });
       /* the palm into a back: the grip's height below the surface under it */
-      for (const hnd of ['R', 'L']) { const g = G.point('grip.' + hnd, v), top = surface(g[0], g[2]); if (top != null) note('polyphemus-grope', 'palm into a back (world units)', Math.max(0, top - (g[1] - 6))); }
+      for (const hnd of ['R', 'L']) { const g = G.point('grip.' + hnd, v), top = surface(g[0], g[2]); if (top != null) note('polyphemus-grope', 'palm into a back (world units)', Math.max(0, top - (g[1] - 10 * G.scale))); }
       return RENDER(S.cam([-30, 80, 10], 620, 62, 18), ms);
     });
   },
@@ -122,24 +126,40 @@ const FILMS = {
   },
   /* Scylla's six necks from the cleft: coiled, drawn back, striking together at six rowers, seizing and lifting them (B12-S04) */
   scylla: () => {
-    const rig = C.define('scylla', { scale: 1 }), base = { 'root.x': 0, 'root.y': 250, 'root.z': -60, 'root.h': 0 };
+    const rig = C.define('scylla', { scale: 1 }), base = { 'root.x': 0, 'root.y': 250, 'root.z': -50, 'root.h': 0 };
     const rowers = [-100, -60, -20, 20, 60, 100].map((x, i) => ({ x, z: 170 + (i % 2) * 22, y: 16 }));
     const targets = rowers.map(r => [r.x, r.y + 60, r.z]);
-    const cliff = S.figure([part('6083', 72, 0, 420, -140, 1.9), part('6083', 71, -170, 300, -130, 1.4, 0.3), part('6083', 72, 170, 320, -130, 1.5, -0.3), part('6083', 72, 0, 170, -120, 1.2, 3.14),
+    const cliff = S.figure([part('6083', 71, 0, 440, -140, 1.9), part('6083', 19, -170, 300, -130, 1.4, 0.3), part('6083', 71, 170, 320, -130, 1.5, -0.3), part('6083', 19, 0, 170, -120, 1.2, 3.14),
       part('3034', 6, 0, 8, 180, 1.6), part('3034', 6, 0, 8, 212, 1.6), part('3034', 6, 0, 8, 148, 1.6)]);
     return shoot('scylla', 9, t => {
-      const v = Object.assign(C.strike(rig, t, { t0: 4.2, targets, strike: 0.35, hold: 0.5, lift: 3.2, liftTo: [0, -40, -40] }), base);
+      const v = C.strike(rig, t, { t0: 4.2, targets, strike: 0.6, hold: 0.9, lift: 2.6, liftTo: [0, -30, -60], base });
       const ms = cliff.concat(S.meshes(rig, v));
-      rowers.forEach((r, i) => { const N = i + 1, seized = t > 4.2 + 0.35 + [0, 0.08, 0.03, 0.12, 0.05, 0.1][i];
+      rowers.forEach((r, i) => { const N = i + 1, seized = t > 4.2 + 0.6 + [0, 0.08, 0.03, 0.12, 0.05, 0.1][i];
         if (!seized) ms.push(...S.figure(sitter(r.x, r.y, r.z, Math.PI, { arms: [-0.8 + 0.3 * Math.sin(t * 3 + i), -0.8 + 0.3 * Math.sin(t * 3 + i + 0.4)], colours: { torso: [320, 4, 272, 19, 71, 28][i], legs: 19, hair: 6 } })));
         else ms.push(...S.figure(hung(rig.anchor('jaw' + N, v), [0, 30, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], { arms: [-2.6 + 0.5 * Math.sin(t * 9 + i), -2.8 + 0.5 * Math.cos(t * 8 + i)], legs: [0.5 * Math.sin(t * 10 + i), -0.5 * Math.sin(t * 10 + i)], colours: { torso: [320, 4, 272, 19, 71, 28][i], legs: 19, hair: 6 } }))); });
       return RENDER(S.cam([0, 170, 60], 820, 18, 12), ms, { ground: Object.assign({ y: 0, size: 1600, tile: 60 }, SEA) });
     });
   },
+  /* the cattle of the Sun driven in along the shore, and one felled for the sacrifice: it goes down onto its side (B12-S06) */
+  cattle: () => {
+    const cols = ['white', 'red', 'white', 'red', 'white'], rigs = cols.map((c, i) => C.define('cattle', { id: 'cow' + i, scale: 1.1, colour: c })), mem = {};
+    const H = C.herd({ n: rigs.length, path: [[0, 420, 40], [0.4, 420, 40], [6.5, -60, 0], [12, -60, 0]], spacing: 95, spread: 0.6, seed: 11, speed: 90, separation: 70 });
+    return shoot('cattle', 10, t => {
+      const ms = [];
+      rigs.forEach((r, i) => { const v = H.channels(r, i, t, 'walk'); footCheck('cattle', r, v, mem);
+        if (i === 1) { const u = smooth((t - 7.2) / 1.1), h = v['root.h'];   /* felled: over onto its side, the legs out stiff */
+          v['root.roll'] = 1.42 * u; v['root.y'] = (v['root.y'] || 0) + 26 * r.scale * Math.sin(1.42 * u) * 0.9; v['root.x'] += -Math.cos(h) * 30 * u; v['root.z'] += Math.sin(h) * 30 * u;
+          for (const L of ['FL', 'FR', 'HL', 'HR']) { v['leg.' + L] = v['leg.' + L] * (1 - u) + (L[0] === 'F' ? -0.5 : 0.4) * u; v['knee.' + L] *= 1 - u; }
+          v['head.pitch'] = v['head.pitch'] * (1 - u) - 0.3 * u; v['tail.pitch'] = -0.5 * u; }
+        if (i !== 1 && t > 6.8) v['head.pitch'] = -0.8 * smooth((t - 6.8 - i * 0.3) / 1.2);   /* the rest graze on */
+        ms.push(...S.meshes(r, v)); });
+      return RENDER(S.cam([60, 40, 0], 640, 30, 18), ms, { ground: { y: 0, size: 1400, tile: 40, c0: [150, 170, 110], c1: [142, 162, 104] } });
+    });
+  },
   /* Eumaeus' four dogs rush the stranger, stop short barking, and scatter when the stones fly (B14-S01) */
   dogs: () => {
     const cols = ['brown', 'black', 'tan', 'white'], rigs = cols.map((c, i) => C.define('dog', { id: 'dog' + i, scale: 1.1, colour: c })), mem = {};
-    const stops = [[-60, 40], [-20, 70], [30, 72], [70, 45]], starts = [[-300, -500], [-120, -560], [120, -540], [320, -480]], flee = [[-420, -200], [-200, -520], [260, -520], [480, -160]];
+    const stops = [[-90, -10], [-30, 10], [40, 12], [100, -5]], starts = [[-300, -500], [-120, -560], [120, -540], [320, -480]], flee = [[-420, -200], [-200, -520], [260, -520], [480, -160]];
     const paths = rigs.map((r, i) => [[0, ...starts[i]], [0.3 + 0.15 * i, ...starts[i]], [3.2 + 0.1 * i, ...stops[i]], [6.4, ...stops[i]], [8.6, ...flee[i]]]);
     return shoot('dogs', 9, t => {
       const ms = S.figure(sitter(0, 0, 150, Math.PI, { arms: [-0.4, -0.4], head: 0.2 * Math.sin(t) })), P = [];
@@ -176,6 +196,6 @@ const FILMS = {
   },
 };
 (async () => {
-  fs.mkdirSync(OUT, { recursive: true });
+  fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(SHEETS, { recursive: true });
   for (const n of names.length ? names : Object.keys(FILMS)) { if (!FILMS[n]) { console.log('no film', n); continue; } await FILMS[n](); }
 })();

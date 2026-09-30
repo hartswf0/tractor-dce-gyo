@@ -57,7 +57,19 @@ module.exports = function author(M, X, N) {
   const speakers = lines.map(l => resolve(l.speaker)[0]).filter(Boolean);
   ids.forEach((id, k) => { const look = [...new Set([...principals, ...speakers])].filter(p => p !== id).slice(0, 3).map((p, j) => [p, 2.4 - 0.4 * j]); if (!look.length && ids.length > 1) look.push([ids[(k + 1) % ids.length], 2]);
     holds.push({ id: 'hAll' + k, actor: id, t0: 0.3, t1: T, reason: principals.has(id) ? 'at the centre of the scene: the others on him' : 'present: the eyes on who leads and who speaks', params: { look, weight: true, offset: 0.3 * k }, because: chain.length ? [{ id: 'sC0' }] : [] }); });
+  /* a generic causal model (declared, so the entropy is of these options and no others): every figure may stay as it is; its own
+     intents are options that rise while they run and once their chain step has come; it may turn to a principal (more so while he
+     speaks, less once it already sees him); a figure who is not a principal may leave, more so under a principal's heat; a
+     principal answers each step of the chain until the next one comes */
+  const causal = { tau: 0.8, generic: true, actions: {} }, P = [...principals];
+  ids.forEach(id => { const acts = [{ a: 'stay as he is', base: 1.0, f: {} }], seen = new Set();
+    for (const I of intents) { if (I.actor !== id || seen.has(I.kind)) continue; seen.add(I.kind); const st = (I.because || []).find(b => /^sC\d+$/.test(b.id));
+      acts.push({ a: String(I.label || I.kind).slice(0, 40), base: -2.2, f: { ['intent:' + I.kind]: 3.2, ...(st ? { ['after:' + st.id]: 0.8 } : {}) } }); if (acts.length > 6) break; }
+    for (const p of P.filter(p => p !== id).slice(0, 2)) acts.push({ a: 'turn to ' + p, base: -0.6, f: { ['speaking:' + p]: 1.6, ['sees:' + p]: -0.9 } });
+    if (!principals.has(id) && P.length) acts.push({ a: 'leave', base: -2.6, f: { ['threat:' + P[0]]: 0.7, walking: 0.6 } });
+    if (principals.has(id)) chain.slice(0, 6).forEach((c, k) => acts.push({ a: 'answer: ' + String(c.what).slice(0, 34), base: -3.0, f: { ['after:sC' + k]: 2.6, ...(k + 1 < chain.length ? { ['after:sC' + (k + 1)]: -2.6 } : {}) } }));
+    causal.actions[id] = acts; });
   return { type: /fight|battle/.test(N.type || '') ? 'fight' : /reveal|recogn/.test(N.type || '') ? 'revelation' : /labour|machine|ship|sea/.test(N.type || '') ? 'machinery' : 'dialogue', title: (N.title || M.scene) + ' (a first score from the needs catalogue)',
     actors: Object.fromEntries(ids.map(id => [id, { role: principals.has(id) ? 'principal' : 'present', body: 'minifig', principal: principals.has(id), group: id.replace(/-\d+$/, '') !== id ? id.replace(/-\d+$/, '') : undefined }])),
-    objects: {}, authored: { intents, holds, stimuli, notes, from: 'odyssey/perform/needs.json (' + (N.updated || '') + ')' } };
+    objects: {}, authored: { intents, holds, stimuli, notes, causal, from: 'odyssey/perform/needs.json (' + (N.updated || '') + ')' } };
 };

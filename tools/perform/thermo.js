@@ -112,7 +112,7 @@ function thermo(Tr, S, o = {}) {
     for (const e of E) if (e.lane === 'CONTACT' && t >= e.t0 && t <= e.t1 && e.actors) for (let a = 0; a < e.actors.length; a++) for (let b = a + 1; b < e.actors.length; b++) out.push([e.actors[a], e.actors[b], e.params && e.params.k || 4]);
     /* a crowd: one group, standing close, excites itself */
     for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) { const A = ids[a], B = ids[b]; if (!group(A) || group(A) !== group(B)) continue; const x = frames[i].a[A], y = frames[i].a[B]; if (!x || !y) continue; if (Math.hypot(x.s.p[0] - y.s.p[0], x.s.p[2] - y.s.p[2]) < 3 * H(A)) out.push([A, B, MATERIAL.crowd.k]); }
-    for (const R of Object.values((Tr.C && Tr.C.rigs) || {})) if (R.riders && objs.ship) for (const r of R.riders) out.push([r, 'ship', MATERIAL.ship.k]);
+    for (const [rid, R] of Object.entries((Tr.C && Tr.C.rigs) || {})) { const node = objs[rid] ? rid : objs.ship ? 'ship' : null; if (R.riders && node) for (const rd of R.riders) { const r = Array.isArray(rd) ? rd[0] : rd; if (Body.rides(R, r, t)) out.push([r, node, MATERIAL.ship.k]); } }
     return out; }
   const Tn = nodes.map(() => new Float32Array(n)), cur = new Float64Array(nodes.length), sub = 4, dt = 1 / F / sub;
   for (let i = 0; i < n; i++) { const E_ = edges(i);
@@ -163,7 +163,10 @@ function thermo(Tr, S, o = {}) {
      projects inside the frame */
   const propBodies = Object.keys(objs).filter(k => ((S.actors || {})[k] || {}).body === 'prop');
   const markAt = (ob, t) => { if (ob.track) { let p = ob.track[0][1]; for (const [tt, pp] of ob.track) if (tt <= t) p = pp; return p; } return ob.at; };
-  for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).concat(propBodies.map(k => T[k][i])).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
+  /* a stage of one or two figures: the room they must read against includes the environment objects marked room (the storm's sea):
+     a lone swimmer is hot only if he is hotter than the sea */
+  const roomObjs = Object.keys(objs).filter(k => objs[k].room && T[k]);
+  for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).concat(propBodies.map(k => T[k][i])).concat(here.length < 3 ? roomObjs.map(k => T[k][i]) : []).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
     const shown = here.filter(id => frames[i].a[id].on !== false).map(id => T[id][i]);
     for (const k of propBodies) { const P = frames[i].P, p = markAt(objs[k], i / F), q = P && p ? P(p) : null; if (!P || (q && Math.abs(q[0]) <= 1.2 && Math.abs(q[1]) <= 1.2)) shown.push(T[k][i]); }
     CT[i] = Math.max(0, (shown.length ? Math.max(...shown) : xs[xs.length - 1]) - med); Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }

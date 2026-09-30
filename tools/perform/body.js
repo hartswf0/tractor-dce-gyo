@@ -106,7 +106,7 @@ function poseAt(ctx, id, t, extra) {
     P.hand = { R: v['hand.R.roll'] || 0, L: v['hand.L.roll'] || 0 };
   } else P.hand = { R: 0, L: 0 };
   /* the ship: its riders turned about the pivot with the hull and lifted with its heave (choreo.js applyShip) */
-  if (C && C.rigs) for (const [rid, R] of Object.entries(C.rigs)) { if (!(R.type === 'ship' || rid === 'ship') || !(R.riders || []).includes(id)) continue;
+  if (C && C.rigs) for (const [rid, R] of Object.entries(C.rigs)) { if (!(R.type === 'ship' || rid === 'ship') || !rides(R, id, t)) continue;
     const sv = Choreo.sampleRig(C, rid, t) || {}, Q = mul(eYXZ(sv.pitch || 0, R.yaw || 0, sv.roll || 0), eYXZ(0, -(R.yaw || 0), 0)), piv = R.pivot, qp = apR(Q, piv);
     const off = [piv[0] - qp[0], piv[1] - qp[1] + (sv.heave || 0), piv[2] - qp[2]], np = apR(Q, P.p); P.p = [np[0] + off[0], np[1] + off[1], np[2] + off[2]];
     const e = toYXZ(mul(Q, eYXZ(P.rot[0], P.rot[1], P.rot[2]))); P.rot = e; P.ship = { pitch: sv.pitch || 0, roll: sv.roll || 0, heave: sv.heave || 0 }; }
@@ -143,7 +143,9 @@ function sample(ctx, id, t, extra) { const P = poseAt(ctx, id, t, extra); if (!P
 /* a world point into a pivot's own frame (the frame's rotation is a uniform scale times a rotation: the inverse is its transpose / s^2) */
 function toLocal(m) { const s2 = m[0] * m[0] + m[4] * m[4] + m[8] * m[8];
   return p => { const d = [p[0] - m[3], p[1] - m[7], p[2] - m[11]]; return [(m[0] * d[0] + m[4] * d[1] + m[8] * d[2]) / s2, (m[1] * d[0] + m[5] * d[1] + m[9] * d[2]) / s2, (m[2] * d[0] + m[6] * d[1] + m[10] * d[2]) / s2]; }; }
-const API = { toLocal, Blocking, poseAt, points, frames, sample, context, JOINTS, LOCAL, DENSITY, wrap, angLerp, sm, lerp, cl01, eYXZ, eXYZ, mul, ap, apR, toYXZ };
+/* whether an actor rides a ship rig at t (riders: an id, or [id, t0, t1]) */
+const rides = (R, id, t) => (R.riders || []).some(rd => Array.isArray(rd) ? rd[0] === id && (t == null || (t >= rd[1] && (rd[2] == null || t <= rd[2]))) : rd === id);
+const API = { rides, toLocal, Blocking, poseAt, points, frames, sample, context, JOINTS, LOCAL, DENSITY, wrap, angLerp, sm, lerp, cl01, eYXZ, eXYZ, mul, ap, apR, toYXZ };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 root.PerformBody = API;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -129,4 +129,59 @@ MACH.SIRENS_CHAIN = (X, m) => {
   const ropeEv = X.ev({ id: 'rope', lane: 'CONTACT', actor: od, actors: [od, ...(rope.haulers || []).map(h => h.actor)], t0: m.mast.t0, t1: T, kind: 'ROPE TENSION', label: 'the rope takes what the song and the roll ask of him', because: [{ id: strainEv ? strainEv.id : songEv.id, latency: 0 }, { id: hull.id, latency: 0 }], params: { k: 6, series: tension.filter((_, i) => i % 3 === 0) } });
   X.machine = Object.assign(X.machine || {}, { sirens: { F: out.F, pitch: out.pitch, roll: out.roll, tension, rope: ropeEv.id } });
 };
+
+/* ═════ SEA: the sea as an actor — a wave field whose level the scene's causes raise and lower, the hulls it drives, the swimmers it
+   carries ═════
+   m {kind:'SEA', level: [[t, 0..1], ...] (calm 0 .. storm 1; linear between), causes: [{t, id}] (the events that raise or lower it: the
+      SEA event's causes), hulls: [{id, piece, pivot, riders: [id | [id, t0, t1]], gain (a raft 2, a ship 1), omega, zeta, impulses:
+      [{t, roll, pitch, id?}] (a wave's blow)}], swimmers: [{actor, t0, t1}], aboard: [ids] (balance against the deck), fx: true}
+   the field: h(x, z, t) = L(t) (A1 sin(k1.x - w1 t) + A2 sin(k2.x - w2 t) + A3 sin(k3.x - w3 t)), three long crests from two quarters
+   a hull: pitch and roll each a damped oscillator driven by the field's slope under its pivot (x gain) plus the impulses; heave = h at the
+     pivot. It writes rigs[id] (the player turns the piece and its riders)
+   a swimmer: bobs on h at his place (root.y) and is tipped by the slope (torso.lean / torso.roll within the clamp)
+   aboard: a standing rider leans against the deck's roll and pitch (torso.roll, torso.lean): balance, not a clone of the hull's motion
+   heat: the sea is an object (material water) whose source is L(t) x the field's speed, coupled to the swimmers and the hulls; SPLASH
+     FX where the slope is steepest (a breaking crest) */
+MACH.SEA = (X, m) => {
+  const T = X.T, U = X.scale || 1, Lv = m.level || [[0, 0.3]], L = t => { let a = Lv[0]; for (const b of Lv) { if (b[0] >= t) { if (b === a || b[0] === a[0]) return b[1]; const u = (t - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * u; } a = b; } return a[1]; };
+  const W = [[0.012, 0.004, 1.1, 9], [-0.004, 0.011, 1.6, 5], [0.019, -0.008, 2.3, 2.5]].map(([kx, kz, w, A]) => ({ kx: kx / U, kz: kz / U, w, A: A * U }));
+  const h = (x, z, t) => L(t) * W.reduce((s, q, k) => s + q.A * Math.sin(q.kx * x + q.kz * z - q.w * t + k * 1.7), 0);
+  const slope = (x, z, t) => { const e = 4 * U; return [(h(x + e, z, t) - h(x - e, z, t)) / (2 * e), (h(x, z + e, t) - h(x, z - e, t)) / (2 * e)]; };
+  const speed = (x, z, t) => Math.abs(h(x, z, t + 0.05) - h(x, z, t - 0.05)) / 0.1 / U;
+  const seaEv = X.ev({ id: m.id || 'sea', lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'SEA', label: 'the sea: a wave field of three crests, its level ' + Lv.map(([t, v]) => v.toFixed(2) + '@' + t).join(', '), because: (m.causes || []).map(c => ({ id: c.id, latency: 0, rel: 'raises' })), params: { level: Lv } });
+  const out = { level: [], hulls: {} }, hz = 12;
+  for (let i = 0; i <= T * hz; i++) out.level.push([r3(i / hz), r3(L(i / hz))]);
+  /* the hulls */
+  for (const Hh of m.hulls || []) { const [px, py, pz] = Hh.pivot, g = Hh.gain || 1, w = Hh.omega || 1.4, z = Hh.zeta || 0.3, dt = 1 / 120; let p = 0, pv = 0, r = 0, rv = 0; const ch = { pitch: [], roll: [], heave: [] };
+    const imp = (Hh.impulses || []).map(q => ({ ...q, done: false }));
+    for (let t = 0, j = 0; t <= T + 1e-6; t += dt, j++) { const [sx, sz] = slope(px, pz, t);
+      let pa = -w * w * p - 2 * z * w * pv + w * w * g * Math.atan(sz) * 0.9, ra = -w * w * r - 2 * z * w * rv + w * w * g * Math.atan(sx) * 0.9;
+      for (const q of imp) if (!q.done && t >= q.t) { q.done = true; rv += (q.roll || 0) * w * 1.6; pv += (q.pitch || 0) * w * 1.6; }
+      pv += pa * dt; p += pv * dt; rv += ra * dt; r += rv * dt;
+      if (j % 10 === 0) { const tq = r3(j / 120); ch.pitch.push([tq, r3(p), 'linear']); ch.roll.push([tq, r3(r), 'linear']); ch.heave.push([tq, r3(h(px, pz, t)), 'linear']); } }
+    const rid = Hh.id || 'ship'; X.rigs[rid] = { type: 'ship', piece: Hh.piece, pivot: Hh.pivot, channels: ch, riders: Hh.riders || [] };
+    const hullEv = X.ev({ id: 'hull:' + rid, lane: 'SET/VEHICLE', t0: 0, t1: T, kind: 'HULL', label: (Hh.piece || rid) + ' on the sea (pitch and roll: damped oscillators driven by the slope under it; heave: the crest)', because: [{ id: seaEv.id, latency: 0 }], params: { gain: g, omega: w, zeta: z } });
+    for (const q of Hh.impulses || []) X.ev({ lane: 'SET/VEHICLE', t0: q.t, t1: q.t + 0.6, kind: 'IMPACT', label: q.label || 'a wave strikes ' + (Hh.piece || rid), because: [{ id: q.id || seaEv.id, latency: 0 }, { id: hullEv.id, latency: 0 }], params: { roll: q.roll, pitch: q.pitch } });
+    out.hulls[rid] = { roll: ch.roll.filter((_, i) => i % 3 === 0).map(x => [x[0], x[1]]), pitch: ch.pitch.filter((_, i) => i % 3 === 0).map(x => [x[0], x[1]]) };
+    /* the riders who stand keep their balance against the deck */
+    const ride = new Set((Hh.riders || []).map(rd => Array.isArray(rd) ? rd[0] : rd)), rowers = new Set(m.rowers || []);
+    for (const id of (m.aboard || [...ride]).filter(id => ride.has(id) && !rowers.has(id) && X.ids.includes(id))) { const win = (Hh.riders.find(rd => (Array.isArray(rd) ? rd[0] : rd) === id)), a0 = Array.isArray(win) ? win[1] : 0, a1 = Array.isArray(win) && win[2] != null ? win[2] : T;
+      const at = t => { const i = Math.max(0, Math.min(ch.roll.length - 1, Math.round(t * 12))); return [ch.roll[i][1], ch.pitch[i][1]]; };
+      X.move(id, 'mech', 'BALANCE', { id: hullEv.id, latency: 0.15 }, k => { for (let t = a0; t <= a1; t += 1 / 6) { const [ro, pi] = at(Math.max(0, t - 0.15)); k(t, { 'torso.roll': X.cl(-ro * 0.7, -0.16, 0.16), 'torso.lean': X.cl(pi * 0.6, -0.3, 0.38), 'hips.dy': -Math.min(1.2, Math.abs(ro) * 6) }, 'linear'); } k(a1 + 0.3, { 'torso.roll': 0, 'torso.lean': 0, 'hips.dy': 0 }); }, { label: 'keeps his feet against the deck', rigid: true }); } }
+  /* the swimmers */
+  for (const sw of m.swimmers || []) { if (!X.ids.includes(sw.actor)) continue; const id = sw.actor;
+    X.move(id, 'mech', 'CARRIED BY THE SEA', { id: seaEv.id, latency: 0 }, k => { for (let t = sw.t0; t <= sw.t1; t += 1 / 6) { const s = X.at(id, t); if (!s) continue; const [sx, sz] = slope(s.p[0], s.p[2], t), c = Math.cos(s.h), n = Math.sin(s.h);
+        k(t, { 'root.y': h(s.p[0], s.p[2], t) * 0.6, 'torso.lean': X.cl(Math.atan(sx * n + sz * c) * 1.2, -0.3, 0.38), 'torso.roll': X.cl(Math.atan(sx * c - sz * n) * 1.2, -0.16, 0.16) }, 'linear'); }
+      k(sw.t1 + 0.4, { 'root.y': 0, 'torso.lean': 0, 'torso.roll': 0 }); }, { label: 'rides the swell', rigid: true }); }
+  /* breaking crests: where the field's speed peaks at a hull or a swimmer */
+  if (m.fx !== false) { const spots = [...(m.hulls || []).map(q => [q.pivot[0], q.pivot[2]]), ...(m.swimmers || []).map(sw => { const s = X.at(sw.actor, (sw.t0 + sw.t1) / 2); return s ? [s.p[0], s.p[2]] : null; }).filter(Boolean)];
+    for (const [x, z] of spots) { let last = -9; for (let t = 0.5; t < T; t += 1 / 12) { const v = speed(x, z, t), l = L(t); if (l > 0.45 && v > 18 * l && t - last > 2.5) { last = t; X.ev({ lane: 'FX', t0: r3(t), t1: r3(t + 0.5), kind: 'SPLASH', label: 'a crest breaks', because: [{ id: seaEv.id, latency: r3(t) }], params: { at: [r3(x), 0, r3(z)], size: r3(l) } }); } } } }
+  /* the sea's heat: an object of water whose source is the level x the field's speed at the stage's centre */
+  const src = []; for (let i = 0; i < Math.floor(T * 12); i++) { const t = i / 12; src.push(r3(L(t) * Math.min(3, speed(0, 0, t) / 12))); }
+  X.S.objects = X.S.objects || {}; X.S.objects[m.id || 'sea'] = { kind: 'water', material: 'water', at: [0, 5, 0], sourceSeries: src, room: true, affords: [], machine: 'SEA' };
+  X.A.couplings = (X.A.couplings || []).filter(c => c.machine !== 'SEA');
+  for (const sw of m.swimmers || []) X.A.couplings.push({ from: m.id || 'sea', to: sw.actor, via: 'water', t0: sw.t0, t1: sw.t1, env: true, machine: 'SEA' });
+  for (const Hh of m.hulls || []) { X.S.objects[Hh.id || 'ship'] = X.S.objects[Hh.id || 'ship'] || { kind: 'ship', material: 'ship', at: Hh.pivot, affords: ['ride'], machine: 'SEA' }; X.A.couplings.push({ from: m.id || 'sea', to: Hh.id || 'ship', via: 'water', env: true, machine: 'SEA' }); }
+  X.machine = Object.assign(X.machine || {}, { sea: out });
+};
 module.exports = MACH;
