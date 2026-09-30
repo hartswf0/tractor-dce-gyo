@@ -36,21 +36,66 @@ async function solve(plan, api) {
   const crGroup = id => T.creatures && T.creatures.group.getObjectByName('creature:' + id);
 
   /* ── the world at a drawing: meshes (the set, the figures, the creatures) ── */
-  let W = null;
+  let W = null; const TIME = { grid: 0, inside: 0, seen: 0, clutter: 0, pose: 0 };
   function world(key) {
     const figs = new Map(), cr = new Map(); for (const a of api.cast()) { const r = api.rigOf(a); if (!r) continue; r.figure.traverse(o => figs.set(o, a)); }
     for (const id of Object.keys(creatures)) { const g = crGroup(id); if (g) g.traverse(o => cr.set(o, id)); }
     if (!W || W.key !== key.id) {
       const stat = []; scene.traverse(o => { if (api.kfSolid(o) && !figs.has(o) && !cr.has(o)) stat.push(o); });
       const boxes = stat.map(m => { const b = new THREE.Box3().setFromObject(m); const s = b.getSize(new V3()); return { m, b, big: Math.max(s.x, s.y, s.z) > 1.6 * H0 }; }).filter(x => !x.b.isEmpty());
-      W = { key: key.id, stat, boxes };
+      const tg = performance.now(); W = { key: key.id, stat, boxes, G: buildGrid(stat) }; TIME.grid += performance.now() - tg;
     }
     const dyn = []; scene.traverse(o => { if (api.kfSolid(o) && (figs.has(o) || cr.has(o))) dyn.push(o); });
     W.figs = figs; W.cr = cr; W.dyn = dyn; W.dynBoxes = dyn.map(m => ({ m, b: new THREE.Box3().setFromObject(m) })).filter(x => !x.b.isEmpty()); W.all = W.stat.concat(dyn); return W;
   }
+  /* ── a uniform grid over the set's triangles (world space), built once per key's world: rays through the set cost the cells they
+     cross, not every triangle of every part (the player has no BVH) ── */
+  function buildGrid(meshes) {
+    const per = meshes.map(m => { const g = m.geometry, pos = g && g.attributes && g.attributes.position; if (!pos) return 0; return ((g.index ? g.index.count : pos.count) / 3) | 0; });
+    const n = per.reduce((a, b) => a + b, 0), Tr = new Float32Array(n * 9), Mi = new Int32Array(n), v = new V3(); let k = 0;
+    meshes.forEach((m, mi) => { const g = m.geometry, pos = g && g.attributes && g.attributes.position; if (!pos) return; const idx = g.index, mw = m.matrixWorld;
+      for (let t = 0; t < per[mi]; t++) { for (let c = 0; c < 3; c++) { const i = idx ? idx.getX(t * 3 + c) : t * 3 + c; v.fromBufferAttribute(pos, i).applyMatrix4(mw); Tr[k * 9 + c * 3] = v.x; Tr[k * 9 + c * 3 + 1] = v.y; Tr[k * 9 + c * 3 + 2] = v.z; } Mi[k] = mi; k++; } });
+    let lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (let i = 0; i < n * 3; i++) for (let a = 0; a < 3; a++) { const x = Tr[i * 3 + a]; if (x < lo[a]) lo[a] = x; if (x > hi[a]) hi[a] = x; }
+    lo = lo.map(x => x - 1); hi = hi.map(x => x + 1); const ext = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]), cs = Math.max(0.4 * H0, ext / 96);
+    const N = [0, 1, 2].map(a => Math.max(1, Math.min(160, Math.ceil((hi[a] - lo[a]) / cs))));
+    const cell = (a, x) => Math.max(0, Math.min(N[a] - 1, Math.floor((x - lo[a]) / cs)));
+    const count = new Int32Array(N[0] * N[1] * N[2] + 1), rng = new Int32Array(n * 6);
+    for (let t = 0; t < n; t++) { for (let a = 0; a < 3; a++) { const x0 = Math.min(Tr[t * 9 + a], Tr[t * 9 + 3 + a], Tr[t * 9 + 6 + a]), x1 = Math.max(Tr[t * 9 + a], Tr[t * 9 + 3 + a], Tr[t * 9 + 6 + a]); rng[t * 6 + a] = cell(a, x0); rng[t * 6 + 3 + a] = cell(a, x1); }
+      for (let x = rng[t * 6]; x <= rng[t * 6 + 3]; x++) for (let y = rng[t * 6 + 1]; y <= rng[t * 6 + 4]; y++) for (let z = rng[t * 6 + 2]; z <= rng[t * 6 + 5]; z++) count[(x * N[1] + y) * N[2] + z + 1]++; }
+    for (let i = 1; i < count.length; i++) count[i] += count[i - 1];
+    const fill = count.slice(), items = new Int32Array(count[count.length - 1]);
+    for (let t = 0; t < n; t++) for (let x = rng[t * 6]; x <= rng[t * 6 + 3]; x++) for (let y = rng[t * 6 + 1]; y <= rng[t * 6 + 4]; y++) for (let z = rng[t * 6 + 2]; z <= rng[t * 6 + 5]; z++) items[fill[(x * N[1] + y) * N[2] + z]++] = t;
+    return { Tr, Mi, meshes, lo, cs, N, start: count, items, stamp: new Int32Array(n), q: 0, n };
+  }
+  /* the hits of a ray (o, unit d) on the grid's triangles up to far, nearest first; first: stop at the first */
+  function gridRay(G, o, d, far, first) {
+    const out = []; if (!G || !G.n) return out; G.q++; const { Tr, lo, cs, N } = G;
+    /* clip the ray to the grid's box */
+    let t0 = 0, t1 = far; for (let a = 0; a < 3; a++) { const oa = [o.x, o.y, o.z][a], da = [d.x, d.y, d.z][a], b0 = lo[a], b1 = lo[a] + N[a] * cs;
+      if (Math.abs(da) < 1e-12) { if (oa < b0 || oa > b1) return out; continue; } let ta = (b0 - oa) / da, tb = (b1 - oa) / da; if (ta > tb) [ta, tb] = [tb, ta]; t0 = Math.max(t0, ta); t1 = Math.min(t1, tb); if (t0 > t1) return out; }
+    const O = [o.x, o.y, o.z], D = [d.x, d.y, d.z], P = O.map((x, a) => x + D[a] * (t0 + 1e-6)), c = P.map((x, a) => Math.max(0, Math.min(N[a] - 1, Math.floor((x - lo[a]) / cs))));
+    const step = D.map(x => x > 0 ? 1 : x < 0 ? -1 : 0), tMax = D.map((x, a) => x > 0 ? (lo[a] + (c[a] + 1) * cs - O[a]) / x : x < 0 ? (lo[a] + c[a] * cs - O[a]) / x : Infinity), tDel = D.map(x => x ? cs / Math.abs(x) : Infinity);
+    let tc = t0;
+    for (let guard = 0; guard < 2000; guard++) {
+      const ci = (c[0] * N[1] + c[1]) * N[2] + c[2], tExit = Math.min(tMax[0], tMax[1], tMax[2]);
+      for (let j = G.start[ci]; j < G.start[ci + 1]; j++) { const t = G.items[j]; if (G.stamp[t] === G.q) continue; G.stamp[t] = G.q;
+        const b = t * 9, e1x = Tr[b + 3] - Tr[b], e1y = Tr[b + 4] - Tr[b + 1], e1z = Tr[b + 5] - Tr[b + 2], e2x = Tr[b + 6] - Tr[b], e2y = Tr[b + 7] - Tr[b + 1], e2z = Tr[b + 8] - Tr[b + 2];
+        const px = D[1] * e2z - D[2] * e2y, py = D[2] * e2x - D[0] * e2z, pz = D[0] * e2y - D[1] * e2x, det = e1x * px + e1y * py + e1z * pz; if (Math.abs(det) < 1e-9) continue;
+        const inv = 1 / det, sx = O[0] - Tr[b], sy = O[1] - Tr[b + 1], sz = O[2] - Tr[b + 2], u = (sx * px + sy * py + sz * pz) * inv; if (u < 0 || u > 1) continue;
+        const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, w = (D[0] * qx + D[1] * qy + D[2] * qz) * inv; if (w < 0 || u + w > 1) continue;
+        const dist = (e2x * qx + e2y * qy + e2z * qz) * inv; if (dist < 1e-4 || dist > far) continue;
+        /* the face's normal (by its winding) against the ray: a back face when they agree */
+        const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
+        out.push({ distance: dist, object: G.meshes[G.Mi[t]], back: nx * D[0] + ny * D[1] + nz * D[2] > 0, point: new V3(O[0] + D[0] * dist, O[1] + D[1] * dist, O[2] + D[2] * dist) }); }
+      if (first && out.length) { let m = Infinity; for (const h of out) m = Math.min(m, h.distance); if (m <= tExit) break; }
+      if (tExit > t1) break; const a = tMax[0] < tMax[1] ? (tMax[0] < tMax[2] ? 0 : 2) : (tMax[1] < tMax[2] ? 1 : 2); c[a] += step[a]; if (c[a] < 0 || c[a] >= N[a]) break; tc = tMax[a]; tMax[a] += tDel[a];
+    }
+    out.sort((a, b) => a.distance - b.distance); return first ? out.slice(0, 1) : out;
+  }
   const owner = o => { for (; o; o = o.parent) { if (W.figs.has(o)) return W.figs.get(o); if (W.cr.has(o)) return W.cr.get(o); } return null; };
   const ray = new THREE.Raycaster();
-  function hitsAlong(from, to, list) { const d = to.clone().sub(from), L = d.length(); ray.set(from, d.normalize()); ray.far = L; ray.near = 0; return ray.intersectObjects(list || W.all, false); }
+  function hitsAlong(from, to, firstStatic) { const d = to.clone().sub(from), L = d.length(); d.normalize(); ray.set(from, d); ray.far = L; ray.near = 0;
+    const hs = gridRay(W.G, from, d, L, firstStatic).concat(ray.intersectObjects(W.dyn, false)); hs.sort((a, b) => a.distance - b.distance); return hs; }
 
   /* ── a subject's points at the current drawing ── */
   function points(id, t) {
@@ -88,31 +133,28 @@ async function solve(plan, api) {
   /* ── legality ── */
   const near = () => Math.max(1.5, camera.near * 2, 0.04 * H0);
   const DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [0.7, 0.7, 0], [-0.7, 0.7, 0], [0, 0.7, 0.7], [0, 0.7, -0.7], [0.7, -0.7, 0], [-0.7, -0.7, 0], [0, -0.7, 0.7], [0, -0.7, -0.7]].map(d => new V3(...d).normalize());
+  const AX = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(d => new V3(...d));
   function inside(p) {
-    const r = near(), why = [];
-    for (const { m, b, big } of W.boxes) {
-      if (!b.clone().expandByScalar(r).containsPoint(p)) continue;
-      if (!big) { why.push('in part ' + (m.name || m.parent && m.parent.name || m.id)); break; }
-      let back = 0, n = 0, touch = false;
-      for (const d of DIRS) { ray.set(p, d); ray.far = 4 * H0; ray.near = 0; const h = ray.intersectObject(m, false)[0]; if (!h) continue; n++; if (h.distance < r) { touch = true; break; }
-        if (h.face) { const nw = h.face.normal.clone().transformDirection(m.matrixWorld); if (nw.dot(d) > 0) back++; } }
-      if (touch) { why.push('near plane in ' + (m.name || 'a set part')); break; }
-      if (n >= 4 && back / n > 0.6) { why.push('inside ' + (m.name || 'a set part')); break; }
-    }
+    const t0 = performance.now(), r = near(), why = [];
+    for (const { m, b, big } of W.boxes) { if (big || !b.clone().expandByScalar(r).containsPoint(p)) continue; why.push('in part ' + (m.name || m.parent && m.parent.name || m.id)); break; }
+    if (!why.length) { let back = 0, n = 0, touch = null;
+      for (const d of AX) { const h = gridRay(W.G, p, d, 6 * H0, true)[0]; if (!h) continue; n++; if (h.distance < r) { touch = h; break; } if (h.back) back++; }
+      if (touch) why.push('near plane in ' + (touch.object.name || 'a set part')); else if (n >= 4 && back / n > 0.6) why.push('inside a set part'); }
     if (!why.length) for (const { m, b } of W.dynBoxes) { if (b.clone().expandByScalar(r * 0.5).containsPoint(p)) { why.push('in ' + (owner(m) || 'a body')); break; } }
-    if (!why.length) { ray.set(p, new V3(0, -1, 0)); ray.far = 1e5; ray.near = 0; const g = ray.intersectObjects(W.stat, false)[0]; if (!g) why.push('under the set'); }
-    return why;
+    if (!why.length) { if (!gridRay(W.G, p, new V3(0, -1, 0), 1e5, true).length) why.push('under the set'); }
+    TIME.inside += performance.now() - t0; return why;
   }
   /* is p seen from the camera, allowing hits on the subject's own meshes (and on any of `allow` within `slack` of p)? */
-  function seen(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
-  function clutter(d) { let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.33; n++; if (ray.intersectObjects(W.all, false).length) hit++; } return hit / n; }
+  function seen(p, own, allow, slack) { const t0 = performance.now(); try { return seen_(p, own, allow, slack); } finally { TIME.seen += performance.now() - t0; } }
+  function seen_(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
+  function clutter(d) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length || ray.intersectObjects(W.dyn, false).length) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
 
   /* one candidate at the current drawing: fail fast (the cheap checks first); hard for the primary, the line's partner and a contact's
      figures, soft (a penalty) for the others of a group */
   function check(cand, S, sh, lineSide) {
     const fail = [], info = { soft: 0 };
     if (lineSide && cand.side && cand.side !== lineSide) return { fail: ['L5 across the line'], info };
-    const pos = cand.pos; const ins = inside(pos); if (ins.length) return { fail: ['L1 ' + ins[0]], info };
+    const pos = cand.pos;
     const prim = S.find(s => s.id === sh.primary) || S[0];
     const need = needOf(S, sh, prim);
     const target = aim(pos, cand.fov, need, sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? prim.eye : prim.head, cand.u, cand.v);
@@ -122,29 +164,36 @@ async function solve(plan, api) {
     for (const s of S) {
       const q = proj(s.head), c = proj(s.crown); if (q[2] > 1 || c[2] > 1) { if (bad(s, 'L3 ' + s.id + ' behind the lens')) return { fail, info }; continue; }
       const m = 0.03; if (!(q[0] > m && q[0] < 1 - m && q[1] > m && q[1] < 1 - m && c[1] > 0.005 && c[0] > 0 && c[0] < 1)) if (bad(s, 'L3 head of ' + s.id + ' cut')) return { fail, info };
+      /* the caption box (the lower quarter while a line sounds) is no place for a face */
+      if (q[1] > 0.7) if (bad(s, 'L3 head of ' + s.id + ' under the caption')) return { fail, info };
     }
     const hq = proj(sh.kind === 'INSERT' ? prim.eye : prim.head); info.headV = +hq[1].toFixed(3);
-    if (!(prim.creature && sh.size === 'WIDE') && !(hq[1] <= 0.5)) return { fail: ['L3 face of ' + prim.id + ' below the middle'], info };
+    /* the face in the upper half; in a wide (the figures small in the set) above the caption */
+    if (!(prim.creature && sh.size === 'WIDE') && !(hq[1] <= (sh.size === 'WIDE' ? 0.68 : 0.5))) return { fail: ['L3 face of ' + prim.id + (sh.size === 'WIDE' ? ' under the caption' : ' below the middle')], info };
     for (const p of need) { const q = proj(p); if (!(q[2] < 1 && q[0] > -0.01 && q[0] < 1.01 && q[1] > -0.01 && q[1] < 1.01)) { info.soft += 2; if (sh.size !== 'WIDE') return { fail: ['L4 the ' + (sh.size || '').toLowerCase() + ' needs more than the frame'], info }; break; } }
+    const ins = inside(pos); if (ins.length) return { fail: ['L1 ' + ins[0]], info };
     for (const s of S) {
-      const b = seen(s.creature ? s.eye : s.head, s.id); if (b) { if (bad(s, 'L2 ' + s.id + ' hidden by ' + b.by)) return { fail, info }; continue; }
+      /* the face, not only its centre: a creature's eye, head, brow and mouth (three of four seen), a figure's head and the front of its face */
+      const facePts = s.creature ? [s.eye, s.head, s.crown, s.chin] : [s.head, s.facing ? s.head.clone().add(s.facing.clone().multiplyScalar(0.08 * s.H)) : s.head];
+      let fs = 0, by = null; for (const p of facePts) { const b = seen(p, s.id); if (b) by = b; else fs++; }
+      if (fs < (s.creature ? 3 : facePts.length)) { if (bad(s, 'L2 ' + s.id + ' hidden by ' + by.by)) return { fail, info }; continue; }
       let ok = 0; for (const p of s.body) if (!seen(p, s.id)) ok++; if (ok < s.body.length / 2) if (bad(s, 'L2 body of ' + s.id + ' hidden')) return { fail, info };
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
-    const cl = clutter(pos.distanceTo(prim.head)); info.clutter = cl; if (cl > 0.2) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    const cl = clutter(pos.distanceTo(prim.head)); info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     return { fail, info };
   }
   function needOf(S, sh, prim) {
     const out = []; const all = sh.size === 'WIDE' || sh.kind === 'ACTION' || sh.kind === 'TWO';
-    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' ? s.whole : s.upper)); else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin); }
+    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin); }
     return out.filter(Boolean);
   }
 
   /* ── candidates for a shot at its middle drawing ── */
   function candidates(sh, S, key, prev) {
     const prim = S.find(s => s.id === sh.primary) || S[0], need = needOf(S, sh, prim), c = new V3(); for (const p of need) c.add(p); c.multiplyScalar(1 / need.length);
-    let R = 0; for (const p of need) R = Math.max(R, p.distanceTo(c)); R = Math.max(R, prim.creature ? 0.35 * H0 : 0.3 * (prim.H || H0));
+    let R = 0; for (const p of need) R = Math.max(R, p.distanceTo(c)); R = Math.max(R, prim.creature ? 0.5 * H0 : 0.3 * (prim.H || H0));
     const fov0 = sh.lens === 'wide' ? (sh.size === 'CLOSE' ? 50 : 58) : sh.size === 'CLOSE' || sh.kind === 'INSERT' ? 32 : sh.size === 'WIDE' ? 46 : 38;
     const half0 = Math.min(THREE.MathUtils.degToRad(fov0) / 2, Math.atan(Math.tan(THREE.MathUtils.degToRad(fov0) / 2) * aspect));
     const base = Math.max(R / Math.sin(half0) * 1.08, (prim.creature ? 0.3 : 0.9) * (prim.H || H0));
@@ -154,7 +203,7 @@ async function solve(plan, api) {
     const ph = prim.creature ? H0 : (prim.H || H0);
     const elevs = sh.angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
       : sh.angle === 'high' ? [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0]
-      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph];
+      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, prim.head.y + 1.0 * ph];   /* the last over the heads of a crowd */
     /* distances from farther than the lens wants to much nearer: a nearer camera opens its lens to keep what the size needs (up to
        75 degrees), so a small room (a cave) still has cameras inside it */
     for (const k of [1.25, 1, 0.75, 0.55]) for (let a = 0; a < 16; a++) for (const y of elevs) {
@@ -174,7 +223,7 @@ async function solve(plan, api) {
   }
   const pointsCache = new Map();
   /* the floor under a point: the first set part a ray from high above meets (figures and creatures aside) */
-  function groundAt(p) { ray.set(new V3(p.x, p.y + 20 * H0, p.z), new V3(0, -1, 0)); ray.near = 0; ray.far = 60 * H0; const hs = ray.intersectObjects(W.stat, false); let g = null; for (const h of hs) { if (h.point.y <= p.y + 0.3 * H0) { g = h.point.y; break; } } return g != null ? g : (hs.length ? hs[hs.length - 1].point.y : p.y); }
+  function groundAt(p) { const hs = gridRay(W.G, new V3(p.x, p.y + 20 * H0, p.z), new V3(0, -1, 0), 60 * H0, false); let g = null; for (const h of hs) { if (h.point.y <= p.y + 0.3 * H0) { g = h.point.y; break; } } return g != null ? g : (hs.length ? hs[hs.length - 1].point.y : p.y); }
   function sideOf(pos, line) { const A = pointsCache.get(line[0]), B = pointsCache.get(line[1]); if (!A || !B) return 0; const a = A.feet || A.head, b = B.feet || B.head, d = b.clone().sub(a), q = pos.clone().sub(a); return Math.sign(d.x * q.z - d.z * q.x) || 1; }
   function contactPoint(sh, S) {
     const c = sh.contact; if (!c) return null;
@@ -188,24 +237,21 @@ async function solve(plan, api) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
+    if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
+    if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
     if (cand.key) s += 0.6;
     s -= 1.5 * (I.clutter || 0) + 0.4 * (I.soft || 0);
-    if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 1.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
+    if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
     return s;
   }
 
-  /* ── solve every shot ── */
-  const lines = new Map(), solved = [], report = [], stats = {};
-  let prevCam = null;
-  for (const sh of plan.shots) {
-    const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
-    const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
+  function attempt(sh, lineSide, ts, mid, prevCam) {
+    let key;
     const subj = [...new Set([sh.primary, ...(sh.subjects || [])].filter(Boolean))];
-    const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
     /* the middle drawing: candidates */
-    let key = api.poseAt(mid); world(key); pointsCache.clear();
+    key = api.poseAt(mid); world(key); pointsCache.clear();
     for (const id of new Set([...subj, ...(sh.line || [])])) { const p = points(id, mid); if (p) pointsCache.set(id, p); }
     let S = subj.map(id => pointsCache.get(id)).filter(Boolean);
     if (!S.length) { const any = api.cast()[0]; const p = any && points(any, mid); if (p) { S = [p]; sh.primary = any; } }
@@ -234,25 +280,43 @@ async function solve(plan, api) {
         pool = pool.filter(c => { const pos = moving && P0.feet && Pt.feet ? c.pos.clone().add(Pt.feet.clone().sub(P0.feet)) : c.pos; const r = check({ ...c, pos, contact: sh.contact ? contactPoint(sh, St) : null }, St, sh, 0); c.rres.push(r); return !r.fail.length; }); }
       for (const c of pool) c.res = c.rres; alive = pool;
     }
+    return { subj, S, cands, alive, worst, hist, relaxed, moving, P0 };
+  }
+  /* ── solve every shot ── */
+  const lines = new Map(), solved = [], report = [], stats = {};
+  let prevCam = null;
+  for (const sh of plan.shots) {
+    const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
+    const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
+    const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
+    /* the ladder: as planned; then (no legal camera) the primary alone one size wider; then a wide on the primary */
+    const WIDER = { CLOSE: 'MID', MID: 'WIDE', WIDE: 'WIDE' };
+    let use = sh, A = attempt(sh, lineSide, ts, mid, prevCam), eased = null;
+    if (!A.alive.length && ((sh.subjects || []).length > 1 || sh.size !== 'WIDE')) { const v = Object.assign({}, sh, { subjects: [sh.primary], size: WIDER[sh.size] || 'WIDE', contact: null, profile: false }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'the ' + sh.size.toLowerCase() + ' had no legal camera: the primary alone, ' + v.size.toLowerCase(); } }
+    if (!A.alive.length && use.size !== 'WIDE') { const v = Object.assign({}, sh, { subjects: [sh.primary], size: 'WIDE', contact: null, profile: false, angle: 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'no legal camera at the planned size: a wide on the primary'; } }
+    const { subj, S, cands, alive, worst, hist, relaxed, moving, P0 } = A; let key;
     let pick = null, legal = alive.length > 0;
-    if (legal) { let best = -1e9; for (const c of alive) { const s = score(c, c.res[0], sh, prevCam); if (s > best) { best = s; pick = c; } } }
+    if (legal) { let best = -1e9; for (const c of alive) { const s = score(c, c.res[0], use, prevCam); if (s > best) { best = s; pick = c; } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
-      let best = 1e9; for (const c of worst) { const f = c.res.reduce((n, r) => n + r.fail.reduce((m, x) => m + sev(x), 0), 0) - 0.5 * c.res.length; if (f < best) { best = f; pick = c; } } }
+      /* never a camera inside geometry: the least bad are tested for L1 at the middle drawing, in order, until one is clear */
+      const ranked = [...new Set(worst)].map(c => ({ c, f: c.res.reduce((n, r) => n + r.fail.reduce((m, x) => m + sev(x), 0), 0) - 0.5 * c.res.length })).sort((a, b) => a.f - b.f);
+      key = api.poseAt(mid); world(key); for (const { c } of ranked) { if (c.res.some(r => r.fail.some(x => x.startsWith('L1')))) continue; if (!inside(c.pos).length) { pick = c; break; } }
+      if (!pick && ranked.length) pick = ranked[0].c; }
     /* the chosen camera's track: the pan keyed every half second (and the position, for a travelling camera) */
     const keysT = []; const n = Math.max(2, Math.ceil((t1 - t0) / 0.5) + 1);
     if (pick) for (let i = 0; i < n; i++) { const t = t0 + (t1 - t0) * i / (n - 1); key = api.poseAt(Math.min(t, t1 - 0.02)); world(key); pointsCache.clear(); for (const id of subj) { const p = points(id, t); if (p) pointsCache.set(id, p); }
       const St = subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) continue; const Pt = St.find(s => s.id === sh.primary) || St[0];
       const pos = moving && P0.feet ? pick.pos.clone().add(Pt.feet.clone().sub(P0.feet)) : pick.pos.clone();
-      const tg = aim(pos, pick.fov, needOf(St, sh, Pt), sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? Pt.eye : Pt.head, pick.u, pick.v);
+      const tg = aim(pos, pick.fov, needOf(St, use, Pt), use.size === 'WIDE' && !use.giant ? null : use.kind === 'INSERT' ? Pt.eye : Pt.head, pick.u, pick.v);
       keysT.push([t, pos.toArray(), tg.toArray()]); }
     /* smooth the pan: a figure's small moves should not shake the frame */
     for (let pass = 0; pass < 2; pass++) for (let i = 1; i < keysT.length - 1; i++) keysT[i][2] = keysT[i][2].map((v, q) => (keysT[i - 1][2][q] + 2 * v + keysT[i + 1][2][q]) / 4);
     if (pick && legal && lineKey && !lines.has(lineKey) && pick.side) lines.set(lineKey, pick.side);
     const fails = pick ? [...new Set(pick.res.flatMap(r => r.fail))] : ['no subject'];
-    const out = { id: 'c' + sh.i + ':' + sh.kind + ':' + sh.size, i: sh.i, kind: sh.kind, size: sh.size, t0, dur: t1 - t0, cine: true, fov: pick ? pick.fov : 40, track: keysT, moving, primary: sh.primary };
+    const out = { id: 'c' + sh.i + ':' + sh.kind + ':' + use.size, i: sh.i, kind: sh.kind, size: use.size, t0, dur: t1 - t0, cine: true, fov: pick ? pick.fov : 40, track: keysT, moving, primary: sh.primary };
     solved.push(out);
-    report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, primary: sh.primary, subjects: subj, why: sh.why, line: sh.line, side: pick ? pick.side || 0 : 0, lineHeld: !!lineSide,
+    report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: use.size, planned: sh.size, eased, primary: sh.primary, subjects: subj, why: sh.why, line: sh.line, side: pick ? pick.side || 0 : 0, lineHeld: !!lineSide,
       camera: pick ? { pos: pick.pos.toArray().map(v => +v.toFixed(1)), fov: pick.fov, key: !!pick.key, az: pick.az != null ? +pick.az.toFixed(2) : null, travelling: moving } : null,
       legal, relaxed, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
@@ -265,7 +329,7 @@ async function solve(plan, api) {
 
   const move = (plan.direction && plan.direction.move) || 'push';
   const S = {
-    plan, solved, report: () => ({ scene: plan.scene, media: plan.media, direction: plan.direction, rules: 'tools/cinematographer/plan.js R1-R9; solve.js L1-L5', solvedIn: +(ms / 1000).toFixed(1), shots: report }),
+    plan, solved, report: () => ({ time: Object.fromEntries(Object.entries(TIME).map(([k, v]) => [k, +(v / 1000).toFixed(1)])), scene: plan.scene, media: plan.media, direction: plan.direction, rules: 'tools/cinematographer/plan.js R1-R9; solve.js L1-L5', solvedIn: +(ms / 1000).toFixed(1), shots: report }),
     stats: () => stats,
     shotAt(t) { let s = solved[0]; for (const x of solved) if (x.t0 <= t + 1e-6) s = x; return s; },
     shoot(sh, t) {
