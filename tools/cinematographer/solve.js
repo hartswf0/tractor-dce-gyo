@@ -152,6 +152,13 @@ async function solve(plan, api) {
   function seen_(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
   function clutter(d, allow) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length || ray.intersectObjects(W.dyn, false).some(h => !(allow && allow.includes(owner(h.object))))) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
 
+  /* the far clutter (graded, for the score): a finer grid of rays out to 0.8 of the way to the primary, counting the set's parts (a rock,
+     a wall's edge, a column) that stand between the lens and what it films; a near part counts more than one close to the subjects.
+     The hard L4 check above sees only the near half; this keeps a high wide from looking through a scree of foreground rocks. */
+  function clutterFar(d, floorY) { const t0 = performance.now(); let w = 0, n = 0; for (let i = 0; i < 7; i++) for (let j = 0; j < 5; j++) { ray.setFromCamera(new THREE.Vector2(-0.9 + i * 0.3, -0.8 + j * 0.4), camera); n++;
+      /* the floor the figures stand on is not clutter: only what stands up out of it (above the primary's feet by a third of a height) */
+      const hs = gridRay(W.G, ray.ray.origin, ray.ray.direction, d * 0.8, false).filter(h => h.point.y > floorY + 0.35 * H0); if (hs.length) { const h = hs.reduce((a, b) => (a.distance < b.distance ? a : b)); w += 1 - 0.6 * Math.min(1, (h.distance || 0) / (d * 0.8)); } } TIME.clutter += performance.now() - t0; return w / n; }
+
   /* one candidate at the current drawing: fail fast (the cheap checks first); hard for the primary, the line's partner and a contact's
      figures, soft (a penalty) for the others of a group */
   function check(cand, S, sh, lineSide) {
@@ -184,6 +191,7 @@ async function solve(plan, api) {
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
     const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null);   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     return { fail, info };
   }
@@ -250,7 +258,7 @@ async function solve(plan, api) {
     /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
     const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
     if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
-    s -= 1.5 * (I.clutter || 0) + 0.4 * (I.soft || 0);
+    s -= 1.5 * (I.clutter || 0) + 3 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
     if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
     return s;
@@ -337,7 +345,7 @@ async function solve(plan, api) {
       camera: pick ? { pos: pick.pos.toArray().map(v => +v.toFixed(1)), fov: pick.fov, key: !!pick.key, az: pick.az != null ? +pick.az.toFixed(2) : null, travelling: moving } : null,
       legal, relaxed, keyCamera: keyFate, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
-      facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null });
+      facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null, clutterFar: pick && pick.res[0].info.clutterFar != null ? +pick.res[0].info.clutterFar.toFixed(2) : null });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;
     prevHold = pick && legal && !moving ? { pick, use, subj } : null;
     if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary }; }

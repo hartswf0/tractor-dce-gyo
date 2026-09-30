@@ -202,12 +202,33 @@ function poseCast(st,t){for(const a of ButterCast.cast){const id=kfShort(a.kind)
   P.last=null;const saveSeated=r.seated;r.seated=s.sat||s.walk>0.1;   /* a seated or walking body keeps the blocking's legs; the performance keeps to the face and the head */
   const v=Perform.apply(P,t);r.seated=saveSeated;
   if(r.seated&&v){if(v['head.yaw']!=null)r.headP.rotation.y=-v['head.yaw'];if(v['torso.lean'])r.torsoP.rotation.x+=v['torso.lean'];}}
-  /*[choreo]*/if(T.choreo)T.choreo.apply(t);if(T.creatures)T.creatures.apply(t);/*[/choreo]*/}
+  /*[choreo]*/if(T.choreo)T.choreo.apply(t);if(T.creatures)T.creatures.apply(t);if(T.ropeSpec)ropeLive(t);/*[/choreo]*/}
 /* the key's world beyond the cast: props, the hidden pieces, the light and the sky, re-staged only when the key changes */
 function worldFor(key){if(T.world===key.id)return;T.world=key.id;const k=key.k,spec=T.spec;
   OdysseyFilm.hide(k.hide||[]);const pl=JSON.stringify([...(spec.props||[]),...(k.props||[])]);if(pl!==T.propsNow){T.propsNow=pl;OdysseyFilm.props(JSON.parse(pl));OdysseyFilm.propsAfter(JSON.parse(pl));}
   const lk=JSON.stringify(Object.assign({},spec.look||{},k.look));if(lk!==T.lookNow){T.lookNow=lk;OdysseyFilm.light(JSON.parse(lk));OdysseyFilm.look(JSON.parse(lk));for(const f of T.faces.values())f.mesh.castShadow=false;T.env={bg:scene.background,fog:scene.fog,tone:renderer.toneMapping,exp:renderer.toneMappingExposure,sh:renderer.shadowMap.enabled};}
-  OdysseyFilm.rope(k.rope||null);}
+  T.ropeSpec=k.rope&&T.choreo&&T.choreo.C&&T.choreo.C.ropes&&T.choreo.C.ropes.length?k.rope:null;OdysseyFilm.rope(T.ropeSpec?null:k.rope||null);if(!T.ropeSpec)ropeLive(0);}
+/* the rope as the binding passes it (the sheet's `ropes`: each binder's and hauler's window, tools/perform/intents-action.js ROPE), in
+   place of the key's static loops: thin coils round the man and the mast at the key's heights (chest, waist, knee), wound turn by turn
+   while the binding lasts with the live end in a binder's hand, then held on the man as he strains (the coils are laid round where
+   his body is at every drawing); the hauled ends run from the knot to the haulers' hands while they haul */
+function ropeLive(t){for(const m of (T.ropeMeshes||[])){m.parent&&m.parent.remove(m);m.geometry.dispose();}T.ropeMeshes=[];
+  const b=T.ropeSpec,R=b&&T.choreo&&T.choreo.C&&T.choreo.C.ropes;if(!b||!R)return;const a=kfActor(b.who);if(!a)return;
+  const binds=R.filter(r=>r.how==='bind'&&r.at===b.who),hauls=R.filter(r=>r.how==='haul'&&r.at===b.who);if(!binds.length)return;
+  const b0=Math.min(...binds.map(r=>r.t0)),b1=Math.max(...binds.map(r=>r.t1));if(t<b0)return;const prog=cl01((t-b0)/Math.max(0.1,b1-b0));
+  scene.updateMatrixWorld(true);const feet=a.rig.pos.clone(),head=kfHead(b.who),tall=Math.max(1,head.y-feet.y),torso=a.rig.torsoP.getWorldPosition(new V3());
+  const P=new V3(b.post[0],0,b.post[1]),rf=0.2*tall,rp=0.07*tall,th=0.011*tall,mat=T.ropeMat||(T.ropeMat=new THREE.MeshStandardMaterial({color:'#4a3218',roughness:1}));
+  const pts=[];for(const f of (b.at||[0.72,0.5,0.22])){const y0=feet.y+tall*f,F=(f>0.45?torso:feet).clone();F.y=0;const d=P.clone().sub(F),L=Math.max(1e-3,d.length()),u=d.clone().divideScalar(L),n=new V3(-u.z,0,u.x);
+    const sh=T.choreo.ship&&T.choreo.ship(),Pm=sh?new V3(b.post[0],y0,b.post[1]).applyQuaternion(sh.Q).add(sh.off).setY(0):P;   /* the mast rolls with the hull */
+    for(let turn=0;turn<2;turn++)for(let i=0;i<=24;i++){const w=i/24,ang=w*Math.PI*2,y=y0+(turn+w-1)*0.03*tall;
+      /* a belt round two circles: the man's side (the far half from the mast), then the mast's */
+      const onF=ang<Math.PI,a2=onF?ang:ang-Math.PI,c=onF?F:Pm,r=onF?rf:rp,dir=onF?u.clone().multiplyScalar(-Math.sin(a2)).add(n.clone().multiplyScalar(Math.cos(a2))):u.clone().multiplyScalar(Math.sin(a2)).add(n.clone().multiplyScalar(-Math.cos(a2)));
+      pts.push(c.clone().add(dir.multiplyScalar(r)).setY(y));}}
+  const nDraw=Math.max(2,Math.round(pts.length*prog)),laid=pts.slice(0,nDraw),add=(q,seg)=>{if(q.length<2)return;const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(q),seg,th,6,false),mat);m.userData.rope=true;scene.add(m);T.ropeMeshes.push(m);};
+  add(laid,Math.min(400,laid.length*3));const end=laid[laid.length-1];
+  if(prog<1){const by=binds.find(r=>t>=r.t0&&t<=r.t1)||binds[0],h=kfHand(by.by,'R');if(h)add([end,end.clone().lerp(h,0.5).add(new V3(0,-0.04*tall,0)),h],16);}
+  else{add([end,end.clone().add(new V3(0,-0.12*tall,0.02*tall)),end.clone().add(new V3(0.03*tall,-0.22*tall,0.04*tall))],12);   /* the knot's tail */
+    for(const r of hauls){if(t<r.t0||t>r.t1+0.5)continue;const h=kfHand(r.by,'R');if(h)add([end,end.clone().lerp(h,0.5).add(new V3(0,-0.05*tall,0)),h],16);}}}
 
 /* ── captions, in the syncwatch's type ── */
 function tracked(g,s,x,y,size,track,weight){g.font=(weight||900)+' '+size+'px ui-monospace,Menlo,"DejaVu Sans Mono",monospace';const ch=[...s],w=ch.reduce((n,c)=>n+g.measureText(c).width,0)+track*(ch.length-1);let cx=x-w/2;for(const c of ch){g.fillText(c,cx+g.measureText(c).width/2,y);cx+=g.measureText(c).width+track;}}

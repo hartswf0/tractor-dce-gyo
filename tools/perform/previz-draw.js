@@ -23,7 +23,10 @@ function frame(g, W, H, D, f) {
   /* the giant (a prop in the take: his pose is his needle) */
   /* creatures (film-readymades/creatures.js rigs): their pivot tree as sticks, the head a disc, the eye */
   for (const Cq of f.creatures || []) { g.lineCap = 'round'; g.strokeStyle = dark ? 'rgba(214,190,160,0.9)' : 'rgba(96,64,40,0.9)';
-    for (const [ax, ay, bx, by, w] of Cq.segs) { g.lineWidth = Math.max(2, w * H); g.beginPath(); g.moveTo(X(ax), Y(ay)); g.lineTo(X(bx), Y(by)); g.stroke(); }
+    for (const [ax, ay, bx, by, w] of Cq.segs) { g.lineWidth = Math.max((Cq.heads || []).length ? 4 : 2, w * H); g.beginPath(); g.moveTo(X(ax), Y(ay)); g.lineTo(X(bx), Y(by)); g.stroke(); }
+    /* Scylla's six heads: a snout from the head's pivot to the jaw, the jaw a disc with an eye (the necks are the segments above) */
+    for (const [jx, jy, r, hx, hy] of Cq.heads || []) { g.fillStyle = dark ? 'rgba(120,150,120,0.95)' : 'rgba(70,100,70,0.9)'; if (hx != null) { g.lineWidth = Math.max(4, r * H * 1.2); g.strokeStyle = g.fillStyle; g.beginPath(); g.moveTo(X(hx), Y(hy)); g.lineTo(X(jx), Y(jy)); g.stroke(); }
+      g.beginPath(); g.arc(X(jx), Y(jy), Math.max(4, r * H), 0, 7); g.fill(); g.fillStyle = '#e8d44d'; g.beginPath(); g.arc(X(hx != null ? (hx + jx) / 2 : jx), Y(hy != null ? (hy + jy) / 2 : jy) - Math.max(2, r * H * 0.3), Math.max(1.5, r * H * 0.2), 0, 7); g.fill(); }
     if (Cq.head) { g.fillStyle = dark ? 'rgba(150,120,95,0.9)' : 'rgba(170,140,110,0.8)'; g.beginPath(); g.arc(X(Cq.head[0]), Y(Cq.head[1]), Math.max(3, Cq.head[2] * H), 0, 7); g.fill(); }
     if (Cq.eye) { g.fillStyle = Cq.eye[2] >= 1.5 ? '#b3261e' : '#f4f0e6'; g.beginPath(); g.arc(X(Cq.eye[0]), Y(Cq.eye[1]), Math.max(2, Cq.head ? Cq.head[2] * H * 0.3 : 3), 0, 7); g.fill(); }
     if (Cq.label) { g.fillStyle = dark ? 'rgba(230,220,200,0.8)' : 'rgba(60,40,30,0.8)'; g.font = '11px monospace'; g.fillText(Cq.label, X(Cq.lx) + 6, Y(Cq.ly) - 6); } }

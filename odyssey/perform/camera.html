@@ -78,7 +78,7 @@ const RULES_SOLVE = [
   ['L1 inside', 'The lens and a small sphere round it (its near plane) are in no part of the set, no figure and no creature: the part\'s box, and for a large part rays that meet its back faces or its surface within the sphere; there must be ground under the lens.'],
   ['L2 occlusion', 'The subject\'s head (a creature\'s eye) and at least half its body are seen, with no nearer body, prop or part on the ray; a contact\'s point is seen.'],
   ['L3 head', 'Every subject\'s head and crown are inside the frame; the primary\'s face is in the upper half.'],
-  ['L4 frame', 'What the size needs is in the frame; nothing near the lens covers more than a fifth of it.'],
+  ['L4 frame', 'What the size needs is in the frame; nothing near the lens covers more than a fifth of it. Beyond the near half, the set\'s parts that stand up between the lens and the act (a rock, a wall\'s edge, a column, but not the floor they stand on) are counted on a finer grid out to four fifths of the way, nearer ones more, and weigh against the camera in the score: a clear view of the act is preferred to one through a scree of rocks.'],
   ['L5 line', 'The camera is on the side its line took. If no legal camera is left on that side, the line is crossed and the report says so.'],
 ];
 const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -88,6 +88,8 @@ document.getElementById('rulesSolve').innerHTML = RULES_SOLVE.map(li).join('');
 const SCENES = [
   { id: 'OD-B09-S09', name: 'The Blinding', before: 'OD-B09-S09-performed', after: 'OD-B09-S09-performed-shot' },
   { id: 'OD-B01-S03', name: 'The Gate', before: 'OD-B01-S03-performed', after: 'OD-B01-S03-performed-shot' },
+  { id: 'OD-B12-S03', name: 'The Sirens', before: null, after: 'OD-B12-S03-performed', note: 'the rowers on one clock, the binding' },
+  { id: 'OD-B22-S01', name: "The Hall", before: null, after: 'OD-B22-S01-performed', note: "The Hall, performed" },
 ];
 const WRONG = [];
 (async () => {
@@ -96,9 +98,14 @@ const WRONG = [];
     let J = null; try { J = await (await fetch('../../films/odyssey/' + S.after + '.json')).json(); } catch (e) { }
     const R = J && J.take && J.take.cine;
     html += `<h2>${esc(S.name)} <span class="note">${S.id}</span></h2>`;
+    if (S.before) {
     html += `<div class="pair"><figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.before}.jpg" src="../../films/odyssey/${S.before}.mp4"></video><figcaption>Before: shots planned from the blocking (${S.before})</figcaption></figure>`;
     html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>After: shots chosen from the performance (${S.after})</figcaption></figure></div>`;
     html += `<h3>Contact sheets: one frame from the middle of every shot</h3><div class="pair"><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} before" src="media/camera-${S.id}-before.jpg"><figcaption>Before</figcaption></figure><figure><img loading="lazy" alt="Contact sheet of the ${esc(S.name)} after" src="media/camera-${S.id}-after.jpg"><figcaption>After</figcaption></figure></div>`;
+    } else {
+    html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>Shot from the performance (${S.after}): ${esc(S.note || '')}</figcaption></figure>`;
+    html += `<h3>Contact sheet: one frame from the middle of every shot</h3><figure><img loading="lazy" alt="Contact sheet of ${esc(S.name)}" src="media/camera-${S.id}-after.jpg"></figure>`;
+    }
     const Au = AUDIT[S.id];
     if (Au) { const row = (k, o) => `<tr><td>${k}</td><td class="t">${o.inside} of ${o.samples}</td><td class="t">${o.seen.polyphemus || 0} of ${o.samples}</td><td class="t">${o.seen.odysseus || 0} of ${o.samples}</td></tr>`;
       html += `<h3>The same checks on both cuts, once a second</h3><div class="scroll"><table><thead><tr><th>cut</th><th>lens inside geometry</th><th>giant's eye in frame and seen</th><th>Odysseus's head in frame and seen</th></tr></thead><tbody>${row('before', Au.before)}${row('after', Au.after)}</tbody></table></div><p class="note">${esc(Au.rule)}. The one sample after that fails is inside the box of one of the giant's pieces while he breathes, between two of the shot's tested drawings.</p>`; }

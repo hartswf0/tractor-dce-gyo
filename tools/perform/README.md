@@ -40,7 +40,7 @@ node tools/perform/probe.js            OD-B09-S09 [--poses] [--ground-only] [--v
 | `patches.js` | instruction -> patch table; timeline and body diffs |
 | `hardware.js` | pose sheet and servo timeline (figures, and creatures' angular channels on a giant puppet's segment model) |
 | `previz.js`, `previz-draw.js` | the light previz |
-| `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B10-S02 (the Harbour), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
+| `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B10-S02 (the Harbour), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall), OD-B17-S03 (Argos), OD-B21-S07 (the Bow), OD-B23-S04 (the Bed), OD-B12-S06 (the Cattle), OD-B19-S04 (the Scar), OD-B16-S03 (Father and Son), OD-B14-S01 (the Dogs), OD-B10-S05 (Hermes and the Moly), OD-B04-S04 (Inside the Horse), OD-B11-S01 (the Rite), OD-B09-S03 (the Lotus-Eaters), OD-B06-S03 (Nausicaa), OD-B05-S04 (the Raft), OD-B13-S01 (the Convoy), OD-B01-S01 (the Council), OD-B02-S02 (the Assembly), OD-B10-S01 (Aeolus), OD-B04-S05 (Proteus). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
 
 Data: `odyssey/score/<scene>.json` (score), `<scene>.choreo.json` (sheet the take plays: `tools/export-odyssey.js --choreo`),
 `measures/`, `chains/`, `variants/`, `cameras/`, `hardware/`.
@@ -128,6 +128,8 @@ Every realiser writes through `X.move(actor, layer, kind, cause, k => { k(t, {ch
 - `LOCOMOTE {path, speed}`, `LEAVE {to}`, `CIRCLE {target, radius, turn}`, `RIDE {period}`, `CLIMB {rise, period}`, `SWIM {period}`,
   `DROWN {sink}` (the breath stops at its end), `WEAVE {period, at}` (the shuttle, the beater: a CONTACT TOOL each pass),
   `MOVE_STONE {target}`, `CARESS {target, side, strokes}`, `WAKE {rise}`, `DIE {key}` (the fall, then no breath).
+- The bow (OD-B21-S07): `STRING_BOW {bends, strungId}` (the horn braced on the thigh, the bends, a CONTACT BOW and a STRUNG sight) and
+  `PLUCK {soundId}` (a SOUND stimulus: the note, which the scene's thunder can take as its cause).
 
 ### Machinery
 
@@ -141,6 +143,11 @@ damped oscillator in pitch and roll, driven by the slope under its pivot and by 
 `rigs[id]` (a ship rig: the player turns the piece and its riders). Standing riders who are not rowers get a BALANCE move against the
 deck. Swimmers ride the swell (`root.y`, lean, roll). SPLASH FX mark breaking crests. The sea is an object of water with a heat
 source (level x crest speed) marked `room`: on a stage of one or two figures, contrast is read against it.
+
+Ropes. A ROPE intent with `params.at` also records its window in the sheet's `ropes` (`[{how: bind|haul, by, at, t0, t1}]`). The take
+(odyssey-take.js `ropeLive`) then winds the key's rope (`k.rope`: post, heights) turn by turn over the binding, with the live end in a
+binder's hand, as thin coils round the man's body where it is at each drawing and round the mast as the hull rolls it
+(`OdysseyChoreo.player().ship()`), and runs the hauled ends to the haulers' hands while they haul, in place of the key's static loops.
 
 Ship riders are an id or `[id, t0, t1]` (a window: thrown off at a SEPARATION, back aboard at a RECOVER). choreo.js, body.js,
 metrics.js and thermo.js all honour the window (`Body.rides(R, id, t)`).
@@ -165,7 +172,11 @@ film"): the take shows its staged prop; the previz, the metrics and the heat use
 More creature kinds: `MOVE_STONE {target, to, object}` (both hands on the stone, its track a PROP MOVED event and the object's
 track), `DRINK {gulps}`, `CARESS {target, anchor, strokes}` (reach procedures drawn along a ram's back), `FAWN {target, path}`,
 `GRAZE`, `CARRY {riders: [{actor, at, lie, from, to, offset}]}` (CONTACT RIDER), `CHANGE {man, at}` (the beast's half of TRANSFORM:
-see below). Kinds: polyphemus, laestrygon, ram, dog, cattle, scylla, and Circe's pig, wolf and lion (cut from the set pieces' 87621p01,
+see below). A beast's small acts (Argos, OD-B17-S03): `WATCH {target, lift, hold}` (the head kept on a moving figure, re-aimed every half
+second, the ears pricked), `EARS {how: drop|prick}`, `WAG {period, amp, fade, lift}` (the tail's beat, weakening), `BREATHE {period, depth}`,
+`DIE {roll, sink}` (the head to the ground, ears and tail slack, the body rolled onto its side; a HOLD 'dead' after). `BARK {target, period}` (the
+head thrown up with each bark, the forelegs braced), `CRAWL {bellow, period}` (the omen on a slain beast: the hide creeps, the head jerks at the
+lowing). Kinds: polyphemus, laestrygon, ram, dog, cattle, scylla, and Circe's pig, wolf and lion (cut from the set pieces' 87621p01,
 48812 and 14734 by tools/creatures/build.js).
 
 Where a creature stands. `place` puts a preset's body over a box or a centre on the ground the take finds there
@@ -199,6 +210,13 @@ the rock, the sea's blow and push), `storm` (OD-B12-S07 and OD-B05-S05: a god's 
 endurance), `harbour` (OD-B10-S02: the town roused brings each giant in, each rock a blow to the fleet and to his alarm; he cuts the
 cable in resolve between 0.7 and 0.95, frozen above it). `homeostat.couple(spec, {frozen})` runs them; `perform.js author <scene> --variant <name> [--frozen] --force` writes a
 disturbed or held run beside the baseline (`odyssey/score/variants/`).
+
+### Lessons from the modules
+
+A long ATTEND or LISTEN does not make a listener alive in the metrics when the head cannot turn far enough to the speaker: give every
+figure who waits a HOLD with its reason and looks (the council's ring, the rite's crew). A handoff (OFFER/TAKE) solves both hands to one
+meeting point but steps only a little: stage a STEP in first when the blocking leaves the two far apart (the Raft's axe). A scene on the
+first score's sea keeps its machinery and the chain's stimuli (`sC*`) that the sea's changes are caused by (the Convoy, Aeolus).
 
 ### Scene types and bands
 

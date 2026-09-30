@@ -93,7 +93,7 @@ function creatureLane(c) { if (Score.CH_LANE[c]) return Score.CH_LANE[c]; const 
 /* ═════ the compile ═════ */
 function compile(M, S, opts = {}) {
   const A = S.authored || {}, θ = Object.assign(defaults(), S.params || {}, opts.params || {}), sid = M.scene, T = M.total;
-  const B = Body.Blocking(M), bctx = { M, C: null, B }, sheet = Sheet(), E = Score.Events([]), props = [], rigs = {}, creatures = {}, notes = [];
+  const B = Body.Blocking(M), bctx = { M, C: null, B }, sheet = Sheet(), E = Score.Events([]), props = [], rigs = {}, creatures = {}, notes = [], ropes = [];
   const ids = B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis));
   const H = id => (M.H && M.H[id]) || 60, aff = id => Object.assign({ fear: 0, weight: 1, suspicion: 0, cunning: 0, heat: 1 }, ((S.actors || {})[id] || {}).affect || {});
   const scale = M.scale || 1, stud = 20 * scale;
@@ -177,7 +177,7 @@ function compile(M, S, opts = {}) {
   function track(id, target, t0, t1, why, o = {}) { const out = []; for (let t = t0; t < t1 - 0.05; t += o.every || 0.5) { const e = look(id, target, t, why, { ...o, overshoot: false, dip: false, speed: 0.7, kind: 'TRACK', walking: true }); if (e) out.push(e); } return out; }
 
   /* ── the context the intents write through ── */
-  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, baseOf, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
+  const X = { M, S, A, θ, sid, T, B, ids, H, aff, scale, stud, at, bpose, where, relBearing, settled, baseOf, sheet, E, ev, stim, because, lat, move, look, track, props, rigs, notes, ropes, rng: s => rng(sid + '|' + s), q, r3, cl, sm, lerp, wrap, F,
     after: fn => solvers.push(fn), busyArms, utter: {}, voiceOf: c => voiceOf(M, c),
     /* an intent's amplitude: the compiler's amp x the intent's own params.amp */
     ampOf: I => ((I && I.params && I.params.amp) || 1),   /* the intent's own amplitude; the compiler's amp is applied to every expressive move */
@@ -295,6 +295,7 @@ function compile(M, S, opts = {}) {
       holds: E.list.filter(e => e.lane === 'INTENT' && e.kind === 'HOLD').map(e => ({ actor: e.actor, t0: e.t0, t1: e.t1, why: e.label })),
       notes, actors, props: props.slice().sort((a, b) => a.t - b.t), rigs, overrides: opts.overrides || {} };
     if (Object.keys(creatures).length) C.creatures = JSON.parse(JSON.stringify(creatures));
+    if (ropes.length) C.ropes = ropes.slice().sort((a, b) => a.t0 - b.t0);   /* the binding's and the hauling's windows: the take winds the rope as it is passed (odyssey-take.js ropeLive) */
     Choreo.compile(C); return C;
   }
 }

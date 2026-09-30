@@ -168,7 +168,7 @@ function applyShip(THREE, R, v, ctx, S, t) {
   const Q = q.clone().multiply(q0.clone().invert()), piv = new THREE.Vector3(...R.pivot), off = piv.clone().sub(piv.clone().applyQuaternion(Q)); off.y += v.heave || 0; off.x += v.dx || 0; off.z += v.dz || 0;
   for (const s of st.ms) { s.m.quaternion.copy(s.q).premultiply(Q); s.m.position.copy(s.p).applyQuaternion(Q).add(off); s.m.updateMatrixWorld(true); }
   for (const rd of R.riders || []) { const id = Array.isArray(rd) ? rd[0] : rd; if (Array.isArray(rd) && (t < rd[1] || (rd[2] != null && t > rd[2]))) continue; const r = ctx.rigOf(id); if (!r || r.figure.visible === false) continue; const f = r.figure; f.position.applyQuaternion(Q).add(off); f.quaternion.premultiply(Q); r.pos.copy(f.position); }
-  S.shipQ = Q;
+  S.shipQ = Q; S.shipOff = off;
 }
 function restoreShip(S) { if (!S || !S.ship) return; for (const st of Object.values(S.ship)) for (const s of st.ms) { s.m.position.copy(s.p); s.m.quaternion.copy(s.q); s.m.updateMatrixWorld(true); } }
 /* a player for one take: ctx {THREE, scene, rigOf(id), hipsOf(rig), pieceMeshes(label)} */
@@ -185,6 +185,8 @@ function player(C, ctx) {
     /* whether an actor is travelling at t (the take's camera tracks a walker) */
     walking(id, t) { if ((C.layer || 'abs') === 'add') return false;   /* an acting layer's root offsets (a step back, a lean) are not walks: the take's own walks are the blocking's */
       const a = sampleActor(C, id, t, { stepped: false }), b = sampleActor(C, id, t + 0.25, { stepped: false }); if (!a || a['root.x'] == null) return false; return Math.hypot(b['root.x'] - a['root.x'], b['root.z'] - a['root.z']) > 2.5; },
+    /* the ship's turn and offset at the last apply (the take lays a rope from the mast with it) */
+    ship() { return S.shipQ ? { Q: S.shipQ, off: S.shipOff } : null; },
     dispose() { restoreProps(S); restoreShip(S); }
   };
 }

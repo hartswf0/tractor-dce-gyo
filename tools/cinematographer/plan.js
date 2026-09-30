@@ -52,8 +52,9 @@ const KIND_W = {   /* the heat of doing a thing, over and above its motion (R1) 
   RETIME: 0, ADVANCE: 0, HOLD: 0,
   /* creatures (intents-creature.js) */
   TALK: 0.55, SLEEP: 0.12, BLINDED: 1.6, STIR: 0.8, ROAR: 1.5, WALK: 0.9, POSE: 0.2, GROPE: 0.9, REACH: 1.0, EAT: 1.2, HERD: 0.6,
+  WATCH: 0.6, WAG: 0.75, EARS: 0.55, BREATHE: 0.08, DIE: 1.3, CRAWL: 1.2, GRAZE: 0.15, BARK: 0.9,   /* a beast's small acts (Argos): each one meant */
 };
-const CREATURE_ACT = new Set(['BLINDED', 'ROAR', 'STIR', 'WALK', 'GROPE', 'REACH', 'SEIZE', 'EAT', 'THROW', 'STRIKE', 'HERD']);
+const CREATURE_ACT = new Set(['BLINDED', 'ROAR', 'STIR', 'WALK', 'GROPE', 'REACH', 'SEIZE', 'EAT', 'THROW', 'STRIKE', 'HERD', 'WATCH', 'WAG', 'EARS', 'DIE', 'CRAWL', 'BARK']);
 const REACTION = new Set(['REACT', 'NOTICE', 'RECOIL', 'ATTEND', 'SHAME', 'FLEE', 'DUCK', 'EVADE', 'STIR', 'BLINDED', 'ROAR']);
 const HANDOFF = /GRIP|HANDOFF|GIVE/;
 const LONGEST = { fast: 3.5, mid: 6, slow: 10 };
