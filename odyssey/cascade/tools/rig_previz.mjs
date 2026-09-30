@@ -2,7 +2,8 @@
 /* odyssey/cascade/tools/rig_previz.mjs — a scene's rigs through the film's shot camera, cooked headless by Cascade, with the acted
    film's sound: media/previz-<scene>.mp4 (and a .jpg), and the cook timed.
 
-     node tools/rig_previz.mjs OD-B12-S03 [--graph file.cascade] [--from s] [--to s] [--name previz-OD-B12-S03] [--frames-only]
+     node tools/rig_previz.mjs OD-B12-S03 [--graph file.cascade] [--from s] [--to s] [--name previz-OD-B12-S03] [--frames-only] [--bare]
+   --bare renders the choreographer's pass alone (every rig's director props cleared), for a before and after.
 
    The graph is run with `cascade run --frames a-b --fps 12` (tools/cascade.mjs, the CLI with its compile race fixed), the frames
    (renders/rig/<name>/, not committed) are encoded at 12 frames a second with the scene's own voice and bed taken from
@@ -15,7 +16,12 @@ const HERE = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const args = process.argv.slice(2), sid = args.find(a => /^OD-B\d\d-S\d\d$/.test(a)), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 if (!sid) { console.log('node tools/rig_previz.mjs OD-Bxx-Syy [--graph g.cascade] [--from s] [--to s] [--name n]'); process.exit(1); }
 const ffmpeg = process.env.FFMPEG || execFileSync('python3', ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())'], { encoding: 'utf8' }).trim();
-const graph = opt('graph', `rig-${sid}.cascade`), doc = JSON.parse(fs.readFileSync(path.join(HERE, graph), 'utf8'));
+let graph = opt('graph', `rig-${sid}.cascade`);
+/* --bare: the same graph with every rig's director layer cleared (the choreographer's pass alone), to put beside the director's */
+if (args.includes('--bare')) { const d = JSON.parse(fs.readFileSync(path.join(HERE, graph), 'utf8')), W = new Set(['wRoot', 'wTorso', 'wHead', 'wArmR', 'wArmL', 'wLegs']);
+  for (const n of d.nodes) if (n.module === 'project.MinifigRig') for (const k of Object.keys(n.props)) if (!['sheet', 'time', 'solo'].includes(k)) n.props[k] = W.has(k) ? 1 : 0;
+  graph = `.rig-bare-${sid}.cascade`; fs.writeFileSync(path.join(HERE, graph), JSON.stringify(d)); process.on('exit', () => fs.rmSync(path.join(HERE, graph), { force: true })); }
+const doc = JSON.parse(fs.readFileSync(path.join(HERE, graph), 'utf8'));
 const [F0, F1] = doc.metadata.frames, from = +opt('from', 0), to = opt('to', null);
 const a = Math.max(F0, Math.round(from * 12) + 1), b = Math.min(F1, to != null ? Math.round(+to * 12) + 1 : F1);
 const name = opt('name', `previz-${sid}`), out = path.join(HERE, 'renders/rig', name);

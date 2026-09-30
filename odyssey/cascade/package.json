@@ -4,12 +4,16 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
-    "check:graphs": "for g in kit attention clocks forbidden facing beflix; do cascade check $g.cascade || exit 1; done",
+    "check:graphs": "for g in kit attention clocks forbidden facing beflix rig-OD-B01-S03 rig-OD-B12-S03 rig-OD-B22-S01; do cascade check $g.cascade || exit 1; done",
     "extract": "node tools/extract.cjs && python3 tools/clashes.py",
     "build": "node tools/build.mjs",
     "media": "node tools/media.mjs && node tools/beflix_film.mjs",
     "verify": "node tools/verify.mjs",
-    "kit": "cascade run kit.cascade --frames 240 --fps 24 && python3 tools/gesture_kit.py"
+    "kit": "cascade run kit.cascade --frames 240 --fps 24 && python3 tools/gesture_kit.py",
+    "rig:import": "node tools/rig_import.mjs",
+    "rig:export": "node tools/rig_export.mjs",
+    "rig:density": "node tools/rig_density.mjs",
+    "rig:previz": "node tools/rig_previz.mjs"
   },
   "devDependencies": {
     "cascade": "npm:@field/cascade@0.7.1",

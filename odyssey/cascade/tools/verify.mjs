@@ -94,6 +94,14 @@ const CRITICS = {
       songInkPixels: sung.count, noSongInkPixels: unsung.count, voiceDrivenInkPixels: loud.count, voiceMutedInkPixels: mute.count, legoTanPixels: lego.count }; } },
 };
 
+/* the rig desk: is the choreography sheet what the graph says (an export now would change nothing), and does the rig's density,
+   computed from the graph in a second, stand within five points of the page's own measure (tools/choreograph.js)? */
+const { exportDesk } = await import('./rig_export.mjs'), { rigDensity } = await import('./rig_density.mjs');
+for (const g of graphs.filter(x => x.rig)) CRITICS[g.name] = { ask: 'Is the film playing what the director keyed: the sheet in step with the graph, and the rig\'s density close to the take\'s?', run: async () => {
+  const e = exportDesk(g.scene), d = rigDensity(g.scene).density, pf = path.join(root, `odyssey/choreo/density/${g.scene}.json`), page = fs.existsSync(pf) ? JSON.parse(fs.readFileSync(pf, 'utf8')).after : null;
+  const gap = page ? Math.abs(page.mean - d.mean) : 1;
+  return { ok: !e.changed && gap <= 0.05, sheetInStep: !e.changed, deskLanes: e.lanesOf, rigDensity: d.mean, pageDensity: page && page.mean, rigWorstStill: d.worstFrozen }; } };
+
 const report = { ran: new Date().toISOString(), cascade: JSON.parse(fs.readFileSync(path.join(here, 'node_modules/cascade/package.json'), 'utf8')).version, graphs: [] };
 let failed = 0;
 for (const g of graphs) {

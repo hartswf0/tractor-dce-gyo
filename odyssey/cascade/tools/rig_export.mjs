@@ -26,7 +26,6 @@ import { CH, GROUP_OF, GROUPS, PROP_OF, DIR_LAYER, drawT, sampleKeys } from '../
 const require = createRequire(import.meta.url), Choreo = require(path.join(ROOT, 'film-readymades/choreo.js'));
 const args = process.argv.slice(2), sid = args.find(a => /^OD-B\d\d-S\d\d$/.test(a));
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
-if (!sid) { console.log('node tools/rig_export.mjs OD-Bxx-Syy [--graph g.cascade] [--dry] [--sheet out.json]'); process.exit(1); }
 const r4 = v => Math.round(v * 1e4) / 1e4, EPS = 1e-6;
 
 export function exportDesk(sid, graphFile) {
@@ -73,6 +72,7 @@ export function exportDesk(sid, graphFile) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+  if (!sid) { console.log('node tools/rig_export.mjs OD-Bxx-Syy [--graph g.cascade] [--dry] [--sheet out.json]'); process.exit(1); }
   const t0 = Date.now(), r = exportDesk(sid, opt('graph', null));
   const nkeys = Object.entries(r.O).filter(([k]) => k !== '_desk').reduce((a, [, L]) => a + Object.values(L).reduce((b, K) => b + K.length, 0), 0);
   console.log(`${sid}: ${r.desk.rigs.length} rigs read at ${r.N + 1} drawings in ${Date.now() - t0} ms;`, r.changed ? `overrides changed: ${JSON.stringify(r.lanesOf)} (${nkeys} keys)` : 'nothing changed (the sheet is not touched)');
