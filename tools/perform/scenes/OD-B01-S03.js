@@ -64,7 +64,18 @@ module.exports = function author(M, X) {
     type: 'dialogue', title: 'The Gate: the stranger at the threshold',
     actors: { [A]: { role: 'guest (the goddess, disguised)', body: 'minifig' }, [Tm]: { role: 'host (the prince)', body: 'minifig' }, ...Object.fromEntries(Object.keys(M.H).filter(i => /suitor/.test(i)).map(i => [i, { role: 'suitor', body: 'minifig', group: 'suitors' }])), ...Object.fromEntries(Object.keys(M.H).filter(i => /servant/.test(i)).map(i => [i, { role: 'servant', body: 'minifig', group: 'servants' }])) },
     objects: { spear: { kind: 'spear', material: 'wood', holder: A + ':R', affords: ['take spear', 'offer spear', 'threaten'] }, cup: { kind: 'cup', material: 'bronze', holder: Tm + ':R', affords: ['drink', 'set down'] }, gate: { kind: 'door', material: 'door', at: [-14, 60, 200], affords: ['enter', 'leave', 'lead in'] }, dice: { kind: 'dice', material: 'bone', at: [96, 30, -10], affords: ['gamble'] } },
-    authored: { intents, holds, stimuli, goals: { [Tm]: 'honour the guest his house has ignored', [A]: 'be received, and so rouse him' }, dice: 'dice' },
+    authored: { intents, holds, stimuli, goals: { [Tm]: 'honour the guest his house has ignored', [A]: 'be received, and so rouse him' },
+      /* the causal model: each actor's reachable actions over the next two seconds, a utility for each as a sum of named features
+         (tools/perform/thermo.js FEAT: dist, near, sees, seated, walking, holds, intent, after, threat, speaking, open) */
+      causal: { tau: 0.8, actions: {
+        [Tm]: [{ a: 'stay at the table', base: 1.0, f: { seated: 1.5 } }, { a: 'watch the game', base: 0.2, f: { 'sees:the-suitors-2': 1.0, seated: 0.5 } },
+          { a: 'go to the stranger', base: -1.2, f: { ['sees:' + A]: 2.2, 'after:sKnock': 1.0, 'intent:DECIDE': 2.0 } }, { a: 'turn on the suitors', base: -1.6, f: { 'intent:SHAME': 1.4 } },
+          { a: 'welcome her', base: -2.0, f: { ['near:' + A + ':1.2']: 3.2 } }, { a: 'take her spear', base: -3.0, f: { ['near:' + A + ':1']: 2.4, 'intent:WELCOME': 1.6, 'holds:spear': -3 }, uses: ['spear'] },
+          { a: 'lead her in', base: -3.2, f: { 'holds:spear': 4.0, ['near:' + A + ':1.2']: 0.8 }, uses: ['gate'] }],
+        [A]: [{ a: 'wait at the gate', base: 1.4, f: { ['walking:' + Tm]: -0.8 } }, { a: 'go in unbidden', base: -0.6, f: {} }, { a: 'leave', base: -1.2, f: {} }, { a: 'call out', base: -0.9, f: { ['sees:' + Tm]: 0.5 } },
+          { a: 'give her spear', base: -3.0, f: { ['near:' + Tm + ':1']: 2.6, 'holds:spear': 1.0, ['speaking:' + Tm]: 0.8 }, uses: ['spear'] }, { a: 'follow him in', base: -3.0, f: { 'holds:spear': -2.5, ['near:' + Tm + ':1.5']: 1.5, 'intent:FOLLOW': 3 }, uses: ['gate'] }],
+        ...Object.fromEntries(['the-suitors-1', 'the-suitors-2', 'the-suitors-3', 'the-suitors-4', 'the-suitors-5'].map(id => [id, [{ a: 'gamble', base: 1.2, f: {}, uses: ['dice'] }, { a: 'drink', base: 0.8, f: {} }, { a: 'mock the stranger', base: -1.8, f: { ['sees:' + A]: 1.2 } }, { a: 'watch the prince', base: -1.4, f: { ['walking:' + Tm]: 1.6, ['sees:' + Tm]: 0.8 } }]])),
+        ...Object.fromEntries(['palace-servants-1', 'palace-servants-2', 'palace-servants-3', 'palace-servants-4', 'palace-servants-5'].map(id => [id, [{ a: 'pour', base: 0.8, f: {} }, { a: 'wait with the jar', base: 1.0, f: {} }, { a: 'go to the gate', base: -2.2, f: { ['sees:' + A]: 1.0 }, uses: ['gate'] }]])) } } },
     stimuliLater: [{ id: 'sKnock', from: 'iA2', dt: 0.35, kind: 'SOUND', label: 'the spear\'s butt knocks the threshold stone' }],
   };
 };

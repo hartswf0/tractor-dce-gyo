@@ -1252,7 +1252,384 @@
    "telemachus": "honour the guest his house has ignored",
    "athena-as-mentes": "be received, and so rouse him"
   },
-  "dice": "dice"
+  "causal": {
+   "tau": 0.8,
+   "actions": {
+    "telemachus": [
+     {
+      "a": "stay at the table",
+      "base": 1,
+      "f": {
+       "seated": 1.5
+      }
+     },
+     {
+      "a": "watch the game",
+      "base": 0.2,
+      "f": {
+       "sees:the-suitors-2": 1,
+       "seated": 0.5
+      }
+     },
+     {
+      "a": "go to the stranger",
+      "base": -1.2,
+      "f": {
+       "sees:athena-as-mentes": 2.2,
+       "after:sKnock": 1,
+       "intent:DECIDE": 2
+      }
+     },
+     {
+      "a": "turn on the suitors",
+      "base": -1.6,
+      "f": {
+       "intent:SHAME": 1.4
+      }
+     },
+     {
+      "a": "welcome her",
+      "base": -2,
+      "f": {
+       "near:athena-as-mentes:1.2": 3.2
+      }
+     },
+     {
+      "a": "take her spear",
+      "base": -3,
+      "f": {
+       "near:athena-as-mentes:1": 2.4,
+       "intent:WELCOME": 1.6,
+       "holds:spear": -3
+      },
+      "uses": [
+       "spear"
+      ]
+     },
+     {
+      "a": "lead her in",
+      "base": -3.2,
+      "f": {
+       "holds:spear": 4,
+       "near:athena-as-mentes:1.2": 0.8
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "athena-as-mentes": [
+     {
+      "a": "wait at the gate",
+      "base": 1.4,
+      "f": {
+       "walking:telemachus": -0.8
+      }
+     },
+     {
+      "a": "go in unbidden",
+      "base": -0.6,
+      "f": {}
+     },
+     {
+      "a": "leave",
+      "base": -1.2,
+      "f": {}
+     },
+     {
+      "a": "call out",
+      "base": -0.9,
+      "f": {
+       "sees:telemachus": 0.5
+      }
+     },
+     {
+      "a": "give her spear",
+      "base": -3,
+      "f": {
+       "near:telemachus:1": 2.6,
+       "holds:spear": 1,
+       "speaking:telemachus": 0.8
+      },
+      "uses": [
+       "spear"
+      ]
+     },
+     {
+      "a": "follow him in",
+      "base": -3,
+      "f": {
+       "holds:spear": -2.5,
+       "near:telemachus:1.5": 1.5,
+       "intent:FOLLOW": 3
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "the-suitors-1": [
+     {
+      "a": "gamble",
+      "base": 1.2,
+      "f": {},
+      "uses": [
+       "dice"
+      ]
+     },
+     {
+      "a": "drink",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "mock the stranger",
+      "base": -1.8,
+      "f": {
+       "sees:athena-as-mentes": 1.2
+      }
+     },
+     {
+      "a": "watch the prince",
+      "base": -1.4,
+      "f": {
+       "walking:telemachus": 1.6,
+       "sees:telemachus": 0.8
+      }
+     }
+    ],
+    "the-suitors-2": [
+     {
+      "a": "gamble",
+      "base": 1.2,
+      "f": {},
+      "uses": [
+       "dice"
+      ]
+     },
+     {
+      "a": "drink",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "mock the stranger",
+      "base": -1.8,
+      "f": {
+       "sees:athena-as-mentes": 1.2
+      }
+     },
+     {
+      "a": "watch the prince",
+      "base": -1.4,
+      "f": {
+       "walking:telemachus": 1.6,
+       "sees:telemachus": 0.8
+      }
+     }
+    ],
+    "the-suitors-3": [
+     {
+      "a": "gamble",
+      "base": 1.2,
+      "f": {},
+      "uses": [
+       "dice"
+      ]
+     },
+     {
+      "a": "drink",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "mock the stranger",
+      "base": -1.8,
+      "f": {
+       "sees:athena-as-mentes": 1.2
+      }
+     },
+     {
+      "a": "watch the prince",
+      "base": -1.4,
+      "f": {
+       "walking:telemachus": 1.6,
+       "sees:telemachus": 0.8
+      }
+     }
+    ],
+    "the-suitors-4": [
+     {
+      "a": "gamble",
+      "base": 1.2,
+      "f": {},
+      "uses": [
+       "dice"
+      ]
+     },
+     {
+      "a": "drink",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "mock the stranger",
+      "base": -1.8,
+      "f": {
+       "sees:athena-as-mentes": 1.2
+      }
+     },
+     {
+      "a": "watch the prince",
+      "base": -1.4,
+      "f": {
+       "walking:telemachus": 1.6,
+       "sees:telemachus": 0.8
+      }
+     }
+    ],
+    "the-suitors-5": [
+     {
+      "a": "gamble",
+      "base": 1.2,
+      "f": {},
+      "uses": [
+       "dice"
+      ]
+     },
+     {
+      "a": "drink",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "mock the stranger",
+      "base": -1.8,
+      "f": {
+       "sees:athena-as-mentes": 1.2
+      }
+     },
+     {
+      "a": "watch the prince",
+      "base": -1.4,
+      "f": {
+       "walking:telemachus": 1.6,
+       "sees:telemachus": 0.8
+      }
+     }
+    ],
+    "palace-servants-1": [
+     {
+      "a": "pour",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "wait with the jar",
+      "base": 1,
+      "f": {}
+     },
+     {
+      "a": "go to the gate",
+      "base": -2.2,
+      "f": {
+       "sees:athena-as-mentes": 1
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "palace-servants-2": [
+     {
+      "a": "pour",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "wait with the jar",
+      "base": 1,
+      "f": {}
+     },
+     {
+      "a": "go to the gate",
+      "base": -2.2,
+      "f": {
+       "sees:athena-as-mentes": 1
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "palace-servants-3": [
+     {
+      "a": "pour",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "wait with the jar",
+      "base": 1,
+      "f": {}
+     },
+     {
+      "a": "go to the gate",
+      "base": -2.2,
+      "f": {
+       "sees:athena-as-mentes": 1
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "palace-servants-4": [
+     {
+      "a": "pour",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "wait with the jar",
+      "base": 1,
+      "f": {}
+     },
+     {
+      "a": "go to the gate",
+      "base": -2.2,
+      "f": {
+       "sees:athena-as-mentes": 1
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ],
+    "palace-servants-5": [
+     {
+      "a": "pour",
+      "base": 0.8,
+      "f": {}
+     },
+     {
+      "a": "wait with the jar",
+      "base": 1,
+      "f": {}
+     },
+     {
+      "a": "go to the gate",
+      "base": -2.2,
+      "f": {
+       "sees:athena-as-mentes": 1
+      },
+      "uses": [
+       "gate"
+      ]
+     }
+    ]
+   }
+  }
  },
  "params": {
   "latency": 0.3,
@@ -1278,7 +1655,36 @@
   "env": 1,
   "horizon": 2
  },
- "bands": null,
+ "bands": {
+  "H1": {
+   "word": "cool",
+   "band": [
+    0.03,
+    0.12
+   ]
+  },
+  "H2": {
+   "word": "warm",
+   "band": [
+    0.04,
+    0.12
+   ]
+  },
+  "H3": {
+   "word": "warm",
+   "band": [
+    0.15,
+    0.5
+   ]
+  },
+  "H4": {
+   "word": "zero",
+   "band": [
+    0,
+    0.02
+   ]
+  }
+ },
  "events": [
   {
    "id": "v1",
@@ -27107,17 +27513,243 @@
    "id": "e2381"
   }
  ],
- "measures": null,
+ "measures": {
+  "file": "odyssey/score/measures/OD-B01-S03.json",
+  "before": {
+   "drawings": 534,
+   "screenDrawings": 3397,
+   "coverage": 1,
+   "literal": 0.719,
+   "share": {
+    "ACTION": 0.384,
+    "REACTION": 0.335,
+    "ALIVE_HOLD": 0.281,
+    "HOLD_AUTHORED": 0,
+    "DEAD": 0
+   },
+   "unmotivatedFreeze": 0.667,
+   "unmotivatedFreezeBy": "athena-as-mentes",
+   "unmotivatedAction": 0.736,
+   "reactionLatency": {
+    "median": 0.417,
+    "p90": 0.917,
+    "answered": 37,
+    "unanswered": 27
+   },
+   "gestureDensity": 1.2,
+   "gestures": 6,
+   "phrases": 5,
+   "perLine": [
+    {
+     "gi": 5,
+     "speaker": "telemachus",
+     "phrases": 5,
+     "gestures": 6
+    }
+   ],
+   "diversity": 0.551,
+   "contact": {
+    "footSlide": 3,
+    "footSlideMax": 0.13606077133330077,
+    "handoffs": [
+     {
+      "t": 36.75,
+      "from": "athena-as-mentes:R",
+      "to": "telemachus:L",
+      "gap": 24.543,
+      "gapH": 0.354,
+      "mirrored": true
+     }
+    ],
+    "constraint": []
+   },
+   "legality": {
+    "clampRequests": 336,
+    "selfCollisions": 0,
+    "bodyOverlaps": 0,
+    "examples": [
+     {
+      "t": 3.25,
+      "id": "the-suitors-2",
+      "ch": "head.yaw",
+      "asked": 1.65,
+      "limit": [
+       -1.45,
+       1.45
+      ]
+     },
+     {
+      "t": 3.333,
+      "id": "the-suitors-2",
+      "ch": "torso.twist",
+      "asked": 0.632,
+      "limit": [
+       -0.55,
+       0.55
+      ]
+     },
+     {
+      "t": 3.333,
+      "id": "the-suitors-2",
+      "ch": "head.yaw",
+      "asked": 1.903,
+      "limit": [
+       -1.45,
+       1.45
+      ]
+     },
+     {
+      "t": 3.417,
+      "id": "the-suitors-2",
+      "ch": "torso.twist",
+      "asked": 0.691,
+      "limit": [
+       -0.55,
+       0.55
+      ]
+     },
+     {
+      "t": 3.417,
+      "id": "the-suitors-2",
+      "ch": "head.yaw",
+      "asked": 2.1,
+      "limit": [
+       -1.45,
+       1.45
+      ]
+     },
+     {
+      "t": 3.5,
+      "id": "the-suitors-2",
+      "ch": "torso.twist",
+      "asked": 0.753,
+      "limit": [
+       -0.55,
+       0.55
+      ]
+     }
+    ],
+    "balance": 2
+   },
+   "essentials": {
+    "H1": 0.1681,
+    "H2": 0.0533,
+    "H3": 0.341,
+    "H4": 0.014
+   }
+  },
+  "after": {
+   "drawings": 534,
+   "screenDrawings": 3401,
+   "coverage": 1,
+   "literal": 0.291,
+   "share": {
+    "ACTION": 0.108,
+    "REACTION": 0.183,
+    "ALIVE_HOLD": 0.709,
+    "HOLD_AUTHORED": 0.648,
+    "DEAD": 0
+   },
+   "unmotivatedFreeze": 1.417,
+   "unmotivatedFreezeBy": "athena-as-mentes",
+   "unmotivatedAction": 0.004,
+   "reactionLatency": {
+    "median": 0.583,
+    "p90": 1.083,
+    "answered": 133,
+    "unanswered": 140
+   },
+   "gestureDensity": 0.6,
+   "gestures": 3,
+   "phrases": 5,
+   "perLine": [
+    {
+     "gi": 5,
+     "speaker": "telemachus",
+     "phrases": 5,
+     "gestures": 3
+    }
+   ],
+   "diversity": 0.578,
+   "contact": {
+    "footSlide": 11,
+    "footSlideMax": 7.6072201293809165,
+    "handoffs": [
+     {
+      "t": 37.75,
+      "from": "athena-as-mentes:R",
+      "to": "telemachus:R",
+      "gap": 1.893,
+      "gapH": 0.027,
+      "mirrored": false
+     }
+    ],
+    "constraint": []
+   },
+   "legality": {
+    "clampRequests": 0,
+    "selfCollisions": 0,
+    "bodyOverlaps": 0,
+    "examples": [],
+    "balance": 2
+   },
+   "essentials": {
+    "H1": 0.0767,
+    "H2": 0.0731,
+    "H3": 0.3782,
+    "H4": 0.0009
+   }
+  }
+ },
  "log": {
-  "homeostat": [],
+  "homeostat": [
+   {
+    "n": 0,
+    "positions": {
+     "H1": 0,
+     "H2": 0,
+     "H3": 0,
+     "H4": 0
+    },
+    "params": {
+     "latency": 0.3,
+     "amp": 1,
+     "separation": 1,
+     "threat": 1.5,
+     "attack": 0.5,
+     "pause": 0.7,
+     "camera": 1,
+     "affordance": 0.7,
+     "env": 1,
+     "horizon": 2
+    },
+    "reading": {
+     "H1": 0.0767,
+     "H2": 0.0731,
+     "H3": 0.3782,
+     "H4": 0.0009
+    },
+    "out": [],
+    "distance": 0,
+    "ms": 3929,
+    "coverage": 1,
+    "freeze": 1.417
+   }
+  ],
   "patches": []
  },
  "compiled": {
-  "at": "2026-09-30T07:29:58",
+  "at": "2026-09-30T07:33:03",
   "notes": [
    "handoff spear at 37.75 s: receiver hand 1.68, giver hand 0.43 units from the meeting point"
   ],
   "sheet": "odyssey/score/OD-B01-S03.choreo.json",
   "errors": []
+ },
+ "homeostat": {
+  "stable": true,
+  "retained": 0,
+  "attempts": 1,
+  "at": "2026-09-30T07:35:08"
  }
 }

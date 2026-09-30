@@ -151,13 +151,13 @@ function measure(Tr, o = {}) {
         if (!ref || !act[id][i]) { ref = v; armed = false; continue; } if (!armed && (Math.abs(v[0] - ref[0]) > 0.35 || Math.abs(v[1] - ref[1]) > 0.35)) { g++; armed = true; } } }
     gN += g; pN += V.phrases.length; perLine.push({ gi: c.gi, speaker: id, phrases: V.phrases.length, gestures: g }); }
   /* contact integrity */
-  const contact = { footSlide: 0, footSlideMax: 0, handoffs: [], constraint: [] };
+  const contact = { footSlide: 0, footSlideMax: 0, handoffs: [], constraint: [] }, viol = new Float32Array(n);
   for (const id of ids) { const L = byActor[id]; for (let i = 1; i < n; i++) { const x = L[i], y = L[i - 1]; if (!x || !y || x.s.sat || x.s.lying || x.s.walk > 0.05 || y.s.walk > 0.05) continue;
     const legs = Math.abs(x.s.j.legRP[0] - y.s.j.legRP[0]) + Math.abs(x.s.j.legLP[0] - y.s.j.legLP[0]), d = Math.hypot(x.s.p[0] - y.s.p[0], x.s.p[2] - y.s.p[2]) / H(id);
-    if (d > 0.004 && legs < 0.02 && !(Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => (R.riders || []).includes(id)))) { contact.footSlide++; contact.footSlideMax = Math.max(contact.footSlideMax, d * F); } } }
+    if (d > 0.004 && legs < 0.02 && !(Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => (R.riders || []).includes(id)))) { contact.footSlide++; contact.footSlideMax = Math.max(contact.footSlideMax, d * F); viol[i] += Math.min(1, d * 50); } } }
   for (const p of (Tr.C && Tr.C.props) || []) if (p.op === 'give') { const i = Math.min(n - 1, Math.round(p.t * F)), [ga, gs] = p.from.split(':'), [ra, rs] = p.to.split(':'), g = frames[i].a[ga], r = frames[i].a[ra];
-    if (g && r) { const hg = g.s.pts['hand' + (gs || 'R')], hr = r.s.pts['hand' + (rs || 'R')], gap = Math.hypot(hg[0] - hr[0], hg[1] - hr[1], hg[2] - hr[2]); contact.handoffs.push({ t: p.t, from: p.from, to: p.to, gap: r3(gap), gapH: r3(gap / H(ra)), mirrored: (gs || 'R') !== (rs || 'R') }); } }
-  for (const c of o.constraints || []) { let worst = 0; for (let i = 0; i < n; i++) { const x = frames[i].a[c.actor]; if (!x || i / F < c.t0 || i / F > c.t1) continue; const d = Math.hypot(x.s.pts.hips[0] - c.at[0], x.s.pts.hips[2] - c.at[2]); worst = Math.max(worst, d); } contact.constraint.push({ actor: c.actor, what: c.what, worst: r3(worst), ok: worst <= (c.tol || 6) }); }
+    if (g && r) { const hg = g.s.pts['hand' + (gs || 'R')], hr = r.s.pts['hand' + (rs || 'R')], gap = Math.hypot(hg[0] - hr[0], hg[1] - hr[1], hg[2] - hr[2]); viol[i] += Math.min(3, Math.max(0, gap / H(ra) - 0.05) * 10) + ((gs || 'R') !== (rs || 'R') ? 1 : 0); contact.handoffs.push({ t: p.t, from: p.from, to: p.to, gap: r3(gap), gapH: r3(gap / H(ra)), mirrored: (gs || 'R') !== (rs || 'R') }); } }
+  for (const c of o.constraints || []) { let worst = 0; for (let i = 0; i < n; i++) { const x = frames[i].a[c.actor]; if (!x || i / F < c.t0 || i / F > c.t1) continue; const d = Math.hypot(x.s.pts.hips[0] - c.at[0], x.s.pts.hips[2] - c.at[2]); worst = Math.max(worst, d); if (d > (c.tol || 6)) viol[i] += 1; } contact.constraint.push({ actor: c.actor, what: c.what, worst: r3(worst), ok: worst <= (c.tol || 6) }); }
   /* pose legality */
   const legal = { clampRequests: 0, selfCollisions: 0, bodyOverlaps: 0, examples: [] };
   const C = Tr.C;
@@ -165,16 +165,16 @@ function measure(Tr, o = {}) {
     for (const id of ids) { const x = frames[i].a[id]; if (!x) continue;
       if (C && (C.layer || 'abs') === 'add') { const v = Choreo.sampleActor(C, id, t) || {}, s0 = Tr.ctx.B.at(id, t);
         for (const [ch, lim] of Object.entries(Choreo.CLAMP)) { if (v[ch] == null || ch === 'hips.dy') continue; const base = ch.startsWith('arm') ? s0.j['arm' + ch[4] + 'P'][ch.endsWith('out') ? 2 : 0] * (ch.endsWith('out') && ch[4] === 'R' ? -1 : 1) : ch.startsWith('leg') ? s0.j['leg' + ch[4] + 'P'][0] : ch === 'torso.lean' ? s0.j.torsoP[0] : ch === 'head.pitch' ? s0.j.headP[0] : ch === 'head.yaw' ? -s0.j.headP[1] : ch === 'torso.twist' ? -s0.j.torsoP[1] : ch === 'torso.roll' ? -s0.j.torsoP[2] : 0;
-          const want = base + v[ch]; if (want < Math.min(lim[0], base) - 0.05 || want > Math.max(lim[1], base) + 0.05) { legal.clampRequests++; if (legal.examples.length < 6) legal.examples.push({ t: r3(t), id, ch, asked: r3(want), limit: lim }); } } }
+          const want = base + v[ch]; if (want < Math.min(lim[0], base) - 0.05 || want > Math.max(lim[1], base) + 0.05) { legal.clampRequests++; viol[i] += 0.25; if (legal.examples.length < 6) legal.examples.push({ t: r3(t), id, ch, asked: r3(want), limit: lim }); } } }
       /* a hand inside the torso or the head (in the torso's and head's own frames) */
       const Fr = Body.frames(x.s), inv = m => { const R = [m[0], m[4], m[8], m[1], m[5], m[9], m[2], m[6], m[10]], tt = [m[3], m[7], m[11]], s2 = R[0] * R[0] + R[3] * R[3] + R[6] * R[6]; return p => { const d = [p[0] - tt[0], p[1] - tt[1], p[2] - tt[2]]; return [(R[0] * d[0] + R[3] * d[1] + R[6] * d[2]) / s2, (R[1] * d[0] + R[4] * d[1] + R[7] * d[2]) / s2, (R[2] * d[0] + R[5] * d[1] + R[8] * d[2]) / s2]; }; };
       const toT = inv(Fr.torsoP), toH = inv(Fr.headP);
       for (const sd of ['R', 'L']) { const h = x.s.pts['hand' + sd], a = toT(h), b = toH(h);
-        if (Math.abs(a[0]) < TORSO_BOX.x - HAND_R * 0.5 && a[1] > TORSO_BOX.y0 && a[1] < TORSO_BOX.y1 && Math.abs(a[2]) < TORSO_BOX.z + HAND_R * 0.5 - 3) { legal.selfCollisions++; if (legal.examples.length < 10) legal.examples.push({ t: r3(t), id, hand: sd, inside: 'torso' }); }
-        else if (Math.abs(b[0]) < HEAD_BOX.x && b[1] > HEAD_BOX.y0 && b[1] < HEAD_BOX.y1 && Math.abs(b[2]) < HEAD_BOX.z - 2) { legal.selfCollisions++; if (legal.examples.length < 10) legal.examples.push({ t: r3(t), id, hand: sd, inside: 'head' }); } } }
+        if (Math.abs(a[0]) < TORSO_BOX.x - HAND_R * 0.5 && a[1] > TORSO_BOX.y0 && a[1] < TORSO_BOX.y1 && Math.abs(a[2]) < TORSO_BOX.z + HAND_R * 0.5 - 3) { legal.selfCollisions++; viol[i] += 1; if (legal.examples.length < 10) legal.examples.push({ t: r3(t), id, hand: sd, inside: 'torso' }); }
+        else if (Math.abs(b[0]) < HEAD_BOX.x && b[1] > HEAD_BOX.y0 && b[1] < HEAD_BOX.y1 && Math.abs(b[2]) < HEAD_BOX.z - 2) { legal.selfCollisions++; viol[i] += 1; if (legal.examples.length < 10) legal.examples.push({ t: r3(t), id, hand: sd, inside: 'head' }); } } }
     /* two figures inside each other: the hips-to-neck segments closer than two torso half-depths */
     const list = ids.filter(id => frames[i].a[id]); for (let p = 0; p < list.length; p++) for (let q = p + 1; q < list.length; q++) { const a = frames[i].a[list[p]].s, b = frames[i].a[list[q]].s;
-      const d = segDist(a.pts.hips, a.pts.neck, b.pts.hips, b.pts.neck), lim = 2 * 10 * Math.min(a.scale, b.scale); if (d < lim) { legal.bodyOverlaps++; if (legal.examples.length < 12) legal.examples.push({ t: r3(t), pair: [list[p], list[q]], d: r3(d) }); } } }
+      const d = segDist(a.pts.hips, a.pts.neck, b.pts.hips, b.pts.neck), lim = 2 * 10 * Math.min(a.scale, b.scale); if (d < lim) { legal.bodyOverlaps++; viol[i] += 1; if (legal.examples.length < 12) legal.examples.push({ t: r3(t), pair: [list[p], list[q]], d: r3(d) }); } } }
   /* the summary, over everyone's screen time */
   const on = T.on || 1, L = lats.slice().sort((x, y) => x - y);
   out.summary = { drawings: n, screenDrawings: T.on, coverage: r3((T.A + T.R + T.H + T.h) / on), literal: r3((T.A + T.R) / on), share: { ACTION: r3(T.A / on), REACTION: r3(T.R / on), ALIVE_HOLD: r3((T.H + T.h) / on), HOLD_AUTHORED: r3(T.h / on), DEAD: r3(T.D / on) },
@@ -183,6 +183,12 @@ function measure(Tr, o = {}) {
     reactionLatency: { median: L.length ? r3(L[L.length >> 1]) : null, p90: L.length ? r3(L[Math.floor(L.length * 0.9)]) : null, answered: answered.filter(x => x.lat != null).length, unanswered: answered.filter(x => x.lat == null).length },
     gestureDensity: pN ? r3(gN / pN) : null, gestures: gN, phrases: pN, perLine, diversity: r3(Object.values(out.actors).reduce((a, b) => a + b.diversity, 0) / Math.max(1, ids.length)),
     contact, legality: legal };
+  /* balance: the centre of mass (hips half, chest a third, head the rest) over the feet, for a standing figure not walking */
+  let balance = 0; for (let i = 0; i < n; i++) for (const id of ids) { const x = frames[i].a[id]; if (!x || x.s.sat || x.s.lying || x.s.walk > 0.05 || (Tr.C && Tr.C.rigs && Object.values(Tr.C.rigs).some(R => (R.riders || []).includes(id)))) continue;
+    const P = x.s.pts, cm = [0, 2].map(k => P.hips[k] * 0.5 + P.chest[k] * 0.3 + P.head[k] * 0.2), a = [P.footR[0], P.footR[2]], b = [P.footL[0], P.footL[2]], ab = [b[0] - a[0], b[1] - a[1]], L2 = ab[0] ** 2 + ab[1] ** 2 || 1, u = Math.max(0, Math.min(1, ((cm[0] - a[0]) * ab[0] + (cm[1] - a[1]) * ab[1]) / L2)), d = Math.hypot(cm[0] - a[0] - ab[0] * u, cm[1] - a[1] - ab[1] * u);
+    if (d > 13 * x.s.scale) { balance++; viol[i] += Math.min(1, (d - 13 * x.s.scale) / (8 * x.s.scale)); } }
+  out.summary.legality.balance = balance;
+  out.viol = Array.from(viol, v => r3(v));
   out.states = Object.fromEntries(Object.entries(stateOf).map(([k, v]) => [k, v.join('')]));
   out.answered = answered.slice(0, 400);
   return out;
