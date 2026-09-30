@@ -32,21 +32,17 @@ Missing intent kinds, by how many scenes ask for them (`clip`: a motion.js clip 
 | HERD | 4 | missing | B09-S08 B09-S10 B10-S04 B12-S06 |
 | SACRIFICE | 4 | missing | B09-S10 B14-S01 B12-S06 B11-S01 |
 | SEIZE | 4 | missing | B09-S08 B10-S02 B04-S05 B19-S04 |
-| STEER | 4 | missing | B09-S11 B09-S03 B12-S04 B05-S05 |
 | STRUGGLE | 4 | missing | B09-S03 B12-S04 B04-S04 B04-S05 |
 | TEND | 4 | missing | B19-S04 B05-S04 B24-S05 B01-S02 |
 | THROW | 4 | missing | B09-S11 B10-S02 B10-S04 B14-S01 |
 | TRANSFORM | 4 | missing | B10-S04 B04-S05 B16-S03 B24-S05 |
 | CLIMB | 3 | clip | B09-S10 B05-S05 B13-S01 |
 | EMBRACE | 3 | clip | B23-S04 B16-S03 B24-S03 |
-| GESTURE:invoke | 3 | missing-shape | B09-S11 B12-S07 B05-S05 |
 | STRIKE | 3 | clip | B10-S04 B12-S04 B16-S03 |
 | TURN_AWAY | 3 | missing | B16-S03 B19-S04 B17-S03 |
-| BECKON | 2 | clip | B16-S03 B06-S03 |
 | HAUL | 2 | missing | B12-S07 B05-S04 |
 | LOCOMOTE | 2 | missing | B23-S04 B14-S01 |
 | MOVE_STONE | 2 | missing | B09-S08 B09-S10 |
-| SING | 2 | missing | B10-S04 B08-S05 |
 | SWIM | 2 | clip | B12-S07 B05-S05 |
 | WAKE | 2 | clip | B09-S08 B12-S07 |
 | WEAVE | 2 | clip | B10-S04 B02-S02 |
@@ -61,12 +57,6 @@ Missing intent kinds, by how many scenes ask for them (`clip`: a motion.js clip 
 | DIE | 1 | missing | B17-S03 |
 | DRAG | 1 | missing | B09-S03 |
 | DROWN | 1 | missing | B12-S07 |
-| GESTURE:describe | 1 | missing-shape | B23-S04 |
-| GESTURE:mime | 1 | missing-shape | B10-S05 |
-| GESTURE:oath | 1 | missing-shape | B19-S04 |
-| GESTURE:reach | 1 | missing-shape | B19-S04 |
-| GESTURE:show | 1 | missing-shape | B10-S05 |
-| GESTURE:taunt | 1 | missing-shape | B09-S11 |
 | GRAPPLE | 1 | missing | B04-S05 |
 | GROPE | 1 | missing | B09-S10 |
 | GUARD | 1 | missing | B11-S01 |
@@ -244,11 +234,11 @@ Dramatic chain:
 
 Lines (speech act, affect, body):
 
-- gi2 0.6 s odysseus -> polyphemus: TAUNT, triumph, GESTURE:taunt [missing-shape]. "Cyclops! It was no weak man's friends you ate"
+- gi2 0.6 s odysseus -> polyphemus: TAUNT, triumph, GESTURE:taunt [engine]. "Cyclops! It was no weak man's friends you ate"
 - gi4 28.7 s odysseus -> polyphemus: REVEAL, pride, GESTURE:chest [engine]. "it was Odysseus, sacker of cities"
-- gi6 47.4 s polyphemus -> poseidon: CURSE (prayer), anguish, GESTURE:invoke [missing-shape]. "So the old prophecy comes home... Hear me, Poseidon"
+- gi6 47.4 s polyphemus -> poseidon: CURSE (prayer), anguish, GESTURE:invoke [engine]. "So the old prophecy comes home... Hear me, Poseidon"
 
-Intents: GESTURE:plead(plead) crew > odysseus 3.0-16.0 (hands on his arm) [engine]; LISTEN polyphemus > odysseus 1.0-16.0 (by ear, head cocked) [engine]; THROW polyphemus > ship 17.7-20.0 (two-handed overhead, rock torn from the peak) [missing]; ROW crew 20.0-28.0 (tempo up) [clip]; STEER(pole_off) odysseus > shore 21.0-25.0 [missing]; HOLD_BACK(restrain) crew > odysseus 29.0-40.0 [engine]; ATTEND polyphemus > odysseus 29.0-46.0 (by ear) [engine]; RECOGNISE polyphemus 47.4-60.0 (the prophecy) [missing]; GESTURE:invoke(pray) polyphemus > sky 62.0-90.0 (arms raised) [missing-shape]; THROW polyphemus > ship 92.5-95.0 [missing]; ROW crew 95.0-100.5 [clip]
+Intents: GESTURE:plead(plead) crew > odysseus 3.0-16.0 (hands on his arm) [engine]; LISTEN polyphemus > odysseus 1.0-16.0 (by ear, head cocked) [engine]; THROW polyphemus > ship 17.7-20.0 (two-handed overhead, rock torn from the peak) [missing]; ROW crew 20.0-28.0 (tempo up) [clip]; STEER(pole_off) odysseus > shore 21.0-25.0 [engine]; HOLD_BACK(restrain) crew > odysseus 29.0-40.0 [engine]; ATTEND polyphemus > odysseus 29.0-46.0 (by ear) [engine]; RECOGNISE polyphemus 47.4-60.0 (the prophecy) [missing]; GESTURE:invoke(pray) polyphemus > sky 62.0-90.0 (arms raised) [engine]; THROW polyphemus > ship 92.5-95.0 [missing]; ROW crew 95.0-100.5 [clip]
 
 Relations: THREAT odysseus>polyphemus 0.6 (the taunt); RETARGET polyphemus>ship 17.0 (aim from the voice); ATTACK polyphemus>ship 17.7 (rock); IMPACT rock>sea 19.5 (ahead of the bow); EVADE ship>rock 20.0; RECOVER ship>wave 22.0 (pole off the shallows); RETARGET polyphemus>ship 30.0 (on the name); ATTACK polyphemus>ship 92.5; IMPACT rock>sea 94.0 (astern); SEPARATION ship>shore 96.0
 
@@ -282,7 +272,7 @@ Lines (speech act, affect, body):
 
 - gi6 28.2 s odysseus -> crew: COMMAND, command, GESTURE:point [engine]. "bind them under the benches... to your oars now"
 
-Intents: STEER odysseus > ship 0.6-8.0 [missing]; LEAD odysseus 8.0-12.0 [engine]; GESTURE:point odysseus 9.0-10.0 (send the scouts) [engine]; OFFER lotus-eater > scout-1 16.2-18.0 (lotus) [engine]; TAKE scout-1 17.0-18.5 [engine]; EAT scout-1 18.5-21.0 [missing]; POSTURE(lie_down) scout-1 21.0-23.0 [missing]; HOLD scout-1 23.0-28.0 (languor: breath only) [engine]; DRAG odysseus > scout-1 28.2-34.0 [missing]; STRUGGLE(resist) scout-1 > odysseus 28.5-34.0 [missing]; WEEP scout-1 28.5-38.0 [clip]; ROPE_WORK(bind) odysseus > scout-1 34.0-38.0 (under the bench) [missing]; ROW crew 38.0-43.0 [clip]
+Intents: STEER odysseus > ship 0.6-8.0 [engine]; LEAD odysseus 8.0-12.0 [engine]; GESTURE:point odysseus 9.0-10.0 (send the scouts) [engine]; OFFER lotus-eater > scout-1 16.2-18.0 (lotus) [engine]; TAKE scout-1 17.0-18.5 [engine]; EAT scout-1 18.5-21.0 [missing]; POSTURE(lie_down) scout-1 21.0-23.0 [missing]; HOLD scout-1 23.0-28.0 (languor: breath only) [engine]; DRAG odysseus > scout-1 28.2-34.0 [missing]; STRUGGLE(resist) scout-1 > odysseus 28.5-34.0 [missing]; WEEP scout-1 28.5-38.0 [clip]; ROPE_WORK(bind) odysseus > scout-1 34.0-38.0 (under the bench) [missing]; ROW crew 38.0-43.0 [clip]
 
 Relations: CONTACT odysseus>scout-1 28.5 (grip on the arm); BLOCK scout-1>odysseus 29.0 (passive resistance: dead weight)
 
@@ -346,7 +336,7 @@ Lines (speech act, affect, body):
 
 - gi7 38.1 s eurylochus -> odysseus: REPORT, fear, GESTURE:plead [engine]. "They are gone, Odysseus, all of them!"
 
-Intents: WEAVE circe 0.6-12.0 [clip]; SING circe 0.6-12.0 [missing]; ANIMAL:fawn(fawn) wolves-lions > crew 0.6-12.0 [missing]; APPROACH crew > circe 3.0-12.0 [engine]; WELCOME circe > crew 11.7-14.0 [engine]; HIDE eurylochus 11.7-37.0 (watches from cover) [engine]; POUR circe 16.2-18.0 [engine]; OFFER circe > crew 17.0-19.0 [engine]; DRINK crew 18.0-21.0 [engine]; STRIKE(strike_wand) circe > crew 21.0-23.0 [clip]; TRANSFORM crew 23.0-26.0 (figure -> pig, identity kept) [missing]; HERD circe > pigs 31.7-35.0 [missing]; THROW circe > pen 34.0-36.0 (acorns) [missing]; FLEE eurylochus 36.0-38.0 [missing]; GESTURE:plead(report) eurylochus > odysseus 38.1-52.0 [engine]
+Intents: WEAVE circe 0.6-12.0 [clip]; SING circe 0.6-12.0 [engine]; ANIMAL:fawn(fawn) wolves-lions > crew 0.6-12.0 [missing]; APPROACH crew > circe 3.0-12.0 [engine]; WELCOME circe > crew 11.7-14.0 [engine]; HIDE eurylochus 11.7-37.0 (watches from cover) [engine]; POUR circe 16.2-18.0 [engine]; OFFER circe > crew 17.0-19.0 [engine]; DRINK crew 18.0-21.0 [engine]; STRIKE(strike_wand) circe > crew 21.0-23.0 [clip]; TRANSFORM crew 23.0-26.0 (figure -> pig, identity kept) [missing]; HERD circe > pigs 31.7-35.0 [missing]; THROW circe > pen 34.0-36.0 (acorns) [missing]; FLEE eurylochus 36.0-38.0 [missing]; GESTURE:plead(report) eurylochus > odysseus 38.1-52.0 [engine]
 
 Relations: ATTACK circe>crew 21.0 (the wand); CONTACT wand>crew 21.5; SEPARATION eurylochus>house 36.0
 
@@ -360,7 +350,7 @@ Previz: Contact sheet read. There is no transformation: the scouts are simply ma
 
 ### OD-B10-S05 Hermes Gives the Moly
 
-**Type** dialogue. **Total** 68.11 s. **Prepared**: marks, sheet, cameras, rig.
+**Type** dialogue. **Total** 68.11 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A two-hander that is mostly instruction (three long Hermes lines) with one charged prop pulled from the earth and handed over; the instruction rehearses a future fight (wand, sword, oath) that the body should pre-enact without doing it.
 
@@ -381,7 +371,7 @@ Lines (speech act, affect, body):
 - gi4 28.5 s hermes -> odysseus: GIVE, wonder, OFFER [engine]. "take this herb of power... moly"
 - gi5 48.1 s hermes -> odysseus: INSTRUCT, command, GESTURE:chop [engine]. "draw your sword and rush her..."
 
-Intents: ARM odysseus 0.6-4.0 (sword over the shoulder, bow) [missing]; GESTURE:plead(plead) eurylochus > odysseus 1.0-6.0 (holds his arm) [engine]; APPROACH(walk) odysseus 4.0-11.0 [engine]; APPROACH(intercept) hermes > odysseus 10.0-11.5 [engine]; NOTICE odysseus > hermes 11.0-12.0 [engine]; LISTEN odysseus 11.0-68.0 [engine]; TOOL_WORK(dig) hermes > moly 28.5-32.0 [missing]; GESTURE:show(show) hermes > moly 32.0-36.0 (root and flower in one frame) [missing-shape]; OFFER hermes > odysseus 36.0-38.0 [engine]; TAKE odysseus 37.0-39.0 [engine]; GESTURE:mime(mime) hermes 50.0-58.0 (draw and rush, small) [missing-shape]
+Intents: ARM odysseus 0.6-4.0 (sword over the shoulder, bow) [missing]; GESTURE:plead(plead) eurylochus > odysseus 1.0-6.0 (holds his arm) [engine]; APPROACH(walk) odysseus 4.0-11.0 [engine]; APPROACH(intercept) hermes > odysseus 10.0-11.5 [engine]; NOTICE odysseus > hermes 11.0-12.0 [engine]; LISTEN odysseus 11.0-68.0 [engine]; TOOL_WORK(dig) hermes > moly 28.5-32.0 [missing]; GESTURE:show(show) hermes > moly 32.0-36.0 (root and flower in one frame) [engine]; OFFER hermes > odysseus 36.0-38.0 [engine]; TAKE odysseus 37.0-39.0 [engine]; GESTURE:mime(mime) hermes 50.0-58.0 (draw and rush, small) [engine]
 
 Relations: CONTACT eurylochus>odysseus 2.0 (restraining hand, shaken off)
 
@@ -393,9 +383,11 @@ Holds: odysseus 11.0-12.0: stopped dead by the stranger in the path; moly 33.0-3
 
 ### OD-B12-S04 Between Scylla and Charybdis
 
-**Type** fight. **Total** 53.52 s. **Prepared**: nothing.
+**Type** fight. **Total** 53.52 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A ship under oars between a whirlpool and a cliff; six serpent heads strike at once and lift six rowers up the rock; an armed captain looking the wrong way; the survivors row on under the screams.
+
+**The take**: cast odysseus, six-seized-sailors-1, six-seized-sailors-2, six-seized-sailors-3, six-seized-sailors-4, six-seized-sailors-5, six-seized-sailors-6; 5 keys, 24 shots; staged only as a set piece: scylla; not in the take's cast: crew, helmsman, rowers; rough-pass density (after) 0.606, longest still 2.667 s.
 
 **Essential variables**: six simultaneous strikes out of the rowing (pose-to-pose on twos); bodies lifted out of the ship (ownership to the monster); the whirlpool rings rotating (sea machinery); oars that keep their clock while men are taken (gaps in the bank); Odysseus' search: attention on the cliff face, armed, futile
 
@@ -411,7 +403,7 @@ Lines (speech act, affect, body):
 
 - gi3 10.9 s odysseus -> crew: COMMAND, resolve, GESTURE:point [engine]. "Row, friends... hug the cliff"
 
-Intents: ROW crew 0.6-53.5 [clip]; REACT:startle crew 1.0-2.0 (Charybdis roar) [engine]; GESTURE:point odysseus > cliff 12.0-13.0 [engine]; STEER helmsman 11.0-53.5 [missing]; ARM odysseus 25.7-29.0 (armour and two spears) [missing]; SEARCH odysseus > cliff-face 29.0-34.0 [engine]; STRIKE(strike_down) scylla > rowers 34.3-36.0 (six heads at once) [clip]; LIFT scylla > rowers 36.0-42.0 [missing]; STRUGGLE rowers 36.0-45.0 (hands and feet in the air) [missing]; ATTEND(look_up) crew > rowers 42.6-53.5 [engine]; WEEP(grief) odysseus 42.6-53.5 [clip]
+Intents: ROW crew 0.6-53.5 [clip]; REACT:startle crew 1.0-2.0 (Charybdis roar) [engine]; GESTURE:point odysseus > cliff 12.0-13.0 [engine]; STEER helmsman 11.0-53.5 [engine]; ARM odysseus 25.7-29.0 (armour and two spears) [missing]; SEARCH odysseus > cliff-face 29.0-34.0 [engine]; STRIKE(strike_down) scylla > rowers 34.3-36.0 (six heads at once) [clip]; LIFT scylla > rowers 36.0-42.0 [missing]; STRUGGLE rowers 36.0-45.0 (hands and feet in the air) [missing]; ATTEND(look_up) crew > rowers 42.6-53.5 [engine]; WEEP(grief) odysseus 42.6-53.5 [clip]
 
 Relations: THREAT charybdis>ship 0.6; EVADE ship>charybdis 11.0; ATTACK scylla>rowers 34.3 (six heads); CONTACT scylla>rowers 35.0; SEPARATION rowers>ship 37.0 (lifted away); RECOVER crew>ship 40.0 (oars back on the clock); SEPARATION ship>monsters 48.0
 
@@ -423,9 +415,11 @@ Holds: odysseus 42.6-48.0: the icon: face turned up, the men out of frame (the g
 
 ### OD-B12-S07 Zeus Destroys the Last Ship
 
-**Type** storm. **Total** 60.73 s. **Prepared**: nothing.
+**Type** storm. **Total** 60.73 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: Accusation, departure, a thunderbolt to the mast, the ship shattering and every man drowning, a raft lashed from keel and mast, and a man hanging from a fig tree over a whirlpool: five situations and a lone survivor, mostly held in extreme wides.
+
+**The take**: cast odysseus, drowning-crew-1, drowning-crew-2, drowning-crew-3, drowning-crew-4, drowning-crew-5; 5 keys, 7 shots; not in the take's cast: helmsman; rough-pass density (after) 0.93, longest still 2.333 s.
 
 **Essential variables**: ship break-up: the hull into pieces (keel, mast) with men thrown into the sea; drowning crowd (swim then sink); lashing keel and mast (rope) and riding them; hang from the fig tree: a sustained grip hold with the body swinging; the only moving thing is the whirlpool (hold, Ba)
 
@@ -440,7 +434,7 @@ Dramatic chain:
 
 Lines (speech act, affect, body):
 
-- gi2 0.6 s odysseus -> crew: CONDEMN, anguish, GESTURE:invoke [missing-shape]. "What have you done... O father Zeus"
+- gi2 0.6 s odysseus -> crew: CONDEMN, anguish, GESTURE:invoke [engine]. "What have you done... O father Zeus"
 
 Intents: WAKE odysseus 0.6-2.0 [clip]; GESTURE:point(accuse) odysseus > crew 3.0-17.0 [engine]; EAT crew 3.0-17.0 (feasting, ignoring) [missing]; HAUL(hoist) crew > mast 18.1-26.0 (raise mast, spread sail) [missing]; FALL helmsman 29.0-31.0 [engine]; FALL crew 34.5-36.0 (thrown into the sea) [engine]; SWIM crew 35.0-40.0 [clip]; DROWN crew 37.0-41.0 [missing]; ROPE_WORK(bind) odysseus > keel+mast 41.6-46.0 [missing]; RIDE odysseus > raft 45.0-50.0 [missing]; LEAP odysseus > fig-tree 50.0-51.0 [engine]; CLING(hang) odysseus > fig-tree 51.0-58.0 [engine]; SET_DOWN(drop) odysseus 58.0-60.0 [engine]
 
@@ -454,9 +448,11 @@ Holds: odysseus 51.0-58.0: hanging like a bat: only the whirlpool moves (Ba, En)
 
 ### OD-B05-S05 Poseidon Breaks the Sea
 
-**Type** storm. **Total** 47.25 s. **Prepared**: nothing.
+**Type** storm. **Total** 47.25 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A man alone on a raft in a four-wind storm: the raft rolls, he is swept off and swims back, a sea goddess climbs aboard with a veil, he strips and swims; the god on the headland; the sea is the other actor.
+
+**The take**: cast odysseus, poseidon, ino-leucothea; 5 keys, 6 shots; rough-pass density (after) 0.64, longest still 2.667 s.
 
 **Essential variables**: the raft as a body in heavy sea (roll, pitch, heave, a capsize-level roll); a figure swept overboard and regaining the raft (swim, climb); the veil: given, tied round the chest (prop attached to the body); Poseidon at a distance on one axis with the raft (Bi); the steering oar in hand for the first 11 s
 
@@ -469,7 +465,7 @@ Dramatic chain:
 - 32.8 s: Ino rises, sits on the raft: leave it, swim; gives her veil -> he ties on the veil
 - 37.3 s: Athena stills all winds but the north; he swims toward land -> the next scene
 
-Intents: STEER odysseus > raft 0.6-11.6 (the steering oar) [missing]; ATTEND(look_up) odysseus > stars 3.0-8.0 [engine]; GESTURE:invoke(invoke) poseidon 11.6-16.0 (trident stirs the sea) [missing-shape]; BRACE odysseus > raft 16.0-22.0 [missing]; FALL odysseus 22.0-24.0 (thrown overboard) [engine]; SWIM odysseus 24.0-28.0 [clip]; CLIMB odysseus > raft 28.0-31.0 [clip]; ARRIVE ino 32.8-34.0 (rises from the sea, sits on the raft) [engine]; OFFER ino > odysseus 34.0-35.5 (the veil) [engine]; TAKE odysseus 35.0-36.0 [engine]; ROPE_WORK(tie_on) odysseus > veil 36.0-38.0 [missing]; SWIM odysseus 40.0-47.0 [clip]
+Intents: STEER odysseus > raft 0.6-11.6 (the steering oar) [engine]; ATTEND(look_up) odysseus > stars 3.0-8.0 [engine]; GESTURE:invoke(invoke) poseidon 11.6-16.0 (trident stirs the sea) [engine]; BRACE odysseus > raft 16.0-22.0 [missing]; FALL odysseus 22.0-24.0 (thrown overboard) [engine]; SWIM odysseus 24.0-28.0 [clip]; CLIMB odysseus > raft 28.0-31.0 [clip]; ARRIVE ino 32.8-34.0 (rises from the sea, sits on the raft) [engine]; OFFER ino > odysseus 34.0-35.5 (the veil) [engine]; TAKE odysseus 35.0-36.0 [engine]; ROPE_WORK(tie_on) odysseus > veil 36.0-38.0 [missing]; SWIM odysseus 40.0-47.0 [clip]
 
 Relations: ATTACK poseidon>raft 11.6 (the storm); IMPACT wave>raft 21.7; SEPARATION odysseus>raft 22.0; RECOVER odysseus>raft 28.0; SEPARATION odysseus>raft 39.0 (abandons it)
 
@@ -481,9 +477,11 @@ Holds: odysseus 0.6-10.0: the long watch: steady at the oar, only the head to th
 
 ### OD-B21-S07 The Bow Sings
 
-**Type** revelation. **Total** 51.45 s. **Prepared**: nothing.
+**Type** revelation. **Total** 51.45 s. **Prepared**: marks, sheet, cameras, rig.
 
 **Why it is hard**: The bow is the actor: strung by bending it against the body, the string plucked (a note), an arrow nocked, drawn and loosed through twelve axe rings in a line; a beggar's posture falling away through handling; a hall of seated suitors reacting to a sound; thunder answering.
+
+**The take**: cast odysseus, telemachus, six-suitors-1, six-suitors-2, six-suitors-3, six-suitors-4, six-suitors-5, six-suitors-6; 5 keys, 13 shots; staged only as a set piece: zeus; rough-pass density (after) 0.476, longest still 4 s.
 
 **Essential variables**: bow machinery: bend, string, pluck, nock, draw (string tension), release; arrow flight through 12 aligned rings (a path constraint); posture change beggar -> king over the scene (a continuous affect parameter); Telemachus arming and taking position (sword and spear handoff to himself); a hall of seated listeners reacting to a sound (string, thunder)
 
@@ -534,7 +532,7 @@ Lines (speech act, affect, body):
 - gi2 0.6 s penelope -> eurycleia: COMMAND (a test), guarded, GESTURE:open [engine]. "carry the great bed out of the bridal chamber"
 - gi7 30.3 s penelope -> odysseus: EXPLAIN, recognition, EMBRACE [clip]. "Do not be angry with me... as dry land to swimmers"
 
-Intents: GUARDED_WELCOME penelope 0.6-5.0 [engine]; REACT:startle odysseus 5.5-6.5 [engine]; GESTURE:point(accuse) odysseus > penelope 5.8-19.0 [engine]; GESTURE:describe(describe) odysseus 7.0-18.0 (hands build the bed: trunk, frame, drill) [missing-shape]; RECOGNISE penelope 19.0-24.0 [missing]; LOCOMOTE(run) penelope > odysseus 24.6-26.5 [missing]; EMBRACE penelope > odysseus 26.5-45.5 [clip]; WEEP odysseus 30.0-45.5 [clip]; WEEP penelope 26.5-45.5 [clip]
+Intents: GUARDED_WELCOME penelope 0.6-5.0 [engine]; REACT:startle odysseus 5.5-6.5 [engine]; GESTURE:point(accuse) odysseus > penelope 5.8-19.0 [engine]; GESTURE:describe(describe) odysseus 7.0-18.0 (hands build the bed: trunk, frame, drill) [engine]; RECOGNISE penelope 19.0-24.0 [missing]; LOCOMOTE(run) penelope > odysseus 24.6-26.5 [missing]; EMBRACE penelope > odysseus 26.5-45.5 [clip]; WEEP odysseus 30.0-45.5 [clip]; WEEP penelope 26.5-45.5 [clip]
 
 Relations: CONTACT penelope>odysseus 26.5 (arms round his neck)
 
@@ -621,7 +619,7 @@ Lines (speech act, affect, body):
 - gi5 24.1 s odysseus -> telemachus: DECLARE, tenderness, GESTURE:chest [engine]. "I am no god... I am your father"
 - gi7 29.9 s telemachus -> odysseus: REFUSE, fear, GESTURE:recoil [engine]. "You are not my father"
 
-Intents: BECKON athena > odysseus 0.6-3.0 [clip]; STRIKE(strike_wand) athena > odysseus 3.0-5.0 [clip]; TRANSFORM odysseus 5.0-10.0 (beggar -> restored, the same actor) [missing]; ARRIVE odysseus 11.1-14.0 [engine]; RECOIL telemachus 17.1-20.0 [engine]; TURN_AWAY(avert) telemachus > odysseus 18.0-29.0 [missing]; APPROACH odysseus > telemachus 24.0-27.0 [engine]; RECOGNISE telemachus 32.0-34.0 [missing]; EMBRACE odysseus > telemachus 34.0-42.6 [clip]; WEEP telemachus 34.0-42.6 [clip]; WEEP odysseus 34.0-42.6 [clip]
+Intents: BECKON athena > odysseus 0.6-3.0 [engine]; STRIKE(strike_wand) athena > odysseus 3.0-5.0 [clip]; TRANSFORM odysseus 5.0-10.0 (beggar -> restored, the same actor) [missing]; ARRIVE odysseus 11.1-14.0 [engine]; RECOIL telemachus 17.1-20.0 [engine]; TURN_AWAY(avert) telemachus > odysseus 18.0-29.0 [missing]; APPROACH odysseus > telemachus 24.0-27.0 [engine]; RECOGNISE telemachus 32.0-34.0 [missing]; EMBRACE odysseus > telemachus 34.0-42.6 [clip]; WEEP telemachus 34.0-42.6 [clip]; WEEP odysseus 34.0-42.6 [clip]
 
 Relations: SEPARATION telemachus>odysseus 17.1 (recoil to the wall); CONTACT odysseus>telemachus 34.0 (embrace)
 
@@ -651,7 +649,7 @@ Lines (speech act, affect, body):
 
 - gi2 0.6 s penelope -> eurycleia: COMMAND, weariness, GESTURE:open [engine]. "wash the feet of your master's age-mate"
 
-Intents: CARRY(fetch) eurycleia > basin 17.0-20.0 [engine]; SET_DOWN eurycleia 20.0-21.0 [engine]; TURN_AWAY odysseus > fire 18.2-21.0 [missing]; POSTURE(sit) odysseus 20.0-22.0 [missing]; TEND(wash) eurycleia > foot 21.0-25.0 [missing]; RECOGNISE eurycleia 25.0-26.5 [missing]; SET_DOWN(drop) eurycleia > foot 26.5-27.0 [engine]; GESTURE:reach(reach) eurycleia > penelope 27.5-30.0 [missing-shape]; SEIZE odysseus > eurycleia 30.0-31.0 (throat) [missing]; GESTURE:oath(swear) eurycleia 36.0-45.0 [missing-shape]
+Intents: CARRY(fetch) eurycleia > basin 17.0-20.0 [engine]; SET_DOWN eurycleia 20.0-21.0 [engine]; TURN_AWAY odysseus > fire 18.2-21.0 [missing]; POSTURE(sit) odysseus 20.0-22.0 [missing]; TEND(wash) eurycleia > foot 21.0-25.0 [missing]; RECOGNISE eurycleia 25.0-26.5 [missing]; SET_DOWN(drop) eurycleia > foot 26.5-27.0 [engine]; GESTURE:reach(reach) eurycleia > penelope 27.5-30.0 [engine]; SEIZE odysseus > eurycleia 30.0-31.0 (throat) [missing]; GESTURE:oath(swear) eurycleia 36.0-45.0 [engine]
 
 Relations: CONTACT eurycleia>odysseus 21.0 (hands on the shin); IMPACT foot>basin 26.8 (tips); BLOCK odysseus>eurycleia 30.0 (stops the reach); CONTACT odysseus>eurycleia 31.0 (hand at the throat)
 
@@ -896,7 +894,7 @@ Lines (speech act, affect, body):
 
 - gi7 9.9 s nausicaa -> odysseus: REPLY (welcome), tenderness, WELCOME [engine]. "Stranger, you seem neither base nor witless..."
 
-Intents: DECIDE odysseus 0.6-3.0 [engine]; TAKE(break_branch) odysseus 2.0-3.0 [engine]; ARRIVE(emerge) odysseus 3.0-5.0 [engine]; FLEE maids 3.5-6.0 [missing]; HOLD nausicaa 3.5-9.9 (stands her ground) [engine]; GESTURE:plead(plead) odysseus > nausicaa 5.0-9.9 (at a distance) [engine]; WELCOME nausicaa > odysseus 9.9-20.0 [engine]; BECKON nausicaa > maids 30.0-34.0 [clip]; APPROACH(return) maids 34.0-43.0 [engine]
+Intents: DECIDE odysseus 0.6-3.0 [engine]; TAKE(break_branch) odysseus 2.0-3.0 [engine]; ARRIVE(emerge) odysseus 3.0-5.0 [engine]; FLEE maids 3.5-6.0 [missing]; HOLD nausicaa 3.5-9.9 (stands her ground) [engine]; GESTURE:plead(plead) odysseus > nausicaa 5.0-9.9 (at a distance) [engine]; WELCOME nausicaa > odysseus 9.9-20.0 [engine]; BECKON nausicaa > maids 30.0-34.0 [engine]; APPROACH(return) maids 34.0-43.0 [engine]
 
 Relations: THREAT odysseus>maids 3.0 (read as a lion); SEPARATION maids>odysseus 3.5; SEPARATION odysseus>nausicaa 5.0 (kept on purpose)
 
@@ -926,7 +924,7 @@ Lines (speech act, affect, body):
 
 - gi6 18.9 s alcinous -> odysseus: QUESTION, concern, GESTURE:open [engine]. "Stop the lyre, Demodocus... tell me the name"
 
-Intents: PLAY_INSTRUMENT(play_lyre) demodocus 0.6-18.9 [missing]; SING demodocus 0.6-18.9 [missing]; LISTEN phaeacians > demodocus 0.6-18.9 [engine]; WEEP odysseus 10.9-49.8 [clip]; WEEP(cover_face) odysseus 11.0-18.9 (cloak over the head) [clip]; NOTICE alcinous > odysseus 15.0-17.0 [engine]; GESTURE:chop alcinous > demodocus 19.0-20.0 (stop) [engine]; ATTEND phaeacians > odysseus 20.0-49.8 [engine]; RISE odysseus 49.8-53.0 [engine]; DECIDE odysseus 52.0-56.0 [engine]
+Intents: PLAY_INSTRUMENT(play_lyre) demodocus 0.6-18.9 [missing]; SING demodocus 0.6-18.9 [engine]; LISTEN phaeacians > demodocus 0.6-18.9 [engine]; WEEP odysseus 10.9-49.8 [clip]; WEEP(cover_face) odysseus 11.0-18.9 (cloak over the head) [clip]; NOTICE alcinous > odysseus 15.0-17.0 [engine]; GESTURE:chop alcinous > demodocus 19.0-20.0 (stop) [engine]; ATTEND phaeacians > odysseus 20.0-49.8 [engine]; RISE odysseus 49.8-53.0 [engine]; DECIDE odysseus 52.0-56.0 [engine]
 
 Machinery: LYRE: plucked on the song's beat, stopped at 19 s; CLOAK: drawn over the head; lowered at 49 s; SEATED_CROWD: the feasting hall
 

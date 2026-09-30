@@ -9,13 +9,17 @@
    "tools/perform/machinery.js"
   ],
   "intents": [
+   "ACCUSE",
    "ADVANCE",
    "APPROACH",
    "ARRIVE",
    "ATTEND",
+   "BECKON",
    "CARRY",
    "CLING",
+   "COMMAND",
    "DECIDE",
+   "DECLARE",
    "DRINK",
    "DUCK",
    "EVADE",
@@ -35,6 +39,7 @@
    "LISTEN",
    "NOTICE",
    "OFFER",
+   "PLEAD_BOUND",
    "POUR",
    "POUR_OUT",
    "PURSUIT",
@@ -44,16 +49,22 @@
    "RETARGET",
    "RETIME",
    "RISE",
+   "ROPE",
+   "SEAL",
    "SEARCH",
    "SEPARATION",
    "SET_DOWN",
    "SHAME",
    "SHOOT",
    "SIGNAL",
+   "SING",
+   "STEER",
    "STEP",
    "STRAIN",
+   "STRIP",
    "TAKE",
    "THREAT",
+   "THREATEN",
    "THRUST",
    "TWIST",
    "WELCOME"
@@ -61,12 +72,20 @@
   "gestureShapes": [
    "chest",
    "chop",
+   "describe",
    "dismiss",
    "fist",
+   "invoke",
+   "mime",
+   "oath",
+   "offer",
    "open",
    "plead",
    "point",
-   "recoil"
+   "reach",
+   "recoil",
+   "show",
+   "taunt"
   ],
   "reactHows": [
    "lean",
@@ -861,7 +880,7 @@
      "affect": "triumph",
      "gist": "Cyclops! It was no weak man's friends you ate",
      "body": "GESTURE:taunt",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "gi": 4,
@@ -883,7 +902,7 @@
      "affect": "anguish",
      "gist": "So the old prophecy comes home... Hear me, Poseidon",
      "body": "GESTURE:invoke",
-     "cover": "missing-shape"
+     "cover": "engine"
     }
    ],
    "intents": [
@@ -930,7 +949,7 @@
      "t1": 25,
      "target": "shore",
      "verb": "POLE_OFF",
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "HOLD_BACK",
@@ -966,7 +985,7 @@
      "target": "sky",
      "note": "arms raised",
      "verb": "PRAY",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "kind": "THROW",
@@ -1192,18 +1211,18 @@
     "engine": [
      "ATTEND",
      "GESTURE:chest",
+     "GESTURE:invoke",
      "GESTURE:plead",
+     "GESTURE:taunt",
      "HOLD_BACK",
-     "LISTEN"
+     "LISTEN",
+     "STEER"
     ],
     "clip": [
      "ROW"
     ],
     "missing": [
-     "GESTURE:invoke",
-     "GESTURE:taunt",
      "RECOGNISE",
-     "STEER",
      "THROW"
     ],
     "relations": [
@@ -1295,7 +1314,7 @@
      "t0": 0.6,
      "t1": 8,
      "target": "ship",
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "LEAD",
@@ -1529,6 +1548,7 @@
      "HOLD",
      "LEAD",
      "OFFER",
+     "STEER",
      "TAKE"
     ],
     "clip": [
@@ -1540,7 +1560,6 @@
      "EAT",
      "POSTURE",
      "ROPE_WORK",
-     "STEER",
      "STRUGGLE"
     ],
     "relations": [
@@ -1966,7 +1985,7 @@
      "actor": "circe",
      "t0": 0.6,
      "t1": 12,
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "ANIMAL:fawn",
@@ -2221,6 +2240,7 @@
      "HIDE",
      "OFFER",
      "POUR",
+     "SING",
      "WELCOME"
     ],
     "clip": [
@@ -2231,7 +2251,6 @@
      "ANIMAL:fawn",
      "FLEE",
      "HERD",
-     "SING",
      "THROW",
      "TRANSFORM"
     ],
@@ -2392,7 +2411,7 @@
      "target": "moly",
      "note": "root and flower in one frame",
      "verb": "SHOW",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "kind": "OFFER",
@@ -2416,7 +2435,7 @@
      "t1": 58,
      "note": "draw and rush, small",
      "verb": "MIME",
-     "cover": "missing-shape"
+     "cover": "engine"
     }
    ],
    "relations": [
@@ -2469,7 +2488,7 @@
     "sheet": true,
     "cameras": true,
     "rig": true,
-    "previz": false
+    "previz": true
    },
    "take": {
     "total": 68.11,
@@ -2509,8 +2528,10 @@
     "engine": [
      "APPROACH",
      "GESTURE:chop",
+     "GESTURE:mime",
      "GESTURE:open",
      "GESTURE:plead",
+     "GESTURE:show",
      "LISTEN",
      "NOTICE",
      "OFFER",
@@ -2519,8 +2540,6 @@
     "clip": [],
     "missing": [
      "ARM",
-     "GESTURE:mime",
-     "GESTURE:show",
      "TOOL_WORK"
     ],
     "relations": [
@@ -2618,7 +2637,7 @@
      "actor": "helmsman",
      "t0": 11,
      "t1": 53.5,
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "ARM",
@@ -2766,18 +2785,96 @@
     }
    ],
    "prepared": {
-    "marks": false,
-    "sheet": false,
-    "cameras": false,
-    "rig": false,
-    "previz": false
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": true,
+    "previz": true
+   },
+   "take": {
+    "total": 53.52,
+    "cast": [
+     "odysseus",
+     "six-seized-sailors-1",
+     "six-seized-sailors-2",
+     "six-seized-sailors-3",
+     "six-seized-sailors-4",
+     "six-seized-sailors-5",
+     "six-seized-sailors-6"
+    ],
+    "pieces": [
+     "black ship",
+     "boulder",
+     "bush",
+     "charybdis",
+     "crag",
+     "rocks",
+     "scylla",
+     "scylla s rock",
+     "splash",
+     "splash 2",
+     "stage plate",
+     "swell",
+     "swell 2",
+     "swell 3",
+     "swell 4",
+     "the fig tree",
+     "the sea",
+     "the whirlpool"
+    ],
+    "keys": 5,
+    "shots": 24,
+    "holding": {
+     "odysseus": {
+      "R": 1,
+      "L": 1
+     },
+     "six-seized-sailors-1": {
+      "R": 1,
+      "L": 0
+     },
+     "six-seized-sailors-2": {
+      "R": 1,
+      "L": 0
+     },
+     "six-seized-sailors-3": {
+      "R": 1,
+      "L": 0
+     },
+     "six-seized-sailors-4": {
+      "R": 1,
+      "L": 0
+     },
+     "six-seized-sailors-5": {
+      "R": 1,
+      "L": 0
+     },
+     "six-seized-sailors-6": {
+      "R": 1,
+      "L": 0
+     }
+    },
+    "propOnly": [
+     "scylla"
+    ],
+    "absent": [
+     "crew",
+     "helmsman",
+     "rowers"
+    ],
+    "density": {
+     "mean": 0.606,
+     "worstFrozen": 2.667,
+     "over80": "1/7"
+    }
    },
    "coverage": {
     "engine": [
      "ATTEND",
      "GESTURE:point",
      "REACT:startle",
-     "SEARCH"
+     "SEARCH",
+     "STEER"
     ],
     "clip": [
      "ROW",
@@ -2787,7 +2884,6 @@
     "missing": [
      "ARM",
      "LIFT",
-     "STEER",
      "STRUGGLE"
     ],
     "relations": [
@@ -2871,7 +2967,7 @@
      "affect": "anguish",
      "gist": "What have you done... O father Zeus",
      "body": "GESTURE:invoke",
-     "cover": "missing-shape"
+     "cover": "engine"
     }
    ],
    "intents": [
@@ -3072,16 +3168,82 @@
     }
    ],
    "prepared": {
-    "marks": false,
-    "sheet": false,
-    "cameras": false,
-    "rig": false,
-    "previz": false
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": true,
+    "previz": true
+   },
+   "take": {
+    "total": 60.73,
+    "cast": [
+     "odysseus",
+     "drowning-crew-1",
+     "drowning-crew-2",
+     "drowning-crew-3",
+     "drowning-crew-4",
+     "drowning-crew-5"
+    ],
+    "pieces": [
+     "black ship",
+     "fig tree above charybdis",
+     "olive tree",
+     "rocks",
+     "splash",
+     "splash 2",
+     "splash 3",
+     "stage plate",
+     "swell",
+     "swell 2",
+     "swell 3",
+     "swell 4",
+     "swell 5",
+     "the sea",
+     "zeus's thunderbolt"
+    ],
+    "keys": 5,
+    "shots": 7,
+    "holding": {
+     "odysseus": {
+      "R": 1,
+      "L": 1
+     },
+     "drowning-crew-1": {
+      "R": 1,
+      "L": 0
+     },
+     "drowning-crew-2": {
+      "R": 1,
+      "L": 0
+     },
+     "drowning-crew-3": {
+      "R": 1,
+      "L": 0
+     },
+     "drowning-crew-4": {
+      "R": 1,
+      "L": 0
+     },
+     "drowning-crew-5": {
+      "R": 1,
+      "L": 0
+     }
+    },
+    "propOnly": [],
+    "absent": [
+     "helmsman"
+    ],
+    "density": {
+     "mean": 0.93,
+     "worstFrozen": 2.333,
+     "over80": "5/6"
+    }
    },
    "coverage": {
     "engine": [
      "CLING",
      "FALL",
+     "GESTURE:invoke",
      "GESTURE:point",
      "LEAP",
      "SET_DOWN"
@@ -3093,7 +3255,6 @@
     "missing": [
      "DROWN",
      "EAT",
-     "GESTURE:invoke",
      "HAUL",
      "RIDE",
      "ROPE_WORK"
@@ -3177,7 +3338,7 @@
      "t1": 11.6,
      "target": "raft",
      "note": "the steering oar",
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "ATTEND",
@@ -3195,7 +3356,7 @@
      "t1": 16,
      "note": "trident stirs the sea",
      "verb": "INVOKE",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "kind": "BRACE",
@@ -3355,18 +3516,70 @@
     }
    ],
    "prepared": {
-    "marks": false,
-    "sheet": false,
-    "cameras": false,
-    "rig": false,
-    "previz": false
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": true,
+    "previz": true
+   },
+   "take": {
+    "total": 47.25,
+    "cast": [
+     "odysseus",
+     "poseidon",
+     "ino-leucothea"
+    ],
+    "pieces": [
+     "boulder",
+     "four-wind storm",
+     "raft",
+     "rocks",
+     "splash",
+     "splash 2",
+     "splash 3",
+     "splash 4",
+     "stage plate",
+     "swell",
+     "swell 2",
+     "swell 3",
+     "swell 4",
+     "swell 5",
+     "swell 6",
+     "swell 7",
+     "the sea"
+    ],
+    "keys": 5,
+    "shots": 6,
+    "holding": {
+     "odysseus": {
+      "R": 1,
+      "L": 1
+     },
+     "poseidon": {
+      "R": 1,
+      "L": 0
+     },
+     "ino-leucothea": {
+      "R": 1,
+      "L": 0
+     }
+    },
+    "propOnly": [],
+    "absent": [],
+    "density": {
+     "mean": 0.64,
+     "worstFrozen": 2.667,
+     "over80": "1/3"
+    }
    },
    "coverage": {
     "engine": [
      "ARRIVE",
      "ATTEND",
      "FALL",
+     "GESTURE:invoke",
      "OFFER",
+     "STEER",
      "TAKE"
     ],
     "clip": [
@@ -3375,9 +3588,7 @@
     ],
     "missing": [
      "BRACE",
-     "GESTURE:invoke",
-     "ROPE_WORK",
-     "STEER"
+     "ROPE_WORK"
     ],
     "relations": [
      "ATTACK",
@@ -3669,11 +3880,94 @@
     }
    ],
    "prepared": {
-    "marks": false,
-    "sheet": false,
-    "cameras": false,
-    "rig": false,
+    "marks": true,
+    "sheet": true,
+    "cameras": true,
+    "rig": true,
     "previz": false
+   },
+   "take": {
+    "total": 51.45,
+    "cast": [
+     "odysseus",
+     "telemachus",
+     "six-suitors-1",
+     "six-suitors-2",
+     "six-suitors-3",
+     "six-suitors-4",
+     "six-suitors-5",
+     "six-suitors-6"
+    ],
+    "pieces": [
+     "axis-shot arrow",
+     "bow-string song",
+     "brazier",
+     "brazier 2",
+     "column",
+     "column 2",
+     "column 3",
+     "column 4",
+     "feast table",
+     "feast table 2",
+     "feast table 3",
+     "feast table 4",
+     "floor",
+     "klismos chair",
+     "klismos chair 2",
+     "klismos chair 3",
+     "klismos chair 4",
+     "loom",
+     "stage plate",
+     "the threshold wall",
+     "throne",
+     "walls",
+     "zeus's thunder"
+    ],
+    "keys": 5,
+    "shots": 13,
+    "holding": {
+     "odysseus": {
+      "R": 1,
+      "L": 1
+     },
+     "telemachus": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-1": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-2": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-3": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-4": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-5": {
+      "R": 1,
+      "L": 0
+     },
+     "six-suitors-6": {
+      "R": 1,
+      "L": 0
+     }
+    },
+    "propOnly": [
+     "zeus"
+    ],
+    "absent": [],
+    "density": {
+     "mean": 0.476,
+     "worstFrozen": 4,
+     "over80": "0/8"
+    }
    },
    "coverage": {
     "engine": [
@@ -3811,7 +4105,7 @@
      "t1": 18,
      "note": "hands build the bed: trunk, frame, drill",
      "verb": "DESCRIBE",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "kind": "RECOGNISE",
@@ -3900,6 +4194,7 @@
    },
    "coverage": {
     "engine": [
+     "GESTURE:describe",
      "GESTURE:open",
      "GESTURE:point",
      "GUARDED_WELCOME",
@@ -3910,7 +4205,6 @@
      "WEEP"
     ],
     "missing": [
-     "GESTURE:describe",
      "LOCOMOTE",
      "RECOGNISE"
     ],
@@ -4468,7 +4762,7 @@
      "t0": 0.6,
      "t1": 3,
      "target": "odysseus",
-     "cover": "clip"
+     "cover": "engine"
     },
     {
      "kind": "STRIKE",
@@ -4603,12 +4897,12 @@
     "engine": [
      "APPROACH",
      "ARRIVE",
+     "BECKON",
      "GESTURE:chest",
      "GESTURE:recoil",
      "RECOIL"
     ],
     "clip": [
-     "BECKON",
      "EMBRACE",
      "STRIKE",
      "WEEP"
@@ -4751,7 +5045,7 @@
      "t1": 30,
      "target": "penelope",
      "verb": "REACH",
-     "cover": "missing-shape"
+     "cover": "engine"
     },
     {
      "kind": "SEIZE",
@@ -4768,7 +5062,7 @@
      "t0": 36,
      "t1": 45,
      "verb": "SWEAR",
-     "cover": "missing-shape"
+     "cover": "engine"
     }
    ],
    "relations": [
@@ -4851,13 +5145,13 @@
    "coverage": {
     "engine": [
      "CARRY",
+     "GESTURE:oath",
      "GESTURE:open",
+     "GESTURE:reach",
      "SET_DOWN"
     ],
     "clip": [],
     "missing": [
-     "GESTURE:oath",
-     "GESTURE:reach",
      "POSTURE",
      "RECOGNISE",
      "SEIZE",
@@ -6546,7 +6840,7 @@
      "t0": 30,
      "t1": 34,
      "target": "maids",
-     "cover": "clip"
+     "cover": "engine"
     },
     {
      "kind": "APPROACH",
@@ -6611,15 +6905,14 @@
     "engine": [
      "APPROACH",
      "ARRIVE",
+     "BECKON",
      "DECIDE",
      "GESTURE:plead",
      "HOLD",
      "TAKE",
      "WELCOME"
     ],
-    "clip": [
-     "BECKON"
-    ],
+    "clip": [],
     "missing": [
      "FLEE"
     ],
@@ -6704,7 +6997,7 @@
      "actor": "demodocus",
      "t0": 0.6,
      "t1": 18.9,
-     "cover": "missing"
+     "cover": "engine"
     },
     {
      "kind": "LISTEN",
@@ -6818,14 +7111,14 @@
      "GESTURE:open",
      "LISTEN",
      "NOTICE",
-     "RISE"
+     "RISE",
+     "SING"
     ],
     "clip": [
      "WEEP"
     ],
     "missing": [
-     "PLAY_INSTRUMENT",
-     "SING"
+     "PLAY_INSTRUMENT"
     ],
     "relations": [],
     "relationsRealised": [],
@@ -7579,17 +7872,6 @@
     "cover": "missing"
    },
    {
-    "kind": "STEER",
-    "scenes": 4,
-    "where": [
-     "OD-B09-S11",
-     "OD-B09-S03",
-     "OD-B12-S04",
-     "OD-B05-S05"
-    ],
-    "cover": "missing"
-   },
-   {
     "kind": "STRUGGLE",
     "scenes": 4,
     "where": [
@@ -7654,16 +7936,6 @@
     "cover": "clip"
    },
    {
-    "kind": "GESTURE:invoke",
-    "scenes": 3,
-    "where": [
-     "OD-B09-S11",
-     "OD-B12-S07",
-     "OD-B05-S05"
-    ],
-    "cover": "missing-shape"
-   },
-   {
     "kind": "STRIKE",
     "scenes": 3,
     "where": [
@@ -7682,15 +7954,6 @@
      "OD-B17-S03"
     ],
     "cover": "missing"
-   },
-   {
-    "kind": "BECKON",
-    "scenes": 2,
-    "where": [
-     "OD-B16-S03",
-     "OD-B06-S03"
-    ],
-    "cover": "clip"
    },
    {
     "kind": "HAUL",
@@ -7716,15 +7979,6 @@
     "where": [
      "OD-B09-S08",
      "OD-B09-S10"
-    ],
-    "cover": "missing"
-   },
-   {
-    "kind": "SING",
-    "scenes": 2,
-    "where": [
-     "OD-B10-S04",
-     "OD-B08-S05"
     ],
     "cover": "missing"
    },
@@ -7842,54 +8096,6 @@
      "OD-B12-S07"
     ],
     "cover": "missing"
-   },
-   {
-    "kind": "GESTURE:describe",
-    "scenes": 1,
-    "where": [
-     "OD-B23-S04"
-    ],
-    "cover": "missing-shape"
-   },
-   {
-    "kind": "GESTURE:mime",
-    "scenes": 1,
-    "where": [
-     "OD-B10-S05"
-    ],
-    "cover": "missing-shape"
-   },
-   {
-    "kind": "GESTURE:oath",
-    "scenes": 1,
-    "where": [
-     "OD-B19-S04"
-    ],
-    "cover": "missing-shape"
-   },
-   {
-    "kind": "GESTURE:reach",
-    "scenes": 1,
-    "where": [
-     "OD-B19-S04"
-    ],
-    "cover": "missing-shape"
-   },
-   {
-    "kind": "GESTURE:show",
-    "scenes": 1,
-    "where": [
-     "OD-B10-S05"
-    ],
-    "cover": "missing-shape"
-   },
-   {
-    "kind": "GESTURE:taunt",
-    "scenes": 1,
-    "where": [
-     "OD-B09-S11"
-    ],
-    "cover": "missing-shape"
    },
    {
     "kind": "GRAPPLE",
