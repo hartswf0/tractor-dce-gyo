@@ -23,7 +23,7 @@ game or the kits. The page that shows them is `index.html` (made by `tools/forag
 - `players/<name>/`: `cascade build` output (committed, served by GitHub Pages); `players/view.html?g=<name>` mounts one with its
   own `embed.js` and puts its parameters on sliders.
 - `media/`: the print (`<name>.svg`) and motion (`<name>.mp4`, `<name>.jpg`) of each graph, from `tools/media.mjs`.
-- `kit/`: the gesture built in LDraw parts (`cascade.gesture-welcome.mpd`), its check and its renders.
+- `kit/`: the gestures built in LDraw parts (`cascade.gesture-welcome.mpd`, Telemachus; `cascade.gesture-bow.mpd`, Odysseus, from the same graph with `gesture` set to `bow`), their checks and renders.
 - `verify.json`: the last headless verification (`tools/verify.mjs`).
 
 ## Commands (from this folder, after `npm install`)

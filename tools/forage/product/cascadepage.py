@@ -110,6 +110,7 @@ def main():
     graphs = {g['name']: g for g in json.load(open(os.path.join(CAS, 'graphs.json')))['graphs']}
     verify = json.load(open(os.path.join(CAS, 'verify.json')))
     kit = json.load(open(os.path.join(CAS, 'kit/cascade.gesture-welcome.json')))
+    bow = json.load(open(os.path.join(CAS, 'kit/cascade.gesture-bow.json')))
     dens = json.load(open(os.path.join(CAS, 'assets/hall.json')))['density']
     clashes = json.load(open(os.path.join(CAS, 'assets/clashes.json')))['cards']
     n_clash = sum(len(c['clashes']) for c in clashes)
@@ -162,6 +163,9 @@ def main():
                        '(kitlib.check). Each column rises to the highest plate the hand reached over that stud; each coloured plate is a cell the hand passed through, dark blue at the feast, red at the gate.</figcaption></figure>')
             out.append('      <figure><img src="kit/cascade.gesture-welcome-side.jpg" alt="The gesture kit from the side: the hand\'s height as a skyline of plates" loading="lazy">'
                        '<figcaption>From the side: the hand\'s height, plate by plate, as he rises, crosses and greets her (tools/forage/look.js).</figcaption></figure>')
+            out.append('      <figure><img src="kit/cascade.gesture-bow.jpg" alt="The bow draw as a kit: a short stair of plates falling from the draw to the release" loading="lazy">'
+                       f'<figcaption>The same graph with its gesture set to the bow: Odysseus\'s right hand in OD-B22-S01, from the leap to the threshold through the draw to the release. '
+                       f'<a href="kit/cascade.gesture-bow.mpd">kit/cascade.gesture-bow.mpd</a>, {bow["pieces"]} pieces, {bow["loose"]} loose, {bow["clash"]} clashes.</figcaption></figure>')
         out.append('    </div>')
         out.append(f'    <p class="before">{E(s["before"].format(**fill))}</p>')
         out.append('  </div>')
