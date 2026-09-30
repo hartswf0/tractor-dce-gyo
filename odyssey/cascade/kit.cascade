@@ -1,0 +1,29 @@
+{
+  "version": "0.2",
+  "metadata": { "name": "A kit of a motion", "description": "Telemachus's welcome (or Odysseus's bow draw) read from the choreography sheet, the hand swept through time by the minifigure's kinematics, the trail quantized to studs and plates: print, motion, web, and (offline) a kit." },
+  "nodes": [
+    { "id": "hand", "module": "project.ChoreoHand", "position": [0, 0], "source": "project",
+      "props": { "sheet": { "path": "assets/gestures.json", "mediaType": "application/json" }, "gesture": "welcome", "side": "R", "frame": "world", "samples": 360,
+        "now": { "value": 1, "expression": "clamp(($F - 1) / 119, 0, 1)" }, "upto": true } },
+    { "id": "grid", "module": "project.StudGrid", "position": [260, 0], "source": "project", "props": { "scale": 1, "minRun": 1 } },
+    { "id": "bricks", "module": "project.Bricks", "position": [520, 0], "source": "project", "props": { "azimuth": 35, "elevation": 30, "supports": true } },
+    { "id": "vtrail", "module": "project.View", "position": [520, 160], "source": "project",
+      "props": { "azimuth": { "value": 35, "expression": "ch(\"bricks/azimuth\")" }, "elevation": { "value": 30, "expression": "ch(\"bricks/elevation\")" } } },
+    { "id": "vfig", "module": "project.View", "position": [260, 300], "source": "project",
+      "props": { "azimuth": { "value": 35, "expression": "ch(\"bricks/azimuth\")" }, "elevation": { "value": 30, "expression": "ch(\"bricks/elevation\")" },
+        "scale": { "value": 1, "expression": "ch(\"grid/scale\")" } } },
+    { "id": "merge", "module": "cascade.geo.Merge", "position": [780, 100] },
+    { "id": "plot", "module": "project.Plot", "position": [1000, 100], "source": "project", "props": { "size": [960, 640], "filename": "kit.png" } }
+  ],
+  "connections": [
+    [["hand", 0, "trail"], ["grid", 0, "trail"]],
+    [["grid", 0, "cells"], ["bricks", 0, "cells"]],
+    [["grid", 1, "trail"], ["vtrail", 0, "geometry"]],
+    [["hand", 1, "figure"], ["vfig", 0, "geometry"]],
+    [["bricks", 0, "geometry"], ["merge", 0, "inputs"]],
+    [["vtrail", 0, "geometry"], ["merge", 0, "inputs"]],
+    [["vfig", 0, "geometry"], ["merge", 0, "inputs"]],
+    [["merge", 0, "geometry"], ["plot", 0, "geometry"]]
+  ],
+  "annotations": []
+}
