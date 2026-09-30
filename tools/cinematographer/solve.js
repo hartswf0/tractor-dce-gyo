@@ -225,7 +225,7 @@ async function solve(plan, api) {
       out.push({ pos, fov: Math.round(fv), az, k, y, u: 0.5, v });
     }
     /* the key's own camera for a wide (the gate approved its composition for the blocking) */
-    if (sh.size === 'WIDE' && key) { try { const R0 = api.resolved(api.keyCam(key.k || key)); api.poseAt(sh.t0 / 2 + sh.t1 / 2); out.unshift({ pos: new V3(...R0.pos), fov: Math.max(R0.fov, 40), key: true, u: 0.5, v }); } catch (e) { } }
+    if (sh.size === 'WIDE' && key) { try { const R0 = api.resolved(api.keyCam(key.k || key)); api.poseAt(sh.t0 / 2 + sh.t1 / 2); const kp = new V3(...R0.pos), far = kp.distanceTo(c) / base; if (far < 3) out.unshift({ pos: kp, fov: Math.max(R0.fov, 40), key: true, far, u: 0.5, v }); } catch (e) { } }   /* a key camera three times farther than the size wants shows the room, not the beat */
     for (const q of out) {
       if (partner && sh.size !== 'WIDE') { const P = pointsCache.get(partner); if (P) { camera.position.copy(q.pos); camera.lookAt(prim.head); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); const pp = proj(P.head), pr = proj(prim.head); q.u = pp[0] > pr[0] ? 0.38 : 0.62; } }
       if (sh.line) q.side = sideOf(q.pos, sh.line);
@@ -252,7 +252,7 @@ async function solve(plan, api) {
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
-    if (cand.key) s += 1.5;
+    if (cand.key) s += 1.5 - 1.6 * Math.max(0, (cand.far || 1) - 1.6);   /* the gate's camera, while it is near the size's distance */
     /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
     if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;
     /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
