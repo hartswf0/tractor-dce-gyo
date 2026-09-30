@@ -23,29 +23,29 @@ function blinding(o = {}) {
   const ctx = {}, dist = o.disturb || null;
   const units = [
     { id: 'ODYSSEUS', tau: 0.6, x0: -0.5, range: 1.6, dwell: 0.6,
-      drive: (t) => (t < sleepAt ? -0.9 : ctx.roar ? -0.4 : ctx.thrust && t >= ctx.thrust ? 0.8 : t >= heatAt ? 0.15 + 0.035 * (t - heatAt) : 0.15),
+      drive: (t) => (t < sleepAt ? -0.9 : ctx.roar ? -0.4 : ctx.thrust && t >= ctx.thrust ? 0.8 : t >= heatAt ? 0.15 + 0.03 * (t - heatAt) : 0.15),
       limits: (t) => (!ctx.decide ? [-1, 0.93] : [-1, 1]) },
     { id: 'POLYPHEMUS', tau: 3.0, x0: 0.2, range: 1.0, dwell: 1e9,
       drive: (t) => { let u = t < 18 ? 0.3 : t < 26 ? 0.3 - 2.1 * (t - 18) / 8 : -1.8;
         if (ctx.thrust && t >= ctx.thrust) u += 3.4 * (1 - Math.exp(-(t - ctx.thrust) / 2.5));
-        if (dist === 'wake-early' && t >= 33 && t <= 36) u += 3.2;
+        if (dist === 'wake-early' && t >= 33 && t <= 37) u += 3.6;   /* a bowl knocked over in the dark: he stirs */
         return u; },
       limits: () => [-1, 1] },
     { id: 'CREW', tau: 0.45, x0: -0.3, range: 1.8, dwell: 0.5,
       drive: () => 0.3,
-      limits: (t) => (!ctx.thrust || t < ctx.thrust + 0.8 ? [-1, 0.55] : [-1, 1]) },
+      limits: (t) => (t >= heatAt && (!ctx.thrust || t < ctx.thrust + 0.8) ? [-1, 0.55] : [-1, 1]) },   /* while they carry out the plan they must not break */
     { id: 'ENVIRONMENT', tau: 4.0, x0: 0.25, range: 0.8, dwell: 1e9,
       drive: (t) => 0.3 + (t >= heatAt && (!ctx.thrust || t < ctx.thrust) ? 1.0 : 0) + (ctx.thrust && t >= ctx.thrust ? 2.4 * Math.exp(-(t - ctx.thrust) / 2.5) : 0),
       limits: () => [-1, 1] } ];
   /* the wiring: row i = what moves unit i (O, P, C, E) */
-  const W = [[0, 0.8, -0.3, 0.9], [0, 0, 0.3, 0.2], [-0.5, 2.0, 0, 0.3], [0.2, 0, 0, 0]];
+  const W = [[0, 0.8, -0.3, 0.9], [0, 0, 0.3, 0.2], [-0.5, 3.2, 0, 0.3], [0.2, 0, 0, 0]];
   /* the events the needles make, watched as the run goes (they change the drives: a decision makes a thrust, a thrust makes pain) */
   function onStep(t, x) {
     const [O, P, C, E] = x;
     if (!ctx.glow && t >= heatAt && E > 0.6) ctx.glow = t;
     if (!ctx.stir && t > sleepAt + 2 && P > 0.2) ctx.stir = t;
-    if (!ctx.decide && ctx.glow && O > 0.62) { ctx.decide = t; ctx.thrust = Math.max(t + carry, K3[0] + 1.2); }
-    if (!ctx.brokeAt && !ctx.thrust && C > 0.55) { ctx.breakStart = ctx.breakStart || t; if (t - ctx.breakStart > 0.8) ctx.brokeAt = t; } else if (C <= 0.55) ctx.breakStart = null;
+    if (!ctx.decide && ctx.glow && O > 0.62 && !ctx.brokeAt) { ctx.decide = t; ctx.thrust = t + carry; }
+    if (!ctx.brokeAt && t >= heatAt && (!ctx.thrust || t < ctx.thrust) && C > 0.55) { ctx.breakStart = ctx.breakStart || t; if (t - ctx.breakStart > 0.8) ctx.brokeAt = t; } else if (C <= 0.55) ctx.breakStart = null;
     if (ctx.thrust && t > ctx.thrust && !ctx.roar && P > 0.5) ctx.roar = t;
     if (ctx.roar && !ctx.scatter && (C > 0.7 || t > ctx.roar + 2.5)) { ctx.scatter = t; ctx.scatterWhy = C > 0.7 ? 'the crew\'s fear (needle over 0.7)' : 'Odysseus\'s command, 2.5 s after the roar'; }
     if (ctx.brokeAt && !ctx.thrust) { ctx.failed = true; }

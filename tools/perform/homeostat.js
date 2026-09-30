@@ -76,11 +76,12 @@ function couple(spec, o = {}) {
   for (let s = 0; s <= steps; s++) { const t = s * dt;
     const u = U.map(uu => (uu.drive ? uu.drive(t, o.disturb) : 0));
     for (let i = 0; i < n; i++) { let a = u[i]; for (let j = 0; j < n; j++) a += W[i][j] * x[j]; x[i] += dt / U[i].tau * (-x[i] + Math.tanh(a)); }
+    if (spec.onStep) spec.onStep(t, x);
     for (let i = 0; i < n; i++) { X[i].push(x[i]); drives[i].push(u[i]);
       /* the essential variable: the needle within its limits (limits may depend on the phase of the scene) */
       const [lo, hi] = U[i].limits(t); if (x[i] < lo || x[i] > hi) dwell[i] += dt; else dwell[i] = 0;
       if (dwell[i] > (U[i].dwell || 0.5) && !o.frozen) { pos[i] = (pos[i] + 1) % POSITIONS; W[i] = rowAt(i, pos[i]); dwell[i] = 0; stepsAt.push({ t: r3(t), unit: U[i].id, position: pos[i], row: W[i].slice(), x: r3(x[i]), limits: [lo, hi] }); } } }
   const hz = Math.round(1 / dt);
-  return { units: U.map(u => u.id), hz, x: X.map(a => a.map(r3)), drives: drives.map(a => a.map(r3)), W, positions: pos, steps: stepsAt, stable: !stepsAt.length || stepsAt[stepsAt.length - 1].t < T - 3 };
+  return { units: U.map(u => u.id), hz, x: X.map(a => a.map(r3)), drives: drives.map(a => a.map(r3)), W0: spec.W, W, positions: pos, steps: stepsAt, events: spec.ctx ? JSON.parse(JSON.stringify(spec.ctx)) : null, stable: !stepsAt.length || stepsAt[stepsAt.length - 1].t < T - 3 };
 }
 module.exports = { run, evaluate, couple, bandsFor, TYPES, WORD, WIRING, POSITIONS, position, inBand };
