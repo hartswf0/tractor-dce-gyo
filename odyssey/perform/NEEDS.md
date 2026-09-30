@@ -360,9 +360,11 @@ Previz: Contact sheet read. There is no transformation: the scouts are simply ma
 
 ### OD-B10-S05 Hermes Gives the Moly
 
-**Type** dialogue. **Total** 68.11 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 68.11 s. **Prepared**: marks, sheet, cameras, rig.
 
 **Why it is hard**: A two-hander that is mostly instruction (three long Hermes lines) with one charged prop pulled from the earth and handed over; the instruction rehearses a future fight (wand, sword, oath) that the body should pre-enact without doing it.
+
+**The take**: cast odysseus, hermes-as-young-man; 4 keys, 12 shots; not in the take's cast: eurylochus; rough-pass density (after) 0.854, longest still 1.083 s.
 
 **Essential variables**: the moly: dug, lifted, shown (root and flower), handed; ownership to Odysseus; Hermes interrupting a walk (step into the path); rehearsal gestures that mime the future (draw sword, rush) at small amplitude; arming at the start (sword over shoulder, bow)
 
