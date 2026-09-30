@@ -182,6 +182,13 @@ A_.LEAP = (X, I, e) => { const id = I.actor, t = I.t0, a = X.ampOf(I);
   X.ev({ lane: 'STIMULUS', actor: id, t0: t + 0.85, t1: t + 1.0, kind: 'SOUND', label: 'he lands on the threshold stone', id: (I.params || {}).landId, because: [{ id: e.id, latency: 0.85 }] }); };
 /* POUR_OUT params: the arrows poured at his feet (the quiver tipped: the body bends, the arm sweeps) */
 A_.POUR_OUT = (X, I, e) => { const id = I.actor, t = I.t0; X.move(id, 'act', 'POUR OUT', e, k => { k(t, { 'arm.R.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0), 'hand.R.roll': X.sheet.rel(0) }); k(t + 0.5, { 'arm.R.pitch': { abs: -1.2 }, 'torso.lean': 0.22, 'head.pitch': 0.12 }); k(t + 1.3, { 'arm.R.pitch': { abs: -0.9 }, 'hand.R.roll': 1.0, 'torso.lean': 0.26 }, 'linear'); k(t + 2.0, { 'arm.R.pitch': 0, 'hand.R.roll': 0, 'torso.lean': 0, 'head.pitch': 0 }); }, { label: 'the arrows before his feet' }); };
+/* STRIP: the rags pulled off over the head and flung down (the arms cross, rise, and throw) */
+A_.STRIP = (X, I, e) => { const id = I.actor, t = I.t0, a = X.ampOf(I);
+  X.move(id, 'act', 'STRIP', e, k => { k(t, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'arm.R.out': X.sheet.rel(0), 'arm.L.out': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0) });
+    k(t + 0.4, { 'arm.R.pitch': { abs: -1.0 }, 'arm.L.pitch': { abs: -1.0 }, 'arm.R.out': -0.15, 'arm.L.out': -0.15, 'torso.lean': 0.12, 'head.pitch': 0.12 });
+    k(t + 0.9, { 'arm.R.pitch': { abs: -2.9 }, 'arm.L.pitch': { abs: -2.9 }, 'arm.R.out': 0.2, 'arm.L.out': 0.2, 'torso.lean': -0.08, 'head.pitch': -0.1 }, 'out');
+    k(t + 1.3, { 'arm.R.pitch': { abs: -0.9 }, 'arm.L.pitch': { abs: -0.7 }, 'arm.R.out': 0.45 * a, 'arm.L.out': 0.45 * a, 'torso.lean': 0.06 }, 'back');
+    k(t + 2.0, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'arm.R.out': 0, 'arm.L.out': 0, 'torso.lean': 0, 'head.pitch': 0 }); }, { label: I.label || 'the rags off' }); };
 /* SEPARATION / RETARGET / RECOVER / PURSUIT: the relations in between (a step back; the aim moved to the next one; back to guard; follow) */
 A_.SEPARATION = (X, I, e) => { A_.RECOIL(X, { ...I, params: { ...(I.params || {}), label: I.label || 'the distance opened' } }, e); };
 A_.RETARGET = (X, I, e) => { X.look(I.actor, I.target, I.t0, e, { label: 'the aim moves to ' + Score.short(I.target), speed: 0.7 }); };

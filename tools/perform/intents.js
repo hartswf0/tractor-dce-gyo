@@ -136,6 +136,16 @@ function speechAct(X, I, e, P) {
   if (p.guard) X.look(id, tgt, t0 + 2.4, e, { label: 'back to her face: held', noFeet: true });
   void tEnd;
 };
+/* DECLARE (and ACCUSE, COMMAND, THREATEN): the line's stresses carry params.shapes in turn (point, chop, fist ...), the head on the
+   one addressed (or round the room), a nod into each phrase; at most params.maxBeats a phrase */
+I_.DECLARE = (X, I, e) => { const id = I.actor, U = X.utter[I.utterance], p = Object.assign({ shapes: ['point', 'chop', 'fist'], maxBeats: 1, side: 'R' }, I.params || {}); if (!U) return; const V = U.V;
+  if (I.target) X.look(id, I.target, U.c.at - 0.3, e, { label: 'on ' + Score.short(I.target), noFeet: true });
+  let g = 0; V.phrases.forEach((ph, i) => { const st = V.stresses.filter(x => x.t >= ph.t0 - 0.05 && x.t <= ph.t1 + 0.05).slice(0, Math.max(1, Math.round(p.maxBeats)));
+    if (p.beatsOnlyKey && i > 0) st.length = 0;
+    st.forEach(x => { I_._gesture(X, id, p.shapes[g++ % p.shapes.length], x.t, p.side, (p.amp || 1) * (i === 0 ? 1.1 : 0.9), 0.45, e, '"' + V.words.filter(w => Math.abs(w.t - x.t) < 0.5).map(w => w.w).slice(0, 3).join(' ') + '"'); });
+    X.move(id, 'react', 'NOD', e, kk => { kk(ph.t0 - 0.08, { 'head.pitch': X.sheet.rel(0) }); kk(ph.t0 + 0.12, { 'head.pitch': 0.06 }, 'out'); kk(ph.t0 + 0.4, { 'head.pitch': 0 }); }, { label: 'into phrase ' + (i + 1) });
+    if (p.round && i % 2 === 1) X.look(id, p.round[i % p.round.length], ph.t0 - 0.15, e, { label: 'round the room', noFeet: true }); }); };
+I_.ACCUSE = I_.DECLARE; I_.COMMAND = I_.DECLARE; I_.THREATEN = I_.DECLARE;
 I_.WELCOME = (X, I, e) => speechAct(X, I, e, WELCOME_P);
 I_.GUARDED_WELCOME = (X, I, e) => speechAct(X, I, e, GUARDED_P);
 I_._WELCOME_P = WELCOME_P; I_._GUARDED_P = GUARDED_P;

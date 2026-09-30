@@ -36,7 +36,7 @@ function frame(g, W, H, D, f) {
     L('hipR', 'kneeR'); L('kneeR', 'footR'); L('hipL', 'kneeL'); L('kneeL', 'footL');
     if (P.shR && P.shL && P.hipR && P.hipL) { g.globalAlpha = 0.85; g.beginPath(); g.moveTo(X(P.shR[0]), Y(P.shR[1])); g.lineTo(X(P.shL[0]), Y(P.shL[1])); g.lineTo(X(P.hipL[0]), Y(P.hipL[1])); g.lineTo(X(P.hipR[0]), Y(P.hipR[1])); g.closePath(); g.fill(); g.globalAlpha = 1; }
     L('shR', 'elR'); L('elR', 'handR'); L('shL', 'elL'); L('elL', 'handL');
-    if (P.head) { const r = Math.max(2.5, hd * 0.95); g.beginPath(); g.arc(X(P.head[0]), Y(P.head[1]), r, 0, Math.PI * 2); g.fillStyle = dark ? '#e8d6b0' : '#c9a86a'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = c; g.stroke();
+    if (P.head) { const r = Math.max(2.5, hd * 0.95), inside = r > H * 0.45; g.beginPath(); g.arc(X(P.head[0]), Y(P.head[1]), r, 0, Math.PI * 2); g.fillStyle = dark ? '#e8d6b0' : '#c9a86a'; if (!inside) g.fill(); g.lineWidth = inside ? 3 : 1.5; g.strokeStyle = c; g.stroke();   /* a camera inside a head: the outline only */
       if (P.look) { g.strokeStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(P.head[0]), Y(P.head[1])); g.lineTo(X(P.look[0]), Y(P.look[1])); g.stroke(); } }
     if (F.label && (F.principal || F.s < 0.5)) { g.font = '600 ' + Math.round(H * 0.022) + 'px ui-monospace,monospace'; g.fillStyle = dark ? 'rgba(235,235,235,0.8)' : 'rgba(20,20,20,0.8)'; g.textAlign = 'center'; if (P.headTop) g.fillText(F.label, X(P.headTop[0]), Y(P.headTop[1]) - 8); }
     if (F.state) { const col = { A: '#e67e22', R: '#e74c3c', H: '#27ae60', h: '#16a085', D: '#7f8c8d' }[F.state] || '#999'; if (P.footR) { g.fillStyle = col; g.fillRect(X(P.footR[0]) - 3, Y(P.footR[1]) + 3, 6, 6); } } }
