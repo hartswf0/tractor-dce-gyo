@@ -209,4 +209,11 @@ K.BREATHE = (X, I, e) => { const p = I.params || {}, P = p.period || 2.4, d = (p
 K.DIE = (X, I, e) => { const p = I.params || {}, t0 = I.t0, t1 = Math.max(I.t1, t0 + 2.2), r = p.roll != null ? p.roll : 1.2;
   return X.cmove(I.actor, 'DIE', e, { keys: { 'head.pitch@die': [[t0, 0], [t0 + 1.4, -(p.sink || 0.55), 'in']], 'head.yaw@die': [[t0, 0], [t1, -0.15]], 'ear.L@die': [[t0, 0], [t0 + 1, 0.5]], 'ear.R@die': [[t0, 0], [t0 + 1.1, 0.5]],
     'tail.pitch@die': [[t0, 0], [t0 + 1.2, -0.3]], 'root.roll@die': [[t0 + 0.6, 0], [t1, r, 'in']], 'body.dy@die': [[t0 + 0.6, 0], [t1, -4 * (X.creatures[I.actor].scale || 1)]] } }, { label: I.label || 'dies' }); };
+/* CRAWL {params: bellow (a time: the dead meat lows), period}: the omen on a slain beast: the flayed hide creeps (the legs paddle a little
+   out of step, the body shivers), and at the bellow the head jerks up and the jaw (if any) opens */
+K.CRAWL = (X, I, e) => { const p = I.params || {}, P = p.period || 0.7, t0 = I.t0, t1 = I.t1, ch = {}, R = X.rng(I.id);
+  for (const L of ['FL', 'FR', 'HL', 'HR']) { const k = [[t0, 0]]; let j = 0; for (let t = t0 + P * R(); t < t1; t += P * (0.7 + 0.6 * R()), j++) k.push([r3(t), (j % 2 ? -1 : 1) * (0.12 + 0.1 * R())]); k.push([r3(t1 + 0.4), 0]); ch['leg.' + L + '@crawl'] = k; }
+  const sh = [[t0, 0]]; for (let t = t0 + 0.1, j = 0; t < t1; t += 1 / 6, j++) sh.push([r3(t), (j % 2 ? -1 : 1) * 0.025]); sh.push([r3(t1 + 0.2), 0]); ch['body.roll@crawl'] = sh;
+  if (p.bellow) { const b = p.bellow; ch['head.pitch@bellow'] = [[b - 0.15, 0], [b, 0.35, 'out'], [b + 1.2, 0.25], [b + 2.0, 0]]; ch['head.yaw@bellow'] = [[b - 0.1, 0], [b + 0.3, 0.2], [b + 1.8, 0]]; }
+  return X.cmove(I.actor, 'CRAWL', e, { keys: ch }, { label: I.label || 'the hide creeps' }); };
 module.exports = Object.assign(K, { place, placeAt, cstate, pointOf });
