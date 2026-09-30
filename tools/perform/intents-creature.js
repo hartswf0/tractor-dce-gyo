@@ -60,8 +60,7 @@ K.ROAR = (X, I, e) => { const A = X.creatures[I.actor], out = [];
   out.push(X.cmove(I.actor, 'ROAR', e, { proc: { type: 'preset', name: (I.params && I.params.preset) || 'roar', from: I.t0, to: I.t1, fade: 0.8 }, keys: Object.assign({ 'jaw@roar': [[I.t0, 0], [I.t0 + 0.4, 1], [I.t1 - 0.3, 0.8], [I.t1, 0.2]] }, I.params && I.params.eye != null ? { eye: [[I.t0 - 0.05, 2], [I.t0 + 0.1, I.params.eye]] } : {}) }, { label: I.label || 'the roar' }));
   void A; return out[out.length - 1]; };
 K.WALK = (X, I, e) => { const A = X.creatures[I.actor], giant = Cr.KINDS[A.kind].family === 'giant', p = I.params;
-  /* creatures.js heavy() tabulates its lag from t = 0 on a function path: a path that starts later is held at its first place from 0 */
-  const path = p.path[0][0] > 0 ? [[0, p.path[0][1], p.path[0][2]], ...p.path] : p.path;
+  const path = p.path;   /* heavy() holds a path that starts after 0 at its first place (creatures.js follow) */
   return X.cmove(I.actor, 'WALK', e, { proc: giant ? { type: 'heavy', path, from: I.t0, to: I.t1, fade: 0.5, y: p.y || 0, base: p.base } : { type: 'gait', path, gait: p.gait || 'walk', from: I.t0, to: I.t1, fade: 0.3, y: p.y || 0 } }, { label: I.label || (giant ? 'the heavy walk' : (p.gait || 'walk')) }); };
 K.GROPE = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'GROPE', e, { proc: { type: 'grope', center: p.center, width: p.width || 80, depth: p.depth || 30, period: p.period || 3.2, hand: p.hand, from: I.t0, to: I.t1, fade: 0.8, seed: p.seed || 1 } }, { label: I.label || 'the blind hands search' }); };
 K.REACH = (X, I, e) => { const p = I.params || {}, tgt = (X.ids.includes(p.at || I.target) ? figPoint(X, p.at || I.target, I.t0, p.y) : pointOf(X, p.at || I.target, I.t0)); if (!tgt) return null;
@@ -89,9 +88,8 @@ K.THROW = (X, I, e) => { const p = I.params || {}, hand = p.hand || 'R', lift = 
   return flight; };
 K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, { proc: { type: 'herd', path: p.path, n: p.n || 4, index: p.index || 0, gait: p.gait || 'walk', spacing: p.spacing || 60, seed: p.seed || 3, from: I.t0, to: I.t1, fade: 0.3 } }, { label: I.label || 'with the flock' }); };
 K.STRIKE = (X, I, e) => { const p = I.params || {}, tg = (p.targets || []).map(id => figPoint(X, id, I.t0 + 0.3, X.H(id) * 0.6)).filter(Boolean);
-  /* creatures.js runProc calls strike() without the sampled pose: its base (the root) is given here, or the targets are read from the origin */
-  const at = X.creatures[I.actor].at || [0, 0, 0, 0], sbase = { 'root.x': at[0], 'root.y': at[1], 'root.z': at[2], 'root.h': at[3] || 0 };
-  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', base: sbase, targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
+  /* strike() starts from the pose sampled so far (creatures.js runProc passes it): the targets are read in Scylla's own frame */
+  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
   /* each head reaches its man at t0 + its stagger + the strike (0.35 s); he rides that jaw from then to the end: taken */
   const D = [0, 0.08, 0.03, 0.12, 0.05, 0.1];
   (p.targets || []).forEach((id, k) => { const tg = r3(I.t0 + D[k % 6] + 0.36); X.cmove(I.actor, 'SEIZED', ev1, { riders: [{ actor: id, at: 'jaw' + (k + 1), from: tg, to: r3(p.keep === false ? I.t1 : X.T) }], from: tg, to: I.t1 }, { label: id + ' in jaw ' + (k + 1) });

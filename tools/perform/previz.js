@@ -46,7 +46,11 @@ function build(sid, o) {
     f.creatures = []; const crHeads = {};
     for (const [cid, A] of Object.entries((C && C.creatures) || {})) { const sm = Cr.sample(C, cid, t), P0 = sm.rig.pose(sm.v), K = crKinds[A.kind], pos = {};
       for (const nd of K.nodes) if (P0.nodes[nd.id]) pos[nd.id] = Cr.m.ap(P0.nodes[nd.id], nd.p);
-      const segs = []; for (const nd of K.nodes) if (nd.parent && pos[nd.parent] && pos[nd.id]) { const a = pr(pos[nd.parent]), b = pr(pos[nd.id]); if (a && b && Math.abs(a[0]) < 3 && Math.abs(b[0]) < 3 && Math.abs(a[1]) < 3 && Math.abs(b[1]) < 3) segs.push([a[0], a[1], b[0], b[1], 0.012 * (A.scale || 1)]); }
+      /* a chain (Scylla's necks): each segment drawn from the one before it along the neck, the head from the last segment (their tree
+         parent is the root, which would draw a star from the cliff) */
+      const nseg = sm.rig.K.nodes.filter(nd => nd.chain && nd.chain.neck === 1 && !nd.chain.head).length, chainParent = nd => !nd.chain ? nd.parent : nd.chain.head ? 'n' + nd.chain.neck + '.' + (nseg - 1) : nd.chain.i > 0 ? 'n' + nd.chain.neck + '.' + (nd.chain.i - 1) : null;
+      const segs = []; for (const nd of sm.rig.K.nodes) { const par = chainParent(nd); if (nd.chain && !pos[nd.id]) pos[nd.id] = Cr.m.ap(P0.nodes[nd.id], nd.p); if (nd.chain && par && !pos[par]) { const pn = sm.rig.K.nodes.find(x => x.id === par); if (pn && P0.nodes[par]) pos[par] = Cr.m.ap(P0.nodes[par], pn.p); }
+        if (par && pos[par] && pos[nd.id]) { const a = pr(pos[par]), b = pr(pos[nd.id]); if (a && b && Math.abs(a[0]) < 3 && Math.abs(b[0]) < 3 && Math.abs(a[1]) < 3 && Math.abs(b[1]) < 3) segs.push([a[0], a[1], b[0], b[1], (nd.chain ? 0.02 : 0.012) * (A.scale || 1)]); } }
       if (!segs.length && sm.rig.K.roots) { const W = sm.rig.world(sm.v); sm.rig.K.roots.forEach((r0, k) => { const j = sm.rig.anchor('jaw' + (k + 1), sm.v); if (!j) return; const a = pr(Cr.m.ap(W, r0)), b = pr(j.slice(0, 3)); if (a && b && Math.abs(a[0]) < 3 && Math.abs(b[0]) < 3 && Math.abs(a[1]) < 3 && Math.abs(b[1]) < 3) segs.push([a[0], a[1], b[0], b[1], 0.02 * (A.scale || 1)]); }); }   /* Scylla: each neck root to its jaw */
       const hm = sm.rig.anchor('head', sm.v), em = sm.rig.anchor('eye', sm.v), hq = hm ? pr(hm.slice(0, 3)) : null, hq2 = hm ? pr([hm[0], hm[1] + 30 * (A.scale || 1), hm[2]]) : null, eq = em ? pr(em.slice(0, 3)) : null;
       const head = hq && hq2 ? [hq[0], hq[1], Math.min(0.2, Math.abs(hq2[1] - hq[1]) / 2)] : null; if (hq) crHeads[cid] = hq;

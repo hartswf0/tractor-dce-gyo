@@ -66,7 +66,7 @@ function page() {
     const K = C.KINDS[k.kind], img = rigImage(k.kind), films = Object.entries(FILMS).filter(([, f]) => f.kinds.includes(k.kind));
     const chans = K.kind === 'scylla' ? K.channels.filter(c => c.name.startsWith('neck1.')) : K.channels;
     const scenes = scenesOf(K);
-    const partsList = [...new Set((K.cuts ? K.cuts.from.map(s => s.part) : []).concat(K.nodes.flatMap(n => (n.mesh || []).map(m => m.part).filter(Boolean))).concat(K.nodes.flatMap(n => n.swap ? n.swap.parts.map(q => Array.isArray(q) ? q[0] : q) : [])))];
+    const partsList = [...new Set((K.cuts ? K.cuts.from.map(s => s.part) : []).concat(K.nodes.flatMap(n => (n.mesh || []).map(m => m.part).filter(Boolean))).concat(K.nodes.flatMap(n => n.swap ? n.swap.parts.flatMap(q => Array.isArray(q) ? [q[0]].concat((q[2] || []).map(m => m.part)) : [q]) : [])))];
     cards.push(`
   <section class="creature" id="${E(k.kind)}">
     <h2>${E(K.title)}</h2>

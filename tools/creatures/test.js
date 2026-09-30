@@ -21,7 +21,7 @@ for (const k of C.kinds()) {
   const files = K.cuts || K.cutFrom ? ld.mpdFiles(fs.readFileSync(path.join(ld.ROOT, 'odyssey/creatures/parts', (K.cutFrom || k.kind) + '.mpd'), 'utf8')) : new Map();
   const missing = K.nodes.flatMap(n => (n.mesh || []).filter(m => m.file && !files.has(m.file.toLowerCase()))).map(m => m.file);
   ok(missing.length === 0, `${k.kind}: every cut piece in its MPD (${missing.join(' ')})`);
-  const parts = [...new Set(K.nodes.flatMap(n => (n.mesh || []).filter(m => m.part).map(m => m.part).concat(n.swap ? n.swap.parts.map(p => Array.isArray(p) ? p[0] : p) : [])))];
+  const parts = [...new Set(K.nodes.flatMap(n => (n.mesh || []).filter(m => m.part).map(m => m.part).concat(n.swap ? n.swap.parts.flatMap(p => Array.isArray(p) ? [p[0]].concat((p[2] || []).map(m => m.part)) : [p]) : [])))];
   ok(parts.every(p => ld.libLines(p)), `${k.kind}: every part in the library (${parts.filter(p => !ld.libLines(p)).join(' ')})`);
   /* the clamp */
   const wild = {}; for (const c of K.channels) wild[c.name] = c.max * 3 + 7; const cv = rig.clamp(wild);

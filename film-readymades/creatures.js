@@ -110,10 +110,13 @@ function troll(kind, o) {
   ];
   /* the Cyclops' one eye where the set piece had it: a white 2 x 2 round tile in the brow, the pupil a replacement part in front of it
      (open, half shut, shut, put out) that looks about (eye.x, eye.y) */
-  if (o.eye) { const E = (z, part, c) => ({ part, col: c, m: [0, -148, z, 1, 0, 0, 0, 0, -1, 0, 1, 0] });
+  if (o.eye) { const E = (z, part, c, dy = 0) => ({ part, col: c, m: [0, -148 + dy, z, 1, 0, 0, 0, 0, -1, 0, 1, 0] });
     nodes.find(n => n.id === 'head').mesh.push(E(-58, '14769', 15));   /* the pupil (below) stands 2 LDU proud of it */
     nodes.push({ id: 'eye', parent: 'head', p: [0, -148, -60], move: [['eye.x', 'x', -1], ['eye.y', 'y', -1]],
-      swap: { ch: 'eye', parts: [['98138', 0], ['98138p0b', 84], ['98138p0c', 84], ['98138', 320]] }, mesh: [E(-60, '98138', 0)] }); }
+      /* the states from parts the packs have: open (the black pupil), half shut (the pupil under a lid: a 1 x 2 tile in the skin across
+         the upper half of the white), shut (the lid: a 2 x 2 round tile in the skin over the whole eye), put out (the pupil dark red).
+         A state is [part, colour, extras]: the extras are meshes placed in the creature frame with the state */
+      swap: { ch: 'eye', parts: [['98138', 0], ['98138', 0, [E(-62, '3069b', 16, -10)]], ['14769', 16, []], ['98138', 320]] }, mesh: [E(-60, '98138', 0)] }); }
   const K = {
     kind, title: o.title, family: 'giant', cutFrom: o.cutFrom, colours: o.colours, trim: o.trim, blurb: o.blurb, scenes: o.scenes, needs: o.needs, card: o.card,
     height: 200, nodes,
@@ -312,7 +315,7 @@ function define(kind, opts = {}) {
     },
     pose(v) { const W = rig.world(v || {}), L = rig.local(v), out = {}; for (const id in L) out[id] = mul(W, L[id]); return { nodes: out, world: W, local: L }; },
     /* the parts of a node (a replacement part by its channel) */
-    meshOf(n, v) { if (n.swap) { const i = cl(Math.round((v || {})[n.swap.ch] || 0), 0, n.swap.parts.length - 1), q = n.swap.parts[i]; return n.mesh.map(m => Object.assign({}, m, Array.isArray(q) ? { part: q[0], col: q[1] } : { part: q })); } return n.mesh || []; },
+    meshOf(n, v) { if (n.swap) { const i = cl(Math.round((v || {})[n.swap.ch] || 0), 0, n.swap.parts.length - 1), q = n.swap.parts[i]; return n.mesh.map(m => Object.assign({}, m, Array.isArray(q) ? { part: q[0], col: q[1] } : { part: q })).concat(Array.isArray(q) && q[2] ? q[2] : []); } return n.mesh || []; },
     rows(v, { frame = 'world' } = {}) {
       const P = rig.pose(v), out = [];
       for (const n of order) for (const m of rig.meshOf(n, v)) {
@@ -336,7 +339,10 @@ function define(kind, opts = {}) {
       rig.three = { THREE, group, objs: {} };
       for (const n of order) { const g = new THREE.Group(); g.name = rig.id + ':' + n.id; g.matrixAutoUpdate = false; group.add(g); rig.three.objs[n.id] = g;
         for (const m of n.swap ? [] : n.mesh || []) { const o = meshOf(m.file || m.part, m.file ? (rig.colour != null ? rig.colour : 16) : m.col === 'trim' ? rig.trim : m.col === 16 && rig.colour != null ? rig.colour : m.col); if (!o) continue; setM(THREE, o, m.m || I12); g.add(o); }
-        if (n.swap) { g.userData.swap = n.swap.parts.map(p => { const o = meshOf(Array.isArray(p) ? p[0] : p, Array.isArray(p) ? p[1] : n.mesh[0].col); if (o) { setM(THREE, o, n.mesh[0].m); o.visible = false; g.add(o); } return o; }); } }
+        if (n.swap) { g.userData.swap = n.swap.parts.map(p => { const c0 = Array.isArray(p) ? p[1] : n.mesh[0].col, o = meshOf(Array.isArray(p) ? p[0] : p, c0 === 16 && rig.colour != null ? rig.colour : c0); if (!o) return null;
+          const extra = Array.isArray(p) && p[2] ? p[2] : []; let s = o; setM(THREE, o, n.mesh[0].m);
+          if (extra.length) { s = new THREE.Group(); s.add(o); for (const m of extra) { const e = meshOf(m.part, m.col === 16 && rig.colour != null ? rig.colour : m.col); if (e) { setM(THREE, e, m.m); s.add(e); } } }   /* a lid with the pupil: one state */
+          s.visible = false; g.add(s); return s; }); } }
       return rig;
     },
     apply(v) {
@@ -393,7 +399,8 @@ function scyllaLocal(rig, v) {
 const PATHS = new WeakMap();
 function pathOf(p) {
   if (PATHS.has(p)) return PATHS.get(p);
-  const fn = typeof p === 'function' ? p : keysFn(p), t0 = typeof p === 'function' ? 0 : p[0][0], t1 = typeof p === 'function' ? 120 : p[p.length - 1][0] + 1, dt = 1 / 120;
+  /* a function path may carry its own span (fn.t0, fn.t1); else 0..120 s */
+  const fn = typeof p === 'function' ? p : keysFn(p), t0 = typeof p === 'function' ? (p.t0 || 0) : p[0][0], t1 = typeof p === 'function' ? (p.t1 || 120) : p[p.length - 1][0] + 1, dt = 1 / 120;
   const n = Math.ceil((t1 - t0) / dt) + 1, S = new Float64Array(n); let q = fn(t0);
   for (let i = 1; i < n; i++) { const r = fn(t0 + i * dt); S[i] = S[i - 1] + Math.hypot(r[0] - q[0], r[1] - q[1]); q = r; }
   const sAt = t => { const x = (cl(t, t0, t1) - t0) / dt, i = Math.min(n - 2, Math.floor(x)); return lerp(S[i], S[i + 1], x - i); };
@@ -507,7 +514,8 @@ const FOLLOW = new WeakMap();
 function follow(fn, t, { w = 4, z = 0.7, t0 = 0 } = {}) {
   let tab = FOLLOW.get(fn); const dt = 1 / 240;
   if (!tab) { tab = { xs: [fn(t0).slice()], vs: [fn(t0).map(() => 0)] }; FOLLOW.set(fn, tab); }
-  const n = Math.ceil((t - t0) / dt) + 1;
+  /* before the spring starts it rests where the path starts (a path that begins after t = 0 is held there): at least two rows tabulated */
+  t = Math.max(t, t0); const n = Math.max(1, Math.ceil((t - t0) / dt)) + 1;
   while (tab.xs.length <= n) { const i = tab.xs.length - 1, x = tab.xs[i], vv = tab.vs[i], g = fn(t0 + i * dt), nx = [], nv = [];
     for (let k = 0; k < x.length; k++) { const a = w * w * (g[k] - x[k]) - 2 * z * w * vv[k]; nv.push(vv[k] + a * dt); nx.push(x[k] + nv[k] * dt); }
     tab.xs.push(nx); tab.vs.push(nv); }
@@ -522,7 +530,7 @@ function follow(fn, t, { w = 4, z = 0.7, t0 = 0 } = {}) {
    params {path, stride (LDU), duty, w, z (the spring: stiffness, damping), shake, y, base, arms: false} */
 function heavy(rig, t, params = {}) {
   const K = rig.K, sc = rig.scale, P0 = pathOf(params.path), w = params.w || 3.2, z = params.z || 0.75;
-  if (!params._lag) { const lagFn = tt => follow(P0.fn, tt, { w, z, t0: P0.t0 }).x; Object.defineProperty(params, '_lag', { value: lagFn, enumerable: false }); }
+  if (!params._lag) { const lagFn = tt => follow(P0.fn, tt, { w, z, t0: P0.t0 }).x; lagFn.t0 = P0.t0; lagFn.t1 = P0.t1 + 8; Object.defineProperty(params, '_lag', { value: lagFn, enumerable: false }); }
   const P = pathOf(params._lag), F = follow(P0.fn, t, { w, z, t0: P0.t0 }), pos = F.x, spd = Math.hypot(F.v[0], F.v[1]);
   const stride = (params.stride || 38) * sc, duty = params.duty || 0.62, s = P.sAt(t), phase = s / stride, h = heading(P0, t, params.h0 || 0), y0 = params.y || 0;   /* it faces where it means to go, even rocking back past a stop */
   const moving = cl01(spd / (12 * sc));
@@ -697,7 +705,7 @@ function runProc(rig, p, t, v, ctx = {}) {
     case 'heavy': return heavy(rig, t, Object.assign(p, { base: Object.assign({}, v, p.base || {}) }));
     case 'grope': return grope(rig, t, Object.assign({}, p, { surface: p.surface || ctx.surface, base: Object.assign({}, v, p.base || {}) }));   /* ctx.surface(x, z): the backs under the hands */
     case 'reach': { const tg = typeof p.target === 'function' ? p.target(t) : typeof p.target === 'string' && ctx.point ? ctx.point(p.target, t) : p.target; return tg ? reach(rig, v, p.hand || 'R', tg, p) : v; }   /* a target by name: ctx.point('odysseus:head', t) */
-    case 'strike': return Object.assign({}, v, strike(rig, t, p));
+    case 'strike': return Object.assign({}, v, strike(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) })));   /* from the pose sampled so far (where Scylla stands) */
     case 'herd': { const H = p._herd || (p._herd = herd(p)); return H.channels(rig, p.index || 0, t, p.gait || 'walk', { base: v }); }
     default: return v;
   }
