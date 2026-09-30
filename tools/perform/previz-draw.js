@@ -14,7 +14,7 @@ function frame(g, W, H, D, f) {
   for (const e of f.set || []) { g.beginPath(); g.moveTo(X(e[0]), Y(e[1])); g.lineTo(X(e[2]), Y(e[3])); g.stroke(); }
   /* heat: a glow under each body, radius by its size on screen, colour by its motion heat */
   g.globalCompositeOperation = dark ? 'lighter' : 'multiply';
-  for (const b of f.glow || []) { const r = Math.max(8, b.r * H * (0.7 + 0.8 * heatScale(b.T))), [cr, cg, cb] = heatRGB(heatScale(b.T)), a = 0.12 + 0.55 * heatScale(b.T);
+  for (const b of f.glow || []) { const r = Math.min(H * 0.28, Math.max(8, b.r * H * (0.7 + 0.8 * heatScale(b.T)))), [cr, cg, cb] = heatRGB(heatScale(b.T)), a = (0.12 + 0.55 * heatScale(b.T)) * (b.r > 0.35 ? 0.5 : 1);
     const gr = g.createRadialGradient(X(b.x), Y(b.y), 0, X(b.x), Y(b.y), r); gr.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`); gr.addColorStop(1, `rgba(${cr},${cg},${cb},0)`); g.fillStyle = gr; g.beginPath(); g.arc(X(b.x), Y(b.y), r, 0, Math.PI * 2); g.fill(); }
   g.globalCompositeOperation = 'source-over';
   /* the giant (a prop in the take: his pose is his needle) */
@@ -30,15 +30,15 @@ function frame(g, W, H, D, f) {
     if (p.glow) { const gr = g.createRadialGradient(X(p.b[0]), Y(p.b[1]), 0, X(p.b[0]), Y(p.b[1]), 14); gr.addColorStop(0, 'rgba(255,170,60,0.95)'); gr.addColorStop(1, 'rgba(255,90,20,0)'); g.fillStyle = gr; g.beginPath(); g.arc(X(p.b[0]), Y(p.b[1]), 14, 0, Math.PI * 2); g.fill(); } }
   /* figures, far first: legs, torso box, arms, head, gaze */
   const figs = (f.figs || []).slice().sort((a, b) => b.z - a.z);
-  for (const F of figs) { const P = F.p, c = F.c, lw = Math.max(1.5, F.s * H * 0.045);
+  for (const F of figs) { const P = F.p, c = F.c, hd = P.head && P.headTop ? Math.hypot((P.head[0] - P.headTop[0]) * W / 2, (P.head[1] - P.headTop[1]) * H / 2) : F.s * H * 0.1, lw = Math.max(1.5, hd * 0.6);
     const L = (a, b, w) => { if (!P[a] || !P[b]) return; g.lineWidth = w || lw; g.beginPath(); g.moveTo(X(P[a][0]), Y(P[a][1])); g.lineTo(X(P[b][0]), Y(P[b][1])); g.stroke(); };
     g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = c; g.fillStyle = c;
     L('hipR', 'kneeR'); L('kneeR', 'footR'); L('hipL', 'kneeL'); L('kneeL', 'footL');
     if (P.shR && P.shL && P.hipR && P.hipL) { g.globalAlpha = 0.85; g.beginPath(); g.moveTo(X(P.shR[0]), Y(P.shR[1])); g.lineTo(X(P.shL[0]), Y(P.shL[1])); g.lineTo(X(P.hipL[0]), Y(P.hipL[1])); g.lineTo(X(P.hipR[0]), Y(P.hipR[1])); g.closePath(); g.fill(); g.globalAlpha = 1; }
     L('shR', 'elR'); L('elR', 'handR'); L('shL', 'elL'); L('elL', 'handL');
-    if (P.head) { const r = Math.max(3, F.s * H * 0.11); g.beginPath(); g.arc(X(P.head[0]), Y(P.head[1]), r, 0, Math.PI * 2); g.fillStyle = dark ? '#e8d6b0' : '#c9a86a'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = c; g.stroke();
+    if (P.head) { const r = Math.max(2.5, hd * 0.95); g.beginPath(); g.arc(X(P.head[0]), Y(P.head[1]), r, 0, Math.PI * 2); g.fillStyle = dark ? '#e8d6b0' : '#c9a86a'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = c; g.stroke();
       if (P.look) { g.strokeStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(P.head[0]), Y(P.head[1])); g.lineTo(X(P.look[0]), Y(P.look[1])); g.stroke(); } }
-    if (F.label && F.s > 0.12) { g.font = '600 ' + Math.round(H * 0.022) + 'px ui-monospace,monospace'; g.fillStyle = dark ? 'rgba(235,235,235,0.8)' : 'rgba(20,20,20,0.8)'; g.textAlign = 'center'; if (P.crown) g.fillText(F.label, X(P.crown[0]), Y(P.crown[1]) - 6); }
+    if (F.label && (F.principal || F.s < 0.5)) { g.font = '600 ' + Math.round(H * 0.022) + 'px ui-monospace,monospace'; g.fillStyle = dark ? 'rgba(235,235,235,0.8)' : 'rgba(20,20,20,0.8)'; g.textAlign = 'center'; if (P.headTop) g.fillText(F.label, X(P.headTop[0]), Y(P.headTop[1]) - 8); }
     if (F.state) { const col = { A: '#e67e22', R: '#e74c3c', H: '#27ae60', h: '#16a085', D: '#7f8c8d' }[F.state] || '#999'; if (P.footR) { g.fillStyle = col; g.fillRect(X(P.footR[0]) - 3, Y(P.footR[1]) + 3, 6, 6); } } }
   /* readings */
   const fs = Math.round(H * 0.028); g.font = '600 ' + fs + 'px ui-monospace,monospace'; g.textAlign = 'left';

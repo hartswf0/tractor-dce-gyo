@@ -114,7 +114,9 @@ function poseAt(ctx, id, t, extra) {
 }
 
 /* ═════ forward kinematics: the pose to world points ═════ */
-const LOCAL = { face: ['headP', [0, -12, -11]], crown: ['headP', [0, -26, 0]], head: ['headP', [0, -12, 0]], neck: ['torsoP', [0, 0, 0]], chest: ['torsoP', [0, 10, -10]],
+/* the head part (3626b) hangs from the head pivot (its top): its centre 12 below, its face 11 forward of that; the take's density points
+   'face' and 'crown' are kept as the take defines them (they sit above the head) so the density matches the page's */
+const LOCAL = { face: ['headP', [0, -12, -11]], crown: ['headP', [0, -26, 0]], head: ['headP', [0, 12, 0]], headTop: ['headP', [0, 0, 0]], faceC: ['headP', [0, 12, -11]], neck: ['torsoP', [0, 0, 0]], chest: ['torsoP', [0, 10, -10]],
   hips: ['hipsP', [0, 0, 0]], shR: ['armRP', [0, 0, 0]], shL: ['armLP', [0, 0, 0]], elR: ['armRP', [-4, 12, -6]], elL: ['armLP', [4, 12, -6]], handR: ['armRP', [-8, 22, -10]], handL: ['armLP', [8, 22, -10]],
   hipR: ['legRP', [-6, 0, 0]], hipL: ['legLP', [6, 0, 0]], kneeR: ['legRP', [-6, 14, -2]], kneeL: ['legLP', [6, 14, -2]], footR: ['legRP', [-6, 26, -6]], footL: ['legLP', [6, 26, -6]] };
 const DENSITY = ['face', 'crown', 'chest', 'handR', 'handL', 'footR', 'footL'];

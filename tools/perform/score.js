@@ -53,7 +53,7 @@ function Events(list) {
   /* "why is X moving here?": the chain from the body up through the intent to what caused it */
   function why(actor, t, depth = 6) {
     const here = at(actor, t); if (!here.length) return { actor, t, chain: [], text: actor + ' has nothing authored at ' + t.toFixed(2) + ' s' };
-    const start = here.find(e => e.lane === 'ACTION' && !(e.kind === 'BREATH')) || here.find(e => e.lane === 'CONTACT') || here.find(e => band(e.lane) === 'body') || here[0];
+    const start = here.find(e => e.lane === 'ACTION' && e.kind !== 'BREATH') || here.find(e => e.lane === 'CONTACT') || here.find(e => e.lane === 'INTENT') || here.find(e => band(e.lane) === 'body' && e.kind !== 'BREATH') || here[0];
     const chain = [], seen = new Set(); let cur = [{ e: start, lat: null, from: null }];
     for (let d = 0; d < depth && cur.length; d++) { const nxt = [];
       for (const { e, lat, from } of cur) { if (seen.has(e.id)) continue; seen.add(e.id);

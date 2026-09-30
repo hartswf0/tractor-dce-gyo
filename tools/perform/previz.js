@@ -31,11 +31,11 @@ function build(sid, o) {
     const pr = p => { const q = Pj(p); return q ? [r4(q[0]), r4(q[1]), r4(q[2])] : null; };
     for (const pc of pieces) for (const [a, b] of edgesOf(pc.box)) { const qa = pr(a), qb = pr(b); if (qa && qb && Math.abs(qa[0]) < 4 && Math.abs(qb[0]) < 4 && Math.abs(qa[1]) < 4 && Math.abs(qb[1]) < 4) f.set.push([qa[0], qa[1], qb[0], qb[1]]); }
     let hot = null, hv = -1;
-    for (const id of ids) { const a = fr.a[id]; if (!a) continue; const s = a.s, pts = {}; for (const k of ['head', 'crown', 'face', 'shR', 'shL', 'elR', 'elL', 'handR', 'handL', 'hipR', 'hipL', 'kneeR', 'kneeL', 'footR', 'footL', 'hips', 'neck']) pts[k] = pr(s.pts[k]);
-      const H = Tr.H(id), lk = s.pts.gaze, fc = s.pts.face; pts.look = pr([fc[0] + lk[0] * 0.35 * H, fc[1] + lk[1] * 0.35 * H, fc[2] + lk[2] * 0.35 * H]);
+    for (const id of ids) { const a = fr.a[id]; if (!a) continue; const s = a.s, pts = {}; for (const k of ['head', 'headTop', 'crown', 'face', 'faceC', 'shR', 'shL', 'elR', 'elL', 'handR', 'handL', 'hipR', 'hipL', 'kneeR', 'kneeL', 'footR', 'footL', 'hips', 'neck']) pts[k] = pr(s.pts[k]);
+      const H = Tr.H(id), lk = s.pts.gaze, fc = s.pts.faceC; pts.look = pr([fc[0] + lk[0] * 0.35 * H, fc[1] + lk[1] * 0.35 * H, fc[2] + lk[2] * 0.35 * H]);
       if (!pts.hips) continue; const size = pts.crown && pts.footR ? Math.abs(pts.crown[1] - pts.footR[1]) / 2 : 0.05;
-      const st = (m.states[id] || '')[i] || null; f.figs.push({ id, p: pts, c: color[id], s: size, z: pts.hips[2], label: Score.short(id), state: st });
-      const T = th.T[id][i]; f.glow.push({ x: pts.hips[0], y: pts.hips[1], r: size * 0.9, T }); if (T > hv) { hv = T; hot = id; } }
+      const st = (m.states[id] || '')[i] || null, prin = ((S.actors || {})[id] || {}).principal; f.figs.push({ id, p: pts, c: color[id], s: size, z: pts.hips[2], label: Score.short(id), state: st, principal: prin });
+      const T = th.T[id][i]; f.glow.push({ x: pts.hips[0], y: pts.hips[1], r: Math.min(0.4, size * 0.9), T }); const w = T * (prin ? 3 : 1) + (prin ? 0.05 : 0); if (w > hv) { hv = w; hot = id; } }
     /* objects: held (a spear), a line through many hands (the stake), a heat source (the fire), a giant */
     const own = Choreo.propsAt(C, t).own;
     for (const [oid, ob] of Object.entries(objs)) {
