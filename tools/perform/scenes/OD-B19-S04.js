@@ -45,8 +45,8 @@ module.exports = function author(M, X) {
   I({ id: 'euTurn', actor: Eu, kind: 'ATTEND', target: P, t0: tSpill + 0.4, t1: tReach, label: 'to the queen, to tell her', because: [{ id: 'euStart' }] });
   I({ id: 'euReach', actor: Eu, kind: 'GESTURE', target: P, t0: tReach - 0.3, t1: tGrip - 0.1, label: 'reaches toward Penelope', params: { shape: 'reach', at: tReach, side: 'R', amp: 0.9, hold: 1.2 }, because: [{ id: 'euTurn' }] });
   I({ id: 'oGrip', actor: O, kind: 'GRIP', target: Eu, t0: tGrip, t1: T - 1.2, label: 'his right hand at her throat, gently but firmly', params: { point: 'neck', side: 'R', reach: 0.55, answer: 'none' }, because: [{ id: 'euReach' }, { id: 'v' + c6.gi, rel: 'realises' }] });
-  I({ id: 'euDrawn', actor: Eu, kind: 'STEP', target: O, t0: tGrip + 0.15, t1: tGrip + 0.65, label: 'drawn in to him by the throat', params: { dist: 0.45, dur: 0.5 }, because: [{ id: 'oGrip' }] });
-  I({ id: 'euFree', actor: Eu, kind: 'STEP', target: O, t0: T - 1.1, t1: T - 0.5, label: 'let go: back on her knees', params: { dist: -0.45, dur: 0.6 }, because: [{ id: 'euOath' }] });
+  I({ id: 'euDrawn', actor: Eu, kind: 'STEP', target: O, t0: tGrip + 0.15, t1: tGrip + 0.65, label: 'drawn in to him by the throat', params: { dist: 0.25, dur: 0.5 }, because: [{ id: 'oGrip' }] });
+  I({ id: 'euFree', actor: Eu, kind: 'STEP', target: O, t0: T - 1.1, t1: T - 0.5, label: 'let go: back on her knees', params: { dist: -0.25, dur: 0.6 }, because: [{ id: 'euOath' }] });
   I({ id: 'oHush', actor: O, kind: 'SIGNAL', t0: q(w(V6, 'firmly', 40.2) - 0.4), t1: q(w(V6, 'firmly', 40.2) + 1.4), label: 'draws her close: not a word', params: { how: 'hush', to: [Eu], lookAt: Eu, side: 'L' }, because: [{ id: 'oGrip' }] });
   holds.push({ id: 'hEu2', actor: Eu, t0: tGrip + 0.3, t1: tSwear - 0.3, reason: 'held at the throat, looking into his face', params: { look: [[O, 3.0]], still: true }, because: [{ id: 'oGrip' }] });
   I({ id: 'euOath', actor: Eu, kind: 'GESTURE', target: O, t0: tSwear - 0.2, t1: q(tSwear + 1.6), label: 'swears silence', params: { shape: 'oath', at: tSwear + 0.2, side: 'L', amp: 0.8, hold: 0.8 }, because: [{ id: 'oHush' }] });
