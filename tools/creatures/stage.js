@@ -48,4 +48,8 @@ function film(file, W, H, fps, n, frameFn, { keep = 12, crf = 30 } = {}) {
   });
 }
 function jpeg(file, img, q = 3) { fs.mkdirSync(path.dirname(file), { recursive: true }); cp.execFileSync(FF, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-i', '-', '-q:v', String(q), file], { input: R.ppm(img) }); }
-module.exports = { meshes, figure, cam, film, jpeg, P, FF, PAL, mpdOf };
+/* the box of meshes in the renderer's frame (y down) */
+function bounds(ms) { const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (const m of ms) for (let i = 0; i < m.tri.length; i += 3) for (let k = 0; k < 3; k++) { const q = m.tri[i + k]; if (q < min[k]) min[k] = q; if (q > max[k]) max[k] = q; }
+  return { min, max }; }
+module.exports = { bounds, meshes, figure, cam, film, jpeg, P, FF, PAL, mpdOf };

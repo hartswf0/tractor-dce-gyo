@@ -92,7 +92,9 @@ function troll(kind, o) {
     { id: 'hips', parent: 'root', p: [0, -52, 6], move: [['hips.dy', 'y', -1]], rot: [['body.yaw', 'y', -1], ['body.pitch', 'x', -1], ['body.roll', 'z', -1]],
       mesh: [cut('hips')] },
     { id: 'leg.R', parent: 'hips', p: [-16, -40, 8], rot: [['leg.R.pitch', 'x', 1], ['leg.R.out', 'z', 1]], mesh: [cut('leg.R')] },
+    { id: 'knee.R', parent: 'leg.R', p: [-16, -20, 6], rot: [['knee.R', 'x', 1]], mesh: [cut('shin.R')] },
     { id: 'leg.L', parent: 'hips', p: [16, -40, 8], rot: [['leg.L.pitch', 'x', 1], ['leg.L.out', 'z', -1]], mesh: [cut('leg.L')] },
+    { id: 'knee.L', parent: 'leg.L', p: [16, -20, 6], rot: [['knee.L', 'x', 1]], mesh: [cut('shin.L')] },
     { id: 'torso', parent: 'hips', p: [0, -80, 10], rot: [['torso.twist', 'y', -1], ['torso.lean', 'x', 1], ['torso.roll', 'z', -1]],
       mesh: [cut('torso'), { part: '60634', col: o.back || 70, m: at(0, 0, 0) }] },
     /* the troll's face is the front of its body moulding: the brow and snout cut away as a head, the tusked jaw under it */
@@ -117,8 +119,10 @@ function troll(kind, o) {
     cuts: { from: [{ part: '60635', col: body, m: at(0, 0, 0), to: 'torso' }, { part: '60637', col: body, m: at(0, 0, 0), to: 'torso' }, { part: '60672', col, m: at(-40, 40, 20), to: 'arm.R' }, { part: '60673', col, m: at(40, 40, 20), to: 'arm.L' },
       { part: '60638', col: belt, m: at(0, 0, 0), to: 'hips' }, { part: '60644', col: skirt, m: at(0, 0, 0), to: 'hips' }],
       /* the troll's arm is one moulding bent at the elbow: the forearm is what reaches forward under the elbow */
-      regions: [['head', (x, y, z, s) => s === 'torso' && z < -18 && y < -126 && Math.abs(x) < 26], ['jaw', (x, y, z, s) => s === 'torso' && z < -18 && y >= -126 && y < -86 && Math.abs(x) < 26], ['fore.R', (x, y, z, s) => s === 'arm.R' && y > -100 && z < 4], ['fore.L', (x, y, z, s) => s === 'arm.L' && y > -100 && z < 4],
-        ['leg.R', (x, y, z, s) => s === 'hips' && y > -38 && x < -1], ['leg.L', (x, y, z, s) => s === 'hips' && y > -38 && x >= -1]] },
+      regions: [['head', { src: 'torso', z: [-99, -18], y: [-999, -126], x: [-26, 26] }], ['jaw', { src: 'torso', z: [-99, -18], y: [-126, -86], x: [-26, 26] }],
+        ['fore.R', { src: 'arm.R', y: [-100, 99], z: [-99, 4] }], ['fore.L', { src: 'arm.L', y: [-100, 99], z: [-99, 4] }],
+        ['shin.R', { src: 'hips', y: [-20, 99], x: [-99, -1] }], ['shin.L', { src: 'hips', y: [-20, 99], x: [-1, 99] }],
+        ['leg.R', { src: 'hips', y: [-38, 99], x: [-99, -1] }], ['leg.L', { src: 'hips', y: [-38, 99], x: [-1, 99] }]] },
     channels: [
       ...(o.eye ? [ch('eye', 0, 3, 'the pupil: 0 open, 1 half shut, 2 shut, 3 put out (a replacement part)', 'index'), ch('eye.x', -9, 9, 'the pupil to its left (+)', 'ldu'), ch('eye.y', -9, 9, 'the pupil up (+)', 'ldu')] : []),
       ch('hips.dy', -150, 30, 'the whole body up (+) or down on the hips: a sit is about -40, a crouch -20', 'ldu'),
@@ -131,14 +135,15 @@ function troll(kind, o) {
       ch('elbow.R', -1.2, 0.5, 'the elbow: - bends the forearm up'), ch('elbow.L', -1.2, 0.5, 'the elbow: - bends the forearm up'),
       ch('hand.R.roll', -1.6, 1.6, 'the wrist turned (the grip turns with it)'), ch('hand.L.roll', -1.6, 1.6, 'the wrist turned'),
       ch('leg.R.pitch', -1.6, 0.6, 'the hip: - swings the leg forward (a sit is -1.5)'), ch('leg.L.pitch', -1.6, 0.6, 'the hip: - swings the leg forward'),
-      ch('leg.R.out', -0.1, 0.5, 'the leg out to the side'), ch('leg.L.out', -0.1, 0.5, 'the leg out to the side'),
+      ch('leg.R.out', -0.2, 0.5, 'the leg out to the side'), ch('leg.L.out', -0.2, 0.5, 'the leg out to the side'),
+      ch('knee.R', -0.1, 1.6, 'the knee: + folds the shin back (a kneel is 1.5)'), ch('knee.L', -0.1, 1.6, 'the knee: + folds the shin back'),
     ],
     anchors: {
       'grip.R': { node: 'hand.R', p: [-53.75, -83, -34] }, 'grip.L': { node: 'hand.L', p: [53.75, -83, -34] },
       head: { node: 'head', p: [0, -146, -40] }, brow: { node: 'head', p: [0, -164, -44] }, eye: { node: o.eye ? 'eye' : 'head', p: [0, -148, -70] },
-      mouth: { node: 'jaw', p: [0, -116, -52] }, lap: { node: 'hips', p: [0, -50, -30] }, 'foot.R': { node: 'leg.R', p: [-16, 0, 0] }, 'foot.L': { node: 'leg.L', p: [16, 0, 0] },
+      mouth: { node: 'jaw', p: [0, -116, -52] }, lap: { node: 'hips', p: [0, -50, -30] }, 'foot.R': { node: 'knee.R', p: [-16, 0, 0] }, 'foot.L': { node: 'knee.L', p: [16, 0, 0] },
     },
-    feet: { 'leg.R': { hip: 'leg.R', foot: [-16, 0, -2] }, 'leg.L': { hip: 'leg.L', foot: [16, 0, -2] } },
+    feet: { 'leg.R': { hip: 'leg.R', knee: 'knee.R', foot: [-16, 0, -2], bend: 1 }, 'leg.L': { hip: 'leg.L', knee: 'knee.L', foot: [16, 0, -2], bend: 1 } },
     presets: {
       stand: {}, sit: { 'hips.dy': -44, 'leg.R.pitch': -1.45, 'leg.L.pitch': -1.45, 'leg.R.out': 0.25, 'leg.L.out': 0.25, 'torso.lean': 0.25 },
       crouch: { 'hips.dy': -14, 'leg.R.pitch': -0.5, 'leg.L.pitch': -0.5, 'body.pitch': 0.3, 'torso.lean': 0.6 },
@@ -191,6 +196,12 @@ function quad(kind, o) {
     presets: Object.assign({ stand: {} }, o.presets || {}),
   };
 }
+/* the four legs cut as boxes: below the knee (y > knee) the lower leg, below the belly (y > belly) the upper; front of zMid the forelegs */
+function legBoxes(knee, belly, zMid) {
+  const out = []; for (const [pre, y] of [['knee.', knee], ['leg.', belly]]) for (const L of ['FL', 'FR', 'HL', 'HR'])
+    out.push([pre + L, { y: [y, 99], z: L[0] === 'F' ? [-99, zMid] : [zMid, 99], x: L[1] === 'L' ? [0, 99] : [-99, 0] }]);
+  return out;
+}
 /* the goat (95341) the set pieces use for the rams and the flock: y 48 in the part is its hooves */
 const GOAT = { base: T(0, -48, 0) };
 KINDS.ram = quad('ram', {
@@ -199,9 +210,7 @@ KINDS.ram = quad('ram', {
   body: [0, -40, 0], neck: [0, -50, -30], tail: [0, -34, 22],
   legs: { FL: { hip: [6, -32, -20], knee: [6, -14, -20], foot: [6, 0, -21] }, FR: { hip: [-6, -32, -20], knee: [-6, -14, -20], foot: [-6, 0, -21] },
     HL: { hip: [6, -32, 15], knee: [6, -14, 17], foot: [6, 0, 16] }, HR: { hip: [-6, -32, 15], knee: [-6, -14, 17], foot: [-6, 0, 16] } },
-  regions: [['head', (x, y, z) => z < -26 && y < -44], ['tail', (x, y, z) => z > 20 && y < -26],
-    ['knee.FL', (x, y, z) => y > -14 && z < -2 && x >= 0], ['knee.FR', (x, y, z) => y > -14 && z < -2 && x < 0], ['knee.HL', (x, y, z) => y > -14 && z >= -2 && x >= 0], ['knee.HR', (x, y, z) => y > -14 && z >= -2 && x < 0],
-    ['leg.FL', (x, y, z) => y > -26 && z < -2 && x >= 0], ['leg.FR', (x, y, z) => y > -26 && z < -2 && x < 0], ['leg.HL', (x, y, z) => y > -26 && z >= -2 && x >= 0], ['leg.HR', (x, y, z) => y > -26 && z >= -2 && x < 0]],
+  regions: [['head', { z: [-99, -26], y: [-99, -44] }], ['tail', { z: [20, 99], y: [-99, -26] }]].concat(legBoxes(-14, -26, -2)),
   anchors: { belly: { node: 'body', p: [0, -24, -2] }, back: { node: 'body', p: [0, -50, 0] }, head: { node: 'head', p: [0, -62, -40] }, mouth: { node: 'head', p: [0, -52, -48] } },
   gaits: { walk: { stride: 28, duty: 0.62, lift: 4, speed: 22, crouch: 2.5, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 36, duty: 0.45, lift: 6, speed: 50, crouch: 3.5, bob: 1.6, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 56, duty: 0.3, lift: 8, speed: 110, crouch: 5, bob: 2.4, phase: { HL: 0, HR: 0.1, FL: 0.5, FR: 0.6 } } },
   colours: { white: 15, black: 0, grey: 71, tan: 19 },
@@ -214,13 +223,11 @@ KINDS.dog = quad('dog', {
   title: 'Dog', part: '92586', base: T(0, -48, 0),
   blurb: 'The German shepherd of the set pieces, cut at the neck, shoulders and hips, knees, tail and both ears: Eumaeus\' four dogs (rush, bark, stop short, scatter) and Argos (lift the head, drop the ears, thump the tail, die).',
   body: [0, -40, 0], neck: [0, -48, -24], tail: [0, -40, 20],
-  ears: [{ id: 'ear.L', p: [5, -60, -27] }, { id: 'ear.R', p: [-5, -60, -27] }],
+  ears: [{ id: 'ear.L', p: [5, -60, -33] }, { id: 'ear.R', p: [-5, -60, -33] }],
   legs: { FL: { hip: [5, -32, -20], knee: [5, -14, -21], foot: [5, 0, -22] }, FR: { hip: [-5, -32, -20], knee: [-5, -14, -21], foot: [-5, 0, -22] },
     HL: { hip: [5, -32, 14], knee: [5, -14, 17], foot: [5, 0, 16] }, HR: { hip: [-5, -32, 14], knee: [-5, -14, 17], foot: [-5, 0, 16] } },
-  regions: [['ear.L', (x, y, z) => y < -60 && z < -20 && z > -34 && x >= 1.5], ['ear.R', (x, y, z) => y < -60 && z < -20 && z > -34 && x < -1.5], ['head', (x, y, z) => z < -24 && y < -40],
-    ['tail', (x, y, z) => z > 18 && y < -20],
-    ['knee.FL', (x, y, z) => y > -14 && z < -2 && x >= 0], ['knee.FR', (x, y, z) => y > -14 && z < -2 && x < 0], ['knee.HL', (x, y, z) => y > -14 && z >= -2 && x >= 0], ['knee.HR', (x, y, z) => y > -14 && z >= -2 && x < 0],
-    ['leg.FL', (x, y, z) => y > -26 && z < -2 && x >= 0], ['leg.FR', (x, y, z) => y > -26 && z < -2 && x < 0], ['leg.HL', (x, y, z) => y > -26 && z >= -2 && x >= 0], ['leg.HR', (x, y, z) => y > -26 && z >= -2 && x < 0]],
+  regions: [['ear.L', { y: [-99, -60], z: [-42, -24], x: [1.5, 99] }], ['ear.R', { y: [-99, -60], z: [-42, -24], x: [-99, -1.5] }], ['head', { z: [-99, -24], y: [-99, -40] }],
+    ['tail', { z: [18, 99], y: [-99, -20] }]].concat(legBoxes(-14, -26, -2)),
   anchors: { back: { node: 'body', p: [0, -46, 0] }, head: { node: 'head', p: [0, -58, -36] }, mouth: { node: 'head', p: [0, -50, -46] }, belly: { node: 'body', p: [0, -26, 0] } },
   gaits: { walk: { stride: 28, duty: 0.6, lift: 4, speed: 24, crouch: 2.5, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 38, duty: 0.45, lift: 6, speed: 60, crouch: 3.5, bob: 1.6, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 60, duty: 0.3, lift: 9, speed: 150, crouch: 5, bob: 2.4, phase: { HL: 0, HR: 0.08, FL: 0.45, FR: 0.55 } } },
   colours: { brown: 308, black: 0, white: 15, tan: 28 },
@@ -241,9 +248,7 @@ KINDS.cattle = quad('cattle', {
   horns: [{ part: '13564', col: 19, m: [-14, -76, -52, 0, 0, 1, 0, 1, 0, -1, 0, 0] }, { part: '13564', col: 19, m: [14, -76, -52, 0, 0, -1, 0, 1, 0, 1, 0, 0] }],
   legs: { FL: { hip: [12, -36, -34], knee: [12, -16, -34], foot: [12, 0, -35] }, FR: { hip: [-12, -36, -34], knee: [-12, -16, -34], foot: [-12, 0, -35] },
     HL: { hip: [12, -36, 34], knee: [12, -16, 36], foot: [12, 0, 36] }, HR: { hip: [-12, -36, 34], knee: [-12, -16, 36], foot: [-12, 0, 36] } },
-  regions: [['tail', (x, y, z) => z > 50 && y < -14],
-    ['knee.FL', (x, y, z) => y > -16 && z < 0 && x >= 0], ['knee.FR', (x, y, z) => y > -16 && z < 0 && x < 0], ['knee.HL', (x, y, z) => y > -16 && z >= 0 && x >= 0], ['knee.HR', (x, y, z) => y > -16 && z >= 0 && x < 0],
-    ['leg.FL', (x, y, z) => y > -30 && z < 0 && x >= 0], ['leg.FR', (x, y, z) => y > -30 && z < 0 && x < 0], ['leg.HL', (x, y, z) => y > -30 && z >= 0 && x >= 0], ['leg.HR', (x, y, z) => y > -30 && z >= 0 && x < 0]],
+  regions: [['tail', { z: [50, 99], y: [-99, -14] }]].concat(legBoxes(-16, -30, 0)),
   anchors: { back: { node: 'body', p: [0, -80, 0] }, head: { node: 'head', p: [0, -66, -76] }, mouth: { node: 'head', p: [0, -52, -92] }, belly: { node: 'body', p: [0, -30, 0] } },
   gaits: { walk: { stride: 32, duty: 0.64, lift: 4, speed: 22, crouch: 3, phase: { HL: 0, FL: 0.25, HR: 0.5, FR: 0.75 } }, trot: { stride: 42, duty: 0.45, lift: 6, speed: 50, crouch: 4, bob: 1.6, phase: { HL: 0, FR: 0, HR: 0.5, FL: 0.5 } }, run: { stride: 64, duty: 0.3, lift: 9, speed: 110, crouch: 6, bob: 2.4, phase: { HL: 0, HR: 0.1, FL: 0.5, FR: 0.6 } } },
   colours: { white: 15, red: 320, black: 0, tan: 19 },
@@ -320,7 +325,10 @@ function define(kind, opts = {}) {
       return [`0 ${title || rig.id}`, `0 // ${kind} posed by film-readymades/creatures.js; node files from odyssey/creatures/parts/${K.cutFrom || kind}.mpd`]
         .concat(rig.rows(v, { frame: 'ldraw' }).map(r => `1 ${r.col} ${r.m.map(f).join(' ')} ${r.file || r.part + '.dat'}`)).join('\n') + '\n';
     },
-    anchor(name, v) { const a = K.anchors[name]; if (!a) return null; const P = rig.pose(v); return mul(P.nodes[a.node] || P.world, T(a.p[0], a.p[1], a.p[2])); },
+    /* an anchor's frame in the world: at the anchor, turned with its node, in the creature's axes (y toward its belly, -z its
+       front) but at the world's scale, so a minifig hung on it keeps its own size whatever the creature's */
+    anchor(name, v) { const a = K.anchors[name]; if (!a) return null; const P = rig.pose(v), M = mul(P.nodes[a.node] || P.world, T(a.p[0], a.p[1], a.p[2]));
+      const k = Math.hypot(M[3], M[6], M[9]) || 1; return [M[0], M[1], M[2], ...M.slice(3).map(q => q / k)]; },
     point(name, v) { const M = rig.anchor(name, v); return M ? [M[0], M[1], M[2]] : null; },
     /* three.js: a group per node under `group`, each holding what meshOf(file|part, col) returns; apply(v) poses them */
     attach(THREE, group, meshOf) {
@@ -389,14 +397,22 @@ function pathOf(p) {
   const sAt = t => { const x = (cl(t, t0, t1) - t0) / dt, i = Math.min(n - 2, Math.floor(x)); return lerp(S[i], S[i + 1], x - i); };
   /* the place at arc length s (inverse of sAt, by bisection on the table) and the heading there */
   const tAtS = s => { let lo = 0, hi = n - 1; if (s <= 0) return t0; if (s >= S[n - 1]) return t1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (S[m] < s) lo = m; else hi = m; } return t0 + (lo + (s - S[lo]) / Math.max(1e-9, S[hi] - S[lo])) * dt; };
-  const headAt = t => { let a = fn(t - 0.08), b = fn(t + 0.08); if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.05) { a = fn(t - 0.6); b = fn(t + 0.6); } if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.05) return null; return Math.atan2(b[0] - a[0], b[1] - a[1]); };
-  const P = { fn, sAt, tAtS, headAt, t0, t1, total: S[n - 1] };
+  const headAt = t => { const a = fn(t - 0.08), b = fn(t + 0.08); if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.05) return null; return Math.atan2(b[0] - a[0], b[1] - a[1]); };
+  /* the heading on the grid: moving, the way it goes; standing, the heading it arrived with, turned in place over the half second
+     before it sets off the new way (before it has ever moved, the way it will set off) */
+  const Hr = new Array(n), Hh = new Float64Array(n), hasH = new Uint8Array(n); for (let i = 0; i < n; i++) Hr[i] = headAt(t0 + i * dt);
+  let lastI = -1; const back = new Int32Array(n), fwd = new Int32Array(n);
+  for (let i = 0; i < n; i++) { if (Hr[i] != null) lastI = i; back[i] = lastI; } lastI = -1; for (let i = n - 1; i >= 0; i--) { if (Hr[i] != null) lastI = i; fwd[i] = lastI; }
+  for (let i = 0; i < n; i++) { if (Hr[i] != null) { Hh[i] = Hr[i]; hasH[i] = 1; continue; } const b = back[i], f = fwd[i]; if (b < 0 && f < 0) continue; hasH[i] = 1;
+    if (b < 0) { Hh[i] = Hr[f]; continue; } if (f < 0) { Hh[i] = Hr[b]; continue; } const u = sm(cl01(1 - (f - i) * dt / 0.5)); Hh[i] = Hr[b] + wrapPi(Hr[f] - Hr[b]) * u; }
+  for (let i = 1; i < n; i++) Hh[i] = Hh[i - 1] + wrapPi(Hh[i] - Hh[i - 1]);   /* unwrapped, so it interpolates the short way */
+  const hAt = (t, h0) => { if (!hasH.some(x => x)) return h0; const x = (cl(t, t0, t1) - t0) / dt, i = Math.min(n - 2, Math.floor(x)); return wrapPi(lerp(Hh[i], Hh[i + 1], x - i)); };
+  const P = { fn, sAt, tAtS, headAt, hAt, Hh, dt, t0, t1, total: S[n - 1] };
   PATHS.set(p, P); return P;
 }
 function keysFn(K) { return t => { if (t <= K[0][0]) return [K[0][1], K[0][2]]; for (let i = 1; i < K.length; i++) if (t <= K[i][0]) { const a = K[i - 1], b = K[i], u = (t - a[0]) / Math.max(1e-6, b[0] - a[0]), e = K[i][3] === 'linear' ? u : sm(u); return [lerp(a[1], b[1], e), lerp(a[2], b[2], e)]; } const L = K[K.length - 1]; return [L[1], L[2]]; }; }
 /* a heading that holds when the creature stops and turns the short way */
-function heading(P, t, h0 = 0) { let h = P.headAt(t); if (h == null) { for (let k = 1; k < 40 && h == null; k++) h = P.headAt(t - k * 0.25); } return h == null ? h0 : h; }
-
+function heading(P, t, h0 = 0) { return P.hAt(t, h0); }
 /* two bones in the leg's plane (y, z of the parent frame): hip H, knee K, foot F at rest; the angles that put F on target */
 function ik2(H, K, F, tgt, bend) {
   const u0 = [K[1] - H[1], K[2] - H[2]], l0 = [F[1] - K[1], F[2] - K[2]], ang = w => Math.atan2(w[1], w[0]);
@@ -407,49 +423,81 @@ function ik2(H, K, F, tgt, bend) {
   return [th1, th2];
 }
 const wrapPi = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
-/* the gait: `params` {path: keys or fn (world x, z), gait: 'walk'|'trot'|'run' or {stride, duty, lift, phase}, t0, h0, y, base: {ch: v}}
-   Each foot is planted where the hip will pass over it at mid-stance and stays there until it lifts (so it never slides), swings
-   on an arc to its next plant; the legs are solved to their feet (two bones: hip and knee); the body bobs twice a cycle and pitches
-   with the fore and hind stances; the head nods, the tail swings. Returns the channels at t (root.* included). */
+/* the gait at t: a name ('walk'), an object of its numbers, or a schedule [[t, 'run'], [3.4, 'walk'], ...] blended over `blend` s */
+const GNUM = ['stride', 'duty', 'lift', 'speed', 'crouch', 'bob', 'stance'];
+function gaitAt(K, spec, t, blend = 0.5) {
+  const one = g => Object.assign({ crouch: 2, bob: 1.2, stance: 0 }, (K.gaits || {})[typeof g === 'string' ? g : 'walk'] || {}, typeof g === 'object' && !Array.isArray(g) ? g : {});
+  if (!Array.isArray(spec)) return one(spec);
+  let k = 0; while (k + 1 < spec.length && spec[k + 1][0] <= t) k++;
+  const A = one(spec[k][1]); if (k === 0 || t - spec[k][0] >= blend) return A;
+  const B = one(spec[k - 1][1]), u = sm(cl01((t - spec[k][0]) / blend)), out = Object.assign({}, A, { phase: {} });
+  for (const n of GNUM) if (A[n] != null || B[n] != null) out[n] = lerp(B[n] != null ? B[n] : A[n], A[n] != null ? A[n] : B[n], u);
+  for (const L of Object.keys(Object.assign({}, A.phase, B.phase))) { const a = (B.phase || {})[L] || 0, b = (A.phase || {})[L] || 0; out.phase[L] = a + wrapPi((b - a) * 2 * Math.PI) / (2 * Math.PI) * u; }
+  return out;
+}
+/* the phase clocks: for each leg, the cycles of the stride it has turned so far (the arc length over the stride integrated on a fixed
+   grid, plus the leg's own offset in the gait), so a change of gait or of speed never makes a phase jump, and the inverse (the time
+   a leg reaches a given phase). A foot's plant is a function of that clock alone, so it cannot move while the foot is down. */
+const CLOCKS = new WeakMap();
+function clockOf(P, K, spec, sc) {
+  let byPath = CLOCKS.get(P); if (!byPath) { byPath = new Map(); CLOCKS.set(P, byPath); }
+  const key = K.kind + '|' + sc + '|' + JSON.stringify(spec); if (byPath.has(key)) return byPath.get(key);
+  const dt = 1 / 120, n = Math.ceil((P.t1 - P.t0) / dt) + 1, legs = Object.keys(K.feet || {}).map(l => l.split('.')[1]);
+  const Ph = new Float64Array(n), X = {}; for (const L of legs) X[L] = new Float64Array(n);
+  let sPrev = P.sAt(P.t0); const g0 = gaitAt(K, spec, P.t0); for (const L of legs) X[L][0] = (g0.phase || {})[L] || 0;
+  const R = (K.turnR || 22) * sc;   /* turning on the spot steps too: a turn of the body counts as the distance its feet go round */
+  for (let i = 1; i < n; i++) { const t = P.t0 + i * dt, sN = P.sAt(t), g = gaitAt(K, spec, t), dh = Math.abs(wrapPi(P.hAt(t, 0) - P.hAt(t - dt, 0)));
+    Ph[i] = Ph[i - 1] + (sN - sPrev + dh * R) / (gaitAt(K, spec, t - dt / 2).stride * sc); sPrev = sN;
+    for (const L of legs) X[L][i] = Math.max(X[L][i - 1], Ph[i] + ((g.phase || {})[L] || 0)); }   /* never backwards */
+  const at = A => t => { const x = (cl(t, P.t0, P.t1) - P.t0) / dt, i = Math.min(n - 2, Math.floor(x)); return lerp(A[i], A[i + 1], x - i); };
+  const invOf = A => f => { if (f <= A[0]) return P.t0; if (f >= A[n - 1]) return P.t1; let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (A[m] < f) lo = m; else hi = m; } return P.t0 + (lo + (f - A[lo]) / Math.max(1e-12, A[hi] - A[lo])) * dt; };
+  const C = { at: at(Ph), leg: {} }; for (const L of legs) C.leg[L] = { at: at(X[L]), inv: invOf(X[L]) };
+  byPath.set(key, C); return C;
+}
+/* the gait: `params` {path: keys [[t, x, z], ...] or fn t -> [x, z] (world), gait: 'walk' | 'trot' | 'run' | {stride, duty, lift, crouch,
+   bob, phase} | a schedule [[t, gait], ...], blend (s), stance (LDU the feet are planted out from under the hips), h0, y, base: {ch: v}}.
+   Each foot is planted where its hip will pass over it at mid-stance and stays there until it lifts (so it never slides), swings on
+   an arc to its next plant; a creature coming to a stop sets its swinging feet down where it stops. The legs are solved to their feet
+   (hip and knee, and turned out on the hip against the body's roll); the body bobs twice a cycle, pitches and sways; the head nods and
+   the tail swings. Returns the channels at t (root.* included), and v._feet {leg: {at, planted, u, cyc}}. */
 function gait(rig, t, params = {}) {
-  const K = rig.K, P = pathOf(params.path), G = Object.assign({}, (K.gaits || {})[typeof params.gait === 'string' ? params.gait : 'walk'] || {}, typeof params.gait === 'object' ? params.gait : {});
-  const sc = rig.scale, stride = G.stride * sc, s = P.sAt(t), pos = P.fn(t), h = heading(P, t, params.h0 || 0), y0 = params.y || 0;
+  const K = rig.K, P = pathOf(params.path), sc = rig.scale, spec = params.gait || 'walk';
+  const G = Object.assign(gaitAt(K, spec, t, params.blend), params.stance != null ? { stance: params.stance } : {});
+  const clock = clockOf(P, K, Array.isArray(spec) ? spec.map(e => [e[0], e[1]]) : spec, sc), phase = clock.at(t);
+  const pos = P.fn(t), h = heading(P, t, params.h0 || 0), y0 = params.y || 0, s = P.sAt(t);
   const v = Object.assign(rig.rest(), params.base || {}, { 'root.x': pos[0], 'root.z': pos[1], 'root.y': y0, 'root.h': h });
-  const phase = s / stride, speed = (P.sAt(t + 0.05) - P.sAt(t - 0.05)) / 0.1, moving = cl01(speed / (G.speed * sc * 0.3 + 1e-6));
-  /* the body: a bob at twice the stride's rate, a pitch, a sway, scaled by how fast it goes */
+  const turn = Math.abs(wrapPi(heading(P, t + 0.05) - heading(P, t - 0.05))) / 0.1 * (K.turnR || 22) * sc;
+  const speed = (P.sAt(t + 0.05) - P.sAt(t - 0.05)) / 0.1 + turn, moving = cl01(speed / (G.speed * sc * 0.3 + 1e-6));
   /* the legs never stand quite straight (a straight leg is the solver's singular point and leaves no reach): crouched a little, more
-     as it goes faster, and a bob at twice the stride's rate */
-  v['body.dy'] = (v['body.dy'] || 0) - (G.crouch != null ? G.crouch : 2) * (0.5 + 0.5 * moving) + moving * (G.bob != null ? G.bob : 1.2) * Math.cos(4 * Math.PI * phase);
+     as it goes faster, and a bob at twice the stride's rate; a pitch and a sway with the stride */
+  v['body.dy'] = (v['body.dy'] || 0) - G.crouch * (0.5 + 0.5 * moving) + moving * G.bob * Math.cos(4 * Math.PI * phase);
   v['body.pitch'] = (v['body.pitch'] || 0) + moving * 0.03 * Math.sin(2 * Math.PI * phase);
   v['body.roll'] = (v['body.roll'] || 0) + moving * 0.025 * Math.sin(2 * Math.PI * phase + 0.6);
-  if (params.head !== false) { v['head.pitch'] = (v['head.pitch'] || 0) + moving * 0.06 * Math.sin(4 * Math.PI * phase + 1); }
+  if (params.head !== false) v['head.pitch'] = (v['head.pitch'] || 0) + moving * 0.06 * Math.sin(4 * Math.PI * phase + 1);
   if (K.nodes.some(n => n.id === 'tail') && params.tail !== false) v['tail.yaw'] = (v['tail.yaw'] || 0) + moving * 0.25 * Math.sin(2 * Math.PI * phase);
-  /* the feet: the plant of each at the arc length its hip passes over at mid-stance */
-  const Wc = rig.world(v), L = rig.local(v), Winv = inv(Wc);
-  const nodeOf = id => K.nodes.find(n => n.id === id);
+  const Winv = inv(rig.world(v)), L = rig.local(v), nodeOf = id => K.nodes.find(n => n.id === id);
   v._feet = {};
   for (const [legId, F] of Object.entries(K.feet || {})) {
-    const L4 = legId.split('.')[1], ph = (G.phase || {})[L4] || 0, x = phase + ph, cyc = Math.floor(x), u = x - cyc, duty = G.duty || 0.6;
-    const hipN = nodeOf(F.hip), kneeN = nodeOf(F.knee);
-    /* the foot's home in the world at arc length S (under its hip, the creature on the path there, heading of the path there) */
-    const home = S => { const tt = P.tAtS(S), q = P.fn(tt), hh = heading(P, tt, h), c = Math.cos(hh), sn = Math.sin(hh), f = [F.foot[0] * sc, -F.foot[2] * sc];   // creature (x, -z) -> world, turned by the heading
+    const L4 = legId.split('.')[1], lc = clock.leg[L4], x = lc.at(t), cyc = Math.floor(x), u = x - cyc;
+    const dutyOf = k => gaitAt(K, spec, lc.inv(k), params.blend).duty || 0.6, duty = dutyOf(cyc);   /* each cycle keeps the duty it touched down with */
+    const hipN = nodeOf(F.hip), kneeN = nodeOf(F.knee), wide = (G.stance || 0) * Math.sign(F.foot[0]);   /* a wider stance: the feet out from under the hips */
+    /* the foot's home in the world when the creature stood at time tt (under its hip, turned with the path's heading then) */
+    const homeT = tt => { const q = P.fn(tt), hh = heading(P, tt, h), c = Math.cos(hh), sn = Math.sin(hh), f = [(F.foot[0] + wide) * sc, -F.foot[2] * sc];
       return [q[0] + c * f[0] + sn * f[1], y0, q[1] - sn * f[0] + c * f[1]]; };
-    const plant = k => home((k + duty / 2 - ph) * stride);
+    const plant = k => homeT(lc.inv(k + dutyOf(k) / 2));   /* the plant of cycle k: where its hip is at that cycle's mid-stance */
     let tgt, lifted = 0;
-    /* standing still the phase stands still with it: the planted feet stay where they are, a foot caught in the air as it stops is
-       set down under its hip (and lifts again from there as it starts), so no foot ever slides on a start or a stop */
     if (u < duty) tgt = plant(cyc);
-    else { const w = (u - duty) / (1 - duty), a = plant(cyc), b = plant(cyc + 1), e = sm(w), c = home(s); lifted = Math.sin(Math.PI * w) * moving;
+    else { const w = (u - duty) / (1 - duty), a = plant(cyc), b = plant(cyc + 1), e = sm(w), c = homeT(lc.inv(x)); lifted = Math.sin(Math.PI * w) * moving;   /* c: under the hip where the leg's clock stopped */
       tgt = [lerp(c[0], lerp(a[0], b[0], e), moving), y0 + (G.lift || 4) * sc * lifted, lerp(c[2], lerp(a[2], b[2], e), moving)]; }
     v._feet[legId] = { at: tgt, planted: lifted === 0, u, cyc };
     /* the target in the parent (body) frame at rest coordinates: through the world and the body's own matrix */
     const inBody = ap(inv(L[hipN.parent]), ap(Winv, tgt));
-    if (kneeN) { const [a1, a2] = ik2(hipN.p, kneeN.p, F.foot, inBody, F.bend);
-      const s1 = hipN.rot[0][2], s2 = kneeN.rot[0][2]; v[F.hip] = wrapPi(a1) * s1; v[F.knee] = wrapPi(a2) * s2;
-      /* sideways: the leg turned out on its hip so the foot stays under its plant as the body rolls and sways */
-      const oc = hipN.rot[1]; if (oc) { const dy = inBody[1] - hipN.p[1], dx = inBody[0] - F.foot[0]; v[oc[0]] = Math.atan2(dx, Math.max(4, dy)) * (oc[2] > 0 ? -1 : 1) * (1); } }
-    else { const H = hipN.p, d = [inBody[1] - H[1], inBody[2] - H[2]], r = [F.foot[1] - H[1], F.foot[2] - H[2]]; v[F.hip + '.pitch'] = (Math.atan2(d[1], d[0]) - Math.atan2(r[1], r[0])) * hipN.rot[0][2]; }
+    const [a1, a2] = ik2(hipN.p, kneeN.p, F.foot, inBody, F.bend);
+    v[F.hip] = wrapPi(a1) * hipN.rot[0][2]; v[F.knee] = wrapPi(a2) * kneeN.rot[0][2];
+    /* sideways: the leg turned out on its hip so the foot stays under its plant as the body rolls and sways */
+    const oc = hipN.rot[1]; if (oc) v[oc[0]] = Math.atan2(inBody[0] - hipN.p[0], Math.max(4, inBody[1] - hipN.p[1])) * (oc[2] > 0 ? -1 : 1);
   }
+  void s;
   return v;
 }
 /* a spring the body follows (mass, lag, overshoot damped): x'' = w^2 (target - x) - 2 z w x', from rest at t0, on a fixed 1/240 s grid */
@@ -464,89 +512,102 @@ function follow(fn, t, { w = 4, z = 0.7, t0 = 0 } = {}) {
   const f = Math.max(0, (t - t0) / dt), i = Math.min(tab.xs.length - 2, Math.floor(f)), u = f - i;
   return { x: tab.xs[i].map((q, k) => lerp(q, tab.xs[i + 1][k], u)), v: tab.vs[i].map((q, k) => lerp(q, tab.vs[i + 1][k], u)) };
 }
-/* the giant's walk: the body follows the path through a spring (its weight lags, then carries it on), a waddle rolls the body over
-   the planted foot so the rigid leg swings clear, each footfall is a jolt in the body and a shake of the ground (fx.shake: a decaying
-   ring after every plant, fx.falls: where and when each foot came down). params {path, stride, duty, t0, y, base, w, z} */
+/* the giant's walk: the body follows the path through a spring (its weight lags, then carries it on past a stop), each rigid leg is
+   pitched to its planted foot and the body sinks as the planted leg leans (so the foot stays on the ground), a waddle rolls the body
+   over the planted foot so the other swings clear, and each footfall is a jolt of the body and a shake of the ground:
+     v._fx.shake   a ring that decays after each footfall (world units: offset a camera or the set by it)
+     v._fx.falls   [{foot, t, at}] the footfalls of the last 0.6 s (dust where they landed)
+   params {path, stride (LDU), duty, w, z (the spring: stiffness, damping), shake, y, base, arms: false} */
 function heavy(rig, t, params = {}) {
-  const K = rig.K, sc = rig.scale, P0 = pathOf(params.path);
-  const lag = params.lagFn || (params.lagFn = tt => P0.fn(tt));
-  const F = follow(lag, t, { w: params.w || 3.2, z: params.z || 0.75, t0: P0.t0 });
-  const pos = F.x, spd = Math.hypot(F.v[0], F.v[1]);
-  const lagPath = params._lagPath || (params._lagPath = tt => follow(lag, tt, { w: params.w || 3.2, z: params.z || 0.75, t0: P0.t0 }).x);
-  const P = pathOf(lagPath), stride = (params.stride || 46) * sc, s = P.sAt(t), phase = s / stride, duty = params.duty || 0.62;
-  const h = heading(P, t, params.h0 || 0), y0 = params.y || 0, moving = cl01(spd / (18 * sc));
+  const K = rig.K, sc = rig.scale, P0 = pathOf(params.path), w = params.w || 3.2, z = params.z || 0.75;
+  if (!params._lag) { const lagFn = tt => follow(P0.fn, tt, { w, z, t0: P0.t0 }).x; Object.defineProperty(params, '_lag', { value: lagFn, enumerable: false }); }
+  const P = pathOf(params._lag), F = follow(P0.fn, t, { w, z, t0: P0.t0 }), pos = F.x, spd = Math.hypot(F.v[0], F.v[1]);
+  const stride = (params.stride || 38) * sc, duty = params.duty || 0.62, s = P.sAt(t), phase = s / stride, h = heading(P0, t, params.h0 || 0), y0 = params.y || 0;   /* it faces where it means to go, even rocking back past a stop */
+  const moving = cl01(spd / (12 * sc));
   const v = Object.assign(rig.rest(), params.base || {}, { 'root.x': pos[0], 'root.z': pos[1], 'root.y': y0, 'root.h': h });
-  /* each leg: plant, stance, swing; the rigid leg's angle to its foot; the body sinks as the planted leg leans */
-  const legs = [['leg.R', 0], ['leg.L', 0.5]], fx = { shake: 0, falls: [] };
+  const legs = [['leg.R', 0], ['leg.L', 0.5]], fx = { shake: 0, falls: [] }, tg = {};
   let sink = 0, roll = 0;
   for (const [id, ph] of legs) {
-    const Fd = K.feet[id], hipN = K.nodes.find(n => n.id === id), x = phase + ph, cyc = Math.floor(x), u = x - cyc;
-    const home = S => { const tt = P.tAtS(S), q = P.fn(tt), hh = heading(P, tt, h), c = Math.cos(hh), sn = Math.sin(hh), f = [Fd.foot[0] * sc, -Fd.foot[2] * sc]; return [q[0] + c * f[0] + sn * f[1], y0, q[1] - sn * f[0] + c * f[1]]; };
+    const Fd = K.feet[id], x = phase + ph, cyc = Math.floor(x), u = x - cyc;
+    const home = S => { const tt = P.tAtS(S), q = P.fn(tt), hh = heading(P0, tt, h), c = Math.cos(hh), sn = Math.sin(hh), f = [Fd.foot[0] * sc, -Fd.foot[2] * sc]; return [q[0] + c * f[0] + sn * f[1], y0, q[1] - sn * f[0] + c * f[1]]; };
     const plant = k => home((k + duty / 2 - ph) * stride);
-    let tgt; const inStance = u < duty || moving < 0.02;
-    if (moving < 0.02) tgt = home(s); else if (u < duty) tgt = plant(cyc); else { const w = (u - duty) / (1 - duty), a = plant(cyc), b = plant(cyc + 1), e = sm(w); tgt = [lerp(a[0], b[0], e), y0, lerp(a[2], b[2], e)]; }
-    /* the angle in the creature frame (heading only: the body's own tilt is small) */
-    const c = Math.cos(-h), sn = Math.sin(-h), dx = tgt[0] - pos[0], dz = tgt[2] - pos[1], fwd = -(sn * dx + c * dz) / sc;   // + ahead of the hips, creature LDU
-    const Hh = -hipN.p[1] + (v['hips.dy'] || 0), lz = hipN.p[2] - Fd.foot[2];
-    const ang = Math.atan2(fwd - lz * 0 + (hipN.p[2]), Hh);
-    v[id + '.pitch'] = cl(-ang, -0.9, 0.6);
-    if (inStance) sink = Math.max(sink, Hh * (1 - Math.cos(ang)));
-    else roll += (id === 'leg.R' ? 1 : -1) * Math.sin(Math.PI * (u - duty) / (1 - duty));
-    /* the footfalls before t: a jolt that rings down */
-    if (moving >= 0.02) for (let k = cyc; k > cyc - 3; k--) { const tk = P.tAtS((k + 0 - ph) * stride + duty * 0) ; const tf = P.tAtS((k - ph + 1) * stride - (1 - duty) * stride + (1 - duty) * stride); void tf;
-      const tTouch = P.tAtS((k - ph) * stride); if (tTouch > t || tTouch < P.t0 + 0.05) continue; const age = t - tTouch;
-      fx.shake += (params.shake || 1) * sc * Math.exp(-age * 5) * Math.sin(age * 2 * Math.PI * 9) * (age < 1.2 ? 1 : 0); if (age < 0.6) fx.falls.push({ foot: id, t: tTouch, at: plant(k) }); void tk; }
+    if (u < duty) tg[id] = { at: plant(cyc), planted: true };
+    else { const ww = (u - duty) / (1 - duty), a = plant(cyc), b = plant(cyc + 1), c = home(s), e = sm(ww);
+      tg[id] = { at: [lerp(c[0], lerp(a[0], b[0], e), moving), y0, lerp(c[2], lerp(a[2], b[2], e), moving)], planted: false, lift: Math.sin(Math.PI * ww) * moving };
+      roll += (id === 'leg.R' ? -1 : 1) * tg[id].lift; }
+    /* the footfalls: each touch-down (u = 0) is where arc length (k - ph) * stride was reached */
+    for (let k = cyc; k > cyc - 4; k--) { const tk = P.tAtS((k - ph) * stride); if (tk > t || tk <= P0.t0 + 0.05 || k < 1) continue; const age = t - tk;
+      if (age < 1.5) fx.shake += (params.shake != null ? params.shake : 2.5) * sc * Math.exp(-age * 6) * Math.sin(age * 2 * Math.PI * 7);
+      if (age < 0.6) fx.falls.push({ foot: id, t: tk, at: plant(k) }); }
   }
-  v['hips.dy'] = (v['hips.dy'] || 0) - sink / sc * 0 - sink;
-  v['body.roll'] = (v['body.roll'] || 0) + moving * 0.13 * roll;
-  v['torso.roll'] = (v['torso.roll'] || 0) - moving * 0.06 * roll;
-  v['body.yaw'] = (v['body.yaw'] || 0) + moving * 0.08 * Math.sin(2 * Math.PI * phase);
-  /* the weight: leaning into a start, back against a stop (the spring's acceleration), arms swinging against the legs */
-  const acc = follow(lag, t + 0.05, { w: params.w || 3.2, z: params.z || 0.75, t0: P0.t0 }).v, a2 = [(acc[0] - F.v[0]) / 0.05, (acc[1] - F.v[1]) / 0.05];
-  const along = (a2[0] * Math.sin(h) + a2[1] * Math.cos(h)) / (60 * sc);
-  v['torso.lean'] = (v['torso.lean'] || 0) + cl(along * 0.35, -0.25, 0.3) + moving * 0.12;
-  if (params.arms !== false) { v['arm.R.pitch'] = (v['arm.R.pitch'] || 0) + moving * 0.35 * Math.sin(2 * Math.PI * phase); v['arm.L.pitch'] = (v['arm.L.pitch'] || 0) - moving * 0.35 * Math.sin(2 * Math.PI * phase); }
-  v['head.pitch'] = (v['head.pitch'] || 0) - moving * 0.05 * Math.cos(4 * Math.PI * phase);
-  v._fx = fx;
+  /* the body: rolled over the planted foot (the waddle), the trunk counter-rolled, a turn of the hips with the stride */
+  v['body.roll'] = (v['body.roll'] || 0) + 0.07 * roll;
+  v['torso.roll'] = (v['torso.roll'] || 0) - 0.05 * roll;
+  v['body.yaw'] = (v['body.yaw'] || 0) + moving * 0.07 * Math.sin(2 * Math.PI * phase);
+  /* the weight: leaning into a start, back against a stop (the spring's acceleration); the arms swing against the legs */
+  const F2 = follow(P0.fn, t + 0.05, { w, z, t0: P0.t0 }), acc = [(F2.v[0] - F.v[0]) / 0.05, (F2.v[1] - F.v[1]) / 0.05];
+  const along = (acc[0] * Math.sin(h) + acc[1] * Math.cos(h)) / (60 * sc);
+  v['torso.lean'] = (v['torso.lean'] || 0) + cl(along * 0.4, -0.25, 0.3) + moving * 0.1;
+  if (params.arms !== false) { v['arm.R.pitch'] = (v['arm.R.pitch'] || 0) - moving * 0.3 * Math.sin(2 * Math.PI * phase); v['arm.L.pitch'] = (v['arm.L.pitch'] || 0) + moving * 0.3 * Math.sin(2 * Math.PI * phase); }
+  v['head.pitch'] = (v['head.pitch'] || 0) - moving * 0.04 * Math.cos(4 * Math.PI * phase);
+  /* the legs: twice round, the first to find how far the planted leg's lean lowers the hips, the second with the hips there */
+  /* the body carried a little low (the knees never lock), bobbing down onto each footfall; then each leg solved to its foot (hip and
+     knee in the leg's plane, turned out on the hip so the foot stays under its plant as the body rolls) */
+  v['hips.dy'] = (v['hips.dy'] || 0) - (params.crouch != null ? params.crouch : 1.8) - moving * 1.2 * (0.5 - 0.5 * Math.cos(4 * Math.PI * (phase - 0.08)));
+  const Wi = inv(rig.world(v)), L = rig.local(v);
+  for (const [id] of legs) { const Fd = K.feet[id], hipN = K.nodes.find(n => n.id === Fd.hip), kneeN = K.nodes.find(n => n.id === Fd.knee);
+    const q = ap(inv(L[hipN.parent]), ap(Wi, tg[id].at)); if (!tg[id].planted) q[1] -= (params.lift != null ? params.lift : 6) * (tg[id].lift || 0);
+    const [a1, a2] = ik2(hipN.p, kneeN.p, Fd.foot, q, Fd.bend); v[Fd.hip + '.pitch'] = wrapPi(a1) * hipN.rot[0][2]; v[Fd.knee] = wrapPi(a2) * kneeN.rot[0][2];
+    const oc = hipN.rot[1]; if (oc) v[oc[0]] = Math.atan2(q[0] - hipN.p[0], Math.max(8, q[1] - hipN.p[1])) * (oc[2] > 0 ? -1 : 1); }
+  v._fx = fx; v._feet = tg;
   return v;
 }
-/* a hand to a world point: damped least squares over the chain (torso twist and lean, the shoulder's pitch and out, the elbow), from
-   the pose given (not from the last frame's answer: the same inputs are always the same pose). hand 'R' | 'L'. */
+/* hands to world points: damped least squares over the chain (the torso's twist and lean, each shoulder's pitch and out, each elbow),
+   solved from the pose given (never from the last frame's answer: the same inputs are always the same pose). One hand:
+   reach(rig, v, 'R', [x, y, z]); both at once (they share the torso): reach(rig, v, [['R', p], ['L', q]]). */
 function reach(rig, v0, hand, target, { iters = 40, use, weight = 1 } = {}) {
-  const v = Object.assign({}, v0), grip = 'grip.' + hand;
-  const chs = use || ['torso.twist', 'torso.lean', `arm.${hand}.pitch`, `arm.${hand}.out`, `elbow.${hand}`];
-  const err = q => { const p = rig.point(grip, q); return [target[0] - p[0], target[1] - p[1], target[2] - p[2]]; };
-  const lam = 30 * rig.scale;
+  const goals = Array.isArray(hand) ? hand : [[hand, target]], v = Object.assign({}, v0);
+  const chs = use || ['torso.twist', 'torso.lean'].concat(...goals.map(([h]) => [`arm.${h}.pitch`, `arm.${h}.out`, `elbow.${h}`]));
+  const err = q => [].concat(...goals.map(([h, p]) => { const g = rig.point('grip.' + h, q); return [p[0] - g[0], p[1] - g[1], p[2] - g[2]]; }));
+  const lam = 30 * rig.scale, damp = { 'torso.twist': 0.35, 'torso.lean': 0.35 }, n = goals.length * 3;
   for (let it = 0; it < iters; it++) {
     const e = err(v); if (Math.hypot(...e) < 0.5 * rig.scale) break;
-    const J = chs.map(c => { const q = Object.assign({}, v); q[c] = (q[c] || 0) + 1e-3; const e2 = err(q); return [(e[0] - e2[0]) / 1e-3, (e[1] - e2[1]) / 1e-3, (e[2] - e2[2]) / 1e-3]; });
-    /* dq = J^T (J J^T + lam^2 I)^-1 e : a 3x3 solve */
-    const A = [0, 1, 2].map(r => [0, 1, 2].map(c2 => J.reduce((s, j) => s + j[r] * j[c2], 0) + (r === c2 ? lam * lam : 0)));
-    const x = solve3(A, e); const w = { 'torso.twist': 0.35, 'torso.lean': 0.35 };
-    chs.forEach((c, k) => { const d = (J[k][0] * x[0] + J[k][1] * x[1] + J[k][2] * x[2]) * (w[c] || 1) * weight; const L = rig.limits[c]; v[c] = L ? cl((v[c] || 0) + d, L.min, L.max) : (v[c] || 0) + d; });
+    const J = chs.map(c => { const q = Object.assign({}, v); q[c] = (q[c] || 0) + 1e-3; const e2 = err(q); return e.map((x, k) => (x - e2[k]) / 1e-3); });
+    /* dq = W J^T (J W J^T + lam^2 I)^-1 e */
+    const A = []; for (let r = 0; r < n; r++) { A.push([]); for (let c2 = 0; c2 < n; c2++) A[r].push(J.reduce((s, j, k) => s + j[r] * j[c2] * (damp[chs[k]] || 1), 0) + (r === c2 ? lam * lam : 0)); }
+    const x = solveN(A, e);
+    chs.forEach((c, k) => { const d = J[k].reduce((s, jj, r) => s + jj * x[r], 0) * (damp[c] || 1) * weight, L = rig.limits[c]; v[c] = L ? cl((v[c] || 0) + d, L.min, L.max) : (v[c] || 0) + d; });
   }
   return v;
 }
-function solve3(A, b) {
-  const [[a, b1, c], [d, e, f], [g, h, i]] = A, det = a * (e * i - f * h) - b1 * (d * i - f * g) + c * (d * h - e * g);
-  if (Math.abs(det) < 1e-12) return [0, 0, 0];
-  return [((e * i - f * h) * b[0] - (b1 * i - c * h) * b[1] + (b1 * f - c * e) * b[2]) / det, (-(d * i - f * g) * b[0] + (a * i - c * g) * b[1] - (a * f - c * d) * b[2]) / det, ((d * h - e * g) * b[0] - (a * h - b1 * g) * b[1] + (a * e - b1 * d) * b[2]) / det];
+function solveN(A, b) {   // Gaussian elimination with partial pivoting (n <= 9)
+  const n = b.length, M = A.map((r, i) => r.concat([b[i]]));
+  for (let c = 0; c < n; c++) { let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r; [M[c], M[p]] = [M[p], M[c]];
+    if (Math.abs(M[c][c]) < 1e-12) return new Array(n).fill(0);
+    for (let r = c + 1; r < n; r++) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+  const x = new Array(n).fill(0); for (let r = n - 1; r >= 0; r--) { let s = M[r][n]; for (let k = r + 1; k < n; k++) s -= M[r][k] * x[k]; x[r] = s / M[r][r]; }
+  return x;
 }
-/* the blind search: a hand swept across a lane at a height, patting down onto whatever is under it (surface(x, z) -> the world y of
-   a back there, or null), each hand its own rhythm. params {hand, center: [x, y, z], width, depth, period, pat, surface, base, seed}.
-   Returns the channels and v._target (where the hand was sent) and v._touch (true when the palm is on a back). */
+/* the blind search: a hand swept to and fro across what is in front of the giant (along its own left-right), reaching in and out,
+   patting down onto whatever is under it (surface(x, z) -> the world y of a back there, or null), each hand on its own rhythm.
+   params {hand ('R' | 'L'; both when absent, solved together), center: [x, y, z] (world), width, depth, period, pat (pats a second),
+   hover, surface, base, seed}. Returns the channels, v._target {R, L} (where each hand was sent) and v._touch {R, L} (a palm on a back). */
 function grope(rig, t, params = {}) {
-  const hand = params.hand || 'R', c = params.center, W = params.width || 60, D = params.depth || 20, per = params.period || 3.2, seed = params.seed || (hand === 'R' ? 1 : 2);
-  const ph = t / per + (hand === 'R' ? 0 : 0.5), sweep = Math.sin(2 * Math.PI * ph), fwd = noise1(seed, t * 0.6);
-  const x = c[0] + (hand === 'R' ? -1 : 1) * W * 0.5 * sweep * 0.5 + (hand === 'R' ? -W * 0.25 : W * 0.25), z = c[2] + D * fwd;
-  const pat = Math.max(0, Math.sin(2 * Math.PI * (params.pat || 1.6) * t + seed)) ** 3;
-  let y = c[1] + (params.hover != null ? params.hover : 14) * rig.scale * (1 - pat), touch = false;
-  const top = params.surface ? params.surface(x, z) : null; if (top != null) { if (y < top + 2 * rig.scale) { y = top + 2 * rig.scale; touch = true; } }
-  else if (pat > 0.9) touch = y <= c[1] + 1;
-  const base = Object.assign({}, params.base || rig.rest());
-  base[`hand.${hand}.roll`] = (base[`hand.${hand}.roll`] || 0) + (hand === 'R' ? 1 : -1) * 1.2;   // the palm turned down
-  const v = reach(rig, base, hand, [x, y, z], params);
-  v._target = [x, y, z]; v._touch = touch;
+  const hands = params.hand ? [params.hand] : ['R', 'L'], c = params.center, W = params.width || 60, D = params.depth || 20, per = params.period || 3.2;
+  const base = Object.assign({}, params.base || rig.rest()), h = base['root.h'] || 0, left = [Math.cos(h), -Math.sin(h)], fwd = [Math.sin(h), Math.cos(h)];
+  const goals = [], out = { targets: {}, touch: {} };
+  for (const hand of hands) {
+    const seed = (params.seed || 0) + (hand === 'R' ? 1 : 2), ph = t / per + (hand === 'R' ? 0 : 0.5);
+    const side = (hand === 'R' ? -1 : 1) * W * (0.3 + 0.2 * Math.sin(2 * Math.PI * ph)), reachIn = D * noise1(seed, t * 0.6);   /* each hand works its own half */
+    const x = c[0] + left[0] * side + fwd[0] * reachIn, z = c[2] + left[1] * side + fwd[1] * reachIn;
+    const pat = Math.max(0, Math.sin(2 * Math.PI * (params.pat || 1.6) * t + seed)) ** 3;
+    let y = c[1] + (params.hover != null ? params.hover : 14) * rig.scale * (1 - pat), touch = false;
+    const top = params.surface ? params.surface(x, z) : null; if (top != null && y < top + 3 * rig.scale) { y = top + 3 * rig.scale; touch = true; }
+    base[`hand.${hand}.roll`] = (base[`hand.${hand}.roll`] || 0) + (hand === 'R' ? 1 : -1) * 1.2;   // the palm turned down
+    goals.push([hand, [x, y, z]]); out.targets[hand] = [x, y, z]; out.touch[hand] = touch;
+  }
+  const v = reach(rig, base, goals, null, params);
+  v._target = out.targets; v._touch = out.touch;
   return v;
 }
 /* the herd: n animals following a leader's path with separation, a formation (rows of `abreast`, `gap` apart) or a loose flock
@@ -557,12 +618,14 @@ function herd(params) {
   const seed = params.seed || 3, spread = params.spread != null ? params.spread : 0.35, maxV = params.speed || 80, sep = params.separation || 34;
   const slots = []; for (let i = 0; i < n; i++) { const row = Math.floor(i / abreast), col = i % abreast - (abreast - 1) / 2;
     slots.push({ back: row * spacing + (hash(seed + i) - 0.5) * spacing * spread, side: col * gap + (hash(seed * 3 + i) - 0.5) * gap * spread * (abreast > 1 ? 0.3 : 1.2) }); }
-  const target = (i, t) => { const S = P.sAt(t) - slots[i].back, tt = P.tAtS(Math.max(0, S)), q = P.fn(tt), h = heading(P, tt, 0);
-    return [q[0] + Math.cos(h) * slots[i].side, q[1] - Math.sin(h) * slots[i].side]; };
+  /* an animal's place in the formation: `back` behind the leader along the path (before the path's start, back along its first
+     heading: the flock waits in a file), `side` across it */
+  const target = (i, t) => { const S = P.sAt(t) - slots[i].back, tt = P.tAtS(Math.max(0, S)), q = P.fn(tt), h = heading(P, tt, 0), e = Math.min(0, S);
+    return [q[0] + Math.cos(h) * slots[i].side + Math.sin(h) * e, q[1] - Math.sin(h) * slots[i].side + Math.cos(h) * e]; };
   const X = [], V = []; for (let i = 0; i < n; i++) { X.push([target(i, t0)]); V.push([[0, 0]]); }
   const step = k => { const t = t0 + k * dt;
-    for (let i = 0; i < n; i++) { const x = X[i][k], vv = V[i][k], g = target(i, t + dt); let ax = (g[0] - x[0]) * 9 - vv[0] * 5, az = (g[1] - x[1]) * 9 - vv[1] * 5;
-      for (let j = 0; j < n; j++) if (j !== i) { const y = X[j][k], dx = x[0] - y[0], dz = x[1] - y[1], d = Math.hypot(dx, dz); if (d < sep && d > 1e-3) { const f = (sep - d) / sep * 260; ax += dx / d * f; az += dz / d * f; } }
+    for (let i = 0; i < n; i++) { const x = X[i][k], vv = V[i][k], g = target(i, t + dt); let ax = (g[0] - x[0]) * 6 - vv[0] * 4.4, az = (g[1] - x[1]) * 6 - vv[1] * 4.4;
+      for (let j = 0; j < n; j++) if (j !== i) { const y = X[j][k], dx = x[0] - y[0], dz = x[1] - y[1], d = Math.hypot(dx, dz); if (d < sep && d > 1e-3) { const f = ((sep - d) / sep) ** 2 * 400; ax += dx / d * f; az += dz / d * f; } }
       let nv = [vv[0] + ax * dt, vv[1] + az * dt]; const sp = Math.hypot(...nv); if (sp > maxV) nv = nv.map(q => q * maxV / sp);
       V[i].push(nv); X[i].push([x[0] + nv[0] * dt, x[1] + nv[1] * dt]); } };
   const ensure = t => { const k = Math.ceil((t - t0) / dt) + 1; while (X[0].length <= k) step(X[0].length - 1); };
