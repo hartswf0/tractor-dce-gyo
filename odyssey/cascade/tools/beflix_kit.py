@@ -8,6 +8,7 @@ This builds them in real LDraw parts with the line's own kitlib: 48 x 48 basepla
 list) beside it, and checked with clicks.py through kitlib.check: 0 loose and 0 clashes, or it exits 1.
 
   cascade.beflix-key       the key frame (t 34.4 s: the Sirens promise, the song in the field), 144 x 96 studs on 6 baseplates
+  cascade.beflix-key-plate one of those six baseplates alone (studs 96-143, 0-47: his face inset), to render close
   cascade.beflix-flipbook  12 frames of the film, one 48 x 48 baseplate each: a 48 x 34 picture between black film edges of
                            7 studs with sprocket holes, the twelve plates side by side as a strip
 
@@ -70,6 +71,10 @@ def main():
         s = build('cascade.beflix-key', f"BEFLIX in Cascade: the key frame (t {key['t']} s) as a LEGO mosaic", key['rows'],
                   {'frame': key['frame'], 't': key['t'], 'ramp': key['ramp']}, not a.no_check)
         out.append(s)
+        # one of its six baseplates on its own, the one holding his face in its window: small enough to render close
+        detail = [row[96:144] for row in key['rows'][0:48]]
+        out.append(build('cascade.beflix-key-plate', 'BEFLIX in Cascade: one baseplate of the key frame (his face, inset)', detail,
+                         {'frame': key['frame'], 't': key['t'], 'of': 'cascade.beflix-key', 'studsFrom': [96, 0]}, not a.no_check))
     if a.only in (None, 'flipbook'):
         fb = json.load(open(os.path.join(KIT, 'beflix-flipbook.json')))['frames']
         strip = [[] for _ in range(48)]

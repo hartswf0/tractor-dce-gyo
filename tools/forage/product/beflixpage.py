@@ -89,6 +89,7 @@ def main():
     player = size(os.path.join(CAS, 'players/beflix'))
     plates = sum(os.path.getsize(os.path.join(CAS, 'assets/beflix/plates', f)) for f in os.listdir(os.path.join(CAS, 'assets/beflix/plates')))
     render = os.path.exists(os.path.join(CAS, 'kit/cascade.beflix-key.jpg'))
+    plate = J('kit/cascade.beflix-key-plate.json') if os.path.exists(os.path.join(CAS, 'kit/cascade.beflix-key-plate.json')) else None
     frender = os.path.exists(os.path.join(CAS, 'kit/cascade.beflix-flipbook.jpg'))
     song = next(l for l in json.load(open('/home/user/odyssey-halfworld/viewer/spoken-lines.json'))['lines'].items() if l[0] == 'OD-B12-S03-T04')[1]['line'] \
         if os.path.exists('/home/user/odyssey-halfworld/viewer/spoken-lines.json') else ''
@@ -170,13 +171,18 @@ def main():
   <div class="two">
     <figure class="kitfig"><img src="{"kit/cascade.beflix-key.jpg" if render else "kit/cascade.beflix-key-plan.png"}" alt="The key frame built in LEGO: six baseplates of round tiles" loading="lazy">
       <figcaption>The key frame built: <a href="kit/cascade.beflix-key.mpd">kit/cascade.beflix-key.mpd</a>, {key["studs"][0]} x {key["studs"][1]} studs,
-      {key["pieces"]:,} pieces, {key["loose"]} loose, {key["clash"]} clashes (kitlib.check){", rendered by tools/forage/look.js" if render else ""}.</figcaption></figure>
+      {key["pieces"]:,} pieces, {key["loose"]} loose, {key["clash"]} clashes (kitlib.check){", rendered by tools/forage/look.js" if render else "; drawn from the LDraw file from above"}.</figcaption></figure>
     <div><table class="parts"><tr><th>Colour</th><th>Part</th><th class="n">Pieces</th></tr>{tiles}
       <tr><td>Light Bluish Grey</td><td>4186, 48 x 48 baseplate</td><td class="n">{key["plates"]}</td></tr>
       <tr><td><b>Total</b></td><td></td><td class="n"><b>{key["pieces"]:,}</b></td></tr></table>
       <p class="facts">At the player's other resolutions the same frame is 48 x 32 studs on one baseplate, 96 x 64 on four, or the whole mosaic,
       252 x 184, one tile a cell: 46,368 tiles on 24 baseplates.</p></div>
-  </div>
+  </div>{f"""
+  <figure class="kitfig" style="margin-top:14px"><img src="kit/cascade.beflix-key-plate.jpg" alt="One baseplate of the key frame built in LEGO, rendered: Odysseus's face in its window, in round tiles" loading="lazy">
+    <figcaption>One of the six baseplates, built and rendered in real parts by the line's renderer (tools/forage/look.js): the one holding his
+    face in its window. <a href="kit/cascade.beflix-key-plate.mpd">kit/cascade.beflix-key-plate.mpd</a>, {plate["pieces"]:,} pieces, {plate["loose"]} loose,
+    {plate["clash"]} clashes. The whole model, {key["pieces"]:,} parts, is past what the renderer loads in its ten minutes with software GL, so above it is
+    drawn from its LDraw file, tile by tile (tools/beflix_plan.py).</figcaption></figure>""" if plate and os.path.exists(os.path.join(CAS, "kit/cascade.beflix-key-plate.jpg")) else ""}
   <h3 style="margin-top:28px">The flip-book: a film strip in LEGO</h3>
   <p class="sub">Twelve moments of the film, each a 48 x 34 mosaic on its own 48 x 48 baseplate between black film edges with
     sprocket holes, the twelve plates side by side: <a href="kit/cascade.beflix-flipbook.mpd">kit/cascade.beflix-flipbook.mpd</a>,
