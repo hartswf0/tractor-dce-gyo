@@ -296,9 +296,11 @@ Previz: Contact sheet read. The OBJ inserts from 3.6 to 17 s (the lotus insert, 
 
 ### OD-B10-S02 The Laestrygonian Harbor
 
-**Type** fight. **Total** 34.96 s. **Prepared**: nothing.
+**Type** fight. **Total** 34.96 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A massacre in 35 s at a fast cut: a fleet of ships in a ring of cliffs, giants hurling boulders and spearing men like fish, one ship outside on a cable that is cut; many agents and several ships each needing its own motion.
+
+**The take**: cast odysseus, three-scouts-1, three-scouts-2, three-scouts-3; 4 keys, 13 shots; staged only as a set piece: antiphates; not in the take's cast: crew, fleet-crews, giant-girl, laestrygonians, scout-2; rough-pass density (after) 0.821, longest still 1.833 s.
 
 **Essential variables**: several ships, each its own rig (the fleet); boulders from above with impacts and sinking; mooring cable under tension, cut, the ship released; giants vs minifigs (scale); spearing men in the water; rowing at maximum tempo to escape
 
@@ -318,6 +320,8 @@ Relations: PURSUIT laestrygonians>scout-2 19.0; ATTACK laestrygonians>fleet 22.0
 Machinery: SHIP: a fleet (several hulls), each pitched and rolled; crushed and sinking hulls; OARS: phase clock per ship; tempo ramp at the escape; ROPE: mooring cable: tension, cut, slack; BOULDER: ballistic from the cliffs, many; SEA: splashes, spouts; GIANT_RIG: giants on the cliff tops, throwing and spearing
 
 Contacts and handoffs: 8.5 s cable odysseus-ship -> rock [owner rock]; 18.8 s antiphates seizes scout-1 [owner antiphates]; 28.0 s cable cut: ship released [owner none]
+
+Previz: Contact sheet read. The rig cast is only Odysseus and three scouts: no crews, no giants, no fleet (the Laestrygonians, Antiphates and the ships are set pieces). From K3 (18.4 s) three-scouts-2 is blocked 158 units above the floor (y 205): the seized scout floats in the air, tumbling at 21-23 s, as if carried by the giant who is not there. The wides at 0.6-3.6 s and 12-15 s are tiny figures in a wireframe box, and the wides at 18-19 s and 25.7 s frame no one. The cable cut (27.3 s) shows Odysseus alone, with no ship and no crew to row. No T-poses.
 
 ### OD-B10-S04 Circe Transforms the Crew
 
