@@ -120,6 +120,10 @@ MACH.SIRENS_CHAIN = (X, m) => {
     /* the torso strains toward them within the rope, the head takes them as its target (yaw solved, the rest to the torso) */
     const tw = X.cl(bearing * 0.35, -0.45, 0.45) * Math.min(1, pull * 1.5 + 0.2), hy = X.cl(bearing - tw, -1.35, 1.35);
     strainKeys.push([t, { 'torso.lean': X.cl(leanOut * 0.5, -0.3, 0.38), 'torso.twist': tw, 'head.yaw': hy, 'head.pitch': -0.08 * pull, 'torso.roll': X.cl(-sh.roll * 2, -0.16, 0.16), 'arm.R.pitch': -0.25 * Math.min(1, T_), 'arm.L.pitch': -0.25 * Math.min(1, T_) }]); }
+  /* the mast constraint: from the binding on, his root is the mast's (the layout's later moves of him are cancelled: offsets back to
+     the mast; he rides the ship with it) */
+  const mast = m.mast.at, lockKeys = []; for (let t = m.mast.t0; t <= T; t += 1 / 12) { const s = X.at(od, t); if (s) lockKeys.push([t, { 'root.x': mast[0] - s.p[0], 'root.z': mast[2] - s.p[2], 'root.y': (mast[1] != null ? mast[1] : s.p[1]) - s.p[1], 'root.h': X.wrap((m.mast.h != null ? m.mast.h : s.h) - s.h), 'leg.R.pitch': -s.j.legRP[0], 'leg.L.pitch': -s.j.legLP[0] }]); }
+  X.move(od, 'mech', 'LOCKED TO THE MAST', { id: cons.id }, k => { for (const [t, v] of lockKeys) k(t, v, 'linear'); }, { label: 'the layout would move him; the mast will not', rigid: true });
   const strainEv = X.move(od, 'mech', 'STRAIN AT THE ROPES', [{ id: songEv.id }, { id: cons.id }], k => { for (const [t, v] of strainKeys) k(t, v, 'linear'); }, { label: 'toward the Sirens; the rope holds him', rigid: true });
   const ropeEv = X.ev({ id: 'rope', lane: 'CONTACT', actor: od, actors: [od, ...(rope.haulers || []).map(h => h.actor)], t0: m.mast.t0, t1: T, kind: 'ROPE TENSION', label: 'the rope takes what the song and the roll ask of him', because: [{ id: strainEv ? strainEv.id : songEv.id, latency: 0 }, { id: hull.id, latency: 0 }], params: { k: 6, series: tension.filter((_, i) => i % 3 === 0) } });
   X.machine = Object.assign(X.machine || {}, { sirens: { F: out.F, pitch: out.pitch, roll: out.roll, tension, rope: ropeEv.id } });

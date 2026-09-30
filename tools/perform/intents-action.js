@@ -94,6 +94,46 @@ A_.RETIME = (X, I, e) => { const id = I.actor, p = I.params || {}, K = X.M.keys.
       for (const c of CH) v[c] = J(s2, c) - J(s, c); if (t <= a0 + 1e-6 || t >= a1 - 1e-6) for (const c in v) v[c] = 0;
       k(t, v, 'linear'); } }, { label: 'the move to the ' + p.key + ' mark ' + (d < 0 ? 'started ' + (-d).toFixed(2) + ' s early' : 'held ' + d.toFixed(2) + ' s'), rigid: true }); };
 
+/* ═════ ship's work ═════ */
+/* SEAL params.ears: [[actor, t], ...]: the wax softened in the hands (kneaded), then pressed into each man's ears in turn: a CONTACT
+   touch each, and the man answers (the head bows to it, the hands go up to the ears after) */
+A_.SEAL = (X, I, e) => { const id = I.actor, p = I.params || {}, R = X.rng(I.id); let t = I.t0;
+  X.move(id, 'act', 'KNEAD WAX', e, k => { k(t, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0), 'hand.R.roll': X.sheet.rel(0), 'hand.L.roll': X.sheet.rel(0) });
+    for (let j = 0; j < 4; j++) k(t + 0.3 + j * 0.35, { 'arm.R.pitch': { abs: -1.15 + 0.12 * (j % 2) }, 'arm.L.pitch': { abs: -1.2 - 0.12 * (j % 2) }, 'hand.R.roll': 0.5 * (j % 2 ? 1 : -1), 'hand.L.roll': -0.5 * (j % 2 ? 1 : -1), 'head.pitch': 0.14 }); }, { label: 'the wax softened in the sun and the hands' });
+  for (const [who, tt] of p.ears || []) { X.look(id, who, tt - 0.4, e, { label: 'to ' + Score.short(who), noFeet: false });
+    const a = X.move(id, 'act', 'PRESS WAX', e, k => { k(tt - 0.3, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0) }); k(tt, { 'arm.R.pitch': { abs: -2.0 }, 'arm.L.pitch': { abs: -1.9 }, 'torso.lean': 0.1 }, 'out'); k(tt + 0.6, { 'arm.R.pitch': { abs: -1.8 }, 'arm.L.pitch': { abs: -1.7 } }); k(tt + 1.0, { 'arm.R.pitch': { abs: -1.1 }, 'arm.L.pitch': { abs: -1.1 }, 'torso.lean': 0.04 }); }, { label: 'the wax into ' + Score.short(who) + '\'s ears' });
+    const c = X.ev({ lane: 'CONTACT', actor: id, actors: [id, who], t0: tt, t1: tt + 0.6, kind: 'TOUCH', label: 'hands to the ears: the wax', because: a ? [{ id: a.id, latency: 0.3 }] : [] });
+    X.move(who, 'react', 'EARS SEALED', c, k => { k(tt, { 'head.pitch': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0) }); k(tt + 0.3, { 'head.pitch': 0.12 }); k(tt + 0.9, { 'head.pitch': 0.05, 'arm.R.pitch': { abs: -2.3 }, 'arm.L.pitch': { abs: -2.3 } }); k(tt + 1.6, { 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }); }, { label: 'the hands to his sealed ears' }); } };
+/* ROPE params.how: bind (loops passed round the man at the mast) | haul (hand over hand, the weight thrown back); params.at: the one
+   bound (a CONTACT ROPE with him while it lasts) */
+A_.ROPE = (X, I, e) => { const id = I.actor, p = I.params || {}, R = X.rng(I.id + id), how = p.how || 'haul'; let t = I.t0, j = 0;
+  if (p.at) X.look(id, p.at, t - 0.2, e, { label: 'to the man at the mast' });
+  X.move(id, 'act', how === 'bind' ? 'BIND' : 'HAUL', e, k => { k(t, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) });
+    while (t < I.t1 - 0.3) { if (how === 'bind') { const u = j % 2 ? 1 : -1; k(t + 0.35, { 'arm.R.pitch': { abs: -1.5 }, 'arm.L.pitch': { abs: -1.2 }, 'torso.twist': 0.3 * u, 'torso.lean': 0.08 }); k(t + 0.8, { 'arm.R.pitch': { abs: -0.7 }, 'arm.L.pitch': { abs: -1.4 }, 'torso.twist': -0.2 * u, 'torso.lean': -0.06, 'hips.dy': -0.8 }); t += 0.9 + 0.2 * R(); }
+      else { k(t + 0.3, { 'arm.R.pitch': { abs: -1.6 }, 'arm.L.pitch': { abs: -1.45 }, 'torso.lean': 0.16 }); k(t + 0.75, { 'arm.R.pitch': { abs: -0.7 }, 'arm.L.pitch': { abs: -0.8 }, 'torso.lean': -0.16, 'hips.dy': -1.4 }, 'out'); k(t + 0.95, { 'hips.dy': 0 }); t += 1.0 + 0.15 * R(); } j++; }
+    k(I.t1 + 0.4, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0, 'torso.twist': 0 }); }, { label: how === 'bind' ? 'the rope round him and the mast' : 'hand over hand: the rope taken in' });
+  if (p.at) X.ev({ lane: 'CONTACT', actor: id, actors: [id, p.at], t0: I.t0, t1: I.t1, kind: 'ROPE', label: (how === 'bind' ? 'binds ' : 'hauls on the rope round ') + Score.short(p.at), because: [{ id: e.id, latency: 0 }], params: { k: 6 } }); };
+/* SING params.clock: {period, t0}, params.offset: this singer's phase on the shared song clock; the sway from the hips, the arms opening
+   on the long notes, the head toward params.to */
+A_.SING = (X, I, e) => { const id = I.actor, p = I.params || {}, P = (p.clock && p.clock.period) || 2.4, c0 = (p.clock && p.clock.t0) || I.t0, off = p.offset || 0;
+  if (p.to) X.look(id, p.to, I.t0 + 0.2, e, { label: 'to the ship', noFeet: true });
+  X.move(id, 'act', 'SING', e, k => { k(I.t0, { 'torso.roll': X.sheet.rel(0), 'root.roll': X.sheet.rel(0), 'arm.R.out': X.sheet.rel(0), 'arm.L.out': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0) });
+    let n = Math.ceil((I.t0 - c0) / (P / 2) - off * 2); for (let t = c0 + (n + off * 2) * P / 2; t < I.t1; t += P / 2, n++) { if (t < I.t0) continue; const u = n % 2 ? 1 : -1;
+      k(t, { 'torso.roll': 0.1 * u, 'root.roll': 0.035 * u, 'arm.R.out': 0.3 + 0.15 * u, 'arm.L.out': 0.3 - 0.15 * u, 'head.pitch': -0.06 + 0.03 * u }); }
+    k(I.t1 + 0.6, { 'torso.roll': 0, 'root.roll': 0, 'arm.R.out': 0, 'arm.L.out': 0, 'head.pitch': 0 }); }, { label: 'the song (phase ' + (off >= 0 ? '+' : '') + off + ' of the shared clock)', rigid: true }); };
+/* BECKON params.to: leaning out to him, the arms drawing him in, again and again */
+A_.BECKON = (X, I, e) => { const id = I.actor, R = X.rng(I.id + id); let t = I.t0 + R() * 0.4;
+  X.move(id, 'react', 'BECKON', e, k => { k(t, { 'torso.lean': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'hand.R.roll': X.sheet.rel(0) });
+    while (t < I.t1 - 0.6) { k(t + 0.5, { 'torso.lean': 0.16, 'arm.R.pitch': { abs: -1.6 }, 'arm.L.pitch': { abs: -1.3 }, 'hand.R.roll': 0.6 }, 'out'); k(t + 1.1, { 'torso.lean': 0.08, 'arm.R.pitch': { abs: -0.9 }, 'arm.L.pitch': { abs: -0.8 }, 'hand.R.roll': 0.1 }); t += 1.3 + R() * 0.4; }
+    k(I.t1 + 0.4, { 'torso.lean': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'hand.R.roll': 0 }); }, { label: 'lean out and call him in' }); };
+/* STEER: the helmsman's hands on the steering oar, small corrections against the sea (params.every) */
+A_.STEER = (X, I, e) => { const id = I.actor, R = X.rng(I.id); let t = I.t0;
+  X.move(id, 'act', 'STEER', e, k => { k(t, { 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) }); while (t < I.t1) { const u = R() - 0.5; k(t + 0.8, { 'arm.R.pitch': { abs: -1.0 + 0.2 * u }, 'arm.L.pitch': { abs: -1.0 - 0.2 * u }, 'torso.twist': 0.12 * u }); t += 1.6 + R(); } }, { label: 'the steering oar held against the sea' }); };
+/* PLEAD_BOUND params.to: a bound man signals with what he has: the head jerks toward the ones who could free him, the body heaves */
+A_.PLEAD_BOUND = (X, I, e) => { const id = I.actor, p = I.params || {}, R = X.rng(I.id); let t = I.t0, j = 0;
+  while (t < I.t1 - 0.5) { const who = [].concat(p.to || [])[j % Math.max(1, [].concat(p.to || []).length)]; if (who) X.look(id, who, t, e, { label: 'to ' + Score.short(who) + ': free me', noFeet: true, speed: 0.6 });
+    X.move(id, 'react', 'HEAD JERK', e, k => { k(t + 0.25, { 'head.pitch': X.sheet.rel(0) }); k(t + 0.4, { 'head.pitch': -0.18 }, 'back'); k(t + 0.62, { 'head.pitch': 0.08 }); k(t + 0.8, { 'head.pitch': -0.14 }); k(t + 1.1, { 'head.pitch': 0 }); }, { label: 'untie me: the head jerks' }); t += 1.4 + R() * 0.7; j++; } };
+
 /* ═════ combat relations ═════ */
 /* THREAT params.target, weapon side: the weapon raised toward the target, the weight gathered; recorded as a relation */
 A_.THREAT = (X, I, e) => { const id = I.actor, t = I.t0, a = X.ampOf(I), p = I.params || {}, sd = p.side || 'R';
