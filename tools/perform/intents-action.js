@@ -112,6 +112,7 @@ A_.ROPE = (X, I, e) => { const id = I.actor, p = I.params || {}, R = X.rng(I.id 
     while (t < I.t1 - 0.3) { if (how === 'bind') { const u = j % 2 ? 1 : -1; k(t + 0.35, { 'arm.R.pitch': { abs: -1.5 }, 'arm.L.pitch': { abs: -1.2 }, 'torso.twist': 0.3 * u, 'torso.lean': 0.08 }); k(t + 0.8, { 'arm.R.pitch': { abs: -0.7 }, 'arm.L.pitch': { abs: -1.4 }, 'torso.twist': -0.2 * u, 'torso.lean': -0.06, 'hips.dy': -0.8 }); t += 0.9 + 0.2 * R(); }
       else { k(t + 0.3, { 'arm.R.pitch': { abs: -1.6 }, 'arm.L.pitch': { abs: -1.45 }, 'torso.lean': 0.16 }); k(t + 0.75, { 'arm.R.pitch': { abs: -0.7 }, 'arm.L.pitch': { abs: -0.8 }, 'torso.lean': -0.16, 'hips.dy': -1.4 }, 'out'); k(t + 0.95, { 'hips.dy': 0 }); t += 1.0 + 0.15 * R(); } j++; }
     k(I.t1 + 0.4, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0, 'torso.twist': 0 }); }, { label: how === 'bind' ? 'the rope round him and the mast' : 'hand over hand: the rope taken in' });
+  if (p.at && X.ropes) X.ropes.push({ how, by: id, at: p.at, t0: +I.t0.toFixed(3), t1: +I.t1.toFixed(3) });
   if (p.at) X.ev({ lane: 'CONTACT', actor: id, actors: [id, p.at], t0: I.t0, t1: I.t1, kind: 'ROPE', label: (how === 'bind' ? 'binds ' : 'hauls on the rope round ') + Score.short(p.at), because: [{ id: e.id, latency: 0 }], params: { k: 6 } }); };
 /* SING params.clock: {period, t0}, params.offset: this singer's phase on the shared song clock; the sway from the hips, the arms opening
    on the long notes, the head toward params.to */
