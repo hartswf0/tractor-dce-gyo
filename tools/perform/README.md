@@ -158,6 +158,28 @@ channel diversity, contact integrity, pose legality, balance. Temperatures: T_m 
 Homeostat essential variables H1-H4 with bands by scene type (homeostat.js WORD, TYPES); patches set bands relative to the scene's
 current reading.
 
+## Rebuilding the player
+
+The film player (`film-readymades/production/Film-Butter-Odyssey.html.gz`) carries, beside what `build_odyssey.py` builds, four
+working-tree files that a rebuild does not put back by itself: `motion.js`, `choreo.js`, `creatures.js` (the creature rigs a sheet's
+`creatures` plays) and `odyssey-take.js` (the take, with its [choreo] hooks: the choreography player, the ship rigs and their rider
+windows, and the creature stage that loads the rigs and hides the staged prop of the same id). The sequence, from the repository root:
+
+1. Take the lock: wait while `/tmp/claude-0/-home-user/4aa29a79-b8f5-55cd-b69e-84f439d17223/scratchpad/bundle.lock` exists, then
+   create it with your name and the time (`echo "<name> $(date -u +%FT%TZ)" > .../bundle.lock`).
+2. Rebuild if you need to: `python3 film-readymades/build_odyssey.py` (never `odyssey/trailers/build_trailers.py`).
+3. Re-apply every patch, always, after any rebuild: `python3 film-readymades/patch_motion.py --take`. This one command embeds
+   motion.js, choreo.js and creatures.js as their own scripts, refreshes the trailer runtime, and replaces the take block with the
+   working-tree `film-readymades/odyssey-take.js` (the creature and choreography hooks live there; there is no separate creature
+   patch). It prints the size and fails if the .gz is 95 MB or more.
+4. Check: `curl -s localhost:8899/film-readymades/production/Film-Butter-Odyssey.html.gz | zcat | grep -c 'data-odyssey-creatures'`
+   prints 1, and `grep -c creaturesStage` on the same stream prints at least 1.
+5. Delete the lock.
+
+A render already running has loaded the player and is not affected by a rebuild; do not start a render (tools/export-odyssey.js)
+while the lock exists. After a rebuild, a render of a scene whose sheet has `creatures` logs `creatures {"<id>":{"kind":..,"meshes":N}}`
+in its export log: N > 0 means the rig was attached.
+
 ## Hooks for later work
 
 - A creature rig (film-readymades/creatures.js, to come) gives a giant or a quadruped channels: add them to body.js's pivot tree,
