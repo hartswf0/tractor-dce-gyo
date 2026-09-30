@@ -27,6 +27,8 @@ module.exports = function author(M, X) {
       port: ['crew-at-the-oars-1', 'crew-at-the-oars-3'], ship: { piece: 'black ship', pivot: [-17.2, 8.3, 110], riders: [O, ...crew], pitchK: 0.018, rollK: 0.03, heaveK: 1.0, omega: 1.25, zeta: 0.22 },
       mast: { actor: O, at: mastAt, h: K3.snap[O].h, t0: mastT }, rope: { k: 6, slack: 0.22, haulers: [{ actor: crew[0], t0: K5.win[1] }, { actor: crew[1], t0: K5.win[1] + 0.3 }] },
       song: { from: sirens, t0: promise.at - 2.5, t1: tighten.at + tighten.dur - 2 }, pull: 0.85 }];
+  /* under sail, before the calm: nothing to do but watch the island come up (and, for the one who will fetch the wax, until he goes) */
+  crew.slice(0, 4).forEach((c, k) => holds.push({ id: 'hSail' + k, actor: c, t0: 0.3, t1: k === 2 ? K2.win[0] - 0.05 : 4.2, reason: 'under sail: the island coming up, the wind dying', params: { look: [['the-sirens-' + (k + 1), 2.0], [O, 1.4]], weight: false, offset: 0.3 * k }, because: [{ id: 'sIsle' }] }));
   /* ── the helmsman ── */
   I({ id: 'iSteer', actor: crew[4], kind: 'STEER', t0: 0.5, t1: T, label: 'at the steering oar', because: [{ id: 'sIsle' }] });
   holds.push({ id: 'hSteer', actor: crew[4], t0: 0.5, t1: T, reason: 'the helmsman keeps the ship off the shore', params: { look: [['the-sirens-4', 2.8], [O, 1.6], [[-14, 40, -300], 3.0]], weight: false }, because: [{ id: 'sIsle' }] });
