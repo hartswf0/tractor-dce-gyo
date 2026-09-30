@@ -149,6 +149,9 @@ module.exports = function author(M, X) {
       causal: { tau: 0.7, actions: {
         [O]: [{ a: 'hold still', base: 1.0, f: { 'threat:polyphemus': 0.8, 'after:sLead': 0.6 } }, { a: 'hush the men', base: -1.8, f: { 'threat:polyphemus': 1.2, ...(c.stirs.length ? { 'after:sStir0': 1.5 } : {}) } },
           { a: 'bind the rams', base: -1.5, f: { 'after:sBind': 2.5, 'after:sLead': -3 } }, { a: 'let go and run', base: -3.2, f: { 'threat:polyphemus': 1.4 } }, { a: 'drive the flock', base: -3, f: { 'after:sOut': 4.0 } }, { a: 'sacrifice', base: -3, f: { 'after:sDivide': 4.5 } }],
-        ...Object.fromEntries(men.map(m => [m, [{ a: 'hold the breath', base: 0.8, f: { 'threat:polyphemus': 0.9 } }, { a: 'shift the grip', base: -2.0, f: { 'threat:polyphemus': 1.3 } }, { a: 'let go', base: -3.2, f: { 'threat:polyphemus': 1.0 } }, { a: 'drive the flock', base: -3, f: { 'after:sOut': 4.0 } }]])) } } },
+        ...Object.fromEntries(men.map((m, r) => { const k = c.passes.findIndex(p => p.row === r), nxt = c.passes.findIndex(p => p.row === r + 1);
+          return [m, [{ a: 'hold the breath', base: 0.8, f: { 'threat:polyphemus': 0.9 } }, { a: 'shift the grip', base: -2.0, f: { 'threat:polyphemus': 1.3 } }, { a: 'let go', base: -3.2, f: { 'threat:polyphemus': 1.0 } },
+            ...(k >= 0 ? [{ a: 'go still as the hands pass over', base: -2.4, f: { ['after:sPass' + k]: 3.2, ...(nxt >= 0 ? { ['after:sPass' + nxt]: -3.2 } : {}) } }, { a: 'look back at the door', base: -2.6, f: { ['after:sPass' + k]: 1.6, 'after:sBind': 0 } }] : []),
+            { a: 'look to Odysseus', base: -1.6, f: { ['sees:' + O]: -0.8, 'speaking:odysseus': 1.2 } }, { a: 'drive the flock', base: -3, f: { 'after:sOut': 4.0 } }]]; })) } } },
   };
 };
