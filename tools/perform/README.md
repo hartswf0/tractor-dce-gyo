@@ -29,12 +29,14 @@ node tools/perform/probe.js            OD-B09-S09 [--poses]        marks and sho
 | `intents.js` | attention, holds, speech acts (WELCOME, GUARDED_WELCOME), the handoff (OFFER/TAKE), LEAD/FOLLOW, business (GAMBLE, DRINK, POUR, REACT, GESTURE) |
 | `intents-action.js` | labour, force, combat: SIGNAL, HEAT, CARRY, THRUST, TWIST, STRAIN, RECOIL, HIDE, CLING, ADVANCE, RETIME, THREAT, SHOOT, IMPACT, FALL, DUCK, EVADE, SEARCH, LEAP, POUR_OUT, SEPARATION, RETARGET, RECOVER, PURSUIT |
 | `intents-more.js` | the kinds the other scenes ask for (odyssey/perform/needs.json): POSTURE, WEEP, TOOL_WORK, ARM, EAT, RECOGNISE, the contact primitive (SEIZE, HOLD_ON, EMBRACE, DRAG, TEND), STRUGGLE, FLEE, HERD, SACRIFICE, THROW, SWING (hit or miss: MISS and OPENING stimuli), BLOCK |
+| `intents-creature.js` | intents for creatures (film-readymades/creatures.js rigs): POSE SLEEP TALK STIR BLINDED ROAR WALK GROPE REACH SEIZE EAT THROW HERD STRIKE ATTEND RECOGNISE INVOKE; `place()` fits a rig over the take's piece |
+| `scenes/_auto.js` | a first score for any prepared scene from odyssey/perform/needs.json: lines, intents, chain, sea machinery, creatures from the keyframes, a generic causal model |
 | `machinery.js` | the Blinding's coupled homeostat model; ROWING (one phase clock, per-body offsets); SIRENS_CHAIN (crew force -> hull -> mast -> rope -> strain) |
 | `metrics.js` | per actor per drawing states through the shot cameras; the report |
 | `thermo.js` | motion heat (through couplings, by material), causal entropy, media temperature, contrast, viability, the field |
 | `homeostat.js` | the uniselector homeostat and the coupled four-unit homeostat |
 | `patches.js` | instruction -> patch table; timeline and body diffs |
-| `hardware.js` | pose sheet and servo timeline |
+| `hardware.js` | pose sheet and servo timeline (figures, and creatures' angular channels on a giant puppet's segment model) |
 | `previz.js`, `previz-draw.js` | the light previz |
 | `scenes/<scene>.js` | a scene's direction (authors the score) |
 
