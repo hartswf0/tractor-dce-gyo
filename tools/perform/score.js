@@ -49,11 +49,11 @@ function Events(list) {
   const get = id => byId.get(id);
   /* the events on an actor at t, most meaningful first (an ACTION before its body lanes, an INTENT or HOLD above all) */
   function at(actor, t, lanes) { const rank = l => l === 'ACTION' ? 0 : l === 'CONTACT' ? 1 : l === 'INTENT' ? 2 : LANES.indexOf(l) + 3;
-    return E.filter(e => (e.actor === actor || (e.actors || []).includes(actor)) && t >= e.t0 - 1e-6 && t <= e.t1 + 1e-6 && (!lanes || lanes.includes(e.lane))).sort((a, b) => rank(a.lane) - rank(b.lane) || (b.t0 - a.t0)); }
+    return E.filter(e => (e.actor === actor || (e.actors || []).includes(actor)) && t >= e.t0 - 1e-6 && t <= e.t1 + 1e-6 && (!lanes || lanes.includes(e.lane) || (e.lanes || []).some(l => lanes.includes(l)))).sort((a, b) => rank(a.lane) - rank(b.lane) || (b.t0 - a.t0)); }
   /* "why is X moving here?": the chain from the body up through the intent to what caused it */
   function why(actor, t, depth = 6) {
     const here = at(actor, t); if (!here.length) return { actor, t, chain: [], text: actor + ' has nothing authored at ' + t.toFixed(2) + ' s' };
-    const start = here.find(e => e.lane === 'ACTION') || here.find(e => e.lane === 'CONTACT') || here.find(e => band(e.lane) === 'body') || here[0];
+    const start = here.find(e => e.lane === 'ACTION' && !(e.kind === 'BREATH')) || here.find(e => e.lane === 'CONTACT') || here.find(e => band(e.lane) === 'body') || here[0];
     const chain = [], seen = new Set(); let cur = [{ e: start, lat: null, from: null }];
     for (let d = 0; d < depth && cur.length; d++) { const nxt = [];
       for (const { e, lat, from } of cur) { if (seen.has(e.id)) continue; seen.add(e.id);

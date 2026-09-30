@@ -21,7 +21,7 @@ const both = (X, id, t, vals) => vals;
 A_.SIGNAL = (X, I, e) => { const id = I.actor, p = I.params || {}, t = I.t0, a = X.ampOf(I), how = p.how || 'go', sd = p.side || 'L';
   if (p.lookAt) X.look(id, p.lookAt, t - 0.25, e, { label: 'to the ones he signals', noFeet: true });
   const sig = X.move(id, 'act', 'SIGNAL ' + how.toUpperCase(), e, k => { const A = 'arm.' + sd + '.pitch';
-    if (how === 'hush') { k(t, { [A]: X.sheet.rel(0), 'head.yaw': X.sheet.rel(0), 'hand.' + sd + '.roll': X.sheet.rel(0) }); k(t + 0.3, { [A]: { abs: -1.1 }, ['hand.' + sd + '.roll']: -0.9 }); k(t + 0.7, { [A]: { abs: -0.9 } }); k(t + 1.0, { [A]: { abs: -1.05 } }); k(t + 1.6, { [A]: 0, ['hand.' + sd + '.roll']: 0 }); }
+    if (how === 'hush') { k(t, { [A]: X.sheet.rel(0), 'head.yaw': X.sheet.rel(0), ['hand.' + sd + '.roll']: X.sheet.rel(0) }); k(t + 0.3, { [A]: { abs: -1.1 }, ['hand.' + sd + '.roll']: -0.9 }); k(t + 0.7, { [A]: { abs: -0.9 } }); k(t + 1.0, { [A]: { abs: -1.05 } }); k(t + 1.6, { [A]: 0, ['hand.' + sd + '.roll']: 0 }); }
     else if (how === 'flee') { k(t, { [A]: X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) }); k(t + 0.18, { [A]: { abs: -2.6 }, 'torso.twist': 0.25 * a }, 'back'); k(t + 0.5, { [A]: { abs: -1.4 }, 'torso.twist': 0.1 * a }); k(t + 0.9, { [A]: 0, 'torso.twist': 0 }); }
     else { k(t, { [A]: X.sheet.rel(0), 'torso.lean': X.sheet.rel(0) }); k(t + 0.2, { [A]: { abs: -0.4 }, 'torso.lean': -0.03 }); k(t + 0.45, { [A]: { abs: -1.6 }, 'torso.lean': 0.1 * a }, 'back'); k(t + 1.1, { [A]: { abs: -1.3 }, 'torso.lean': 0.06 }); k(t + 1.6, { [A]: 0, 'torso.lean': 0 }); } }, { label: how + (p.to ? ' to ' + [].concat(p.to).map(Score.short).join(', ') : '') });
   for (const o of [].concat(p.to || [])) { const R = X.rng(I.id + o); X.move(o, 'react', 'ANSWER', sig || e, k => { const tt = t + 0.4 + X.θ.latency * (0.6 + R() * 0.8); k(tt, { 'head.pitch': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0) }); k(tt + 0.2, { 'head.pitch': 0.08, 'hips.dy': how === 'hush' ? -1.2 : 0.8 }); k(tt + 0.6, { 'head.pitch': 0, 'hips.dy': how === 'hush' ? -0.8 : 0 }); }, { label: 'answers the ' + how }); } };
@@ -80,6 +80,19 @@ A_.ADVANCE = (X, I, e) => { const id = I.actor, p = I.params || {}, K = X.M.keys
 /* HOLD_BACK params.key, until: the blocking's move to that key delayed: the figure kept where it is until params.until */
 A_.HOLD_BACK = (X, I, e) => { const id = I.actor, p = I.params || {}, K = X.M.keys.find(k => k.id === p.key); if (!K || !K.win) return; const s0 = X.at(id, K.win[0] - 0.05); if (!s0) return;
   X.move(id, 'loco', 'HOLD BACK', e, k => { k(K.win[0] - 0.05, { 'root.x': X.sheet.rel(0), 'root.z': X.sheet.rel(0) }); for (let t = K.win[0]; t <= Math.min(p.until, K.win[1] + 1); t += 1 / X.F) { const s = X.at(id, t); if (!s) continue; const u = t > p.until - 0.6 ? X.sm((p.until - t) / 0.6) : 1; k(t, { 'root.x': (s0.p[0] - s.p[0]) * u, 'root.z': (s0.p[2] - s.p[2]) * u }, 'linear'); } k(p.until + 0.1, { 'root.x': 0, 'root.z': 0 }); }, { label: 'held at the mark until ' + p.until.toFixed(2) + ' s' }); };
+
+/* RETIME params.key, delay: the blocking's move into that key shifted in time by `delay` seconds (negative: earlier), as a whole: the
+   root, the heading and every joint at t take the layout pass's values at t - delay (the offsets over what the blocking has at t), so
+   the walk, the legs and the arms of the move come earlier or later with it; the offsets are zero outside the shifted window */
+A_.RETIME = (X, I, e) => { const id = I.actor, p = I.params || {}, K = X.M.keys.find(k => k.id === p.key); if (!K || !K.win || !p.delay) return;
+  const d = p.delay, a0 = Math.min(K.win[0], K.win[0] + d) - 2 / X.F, a1 = Math.max(K.win[1], K.win[1] + d) + 2 / X.F;
+  const J = (s, c) => { const m = c.match(/^(arm|leg)\.([RL])\.pitch$/); if (m) return s.j[m[1] + m[2] + 'P'][0]; return c === 'torso.lean' ? s.j.torsoP[0] : c === 'head.yaw' ? -s.j.headP[1] : c === 'head.pitch' ? s.j.headP[0] : 0; };
+  const CH = ['arm.R.pitch', 'arm.L.pitch', 'leg.R.pitch', 'leg.L.pitch', 'torso.lean', 'head.yaw'];
+  X.move(id, 'loco', d < 0 ? 'EARLIER' : 'LATER', e, k => {
+    for (let t = a0; t <= a1 + 1e-6; t += 1 / X.F) { const s = X.at(id, t), s2 = X.at(id, Math.max(0, t - d)); if (!s || !s2) continue;
+      const v = { 'root.x': s2.p[0] - s.p[0], 'root.z': s2.p[2] - s.p[2], 'root.y': s2.p[1] - s.p[1], 'root.h': X.wrap(s2.h - s.h) };
+      for (const c of CH) v[c] = J(s2, c) - J(s, c); if (t <= a0 + 1e-6 || t >= a1 - 1e-6) for (const c in v) v[c] = 0;
+      k(t, v, 'linear'); } }, { label: 'the move to the ' + p.key + ' mark ' + (d < 0 ? 'started ' + (-d).toFixed(2) + ' s early' : 'held ' + d.toFixed(2) + ' s'), rigid: true }); };
 
 /* ═════ combat relations ═════ */
 /* THREAT params.target, weapon side: the weapon raised toward the target, the weight gathered; recorded as a relation */

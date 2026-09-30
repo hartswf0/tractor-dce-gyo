@@ -73,8 +73,13 @@ I_.RISE = (X, I, e) => { const id = I.actor, t = I.t0;
    the intent that owns the move points the head where it is going (its target), or the walk simply goes (the layout pass) */
 I_._walkBlocking = (X, id, K, cause) => {
   const [w0, w1] = K.win; let prev = null; const pts = [];
-  /* the walk takes the head, the torso and the feet back to the way it goes: whatever the gaze layer held is released */
-  X.move(id, 'gaze', 'FACE THE WAY', cause, k => { k(w0, { 'root.h': X.sheet.rel(0), 'head.yaw': X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) }); k(w0 + 0.35, { 'root.h': 0, 'head.yaw': 0, 'torso.twist': 0 }); }, { silent: true });
+  /* the walk takes the head, the torso and the feet back to the way it goes: whatever the gaze layer held is released; and the
+     acting layers' hold on the root, the weight, the torso and the limbs is released as the walk begins (the layout pass takes the
+     body to its next mark; a crouch, a step back, a grip left over from before would carry the figure off it) */
+  const wr = Math.max(0, Math.min(w0, cause && cause.t0 != null ? cause.t0 : w0));
+  X.move(id, 'gaze', 'FACE THE WAY', cause, k => { k(wr, { 'root.h': X.sheet.rel(0), 'head.yaw': X.sheet.rel(0), 'torso.twist': X.sheet.rel(0) }); k(wr + 0.35, { 'root.h': 0, 'head.yaw': 0, 'torso.twist': 0 }); }, { silent: true });
+  const REL = ['root.x', 'root.z', 'root.y', 'root.h', 'hips.dy', 'torso.lean', 'torso.twist', 'torso.roll', 'arm.R.pitch', 'arm.L.pitch', 'arm.R.out', 'arm.L.out', 'hand.R.roll', 'hand.L.roll', 'leg.R.pitch', 'leg.L.pitch', 'head.pitch'];
+  for (const L of ['act', 'react', 'weight']) X.move(id, L, 'RELEASE', cause, k => { k(wr, Object.fromEntries(REL.map(c => [c, X.sheet.rel(0)]))); k(wr + 0.45, Object.fromEntries(REL.map(c => [c, 0]))); }, { silent: true });
   for (let t = w0; t <= w1 + 1e-6; t += 1 / 24) { const s = X.at(id, t); if (!s || s.ph == null) continue; if (prev != null) { const a = Math.floor(prev / (Math.PI / 2)), b = Math.floor(s.ph / (Math.PI / 2)); if (b !== a) pts.push([t, b, s.walk]); } prev = s.ph; }
   X.move(id, 'loco', 'WALK', cause, k => { k(w0, { 'hips.dy': 0, 'torso.lean': 0, 'head.pitch': 0 });
     for (const [t, b, amt] of pts) { const contact = b % 2 === 1; k(t, { 'hips.dy': (contact ? -1.5 : 0.9) * amt, 'torso.lean': 0.06 * amt, 'torso.roll': (contact ? (b % 4 === 1 ? 0.045 : -0.045) : 0) * amt }, contact ? 'in' : 'out'); k(t + 1 / X.F, { 'head.pitch': (contact ? 0.035 : -0.02) * amt }); }

@@ -58,7 +58,7 @@ function causalModel(Tr, S, me, ev) {
   const props = t => Choreo.propsAt(Tr.C || { props: [] }, t);
   const intentsAt = (id, t) => E.filter(e => e.lane === 'INTENT' && e.actor === id && t >= e.t0 && t <= e.t1).map(e => e.kind);
   const stimAt = (id, t) => E.find(e => e.id === id && e.t0 <= t);
-  const face = (i, x) => { if (Array.isArray(x)) return x.length === 2 ? [x[0], 40, x[1]] : x; const a = frames[i].a[x]; if (a) return a.s.pts.face; const o = (S.objects || {})[x]; if (o && o.at) return o.at.length === 2 ? [o.at[0], 40, o.at[1]] : o.at; if (o && o.holder) { const [w, sd] = o.holder.split(':'); const own = props(i / F).own[o.holder]; const [w2, sd2] = (own || o.holder).split(':'); const b = frames[i].a[w2]; return b ? b.s.pts['hand' + (sd2 || sd || 'R')] : null; } return null; };
+  const face = (i, x) => { if (Array.isArray(x)) return x.length === 2 ? [x[0], 40, x[1]] : x; const a = frames[i].a[x]; if (a) return a.s.pts.face; const o = (S.objects || {})[x]; if (o && o.track) { let p = o.track[0][1]; for (const [tt, pp] of o.track) if (tt <= i / F) p = pp; return p; } if (o && o.at) return o.at.length === 2 ? [o.at[0], 40, o.at[1]] : o.at; if (o && o.holder) { const [w, sd] = o.holder.split(':'); const own = props(i / F).own[o.holder]; const [w2, sd2] = (own || o.holder).split(':'); const b = frames[i].a[w2]; return b ? b.s.pts['hand' + (sd2 || sd || 'R')] : null; } return null; };
   const FEAT = {
     /* dist(x): distance to x in figure heights */
     dist: (i, id, x) => { const a = frames[i].a[id], p = face(i, x); return a && p ? Math.hypot(a.s.p[0] - p[0], a.s.p[2] - p[2]) / H(id) : 99; },
@@ -75,7 +75,7 @@ function causalModel(Tr, S, me, ev) {
     /* after(stimulus id): 1 once it has happened (a phase of the scene) */
     after: (i, id, sid) => stimAt(sid, i / F) ? 1 : 0,
     /* threat(x): the heat of x's motion, discounted by distance over the threat distance */
-    threat: (i, id, x) => { const d = FEAT.dist(i, id, x), T = me.T[x] ? me.T[x][i] : 0; return T / (1 + d / ((S.params && S.params.threat) || 1.5)); },
+    threat: (i, id, x) => { const d = FEAT.dist(i, id, x), T = me.T[x] ? me.T[x][i] : 0; return Math.min(3, T) / (1 + d / ((S.params && S.params.threat) || 1.5)); },
     /* speaking(x) */
     speaking: (i, id, x) => (Tr.M.clips || []).some(c => c.kind === 'DIALOGUE' && c.voice === (x || id) && i / F >= c.at && i / F <= c.at + c.dur) ? 1 : 0,
     /* open(door): the door's state from SET events (default open) */
@@ -117,7 +117,8 @@ function thermo(Tr, S, o = {}) {
   const Tn = nodes.map(() => new Float32Array(n)), cur = new Float64Array(nodes.length), sub = 4, dt = 1 / F / sub;
   for (let i = 0; i < n; i++) { const E_ = edges(i);
     for (let s = 0; s < sub; s++) { const d = new Float64Array(nodes.length);
-      nodes.forEach((x, k) => { const m = mat(x); const src = ids.includes(x) ? P[x][i] : (m.source || 0) * (objs[x] && objs[x].sourceGain != null ? objs[x].sourceGain : 1) * θ.env; d[k] += src - cur[k] / (m.tau || 0.6); });
+      /* an object's own heat: its material's source, or a series the score gives it (the giant's arousal needle, 12 a second) */
+      nodes.forEach((x, k) => { const m = mat(x), ob = objs[x]; const src = ids.includes(x) ? P[x][i] : ob && ob.sourceSeries ? (ob.sourceSeries[Math.min(ob.sourceSeries.length - 1, i)] || 0) * θ.env : (m.source || 0) * (ob && ob.sourceGain != null ? ob.sourceGain : 1) * θ.env; d[k] += src - cur[k] / (m.tau || 0.6); });
       for (const [a, b, k] of E_) { const ia = idx.get(a), ib = idx.get(b); if (ia == null || ib == null) continue; const f = k * (cur[ia] - cur[ib]); const ga = mat(a).gain || 1, gb = mat(b).gain || 1; d[ib] += f * (f > 0 ? gb : 1); d[ia] -= f * (f < 0 ? ga : 1); }
       nodes.forEach((x, k) => { cur[k] = Math.max(0, cur[k] + d[k] * dt); if (mat(x).tau < 0.1 && !ids.includes(x)) cur[k] = 0; }); }
     nodes.forEach((x, k) => { Tn[k][i] = cur[k]; }); }
@@ -158,14 +159,20 @@ function thermo(Tr, S, o = {}) {
   /* 4. contrast and viability */
   const CT = new Float32Array(n), Tmean = new Float32Array(n), V = new Float32Array(n), viol = o.viol || null;
   /* C_T: the hottest figure the shot shows, against the room's temperature (the median of everyone on stage) */
-  for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
-    const shown = here.filter(id => frames[i].a[id].on !== false).map(id => T[id][i]); CT[i] = Math.max(0, (shown.length ? Math.max(...shown) : xs[xs.length - 1]) - med); Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }
+  /* bodies that are props (the giant: S.actors[id].body 'prop', with a heat of their own) count as figures: on screen if their mark
+     projects inside the frame */
+  const propBodies = Object.keys(objs).filter(k => ((S.actors || {})[k] || {}).body === 'prop');
+  const markAt = (ob, t) => { if (ob.track) { let p = ob.track[0][1]; for (const [tt, pp] of ob.track) if (tt <= t) p = pp; return p; } return ob.at; };
+  for (let i = 0; i < n; i++) { const here = ids.filter(id => frames[i].a[id]), xs = here.map(id => T[id][i]).concat(propBodies.map(k => T[k][i])).sort((a, b) => a - b); if (!xs.length) continue; const med = xs[xs.length >> 1];
+    const shown = here.filter(id => frames[i].a[id].on !== false).map(id => T[id][i]);
+    for (const k of propBodies) { const P = frames[i].P, p = markAt(objs[k], i / F), q = P && p ? P(p) : null; if (!P || (q && Math.abs(q[0]) <= 1.2 && Math.abs(q[1]) <= 1.2)) shown.push(T[k][i]); }
+    CT[i] = Math.max(0, (shown.length ? Math.max(...shown) : xs[xs.length - 1]) - med); Tmean[i] = xs.reduce((a, b) => a + b, 0) / xs.length; if (viol) V[i] = viol[i] / Math.max(1, xs.length); }
   for (const c of cuts) { const i = Math.round(c.t * F); c.dT = r3((CT[i] || 0) - (CT[Math.max(0, i - 1)] || 0)); c.transfer = c.hotBefore !== c.hotAfter; }
   /* 5. the field: nodes splatted on a floor grid over the set, one grid a second */
   const box = (M.pieces || []).filter(p => /floor|plate|sea|stage/.test(p.label)).map(p => p.box)[0] || [-300, 0, -300, 300, 10, 300], G = 24, field = [];
   for (let i = 0; i < n; i += F) { const g = new Float32Array(G * G);
     for (const id of ids) { const a = frames[i].a[id]; if (!a) continue; addBlob(g, G, box, a.s.p[0], a.s.p[2], T[id][i], 0.6 * H(id)); }
-    for (const [oid, ob] of Object.entries(objs)) { const p = ob.at; if (!p) continue; const k = idx.get(oid); addBlob(g, G, box, p[0], p.length === 2 ? p[1] : p[2], Tn[k][i] + (CM && CM.potential[oid] ? CM.potential[oid][i] * θ.affordance : 0), 40); }
+    for (const [oid, ob] of Object.entries(objs)) { let p = ob.at; if (ob.track) { p = ob.track[0][1]; for (const [tt, pp] of ob.track) if (tt <= i / F) p = pp; } if (!p) continue; const k = idx.get(oid); addBlob(g, G, box, p[0], p.length === 2 ? p[1] : p[2], Tn[k][i] + (CM && CM.potential[oid] ? CM.potential[oid][i] * θ.affordance : 0), 40); }
     field.push(Array.from(g, v => Math.round(Math.min(255, v * 40)))); }
   return { P, T, Sc, Tc, Tmedia, CT, Tmean, V, eventHeat, cuts, hot, field: { box: [box[0], box[2], box[3], box[5]], G, every: 1, frames: field }, causal: CM ? { tau: CM.tau, actions: CM.actions, potential: Object.fromEntries(Object.entries(CM.potential).map(([k, v]) => [k, Array.from(v, r3)])) } : null,
     materials: MATERIAL, nodes };

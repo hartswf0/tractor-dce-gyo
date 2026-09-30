@@ -138,7 +138,10 @@ function points(P) {
 function context(M, C) { const B = Blocking(M); if (C) Choreo.compile(C); return { M, C, B, ids: B.ids.filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis)) }; }
 function sample(ctx, id, t, extra) { const P = poseAt(ctx, id, t, extra); if (!P) return null; P.pts = points(P); return P; }
 
-const API = { Blocking, poseAt, points, frames, sample, context, JOINTS, LOCAL, DENSITY, wrap, angLerp, sm, lerp, cl01, eYXZ, eXYZ, mul, ap, apR, toYXZ };
+/* a world point into a pivot's own frame (the frame's rotation is a uniform scale times a rotation: the inverse is its transpose / s^2) */
+function toLocal(m) { const s2 = m[0] * m[0] + m[4] * m[4] + m[8] * m[8];
+  return p => { const d = [p[0] - m[3], p[1] - m[7], p[2] - m[11]]; return [(m[0] * d[0] + m[4] * d[1] + m[8] * d[2]) / s2, (m[1] * d[0] + m[5] * d[1] + m[9] * d[2]) / s2, (m[2] * d[0] + m[6] * d[1] + m[10] * d[2]) / s2]; }; }
+const API = { toLocal, Blocking, poseAt, points, frames, sample, context, JOINTS, LOCAL, DENSITY, wrap, angLerp, sm, lerp, cl01, eYXZ, eXYZ, mul, ap, apR, toYXZ };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 root.PerformBody = API;
 })(typeof window !== 'undefined' ? window : globalThis);

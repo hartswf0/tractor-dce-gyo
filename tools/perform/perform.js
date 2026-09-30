@@ -26,7 +26,9 @@ const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i
 const J = f => JSON.parse(fs.readFileSync(f, 'utf8'));
 const Compile = require('./compile.js'), Score = require('./score.js');
 const marksOf = s => J(path.join(ROOT, 'odyssey/choreo/marks', s + '.json'));
-const scoreF = s => path.join(SC, s + '.json'), sheetF = s => path.join(SC, s + '.choreo.json');
+/* a variant (a disturbed run of a scene: --variant wake-early [--frozen]) lives beside the baseline in odyssey/score/variants/ */
+const VAR = opt('variant', null), FROZEN = args.includes('--frozen'), vtag = VAR ? '.' + VAR + (FROZEN ? '.frozen' : '.regulated') : '';
+const scoreF = (s, v = vtag) => v ? path.join(SC, 'variants', s + v + '.json') : path.join(SC, s + '.json'), sheetF = (s, v = vtag) => v ? path.join(SC, 'variants', s + v + '.choreo.json') : path.join(SC, s + '.choreo.json');
 const r3 = v => Math.round(v * 1000) / 1000;
 function save(f, o, pretty) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, pretty ? JSON.stringify(o, null, 1) : JSON.stringify(o)); }
 
@@ -35,8 +37,8 @@ function author(s, force) {
   const f = scoreF(s), prev = fs.existsSync(f) ? J(f) : null;
   if (prev && prev.authored && !force) return prev;
   const M = marksOf(s), mod = require('./scenes/' + s + '.js');
-  const X = { voiceOf: c => Compile.voiceOf(M, c) }, a = mod(M, X);
-  const S = { format: Score.format, scene: s, title: a.title, type: a.type, total: M.total, clock: M.mode || 'cut', marks: 'odyssey/choreo/marks/' + s + '.json',
+  const X = { voiceOf: c => Compile.voiceOf(M, c), variant: VAR, frozen: FROZEN }, a = mod(M, X);
+  const S = { format: Score.format, scene: s, variant: VAR ? { name: VAR, frozen: FROZEN } : null, title: a.title, type: a.type, total: M.total, clock: M.mode || 'cut', marks: 'odyssey/choreo/marks/' + s + '.json',
     source: { take: 'odyssey/take/voice/' + s + '.m4a', direction: 'tools/perform/scenes/' + s + '.js' },
     actors: a.actors || {}, objects: a.objects || {}, authored: a.authored, params: Object.assign(Compile.defaults(), a.params || {}), params0: Object.assign(Compile.defaults(), a.params || {}),
     bands: a.bands || null, events: [], measures: null, log: { homeostat: [], patches: [] } };
@@ -70,7 +72,7 @@ if (require.main !== module) return;
     const S = J(scoreF(sid)), R = compileScene(sid, S);
     S.events = R.events; S.params = R.params; S.compiled = { at: new Date().toISOString().slice(0, 19), notes: R.notes, sheet: 'odyssey/score/' + sid + '.choreo.json' };
     const errs = Score.validate(S); S.compiled.errors = errs;
-    save(sheetF(sid), R.sheet); save(scoreF(sid), S, true);
+    save(sheetF(sid), R.sheet); save(scoreF(sid), S);
     const n = Object.values(R.sheet.actors).reduce((a, A) => a + Object.values(A.channels).reduce((b, k) => b + k.length, 0), 0);
     console.log('compiled', sid, R.events.length, 'events,', Object.keys(R.sheet.actors).length, 'actors,', n, 'keys,', R.sheet.props.length, 'props');
     for (const x of R.notes) console.log('  note:', x); for (const x of errs.slice(0, 20)) console.log('  check:', x); if (errs.length > 20) console.log('  ...', errs.length, 'checks');
@@ -80,13 +82,13 @@ if (require.main !== module) return;
     save(path.join(SC, 'measures', sid + '.json'), { scene: sid, measured: new Date().toISOString().slice(0, 10), before: { sheet: 'odyssey/choreo/' + sid + '.json', ...mb }, after: { sheet: 'odyssey/score/' + sid + '.choreo.json', ...ma } });
     S.measures = { file: 'odyssey/score/measures/' + sid + '.json', before: { ...mb.metrics.summary, essentials: mb.essentials }, after: { ...ma.metrics.summary, essentials: ma.essentials } };
     for (const e of S.events) { const h = ma.eventHeat[e.id]; if (h) e.heat = { Tm: h.Tm, Tc: h.Tc, dS: h.dS }; }
-    save(scoreF(sid), S, true);
+    save(scoreF(sid), S);
     const row = (n, x) => console.log(n.padEnd(7), 'coverage', x.coverage, 'literal', x.literal, 'dead', x.share.DEAD, 'freeze', x.unmotivatedFreeze, 'unmotivated', x.unmotivatedAction, 'latency', JSON.stringify(x.reactionLatency), 'gestures/phrase', x.gestureDensity, 'diversity', x.diversity, 'slide', x.contact.footSlide, 'handoffs', JSON.stringify(x.contact.handoffs.map(h => h.gap)), 'legality', x.legality.clampRequests + '/' + x.legality.selfCollisions + '/' + x.legality.bodyOverlaps + '/' + x.legality.balance);
     row('before', mb.metrics.summary); console.log('        ', JSON.stringify(mb.essentials)); row('after', ma.metrics.summary); console.log('        ', JSON.stringify(ma.essentials)); return; }
   if (cmd === 'homeostat') { const Ho = require('./homeostat.js'), S = J(scoreF(sid)), M = marksOf(sid);
     const res = Ho.run(M, S, { overrides: overridesOf(sid), max: +opt('max', 40), say: r => console.log('attempt', r.n, 'positions', JSON.stringify(r.positions), 'H', JSON.stringify(r.reading), 'out', r.out.join(',') || '-', r.ms + ' ms') });
     S.bands = res.bands; S.log = S.log || {}; S.log.homeostat = res.log; S.params = res.retained.params; S.homeostat = { stable: res.stable, retained: res.retained.n, attempts: res.log.length, at: new Date().toISOString().slice(0, 19) };
-    S.events = res.ev.R.events; save(scoreF(sid), S, true); save(sheetF(sid), res.ev.R.sheet);
+    S.events = res.ev.R.events; save(scoreF(sid), S); save(sheetF(sid), res.ev.R.sheet);
     console.log(res.stable ? 'stable at attempt ' + res.retained.n : 'not stable in ' + res.log.length + ' attempts; nearest kept (attempt ' + res.retained.n + ')', JSON.stringify(res.retained.params)); return; }
   if (cmd === 'patch' || cmd === 'chain') {
     const Pa = require('./patches.js'), Ho = require('./homeostat.js'), M = marksOf(sid);
@@ -108,7 +110,7 @@ if (require.main !== module) return;
       prev = ev; prevS = JSON.parse(JSON.stringify(S)); }
     if (cmd === 'chain') { save(path.join(SC, 'chains', sid + '.json'), { scene: sid, made: new Date().toISOString().slice(0, 10), note: 'five instructions applied in order to one score; each step: what the patch did, the homeostat\'s search, the timeline diff against the step before, the body diff (mean absolute channel change per actor), the essential variables and metrics after', steps });
       save(path.join(SC, 'chains', sid + '.last.choreo.json'), prev.R.sheet); author(sid, true); }
-    else { S.events = prev.R.events; save(scoreF(sid), S, true); save(sheetF(sid), prev.R.sheet); }
+    else { S.events = prev.R.events; save(scoreF(sid), S); save(sheetF(sid), prev.R.sheet); }
     return; }
   if (cmd === 'why') { const S = J(scoreF(sid)), E = Score.Events(S.events), who = args[2] && !/^OD-/.test(args[2]) ? args[2] : args[3], t = +args[args.length - 1];
     const w = E.why(who, t); console.log(w.text); for (const c of w.chain) console.log('  '.repeat(c.depth + 1) + c.lane.padEnd(9), c.kind.padEnd(16), (c.actor || '').padEnd(18), c.t0.toFixed(2) + '-' + c.t1.toFixed(2), c.latency != null ? '(+' + c.latency + ' s)' : '', c.label || ''); return; }

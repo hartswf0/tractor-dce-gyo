@@ -104,6 +104,8 @@ function compile(M, S, opts = {}) {
     if (typeof x !== 'string') return null;
     if (ids.includes(x)) { const P = bpose(x, t); return P ? P.pts.face : null; }
     const o = objects[x]; if (!o) return null;
+    /* an object re-staged by key (the giant sprawled, then standing, then at the door): track [[t, [x,y,z]], ...], the latest at t */
+    if (o.track) { let p = o.track[0][1]; for (const [tt, pp] of o.track) if (tt <= t) p = pp; return p; }
     if (o.at) return o.at.length === 2 ? [o.at[0], o.y != null ? o.y : 40 * scale, o.at[1]] : o.at;
     if (o.holder) { const [who, sd] = o.holder.split(':'); const P = bpose(who, t); return P ? P.pts['hand' + (sd || 'R')] : null; }
     return null;
@@ -138,10 +140,10 @@ function compile(M, S, opts = {}) {
     /* a body's preparation may start before its intent's nominal start (the PRE phase: anticipation): recorded as such */
     const cz = because(why).map(b => { const c = E.get(b.id); return c ? { id: c.id, latency: r3(t0 - c.t0), rel: b.rel || (t0 < c.t0 - 1e-6 ? 'anticipates' : undefined) } : b; });
     if (o.silent) return { t0, t1 };
-    const a = ev({ lane: o.lane || 'ACTION', actor: id, t0, t1, kind, label: o.label || '', because: cz, layer, params: o.params });
-    const lanes = new Set([...chs].map(c => Score.CH_LANE[c]).filter(Boolean));
-    for (const l of lanes) ev({ lane: l, actor: id, t0, t1, kind, label: o.label || '', because: [{ id: a.id, latency: 0 }], layer, derived: true });
-    return a;
+    /* the ACTION carries the body lanes it moves (ROOT, WEIGHT, TORSO, HEAD, GAZE, ARM.L ...): the lanes view and the causal walk read
+       them from it */
+    const lanes = [...new Set([...chs].map(c => Score.CH_LANE[c]).filter(Boolean))];
+    return ev({ lane: o.lane || 'ACTION', actor: id, t0, t1, kind, label: o.label || '', because: cz, layer, lanes, params: o.params });
   }
   const stim = (label, t, actor, o = {}) => ev({ lane: 'STIMULUS', actor, t0: t, t1: o.t1 != null ? o.t1 : t + (o.dur || 0.2), kind: o.kind || 'STIMULUS', label, because: because(o.because), params: o.params });
 
@@ -200,7 +202,7 @@ function compile(M, S, opts = {}) {
   for (const K of M.keys) { const e = ev({ lane: 'STIMULUS', t0: K.win ? K.win[0] : K.t, t1: K.win ? K.win[1] : K.t + 0.1, kind: 'BLOCKING', label: K.id + ': ' + String(K.beat).slice(0, 80), derived: true }); keyEv[K.id] = e; }
   X.keyEv = keyEv;
   /* 2. the authored stimuli and intents (and holds), in time order, each realised by its kind */
-  const INT = require('./intents.js');
+  const INT = Object.assign({}, require('./intents.js'), require('./intents-action.js'));
   for (const s of A.stimuli || []) ev({ ...s, lane: 'STIMULUS', because: because(s.because).map(b => ({ ...b })) });
   const intents = (A.intents || []).concat((A.holds || []).map(h => ({ ...h, kind: 'HOLD' }))).map(I => ({ ...I })).sort((a, b) => a.t0 - b.t0);
   for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });
@@ -220,7 +222,35 @@ function compile(M, S, opts = {}) {
   sheet.write();
   /* 6. solvers that need the pose the sheet gives (a hand to a spear): run on the sheet as written, their keys added, written again */
   if (solvers.length) { let C0 = finish(); for (const fn of solvers) { fn(X, C0); sheet.write(); C0 = finish(); } }
+  /* 7. legality: what the layers ask for, summed, kept inside the toy's joint limits, and hands kept out of the torso and the head
+     (tools/perform/metrics.js's part extents), on an @limit layer: the corrections are visible in the sheet and in the score */
+  if (opts.legal !== false) legalize(finish());
   return { sheet: finish(), events: E.list, notes, params: θ };
+
+  function legalize(C0) {
+    const bctx0 = Body.context(M, C0), TB = { x: 19, y1: 32, z: 10 }, HB = { x: 13, y0: -25, z: 13 };
+    const inv = Body.toLocal;
+    const inside = P => { const Fr = Body.frames(P), toT = inv(Fr.torsoP), toH = inv(Fr.headP), out = [];
+      for (const sd of ['R', 'L']) { const h = P.pts['hand' + sd], a = toT(h), b = toH(h);
+        if (Math.abs(a[0]) < TB.x - 3 && a[1] > 0 && a[1] < TB.y1 && Math.abs(a[2]) < TB.z) out.push(sd); else if (Math.abs(b[0]) < HB.x && b[1] > HB.y0 && b[1] < 0 && Math.abs(b[2]) < HB.z - 2) out.push(sd); } return out; };
+    let nClamp = 0, nCol = 0; const lim = {};
+    for (const id of ids) { const L = lim[id] = {};
+      for (let i = 0; i <= Math.floor(T * F); i++) { const t = i / F, s0 = at(id, t); if (!s0 || !s0.vis) continue; const v = Choreo.sampleActor(C0, id, t) || {}, fix = {};
+        for (const [ch, lm] of Object.entries(Choreo.CLAMP)) { if (ch === 'hips.dy' || v[ch] == null) continue; const b = baseOf(id, ch, t), want = b + v[ch], lo = Math.min(lm[0], b), hi = Math.max(lm[1], b);
+          if (want < lo - 1e-3) { fix[ch] = lo - want; nClamp++; } else if (want > hi + 1e-3) { fix[ch] = hi - want; nClamp++; } }
+        let P = Body.sample(bctx0, id, t, fix), bad = inside(P), k = 0;
+        /* a hand inside: the arm's roll opened, then its pitch raised, each only as far as the joint allows */
+        const within = (ch, x) => { const lm = Choreo.CLAMP[ch], b = baseOf(id, ch, t), w = b + (v[ch] || 0) + x, lo = Math.min(lm[0], b), hi = Math.max(lm[1], b); return Math.max(lo, Math.min(hi, w)) - b - (v[ch] || 0); };
+        while (bad.length && k < 8) { for (const sd of bad) { const o = 'arm.' + sd + '.out', pp = 'arm.' + sd + '.pitch'; fix[o] = within(o, (fix[o] || 0) + 0.1); if (k >= 3) fix[pp] = within(pp, (fix[pp] || 0) - 0.15); } P = Body.sample(bctx0, id, t, fix); bad = inside(P); k++; }
+        if (k) nCol++;
+        for (const [ch, x] of Object.entries(fix)) (L[ch] = L[ch] || {})[i] = x; } }
+    /* the corrections as keys: nonzero drawings, eased to zero a drawing either side */
+    sheet.begin(); for (const [id, L] of Object.entries(lim)) for (const [ch, byI] of Object.entries(L)) { const is = Object.keys(byI).map(Number).sort((a, b) => a - b); if (!is.length) continue;
+      const keys = new Map(); for (const i of is) { keys.set(i, byI[i]); if (byI[i - 1] == null) keys.set(i - 1, keys.get(i - 1) || 0); if (byI[i + 1] == null) keys.set(i + 1, keys.get(i + 1) || 0); }
+      for (const [i, x] of [...keys.entries()].sort((a, b) => a[0] - b[0])) if (i >= 0) sheet.key(id, 'limit', i / F, { [ch]: r4(x) }, 'linear'); }
+    sheet.end(); sheet.write();
+    notes.push('legality: ' + nClamp + ' joint requests brought inside the limits, ' + nCol + ' drawings with a hand moved out of a torso or head (@limit layer)');
+  }
 
   function finish() {
     /* the director's hand keys (overrides kept from the scene's sheet, e.g. the rig desk's): inside their span the compiler's own keys
