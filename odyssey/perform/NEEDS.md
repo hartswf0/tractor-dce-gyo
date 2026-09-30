@@ -2,7 +2,19 @@
 
 Generated with `odyssey/perform/needs.json` (the data; this page is its reading). What each voiced scene asks of the performance engine (tools/perform), read from the take (cut plan, clips, blocking), the Halfworld script (drive-script, spoken-lines, performance-turns, _direction.mjs) and the cineosis direction block. Times are on the take's cut clock (seconds from the scene's start). Coverage is derived: intent kinds with a realiser in tools/perform/intents.js (engine), kinds a motion.js clip sketches but no realiser plays (clip), and the rest (missing); combat relations and machinery have no realiser yet.
 
-## Totals: what to build first
+## Reading: what to build first
+
+1. **Machinery before intents.** Boats are in 10 of the 30 scenes: a ship or raft with riders, oars on one shared phase clock whose tempo is a parameter (it rises after each threat and loses oars when rowers are taken), and the sea as an actor (wave fronts from impacts, whirlpool rings, spouts). The rough pass has only a ship that pitches, rolls and heaves. Missing: a ship pushed along by a wave (B09-S11), a ship that breaks up (B12-S07), a raft that capsizes (B05-S05) and a fleet (B10-S02).
+2. **Contact is the most-needed relation that the engine lacks.** CONTACT appears in 12 scenes, and IMPACT only covers a blow. The scenes need a sustained grip or touch that has an owner and a duration: a hand over a mouth (B04-S04), a hand at the throat (B19-S04), four men holding a shape-changer (B04-S05), a giant's hand passing over the rams' backs (B09-S10), embraces held for 10 to 20 s (B23-S04, B16-S03). One primitive would cover SEIZE, DRAG, HOLD_BACK, GRAPPLE, CARRY a person, EMBRACE and TEND: two bodies coupled at contact points, with ownership and a release.
+3. **Posture changes are the most-needed intent kind** (POSTURE, 9 scenes): sit, lie, crouch, cower and slump, entered and left by a move and held while breathing. Next come WEEP (7 scenes; a motion.js clip exists but has no realiser), ROPE_WORK (6: bind, moor, lash, unbind; rope is also machinery), ROW (6, clip only), TOOL_WORK (6: chop, carve, bore, dig), then ARM, EAT and RECOGNISE (5 each).
+4. **Transformations** (4 scenes, plus the costume swap in B16-S03): one actor id keeps its identity while the body is replaced (figure to pig, lion, water or tree; beggar to king; stature grown). No transformation exists in the take or in the engine.
+5. **Giants and animals are staged as props, not bodies.** In the takes, Polyphemus, the Laestrygonians, Scylla, Argos, the rams and the dogs are set pieces, so the engine cannot give them intents. The hardest scenes (the three Cyclops scenes, B10-S02, B12-S04, B14-S01, B17-S03) need a giant rig with reach and grasp, and quadrupeds with walk, head and tail channels.
+6. **Chosen stillness.** Many holds must read as alive but still: the lotus languor, men hidden in the horse, a sleeper carried, the long embraces, a dog's death. They need HOLD reasons that the dead-frame metric accepts. A dead HOLD (Argos) must turn the breath off.
+7. **Recordings.** Seven dialogue segments speak the script's summary instead of the line (the table below). The take captions them with the line, so the words a performance times its stresses to are not the words heard.
+
+The hardest scenes, in order: **B09-S08** (a prop made on screen in four time-skipped phases, a giant who eats men, the offer upward; no location yet), **B09-S10** (men slung under walking rams, and a blind hand search that must miss; no location yet), **B09-S11** (two sets on one axis, a thrown mountain, a wave that pushes the ship, a 45 s curse by a giant who exists only as a prop), **B09-S03** (bliss that must not read as a dead frame, then a drag against resistance and binding), **B10-S02** (a fleet massacred in 35 s at a fast cut).
+
+## Totals
 
 Missing intent kinds, by how many scenes ask for them (`clip`: a motion.js clip sketches it, no realiser; `missing-shape`: a GESTURE/REACT variant the realiser lacks):
 
@@ -154,7 +166,7 @@ Seven DIALOGUE segments in the 34 voiced takes speak the drive-script's summary,
 
 ### OD-B09-S08 The Name Nobody and the Stake
 
-**Type** labour. **Total** 68.04 s. **Prepared**: nothing.
+**Type** labour. **Total** 68.04 s. **Prepared**: nothing. Not prepared: the film player (film-readymades/production/Film-Butter-Odyssey.html.gz) has no location for this scene (no staged set, no keyframe file), so the take cannot be probed; it needs staging (odyssey/keyframes/<scene>.json and a rebuild of the player) first.
 
 **Why it is hard**: Four time-skipped phases in 68 s (night, dawn meal, day labour, evening offer) on one set; a giant at 3-4 figure heights who eats men; a prop that is made on screen (trunk -> stake -> charred point -> hidden); the offer reaches up to a giant hand.
 
@@ -184,7 +196,7 @@ Holds: odysseus 0.6-8.0: restraint: the stone would trap them; the hand stays on
 
 ### OD-B09-S10 Escape beneath the Rams
 
-**Type** escape. **Total** 72.44 s. **Prepared**: nothing.
+**Type** escape. **Total** 72.44 s. **Prepared**: nothing. Not prepared: the film player (film-readymades/production/Film-Butter-Odyssey.html.gz) has no location for this scene (no staged set, no keyframe file), so the take cannot be probed; it needs staging (odyssey/keyframes/<scene>.json and a rebuild of the player) first.
 
 **Why it is hard**: Men carried upside down under walking rams, the giant's hands passing over every back at the door on a fixed rhythm, a blind search that must miss; then outside: unbinding, driving the flock, boarding, rowing, a sacrifice.
 
@@ -218,6 +230,8 @@ Holds: odysseus 30.0-50.0: held breath under the ram while the giant speaks (con
 
 **Why it is hard**: Two sets on one axis (ship and shore) with a thrown mountain crossing it; the rock's splash drives a wave that pushes the ship back to shore; a blind thrower aims by the voice; a long curse (45 s) that must stay alive on a single figure.
 
+**The take**: cast odysseus, odysseus-s-crew-1, odysseus-s-crew-2, odysseus-s-crew-3, odysseus-s-crew-4, odysseus-s-crew-5; 5 keys, 49 shots; staged only as a set piece: polyphemus; rough-pass density (after) 0.961, longest still 1.75 s.
+
 **Essential variables**: ship as a dynamic body pushed by a wave (not just pitch/roll); ballistic rock with a splash and wave front; aim by sound: the giant re-orients on each shout; crew restraining their captain (hands on him); a 45 s speech from one body: prayer arms, recognition grief, curse
 
 Dramatic chain:
@@ -244,11 +258,15 @@ Contacts and handoffs: 3.0 s crew hands on Odysseus' arms (plea); 17.7 s the pea
 
 Holds: crew 19.5-21.0: the splash: a beat of shock before the oars; polyphemus 60.0-62.0: the recognition lands before the prayer
 
+Previz: Contact sheet read (20 drawings). Polyphemus speaks the 45 s curse but is a set piece, not a rig: during his lines the SPK/REACT cameras frame the crew, and at 59 s (d709 REACT) the camera sits inside the crowd, with heads and oars filling the lens. The crew stand holding their oars upright in one hand: no rowing, though the sheet declares a ship rig. The wides are tiny figures on a wireframe ship. No T-poses.
+
 ### OD-B09-S03 The Lotus-Eaters
 
-**Type** labour. **Total** 43.12 s. **Prepared**: marks, sheet, cameras.
+**Type** labour. **Total** 43.12 s. **Prepared**: marks, sheet, cameras, rig, previz.
 
 **Why it is hard**: A stillness that must read as bliss, not a dead frame (7 s holds, Ba sign: "no movement but breath"), then a violent rescue: men dragged weeping, bound under benches, the rest sent to the oars.
+
+**The take**: cast odysseus, three-scouts-1, three-scouts-2, three-scouts-3, lotus-eaters-1, lotus-eaters-2, lotus-eaters-3, lotus-eaters-4, lotus-eaters-5; 3 keys, 5 shots; not in the take's cast: crew, scout-1; rough-pass density (after) 0.728, longest still 2.25 s.
 
 **Essential variables**: sanctioned stillness vs the dead-frame metric (lotus languor); drag: two coupled bodies, the dragged resisting and weeping; binding a figure under a bench (rope and pose); the storm (nine days) as ship machinery in the first 8 s
 
@@ -273,6 +291,8 @@ Machinery: SHIP: storm pitch in the opening, beached, then rowed off; SAIL: nort
 Contacts and handoffs: 17.0 s lotus eater -> scout [owner scout-1]; 28.5 s odysseus grips the scout [owner odysseus]; 34.0 s scout bound to the bench [owner ship]
 
 Holds: scouts 23.0-28.0: lotus languor: the stillness is the point (Ba); breath only, never zero; lotus-eaters 16.0-28.0: gentle, unhurried: slow breath and sway
+
+Previz: Contact sheet read. The OBJ inserts from 3.6 to 17 s (the lotus insert, by the direction) all frame Odysseus' chest: nothing charged is in shot, because the lotus is not staged. The scouts' languor (22-26 s) reads as sitting upright, not lying in the meadow. At 20.9 s a red figure stands on the green scout's head (two figures stacked at one mark). The REACT shots from 29 to 40 s put the camera inside Odysseus' head, and the scouts overlap one another (bodies interpenetrating). No T-poses.
 
 ### OD-B10-S02 The Laestrygonian Harbor
 
@@ -979,7 +999,7 @@ Contacts and handoffs: gi3 s dolius takes odysseus' hands
 
 ### OD-B01-S02 Athena's Two-Part Plan
 
-**Type** dialogue. **Total** 50.3 s. **Prepared**: nothing.
+**Type** dialogue. **Total** 50.3 s. **Prepared**: nothing. Not prepared: the film player (film-readymades/production/Film-Butter-Odyssey.html.gz) has no location for this scene (no staged set, no keyframe file), so the take cannot be probed; it needs staging (odyssey/keyframes/<scene>.json and a rebuild of the player) first.
 
 **Why it is hard**: Not in the film: no location to probe. Two errands assigned in speech, then Athena fastens her golden sandals, takes the spear and drops from Olympus.
 
