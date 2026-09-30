@@ -1,6 +1,25 @@
-# Cascade project
+# Cascade project: the Odyssey in Cascade
 
-Read `node_modules/cascade/AGENTS.md` for the framework itself. What follows is what an agent working in *this* project needs.
+Read `README.md` first: the five graphs, what each reads and makes, and the commands. Read `node_modules/cascade/AGENTS.md` for the
+framework. What follows the project notes is the guide `cascade new` wrote, kept because it is right for this project too.
+
+## This project
+
+- Every node is **definition-v1** and **`runsOn: 'portable'`**, CPU and Canvas 2D only: each graph must cook under `cascade run`
+  and in the static player (`cascade build`). Do not add file, Python, shell or GPU nodes to a graph that has a player; put such
+  work in `tools/` and hand its result to the graph as an asset (as `tools/clashes.py` and `tools/extract.cjs` do), or read the
+  graph's output asset afterwards (as `tools/gesture_kit.py` does).
+- Shared code lives in `lib/` as pure functions. A node module may not hold a module-level value, not even a `const` arrow
+  function (`architecture/module-state`): write helpers as `function` declarations or put them in `lib/`.
+- Parameters a visitor changes are listed in `graphs.json`, and must hold plain values in the graph (an expression wins over
+  `setProp`). Node **inputs** take values only; put anything animated on a **prop**.
+- `cascade.geo.Merge` fills attributes a piece lacks with zeros, so geometry without `Cd` turns transparent after a merge: give
+  it colour first (`project.Paint`, or a `Cd` of its own).
+- Before committing: `npm run check`, `npm run check:graphs`, `npm run verify`; after a graph changes, `npm run build` (players)
+  and `npm run media`, then `python3 ../../tools/forage/product/cascadepage.py`.
+- Never change the data this project reads (`odyssey/choreo`, `odyssey/cards`, `odyssey/cineosis`, `tools/forage/product/*.py`).
+
+## The guide `cascade new` wrote
 
 ## Read this first
 
@@ -10,10 +29,10 @@ Read `node_modules/cascade/AGENTS.md` for the framework itself. What follows is 
 
 - Run `npm install` in this directory first. Scripts use the project's installed Cascade version; use `npx --no-install cascade` for direct local CLI commands.
 - `npm run check` — type-check custom nodes.
-- `npm run check:graph` — statically check the graph and node definitions.
-- `npm run validate` — validate `index.cascade`.
-- `npm run run` — execute headlessly without Studio.
-- `cascade .` — launch local Studio on loopback.
+- `npm run check:graphs` — statically check every graph and the node definitions.
+- `npm run verify` — cook every graph headless, bounded, and check its outputs (writes `verify.json`).
+- There is no `index.cascade`: name the graph (`kit.cascade`, `attention.cascade`, `clocks.cascade`, `forbidden.cascade`, `facing.cascade`).
+- `cascade kit.cascade` — launch local Studio on loopback (never bind it to a public interface).
 - `cascade . --host KURO --port 3030` — launch for `http://KURO:3030` on a trusted VPN/LAN.
 
 Do not start another Cascade process on an occupied port. Remote access requires
@@ -145,4 +164,4 @@ WebGPU nodes declare `capabilities: ['gpu']` and use `context.capabilities.gpu` 
 
 Cascade's build refreshes `dist/`, which running Studio servers may serve. Coordinate a core rebuild with anyone using that checkout; routine sketch edits do not require rebuilding Cascade.
 
-Use `npm run check:graph` for static checks and `npm run run` for a compatible headless graph. A browser-only node may pass static checks with an environment warning and still be refused by the CLI; verify it in Studio instead. Compare actual outputs after edits and distinguish recorded measurements from tests run in the current session.
+Use `npm run check:graphs` for static checks and `npm run verify` for headless cooks. A browser-only node may pass static checks with an environment warning and still be refused by the CLI; verify it in Studio instead. Compare actual outputs after edits and distinguish recorded measurements from tests run in the current session.

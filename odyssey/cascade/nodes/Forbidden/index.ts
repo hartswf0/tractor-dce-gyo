@@ -54,7 +54,7 @@ export async function execute(context: NodeExecutionContext<typeof definition>) 
     rect(fx - cw / 2 + 12, fy - ch / 2 + 12, fx + cw / 2 - 12, fy + ch / 2 - 12, [0.5, 0.48, 0.44, 1], 0.6, false);
     g.addPrimitive([g.pointCount - 1, g.pointCount - 4]); cd.push(0.5, 0.48, 0.44, 1); w.push(0.6);
     if (p.context) {
-      if (p.view === 'plan') for (const [k, a, b] of c.occupied) rect(a * 20, -(k + 1) * 20, (b + 1) * 20, -k * 20, [0.8, 0.79, 0.75, 1], 0.2);
+      if (p.view === 'plan') for (const [k, a, b] of c.occupied) rect(a * 20, -(k + 1) * 20, (b + 1) * 20, -k * 20, [0.87, 0.86, 0.83, 1], 0.2);
       else { g.addPolygon([e[0] + ox, oy, e[2] + ox, oy]); cd.push(0.4, 0.38, 0.35, 1); w.push(1.2); }
     }
     const list = c.clashes.filter(q => (q[5] as number) - (q[4] as number) >= p.minDepth).sort((a, b) => (a[4] as number) - (b[4] as number));

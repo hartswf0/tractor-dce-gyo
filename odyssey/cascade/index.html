@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Odyssey in Cascade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, minmax(0, 1fr)); } .ribbon a, .ribbon div { min-width: 0; overflow-wrap: anywhere; } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+
+.stone { margin-top: 18px; }
+.grew { border-left: 3px solid var(--gold); padding: 6px 0 6px 14px; color: var(--muted); max-width: 900px; }
+.grew b { color: var(--ink); }
+.before { font-weight: 600; max-width: 900px; margin: 14px 0; }
+.before::before { content: "What we could not do before: "; color: var(--blue); }
+.player { width: 100%; border: 1px solid var(--rule); background: var(--card); display: block; height: 760px; }
+.outs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.outs figure { border: 1px solid var(--rule); background: var(--card); padding: 8px; }
+.outs img, .outs video { width: 100%; display: block; background: #fff; }
+.outs video { background: #000; }
+.facts { font-size: 13px; color: var(--muted); }
+.facts code { font-size: 12px; }
+ul.plain { padding-left: 20px; max-width: 900px; } ul.plain li { margin: 8px 0; }
+.limits li::marker { color: var(--bad); }
+.gains li::marker { color: var(--ok); }
+@media (max-width: 800px) { .outs { grid-template-columns: 1fr; } .player { height: 900px; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker">Word to World · the Odyssey in Cascade</div>
+  <h1>The Odyssey in Cascade</h1>
+  <p class="lede">Cascade is FIELD.IO's open-source node-graph runtime (MIT, <a href="https://github.com/marcuswendt/cascade">github.com/marcuswendt/cascade</a>,
+    npm <code>@field/cascade</code> 0.7.1): Houdini's way of working (small typed operators, explicit data flow, parameters that hold
+    values, expressions or keyframes, explicit feedback, particles whose trails are geometry) in TypeScript, with a project that is an
+    ordinary folder of diffable <code>.cascade</code> graphs. The same graph cooks headless from the command line (Skia for Canvas 2D,
+    no browser) and plays in a static web player of a few hundred kilobytes. That is why it is here: the Odyssey's film, game and kits
+    are three stacks that do not talk, and each of these five graphs grew from a failure or an aberration of one of them. Every player
+    below is live: scrub it, change its parameters.</p>
+  <div class="stats">
+    <div><b>5</b><span>graphs</span></div>
+    <div><b>13</b><span>project nodes</span></div>
+    <div><b>966 KB</b><span>all five players</span></div>
+    <div><b>186</b><span>pieces in the gesture kit · 0 loose · 0 clashes</span></div>
+  </div>
+  <h2 id="kit">1 · A kit of a motion, not a moment</h2>
+  <div class="stone">
+    <p class="grew"><b>Grew from:</b> Every kit of the Odyssey line is one moment posed, by the brief&#x27;s own rule (the peak of the story, posed). The motion that moves the film lives elsewhere: tools/choreograph.js writes every figure&#x27;s servos as timed keys on the voice clock (odyssey/choreo/OD-B01-S03.json), and film-readymades/choreo.js plays them back as a pure function of time. A gesture never left the film.</p>
+    <p class="sub">project.ChoreoHand reads the choreography sheet (Telemachus&#x27;s slice of OD-B01-S03, or Odysseus&#x27;s of OD-B22-S01, cut small by tools/extract.cjs), samples the blocking and every keyed layer, and runs the minifigure&#x27;s forward kinematics (the arm pivots and the hand&#x27;s grip from world/minifig.js) for the right hand. The hand is swept through the span as a trail, which is geometry; project.StudGrid quantizes it to studs across and plates up; project.Bricks draws the cells as the plates they become. The same graph writes the print (SvgExport), the frames (cascade run --frames) and, as a JSON asset, the cells the offline kit step builds.</p>
+    <iframe class="player" src="players/view.html?g=kit" title="A kit of a motion: the Cascade player" loading="lazy"></iframe>
+    <p class="facts">Player: <code>players/kit/</code>, 194 KB (cascade build of <code>kit.cascade</code>), frames 1 to 240 at 24 a second. Scene OD-B01-S03, The Stranger at the Threshold: cineosis sign So (Solid perception).</p>
+    <div class="outs">
+      <figure><a href="media/kit.svg"><img src="media/kit.svg" alt="A kit of a motion: the print, SVG" loading="lazy"></a><figcaption>Print: <a href="media/kit.svg">media/kit.svg</a>, written by cascade.geo.SvgExport</figcaption></figure>
+      <figure><video src="media/kit.mp4" poster="media/kit.jpg" controls muted loop playsinline preload="none"></video><figcaption>Motion: <a href="media/kit.mp4">media/kit.mp4</a>, every frame cooked headless by cascade run --frames</figcaption></figure>
+      <figure><img src="kit/cascade.gesture-welcome.jpg" alt="The gesture kit rendered: a wall of 1 x 1 plates and bricks tracing the hand from the feast to the gate" loading="lazy"><figcaption>Build: <a href="kit/cascade.gesture-welcome.mpd">kit/cascade.gesture-welcome.mpd</a>, 186 pieces, 0 loose, 0 clashes (kitlib.check). Each column rises to the highest plate the hand reached over that stud; each coloured plate is a cell the hand passed through, dark blue at the feast, red at the gate.</figcaption></figure>
+      <figure><img src="kit/cascade.gesture-welcome-side.jpg" alt="The gesture kit from the side: the hand's height as a skyline of plates" loading="lazy"><figcaption>From the side: the hand's height, plate by plate, as he rises, crosses and greets her (tools/forage/look.js).</figcaption></figure>
+    </div>
+    <p class="before">Telemachus&#x27;s welcome existed only as frames of a scene. Now the one graph that reads his sheet prints it, animates it, lets a visitor scrub it and change its sampling and grid on a phone, and hands its cells to kitlib, which builds the gesture in real parts and checks it: 186 pieces, 0 loose, 0 clashes.</p>
+  </div>
+  <h2 id="attention">2 · The attention knob</h2>
+  <div class="stone">
+    <p class="grew"><b>Grew from:</b> The acted gate was measured: 4.8% of figure-drawings moving before the choreographer, 84.5% after (odyssey/choreo/density). The rise is the choreographer&#x27;s last pass: wherever a figure sits under a threshold of motion (0.5% of its height per drawing) for half a second, it is given a piece of business on the fill layer. The threshold is a constant in a generator, and the loop that enforces it is buried in the rough pass.</p>
+    <p class="sub">The twelve figures of OD-B01-S03 stand at their marks in plan (project.Hall). A cascade.core.Feedback container runs one drawing per step (12 a second, the sheet&#x27;s own rate): project.Business measures each figure&#x27;s motion (the scene&#x27;s scripted layers, act, work, walk, beat, react, from the sheet), invents business where it falls below the threshold, measures again, and carries the state forward; the business decays. cascade.pop.Trail makes trails of the loop&#x27;s history. Rings: blue, the script moves the figure; orange, business was invented this drawing; grey, still.</p>
+    <iframe class="player" src="players/view.html?g=attention" title="The attention knob: the Cascade player" loading="lazy"></iframe>
+    <p class="facts">Player: <code>players/attention/</code>, 210 KB (cascade build of <code>attention.cascade</code>), frames 1 to 534 at 12 a second. Scene OD-B01-S03, The Stranger at the Threshold: cineosis sign So (Solid perception).</p>
+    <div class="outs">
+      <figure><a href="media/attention.svg"><img src="media/attention.svg" alt="The attention knob: the print, SVG" loading="lazy"></a><figcaption>Print: <a href="media/attention.svg">media/attention.svg</a>, written by cascade.geo.SvgExport</figcaption></figure>
+      <figure><video src="media/attention.mp4" poster="media/attention.jpg" controls muted loop playsinline preload="none"></video><figcaption>Motion: <a href="media/attention.mp4">media/attention.mp4</a>, every frame cooked headless by cascade run --frames</figcaption></figure>
+    </div>
+    <p class="before">The fill rule was a constant in tools/choreograph.js: to see the hall at another threshold meant regenerating the sheet and rendering the scene again. Here the threshold is a slider on a live loop whose state is explicit: at zero, with the script turned off, the hall is statues; at 300 it is frenzy; the critic checks both headless.</p>
+  </div>
+  <h2 id="clocks">3 · Two clocks</h2>
+  <div class="stone">
+    <p class="grew"><b>Grew from:</b> The film has one clock. Every figure, rig and prop is keyed on the voice (odyssey-choreo/1: &quot;clock&quot;: &quot;cut&quot;). Calypso&#x27;s seven years and the four days Odysseus spends building the raft run on it at the same rate, so the poem&#x27;s time can be cut, never shown passing.</p>
+    <p class="sub">Two channels. project.Planks lays the raft&#x27;s logs at the performer&#x27;s rate (logs per second of film); project.SkyArcs turns the world&#x27;s days (the performer&#x27;s seconds times a ratio) into the sun&#x27;s path across the southern sky of a latitude for every day lived, higher in summer, lower in winter, with the moon&#x27;s beside it and a tick for each year. The logs are a Circle copied to points (cascade.geo.CopyToPoints).</p>
+    <iframe class="player" src="players/view.html?g=clocks" title="Two clocks: the Cascade player" loading="lazy"></iframe>
+    <p class="facts">Player: <code>players/clocks/</code>, 158 KB (cascade build of <code>clocks.cascade</code>), frames 1 to 288 at 24 a second. Scene OD-B05-S04, Building the Raft: cineosis sign Qu (Quotidian).</p>
+    <div class="outs">
+      <figure><a href="media/clocks.svg"><img src="media/clocks.svg" alt="Two clocks: the print, SVG" loading="lazy"></a><figcaption>Print: <a href="media/clocks.svg">media/clocks.svg</a>, written by cascade.geo.SvgExport</figcaption></figure>
+      <figure><video src="media/clocks.mp4" poster="media/clocks.jpg" controls muted loop playsinline preload="none"></video><figcaption>Motion: <a href="media/clocks.mp4">media/clocks.mp4</a>, every frame cooked headless by cascade run --frames</figcaption></figure>
+    </div>
+    <p class="before">The world&#x27;s rate was the performer&#x27;s rate. Now it is a parameter: at 0.4 days a second the sky turns the poem&#x27;s four days while the raft goes down; at 255.7 seven years pass over one raft, and the sun&#x27;s arcs stay printable, a solargraph of the captivity.</p>
+  </div>
+  <h2 id="forbidden">4 · The illegal Odyssey</h2>
+  <div class="stone">
+    <p class="grew"><b>Grew from:</b> The eight Troy and Ithaca modules were built before the strict check and fail it: 2,351 pairs of parts filling the same space (tools/forage/product/clicks.py). The hub of the line lists them as numbers to rebuild.</p>
+    <p class="sub">tools/clashes.py measures, offline and with the line&#x27;s own checker, the box each pair of parts shares; the graph (project.Forbidden) draws only those volumes, card by card on one scale, in plan, front or side, and exports them as SVG: the kit of forbidden bricks.</p>
+    <iframe class="player" src="players/view.html?g=forbidden" title="The illegal Odyssey: the Cascade player" loading="lazy"></iframe>
+    <p class="facts">Player: <code>players/forbidden/</code>, 247 KB (cascade build of <code>forbidden.cascade</code>), frames 1 to 96 at 24 a second. Scene OD-B04-S04, The Wooden Horse: cineosis sign Sn (Sonsign).</p>
+    <div class="outs">
+      <figure><a href="media/forbidden.svg"><img src="media/forbidden.svg" alt="The illegal Odyssey: the print, SVG" loading="lazy"></a><figcaption>Print: <a href="media/forbidden.svg">media/forbidden.svg</a>, written by cascade.geo.SvgExport</figcaption></figure>
+      <figure><video src="media/forbidden.mp4" poster="media/forbidden.jpg" controls muted loop playsinline preload="none"></video><figcaption>Motion: <a href="media/forbidden.mp4">media/forbidden.mp4</a>, every frame cooked headless by cascade run --frames</figcaption></figure>
+    </div>
+    <p class="before">Clashes were a count in a table. Drawn, they say what the count hid: 84% of them are one mistake, a 2 x 8 plate (3034) in the same space as another part, most often a 2 x 4 tile (1,070 pairs): floors laid twice.</p>
+  </div>
+  <h2 id="facing">5 · The facing field</h2>
+  <div class="stone">
+    <p class="grew"><b>Grew from:</b> 93 bows faced backward (tools/forage/product/fixbows.py): the forage placed each bow with its arrow toward its own -z and nothing said which way the archer faced. Facing was implicit, so it was wrong everywhere at once.</p>
+    <p class="sub">In the Cyclops&#x27; cave (project.FacingField) the blinded giant gropes along a path; every object gets an orientation attribute, N, pointing away from where his hand is now, and cascade.geo.CopyToPoints turns each glyph by it. The first instance is the bow (red). Switch the attribute off and every copy keeps its glyph&#x27;s own facing.</p>
+    <iframe class="player" src="players/view.html?g=facing" title="The facing field: the Cascade player" loading="lazy"></iframe>
+    <p class="facts">Player: <code>players/facing/</code>, 157 KB (cascade build of <code>facing.cascade</code>), frames 1 to 240 at 24 a second. Scene OD-B09-S09, The Blinding: cineosis sign Im (Imprint).</p>
+    <div class="outs">
+      <figure><a href="media/facing.svg"><img src="media/facing.svg" alt="The facing field: the print, SVG" loading="lazy"></a><figcaption>Print: <a href="media/facing.svg">media/facing.svg</a>, written by cascade.geo.SvgExport</figcaption></figure>
+      <figure><video src="media/facing.mp4" poster="media/facing.jpg" controls muted loop playsinline preload="none"></video><figcaption>Motion: <a href="media/facing.mp4">media/facing.mp4</a>, every frame cooked headless by cascade run --frames</figcaption></figure>
+    </div>
+    <p class="before">Orientation was a matrix typed into each placement. Here it is data a generic operator reads: move the groping point and the whole cave turns away from it; untick one box and the 93 bows&#x27; failure comes back.</p>
+  </div>
+  <h2 id="critics">6 · The critics</h2>
+  <p class="sub">The agent-facing contract. <code>node odyssey/cascade/tools/verify.mjs</code> cooks every graph headless with bounded
+    frames and a timeout (<code>cascade run --frames --json --timeout</code>), reads the JSON manifest, checks every listed frame exists,
+    is not blank and differs from the others, and asks one question per graph in the terms of its scene's cineosis sign: a variant of the
+    graph with a parameter changed is cooked and its pixels counted. No browser is opened.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Graph</th><th>Sign</th><th>Static check</th><th class="n">Frames</th><th class="n">Cook (ms)</th><th>The critic asks</th><th>Answer</th></tr>
+    <tr><td><a href="#kit">kit</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">4</td><td class="n">611</td><td>Is the hand&#x27;s world solid: does the gesture quantize to cells, and does the offline kit check clean?</td><td class="ok">yes: cells 69, kit pieces 186, kit loose 0, kit clash 0</td></tr>
+    <tr><td><a href="#attention">attention</a></td><td>So · Solid perception</td><td class="ok">passed</td><td class="n">5</td><td class="n">873</td><td>Whose world is this: at threshold 0 with no script the hall stands still (no business), at 300 it is all business?</td><td class="ok">yes: statuesOrangePixels 0, frenzyOrangePixels 2932</td></tr>
+    <tr><td><a href="#clocks">clocks</a></td><td>Qu · Quotidian</td><td class="ok">passed</td><td class="n">3</td><td class="n">454</td><td>Has everyday life become heroic: four days of sky under the raft, or seven years (more sun arcs at the higher ratio)?</td><td class="ok">yes: fourDaysSunPixels 739, sevenYearsSunPixels 37393</td></tr>
+    <tr><td><a href="#forbidden">forbidden</a></td><td>Sn · Sonsign</td><td class="ok">passed</td><td class="n">2</td><td class="n">270</td><td>Does the clash stand alone, answered by no build: nothing drawn at reveal 0, the forbidden volumes at reveal 1?</td><td class="ok">yes: revealedNothingRedPixels 0, revealedAllRedPixels 43267</td></tr>
+    <tr><td><a href="#facing">facing</a></td><td>Im · Imprint</td><td class="ok">passed</td><td class="n">3</td><td class="n">314</td><td>How has the world got inside the objects: with facing implicit, does every copy face the same way (the image changes)?</td><td class="ok">yes: explicitInkPixels 33085, implicitInkPixels 33039</td></tr>
+  </table></div>
+  <p class="facts">Run 2026-09-30 01:37 UTC with Cascade 0.7.1: every graph passed. The report is <a href="verify.json">verify.json</a>.</p>
+  <h2 id="where">Where Cascade takes us</h2>
+  <ul class="plain gains">
+    <li><b>One graph cooks to print, motion, web and LDraw.</b> The gesture graph is the SVG, the frame sequence, the player and (through
+      one asset and kitlib) the checked kit. Nothing is re-authored between them, so they cannot drift apart.</li>
+    <li><b>Visitors scrub and change parameters without the engine.</b> The five players together weigh 966 KB;
+      the game and the film build are one 29 MB page each (play/odyssey-game.html). A parameter change cooks in tens of milliseconds
+      in a browser, measured in headless Chromium through <code>embed.js</code>.</li>
+    <li><b>Explicit state beside a pure function of time.</b> The choreography is a function of t, which is what lets the film scrub;
+      the attention loop keeps state from drawing to drawing, which is what invented business is. Cascade holds both in one graph:
+      a Feedback container re-simulates from the first drawing, so the stateful loop scrubs too.</li>
+    <li><b>Headless CPU cooks with a JSON contract.</b> <code>cascade run --frames --json --timeout</code> renders on Skia at 7.4 to 13.0 (the whole sequence of each graph, measured by <code>tools/media.mjs</code>) frames a second on this machine and returns a
+      manifest an agent can check, instead of scraping a browser at 1.2 frames a second.</li>
+    <li><b>Graphs are diffable direction.</b> The fill threshold, the ratio of the two clocks, the kit scale are values in a
+      <code>.cascade</code> file: a change of direction is a one-line diff a reviewer can read.</li>
+  </ul>
+  <h2 id="limits">What it cannot do yet</h2>
+  <ul class="plain limits">
+    <li><b>No shaded 3D.</b> Cascade's scene view and <code>cascade.geo.Render</code> draw wireframes and points; lights exist and shade
+      nothing. The plates in the players are drawn by a project node (project.Bricks: three faces and a stud, painter-sorted, in 2D). The
+      real LEGO look still comes from the forage renderer (tools/forage/look.js, three.js).</li>
+    <li><b>WebGPU needs a real GPU.</b> Headless Chromium here renders with SwiftShader, and the CLI's Dawn host is optional; every node
+      in this project is CPU and Canvas 2D so it runs everywhere.</li>
+    <li><b>The kit step is outside the browser graph.</b> Players reject file, Python and shell nodes; the LDraw build is Python
+      (kitlib), reading the cells the graph wrote as an asset, which the CLI host puts in <code>.cascade-cache/</code> under a content
+      hash. The frames runner saves only image outputs, and naming a node (<code>--node</code>) narrows the cook to its inputs, so an SVG
+      export needs a second, whole-graph run.</li>
+    <li><b>Rough edges we hit.</b> Node inputs take values but not expressions (only props do); <code>cascade.geo.Merge</code> gives a
+      primitive with no colour a transparent one, so strokes vanish until painted (project.Paint); <code>cascade.pop.Trail</code> wants full
+      particle geometry (v, age, life, nextid) from any loop; there is no attribute-promote node; a module-level <code>const</code> helper
+      in a node is refused by the architecture check; <code>setProp</code> does not override an expression on the same prop; the
+      player's own page offers play and a frame box but no parameters, so <code>players/view.html</code> builds them from
+      <code>graphs.json</code> with <code>embed.js</code>.</li>
+  </ul>
+  <h2>The files</h2>
+  <ul class="links">
+    <li><code>odyssey/cascade/</code>: the Cascade project (<code>cascade.json</code>, <code>package.json</code> pinning 0.7.1, <code>AGENTS.md</code>, <code>README.md</code>)</li>
+    <li><code>kit.cascade</code>, <code>attention.cascade</code>, <code>clocks.cascade</code>, <code>forbidden.cascade</code>, <code>facing.cascade</code>: the graphs</li>
+    <li><code>nodes/</code>: Bricks, Business, ChoreoHand, FacingField, Forbidden, Hall, Marks, Paint, Planks, Plot, SkyArcs, StudGrid, View</li>
+    <li><code>lib/</code>: the choreography sampler and minifigure kinematics, the hall, the view</li>
+    <li><code>assets/</code>: gestures.json, hall.json, clashes.json, cut small from odyssey/choreo and odyssey/cards</li>
+    <li><code>tools/</code>: extract.cjs, clashes.py, gesture_kit.py, build.mjs, media.mjs, verify.mjs</li>
+    <li><code>players/</code>: the five static players and <a href="players/view.html?g=kit">view.html</a>, their controls</li>
+    <li><a href="../kits/index.html">The Odyssey line</a> · <a href="../choreo/index.html">the dope sheet</a> · <a href="../kits/cineosis.html">cineosis</a></li>
+  </ul>
+  <footer>Made by <code>tools/forage/product/cascadepage.py</code>; every number read from the project when it ran.</footer>
+</main>
+<script>
+/* each player's frame is on this origin: size it to what it holds */
+for (const f of document.querySelectorAll('iframe.player')) {
+  const fit = () => { try { const h = f.contentDocument && f.contentDocument.documentElement.scrollHeight; if (h > 200) f.style.height = h + 'px'; } catch (e) {} };
+  f.addEventListener('load', () => { fit(); setTimeout(fit, 600); setTimeout(fit, 2500); });
+  addEventListener('resize', fit);
+}
+</script>
+</body>
+</html>

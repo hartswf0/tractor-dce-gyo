@@ -1,38 +1,357 @@
 {
   "version": "0.2",
-  "metadata": { "name": "The attention knob", "description": "The twelve figures of OD-B01-S03 at their marks. Each drawing an explicit Feedback loop measures every figure's motion, invents business where it is below the threshold, and measures again. The threshold is the knob: at zero the hall keeps only what the scene scripts; high, it is frenzy." },
+  "metadata": {
+    "name": "The attention knob",
+    "description": "The twelve figures of OD-B01-S03 at their marks. Each drawing an explicit Feedback loop measures every figure's motion, invents business where it is below the threshold, and measures again. The threshold is the knob: at zero the hall keeps only what the scene scripts; high, it is frenzy."
+  },
   "nodes": [
-    { "id": "hall", "module": "project.Hall", "position": [0, 0], "source": "project", "props": { "sheet": { "path": "assets/hall.json", "mediaType": "application/json" } } },
-    { "id": "time", "module": "cascade.core.Time", "position": [0, 200] },
-    { "id": "loop", "module": "cascade.core.Feedback", "position": [300, 60], "props": { "history": 36 } },
-    { "id": "prev", "module": "cascade.core.Previous", "parent": "loop", "position": [0, 0] },
-    { "id": "biz", "module": "project.Business", "parent": "loop", "position": [240, 0], "source": "project",
-      "props": { "threshold": 50, "script": 1, "decay": 0.86, "invent": 1.4, "exaggerate": 5, "spring": 0.8, "seed": 7 } },
-    { "id": "out", "module": "cascade.core.Output", "parent": "loop", "position": [480, 0], "props": { "outputIndex": 0, "outputName": "state", "dataType": "geometry" } },
-    { "id": "trail", "module": "cascade.pop.Trail", "position": [600, 0], "props": { "result": "polylines", "length": 36 } },
-    { "id": "ink", "module": "project.Paint", "position": [820, 0], "source": "project", "props": { "color": [0.3, 0.3, 0.34, 0.75], "width": 1.2 } },
-    { "id": "marks", "module": "project.Marks", "position": [600, 200], "source": "project" },
-    { "id": "merge", "module": "cascade.geo.Merge", "position": [1040, 100] },
-    { "id": "plot", "module": "project.Plot", "position": [1240, 100], "source": "project",
-      "props": { "size": [960, 800], "bounds": [-350, -280, 350, 300], "margin": 16, "filename": "attention.png" } },
-    { "id": "svg", "module": "cascade.geo.SvgExport", "position": [1240, 300], "props": { "filename": "attention.svg", "strokeWidth": 1, "margin": 8, "bounds": [-350, -280, 350, 300], "width": 1400 } }
+    {
+      "id": "hall",
+      "module": "project.Hall",
+      "position": [
+        0,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "sheet": {
+          "path": "assets/hall.json",
+          "mediaType": "application/json"
+        }
+      }
+    },
+    {
+      "id": "time",
+      "module": "cascade.core.Time",
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "id": "loop",
+      "module": "cascade.core.Feedback",
+      "position": [
+        300,
+        60
+      ],
+      "props": {
+        "history": 36
+      }
+    },
+    {
+      "id": "prev",
+      "module": "cascade.core.Previous",
+      "parent": "loop",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "biz",
+      "module": "project.Business",
+      "parent": "loop",
+      "position": [
+        240,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "threshold": 50,
+        "script": 1,
+        "decay": 0.86,
+        "invent": 1.4,
+        "exaggerate": 5,
+        "spring": 0.8,
+        "seed": 7
+      }
+    },
+    {
+      "id": "out",
+      "module": "cascade.core.Output",
+      "parent": "loop",
+      "position": [
+        480,
+        0
+      ],
+      "props": {
+        "outputIndex": 0,
+        "outputName": "state",
+        "dataType": "geometry"
+      }
+    },
+    {
+      "id": "trail",
+      "module": "cascade.pop.Trail",
+      "position": [
+        600,
+        0
+      ],
+      "props": {
+        "result": "polylines",
+        "length": 36
+      }
+    },
+    {
+      "id": "ink",
+      "module": "project.Paint",
+      "position": [
+        820,
+        0
+      ],
+      "source": "project",
+      "props": {
+        "color": [
+          0.3,
+          0.3,
+          0.34,
+          0.75
+        ],
+        "width": 1.2
+      }
+    },
+    {
+      "id": "marks",
+      "module": "project.Marks",
+      "position": [
+        600,
+        200
+      ],
+      "source": "project"
+    },
+    {
+      "id": "merge",
+      "module": "cascade.geo.Merge",
+      "position": [
+        1040,
+        100
+      ]
+    },
+    {
+      "id": "plot",
+      "module": "project.Plot",
+      "position": [
+        1240,
+        100
+      ],
+      "source": "project",
+      "props": {
+        "size": [
+          960,
+          800
+        ],
+        "bounds": [
+          -350,
+          -280,
+          350,
+          300
+        ],
+        "margin": 16,
+        "filename": "attention.png"
+      }
+    },
+    {
+      "id": "svg",
+      "module": "cascade.geo.SvgExport",
+      "position": [
+        1240,
+        300
+      ],
+      "props": {
+        "filename": "attention.svg",
+        "strokeWidth": 1,
+        "margin": 8,
+        "bounds": [
+          -350,
+          -280,
+          350,
+          300
+        ]
+      }
+    }
   ],
   "connections": [
-    [["hall", 1, "initial"], ["loop", 0, "initial"]],
-    [["time", 0, "frame"], ["loop", 1, "steps"]],
-    [["prev", 0, "value"], ["biz", 0, "state"]],
-    [["prev", 1, "step"], ["biz", 1, "step"]],
-    [["hall", 0, "hall"], ["biz", 2, "hall"]],
-    [["biz", 0, "state"], ["out", 0, "input"]],
-    [["loop", 1, "history"], ["trail", 0, "history"]],
-    [["loop", 0, "result"], ["trail", 1, "particles"]],
-    [["trail", 0, "geometry"], ["ink", 0, "geometry"]],
-    [["loop", 0, "result"], ["marks", 0, "state"]],
-    [["hall", 2, "stage"], ["merge", 0, "inputs"]],
-    [["ink", 0, "geometry"], ["merge", 0, "inputs"]],
-    [["marks", 0, "geometry"], ["merge", 0, "inputs"]],
-    [["merge", 0, "geometry"], ["plot", 0, "geometry"]],
-    [["merge", 0, "geometry"], ["svg", 0, "geometry"]]
+    [
+      [
+        "hall",
+        1,
+        "initial"
+      ],
+      [
+        "loop",
+        0,
+        "initial"
+      ]
+    ],
+    [
+      [
+        "time",
+        0,
+        "frame"
+      ],
+      [
+        "loop",
+        1,
+        "steps"
+      ]
+    ],
+    [
+      [
+        "prev",
+        0,
+        "value"
+      ],
+      [
+        "biz",
+        0,
+        "state"
+      ]
+    ],
+    [
+      [
+        "prev",
+        1,
+        "step"
+      ],
+      [
+        "biz",
+        1,
+        "step"
+      ]
+    ],
+    [
+      [
+        "hall",
+        0,
+        "hall"
+      ],
+      [
+        "biz",
+        2,
+        "hall"
+      ]
+    ],
+    [
+      [
+        "biz",
+        0,
+        "state"
+      ],
+      [
+        "out",
+        0,
+        "input"
+      ]
+    ],
+    [
+      [
+        "loop",
+        1,
+        "history"
+      ],
+      [
+        "trail",
+        0,
+        "history"
+      ]
+    ],
+    [
+      [
+        "loop",
+        0,
+        "result"
+      ],
+      [
+        "trail",
+        1,
+        "particles"
+      ]
+    ],
+    [
+      [
+        "trail",
+        0,
+        "geometry"
+      ],
+      [
+        "ink",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "loop",
+        0,
+        "result"
+      ],
+      [
+        "marks",
+        0,
+        "state"
+      ]
+    ],
+    [
+      [
+        "hall",
+        2,
+        "stage"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "ink",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "marks",
+        0,
+        "geometry"
+      ],
+      [
+        "merge",
+        0,
+        "inputs"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "plot",
+        0,
+        "geometry"
+      ]
+    ],
+    [
+      [
+        "merge",
+        0,
+        "geometry"
+      ],
+      [
+        "svg",
+        0,
+        "geometry"
+      ]
+    ]
   ],
   "annotations": []
 }

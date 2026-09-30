@@ -42,7 +42,7 @@ export async function execute(context: NodeExecutionContext<typeof definition>) 
   for (let i = 0; i < pts.length; i++) { tb.addPoint(pts[i][0], pts[i][1], pts[i][2]); tt.push(pts[i][4]); }
   for (let i = 1; i < pts.length; i++) { tb.addPrimitive([i - 1, i]); const c = rampAt(pts[i][3]); cd.push(c[1], c[2], c[3], 1); }
   tb.setNumericAttribute('point', 't', tt, 1);
-  if (cd.length) tb.setNumericAttribute('primitive', 'Cd', cd, 4);
+  if (cd.length) { tb.setNumericAttribute('primitive', 'Cd', cd, 4); tb.setNumericAttribute('primitive', 'width', cd.filter((_, k) => k % 4 === 0).map(() => 2.4), 1); }
   context.outputs.trail.set(tb.build());
   /* the figure at now */
   const tn = g.t0 + (g.t1 - g.t0) * now, sk = skeletonAt(g, tn, frame, floor), fb = new GeometryBuilder({ positionSize: 3 });

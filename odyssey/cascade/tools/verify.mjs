@@ -21,12 +21,21 @@ const { loadImage, createCanvas } = require('@napi-rs/canvas');
 const cli = path.join(here, 'node_modules/cascade/dist/cli/index.js');
 const { graphs } = JSON.parse(fs.readFileSync(path.join(here, 'graphs.json'), 'utf8'));
 const score = JSON.parse(fs.readFileSync(path.join(root, 'odyssey/cineosis/score.json'), 'utf8'));
-const signOf = id => { const s = score.scenes.find(x => x.id === id); return s ? { scene: id, title: s.title, sign: s.primary.symbol, name: s.primary.name, question: s.primary.question } : { scene: id }; };
+const signOf = id => { const s = score.scenes.find(x => x.id === id); return s ? { scene: id, title: s.title, sign: s.primary.symbol, signName: s.primary.name, question: s.primary.question } : { scene: id }; };
 
+let races = 0;
 function cascade(args) {
   const t = Date.now();
-  try { return { ok: true, out: execFileSync(process.execPath, [cli, ...args], { cwd: here, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 }), ms: Date.now() - t }; }
-  catch (e) { return { ok: false, out: String(e.stdout || '') + String(e.stderr || e.message), ms: Date.now() - t }; }
+  for (let k = 0; ; k++) {
+    try { return { ok: true, out: execFileSync(process.execPath, [cli, ...args], { cwd: here, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 }), ms: Date.now() - t }; }
+    catch (e) {
+      const out = String(e.stdout || '') + String(e.stderr || e.message);
+      /* cascade 0.7.1 compiles a project node once per instance into one .cascade-cache/nodes/<Name>.mjs, concurrently; with several
+         instances of a node in a graph it can import a half-written file. Retried and counted, not hidden: see races in verify.json */
+      if (k < 4 && /does not export execute/.test(out)) { races++; continue; }
+      return { ok: false, out, ms: Date.now() - t };
+    }
+  }
 }
 const manifest = out => { const line = out.trim().split('\n').reverse().find(l => l.startsWith('{')); return line ? JSON.parse(line) : null; };
 async function pixels(file, test) {
@@ -98,7 +107,7 @@ for (const g of graphs) {
   report.graphs.push(r);
   console.log(`${r.ok ? 'ok  ' : 'FAIL'} ${g.name.padEnd(10)} check ${r.check ? 'passed' : 'FAILED'} · ${r.run.status} ${r.run.files ?? 0} frames, ${r.run.distinctFrames ?? 0} distinct, ${r.run.wallMs ?? '?'} ms · critic ${r.critic ? (r.critic.ok ? 'passed' : 'FAILED') : 'none'}`);
 }
-report.ok = failed === 0;
+report.ok = failed === 0; report.compileRacesRetried = races;
 fs.writeFileSync(path.join(here, 'verify.json'), JSON.stringify(report, null, 1) + '\n');
 console.log(failed ? `${failed} graph(s) failed` : 'every graph cooked, every output present, every critic answered');
 process.exit(failed ? 1 : 0);
