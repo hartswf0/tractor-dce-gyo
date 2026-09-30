@@ -86,7 +86,7 @@ ${chans.map(c => `      <tr><td class="n">${E(c.name).replace(/\./g, '.<wbr>')}<
     ${films.map(([name, f]) => `
     <h3>${E(f.title)}</h3>
     <video controls muted playsinline loop preload="none" poster="media/${E(name)}.jpg" width="480" height="270"><source src="media/${E(name)}.mp4" type="video/mp4"></video>
-    <p class="muted">${E(f.note)}${checks[name] ? ' Checks: ' + Object.entries(checks[name]).filter(([q]) => q !== 'frames' && q !== 'seconds').map(([q, x]) => `${E(q)} ${x}`).join('; ') + '.' : ''}</p>`).join('')}
+    <p class="muted">${E(f.note)}${checks[name] ? ' Checks, the worst frame: ' + Object.entries(checks[name]).filter(([q]) => q !== 'frames' && q !== 'seconds').map(([q, x]) => `${E(q)} ${x}`).join('; ') + '.' : ''}</p>`).join('')}
     <h3>The scenes that need it</h3>
     <ul class="scenes">${scenes.map(s => `<li><code>${E(s.id)}</code>${s.title ? ' ' + E(s.title) : ''}${s.intents.length ? '<br><span class="muted">' + s.intents.map(E).join('; ') + '</span>' : ''}</li>`).join('')}</ul>
     <p class="muted">${(K.needs || []).map(E).join('; ')}.</p>

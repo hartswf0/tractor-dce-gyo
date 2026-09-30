@@ -79,26 +79,26 @@ const FILMS = {
   /* Polyphemus seated in the door, both hands feeling the backs of the rams that pass in threes, men beneath the middle ones: the
      search passes over them and misses (B09-S10) */
   'polyphemus-grope': () => {
-    const G = C.define('polyphemus', { scale: 1.7 }), mem = {};
+    const G = C.define('polyphemus', { scale: 2.6 }), mem = {};
     const n = 6, rigs = []; for (let i = 0; i < n; i++) rigs.push(C.define('ram', { id: 'r' + i, scale: i === n - 1 ? 2.4 : 2.0, colour: i % 3 === 1 ? 'white' : i === 0 ? 'grey' : 'white' }));
-    const H = C.herd({ n, path: [[0, 20, -420], [1, 20, -420], [14, 20, 520]], abreast: 3, gap: 44, spacing: 150, spread: 0.1, seed: 2, speed: 90 });
+    const H = C.herd({ n, path: [[0, 55, -420], [1, 55, -420], [14, 55, 520]], abreast: 3, gap: 42, spacing: 150, spread: 0.1, seed: 2, speed: 90 });
     H.slots[n - 1].side = 0; H.slots[n - 1].back = 380;   // the lead ram last and alone
-    const seat = Object.assign(G.rest(), G.preset('sit'), { 'root.x': -125, 'root.z': 0, 'root.h': Math.PI / 2, 'head.pitch': -0.1 });
-    const set = S.figure([part('6083', 72, -250, 168 * 1.6, -150, 1.6, 1.2), part('6083', 72, -260, 168 * 1.6, 170, 1.6, 1.9), rock(220, -120, 1.2, 0.5), rock(230, 110, 1.4, 2)]);
+    const seat = Object.assign(G.rest(), G.preset('sit'), { 'root.x': -215, 'root.z': 0, 'root.h': Math.PI / 2, 'head.pitch': 0.1 });
+    const set = S.figure([part('6083', 72, -330, 168 * 2.2, -210, 2.2, 1.2), part('6083', 72, -340, 168 * 2.2, 230, 2.2, 1.9), rock(240, -140, 1.2, 0.5), rock(250, 130, 1.4, 2)]);
     /* the rams' backs under a point, for the hands to rest on */
     return shoot('polyphemus-grope', 14, t => {
       const vs = rigs.map((r, i) => H.channels(r, i, t, 'walk', { stance: i % 3 === 1 || i === n - 1 ? 5 : 0 }));
       const backs = vs.map((v, i) => ({ p: rigs[i].point('back', v), r: 14 * rigs[i].scale, len: 26 * rigs[i].scale, h: v['root.h'] }));
       const surface = (x, z) => { let top = null; for (const b of backs) { const dx = x - b.p[0], dz = z - b.p[2], c = Math.cos(b.h), s = Math.sin(b.h), along = dx * s + dz * c, side = dx * c - dz * s;
         if (Math.abs(side) < b.r && Math.abs(along) < b.len) { const y = b.p[1] - 0.5 * (side / b.r) ** 2 * 10; top = top == null ? y : Math.max(top, y); } } return top; };
-      const v = C.grope(G, t, { center: [10, 100, 0], width: 200, depth: 36, period: 3.4, surface, base: seat });
+      const v = C.grope(G, t, { center: [45, 110, 0], width: 240, depth: 36, period: 3.4, surface, base: seat });
       v['head.yaw'] = 0.25 * Math.sin(t * 0.7); v['eye'] = 2; v['jaw'] = 0.08 + 0.06 * Math.sin(t * 1.3);
       const ms = set.concat(S.meshes(G, v));
       vs.forEach((vv, i) => { ms.push(...S.meshes(rigs[i], vv)); footCheck('polyphemus-grope', rigs[i], vv, mem);
         if (i % 3 === 1 || i === n - 1) ms.push(...S.figure(hung(rigs[i].anchor('belly', vv), [0, 22, -8], LIE_UNDER, { arms: [-1.45, -1.45], legs: [-1.55, -1.55], colours: { torso: i === n - 1 ? 272 : 320, legs: 19, hair: 0 } }))); });
       /* the palm into a back: the grip's height below the surface under it */
       for (const hnd of ['R', 'L']) { const g = G.point('grip.' + hnd, v), top = surface(g[0], g[2]); if (top != null) note('polyphemus-grope', 'palm into a back (world units)', Math.max(0, top - (g[1] - 10 * G.scale))); }
-      return RENDER(S.cam([-30, 80, 10], 620, 62, 18), ms);
+      return RENDER(S.cam([-50, 110, 10], 820, 55, 16), ms);
     });
   },
   /* Argos on the dung heap: he lifts his head, drops his ears, beats his tail; then dies, a held stillness (B17-S03). Played from a

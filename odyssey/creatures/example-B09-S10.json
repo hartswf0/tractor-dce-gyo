@@ -1,0 +1,19 @@
+{
+  "format": "odyssey-choreo/1",
+  "scene": "OD-B09-S10",
+  "note": "An example of creature actors in a scene sheet, for the engine to copy from (film-readymades/CREATURES.md): Polyphemus sits in the door, rolls nothing yet, and gropes the backs from 4 s; the lead ram walks out last with Odysseus under its belly from 23.4 s, is stopped at the door and stroked, and is let go. Positions are in the take's world units; the door at the origin, the lane along +z.",
+  "step": "twos",
+  "creatures": {
+    "polyphemus": { "kind": "polyphemus", "scale": 1.7, "at": [-125, 0, 0, 1.5708], "layer": "abs",
+      "procs": [
+        { "type": "preset", "name": "sit" },
+        { "type": "grope", "from": 4, "to": 29.5, "fade": 0.6, "center": [10, 100, 0], "width": 200, "depth": 36, "period": 3.4 },
+        { "type": "reach", "from": 30, "to": 50, "fade": 0.8, "hand": "R", "target": "lead:back" }
+      ],
+      "channels": { "eye": [[0, 2], [60, 2]], "head.yaw": [[0, 0], [30, 0.2], [50, 0.25], [52, 0]], "jaw": [[30, 0.05], [31, 0.2], [34, 0.05], [38, 0.18], [42, 0.05], [46, 0.15], [50, 0]] } },
+    "lead": { "kind": "ram", "scale": 2.4, "colour": "white", "layer": "abs",
+      "procs": [ { "type": "gait", "path": [[0, 20, -420], [23.4, 20, -420], [29, 20, -40], [50, 20, -40], [58, 20, 380]], "gait": "walk", "stance": 5 } ],
+      "channels": { "head.pitch@stroked": [[30, 0], [31, -0.25], [49, -0.2], [50, 0]] },
+      "riders": [ { "actor": "odysseus", "at": "belly", "from": 23.4, "to": 54, "offset": [0, 22, -8], "turn": [0, 0, 0], "lie": "under" } ] }
+  }
+}

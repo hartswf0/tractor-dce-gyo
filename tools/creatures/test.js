@@ -82,6 +82,15 @@ summary['dog: run, trot, walk, a stop, a turn, run'] = footRun('dog', [[0, 'run'
   const r = C.sample(s2, 'lead', 2); ok(r.riders.length === 1 && r.riders[0].m.every(isFinite), 'sample: a rider on the belly anchor');
   ok(near(Math.hypot(r.riders[0].m[3], r.riders[0].m[6], r.riders[0].m[9]), 1, 1e-6), 'sample: a rider\'s frame is at world scale'); }
 
+/* three.js: attach and apply put every node where pose() says (when three is to hand: NODE_PATH with three@0.128) */
+{ let THREE = null; try { THREE = require('three'); } catch (e) { console.log('(three not found: the attach check skipped)'); }
+  if (THREE) { const rig = C.define('ram', { scale: 2 }), g = new THREE.Group(); rig.attach(THREE, g, () => new THREE.Group());
+    const v = C.gait(rig, 2.3, { path: [[0, 0, 0], [4, 0, 100]], gait: 'walk' }); rig.apply(v); g.updateMatrixWorld(true); let err = 0;
+    for (const n of rig.nodes) { const p = new THREE.Vector3(...n.p).applyMatrix4(rig.three.objs[n.id].matrixWorld), q = ap(rig.pose(v).nodes[n.id], n.p); err = Math.max(err, Math.hypot(p.x - q[0], p.y - q[1], p.z - q[2])); }
+    ok(err < 1e-6, `attach: three's nodes where pose() puts them (${err.toExponential(1)})`);
+    const P = C.define('polyphemus'); P.attach(THREE, new THREE.Group(), () => new THREE.Group()); P.apply(Object.assign(P.rest(), { eye: 2 }));
+    ok(P.three.objs.eye.userData.swap.map(o => o.visible).join() === 'false,false,true,false', 'attach: the replacement eye swapped'); } }
+
 console.log(`${passes} passed, ${fails} failed`);
 for (const [k, s] of Object.entries(summary)) console.log(`  ${k}: slide ${s.slide.toFixed(3)} LDU/frame${s.below != null ? ', below ground ' + s.below.toFixed(2) : ''}`);
 process.exit(fails ? 1 : 0);

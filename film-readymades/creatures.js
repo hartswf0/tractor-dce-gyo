@@ -43,7 +43,8 @@
      OdysseyCreatures.strike(rig, t, params)           Scylla's heads: coil, strike, seize, lift
      OdysseyCreatures.throwArc(t, params)              a thrown rock's flight (a prop's world position at t)
      OdysseyCreatures.fragment(id, kind, opts)         an odyssey-choreo/1 creature actor, for a scene sheet's `creatures`
-     OdysseyCreatures.sample(C, id, t) -> {v, fx, riders}   a sheet's creature actor at t (keys over its procedures) */
+     OdysseyCreatures.sample(C, id, t, {ctx}) -> {v, fx, riders}   a sheet's creature actor at t (keys over its procedures); ctx gives
+                                                       what a sheet cannot hold: surface(x, z) for a grope, point(name, t) for a reach */
 (function (root) {
 'use strict';
 /* ═════════════ matrices: [x y z a b c d e f g h i], p' = t + R p ═════════════ */
@@ -84,7 +85,7 @@ function ch(name, min, max, doc, unit = 'rad', rest = 0) { return { name, min, m
 
 /* ── the troll figure (60671 in its sub-parts), the big figure every giant of the line is built on ── */
 function troll(kind, o) {
-  const col = o.col, body = o.body || col, belt = o.belt || 308, skirt = o.skirt || 70, P = [0, -168, 0];
+  const col = 16, body = 16, belt = o.belt || 308, skirt = o.skirt || 70, P = [0, -168, 0];   /* the skin is colour 16: the rig's colour (o.colours) */
   const at = (x, y, z) => T(P[0] + x, P[1] + y, P[2] + z);
   const cut = f => ({ file: `cr-${o.cutFrom || kind}-${f}.ldr` });
   const nodes = [
@@ -114,7 +115,7 @@ function troll(kind, o) {
     nodes.push({ id: 'eye', parent: 'head', p: [0, -148, -60], move: [['eye.x', 'x', -1], ['eye.y', 'y', -1]],
       swap: { ch: 'eye', parts: [['98138', 0], ['98138p0b', 84], ['98138p0c', 84], ['98138', 320]] }, mesh: [E(-60, '98138', 0)] }); }
   const K = {
-    kind, title: o.title, family: 'giant', cutFrom: o.cutFrom, blurb: o.blurb, scenes: o.scenes, needs: o.needs, card: o.card,
+    kind, title: o.title, family: 'giant', cutFrom: o.cutFrom, colours: o.colours, trim: o.trim, blurb: o.blurb, scenes: o.scenes, needs: o.needs, card: o.card,
     height: 200, nodes,
     cuts: { from: [{ part: '60635', col: body, m: at(0, 0, 0), to: 'torso' }, { part: '60637', col: body, m: at(0, 0, 0), to: 'torso' }, { part: '60672', col, m: at(-40, 40, 20), to: 'arm.R' }, { part: '60673', col, m: at(40, 40, 20), to: 'arm.L' },
       { part: '60638', col: belt, m: at(0, 0, 0), to: 'hips' }, { part: '60644', col: skirt, m: at(0, 0, 0), to: 'hips' }],
@@ -154,15 +155,15 @@ function troll(kind, o) {
   return K;
 }
 KINDS.polyphemus = troll('polyphemus', {
-  title: 'Polyphemus', col: 84, blurb: 'The Cyclops: the troll big figure of the set piece on its own shoulders and wrists, cut at the waist, the legs, the elbows, the face and the tusked jaw, with the set piece\'s one eye (a pupil that looks about and is swapped: open, half shut, shut, put out).',
+  title: 'Polyphemus', colours: { nougat: 84, tan: 19, olive: 330 }, blurb: 'The Cyclops: the troll big figure of the set piece on its own shoulders and wrists, cut at the waist, the legs, the elbows, the face and the tusked jaw, with the set piece\'s one eye (a pupil that looks about and is swapped: open, half shut, shut, put out).',
   eye: true,
   scenes: ['OD-B09-S07', 'OD-B09-S08', 'OD-B09-S09', 'OD-B09-S10', 'OD-B09-S11'],
   needs: ['WAKE', 'SEIZE (a man in the hand, carried)', 'EAT', 'HERD the flock', 'MOVE_STONE', 'DRINK at giant scale', 'GROPE the rams\' backs at the door (a search that must miss)', 'CARESS the lead ram', 'THROW a torn-off peak', 'the curse: arms raised'],
   card: 'kit.prop-polyphemus',
 });
 KINDS.laestrygon = troll('laestrygon', {
-  title: 'Laestrygonian', col: 84, cutFrom: 'polyphemus', blurb: 'The cannibal giants of Telepylus: the same troll body in the harbour colours, the helmet for a head, a boulder in the grip; Antiphates and the giant girl are the same rig recoloured and rescaled.',
-  head: [{ part: '60636', col: 308, m: [0, -168, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1] }],
+  title: 'Laestrygonian', colours: { nougat: 84, green: 378, dark: 308, girl: 78 }, trim: 308, cutFrom: 'polyphemus', blurb: 'The cannibal giants of Telepylus: the same troll body in the harbour colours, the helmet for a head, a boulder in the grip; Antiphates and the giant girl are the same rig recoloured and rescaled.',
+  head: [{ part: '60636', col: 'trim', m: [0, -168, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1] }],   /* the helmet in the rig's trim colour (opts.trim: 308, 70, 72, 320 on the cards) */
   scenes: ['OD-B10-S02'], needs: ['SEIZE a scout (carried)', 'PURSUE on the shore', 'THROW boulders at the fleet', 'THRUST spears at men in the water'],
   card: 'kit.prop-laestrygon',
 });
@@ -288,7 +289,7 @@ function define(kind, opts = {}) {
   const lim = {}; for (const c of K.channels) lim[c.name] = c;
   const colour = opts.colour != null ? (K.colours && K.colours[opts.colour] != null ? K.colours[opts.colour] : opts.colour) : (K.colours ? Object.values(K.colours)[0] : null);
   const rig = {
-    kind, K, id: opts.id || kind, scale: opts.scale || 1, colour, nodes: order,
+    kind, K, id: opts.id || kind, scale: opts.scale || 1, colour, trim: opts.trim != null ? opts.trim : K.trim, nodes: order,
     channels: ROOTCH.map(n => ({ name: n, min: -Infinity, max: Infinity, rest: 0, unit: n === 'root.h' || n === 'root.pitch' || n === 'root.roll' ? 'rad' : 'world', doc: 'where it stands in the take' })).concat(K.channels),
     limits: lim,
     rest() { const v = {}; for (const c of K.channels) v[c.name] = c.rest || 0; return v; },
@@ -315,7 +316,7 @@ function define(kind, opts = {}) {
     rows(v, { frame = 'world' } = {}) {
       const P = rig.pose(v), out = [];
       for (const n of order) for (const m of rig.meshOf(n, v)) {
-        const M = frame === 'world' ? P.nodes[n.id] : P.local[n.id], mm = m.m || I12, col = m.col === 16 && rig.colour != null ? rig.colour : m.col;
+        const M = frame === 'world' ? P.nodes[n.id] : P.local[n.id], mm = m.m || I12, col = m.col === 'trim' ? rig.trim : m.col === 16 && rig.colour != null ? rig.colour : m.col;
         out.push({ node: n.id, file: m.file || null, part: m.part || null, col: m.file ? (rig.colour != null ? rig.colour : 16) : col, m: mul(M, mm) });
       }
       return out;
@@ -334,7 +335,7 @@ function define(kind, opts = {}) {
     attach(THREE, group, meshOf) {
       rig.three = { THREE, group, objs: {} };
       for (const n of order) { const g = new THREE.Group(); g.name = rig.id + ':' + n.id; g.matrixAutoUpdate = false; group.add(g); rig.three.objs[n.id] = g;
-        for (const m of n.swap ? [] : n.mesh || []) { const o = meshOf(m.file || m.part, m.col === 16 && rig.colour != null ? rig.colour : m.col); if (!o) continue; setM(THREE, o, m.m || I12); g.add(o); }
+        for (const m of n.swap ? [] : n.mesh || []) { const o = meshOf(m.file || m.part, m.file ? (rig.colour != null ? rig.colour : 16) : m.col === 'trim' ? rig.trim : m.col === 16 && rig.colour != null ? rig.colour : m.col); if (!o) continue; setM(THREE, o, m.m || I12); g.add(o); }
         if (n.swap) { g.userData.swap = n.swap.parts.map(p => { const o = meshOf(Array.isArray(p) ? p[0] : p, Array.isArray(p) ? p[1] : n.mesh[0].col); if (o) { setM(THREE, o, n.mesh[0].m); o.visible = false; g.add(o); } return o; }); } }
       return rig;
     },
@@ -570,7 +571,7 @@ function reach(rig, v0, hand, target, { iters = 40, use, weight = 1 } = {}) {
   const goals = Array.isArray(hand) ? hand : [[hand, target]], v = Object.assign({}, v0);
   const chs = use || ['torso.twist', 'torso.lean'].concat(...goals.map(([h]) => [`arm.${h}.pitch`, `arm.${h}.out`, `elbow.${h}`]));
   const err = q => [].concat(...goals.map(([h, p]) => { const g = rig.point('grip.' + h, q); return [p[0] - g[0], p[1] - g[1], p[2] - g[2]]; }));
-  const lam = 30 * rig.scale, damp = { 'torso.twist': 0.35, 'torso.lean': 0.35 }, n = goals.length * 3;
+  const lam = 30 * rig.scale, damp = { 'torso.twist': 0.3, 'torso.lean': 0.18 }, n = goals.length * 3;
   for (let it = 0; it < iters; it++) {
     const e = err(v); if (Math.hypot(...e) < 0.5 * rig.scale) break;
     const J = chs.map(c => { const q = Object.assign({}, v); q[c] = (q[c] || 0) + 1e-3; const e2 = err(q); return e.map((x, k) => (x - e2[k]) / 1e-3); });
@@ -672,7 +673,7 @@ function throwArc(t, { from, to, t0, t1, g = 980 }) {
      creatures: { polyphemus: { kind: 'polyphemus', scale: 1.4, colour: 84, layer: 'abs' | 'add',
                    procs: [{ type: 'gait'|'heavy'|'grope'|'reach'|'strike'|'preset'|'herd', from, to, fade, ...params }],
                    channels: { 'arm.R.pitch': [[t, v, ease], ...], 'head.yaw@life': [...] },
-                   riders: [{ actor: 'odysseus', at: 'belly', from, to, offset: [x, y, z], turn: [rx, ry, rz] }] } }
+                   riders: [{ actor: 'odysseus', at: 'belly', from, to, offset: [x, y, z], lie: 'under' | 'across' | 'upright', turn: [rx, ry, rz] }] } }
    At t: the rest pose, each procedure over its span (faded in and out over `fade` s), then the keys (absolute replace the procedures'
    values, `layer: 'add'` adds). Sampled on the sheet's step (twos) like the actors. */
 const EASE = { linear: u => u, in: u => u * u, out: u => 1 - (1 - u) * (1 - u), inOut: sm, step: u => (u >= 1 ? 1 : 0), hold: u => (u >= 1 ? 1 : 0),
@@ -684,26 +685,29 @@ function sampleKeys(K, t) {
   while (hi - lo > 1) { const m = (lo + hi) >> 1; if (K[m][0] <= t) lo = m; else hi = m; }
   const a = K[lo], b = K[hi], u = (t - a[0]) / Math.max(1e-6, b[0] - a[0]); return a[1] + (b[1] - a[1]) * (EASE[b[2] || 'inOut'] || sm)(cl01(u));
 }
+/* how a rider lies on its anchor (a minifig's figure frame in the anchor's): 'under' on its back beneath a belly, its head to the
+   creature's head, its face up; 'across' slung over a back or in a fist, face down; 'upright' as the anchor stands */
+const LIE = { under: [0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0], across: [0, 0, 0, 0, 0, 1, 0, -1, 0, 1, 0, 0], upright: I12 };
 const RIGS = new WeakMap();
 function rigFor(C, id) { let m = RIGS.get(C); if (!m) { m = {}; RIGS.set(C, m); } if (!m[id]) { const A = C.creatures[id]; m[id] = define(A.kind, { id, scale: A.scale, colour: A.colour }); } return m[id]; }
-function runProc(rig, p, t, v) {
+function runProc(rig, p, t, v, ctx = {}) {
   switch (p.type) {
     case 'preset': return Object.assign({}, v, rig.preset(p.name));
     case 'gait': return gait(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) }));
     case 'heavy': return heavy(rig, t, Object.assign(p, { base: Object.assign({}, v, p.base || {}) }));
-    case 'grope': return grope(rig, t, Object.assign({}, p, { base: Object.assign({}, v, p.base || {}) }));
-    case 'reach': return reach(rig, v, p.hand || 'R', typeof p.target === 'function' ? p.target(t) : p.target, p);
+    case 'grope': return grope(rig, t, Object.assign({}, p, { surface: p.surface || ctx.surface, base: Object.assign({}, v, p.base || {}) }));   /* ctx.surface(x, z): the backs under the hands */
+    case 'reach': { const tg = typeof p.target === 'function' ? p.target(t) : typeof p.target === 'string' && ctx.point ? ctx.point(p.target, t) : p.target; return tg ? reach(rig, v, p.hand || 'R', tg, p) : v; }   /* a target by name: ctx.point('odysseus:head', t) */
     case 'strike': return Object.assign({}, v, strike(rig, t, p));
     case 'herd': { const H = p._herd || (p._herd = herd(p)); return H.channels(rig, p.index || 0, t, p.gait || 'walk', { base: v }); }
     default: return v;
   }
 }
-function sample(C, id, t, { stepped = true } = {}) {
+function sample(C, id, t, { stepped = true, ctx = {} } = {}) {
   const A = (C.creatures || {})[id]; if (!A) return null; const rig = rigFor(C, id), tq = stepped ? drawT(t, C.step || 'twos') : t;
   let v = Object.assign(rig.rest(), A.at ? { 'root.x': A.at[0], 'root.y': A.at[1], 'root.z': A.at[2], 'root.h': A.at[3] || 0 } : {}); let fx = {};
   for (const p of A.procs || []) {
     const a = p.from != null ? p.from : -Infinity, b = p.to != null ? p.to : Infinity, fade = p.fade || 0; if (tq < a - 1e-9 || tq > b + fade) continue;
-    const w = fade ? Math.min(cl01((tq - a) / fade + (a === -Infinity ? 1 : 0)), tq > b ? 1 - cl01((tq - b) / fade) : 1) : 1, out = runProc(rig, p, Math.min(tq, b), v);
+    const w = fade ? Math.min(cl01((tq - a) / fade + (a === -Infinity ? 1 : 0)), tq > b ? 1 - cl01((tq - b) / fade) : 1) : 1, out = runProc(rig, p, Math.min(tq, b), v, ctx);
     if (out._fx) fx = Object.assign(fx, out._fx); if (out._feet) fx.feet = out._feet; if (out._touch != null) fx.touch = out._touch;
     const nv = {}; for (const k of Object.keys(Object.assign({}, v, out))) { if (k[0] === '_') continue; const x0 = v[k] || 0, x1 = out[k] != null ? out[k] : x0; nv[k] = k === 'root.h' ? x0 + wrapPi(x1 - x0) * w : lerp(x0, x1, w); } v = nv;
   }
@@ -712,7 +716,7 @@ function sample(C, id, t, { stepped = true } = {}) {
   v = rig.clamp(v);
   const riders = [];
   for (const R of A.riders || []) { if ((R.from != null && tq < R.from) || (R.to != null && tq > R.to)) continue;
-    let M = rig.anchor(R.at, v); if (!M) continue; if (R.offset) M = mul(M, T(...R.offset)); if (R.turn) M = mul(mul(mul(M, RX(R.turn[0] || 0)), RY(R.turn[1] || 0)), RZ(R.turn[2] || 0));
+    let M = rig.anchor(R.at, v); if (!M) continue; if (R.offset) M = mul(M, T(...R.offset)); if (R.lie && LIE[R.lie]) M = mul(M, LIE[R.lie]); if (R.turn) M = mul(mul(mul(M, RX(R.turn[0] || 0)), RY(R.turn[1] || 0)), RZ(R.turn[2] || 0));
     riders.push({ actor: R.actor, at: R.at, m: M }); }
   return { v, fx, riders, rig };
 }
@@ -725,7 +729,7 @@ function kinds() { return Object.values(KINDS).map(K => ({ kind: K.kind, title: 
   nodes: K.nodes.filter(n => !n.chain || n.chain.head || n.chain.i === 0).map(n => ({ id: n.id, parent: n.parent, p: n.p, channels: (n.rot || []).concat(n.move || []).map(r => r[0]).concat(n.swap ? [n.swap.ch] : []) })),
   channels: K.channels, anchors: Object.keys(K.anchors || {}), presets: Object.keys(K.presets || {}), gaits: Object.keys(K.gaits || {}) })); }
 
-const API = { version: 1, KINDS, CLAMP, kinds, define, gait, heavy, follow, reach, grope, herd, strike, throwArc, fragment, sample, sampleKeys, drawT, pathOf,
+const API = { version: 1, KINDS, CLAMP, LIE, kinds, define, gait, heavy, follow, reach, grope, herd, strike, throwArc, fragment, sample, sampleKeys, drawT, pathOf,
   m: { mul, ap, apv, inv, T, RX, RY, RZ, I12, FLIP }, noise1 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 root.OdysseyCreatures = API;

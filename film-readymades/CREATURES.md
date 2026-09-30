@@ -109,9 +109,16 @@ A sheet holds its creatures beside its actors (so the minifig player never clamp
                    { "type": "grope", "from": 4, "to": 50, "fade": 0.5, "center": [0, 100, 0], "width": 200 },
                    { "type": "gait" | "heavy" | "reach" | "strike" | "herd", "from", "to", "fade", ...params } ],
         "channels": { "head.yaw": [[t, v, ease], ...], "eye": [[0, 2]], "jaw@life": [...] },
-        "riders": [ { "actor": "odysseus", "at": "belly", "from": 23.4, "to": 53.0, "offset": [0, 22, -8], "turn": [rx, ry, rz] } ] } }
+        "riders": [ { "actor": "odysseus", "at": "belly", "from": 23.4, "to": 53.0, "offset": [0, 22, -8], "lie": "under", "turn": [rx, ry, rz] } ] } }
 
-`OdysseyCreatures.fragment(id, kind, opts)` makes one. `OdysseyCreatures.sample(sheet, id, t)` returns `{ v, fx, riders, rig }`:
+`lie` is how the rider lies on the anchor (`OdysseyCreatures.LIE`): `under` on its back beneath a belly, head to the creature's
+head, face up (the men under the rams); `across` face down over a back or in a fist (a seized scout); `upright`.
+`odyssey/creatures/example-B09-S10.json` is a worked sheet: Polyphemus seated in the door groping, then his hand on the lead
+ram's back (a `reach` to `"lead:back"`, resolved by `ctx.point`), the lead ram walking out last with Odysseus beneath.
+
+`OdysseyCreatures.fragment(id, kind, opts)` makes one. `OdysseyCreatures.sample(sheet, id, t, { ctx })` returns `{ v, fx, riders, rig }`
+(`ctx` gives what JSON cannot hold: `surface(x, z)` for a grope, the height of the backs there; `point(name, t)` for a reach
+to a named target such as `"lead:back"` or `"odysseus:head"`):
 the rest pose (and `at`), each procedure over its span faded in and out, then the keys (absolute keys replace the procedures'
 values; with `layer: 'add'` they add; layers `channel@name` sum), clamped, sampled on the sheet's step (twos) like the actors.
 `riders` gives each rider's world matrix (a minifig's figure frame: set its position and rotation from it).
