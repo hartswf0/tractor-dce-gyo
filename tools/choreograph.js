@@ -24,7 +24,7 @@
    node tools/choreograph.js probe  OD-B01-S03   the page's reading of the take (marks, snapshots, clips, envelope, cut) and the
                                                  acting density of the take without and with the sheet -> odyssey/choreo/marks/<id>.json,
                                                  odyssey/choreo/density/<id>.json (opens the player headless: ~15 min on swiftshader)
-   node tools/choreograph.js gen    OD-B01-S03   marks -> odyssey/choreo/<id>.json (seconds; no browser)
+   node tools/choreograph.js gen    OD-B01-S03   marks -> odyssey/choreo/<id>.json (seconds; no browser) [--fill: the old fill pass]
    node tools/choreograph.js density OD-B01-S03  the density probe alone (before and after)
    Needs the repository served on :8899 and playwright on NODE_PATH for probe/density. */
 'use strict';
@@ -33,7 +33,7 @@ const ROOT = path.resolve(__dirname, '..'), OUT = path.join(ROOT, 'odyssey/chore
 const Choreo = require(path.join(ROOT, 'film-readymades/choreo.js'));
 const args = process.argv.slice(2), cmd = args[0], sid = args.find(a => /^OD-B\d\d-S\d\d$/.test(a));
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
-const MODE = opt('mode', 'cut');
+const MODE = opt('mode', 'cut'), FILL_ON = args.includes('--fill');
 
 /* ── small tools ── */
 const F = 12, q = t => Math.round(t * F) / F, r3 = v => Math.round(v * 1000) / 1000;
@@ -545,7 +545,8 @@ function generate(M, prev) {
      head half of it) plus the blocking's own travel; wherever a figure in the scene, standing or seated and not lying still,
      would sit under the visible threshold for more than about half a second, it is given a piece of business of its own on the
      'fill' layer (a weight shift with a look, a hand to the belt, the grip shifted, a word and a nod to the nearest, a lean back),
-     never the same twice running. Twice, since a fill can leave a slow tail of its own. ── */
+     never the same twice running. Twice, since a fill can leave a slow tail of its own. Opt-in (--fill) since tools/perform: motion is
+     not a target. ── */
   const LEVER = { 'arm.R.pitch': 0.3, 'arm.L.pitch': 0.3, 'arm.R.out': 0.3, 'arm.L.out': 0.3, 'torso.lean': 0.5, 'torso.twist': 0.25, 'torso.roll': 0.5, 'head.yaw': 0.12, 'head.pitch': 0.12,
     'root.h': 0.2, 'root.pitch': 0.8, 'root.roll': 0.8, 'leg.R.pitch': 0.3, 'leg.L.pitch': 0.3, 'hand.R.roll': 0.05, 'hand.L.roll': 0.05 };
   function motionOf(id) { const A = S.actors[id], out = []; if (!A) return out; const lanes = Object.entries(A.channels).map(([k, L]) => [k.split('@')[0], L]);
@@ -566,7 +567,10 @@ function generate(M, prev) {
     else peak = { 'head.yaw': 0.55 * u, 'torso.twist': 0.18 * u, 'torso.lean': 0.04, ['arm.' + sd + '.pitch']: -0.2 };
     S.begin(); S.key(id, L, t, Object.fromEntries(Object.keys(peak).map(k => [k, S.rel(0)])), 'inOut'); S.key(id, L, t + 0.45 * e, peak, 'out');
     S.key(id, L, t + 0.7 * e, Object.fromEntries(Object.entries(peak).map(([k, v]) => [k, v * 0.75])), 'inOut'); S.key(id, L, t + e + 0.2, z(peak), 'inOut'); S.end(); }
-  for (let pass = 0; pass < 2; pass++) { for (const id of ids) { const mo = motionOf(id); let run = null, n = 0, last = '';
+  /* The fill pass is no longer run by default: filling every quiet drawing with business made restless puppets, not acting
+     ("stillness can be the strongest part of a performance; the failure to detect is not lack of motion but lack of motivated state
+     change"). tools/perform measures motivated state change instead and writes only caused motion. --fill restores the old pass. */
+  if (FILL_ON) for (let pass = 0; pass < 2; pass++) { for (const id of ids) { const mo = motionOf(id); let run = null, n = 0, last = '';
       const quiet = x => x.s && x.s.vis && !B.lying(x.s) && !isDead(id, x.t) && x.d < THRESH * 1.8;
       for (let i = 0; i <= mo.length; i++) { const x = mo[i]; if (x && quiet(x)) { if (!run) run = i; continue; }
         if (run != null && i - run >= 5) { let t = mo[run].t + 0.1; const t1 = mo[i - 1].t;

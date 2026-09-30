@@ -71,7 +71,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     choreography: every figure's servos (root, hips, torso, head, arms, hands, legs) keyed on the voice clock, the way a
     motion-control programmer drives a practical rig from a timeline. <code>tools/choreograph.js</code> writes the rough pass from the
     recorded voice, the scene's emotion, the blocking and the action in the text; <code>film-readymades/choreo.js</code> plays it in the
-    take, on twos, as layers over the blocking. Scrub the timeline to see the rendered frame; open a figure to see its channels.</p>
+    take, on twos, as layers over the blocking. Scrub the timeline to see the rendered frame; open a figure to see its lanes: meaning above mechanics (the score's voice, stimuli, intents, actions and contacts from <a href="../perform/">the performance engine</a>), then the body's channels, root to legs.</p>
   <div class="scenes" id="scenes" role="group" aria-label="Scene"></div>
   <div class="stage">
     <div>
@@ -110,8 +110,17 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     { id: 'OD-B01-S03', title: 'Athena at the gate', before: '../../films/odyssey/OD-B01-S03-cut.mp4' },
     { id: 'OD-B22-S01', title: 'Antinous falls' },
     { id: 'OD-B12-S03', title: 'The Sirens' },
+    { id: 'OD-B09-S09', title: 'The Blinding', noActed: true },
   ];
-  const LAYERS = ['breath', 'shift', 'look', 'beat', 'react', 'work', 'act', 'walk', 'song', 'fill'];
+  /* meaning above mechanics: the score's lanes (odyssey/score/<scene>.json, tools/perform) above the body's, and the body's channels
+     grouped by the lane they move */
+  const MEANING = ['VOICE', 'STIMULUS', 'INTENT', 'ACTION', 'CONTACT'];
+  const BODY = ['ROOT', 'WEIGHT', 'TORSO', 'HEAD', 'GAZE', 'ARM.L', 'ARM.R', 'HAND.L', 'HAND.R', 'LEG.L', 'LEG.R'];
+  const CH_LANE = { 'root.x': 'ROOT', 'root.z': 'ROOT', 'root.y': 'ROOT', 'root.h': 'ROOT', 'hips.dy': 'WEIGHT', 'root.pitch': 'WEIGHT', 'root.roll': 'WEIGHT', 'torso.lean': 'TORSO', 'torso.twist': 'TORSO', 'torso.roll': 'TORSO',
+    'head.pitch': 'HEAD', 'head.yaw': 'GAZE', 'arm.L.pitch': 'ARM.L', 'arm.L.out': 'ARM.L', 'arm.R.pitch': 'ARM.R', 'arm.R.out': 'ARM.R', 'hand.L.roll': 'HAND.L', 'hand.R.roll': 'HAND.R', 'leg.L.pitch': 'LEG.L', 'leg.R.pitch': 'LEG.R' };
+  const laneOf = k => CH_LANE[k.split('@')[0]] || 'ROOT';
+  let SC = null, sheet = 'acted';
+  const LAYERS = ['breath', 'shift', 'look', 'beat', 'react', 'work', 'act', 'walk', 'song', 'fill', 'gaze', 'loco', 'grip', 'weight', 'mech', 'limit', 'dir'];
   const $ = s => document.querySelector(s), css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   let C = null, D = null, sc = null, zoom = 1, view = [0, 1], opened = new Set(), drag = false;
   const v = $('#v');
@@ -129,14 +138,16 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     sc = SCENES.find(s => s.id === id); for (const b of document.querySelectorAll('#scenes button')) b.setAttribute('aria-pressed', String(b.dataset.s === id));
     try { history.replaceState(null, '', '#' + id); } catch (e) {}
     C = null; D = null; $('#rows').innerHTML = '<p class="empty">Loading the sheet...</p>';
-    try { C = await (await fetch(id + '.json', { cache: 'no-store' })).json(); } catch (e) { $('#rows').innerHTML = '<p class="empty">No sheet for this scene yet.</p>'; }
+    try { C = await (await fetch(sheet === 'performed' ? '../score/' + id + '.choreo.json' : id + '.json', { cache: 'no-store' })).json(); } catch (e) { $('#rows').innerHTML = '<p class="empty">No sheet for this scene yet.</p>'; }
+    try { SC = await (await fetch('../score/' + id + '.json', { cache: 'no-store' })).json(); } catch (e) { SC = null; }
     try { D = await (await fetch('density/' + id + '.json', { cache: 'no-store' })).json(); } catch (e) { D = null; }
     setVideo('acted'); view = [0, C ? C.total : 1]; zoom = 1; zoomButtons(); rows(); densTable(); cues(); draw();
   }
   function setVideo(which) {
-    const src = which === 'before' && sc.before ? sc.before : '../../films/odyssey/' + sc.id + '-acted.mp4';
+    const src = which === 'before' && sc.before ? sc.before : sheet === 'performed' || sc.noActed ? '../perform/media/previz-' + sc.id + '.mp4' : '../../films/odyssey/' + sc.id + '-acted.mp4';
     v.src = src; v.poster = src.replace(/\.mp4$/, '.jpg');
-    $('#which').innerHTML = `<button type="button" id="wa" aria-pressed="${which !== 'before'}">With the sheet</button>` + (sc.before ? ` <button type="button" id="wb" aria-pressed="${which === 'before'}">Before</button>` : '');
+    $('#which').innerHTML = `<button type="button" id="sa" aria-pressed="${sheet === 'acted'}">Acted sheet</button> <button type="button" id="sp" aria-pressed="${sheet === 'performed'}">Performed (score)</button> <button type="button" id="wa" aria-pressed="${which !== 'before'}">With the sheet</button>` + (sc.before ? ` <button type="button" id="wb" aria-pressed="${which === 'before'}">Before</button>` : '');
+    $('#sa').onclick = () => { sheet = 'acted'; load(sc.id); }; $('#sp').onclick = () => { sheet = 'performed'; load(sc.id); };
     $('#wa').onclick = () => { const t = v.currentTime; setVideo('acted'); v.currentTime = t; };
     if (sc.before) $('#wb').onclick = () => { const t = v.currentTime; setVideo('before'); v.currentTime = t; };
   }
@@ -146,13 +157,13 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
   function rows() {
     if (!C) return; const A = Object.entries(C.actors || {});
     const dens = id => { if (!D) return ''; const b = D.before.actors[id], a = D.after.actors[id]; if (!a && !b) return '<span class="d">off screen</span>';
-      const f = x => x ? `${Math.round(x.moving * 100)}%` : 'n/a', cls = x => x && x.moving > 0.8 ? 'ok' : 'bad';
+      const f = x => x ? `${Math.round(x.moving * 100)}%` : 'n/a', cls = () => '';
       return `<span class="d">moving <span class="${cls(b)}">${f(b)}</span> to <span class="${cls(a)}">${f(a)}</span></span>`; };
-    $('#rows').innerHTML = A.map(([id, X]) => { const ks = Object.keys(X.channels).sort((a, b) => LAYERS.indexOf(layerOf(a)) - LAYERS.indexOf(layerOf(b)) || a.localeCompare(b));
+    $('#rows').innerHTML = A.map(([id, X]) => { const ks = Object.keys(X.channels).sort((a, b) => BODY.indexOf(laneOf(a)) - BODY.indexOf(laneOf(b)) || a.localeCompare(b) || LAYERS.indexOf(layerOf(a)) - LAYERS.indexOf(layerOf(b)));
       const n = ks.reduce((s, k) => s + X.channels[k].length, 0);
       return `<div class="row${opened.has(id) ? ' open' : ''}" data-id="${id}"><div class="hd" role="button" tabindex="0" aria-expanded="${opened.has(id)}"><b>${id}</b><span>${ks.length} channels · ${n} keys</span>${dens(id)}</div>
         <canvas class="act" height="26" data-id="${id}" aria-label="How much ${id} moves over the scene"></canvas>
-        <div class="lanes">${ks.map(k => `<div class="lane"><div class="nm" title="${k}">${k}</div><canvas class="ln" height="34" data-id="${id}" data-k="${k}"></canvas></div>`).join('')}</div></div>`; }).join('');
+        <div class="lanes">${SC ? MEANING.map(l => `<div class="lane"><div class="nm" title="${l}"><b>${l}</b></div><canvas class="mn" height="16" data-id="${id}" data-l="${l}"></canvas></div>`).join('') : ''}${ks.map(k => `<div class="lane"><div class="nm" title="${k}">${laneOf(k)} · ${k}</div><canvas class="ln" height="34" data-id="${id}" data-k="${k}"></canvas></div>`).join('')}</div></div>`; }).join('');
     for (const h of document.querySelectorAll('.row > .hd')) { const tog = () => { const r = h.parentElement, id = r.dataset.id; if (opened.has(id)) opened.delete(id); else opened.add(id); r.classList.toggle('open'); h.setAttribute('aria-expanded', String(opened.has(id))); draw(); };
       h.onclick = tog; h.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } }; }
   }
@@ -160,7 +171,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     L.innerHTML = (C.cues || []).map((c, i) => `<li data-t="${c.t}"><span>${c.t.toFixed(1)} s</span><span><b>${c.actor}</b> ${c.what}</span></li>`).join('') || '<li class="empty">No cues.</li>';
     L.onclick = e => { const li = e.target.closest('li[data-t]'); if (li) seek(+li.dataset.t); }; }
   function densTable() { const el = $('#dens'); if (!D) { el.innerHTML = '<p class="empty">Not measured yet for this scene.</p>'; return; }
-    $('#drule').textContent = 'Per drawn frame (12 a second) and per figure in frame: ' + D.rule.split(': ')[1] + '. Before: the take without the sheet. After: with it. Target: more than 80% of drawings moving, no frozen stretch over 1.5 s.';
+    $('#drule').textContent = 'Per drawn frame (12 a second) and per figure in frame: ' + D.rule.split(': ')[1] + '. Before: the take without the sheet. After: with it. Raw data, not a target: motion is not acting. The performance engine measures motivated state change instead (odyssey/perform).';
     const ids = [...new Set([...Object.keys(D.before.actors), ...Object.keys(D.after.actors)])];
     const cell = (x, k) => x ? (k === 'moving' ? `<span class="${x.moving > 0.8 ? 'ok' : 'bad'}" style="color:var(--${x.moving > 0.8 ? 'ok' : 'bad'})">${Math.round(x.moving * 100)}%</span>` : `<span style="color:var(--${x.longestFrozen > 1.5 ? 'bad' : 'ok'})">${x.longestFrozen.toFixed(1)} s</span>`) : '';
     el.innerHTML = `<table><tr><th>Figure</th><th class="n">In frame</th><th class="n">Moving before</th><th class="n">after</th><th class="n">Longest still before</th><th class="n">after</th></tr>` +
@@ -190,6 +201,12 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
     let prev = ks.map(k => sample(A.channels[k], 0)); for (let i = 1; i < N; i++) { const now = ks.map(k => sample(A.channels[k], i / 12)); let s = 0; now.forEach((x, j) => s += Math.abs(x - prev[j])); out[i] = s; prev = now; }
     actCache.set(C.scene + id, out); return out; }
   function drawRows() { if (!C) return;
+    /* the meaning lanes: the score's events for this figure (voice: its lines and the scene's narration) */
+    for (const cv of document.querySelectorAll('.row.open canvas.mn')) { const [g, w, h] = fit(cv); g.clearRect(0, 0, w, h); if (!SC) continue; const id = cv.dataset.id, l = cv.dataset.l;
+      const col = { VOICE: '--blue', STIMULUS: '--l-act', INTENT: '--gold', ACTION: '--bad', CONTACT: '--l-walk' }[l];
+      for (const e of SC.events || []) { if (e.lane !== l) continue; if (l !== 'STIMULUS' && l !== 'VOICE' && e.actor !== id && !(e.actors || []).includes(id)) continue; if (l === 'VOICE' && e.kind === 'PHRASE') continue;
+        const a = X(e.t0, w), b = Math.max(a + 2, X(e.t1, w)); g.fillStyle = css(col); g.globalAlpha = e.kind === 'HOLD' ? .35 : (l === 'VOICE' && e.actor !== id) ? .3 : .8; g.fillRect(a, 3, b - a, h - 6); }
+      g.globalAlpha = 1; playhead(g, w, h); }
     for (const cv of document.querySelectorAll('canvas.act')) { const [g, w, h] = fit(cv); g.clearRect(0, 0, w, h); const a = activity(cv.dataset.id); g.fillStyle = css('--ink');
       for (let x = 0; x < w; x++) { const t0 = view[0] + x / w * (view[1] - view[0]), t1 = view[0] + (x + 1) / w * (view[1] - view[0]); let m = 0; for (let i = Math.floor(t0 * 12); i <= Math.floor(t1 * 12) && i < a.length; i++) m = Math.max(m, a[i] || 0); const y = Math.min(1, m / 0.25) * (h - 4); g.globalAlpha = .75; g.fillRect(x, h - 2 - y, 1, y); }
       g.globalAlpha = 1; for (const c of C.voice || []) if (c.voice === cv.dataset.id) { g.fillStyle = css('--blue'); g.fillRect(X(c.at, w), h - 2, X(c.at + c.dur, w) - X(c.at, w), 2); } playhead(g, w, h); }

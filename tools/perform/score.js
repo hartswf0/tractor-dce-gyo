@@ -79,7 +79,7 @@ function deskLanes(S, { measures } = {}) {
   const m = measures || S.measures;
   if (m && m.series) for (const [k, lab, range] of [['Tm', 'MOTION HEAT', null], ['Sc', 'CAUSAL ENTROPY', null], ['Tmedia', 'MEDIA TEMP', [0, 1]], ['CT', 'CONTRAST', null], ['V', 'VIABILITY', null]])
     if (m.series[k]) L.push({ id: k, label: lab, kind: 'metric', hz: m.series.hz || 12, values: m.series[k], ...(range ? { range } : {}) });
-  if (m && m.needles) for (const [k, v] of Object.entries(m.needles)) L.push({ id: 'needle-' + k, label: 'NEEDLE ' + k, kind: 'metric', hz: m.needles.hz || 12, values: v });
+  if (m && m.needles) for (const [k, v] of Object.entries(m.needles)) if (Array.isArray(v)) L.push({ id: 'needle-' + k, label: 'NEEDLE ' + k, kind: 'metric', hz: m.needles.hz || 12, values: v });
   return { format: 'odyssey-score/0', scene: S.scene, total: S.total, note: 'written by tools/perform (odyssey-score/1 flattened to the desk\'s lanes)', lanes: L.filter(l => l.values || l.spans || l.events) };
 }
 const short = id => String(id).replace(/-as-mentes/, '').replace(/^the-/, '').replace(/four-stake-bearers-/, 'bearer-').replace(/crew-at-the-oars-/, 'crew-').replace(/palace-servants-/, 'servant-').replace(/-revealed/, '');

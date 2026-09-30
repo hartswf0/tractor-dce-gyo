@@ -257,7 +257,7 @@ function compile(M, S, opts = {}) {
        on that channel are faded out, so the director's lane is the channel there (choreo.js sums layers; this keeps it the director's) */
     const ov = opts.overrides || {}, actors = {};
     for (const id of ids) { const Ac = sheet.actors[id]; if (!Ac) continue; const ch = {};
-      for (const [k, L] of Object.entries(Ac.channels).sort()) { const keys = L.filter((x, i) => i === 0 || x[0] > L[i - 1][0] - 1e-9); if (keys.length > 1 || (keys[0] && keys[0][1] !== 0)) ch[k] = keys; }
+      for (const [k, L] of Object.entries(Ac.channels).sort()) { const keys = L.filter((x, i) => i === 0 || x[0] > L[i - 1][0] - 1e-9); if (keys.some(x => Math.abs(x[1]) > 1e-4)) ch[k] = keys; }   /* a lane that never leaves zero is not written */
       const O = ov[id] || {};
       for (const [ok, OK] of Object.entries(O)) { if (!OK || !OK.length) continue; const base = ok.split('@')[0], a = OK[0][0], b = OK[OK.length - 1][0];
         for (const [k, L] of Object.entries(ch)) { if (k.split('@')[0] !== base) continue;

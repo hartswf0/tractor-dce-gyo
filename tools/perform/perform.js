@@ -119,6 +119,15 @@ if (require.main !== module) return;
     fs.writeFileSync(path.join(dir, sid + '.servo.csv'), Hw.csv(sv.head, sv.rows, ['servo timeline for ' + sid + ' (tools/perform/hardware.js): rows where a channel moves (and where it stops); power is an estimate from a stated model (a 0.30 m puppet; see the file header of hardware.js), not a measurement', 'calibration on a rig: encoder velocity -> angular velocity; IMU -> root acceleration; V x I -> electrical power; motor thermistor -> a first-order response to I^2 R, the same form as the motion heat T_m']));
     save(path.join(dir, sid + '.energy.json'), { scene: sid, note: 'estimated electrical energy per channel over the scene (J), from the servo model', energyJ: sv.energyJ });
     console.log('hardware', sid, ps.rows.length, 'pose-sheet rows,', sv.rows.length, 'servo rows'); return; }
+  if (cmd === 'desk') { /* the engine's lanes onto the rig desk (odyssey/cascade/assets/rig/<scene>/score.json, project.ScoreLanes) */
+    const S = J(scoreF(sid)), mf = path.join(SC, 'measures', sid + '.json'), f = path.join(ROOT, 'odyssey/cascade/assets/rig', sid, 'score.json');
+    if (!fs.existsSync(path.dirname(f))) { console.log('no rig desk for', sid); return; }
+    const prev = fs.existsSync(f) ? J(f) : { lanes: [] }, Ms = fs.existsSync(mf) ? J(mf).after : null;
+    const measures = Ms ? { series: { hz: 12, Tm: null, CT: Ms.series.CT, Tmedia: Ms.series.Tmedia, V: Ms.series.V }, needles: { hz: 12, ...Ms.series.needles } } : null;
+    const mine = Score.deskLanes({ ...S, voice: null }, { measures }).lanes.map(l => ({ ...l, by: 'tools/perform (odyssey-score/1 ' + sid + ')' }));
+    const lanes = (prev.lanes || []).filter(l => !String(l.by || '').startsWith('tools/perform')).concat(mine);
+    fs.writeFileSync(f, JSON.stringify({ format: 'odyssey-score/0', scene: sid, total: S.total, note: (prev.note || '') + ' The meaning lanes (stimulus, intent, action, contact) and the measures (the homeostat\'s needles H1-H4, contrast, media temperature, viability) are the performance engine\'s: odyssey/score/' + sid + '.json (odyssey-score/1).', lanes }));
+    console.log('desk', path.relative(ROOT, f), lanes.length, 'lanes:', lanes.map(l => l.id).join(' ')); return; }
   if (cmd === 'why') { const S = J(scoreF(sid)), E = Score.Events(S.events), who = args[2] && !/^OD-/.test(args[2]) ? args[2] : args[3], t = +args[args.length - 1];
     const w = E.why(who, t); console.log(w.text); for (const c of w.chain) console.log('  '.repeat(c.depth + 1) + c.lane.padEnd(9), c.kind.padEnd(16), (c.actor || '').padEnd(18), c.t0.toFixed(2) + '-' + c.t1.toFixed(2), c.latency != null ? '(+' + c.latency + ' s)' : '', c.label || ''); return; }
   console.log('see the header of tools/perform/perform.js'); process.exit(1);
