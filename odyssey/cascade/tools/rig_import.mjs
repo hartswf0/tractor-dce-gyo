@@ -19,7 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { PROP_OF, GROUPS, CH } from '../lib/rig.ts';
+import { PROP_OF, GROUPS, CH, poseAt } from '../lib/rig.ts';
 
 const HERE = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..'), ROOT = path.resolve(HERE, '..', '..');
 const require = createRequire(import.meta.url), Choreo = require(path.join(ROOT, 'film-readymades/choreo.js'));
@@ -39,6 +39,15 @@ const desk = ((C.overrides || {})._desk || {}).lanes || {};
 const ids = Object.keys(C.actors);
 
 /* ── the actors' sheets ── */
+let PROBE = null;
+const JN = ['armRP', 'armLP', 'headP', 'torsoP', 'legRP', 'legLP'];
+function perfOf(S, P, id) {
+  const out = Object.fromEntries(JN.map(k => [k, []])); let any = false;
+  for (let i = 0; i < P.length; i++) { const a = P[i].actors[id], q = a && poseAt(S, P[i].t, null);
+    for (const [n, k] of JN.entries()) { const d = a && q && q.vis ? a.j[n].map((x, c) => Math.round((x - q.J[k][c]) * 1000) / 1000) : [0, 0, 0]; if (d.some(v => v)) any = true; out[k].push(d.some(v => v) ? d : 0); } }
+  for (const k of JN) if (!out[k].some(Boolean)) delete out[k];
+  return any ? out : null;
+}
 const actors = ids.map((id, n) => {
   const A = C.actors[id], ov = (C.overrides || {})[id] || {}, mine = new Set(desk[id] || []), lanes = {};
   for (const k of new Set([...Object.keys(A.channels || {}), ...Object.keys(ov)])) {
@@ -50,6 +59,11 @@ const actors = ids.map((id, n) => {
   const held = M.held[id] || { R: 0, L: 0, hipsY: -44, scale: M.scale };
   const S = { scene: sid, actor: id, step: C.step || 'twos', layer: C.layer || 'add', total: C.total, H: r4(M.H[id] || 60), hipsY: held.hipsY, scale: held.scale,
     held: { R: held.R, L: held.L }, colour: PALETTE[n % PALETTE.length], keys, lanes, ship, holds: (C.holds || []).filter(h => h.actor === id) };
+  /* the take's performance layer: what the page's own pose (tools/rig_probe.cjs) adds over blocking and sheet, per joint and
+     drawing; kept from the previous import when there is no probe here (renders/ is not committed) */
+  const probeF = path.join(HERE, 'renders/rig', sid + '.probe.json'), prevF = path.join(OUT, id + '.json');
+  if (fs.existsSync(probeF)) { PROBE ||= JSON.parse(fs.readFileSync(probeF, 'utf8')).poses; S.perf = perfOf(S, PROBE, id); }
+  else if (fs.existsSync(prevF)) S.perf = JSON.parse(fs.readFileSync(prevF, 'utf8')).perf || null;
   fs.writeFileSync(path.join(OUT, id + '.json'), JSON.stringify(S));
   return S;
 });

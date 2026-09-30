@@ -11,7 +11,8 @@
                    LDraw units inside the flip, y down, the figure facing -z there and +z in the world)
      density       tools/choreograph.js density (seven points on the body, moving if one moved more than 0.5% of the figure's height
                    since the drawing before; a figure counts while its head or hips is in frame)
-   The take's performance layer (a speaker's face, a listener's carriage) is not here: it moves the head a little more than the rig. */
+   The take's performance layer (a speaker's gestures, a listener's carriage) is not computed here: tools/rig_import.mjs bakes it from
+   the page's own poses (tools/rig_probe.cjs) into the sheet as `perf`, a rotation per joint per drawing laid under the acting layer. */
 
 export type Key = [number, number] | [number, number, string];
 export type V3 = [number, number, number];
@@ -24,6 +25,9 @@ export interface ActorSheet {
   scene: string; actor: string; step: string; layer: string; total: number; H: number; hipsY: number; scale: number;
   held: { R: number; L: number }; colour: number[]; keys: BKey[]; lanes: Record<string, Key[]>; ship: Ship | null;
   holds: { t0: number; t1: number; why: string }[];
+  /** the take's performance layer (a speaker's gestures, the head's carriage), baked from the page by tools/rig_probe.cjs and
+      tools/rig_import.mjs: per joint, per drawing, the rotation the page adds over blocking and sheet (radians, Euler XYZ) */
+  perf?: Record<string, number[][]> | null;
 }
 
 export const CH = ['root.x', 'root.z', 'root.y', 'root.h', 'root.pitch', 'root.roll', 'hips.dy', 'torso.lean', 'torso.twist', 'torso.roll', 'head.yaw', 'head.pitch',
@@ -177,6 +181,7 @@ export function poseAt(S: ActorSheet, t: number, D: Director | null): Posed | nu
   const v = channelsAt(S, t, D), g = (k: string) => v[k] || 0;
   /* the joints: the blocking's, then the acting layer (choreo.js addRig) */
   const J: Record<string, number[]> = {}; for (const k of JOINTS) J[k] = (b.j[k] || [0, 0, 0]).slice();
+  if (S.perf) { const i = Math.floor(t * 12 + 1e-6); for (const k in S.perf) { const d = S.perf[k][Math.min(S.perf[k].length - 1, Math.max(0, i))]; if (d) for (let c = 0; c < 3; c++) J[k][c] += d[c] || 0; } }
   const Tj = J.torsoP; J.torsoP = [within('torso.lean', Tj[0], Tj[0] + g('torso.lean')), -within('torso.twist', -Tj[1], -Tj[1] + g('torso.twist')), -within('torso.roll', -Tj[2], -Tj[2] + g('torso.roll'))];
   const Hd = J.headP; J.headP = [within('head.pitch', Hd[0], Hd[0] + g('head.pitch')), -within('head.yaw', -Hd[1], -Hd[1] + g('head.yaw')), Hd[2]];
   for (const s of ['R', 'L']) {
