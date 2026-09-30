@@ -107,6 +107,38 @@ function stake(o = {}) {
 }
 MACH.stake = stake;
 
+/* ═════ the Strait's coupled homeostat (OD-B12-S04): the stroke held under two monsters ═════
+   x_C CREW         fear: the roar of Charybdis is a blow, his words a calm; over 0.55 while they row, the stroke falters (strokes lost:
+                    the ship's way through the strait drops)
+   x_O ODYSSEUS     readiness at the bow: low until he arms, high as he searches the rock face (the wrong place); his calm steadies them
+   x_S SCYLLA       her hunger as the ship comes under her rock: driven by the ship's way through the strait (the integral of the strokes
+                    kept); over 0.7 the six heads strike
+   x_E CHARYBDIS    the whirlpool's pull and roar (the sea's level follows it)
+   The events: the lost strokes, the strike (not before the take's own K4 window: the ship must be under the rock), the sea's level. */
+function strait(o = {}) {
+  const T = o.total || 53.5, row = o.row || [0.6, 53.5], words = o.words || [10.9, 25.3], arm = o.arm || 25.7, under = o.under || 34, P = o.period || 2.6, n = o.rowers || 6, win = o.window || [33.3, 36];
+  const ctx = { lost: [], way: 0, wayLog: [], strike: null }, inR = t => t >= row[0] && t < row[1];
+  const units = [
+    { id: 'CREW', tau: 0.5, x0: -0.2, range: 1.6, dwell: 0.8,
+      drive: t => (t < 3 ? 1.6 : t >= words[0] && t < words[1] ? -0.5 : 0.32) + (ctx.strike && t >= ctx.strike ? 2 : 0),
+      limits: t => (inR(t) && (!ctx.strike || t < ctx.strike) ? [-1, 0.55] : [-1, 1]) },
+    { id: 'ODYSSEUS', tau: 0.8, x0: 0.2, range: 1.2, dwell: 1e9, drive: t => (t < arm ? 0.1 : 0.9), limits: () => [-1, 1] },
+    { id: 'SCYLLA', tau: 1.0, x0: -0.8, range: 1.0, dwell: 1e9, drive: () => -1.4 + 3.4 / (1 + Math.exp(-(ctx.way - (o.wayUnder || 0.55)) / 0.05)), limits: () => [-1, 1] },
+    { id: 'CHARYBDIS', tau: 2.0, x0: 0.3, range: 1.0, dwell: 1e9, drive: t => 0.9 - 0.5 * Math.max(0, Math.min(1, (t - 30) / 15)), limits: () => [-1, 1] } ];
+  const W = [[0, -0.6, 0, 0.7], [0.3, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+  let cOut = 0;
+  function onStep(t, x) { const [C, O, Sy, E] = x, dt = 1 / 24;
+    /* the stroke: kept while the fear is within its limit (a stroke is lost after 0.3 s over it); the way made is the strokes kept */
+    const falter = inR(t) && (!ctx.strike || t < ctx.strike) && C > 0.55; if (falter) { cOut += dt; if (cOut > 0.3 && (!ctx.lost.length || t - ctx.lost[ctx.lost.length - 1][1] > P * 0.5)) ctx.lost.push([+t.toFixed(3), +(t + P).toFixed(3)]); } else cOut = 0;
+    const lostNow = ctx.lost.some(([a, b]) => t >= a && t < b);
+    if (inR(t) && !ctx.strike) ctx.way += dt * (lostNow ? 0.2 : 1) / (under - row[0]) * 0.62;
+    if (Math.round(t * 12) !== Math.round((t - dt) * 12)) ctx.wayLog.push([+t.toFixed(3), +ctx.way.toFixed(4)]);
+    if (!ctx.strike && Sy > 0.7 && t >= win[0]) ctx.strike = +t.toFixed(3);
+    if (!ctx.strike && t >= win[1] + 6) ctx.strike = +t.toFixed(3); }   /* past the window by six seconds: she strikes wherever the ship is */
+  return { units, W, ctx, onStep, total: T, dt: 1 / 24, seed: 'OD-B12-S04:' + (o.disturb || 'base') };
+}
+MACH.strait = strait;
+
 /* ═════ the Rams' coupled homeostat (OD-B09-S10): a blind search that must miss ═════
    x_O ODYSSEUS     his hold under the lead ram: > -0.5 while he hangs there (below it for 1 s his grip slips: a foot drops)
    x_P POLYPHEMUS   the searching hands' suspicion: over 0.55 for 0.5 s with a man under the hand, the fingers go down the flank and
