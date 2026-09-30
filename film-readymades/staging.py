@@ -58,6 +58,14 @@ def b09_s10(text, pv):
     shore_fig = set(C.figure(C.W, 'warrior-4', 60, C.GRASS + 8, C.SHORE + 20, math.pi))
     taken = set(l for g in groups.values() for l in g)
     rock = [l for l in rows if l not in taken]
+    # the roof off the vault, as the forage's caves are open above: over the main vault (the kit's ellipse at (-20, -250), 230 x 175
+    # LDU) and behind the front of the mouth (z < -110), every rock part goes, so the floor inside is the ground a prop or a man is
+    # set on and a camera can look in; the arch over the mouth tunnel stays, so from outside the mouth is still a mouth
+    def roof(l):
+        t = l.split(); x, y, z = float(t[2]), float(t[3]), float(t[4])
+        return ((x + 20) / 222) ** 2 + ((z + 250) / 168) ** 2 < 1 and z < C.MOUTH and -y > C.FLOOR + 30
+    cut = sum(roof(l) for l in rock); rock = [l for l in rock if not roof(l)]
+    groups['laurels'] = [l for l in groups['laurels'] if not roof(l)]   # the plants that grew on the roof go with it
     base = [l for l in groups['floor'] if l.split()[-1] in ('3811.dat', '3857.dat')] + [l for l in groups['shore'] if l.split()[-1] in ('3857.dat', '3867.dat')]
     floor = [l for l in groups['floor'] if l not in base]
     yard = [l for l in groups['yard'] if not l.endswith('95341.dat')]                  # the rams are the keyframes' props
