@@ -119,4 +119,19 @@ M_.SWING = (X, I, e) => { const id = I.actor, t = I.t0, p = I.params || {}, a = 
 M_.BLOCK = (X, I, e) => { const id = I.actor, t = I.t0, sd = (I.params || {}).side || 'L';
   const m = X.move(id, 'react', 'BLOCK', e, k => { k(t - 0.25, { ['arm.' + sd + '.pitch']: rel(X), 'torso.lean': rel(X), 'hips.dy': rel(X) }); k(t, { ['arm.' + sd + '.pitch']: { abs: -1.9 }, 'torso.lean': 0.06, 'hips.dy': -1.2 }, 'out'); k(t + 0.15, { 'torso.lean': -0.1, 'hips.dy': -2 }, 'out'); k(t + 0.9, { ['arm.' + sd + '.pitch']: { abs: -1.4 }, 'torso.lean': 0, 'hips.dy': -0.6 }); }, { label: 'up into the blow' });
   X.ev({ lane: 'CONTACT', actor: id, actors: [id, I.target], t0: t, t1: t + 0.15, kind: 'BLOCK', label: 'blade on shield', because: m ? [{ id: m.id, latency: 0.25 }] : [], params: { k: 6 } }); };
+/* TRANSFORM params.into (a prop kind: 'pig'): the man goes down onto all fours over four drawings on twos (the torso held, as the
+   catalogue asks), ending at the key where the take stops drawing him and stages the animal; the swap is the take's, the posture and
+   its timing are the engine's. An ACTION event names the prop that takes his place (the nearest of that kind at that key), so his
+   identity is kept in the score. */
+M_.TRANSFORM = (X, I, e) => { const id = I.actor, into = (I.params && I.params.into) || 'pig';
+  const K = X.M.keys.find(k => k.t >= I.t0 - 0.5 && k.t <= I.t1 + 1.5 && k.snap && (!k.snap[id] || !k.snap[id].vis));
+  if (!K) { X.notes.push('TRANSFORM ' + id + ': the take does not take him off between ' + I.t0 + ' and ' + I.t1 + ' s (he is not one of the changed)'); return null; }
+  const tSwap = K.t, t0 = tSwap - 8 / 12, st = X.at(id, Math.max(0, t0 - 0.1));
+  if (!st) { X.notes.push('TRANSFORM ' + id + ': not on stage before ' + tSwap); return null; }
+  const steps = [[0, 0, -0.6, 0], [1, 0.14, -1.0, -3], [2, 0.26, -1.3, -6], [3, 0.38, -1.5, -9]];
+  const ev = X.move(id, 'act', 'TRANSFORM', e, k => { k(t0 - 0.05, { 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0) });
+    for (const [j, lean, arm, dy] of steps) k(t0 + j * 2 / 12, { 'torso.lean': lean, 'hips.dy': dy, 'arm.R.pitch': { abs: arm }, 'arm.L.pitch': { abs: arm }, 'head.pitch': -0.12 * j / 3 }, 'step'); },
+    { label: 'down onto all fours, on twos: ' + into, rigid: true, exact: true, params: { into, swapAt: X.r3(tSwap), key: K ? K.id : null } });
+  X.ev({ lane: 'SET/VEHICLE', actor: id, t0: X.r3(tSwap), t1: X.r3(tSwap + 0.2), kind: 'SWAP', label: id + ' becomes a ' + into + ' (the take stages the animal at ' + (K ? K.id : 'the key') + ')', because: [{ id: ev ? ev.id : e.id, latency: 8 / 12 }], params: { into } });
+  return ev; };
 module.exports = M_;

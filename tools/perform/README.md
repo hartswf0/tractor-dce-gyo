@@ -162,7 +162,8 @@ current reading.
   to choreo.js's CLAMP and applyRig, and write GIANT_RIG / QUADRUPED intents (SEIZE, EAT, THROW, HERD) here.
 - The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for. Present: the three intent files above, ROPE (bind,
   haul), SEAL, SING, BECKON, STEER, PLEAD_BOUND, ROWING and SIRENS_CHAIN machinery; gesture shapes open point chop fist chest dismiss plead
-  recoil offer invoke taunt describe mime oath reach show, SEA (hulls, rafts, swimmers, rowers on one clock). Missing: TRANSFORM
-  (needs a body swap in the take), a hull breaking up, the player loading the creature rigs. Ships translate (a rock's wave pushes a
+  recoil offer invoke taunt describe mime oath reach show, SEA (hulls, rafts, swimmers, rowers on one clock). TRANSFORM (the man down
+  onto all fours over four drawings on twos, ending at the key where the take swaps him for the animal: a SWAP event keeps his
+  identity). Missing: the swap's own in-between (a mesh morph), a hull breaking up, rigs for wolves, lions and pigs. Ships translate (a rock's wave pushes a
   hull toward the shore: `dx`, `dz` channels) and creatures act (see Creatures).
 - `tools/perform/pagedata.js` builds the page's data; `perform.js desk <scene>` writes the engine's lanes into the rig desk's score.

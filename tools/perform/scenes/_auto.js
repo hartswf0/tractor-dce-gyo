@@ -13,7 +13,7 @@ const ALIAS = { ROPE_WORK: ['ROPE', { how: 'haul' }], HAUL: ['ROPE', { how: 'hau
   CLIMB: ['STRAIN', {}], BRACE: ['STRAIN', {}], LIFT: ['STRAIN', {}], MOVE_STONE: ['STRAIN', {}], STRING_BOW: ['STRAIN', {}], SWIM: ['STRUGGLE', {}], DROWN: ['STRUGGLE', {}], DIE: ['FALL', {}],
   WEAVE: ['TOOL_WORK', { how: 'carve' }], PLUCK: ['TOOL_WORK', { how: 'carve' }], PLAY_INSTRUMENT: ['TOOL_WORK', { how: 'carve' }], CUT: ['TOOL_WORK', { how: 'chop' }], GUARD: ['HOLD', {}], CROWD: ['HOLD', {}],
   PURSUE: ['PURSUIT', {}], TURN_AWAY: ['ATTEND', { front: true }], ROW: ['ROW', {}] };
-const NONE = new Set(['TRANSFORM', 'GROPE', 'RIDE', 'LOCOMOTE', 'LEAVE', 'CIRCLE']);
+const NONE = new Set(['GROPE', 'RIDE', 'LOCOMOTE', 'LEAVE', 'CIRCLE']);
 const SPEECH = { GREET: 'WELCOME', WELCOME: 'WELCOME' };
 module.exports = function author(M, X, N) {
   const T = M.total, ids = Object.keys(M.H || {}).filter(id => M.keys.some(k => k.snap[id] && k.snap[id].vis)), q = t => Math.round(t * 12) / 12;

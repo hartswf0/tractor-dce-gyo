@@ -47,6 +47,16 @@ function servo(M, C, S, o = {}) {
         const moving = Math.abs(v) * DEG > 0.5, keep = moving || (last && last.moving) || i === 0 || i === n - 1;
         if (keep) rows.push([id, ch, r3(i * dt), r1(a[i] * DEG), r1(v * DEG), lim ? r1(lim[0] * DEG) : '', lim ? r1(lim[1] * DEG) : '', Math.round(tau * 10000) / 10000, Math.round(pw * 1000) / 1000]);
         last = { moving }; } }); }
+  /* the creatures (a giant puppet, a ram): their angular channels on the same model, with a giant's segments (a puppet 1.2 m tall:
+     arm 1.2 kg at 0.25 m, head 0.8 kg at 0.12 m, torso 4 kg at 0.3 m, leg 2 kg at 0.3 m, jaw 0.15 kg at 0.08 m); the eye is a
+     replacement part (an index for a solenoid or a hand, not a servo); positions (root, necks' targets in LDU) are not servo channels */
+  if (C.creatures && o.creatures !== false) { const Cr = require('../../film-readymades/creatures.js'), GSEG = { arm: { m: 1.2, r: 0.25 }, elbow: { m: 0.6, r: 0.15 }, head: { m: 0.8, r: 0.12 }, torso: { m: 4, r: 0.3 }, body: { m: 4, r: 0.3 }, leg: { m: 2, r: 0.3 }, knee: { m: 1, r: 0.2 }, jaw: { m: 0.15, r: 0.08 }, neck: { m: 0.5, r: 0.2 }, tail: { m: 0.1, r: 0.1 }, ear: { m: 0.02, r: 0.03 } };
+    for (const cid of Object.keys(C.creatures)) { const vs = []; for (let i = 0; i < n; i++) vs.push(Cr.sample(C, cid, i * dt).v); const rig = vs[0] ? Cr.sample(C, cid, 0).rig : null; if (!rig) continue;
+      for (const chd of rig.channels) { const ch = chd.name; if (/^root\.[xyz]$/.test(ch) || chd.unit === 'ldu' || chd.unit === 'index' || ch === 'eye') continue; const seg = GSEG[ch.split('.')[0].replace(/\d+$/, '')] || null; let last = null; tot[cid + ' ' + ch] = 0;
+        for (let i = 0; i < n; i++) { const a = vs[i][ch] || 0, v = i > 0 ? (a - (vs[i - 1][ch] || 0)) / dt : 0, acc = i > 1 ? (a - 2 * (vs[i - 1][ch] || 0) + (vs[i - 2][ch] || 0)) / dt / dt : 0;
+          let tau = 0, pw = 0; if (seg) { tau = seg.m * g * seg.r * Math.abs(Math.sin(a)) + seg.m * seg.r * seg.r / 3 * Math.abs(acc); pw = Math.abs(tau * v) / 0.5 + 2.0 * tau * tau; } tot[cid + ' ' + ch] += pw * dt;
+          const moving = Math.abs(v) * DEG > 0.5, keep = moving || (last && last.moving) || i === 0 || i === n - 1;
+          if (keep) rows.push([cid, ch, r3(i * dt), r1(a * DEG), r1(v * DEG), chd.min != null ? r1(chd.min * DEG) : '', chd.max != null ? r1(chd.max * DEG) : '', Math.round(tau * 10000) / 10000, Math.round(pw * 1000) / 1000]); last = { moving }; } } } }
   return { head, rows, energyJ: Object.fromEntries(Object.entries(tot).filter(([, v]) => v > 0).map(([k, v]) => [k, Math.round(v * 100) / 100])) };
 }
 const csv = (head, rows, notes) => (notes || []).map(l => '# ' + l).join('\n') + (notes && notes.length ? '\n' : '') + [head.join(','), ...rows.map(r => r.map(x => typeof x === 'string' && /[,"\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x).join(','))].join('\n') + '\n';
