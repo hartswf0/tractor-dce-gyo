@@ -126,7 +126,7 @@ M_.BLOCK = (X, I, e) => { const id = I.actor, t = I.t0, sd = (I.params || {}).si
 M_.TRANSFORM = (X, I, e) => { const id = I.actor, into = (I.params && I.params.into) || 'pig';
   const K = X.M.keys.find(k => k.t >= I.t0 - 0.5 && k.t <= I.t1 + 1.5 && k.snap && (!k.snap[id] || !k.snap[id].vis));
   if (!K) { X.notes.push('TRANSFORM ' + id + ': the take does not take him off between ' + I.t0 + ' and ' + I.t1 + ' s (he is not one of the changed)'); return null; }
-  const tSwap = K.t, t0 = tSwap - 8 / 12, st = X.at(id, Math.max(0, t0 - 0.1));
+  const tSwap = X.q(K.win ? (K.win[0] + K.win[1]) / 2 : K.t), t0 = tSwap - 8 / 12, st = X.at(id, Math.max(0, t0 - 0.1));   /* the take stops drawing him at the middle of the key's window */
   if (!st) { X.notes.push('TRANSFORM ' + id + ': not on stage before ' + tSwap); return null; }
   const steps = [[0, 0, -0.6, 0], [1, 0.14, -1.0, -3], [2, 0.26, -1.3, -6], [3, 0.38, -1.5, -9]];
   const ev = X.move(id, 'act', 'TRANSFORM', e, k => { k(t0 - 0.05, { 'torso.lean': X.sheet.rel(0), 'hips.dy': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0) });

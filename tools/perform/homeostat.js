@@ -25,17 +25,19 @@ const r3 = v => Math.round(v * 1000) / 1000, r4 = v => Math.round(v * 1e4) / 1e4
 const { rng } = Compile;
 /* the bands, by the words a director uses; the numbers are this engine's (calibrated on the four proof scenes, stated on the page) */
 const WORD = {
-  H1: { 'near zero': [0, 0.05], cool: [0.03, 0.12], warm: [0.1, 0.3], hot: [0.3, 0.9], 'very hot': [0.8, 3] },
+  H1: { 'near zero': [0, 0.05], cool: [0.03, 0.12], warm: [0.1, 0.3], 'warm to hot': [0.2, 0.5], hot: [0.3, 0.9], 'very hot': [0.8, 3] },
   H2: { cool: [0, 0.05], warm: [0.04, 0.12], hot: [0.1, 0.25], 'very hot': [0.2, 0.6] },
-  H3: { cool: [0, 0.15], warm: [0.15, 0.5], high: [0.45, 1.5], 'very high': [1.2, 5] },
+  H3: { cool: [0, 0.15], 'one body lit': [0.03, 0.3], warm: [0.15, 0.5], high: [0.45, 1.5], 'very high': [1.2, 5] },
   H4: { zero: [0, 0.02] } };
 const TYPES = { dialogue: { H1: 'cool', H2: 'warm', H3: 'warm', H4: 'zero' }, fight: { H1: 'hot', H2: 'very hot', H3: 'high', H4: 'zero' },
   revelation: { H1: 'near zero', H2: 'very hot', H3: 'very high', H4: 'zero' }, machinery: { H1: 'warm', H2: 'warm', H3: 'warm', H4: 'zero' },
-  /* a change of body (Circe's): the bodies move a good deal (the fawning beasts, the men going down), the causes many, one hot body
-     against a watching room */
-  transformation: { H1: 'warm', H2: 'hot', H3: 'high', H4: 'zero' },
-  /* concealment under threat (the rams): the hidden hold still, the searcher's hands and the flock move; the causes many; the searcher hot */
-  escape: { H1: 'cool', H2: 'hot', H3: 'high', H4: 'zero' } };
+  /* a change of body (Circe's): the bodies move a good deal (the fawning beasts, the men going down on all fours), the causes as in a
+     dialogue, and the contrast of one body lit at a time (the one struck, the one changing) against a room that watches: not a fight's
+     heat everywhere (the first score, typed a dialogue, could not cool its motion into a dialogue's band) */
+  transformation: { H1: 'warm to hot', H2: 'warm', H3: 'one body lit', H4: 'zero' },
+  /* concealment under threat (the rams): the hidden hold still (motion cool), the causes as in a dialogue, the searcher's hands the one
+     body lit */
+  escape: { H1: 'cool', H2: 'warm', H3: 'one body lit', H4: 'zero' } };
 function bandsFor(type) { const w = TYPES[type] || TYPES.dialogue; return Object.fromEntries(Object.entries(w).map(([k, x]) => [k, { word: x, band: WORD[k][x].slice() }])); }
 /* each unit's uniselector is wired to these compiler parameters */
 /* each unit steps its own parameters (disjoint, as each of Ashby's units stepped its own input resistances) */
