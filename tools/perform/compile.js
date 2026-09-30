@@ -202,7 +202,7 @@ function compile(M, S, opts = {}) {
   for (const K of M.keys) { const e = ev({ lane: 'STIMULUS', t0: K.win ? K.win[0] : K.t, t1: K.win ? K.win[1] : K.t + 0.1, kind: 'BLOCKING', label: K.id + ': ' + String(K.beat).slice(0, 80), derived: true }); keyEv[K.id] = e; }
   X.keyEv = keyEv;
   /* 2. the authored stimuli and intents (and holds), in time order, each realised by its kind */
-  const INT = Object.assign({}, require('./intents.js'), require('./intents-action.js'));
+  const INT = Object.assign({}, require('./intents.js'), require('./intents-action.js'), require('./intents-more.js'));
   for (const s of A.stimuli || []) ev({ ...s, lane: 'STIMULUS', because: because(s.because).map(b => ({ ...b })) });
   const intents = (A.intents || []).concat((A.holds || []).map(h => ({ ...h, kind: 'HOLD' }))).map(I => ({ ...I })).sort((a, b) => a.t0 - b.t0);
   for (const I of intents) ev({ id: I.id, lane: 'INTENT', actor: I.actor, t0: I.t0, t1: I.t1, kind: I.kind, label: I.label || I.reason || '', because: because(I.because).map(b => ({ ...b })), params: I.params, authored: true, target: I.target });

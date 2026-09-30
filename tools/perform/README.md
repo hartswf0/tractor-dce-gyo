@@ -28,6 +28,7 @@ node tools/perform/probe.js            OD-B09-S09 [--poses]        marks and sho
 | `compile.js` | the intent compiler: utterances, intents, machinery, walks, breath, solvers, legality -> odyssey-choreo/1 sheet + events |
 | `intents.js` | attention, holds, speech acts (WELCOME, GUARDED_WELCOME), the handoff (OFFER/TAKE), LEAD/FOLLOW, business (GAMBLE, DRINK, POUR, REACT, GESTURE) |
 | `intents-action.js` | labour, force, combat: SIGNAL, HEAT, CARRY, THRUST, TWIST, STRAIN, RECOIL, HIDE, CLING, ADVANCE, RETIME, THREAT, SHOOT, IMPACT, FALL, DUCK, EVADE, SEARCH, LEAP, POUR_OUT, SEPARATION, RETARGET, RECOVER, PURSUIT |
+| `intents-more.js` | the kinds the other scenes ask for (odyssey/perform/needs.json): POSTURE, WEEP, TOOL_WORK, ARM, EAT, RECOGNISE, the contact primitive (SEIZE, HOLD_ON, EMBRACE, DRAG, TEND), STRUGGLE, FLEE, HERD, SACRIFICE, THROW, SWING (hit or miss: MISS and OPENING stimuli), BLOCK |
 | `machinery.js` | the Blinding's coupled homeostat model; ROWING (one phase clock, per-body offsets); SIRENS_CHAIN (crew force -> hull -> mast -> rope -> strain) |
 | `metrics.js` | per actor per drawing states through the shot cameras; the report |
 | `thermo.js` | motion heat (through couplings, by material), causal entropy, media temperature, contrast, viability, the field |
@@ -128,5 +129,9 @@ current reading.
 
 - A creature rig (film-readymades/creatures.js, to come) gives a giant or a quadruped channels: add them to body.js's pivot tree,
   to choreo.js's CLAMP and applyRig, and write GIANT_RIG / QUADRUPED intents (SEIZE, EAT, THROW, HERD) here.
-- The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for; missing today: POSTURE, WEEP, ROPE_WORK, ROW (as an
-  intent), TOOL_WORK, ARM, EAT, RECOGNISE, sustained CONTACT (SEIZE, HOLD, EMBRACE, DRAG), BLOCK, ship, sea.
+- The needs catalogue (odyssey/perform/needs.json) lists the kinds scenes ask for. Present: the three intent files above, ROPE (bind,
+  haul), SEAL, SING, BECKON, STEER, PLEAD_BOUND, ROWING and SIRENS_CHAIN machinery; gesture shapes open point chop fist chest dismiss plead
+  recoil offer invoke taunt describe mime oath reach show. Missing: TRANSFORM (needs a body swap in the take), a generic SHIP rig beyond
+  the Sirens' chain (waves pushing a ship, a raft capsizing, a fleet), SEA as an actor, giant and quadruped rigs (film-readymades/
+  creatures.js, in progress by another agent).
+- `tools/perform/pagedata.js` builds the page's data; `perform.js desk <scene>` writes the engine's lanes into the rig desk's score.

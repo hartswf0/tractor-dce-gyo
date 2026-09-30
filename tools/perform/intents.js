@@ -261,7 +261,10 @@ I_.POUR = (X, I, e) => { const id = I.actor, p = I.params || {};
 /* GESTURE params.shape: open | point | chop | fist | chest | dismiss | plead | recoil, at params.at (s), side, amp, hold */
 const SHAPES = { open: { p: -0.95, o: 0.32, lean: 0.05, hp: -0.05, hand: 0.5 }, point: { p: -1.5, o: 0.05, lean: 0.1, hp: -0.07, hand: 0, ease: 'back' }, chop: { p: -1.2, o: 0.08, lean: 0.08, hp: 0.05, hand: -0.2, ease: 'back', down: 0.5 },
   fist: { p: -0.8, o: 0.12, lean: 0.14, hp: 0.08, hand: 0, ease: 'back' }, chest: { p: -1.3, o: -0.04, lean: -0.02, hp: 0.06, hand: -0.4 }, dismiss: { p: -0.65, o: 0.5, lean: -0.06, hp: -0.1, hand: 0.7, ease: 'back' },
-  plead: { both: true, p: -1.15, o: 0.08, lean: 0.12, hp: -0.12, hand: 0.7 }, recoil: { both: true, p: -1.4, o: 0.1, lean: -0.16, hp: -0.1, hand: 0.3, ease: 'out' } };
+  plead: { both: true, p: -1.15, o: 0.08, lean: 0.12, hp: -0.12, hand: 0.7 }, recoil: { both: true, p: -1.4, o: 0.1, lean: -0.16, hp: -0.1, hand: 0.3, ease: 'out' },
+  offer: { both: true, p: -1.05, o: 0.22, lean: 0.08, hp: -0.04, hand: 0.55 }, invoke: { both: true, p: -2.8, o: 0.3, lean: -0.1, hp: -0.18, hand: 0.4 }, taunt: { p: -0.5, o: 0.45, lean: -0.08, hp: -0.14, hand: 0.9, ease: 'back' },
+  describe: { both: true, p: -1.0, o: 0.05, lean: 0.06, hp: 0.02, hand: 0.6 }, mime: { both: true, p: -1.3, o: -0.05, lean: 0.1, hp: 0.05, hand: -0.5 }, oath: { p: -2.7, o: 0.05, lean: -0.02, hp: -0.1, hand: 0 },
+  reach: { p: -1.45, o: -0.02, lean: 0.14, hp: -0.04, hand: 0.3 }, show: { both: true, p: -1.2, o: 0.12, lean: 0.1, hp: 0.05, hand: 0.8 } };
 function gesture(X, id, shape, t, side, amp, hold, why, label) { const G = SHAPES[shape]; if (!G) return null; const sides = G.both ? ['R', 'L'] : [side], a = amp * X.θ.amp;
   return X.move(id, 'act', shape.toUpperCase(), why, k => {
     k(t - 0.3, Object.fromEntries(sides.flatMap(s => [['arm.' + s + '.pitch', X.sheet.rel(0)], ['arm.' + s + '.out', X.sheet.rel(0)], ['hand.' + s + '.roll', X.sheet.rel(0)]]).concat([['torso.lean', X.sheet.rel(0)], ['head.pitch', X.sheet.rel(0)]])));
