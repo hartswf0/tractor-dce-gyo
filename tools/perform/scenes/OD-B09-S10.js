@@ -69,7 +69,7 @@ module.exports = function author(M, X) {
       intents.push({ id: 'rG' + idx, actor: id, kind: 'GRAZE', t0: s2 + 0.5 + 0.3 * col, t1: s3 - 0.3, label: 'stands to be bound, the head down', because: [{ id: 'sBind' }] }); } }));
   /* the men under the middle rams: riders (belly, face up) from the start to the end of K1; crewman-1 again in K2 */
   teams.forEach((n, r) => { const ram = 'team' + n + '-b', man = men[r]; const win = [[s1, s2 - 0.05]]; if (n === 1) win.push([s2, s3 - 0.05]);
-    win.forEach(([a, b], j) => intents.push({ id: 'rC' + r + '_' + j, actor: ram, kind: 'CARRY', t0: a, t1: b, label: man + ' slung beneath, hands in the wool', params: { riders: [{ actor: man, at: 'belly', lie: 'under', offset: [0, 2, 0] }] }, because: [{ id: j ? 'iBind' : 'sDawn' }] }));
+    win.forEach(([a, b], j) => intents.push({ id: 'rC' + r + '_' + j, actor: ram, kind: 'CARRY', t0: a, t1: b, label: man + ' slung beneath, hands in the wool', params: { riders: [{ actor: man, at: 'belly', lie: 'under', offset: [0, 2, 0] }] }, because: [{ id: j ? 'sBind' : 'sDawn' }] }));
     I({ id: 'iCl' + r, actor: man, kind: 'CLING', t0: s1 + 0.3, t1: s2 - 0.1, label: 'hands in the fleece', because: [{ id: 'rC' + r + '_0' }] });
     holds.push({ id: 'hB' + r, actor: man, t0: s1 + 0.4, t1: s2 - 0.1, reason: 'the breath held under the ram: the giant\'s hands overhead', params: { weight: false, still: true }, because: [{ id: 'rC' + r + '_0' }] }); });
   c.stirs.forEach((s, k) => { const man = men[s.row]; I({ id: 'iStir' + k, actor: man, kind: 'REACT', t0: q(s.t), t1: q(s.t) + 0.9, label: 'shifts his grip: the fear over its limit', params: { how: 'flinch', lookAt: G }, because: [{ id: 'sStir' + k }] });
@@ -92,14 +92,14 @@ module.exports = function author(M, X) {
   const leadFrom = [-40, -200], leadAt = [20, 40], leadOut = [110, 130], release = c.release || s4 - 2.5;
   const lfl = Ground.at(M, leadAt[0], leadAt[1]).y, ls = 2.6 * sc;
   creatures[lead] = { kind: 'ram', scale: ls, colour: 'white', at: [leadAt[0], lfl, leadAt[1], 0], floor: lfl, present: [[s2, T + 1]], procs: [] };
-  S_({ id: 'sLead', t0: s3, t1: s3 + 0.4, kind: 'SCENE', label: 'last of all the great ram, slow under its weight: Odysseus beneath it', because: [{ id: 'sPass' + Math.max(0, c.passes.length - 1) }] });
+  S_({ id: 'sLead', t0: lW1t0, t1: lW1t0 + 0.4, kind: 'SCENE', label: 'last of all the great ram, slow under its weight: Odysseus beneath it', because: [{ id: 'sPass' + Math.max(0, c.passes.length - 1) }] });
   intents.push({ id: 'lW1', actor: lead, kind: 'WALK', t0: lW1t0, t1: stopAt, label: 'last to the door, heavy with the man beneath', params: { path: [[lW1t0, leadFrom[0], leadFrom[1]], [stopAt, leadAt[0], leadAt[1]]], gait: 'walk' }, because: [{ id: 'sLead' }] });
   intents.push({ id: 'lC', actor: lead, kind: 'CARRY', t0: s3, t1: s4 - 0.1, label: 'Odysseus under the belly, hands in the fleece', params: { riders: [{ actor: O, at: 'belly', lie: 'under', offset: [0, 2, 0] }] }, because: [{ id: 'sLead' }] });
   gi({ id: 'gStop', kind: 'REACH', t0: stopAt - 0.3, t1: stopAt + 1.4, target: [leadAt[0], ls * 62, leadAt[1] - 10], label: 'stops the ram: a hand on its head', params: { hand: 'R' }, because: [{ id: 'lW1' }] });
   gi({ id: 'gCaress', kind: 'CARESS', t0: stopAt + 1.2, t1: release - 0.2, target: lead, label: 'the hand along his ram\'s back, a hand-width over Odysseus', params: { hand: 'R', anchor: 'back', strokes: Math.max(3, Math.round((release - stopAt) / 2.4)) }, because: [{ id: 'gStop' }] });
   if (clip && sweet) { const phr = V.phrases.filter(p => p.t1 > sweet.t - 0.1), jaw = [[q(sweet.t) - 0.3, 0]]; for (const p of phr) jaw.push([q(Math.max(p.t0, sweet.t - 0.1)), 0.05], [q(Math.max(p.t0, sweet.t) + 0.12), 0.3], [q((p.t0 + p.t1) / 2), 0.12], [q(p.t1 - 0.1), 0.26], [q(p.t1), 0.02]);
     creatures[G].channels = Object.assign(creatures[G].channels || {}, { 'jaw@words': jaw.sort((a, b) => a[0] - b[0]).filter((x, i, a) => !i || x[0] > a[i - 1][0]) });
-    gi({ id: 'gWords', kind: 'ATTEND', t0: q(sweet.t) - 0.2, t1: quoteAt[1], target: lead, label: 'his face to the ram as he speaks to it (the jaw on the quoted words)', because: [{ id: 'sSweet' }] }); }
+    gi({ id: 'gWords', kind: 'ATTEND', t0: q(sweet.t) + 0.1, t1: quoteAt[1], target: lead, label: 'his face to the ram as he speaks to it (the jaw on the quoted words)', because: [{ id: 'sSweet' }] }); }
   if (lastW) gi({ id: 'gWhy', kind: 'ATTEND', t0: q(lastW.t) + 0.1, t1: q(lastW.t) + 2.4, target: [leadAt[0], ls * 30, leadAt[1]], label: 'why last? the face down toward the belly', because: [{ id: 'sLast' }] });
   holds.push({ id: 'hO3', actor: O, t0: s3 + 0.4, t1: release, reason: 'under the ram, the breath held: the giant\'s hand passes over the fleece above him', params: { weight: false, still: true }, because: [{ id: 'lC' }] });
   I({ id: 'iCling', actor: O, kind: 'CLING', t0: s3 + 0.3, t1: s4 - 0.2, label: 'the fleece held, the body pressed up to the belly', because: [{ id: 'lC' }] });

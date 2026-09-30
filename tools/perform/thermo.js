@@ -48,6 +48,8 @@ function power(a, b, H) {
   const v = Math.hypot(a.p[0] - b.p[0], a.p[1] - b.p[1], a.p[2] - b.p[2]) / H / dt, tr = Body.wrap(a.rot[1] - b.rot[1]) / dt * 0.2, rr = ((a.rot[0] - b.rot[0]) + (a.rot[2] - b.rot[2])) / dt * 0.8, hy = (a.hipsDy - b.hipsDy) * a.scale / H / dt;
   /* a jump faster than 6 heights a second is the staging's discontinuity (a pop between marks, a rider placed), not motion: capped */
   const vc = Math.min(v, 6);
+  /* a figure carried by a creature (under a ram, in a fist, in a jaw) is moved, it does not move: only its own joints count */
+  if (a.carried && b.carried && a.carried === b.carried) return P + hy * hy;
   return P + vc * vc + tr * tr + rr * rr + hy * hy;
 }
 

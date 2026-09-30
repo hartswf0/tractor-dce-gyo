@@ -79,7 +79,9 @@ if (require.main !== module) return;
     console.log('compiled', sid, R.events.length, 'events,', Object.keys(R.sheet.actors).length, 'actors,', n, 'keys,', R.sheet.props.length, 'props');
     for (const x of R.notes) console.log('  note:', x); for (const x of errs.slice(0, 20)) console.log('  check:', x); if (errs.length > 20) console.log('  ...', errs.length, 'checks');
     return; }
-  if (cmd === 'measure') { const S = J(scoreF(sid)), before = J(path.join(ROOT, 'odyssey/choreo', sid + '.json')), after = J(sheetF(sid));
+  if (cmd === 'measure') { const S = J(scoreF(sid)), bf = path.join(ROOT, 'odyssey/choreo', sid + '.json'), after = J(sheetF(sid));
+    /* before: the acted sheet; a scene staged after the choreographer's pass has none: the take's blocking alone (an empty sheet) */
+    const before = fs.existsSync(bf) ? J(bf) : require('../../film-readymades/choreo.js').compile({ format: 'odyssey-choreo/1', scene: sid, clock: after.clock, step: 'twos', layer: 'add', total: after.total, actors: {}, props: [], rigs: {}, overrides: {}, cues: [], holds: [], voice: after.voice, cut: after.cut, keys: after.keys });
     const mb = measureSheet(sid, before, S, [], { cues: before.cues, holds: before.holds }), ma = measureSheet(sid, after, S, S.events);
     const mfile = path.join(SC, 'measures', sid + vtag + '.json');   /* a variant's measures beside the baseline's, not over them */
     save(mfile, { scene: sid, variant: VAR ? { name: VAR, frozen: FROZEN } : undefined, measured: new Date().toISOString().slice(0, 10), before: { sheet: 'odyssey/choreo/' + sid + '.json', ...mb }, after: { sheet: path.relative(ROOT, sheetF(sid)), ...ma } });
