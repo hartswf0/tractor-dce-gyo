@@ -106,7 +106,8 @@ async function solve(plan, api) {
       const corners = []; if (box && !box.isEmpty()) for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new V3(x, y, z));
       const upper = [head, eye, crown, P('grip.R'), P('grip.L'), P('lap')].filter(Boolean);
       const Hc = box ? Math.max(box.max.y - box.min.y, 0.6 * (box.max.x - box.min.x), 0.6 * (box.max.z - box.min.z)) : 3 * H0;
-      return { id, creature: true, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: null, box };
+      const lying = !!box && (box.max.y - box.min.y) < 0.7 * Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
+      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: null, box };
     }
     const a = api.kfActor(id); if (!a || a.rig.figure.visible === false || a.rig.absent) return null; const r = a.rig, H = Hof(id);
     const head = api.kfHead(id), crown = head.clone().add(new V3(0, 0.2 * H, 0)), chin = head.clone().add(new V3(0, -0.14 * H, 0));
@@ -141,7 +142,9 @@ async function solve(plan, api) {
       for (const d of AX) { const h = gridRay(W.G, p, d, 6 * H0, true)[0]; if (!h) continue; n++; if (h.distance < r) { touch = h; break; } if (h.back) back++; }
       if (touch) why.push('near plane in ' + (touch.object.name || 'a set part')); else if (n >= 4 && back / n > 0.6) why.push('inside a set part'); }
     if (!why.length) for (const { m, b } of W.dynBoxes) { if (b.clone().expandByScalar(r * 0.5).containsPoint(p)) { why.push('in ' + (owner(m) || 'a body')); break; } }
-    if (!why.length) { if (!gridRay(W.G, p, new V3(0, -1, 0), 1e5, true).length) why.push('under the set'); }
+    /* beneath the floor: nothing under the lens and the lens lower than the floor (a camera outside the set, above it, is fine) */
+    if (!why.length) { if (W.floorY == null) { const g = W.G; W.floorY = groundAt(new V3(g.lo[0] + g.N[0] * g.cs / 2, g.lo[1] + g.N[1] * g.cs, g.lo[2] + g.N[2] * g.cs / 2)); }
+      if (!gridRay(W.G, p, new V3(0, -1, 0), 1e5, true).length && p.y < W.floorY + 0.3 * H0) why.push('under the set'); }
     TIME.inside += performance.now() - t0; return why;
   }
   /* is p seen from the camera, allowing hits on the subject's own meshes (and on any of `allow` within `slack` of p)? */
@@ -159,7 +162,7 @@ async function solve(plan, api) {
     const need = needOf(S, sh, prim);
     const target = aim(pos, cand.fov, need, sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? prim.eye : prim.head, cand.u, cand.v);
     info.target = target;
-    const hard = new Set([prim.id, ...((sh.kind === 'TWO' || sh.kind === 'ACTION') && sh.line ? sh.line : [])]);
+    const hard = new Set([prim.id, ...(sh.kind === 'TWO' && sh.line ? sh.line : [])]);
     const bad = (s, why) => { if (hard.has(s.id)) { fail.push(why); return true; } info.soft++; return false; };
     for (const s of S) {
       const q = proj(s.head), c = proj(s.crown); if (q[2] > 1 || c[2] > 1) { if (bad(s, 'L3 ' + s.id + ' behind the lens')) return { fail, info }; continue; }
@@ -201,8 +204,9 @@ async function solve(plan, api) {
     const out = [], v = sh.kind === 'INSERT' ? 0.42 : sh.size === 'WIDE' ? 0.3 : 0.34;
     const partner = sh.line ? sh.line.find(x => x !== sh.primary) : null;
     const ph = prim.creature ? H0 : (prim.H || H0);
-    const elevs = sh.angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
-      : sh.angle === 'high' ? [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0]
+    const angle = prim.creature && prim.lying ? 'high' : sh.angle;   /* a giant found lying is filmed from above, whatever the plan said */
+    const elevs = angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
+      : angle === 'high' ? [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0]
       : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, prim.head.y + 1.0 * ph];   /* the last over the heads of a crowd */
     /* distances from farther than the lens wants to much nearer: a nearer camera opens its lens to keep what the size needs (up to
        75 degrees), so a small room (a cave) still has cameras inside it */
@@ -240,7 +244,10 @@ async function solve(plan, api) {
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
-    if (cand.key) s += 0.6;
+    if (cand.key) s += 1.5;
+    /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
+    const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
+    if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
     s -= 1.5 * (I.clutter || 0) + 0.4 * (I.soft || 0);
     if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
@@ -271,6 +278,7 @@ async function solve(plan, api) {
       for (const c of alive) { const pos = moving ? c.pos.clone().add(Pt.feet.clone().sub(P0.feet)) : c.pos; const r = check({ ...c, pos, contact: sh.contact ? contactPoint(sh, St) : null }, St, sh, lineSide); c.res.push(r); if (!r.fail.length) next.push(c); else worst.push(c); }
       alive = next;
     }
+    const kc = cands.find(c => c.key); const keyFate = kc ? (alive.includes(kc) ? 'legal' : (kc.res[kc.res.length - 1].fail[0] || '?')) : null;
     const hist = {}; for (const c of worst) { const f = c.res[c.res.length - 1].fail[0] || '?'; const k = f.replace(/ (of|by) .*/, '').replace(/\d+%/, 'n%'); hist[k] = (hist[k] || 0) + 1; }
     let relaxed = false;
     if (!alive.length && lineSide) {   /* no camera on the line's side: the line is crossed rather than an illegal frame kept */
@@ -280,7 +288,7 @@ async function solve(plan, api) {
         pool = pool.filter(c => { const pos = moving && P0.feet && Pt.feet ? c.pos.clone().add(Pt.feet.clone().sub(P0.feet)) : c.pos; const r = check({ ...c, pos, contact: sh.contact ? contactPoint(sh, St) : null }, St, sh, 0); c.rres.push(r); return !r.fail.length; }); }
       for (const c of pool) c.res = c.rres; alive = pool;
     }
-    return { subj, S, cands, alive, worst, hist, relaxed, moving, P0 };
+    return { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate };
   }
   /* ── solve every shot ── */
   const lines = new Map(), solved = [], report = [], stats = {};
@@ -294,7 +302,9 @@ async function solve(plan, api) {
     let use = sh, A = attempt(sh, lineSide, ts, mid, prevCam), eased = null;
     if (!A.alive.length && ((sh.subjects || []).length > 1 || sh.size !== 'WIDE')) { const v = Object.assign({}, sh, { subjects: [sh.primary], size: WIDER[sh.size] || 'WIDE', contact: null, profile: false }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'the ' + sh.size.toLowerCase() + ' had no legal camera: the primary alone, ' + v.size.toLowerCase(); } }
     if (!A.alive.length && use.size !== 'WIDE') { const v = Object.assign({}, sh, { subjects: [sh.primary], size: 'WIDE', contact: null, profile: false, angle: 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'no legal camera at the planned size: a wide on the primary'; } }
-    const { subj, S, cands, alive, worst, hist, relaxed, moving, P0 } = A; let key;
+    /* the primary cannot be framed legally from anywhere: the shot goes to the other end of its line (whom it reacts to, acts on) */
+    if (!A.alive.length && sh.line) { const other = sh.line.find(x => x !== sh.primary); if (other) { const v = Object.assign({}, sh, { primary: other, subjects: [other, sh.primary], size: 'MID', contact: null, profile: false, kind: sh.kind, giant: creatures[other] ? other : sh.giant, angle: creatures[other] ? (sh.angle === 'high' || sh.lying ? 'high' : 'low') : 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = sh.primary + ' cannot be framed legally from anywhere: the shot goes to ' + other + ' (' + sh.primary + ' in frame if seen)'; } } }
+    const { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
     let pick = null, legal = alive.length > 0;
     if (legal) { let best = -1e9; for (const c of alive) { const s = score(c, c.res[0], use, prevCam); if (s > best) { best = s; pick = c; } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
@@ -314,11 +324,11 @@ async function solve(plan, api) {
     for (let pass = 0; pass < 2; pass++) for (let i = 1; i < keysT.length - 1; i++) keysT[i][2] = keysT[i][2].map((v, q) => (keysT[i - 1][2][q] + 2 * v + keysT[i + 1][2][q]) / 4);
     if (pick && legal && lineKey && !lines.has(lineKey) && pick.side) lines.set(lineKey, pick.side);
     const fails = pick ? [...new Set(pick.res.flatMap(r => r.fail))] : ['no subject'];
-    const out = { id: 'c' + sh.i + ':' + sh.kind + ':' + use.size, i: sh.i, kind: sh.kind, size: use.size, t0, dur: t1 - t0, cine: true, fov: pick ? pick.fov : 40, track: keysT, moving, primary: sh.primary };
+    const out = { id: 'c' + sh.i + ':' + sh.kind + ':' + use.size, i: sh.i, kind: sh.kind, size: use.size, t0, dur: t1 - t0, cine: true, fov: pick ? pick.fov : 40, track: keysT, moving, primary: use.primary };
     solved.push(out);
-    report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: use.size, planned: sh.size, eased, primary: sh.primary, subjects: subj, why: sh.why, line: sh.line, side: pick ? pick.side || 0 : 0, lineHeld: !!lineSide,
+    report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: use.size, planned: sh.size, eased, primary: use.primary, subjects: subj, why: sh.why, line: sh.line, side: pick ? pick.side || 0 : 0, lineHeld: !!lineSide,
       camera: pick ? { pos: pick.pos.toArray().map(v => +v.toFixed(1)), fov: pick.fov, key: !!pick.key, az: pick.az != null ? +pick.az.toFixed(2) : null, travelling: moving } : null,
-      legal, relaxed, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
+      legal, relaxed, keyCamera: keyFate, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
       facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;

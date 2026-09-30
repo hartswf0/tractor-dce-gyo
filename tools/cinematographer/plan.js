@@ -237,7 +237,7 @@ function plan(sid, opts = {}) {
       Object.assign(sh, { kind: x.handoff ? 'TWO' : 'ACTION', size: x.handoff ? 'MID' : 'WIDE', subjects: subj, primary: x.actors[0], aim: 'contact', contact: { id: x.id, kind: x.kind, t: x.t, meet: x.meet }, line: [x.actors[0], x.handoff ? x.actors[1] : (x.effect ? x.effect.actor : x.actors[1])] });
       if (x.handoff) { sh.profile = true; sh.why.rule = `R2 the handoff ${x.id} (${x.kind}) framed in profile: both figures, both hands and what passes`; }
       else { sh.why.rule = `R2 the contact ${x.id} (${x.kind}: ${x.label}) with every figure it names` + (x.effect && creatureIds.includes(x.effect.actor) ? ' and the creature it is done to' : ''); }
-      if (x.effect && creatureIds.includes(x.effect.actor)) { sh.giant = x.effect.actor; sh.angle = 'low'; sh.lens = 'wide'; sh.why.rule += '; R8 low and wide on the giant'; }
+      if (x.effect && creatureIds.includes(x.effect.actor)) { sh.giant = x.effect.actor; sh.primary = x.effect.actor; sh.angle = 'low'; sh.lens = 'wide'; sh.why.rule += '; R8 low and wide on the giant (his eye is what the frame must hold; the men are there for size)'; }
     }
     else if (c.role === 'windup' && A2) {
       const who = A2.cause.actor, grp = (S.actors[who] || {}).group; const crew = A2.actors.filter(y => y !== who);
