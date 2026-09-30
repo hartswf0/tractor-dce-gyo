@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Performance Engine</title>
+<meta name="description" content="Words become edits to embodied action on the Odyssey film's LDraw minifigs, regulated by motion, causal and media temperatures and by an Ashby homeostat. Four proof scenes: the Gate, the Blinding, the Sirens, the Hall.">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; --warm: #c0561b;
+  --m-voice: #0033cc; --m-stim: #7b2d8e; --m-intent: #a8801e; --m-action: #b3261e; --m-contact: #0b7a86; --m-body: #5d5a52; --m-world: #56660a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; --warm: #f0955a;
+  --m-voice: #6f8cff; --m-stim: #d38be6; --m-intent: #d8b25a; --m-action: #ff8a80; --m-contact: #5fd0dc; --m-body: #a09d94; --m-world: #bccb62; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; --warm: #f0955a;
+  --m-voice: #6f8cff; --m-stim: #d38be6; --m-intent: #d8b25a; --m-action: #ff8a80; --m-contact: #5fd0dc; --m-body: #a09d94; --m-world: #bccb62; }
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 72px; }
+h1, h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(36px, 7vw, 66px); line-height: .98; }
+h2 { font-size: 27px; margin: 38px 0 8px; padding-top: 10px; border-top: 3px solid var(--ink); }
+h3 { margin: 18px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; }
+a { color: var(--blue); }
+code { font: 13px ui-monospace, Menlo, monospace; }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { color: var(--muted); max-width: 840px; margin: 12px 0 16px; font-size: 16.5px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { border: 1.5px solid var(--rule); background: var(--card); padding: 12px 14px; min-width: 0; }
+.card b { display: block; margin-bottom: 4px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.scenes { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+button { font: 600 13px Inter, system-ui, sans-serif; padding: 7px 11px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; min-height: 36px; }
+button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.stage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+video { width: 100%; display: block; background: #000; aspect-ratio: 16 / 9; }
+.vbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.vbar .t { font: 600 13px ui-monospace, Menlo, monospace; margin-left: auto; }
+canvas { display: block; width: 100%; }
+.why { font-size: 14px; }
+.why .chain { margin: 6px 0 0; padding: 0; list-style: none; }
+.why .chain li { padding: 3px 0 3px 10px; border-left: 3px solid var(--rule); margin: 2px 0; }
+.why .chain li .lane { font: 600 11px ui-monospace, Menlo, monospace; color: var(--muted); margin-right: 6px; }
+.why .chain li .lat { font: 11px ui-monospace, Menlo, monospace; color: var(--gold); }
+.muted { color: var(--muted); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--rule); padding: 5px 6px; text-align: left; vertical-align: top; }
+.tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.tbl td.n { font: 13px ui-monospace, Menlo, monospace; white-space: nowrap; }
+@media (max-width: 520px) { .tbl td.n { white-space: normal; word-break: break-word; font-size: 12px; } .tbl { font-size: 12.5px; } }
+.scroll { overflow-x: auto; max-width: 100%; }
+.good { color: var(--ok); font-weight: 600; } .badv { color: var(--bad); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); margin: 6px 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+.lanewrap { border: 1.5px solid var(--rule); background: var(--card); padding: 8px; }
+.row2 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+select { font: 13px Inter, system-ui, sans-serif; padding: 6px 8px; min-height: 36px; background: var(--card); color: var(--ink); border: 1.5px solid var(--rule); max-width: 100%; }
+.steps { display: grid; gap: 10px; }
+.step { border: 1.5px solid var(--rule); background: var(--card); padding: 10px 12px; }
+.step .q { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; font-weight: 700; }
+.pill { display: inline-block; font: 600 11px ui-monospace, Menlo, monospace; padding: 1px 6px; border: 1px solid var(--rule); margin: 0 4px 4px 0; }
+.note { border-left: 4px solid var(--gold); padding: 6px 12px; color: var(--muted); font-size: 14px; margin: 10px 0; }
+footer { margin-top: 42px; color: var(--muted); font-size: 13px; }
+.theme { position: fixed; right: 12px; bottom: 12px; z-index: 5; background: var(--card); }
+</style>
+</head>
+<body>
+<main>
+<div class="kicker">The Odyssey film · tools/perform</div>
+<h1>The Performance Engine</h1>
+<p class="lede">The acted sheets moved every figure in four drawings out of five, and read as restless puppets. The engine measures the other thing:
+  whether a figure's <b>state changes for a reason</b>. Words become intents, intents become the body's keys on the film's own minifig rigs, and
+  every key has a cause you can ask for. A stillness is a held moment with a reason. Three temperatures and an Ashby homeostat regulate the
+  whole without ever animating anything themselves.</p>
+
+<div class="cols">
+  <div class="card"><b>1. The score</b><p>Lanes from meaning to mechanics: voice, stimulus, intent, action, contact above the body (root, weight, torso, head, gaze, arms, hands, legs, face, prop) and the world (camera, light, set, effects). Every event names its causes and their latency.</p></div>
+  <div class="card"><b>2. The intent compiler</b><p>An utterance (speaker, addressee, phrases, stresses, speech act, affect, goal) becomes an intent with parameters; the intent becomes keys: before the voice, on the stress, after, the transition. Patch the intent and the body is derived again.</p></div>
+  <div class="card"><b>3. Coupling</b><p>Props with grips and ownership (the spear handed over), constraints (a man bound to a mast), one phase clock for rowers, a chain from oars to hull to rope to a straining torso, combat as relations where each action causes the next.</p></div>
+  <div class="card"><b>4. Metrics</b><p>Each figure, each drawing: action, reaction, alive hold or dead. Coverage, unmotivated freeze and action, reaction latency, gestures per phrase, channel diversity, contact integrity, pose legality from the LDraw parts.</p></div>
+  <div class="card"><b>5. Three temperatures</b><p>Motion heat (joint and root velocities, conducted through what couples bodies), causal heat (the entropy of each actor's reachable actions), media temperature (McLuhan: how much the shot defines). Contrast and viability are built on them.</p></div>
+  <div class="card"><b>6. The homeostat</b><p>Four units watch four essential variables. When one leaves its band, its uniselector steps the compiler's parameters to a new position; the first configuration with all four in band is kept, every attempt logged. The coupled version runs the Blinding.</p></div>
+</div>
+
+<h2 id="scene">The four proofs</h2>
+<div class="scenes" id="scenes"></div>
+<p class="lede" id="sceneNote"></p>
+<div class="stage">
+  <div>
+    <video id="vid" controls playsinline preload="metadata"></video>
+    <div class="vbar"><span class="muted" style="font-size:13px">Show</span><span id="srcs"></span><span class="t" id="tnow">0.00 s</span></div>
+  </div>
+  <div>
+    <div class="card"><h3 style="margin-top:0">The needles</h3><canvas id="needles" height="120"></canvas><p class="muted" style="font-size:12.5px;margin:6px 0 0" id="needleNote"></p></div>
+    <div class="card why" style="margin-top:10px"><h3 style="margin-top:0">Why is it moving here?</h3><div id="why" class="muted">Tap an interval on the lanes below, or play.</div></div>
+  </div>
+</div>
+
+<h3>The lanes: meaning above mechanics</h3>
+<div class="row2"><label class="muted" for="who" style="font-size:13px">Body lanes of</label><select id="who"></select><span class="muted" style="font-size:12.5px">Tap an interval: its causal chain appears above. The playhead follows the video.</span></div>
+<div class="legend"><span><i style="background:var(--m-voice)"></i>voice</span><span><i style="background:var(--m-stim)"></i>stimulus</span><span><i style="background:var(--m-intent)"></i>intent, hold</span><span><i style="background:var(--m-action)"></i>action</span><span><i style="background:var(--m-contact)"></i>contact</span><span><i style="background:var(--m-body)"></i>body</span><span><i style="background:var(--m-world)"></i>world</span></div>
+<div class="lanewrap"><canvas id="lanes"></canvas></div>
+
+<h3>Before and after</h3>
+<p class="muted" style="font-size:14px">Before: the acted sheet (tools/choreograph.js's rough pass with its fill, and the rig desk's hand keys). After: the performed sheet the score compiles to. Screen time through the film's own shot cameras.</p>
+<div class="scroll"><table class="tbl" id="metrics"></table></div>
+
+<h3>The temperatures</h3>
+<canvas id="heat" height="170"></canvas>
+<div class="legend" id="heatLegend"></div>
+<div class="cols" style="margin-top:10px">
+  <div class="card"><b>Hottest causal events</b><p class="muted" style="font-size:12.5px">The change each caused in the entropy of those who could see or hear it (bits, 0.2 s before to 0.6 s after).</p><div class="scroll"><table class="tbl" id="causalTop"></table></div></div>
+  <div class="card"><b>The declared action sets</b><p class="muted" style="font-size:12.5px">Each actor's reachable actions over two seconds, with the features that weigh them. p = softmax(u / tau); S = -sum p log2 p.</p><div id="actions" style="font-size:13px"></div></div>
+</div>
+
+<h3>The homeostat</h3>
+<div id="homeo"></div>
+
+<div id="special"></div>
+
+<h3>From animatic to animatronic</h3>
+<div id="hw"></div>
+
+<h2>What this is, and is not</h2>
+<div class="note">Motion heat is an activity variable with the form of a temperature: velocities squared, integrated with a time constant, passed along
+  couplings by a stated table of materials. It is not a simulation of physical heat. Causal heat is the entropy of a declared, hand-written model
+  of each actor's options; its numbers are only as good as the declarations shown above. McLuhan's hot and cool are about how much a medium
+  specifies and how much the audience completes; the media temperature here measures the cut (what is shown, how large, whether cause and effect
+  share a shot), not thermodynamics.</div>
+<div class="note">Polyphemus is a staged prop in the film's takes, not a rig: in the previz he is drawn from his needle (his arousal), and in the
+  render his body is the layout's. The camera is the take's own shot plan: the engine records requests for the cut (follow the hot spot, elide an
+  effect) on the camera lane but does not rewrite the shots. The layout (the blocking) is kept: the engine retimes a layout move as a whole when a
+  cause asks for it, and cancels one where a constraint forbids it (the mast).</div>
+<footer>Engine: <code>tools/perform/</code> (README). Scores: <code>odyssey/score/</code>. The rig desk: <a href="../cascade/">the Odyssey in Cascade</a>. The dope sheet: <a href="../choreo/">the acted choreography</a>. Films: <a href="../../films.html">films</a>.</footer>
+</main>
+<button class="theme" id="theme" aria-label="Switch light and dark">Light / dark</button>
+<script>
+'use strict';
+const SCENES = [['OD-B01-S03', 'The Gate'], ['OD-B09-S09', 'The Blinding'], ['OD-B12-S03', 'The Sirens'], ['OD-B22-S01', 'The Hall']];
+const NOTES = { 'OD-B01-S03': 'Acting. Athena arrives and waits unattended; the suitors dice; Telemachus hears her spear on the stone, sees her, is ashamed, sets down his cup, rises, crosses, goes to her, welcomes her, takes her spear (two bodies, one grip, ownership changed and kept through scrubbing), turns and leads her in.',
+  'OD-B09-S09': 'The coupled homeostat. Four needles (Odysseus, Polyphemus, the crew, the fire and the cave) decide when the stake glows, when he decides, the thrust, the stir, the roar and the scatter. Disturb Polyphemus (a bowl knocked over at 33 s) and compare the crew breaking with the crew regulated.',
+  'OD-B12-S03': 'Machinery. The rowers on one clock with offsets, the hull as a damped oscillator driven by the stroke and the sea, the mast constraint over the layout\'s moves, rope tension, Odysseus\'s strain toward the Sirens and his head on them.',
+  'OD-B22-S01': 'Choreography by causal chain: the loose, the impact, the fall, the table over, the recoil and the flight, the search for weapons that are gone, the room turning back to the man in the door, the declaration.' };
+const LANE_COL = l => ({ VOICE: '--m-voice', STIMULUS: '--m-stim', INTENT: '--m-intent', ACTION: '--m-action', CONTACT: '--m-contact', CAMERA: '--m-world', LIGHT: '--m-world', 'SET/VEHICLE': '--m-world', FX: '--m-world' })[l] || '--m-body';
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const $ = id => document.getElementById(id), esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+let D = null, E = null, byId = new Map(), who = null, pick = null;
+const vid = $('vid');
+/* the scenes */
+$('scenes').innerHTML = SCENES.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
+$('scenes').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.s); };
+async function load(sid) {
+  for (const b of $('scenes').children) b.setAttribute('aria-pressed', b.dataset.s === sid);
+  D = await (await fetch('data/' + sid + '.json')).json();
+  E = D.events.map(x => ({ id: x[0], lane: x[1], actor: x[2], t0: x[3], t1: x[4], kind: x[5], label: x[6], because: x[7], lanes: x[8], heat: x[9], actors: x[10] })); byId = new Map(E.map(e => [e.id, e]));
+  $('sceneNote').textContent = NOTES[sid] || '';
+  const srcs = [['previz', D.media.previz, 'previz (heat)'], ['film', D.media.film, 'performed film'], ['acted', D.media.acted, 'acted film (before)']].filter(x => x[1]);
+  $('srcs').innerHTML = srcs.map(([k, u, n], i) => `<button data-u="${u}" aria-pressed="${i === 0}">${n}</button>`).join(' ');
+  $('srcs').onclick = e => { const b = e.target.closest('button'); if (!b) return; for (const c of $('srcs').children) c.setAttribute('aria-pressed', c === b); const t = vid.currentTime; vid.src = b.dataset.u; vid.currentTime = t; };
+  vid.src = srcs[0][1]; vid.poster = D.media.poster || '';
+  const ids = Object.keys(D.actors); who = ids.find(i => D.actors[i].principal) || ids[0];
+  $('who').innerHTML = ids.map(i => `<option value="${i}" ${i === who ? 'selected' : ''}>${esc(D.actors[i].short)}${D.actors[i].principal ? ' (principal)' : ''}</option>`).join('');
+  $('who').onchange = () => { who = $('who').value; drawLanes(); };
+  pick = null; renderMetrics(); renderCausal(); renderHomeo(); renderSpecial(); renderHw(); drawLanes(); drawHeat(); drawNeedles(0); showWhy(null);
+  $('needleNote').textContent = D.coupled ? 'The coupled homeostat: each needle a unit, -1 left to +1 right; the crew\'s band (green) is its limit while the plan is carried out.' : 'The four essential variables of the compiled scene against their bands (green): motion heat, causal variety, contrast, viability.';
+}
+/* the needles, in sync with the video */
+function drawNeedles(t) {
+  const c = $('needles'), W = c.clientWidth, H = 120, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
+  let N = [];
+  if (D.coupled) { const r = D.coupled.runs[0], i = Math.min(r.x[0].length - 1, Math.round(t * r.hz)); N = D.coupled.units.map((u, k) => ({ label: u, v: (r.x[k][i] + 1) / 2, band: u === 'CREW' ? [0, 0.775] : null, val: r.x[k][i].toFixed(2) })); }
+  else if (D.needles) { const i = Math.min(D.needles.H1.length - 1, Math.round(t * 12)); N = ['H1', 'H2', 'H3', 'H4'].map(k => { const b = D.bands[k].band, top = Math.max(b[1] * 2, 1e-3), v = D.needles[k][i]; return { label: { H1: 'MOTION', H2: 'CAUSAL', H3: 'CONTRAST', H4: 'VIABILITY' }[k], v: v / top, band: [b[0] / top, b[1] / top], val: v.toFixed(3), out: v < b[0] || v > b[1] }; }); }
+  const w = W / Math.max(1, N.length);
+  N.forEach((n, k) => { const cx = w * k + w / 2, cy = H * 0.72, r = Math.min(w * 0.42, H * 0.6), A = v => Math.PI * (1 - Math.max(0, Math.min(1, v)));
+    g.lineWidth = 1; g.strokeStyle = css('--rule'); g.beginPath(); g.arc(cx, cy, r, Math.PI, 0); g.stroke();
+    if (n.band) { g.lineWidth = 5; g.strokeStyle = css('--ok'); g.globalAlpha = 0.55; g.beginPath(); g.arc(cx, cy, r * 0.86, -A(n.band[0]), -A(n.band[1]), false); g.stroke(); g.globalAlpha = 1; }
+    const a = A(n.v); g.lineWidth = 2.5; g.strokeStyle = n.out ? css('--bad') : css('--ink'); g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * r, cy - Math.sin(a) * r); g.stroke();
+    g.fillStyle = css('--muted'); g.font = '600 10px ui-monospace, monospace'; g.textAlign = 'center'; g.fillText(n.label, cx, H - 16); g.fillText(n.val, cx, H - 4); });
+}
+/* the lanes */
+const LANE_H = 16;
+function laneRows() { const meaning = ['VOICE', 'STIMULUS', 'INTENT', 'ACTION', 'CONTACT'], body = ['ROOT', 'WEIGHT', 'TORSO', 'HEAD', 'GAZE', 'ARM.L', 'ARM.R', 'HAND.L', 'HAND.R', 'LEG.L', 'LEG.R', 'FACE', 'PROP'], world = ['CAMERA', 'LIGHT', 'SET/VEHICLE', 'FX'];
+  return [...meaning.map(l => ({ l, scope: 'all' })), ...body.map(l => ({ l, scope: 'who' })), ...world.map(l => ({ l, scope: 'all' }))]; }
+function inRow(e, row) { if (row.scope === 'who') { if (e.actor !== who && !(e.actors || []).includes(who)) return false; return e.lane === row.l || (e.lanes || []).includes(row.l); } if (row.l === 'ACTION' || row.l === 'INTENT' || row.l === 'CONTACT') return e.lane === row.l && (!who || e.actor === who || (e.actors || []).includes(who) || row.l !== 'ACTION'); return e.lane === row.l; }
+function drawLanes(t) {
+  if (!D) return; const c = $('lanes'), rows = laneRows(), W = c.clientWidth, L = W < 480 ? 64 : 92, H = rows.length * LANE_H + 18, g = c.getContext('2d');
+  c.style.height = H + 'px'; c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
+  const X = s => L + (W - L - 4) * s / D.total;
+  rows.forEach((row, k) => { const y = k * LANE_H; g.fillStyle = k % 2 ? 'transparent' : css('--rule'); g.globalAlpha = 0.25; g.fillRect(L, y, W - L, LANE_H); g.globalAlpha = 1;
+    g.fillStyle = row.scope === 'who' ? css('--muted') : css('--ink'); g.font = '600 9.5px ui-monospace, monospace'; g.textAlign = 'right'; g.fillText(W < 480 && row.l === 'SET/VEHICLE' ? 'SET' : row.l, L - 5, y + 11.5);
+    const col = css(LANE_COL(row.scope === 'who' ? 'BODY' : row.l));
+    for (const e of E) { if (!inRow(e, row)) continue; const x0 = X(e.t0), x1 = Math.max(x0 + 2, X(e.t1)); g.fillStyle = col; g.globalAlpha = e.kind === 'HOLD' ? 0.35 : (row.scope === 'all' && row.l === 'ACTION' && e.actor !== who) ? 0.25 : 0.8; g.fillRect(x0, y + 3, x1 - x0, LANE_H - 6); }
+    g.globalAlpha = 1; });
+  g.strokeStyle = css('--rule'); g.beginPath(); g.moveTo(L, 0); g.lineTo(L, H - 18); g.stroke();
+  g.fillStyle = css('--muted'); g.font = '10px ui-monospace, monospace'; g.textAlign = 'center'; for (let s = 0; s <= D.total; s += D.total > 60 ? 10 : 5) g.fillText(s + 's', X(s), H - 4);
+  if (pick) { const k = rows.findIndex(r => r.l === pick.row); if (k >= 0) { g.strokeStyle = css('--ink'); g.lineWidth = 2; g.strokeRect(X(pick.e.t0) - 1, k * LANE_H + 1, Math.max(4, X(pick.e.t1) - X(pick.e.t0)) + 2, LANE_H - 2); } }
+  const tt = t != null ? t : vid.currentTime || 0; g.strokeStyle = css('--bad'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(tt), 0); g.lineTo(X(tt), H - 18); g.stroke();
+}
+$('lanes').addEventListener('click', ev => { if (!D) return; const c = $('lanes'), r = c.getBoundingClientRect(), W = c.clientWidth, L = W < 480 ? 64 : 92, x = ev.clientX - r.left, y = ev.clientY - r.top, rows = laneRows(), k = Math.floor(y / LANE_H);
+  if (k < 0 || k >= rows.length) return; const t = (x - L) / (W - L - 4) * D.total; if (t < 0) return;
+  const hits = E.filter(e => inRow(e, rows[k]) && t >= e.t0 - 0.15 && t <= e.t1 + 0.15).sort((a, b) => (a.t1 - a.t0) - (b.t1 - b.t0));
+  if (hits.length) { pick = { e: hits[0], row: rows[k].l }; showWhy(hits[0]); vid.currentTime = Math.max(0, t); } drawLanes(t); });
+/* why: the chain from an event up through its causes */
+function chainOf(e0, depth = 7) { const out = [], seen = new Set(); let cur = [{ e: e0, lat: null, d: 0 }];
+  while (cur.length && out.length < 40) { const nx = []; for (const { e, lat, d } of cur) { if (seen.has(e.id)) continue; seen.add(e.id); out.push({ e, lat, d }); if (d >= depth) continue; for (const [id, l] of e.because || []) { const c = byId.get(id); if (c) nx.push({ e: c, lat: l, d: d + 1 }); } } cur = nx; }
+  return out; }
+function showWhy(e) { if (!e) { $('why').innerHTML = '<span class="muted">Tap an interval on the lanes below, or play: the hottest principal\'s chain follows the playhead.</span>'; return; }
+  const ch = chainOf(e), name = id => id ? (D.actors[id] ? D.actors[id].short : id) : 'the scene';
+  $('why').innerHTML = `<div><b>${esc(name(e.actor))}</b>, ${e.t0.toFixed(2)} to ${e.t1.toFixed(2)} s: <b>${esc(ch.map(c => c.e.kind + (c.e.label ? ' (' + c.e.label + ')' : '')).slice(0, 4).join(' / '))}</b></div>
+    <ul class="chain">${ch.map(c => `<li style="margin-left:${c.d * 10}px"><span class="lane">${esc(c.e.lane)}</span>${esc(c.e.kind)}${c.e.actor ? ' <span class="muted">' + esc(name(c.e.actor)) + '</span>' : ''} <span class="muted">${esc(c.e.label || '')}</span> <span class="lat">${c.e.t0.toFixed(2)} s${c.lat != null ? ', +' + c.lat + ' s after its cause' : ''}</span></li>`).join('')}</ul>`; }
+function autoWhy(t) { if (pick || !D) return; const ids = Object.keys(D.actors).filter(i => D.actors[i].principal); let best = null;
+  for (const id of ids) { const here = E.filter(e => (e.actor === id) && e.lane === 'ACTION' && t >= e.t0 && t <= e.t1); if (here.length) { best = here.sort((a, b) => (a.t1 - a.t0) - (b.t1 - b.t0))[0]; break; } }
+  if (!best) for (const id of ids) { const here = E.filter(e => e.actor === id && e.lane === 'INTENT' && t >= e.t0 && t <= e.t1); if (here.length) { best = here[0]; break; } }
+  if (best && best !== autoWhy.last) { autoWhy.last = best; showWhy(best); } }
+/* metrics */
+function renderMetrics() { const m = D.measures; if (!m) { $('metrics').innerHTML = ''; return; }
+  const b = m.before.summary, a = m.after.summary, pc = v => v == null ? '-' : (v * 100).toFixed(1) + '%', s = v => v == null ? '-' : v + ' s';
+  const rows = [['Performance coverage (action, reaction or alive hold, share of screen time)', pc(b.coverage), pc(a.coverage), 'high'], ['Literal movement (action or reaction)', pc(b.literal), pc(a.literal), 'info'], ['Dead (no motivated state change, no reason to hold)', pc(b.share.DEAD), pc(a.share.DEAD), 'low'],
+    ['Unmotivated freeze (the longest dead run)', s(b.freeze) + (b.freezeBy ? ' (' + esc((D.actors[b.freezeBy] || {}).short || b.freezeBy) + ')' : ''), s(a.freeze) + (a.freezeBy ? ' (' + esc((D.actors[a.freezeBy] || {}).short || a.freezeBy) + ')' : ''), 'low'],
+    ['Unmotivated action (spans with no cause, no cue, no stimulus answered)', pc(b.unmotivated), pc(a.unmotivated), 'low'], ['Reaction latency (median, 90th)', b.latency.median != null ? b.latency.median + ' / ' + b.latency.p90 + ' s' : '-', a.latency.median != null ? a.latency.median + ' / ' + a.latency.p90 + ' s' : '-', 'info'],
+    ['Stimuli answered within 1.2 s', b.latency.answered + ' of ' + (b.latency.answered + b.latency.unanswered), a.latency.answered + ' of ' + (a.latency.answered + a.latency.unanswered), 'info'], ['Gestures per spoken phrase', b.gestures == null ? '-' : b.gestures, a.gestures == null ? '-' : a.gestures, 'info'], ['Channel diversity (0 to 1)', b.diversity, a.diversity, 'info'],
+    ['Feet sliding (drawings)', b.slide, a.slide, 'low'], ['Hands apart at a handoff', b.handoffs.map(h => h.gap + ' units' + (h.mirrored ? ' (to the other hand)' : '')).join(', ') || '-', a.handoffs.map(h => h.gap + ' units' + (h.mirrored ? ' (to the other hand)' : '')).join(', ') || '-', 'low'],
+    ['Joint requests past the toy\'s limits', b.legality.requests, a.legality.requests, 'low'], ['Hands inside a torso or head', b.legality.collisions, a.legality.collisions, 'low'], ['Figures inside each other (drawings)', b.legality.overlaps, a.legality.overlaps, 'low'],
+    ['H1 motion heat (mean)', m.before.essentials.H1, m.after.essentials.H1, 'info'], ['H2 causal variety (bits/s per actor)', m.before.essentials.H2, m.after.essentials.H2, 'info'], ['H3 contrast (hottest on screen minus the room)', m.before.essentials.H3, m.after.essentials.H3, 'info'], ['H4 viability cost', m.before.essentials.H4, m.after.essentials.H4, 'low']];
+  const num = v => parseFloat(String(v)), cls = (x, y, want) => { if (want === 'info') return ''; const p = num(x), q = num(y); if (!isFinite(p) || !isFinite(q) || p === q) return ''; return (want === 'high' ? q > p : q < p) ? 'good' : 'badv'; };
+  $('metrics').innerHTML = '<tr><th>Measure</th><th>Before</th><th>After</th></tr>' + rows.map(([k, x, y, w]) => `<tr><td>${k}</td><td class="n">${x}</td><td class="n ${cls(x, y, w)}">${y}</td></tr>`).join(''); }
+/* the temperatures */
+function drawHeat() { const c = $('heat'), W = c.clientWidth, H = 170, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
+  if (!D.heat) return; const hz = D.heat.hz, n = D.heat.CT.length, X = i => i / (n - 1) * W, ids = Object.keys(D.heat.Tm), top = 60;
+  /* a strip per actor: motion heat as colour */
+  const rh = top / Math.max(1, ids.length); ids.forEach((id, k) => { const a = D.heat.Tm[id]; for (let i = 0; i < n; i++) { const u = 1 - Math.exp(-(a[i] || 0) / 0.8); g.fillStyle = `rgba(${Math.round(60 + 195 * u)},${Math.round(90 + 90 * u * (1 - u) * 2)},${Math.round(180 - 150 * u)},${0.15 + 0.85 * u})`; g.fillRect(X(i), k * rh, W / n + 1, rh - 0.5); } });
+  const plot = (a, col, lo, hi, y0, h) => { if (!a) return; g.strokeStyle = col; g.lineWidth = 1.5; g.beginPath(); a.forEach((v, i) => { const y = y0 + h - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * h; i ? g.lineTo(X(i), y) : g.moveTo(X(i), y); }); g.stroke(); };
+  const mx = a => Math.max(1e-3, ...a.map(Number).filter(isFinite));
+  plot(D.heat.CT, css('--warm'), 0, mx(D.heat.CT), top + 8, 44); plot(D.heat.Tc, css('--m-stim'), 0, mx(D.heat.Tc), top + 8, 44); plot(D.heat.Tmedia, css('--blue'), 0, 1, top + 58, 44); plot(D.heat.V, css('--bad'), 0, Math.max(0.05, mx(D.heat.V)), top + 58, 44);
+  $('heatLegend').innerHTML = `<span>top: motion heat per figure (${ids.map(i => esc(D.actors[i] ? D.actors[i].short : i)).join(', ')})</span><span><i style="background:var(--warm)"></i>contrast C_T</span><span><i style="background:var(--m-stim)"></i>causal change rate</span><span><i style="background:var(--blue)"></i>media temperature (0 to 1)</span><span><i style="background:var(--bad)"></i>viability cost</span>`; }
+function renderCausal() { const top = (D.heat && D.heat.top) || [], name = id => D.actors[id] ? D.actors[id].short : id;
+  $('causalTop').innerHTML = '<tr><th>Event</th><th>dS</th><th>T_m</th></tr>' + top.map(h => { const e = byId.get(h.id); return `<tr><td>${esc(e ? (e.actor ? name(e.actor) + ': ' : '') + e.kind + ' ' + (e.label || '').slice(0, 50) : h.id)} <span class="muted">${e ? e.t0.toFixed(1) + ' s' : ''}</span></td><td class="n ${h.dS < 0 ? 'badv' : 'good'}">${h.dS > 0 ? '+' : ''}${h.dS}</td><td class="n">${h.Tm}</td></tr>`; }).join('');
+  const A = (D.causal && D.causal.actions) || {}; $('actions').innerHTML = Object.entries(A).slice(0, 6).map(([id, acts]) => `<div style="margin:6px 0"><b style="display:inline">${esc(name(id))}</b>: ${acts.map(a => `<span class="pill">${esc(a.a)}</span>`).join('')}<div class="muted" style="font-size:12px">${acts.slice(0, 3).map(a => esc(a.a) + ' = ' + a.base + Object.entries(a.f).map(([k, w]) => (w >= 0 ? ' + ' : ' - ') + Math.abs(w) + ' ' + esc(k)).join('')).join('; ')}</div></div>`).join('') + (Object.keys(A).length > 6 ? '<div class="muted">and ' + (Object.keys(A).length - 6) + ' more</div>' : ''); }
+function renderHomeo() { const b = D.bands, m = D.measures, P = D.params || {}, defs = D.paramDefs || {};
+  let h = `<div class="scroll"><table class="tbl"><tr><th>Unit</th><th>Band</th><th>Before</th><th>After</th><th>Wired to</th></tr>${['H1', 'H2', 'H3', 'H4'].map(k => { const bd = b[k].band, v0 = m ? m.before.essentials[k] : null, v1 = m ? m.after.essentials[k] : null, inb = v => v != null && v >= bd[0] && v <= bd[1];
+    return `<tr><td>${{ H1: 'H1 motion', H2: 'H2 causal variety', H3: 'H3 contrast', H4: 'H4 viability' }[k]}</td><td class="n">${esc(b[k].word)} [${bd[0]}, ${bd[1]}]</td><td class="n ${inb(v0) ? 'good' : 'badv'}">${v0}</td><td class="n ${inb(v1) ? 'good' : 'badv'}">${v1}</td><td style="font-size:12.5px">${(D.homeostat.wiring[k] || []).join(', ')}</td></tr>`; }).join('')}</table></div>`;
+  h += `<p class="muted" style="font-size:13px">Scene type: <b>${esc(D.type)}</b>. The compiler's parameters now: ${Object.entries(P).map(([k, v]) => `<span class="pill">${esc(k)} ${v}${defs[k] && defs[k].unit ? ' ' + defs[k].unit : ''}</span>`).join('')}</p>`;
+  if (D.homeostat.log && D.homeostat.log.length) h += `<div class="scroll"><table class="tbl"><tr><th>#</th><th>Positions</th><th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>Out</th></tr>${D.homeostat.log.map(r => `<tr><td class="n">${r.n}</td><td class="n">${Object.values(r.positions).join(' ')}</td>${['H1', 'H2', 'H3', 'H4'].map(k => `<td class="n">${r.reading[k]}</td>`).join('')}<td>${r.out.join(', ') || '<span class="good">none: kept</span>'}</td></tr>`).join('')}</table></div>`;
+  $('homeo').innerHTML = h; }
+function renderHw() { const w = D.hardware; if (!w) { $('hw').innerHTML = ''; return; }
+  $('hw').innerHTML = `<p style="max-width:840px">The same score, as a stop-motion <a href="${w.posesheet}">pose sheet</a> (every drawing on twos, every joint in degrees as set on the toy, what each hand holds, the contacts, the state and the reason) and a <a href="${w.servo}">servo timeline</a> (channel, time, angle, velocity, limits, and an estimated power from a stated model of a 0.30 m puppet). On a physical rig, encoder velocity, an IMU, V x I at the drivers and the motors' thermistors would calibrate the motion heat: a thermistor's reading is a first-order response to I squared R, the same form as T_m.</p>
+    <div class="scroll"><table class="tbl"><tr><th>Channel</th><th>Estimated energy over the scene</th></tr>${Object.entries(w.energy || {}).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="n">${v} J</td></tr>`).join('')}</table></div>`; }
+/* the Blinding's experiment, the Gate's chain */
+function renderSpecial() { let h = '';
+  if (D.coupled) { const C = D.coupled, runs = C.runs, fmt = v => v == null ? '-' : typeof v === 'number' ? v.toFixed(2) + ' s' : String(v);
+    h += `<h2>The Blinding: four needles, disturbed</h2><p class="lede">Each unit is a needle x with tau dx/dt = -x + tanh(sum W x + u(t)): ODYSSEUS (resolve), POLYPHEMUS (arousal), CREW (fear), ENVIRONMENT (the fire and the stake's heat). The score's drives u are the wine, the fire, the glowing stake, the thrust's pain. The needles' crossings are the scene's timings. While they carry out the plan the crew must stay under 0.55 (they would drop the stake). Disturb Polyphemus with a bowl knocked over at 33 s: with the uniselectors held the crew breaks; regulated, the crew's uniselector steps once, to a new wiring, and a new stable choreography follows.</p>`;
+    h += `<canvas id="cpl" height="260"></canvas><div class="legend">${C.units.map((u, k) => `<span><i style="background:${['#3498db', '#e74c3c', '#27ae60', '#f39c12'][k]}"></i>${u}</span>`).join('')}<span>solid: undisturbed; dashed: disturbed, held; dotted: disturbed, regulated</span></div>`;
+    const keys = ['asleep', 'glow', 'decide', 'thrust', 'stir', 'brokeAt', 'roar', 'scatter'], lab = { asleep: 'he sleeps', glow: 'the stake glows', decide: 'Odysseus decides', thrust: 'the thrust', stir: 'he stirs', brokeAt: 'the crew breaks', roar: 'the roar', scatter: 'the scatter' };
+    h += `<div class="scroll"><table class="tbl"><tr><th>When</th>${runs.map(r => `<th>${esc(r.label)}</th>`).join('')}</tr>${keys.map(k => `<tr><td>${lab[k]}</td>${runs.map(r => `<td class="n">${fmt(r.events[k])}</td>`).join('')}</tr>`).join('')}<tr><td>why the scatter</td>${runs.map(r => `<td style="font-size:12.5px">${esc(r.events.scatterWhy || '-')}</td>`).join('')}</tr><tr><td>uniselector steps</td>${runs.map(r => `<td style="font-size:12.5px">${r.steps.length ? r.steps.map(s => esc(s.unit) + ' at ' + s.t + ' s to position ' + s.position + ': ' + s.row.map(v => v.toFixed(2)).join(', ')).join('; ') : 'none'}</td>`).join('')}</tr></table></div>`;
+    h += `<div class="cols" style="margin-top:12px">${runs.filter(r => r.media).map(r => `<div class="card"><b>${esc(r.label)}</b><video controls playsinline preload="none" src="${r.media}" style="margin-top:6px"></video></div>`).join('')}</div>`;
+    h += `<p class="muted" style="font-size:13px">The wiring (rows: what moves each unit; columns: ODYSSEUS, POLYPHEMUS, CREW, ENVIRONMENT): ${C.W0.map((r, i) => C.units[i] + ' [' + r.join(', ') + ']').join('; ')}. Model: <code>${esc(C.model)}</code>.</p>`; }
+  if (D.chain) { const S = D.chain.steps;
+    h += `<h2>Five instructions, one timeline</h2><p class="lede">Each instruction is a row in a deterministic table (<code>tools/perform/patches.js</code>) that rewrites intents, affects or the homeostat's bands; never "move more". Where bands change the homeostat searches for parameters; where the patch locks the choreography it does not. Each step is diffed against the one before.</p><div class="steps">`;
+    S.forEach((s, i) => { if (i === 0) { h += `<div class="step"><div class="q">As authored</div><div class="muted" style="font-size:13px">H1 ${s.essentials.H1} · H2 ${s.essentials.H2} · H3 ${s.essentials.H3} · H4 ${s.essentials.H4} · coverage ${(s.metrics.coverage * 100).toFixed(1)}% · literal ${(s.metrics.literal * 100).toFixed(1)}% · gestures/phrase ${s.metrics.gestureDensity}</div></div>`; return; }
+      const d = s.diff || { counts: {} }, bd = Object.entries(s.body || {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      h += `<div class="step"><div class="q">${i}. "${esc(s.text)}"</div><div style="font-size:14px;margin:4px 0">${esc(s.did || s.error || '')}</div>
+        <div class="muted" style="font-size:13px">${s.lock ? '<span class="pill">choreography locked</span>' : ''}${s.homeostat ? `<span class="pill">homeostat: ${s.homeostat.stable ? 'in band after ' + s.homeostat.attempts + ' attempts' : 'not in band in ' + s.homeostat.attempts + ' attempts; nearest kept (attempt ' + s.homeostat.retained + ')'}</span>` : ''}
+        <span class="pill">+${d.counts.added || 0} added</span><span class="pill">-${d.counts.removed || 0} removed</span><span class="pill">${d.counts.shifted || 0} shifted</span><span class="pill">${d.counts.changed || 0} changed</span><span class="pill">intents moved: ${d.intentsShifted || 0}</span></div>
+        <div class="muted" style="font-size:13px">After: H1 ${s.essentials.H1} · H2 ${s.essentials.H2} · H3 ${s.essentials.H3} · H4 ${s.essentials.H4} · coverage ${(s.metrics.coverage * 100).toFixed(1)}% · literal ${(s.metrics.literal * 100).toFixed(1)}% · gestures/phrase ${s.metrics.gestureDensity} · handoff gap ${(s.metrics.handoffs || []).join(', ')} · bands H1 [${s.bands.H1.band}] H3 [${s.bands.H3.band}]</div>
+        ${bd.length ? `<div class="muted" style="font-size:12.5px">Most changed bodies (mean channel change, rad): ${bd.map(([k, v]) => esc((D.actors[k] || {}).short || k) + ' ' + v).join(', ')}</div>` : ''}
+        ${d.changed && d.changed.length ? `<div style="font-size:12.5px">Changed: ${d.changed.map(x => esc((D.actors[x.actor] || {}).short || x.actor) + ' ' + esc(x.kind) + ' to ' + esc(x.to)).join('; ')}</div>` : ''}
+        ${d.shifted && d.shifted.length ? `<div style="font-size:12.5px">Shifted: ${d.shifted.slice(0, 8).map(x => esc((D.actors[x.actor] || {}).short || x.actor) + ' ' + esc(x.kind) + ' ' + (x.dt0 > 0 ? '+' : '') + x.dt0 + ' s').join('; ')}${d.shifted.length > 8 ? ' ...' : ''}</div>` : ''}
+        ${d.added && d.added.length ? `<div style="font-size:12.5px">Added: ${d.added.slice(0, 8).map(x => esc((D.actors[x.actor] || {}).short || x.actor || '') + ' ' + esc(x.kind) + ' ' + x.t0 + ' s').join('; ')}${d.added.length > 8 ? ' ...' : ''}</div>` : ''}
+        <canvas class="tl" data-i="${i}" height="54"></canvas></div>`; });
+    h += '</div>'; }
+  $('special').innerHTML = h;
+  if (D.coupled) drawCoupled(); if (D.chain) drawChainTimelines(); }
+function drawCoupled() { const c = $('cpl'), W = c.clientWidth, H = 260, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); g.clearRect(0, 0, W, H);
+  const runs = D.coupled.runs, n = runs[0].x[0].length, X = i => i / (n - 1) * W, Y = v => 10 + (1 - (v + 1) / 2) * (H - 30), cols = ['#3498db', '#e74c3c', '#27ae60', '#f39c12'];
+  g.strokeStyle = css('--rule'); g.lineWidth = 1; for (const v of [-1, 0, 1]) { g.beginPath(); g.moveTo(0, Y(v)); g.lineTo(W, Y(v)); g.stroke(); }
+  g.fillStyle = css('--ok'); g.globalAlpha = 0.12; g.fillRect(0, Y(0.55), W, Y(-1) - Y(0.55)); g.globalAlpha = 1;
+  runs.forEach((r, ri) => { g.setLineDash(ri === 0 ? [] : ri === 1 ? [6, 4] : [2, 3]); r.x.forEach((a, k) => { g.strokeStyle = cols[k]; g.lineWidth = ri === 0 ? 2 : 1.6; g.beginPath(); a.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v))); g.stroke(); }); });
+  g.setLineDash([]); g.fillStyle = css('--muted'); g.font = '10px ui-monospace, monospace'; g.textAlign = 'center'; const T = D.total; for (let s = 0; s <= T; s += 10) g.fillText(s + 's', X(s / T * (n - 1)), H - 4); }
+function drawChainTimelines() { for (const c of document.querySelectorAll('canvas.tl')) { const s = D.chain.steps[+c.dataset.i], p = D.chain.steps[+c.dataset.i - 1], W = c.clientWidth, H = 54, g = c.getContext('2d'); c.width = W * devicePixelRatio; c.height = H * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio);
+  const X = t => t / D.total * W, draw = (tl, y, col) => { for (const x of tl || []) { g.fillStyle = col; g.globalAlpha = x[0] === 'INTENT' ? 0.35 : 0.8; g.fillRect(X(x[3]), y, Math.max(2, X(x[4]) - X(x[3])), x[0] === 'INTENT' ? 8 : 6); } g.globalAlpha = 1; };
+  draw(p.timeline, 6, css('--muted')); draw(s.timeline, 28, css('--m-action')); g.fillStyle = css('--muted'); g.font = '10px ui-monospace, monospace'; g.fillText('before', 2, 4 + 20); g.fillText('after', 2, 26 + 22); } }
+/* the clock: the video drives the needles, the playhead and the why */
+function tick() { const t = vid.currentTime || 0; $('tnow').textContent = t.toFixed(2) + ' s'; if (D) { drawNeedles(t); drawLanes(t); autoWhy(t); } }
+vid.addEventListener('timeupdate', tick); vid.addEventListener('seeked', tick);
+(function loop() { if (!vid.paused) tick(); requestAnimationFrame(loop); })();
+window.addEventListener('resize', () => { if (D) { drawLanes(); drawHeat(); drawNeedles(vid.currentTime || 0); if (D.coupled) drawCoupled(); if (D.chain) drawChainTimelines(); } });
+$('theme').onclick = () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('perform-theme', r.dataset.theme); } catch (e) {} if (D) { renderSpecial(); drawLanes(); drawHeat(); drawNeedles(vid.currentTime || 0); } };
+try { const th = localStorage.getItem('perform-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+const q = (location.hash.match(/OD-B\d\d-S\d\d/) || [])[0];
+load(q && SCENES.some(s => s[0] === q) ? q : 'OD-B01-S03');
+</script>
+</body>
+</html>
