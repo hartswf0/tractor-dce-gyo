@@ -117,7 +117,7 @@ async function solve(plan, api) {
       const upper = [head, eye, crown, P('grip.R'), P('grip.L'), P('lap')].filter(Boolean);
       const Hc = box ? Math.max(box.max.y - box.min.y, 0.6 * (box.max.x - box.min.x), 0.6 * (box.max.z - box.min.z)) : 3 * H0;
       const lying = !!box && (box.max.y - box.min.y) < 0.7 * Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
-      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: null, box };
+      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: (() => { const f = eye.clone().sub(head).setY(0); return f.length() > 0.02 * H0 ? f.normalize() : null; })(), box };   /* a beast faces where its eye is from its head */
     }
     const a = api.kfActor(id); if (!a || a.rig.figure.visible === false || a.rig.absent) return null; const r = a.rig, H = Hof(id);
     const head = api.kfHead(id), crown = head.clone().add(new V3(0, 0.2 * H, 0)), chin = head.clone().add(new V3(0, -0.14 * H, 0));
@@ -259,6 +259,9 @@ async function solve(plan, api) {
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
+    if (prim.creature && prim.facing && sh.size !== 'WIDE' && ['GIANT', 'TWO', 'REACT', 'HOT'].includes(sh.kind) && info.facing < -0.1 && !prim.lying) return { fail: ['L3 the back of ' + prim.id], info };
+    /* R10 an offer: the lens on the man's side of the giant (behind or beside the giver, looking up past him) */
+    if (sh.offer) { const G = S.find(x => x.id === sh.offer); if (G) { const v = pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(prim.feet || prim.head).setY(0).normalize(); if (v.dot(w) < 0.1) return { fail: ['L5 not on the giver\'s side of the offer'], info }; } }
     if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < 0.15) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };   /* the face itself toward the lens (the head's own forward) */
     return { fail, info };
   }
@@ -320,6 +323,7 @@ async function solve(plan, api) {
   function score(cand, res, sh, prevCam) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
+    if (sh.giant && sh.size !== 'WIDE') s += 0.8 * Math.max(-0.5, Math.min(1, I.facing));   /* the giant's face, not his back */
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
