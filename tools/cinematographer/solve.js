@@ -235,7 +235,7 @@ async function solve(plan, api) {
     const hq = proj(sh.kind === 'INSERT' ? prim.eye : prim.head); info.headV = +hq[1].toFixed(3);
     /* the face in the upper half; in a wide (the figures small in the set) above the caption */
     if (!(prim.creature && sh.size === 'WIDE') && !(hq[1] <= (sh.size === 'WIDE' ? 0.68 : 0.5))) return { fail: ['L3 face of ' + prim.id + (sh.size === 'WIDE' ? ' under the caption' : ' below the middle')], info };
-    for (const p of need) { const q = proj(p); if (!(q[2] < 1 && q[0] > -0.01 && q[0] < 1.01 && q[1] > -0.01 && q[1] < 1.01)) { info.soft += 2; if (sh.size !== 'WIDE') return { fail: ['L4 the ' + (sh.size || '').toLowerCase() + ' needs more than the frame'], info }; break; } }
+    for (const p of need) { const q = proj(p); if (!(q[2] < 1 && q[0] > -0.01 && q[0] < 1.01 && q[1] > -0.01 && q[1] < 1.01)) { info.soft += sh.size === 'WIDE' ? 4 : 2;   /* a wide that cuts its figure is a near frame of his back, not a wide */ if (sh.size !== 'WIDE') return { fail: ['L4 the ' + (sh.size || '').toLowerCase() + ' needs more than the frame'], info }; break; } }
     const ins = inside(pos); if (ins.length) return { fail: ['L1 ' + ins[0]], info };
     { const nc = nearCreature(pos, S, sh.size); if (nc) return { fail: ['L1 ' + nc], info }; }
     /* a lens nearer a face than most of a body's height is inside the head's print, not a close-up */
@@ -324,6 +324,7 @@ async function solve(plan, api) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
     if (sh.giant && sh.size !== 'WIDE') s += 0.8 * Math.max(-0.5, Math.min(1, I.facing));   /* the giant's face, not his back */
+    if (sh.size === 'WIDE' && !sh.giant && !(pointsCache.get(sh.primary) || {}).creature) s += 0.7 * Math.max(-0.5, Math.min(1, I.facing));   /* a wide on a man: his front or side over his back (the gate's camera behind him held three shots of the Laestrygonian harbour) */
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
@@ -386,7 +387,9 @@ async function solve(plan, api) {
   for (const sh of plan.shots) {
     const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
     /* nobody the shot is on is in the scene at its middle (a figure not yet entered): the shot before runs on instead of an empty frame */
-    if (solved.length && (sh.subjects || []).length) { api.poseAt(mid); world(api.poseAt(mid)); const any = isCreature(sh.primary) ? !!points(sh.primary, mid) : !!points(sh.primary, mid) || [...(sh.subjects || [])].some(id => !isCreature(id) && points(id, mid));   /* the beasts standing by do not make the shot */
+    if (solved.length && (sh.subjects || []).length) { api.poseAt(mid); world(api.poseAt(mid)); let any = isCreature(sh.primary) ? !!points(sh.primary, mid) : !!points(sh.primary, mid) || [...(sh.subjects || [])].some(id => !isCreature(id) && points(id, mid));   /* the beasts standing by do not make the shot */
+      /* someone else (a man) is in the scene at its middle: a wide on him rather than running the shot before on past what it was checked for (a giant's wide ran on three seconds into empty sky) */
+      if (!any) { const alt = api.cast().find(id => !isCreature(id) && points(id, mid)); if (alt) { Object.assign(sh, { primary: alt, subjects: [alt], size: 'WIDE', kind: 'WIDE', line: null, contact: null, profile: false, giant: null, angle: 'eye', why: (sh.why ? sh.why + '; ' : '') + 'none of its figures in the scene at its middle: a wide on ' + alt }); any = true; } }
       if (!any) { const last = solved[solved.length - 1]; last.dur = t1 - last.t0; report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, planned: sh.size, eased: 'none of ' + [sh.primary, ...(sh.subjects || [])].join(', ') + ' is in the scene at its middle: the shot before runs on', primary: sh.primary, subjects: sh.subjects, why: sh.why, legal: true, merged: last.id, camera: null }); continue; } }
     const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
     const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
