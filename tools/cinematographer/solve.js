@@ -124,8 +124,8 @@ async function solve(plan, api) {
     const hips = r.hipsP.getWorldPosition(new V3()), torso = r.torsoP.getWorldPosition(new V3()), feet = r.pos.clone();
     const hR = api.kfHand(id, 'R'), hL = api.kfHand(id, 'L');
     const carrier = (W.crS || []).find(k => k.box.clone().expandByScalar(0.1 * H).containsPoint(hips) && hips.y < k.c.y + 0.2 * k.H);   /* a rider under a ram, in a giant's grip */
-    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: (() => { /* the way the body faces as posed (the torso's own forward), not the rig's stored heading */
-      const f = new V3(0, 0, 1).applyQuaternion(r.torsoP.getWorldQuaternion(new THREE.Quaternion())).setY(0); return f.lengthSq() > 0.04 ? f.normalize() : new V3(Math.sin(r.heading), 0, Math.cos(r.heading)); })() };
+    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: (() => { /* the way the face points as posed (the head part's own forward, the neck's turn included), not the rig's stored heading */
+      const f = new V3(0, 0, -1).applyQuaternion((r.headP || r.torsoP).getWorldQuaternion(new THREE.Quaternion())).setY(0);   /* the torso part faces its local -z (checked against stills: +z is its back) */ return f.lengthSq() > 0.04 ? f.normalize() : new V3(Math.sin(r.heading), 0, Math.cos(r.heading)); })() };
   }
 
   /* ── the camera: aimed at pts with the primary's head at (u, v) where the frame allows ── */
@@ -252,10 +252,14 @@ async function solve(plan, api) {
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
     const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45, S.map(x => x.id).concat(S.filter(x => x.carrier).map(x => x.carrier.id)));   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    /* an empty frame: most of the lattice of rays meets nothing (sky) or only the floor short of the subject, so the subject is a speck */
+    { let empty = 0, n = 0; const dd = pos.distanceTo(prim.head); for (let i = 0; i < 7; i++) for (let j = 0; j < 4; j++) { ray.setFromCamera(new THREE.Vector2(-0.9 + i * 0.3, -0.75 + j * 0.5), camera); n++;
+        const hs = gridRay(W.G, ray.ray.origin, ray.ray.direction, dd * 3, true); ray.near = 0; ray.far = dd * 3; if (!hs.length && !ray.intersectObjects(W.dyn, false).length) empty++; }
+      info.empty = empty / n; if (info.empty > 0.7) return { fail: ['L4 an empty frame (' + Math.round(info.empty * 100) + '% sky)'], info }; }
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
-    if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < -0.25) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };
+    if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < 0.15) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };   /* the face itself toward the lens (the head's own forward) */
     return { fail, info };
   }
   function needOf(S, sh, prim) {
@@ -377,6 +381,9 @@ async function solve(plan, api) {
   let prevCam = null, prevHold = null;
   for (const sh of plan.shots) {
     const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
+    /* nobody the shot is on is in the scene at its middle (a figure not yet entered): the shot before runs on instead of an empty frame */
+    if (solved.length && (sh.subjects || []).length) { api.poseAt(mid); world(api.poseAt(mid)); const any = isCreature(sh.primary) ? !!points(sh.primary, mid) : !!points(sh.primary, mid) || [...(sh.subjects || [])].some(id => !isCreature(id) && points(id, mid));   /* the beasts standing by do not make the shot */
+      if (!any) { const last = solved[solved.length - 1]; last.dur = t1 - last.t0; report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, planned: sh.size, eased: 'none of ' + [sh.primary, ...(sh.subjects || [])].join(', ') + ' is in the scene at its middle: the shot before runs on', primary: sh.primary, subjects: sh.subjects, why: sh.why, legal: true, merged: last.id, camera: null }); continue; } }
     const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
     const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
     /* the ladder: as planned; then (no legal camera) the primary alone one size wider; then a wide on the primary */
@@ -396,12 +403,12 @@ async function solve(plan, api) {
     let lum = null, lumRefused = 0;
     if (legal) { const ranked = alive.map(c => ({ c, s: score(c, c.res[0], use, prevCam) })).sort((a, b) => b.s - a.s); pick = ranked[0].c;
       /* the exposure: the best five in turn until one is neither black nor washed out (moving cameras are checked where they stand) */
-      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = moving ? null : lumaSpan(c, use, subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
+      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = lumaSpan(c, use, subj, t0, t1);   /* a travelling camera measured where it starts */ if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
       /* every camera tested was black or washed out: the primary alone one size the other way, then the other end of the line */
       if (!lit) { const alt = [Object.assign({}, use, { subjects: [use.primary], size: use.size === 'WIDE' ? 'MID' : 'WIDE', contact: null, profile: false, angle: 'eye' })];
         const other = use.line && use.line.find(x => x !== use.primary); if (other) alt.push(Object.assign({}, use, { primary: other, subjects: [other], size: 'MID', contact: null, profile: false, giant: creatures[other] ? other : null, angle: creatures[other] ? 'low' : 'eye' }));
         for (const v of alt) { const B = attempt(v, 0, ts, mid, prevCam); if (!B.alive.length) continue; const rk = B.alive.map(c => ({ c, s: score(c, c.res[0], v, prevCam) })).sort((a, b) => b.s - a.s);
-          for (const { c } of rk.slice(0, 8)) { const L = B.moving ? null : lumaSpan(c, v, B.subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
+          for (const { c } of rk.slice(0, 8)) { const L = lumaSpan(c, v, B.subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
           if (lit) { use = v; ({ subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = B); eased = (eased ? eased + '; ' : '') + 'the planned frame was ' + (lum && lum.mean > 0.5 ? 'washed out' : 'black') + ' from every legal camera: ' + v.primary + ', ' + v.size.toLowerCase(); break; } } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
