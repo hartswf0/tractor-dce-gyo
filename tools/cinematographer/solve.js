@@ -265,7 +265,7 @@ async function solve(plan, api) {
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
-    if (prim.creature && prim.facing && sh.size !== 'WIDE' && ['GIANT', 'TWO', 'REACT', 'HOT'].includes(sh.kind) && info.facing < -0.1 && !prim.lying) return { fail: ['L3 the back of ' + prim.id], info };
+    if (prim.creature && prim.facing && sh.size !== 'WIDE' && ['GIANT', 'TWO', 'REACT', 'HOT', 'INSERT'].includes(sh.kind) && info.facing < -0.1 && !(prim.lying && prim.H >= 1.5 * H0)) return { fail: ['L3 the back of ' + prim.id], info };
     /* R10 an offer: the lens on the man's side of the giant (behind or beside the giver, looking up past him) */
     if (sh.offer) { const G = S.find(x => x.id === sh.offer); if (G) { const v = pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(prim.feet || prim.head).setY(0).normalize(); if (v.dot(w) < 0.1) return { fail: ['L5 not on the giver\'s side of the offer'], info }; } }
     if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < 0.15) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };   /* the face itself toward the lens (the head's own forward) */
@@ -296,7 +296,7 @@ async function solve(plan, api) {
     const ph = prim.creature ? H0 : (prim.H || H0);
     const angle = prim.creature && prim.lying ? 'high' : sh.angle;   /* a giant found lying is filmed from above, whatever the plan said */
     const elevs = angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
-      : angle === 'high' ? [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0]
+      : angle === 'high' ? (prim.creature && prim.lying && prim.H < 1.5 * H0 ? [ground + 0.6 * H0, ground + 1.0 * H0, ground + 1.5 * H0] : [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0])   /* a beast no bigger than a man lying down (old Argos on the dung) is looked down on from a man's height, not from the rafters */
       : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, prim.head.y + 1.0 * ph];   /* the last over the heads of a crowd */
     /* distances from farther than the lens wants to much nearer: a nearer camera opens its lens to keep what the size needs (up to
        75 degrees), so a small room (a cave) still has cameras inside it */
