@@ -246,10 +246,13 @@ async function solve(plan, api) {
       /* the figure's own surface on the way to its head counts (a posed body can bring the face well in front of the head's mark) */
       const first = hitsAlong(pos, s.head).find(h => owner(h.object) === s.id), dn = Math.min(pos.distanceTo(s.head), first ? first.distance + 0.15 * (s.H || H0) : Infinity);
       if (dn < lim) { if (bad(s, 'L1 too near the face of ' + s.id)) return { fail, info }; } }
+    let embraced = null;
     for (const s of S) {
       /* the face, not only its centre: a creature's eye, head, brow and mouth (three of four seen), a figure's head and the front of its face */
       const facePts = s.creature ? [s.eye, s.head, s.crown, s.chin] : [s.head, s.facing ? s.head.clone().add(s.facing.clone().multiplyScalar(0.08 * s.H)) : s.head];
       let fs = 0, by = null; for (const p of facePts) { const b = seen(p, s.id); if (b) by = b; else fs++; }
+      /* an embrace (or a hand held on a shoulder): one face against the other's shoulder is the embrace itself; one of the two faces seen is enough */
+      if (fs < (s.creature ? 3 : facePts.length) && sh.contact && /EMBRACE|HOLD/.test(sh.contact.kind || '') && (sh.subjects || []).includes(by.by) && !embraced) { embraced = s.id; info.soft++; continue; }
       if (fs < (s.creature ? 3 : facePts.length)) { if (bad(s, 'L2 ' + s.id + ' hidden by ' + by.by)) return { fail, info }; continue; }
       let ok = 0; for (const p of s.body) if (!seen(p, s.id)) ok++; if (ok < s.body.length / 2) if (bad(s, 'L2 body of ' + s.id + ' hidden')) return { fail, info };
     }
@@ -328,7 +331,7 @@ async function solve(plan, api) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
     if (sh.giant && sh.size !== 'WIDE') s += 0.8 * Math.max(-0.5, Math.min(1, I.facing));   /* the giant's face, not his back */
-    if (sh.size === 'WIDE' && !sh.giant && !(pointsCache.get(sh.primary) || {}).creature) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));   /* a wide on a man: his front or side over his back (the gate's camera behind him held three shots of the Laestrygonian harbour) */
+    if (sh.size === 'WIDE' && !sh.giant && !(pointsCache.get(sh.primary) || {}).creature) s += 1.2 * Math.max(-1, Math.min(1, I.facing));   /* a wide on a man: his front or side over his back (the gate's camera behind him held three shots of the Laestrygonian harbour) */
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
