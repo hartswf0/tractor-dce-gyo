@@ -36,6 +36,8 @@
                   eyelines of reaction shots match (a reaction is cut on the same side as the shot of its cause).
      R8 giant     a shot on a creature is low (the lens below the men's chests, looking up) and wide (50-65 degrees), and
                   keeps the hottest men in frame for size.
+     R10 offer    a man holding something up to a giant (the creature's REACH or TAKE aimed at him): a two-shot of both, low and
+                  from the man's side, his hands (what passes) in frame; then the receiver's reaction (the giant drinking or eating).
      R9 length    no shot is shorter than the floor; two shots in a row on the same figure change size by at least one step
                   (no jump cut). */
 'use strict';
@@ -153,6 +155,20 @@ function anchors({ S, C }, fig) {
       if (src) out.push({ type: 'reaction', id: e.id, kind: e.kind, t: e.t0, t1: e.t1, actors: [e.actor], label: e.label, cause: src });
     }
   }
+  /* R10 an offer to a giant: the creature reaches for, or takes, what a man holds up to it (a bowl, a cup); the man's own
+     intents just before (holding it up, straining up to the hand) open the shot. What the creature then does with it (drinks,
+     eats) is the receiver's reaction. */
+  const OFFER_TAKE = new Set(['REACH', 'TAKE', 'SEIZE']), RECEIVE = new Set(['DRINK', 'EAT']);
+  for (const e of ev) {
+    if (e.lane !== 'INTENT' || !fig.creatures.includes(e.actor) || !OFFER_TAKE.has(e.kind)) continue;
+    const man = typeof e.target === 'string' && S.actors[e.target] && !fig.creatures.includes(e.target) ? e.target : null; if (!man) continue;
+    if (e.kind === 'SEIZE' && !/bowl|cup|wine|gift|offer/i.test(e.label || '')) continue;   /* a seizure of the man himself is a contact, not an offer */
+    const lead = ev.filter(x => x.lane === 'INTENT' && x.actor === man && x.t0 >= e.t0 - 2.5 && x.t0 <= e.t0 && ['OFFER', 'STRAIN', 'GIVE', 'APPROACH', 'GESTURE'].includes(x.kind)).sort((a, b) => a.t0 - b.t0)[0];
+    const offerT = lead ? lead.t0 : Math.max(0, e.t0 - 1.2);
+    out.push({ type: 'offer', id: e.id, kind: e.kind, t: lead ? lead.t0 : Math.max(0, e.t0 - 1.2), t1: e.t1, actors: [man, e.actor], giver: man, giant: e.actor, label: e.label });
+    const rec = ev.find(x => x.lane === 'INTENT' && x.actor === e.actor && RECEIVE.has(x.kind) && x.t0 >= e.t0 && x.t0 <= e.t1 + 1.5);
+    if (rec) out.push({ type: 'receive', id: rec.id, kind: rec.kind, t: rec.t0, t1: rec.t1, actors: [e.actor], giver: man, giant: e.actor, label: rec.label, offerT, cause: { id: e.id, actor: man, kind: e.kind, t: e.t0 } });
+  }
   out.sort((a, b) => a.t - b.t);
   /* reactions of several figures to one cause within 0.3 s are one reaction of the group */
   const merged = []; for (const a of out) { const grp = f => (S.actors[f] || {}).group || null, m = a.type === 'reaction' && grp(a.actors[0]) && merged.find(x => x.type === 'reaction' && x.cause.id === a.cause.id && Math.abs(x.t - a.t) < 0.3 && grp(x.actors[0]) === grp(a.actors[0])); if (m) { m.actors.push(...a.actors); m.t1 = Math.max(m.t1, a.t1); } else merged.push(Object.assign({}, a, { actors: a.actors.slice() })); }
@@ -182,7 +198,9 @@ function plan(sid, opts = {}) {
       if (a.cause && a.cause.actor && a.t - a.cause.t > floor * 0.8) cand.push({ t: Math.max(a.cause.t - 0.2, a.t - longest), p: 3, why: `wind-up of ${a.cause.kind} (${a.cause.id}) before ${a.kind}`, anchor: a, role: 'windup' });
       if (!elide) cand.push({ t: a.handoff ? a.t - Math.max(1.2, floor * 0.6) : a.t - 0.15, p: 3, why: a.handoff ? `the ${a.kind} (${a.id}): both hands and what passes` : `cut on the action: ${a.kind} (${a.id})`, anchor: a, role: 'contact' });
       if (a.effect) cand.push({ t: elide ? a.effect.t : Math.max(a.effect.t, (a.handoff ? a.t + 0.5 : a.t - 0.15 + floor)), p: 3, why: (elide ? 'cool cut: the cause elided, ' : '') + `the effect ${a.effect.kind} on ${a.effect.actor} (${a.effect.id})`, anchor: a, role: 'effect', elided: elide });
-    } else if (a.type === 'creature') cand.push({ t: a.t, p: 2.6, why: `the creature acts: ${a.kind} (${a.id})`, anchor: a, role: 'creature' });
+    } else if (a.type === 'offer') cand.push({ t: a.t, p: 3.2, why: `R10 the offer: ${a.giver} holds it up to ${a.giant} (${a.id} ${a.kind})`, anchor: a, role: 'offer' });
+    else if (a.type === 'receive') cand.push({ t: Math.min(a.t1 - 0.5, Math.max(a.t, (a.offerT || 0) + floor)), p: 3, why: `R10 the receiver: ${a.giant} ${a.kind} (${a.id})`, anchor: a, role: 'receive' });
+    else if (a.type === 'creature') cand.push({ t: a.t, p: 2.6, why: `the creature acts: ${a.kind} (${a.id})`, anchor: a, role: 'creature' });
     else if (a.type === 'reaction') { const lat = a.t - a.cause.t; if (lat >= -0.1 && lat <= 1.5) {
       /* how much the reaction matters: the reactors' heat while it runs, more for a principal, less for one of a crowd */
       let h = 0; for (const who of a.actors) { const f = fig.H[who]; if (!f) continue; let m = 0; for (let i = at(a.t); i <= at(a.t + 1); i++) m = Math.max(m, f[i]); const A_ = S.actors[who] || {}; h = Math.max(h, m * (A_.principal ? 1.4 : A_.group ? 0.6 : 1)); }
@@ -233,6 +251,14 @@ function plan(sid, opts = {}) {
     const A2 = c.anchor, inside = A.filter(x => x.type === 'contact' && x.t >= t0 && x.t < t1);
     const crInside = A.filter(x => x.type === 'creature' && x.t < t1 && (x.t1 || x.t) > t0);
     if (k === 0) { Object.assign(sh, { kind: 'WIDE', size: 'WIDE', subjects: ranked.slice(0, 3).map(x => x.f), primary: hot }); sh.why.rule = 'R6 the opening wide (establishes the set and the line)'; }
+    else if (c.role === 'offer' && A2) {
+      Object.assign(sh, { kind: 'TWO', size: 'MID', subjects: [A2.giant, A2.giver], primary: A2.giant, giant: A2.giant, offer: A2.giver, angle: 'low', lens: 'wide', aim: 'head', line: [A2.giver, A2.giant] });
+      sh.why.rule = `R10 the offer ${A2.id}: ${A2.giver} and ${A2.giant} both in frame, low and from the man's side, what passes between them in frame`;
+    }
+    else if (c.role === 'receive' && A2) {
+      Object.assign(sh, { kind: 'GIANT', size: 'MID', subjects: [A2.giant, A2.giver], primary: A2.giant, giant: A2.giant, angle: 'low', lens: 'wide', aim: 'head', line: [A2.giver, A2.giant] });
+      sh.why.rule = `R10 the receiver's reaction: ${A2.giant} ${A2.kind} (${A2.id}), low, ${A2.giver} in frame for size`;
+    }
     else if (inside.length && !(c.role === 'effect' && c.elided)) {
       const x = inside[0]; const subj = x.actors.slice(); if (x.effect && creatureIds.includes(x.effect.actor)) subj.push(x.effect.actor);
       Object.assign(sh, { kind: x.handoff ? 'TWO' : 'ACTION', size: x.handoff ? 'MID' : 'WIDE', subjects: subj, primary: x.actors[0], aim: 'contact', contact: { id: x.id, kind: x.kind, t: x.t, meet: x.meet }, line: [x.actors[0], x.handoff ? x.actors[1] : (x.effect ? x.effect.actor : x.actors[1])] });

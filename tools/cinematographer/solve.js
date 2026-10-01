@@ -248,6 +248,8 @@ async function solve(plan, api) {
       else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin);
       /* a rider (a man under a ram) is framed with the beast's silhouette, never from inside its fleece */
       if (s.carrier && (s === prim || sh.size !== 'WIDE')) { const b = s.carrier.box; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push(new V3(x, y, z)); } }
+    /* R10 an offer: the giver's hands (what passes) in frame */
+    if (sh.offer) { const g = S.find(s => s.id === sh.offer); if (g && g.hands) out.push(...g.hands); }
     return out.filter(Boolean);
   }
 
@@ -302,6 +304,8 @@ async function solve(plan, api) {
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
+    /* R10 an offer: from the man's side (the lens behind or beside the giver, looking up past him to the giant) */
+    if (sh.offer) { const G = pointsCache.get(sh.offer), K = pointsCache.get(sh.primary); if (G && K) { const v = cand.pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(K.feet || K.head).setY(0).normalize(); s += 2 * v.dot(w); } }
     if (cand.key) s += 1.5 - 1.6 * Math.max(0, (cand.far || 1) - 1.6);   /* the gate's camera, while it is near the size's distance */
     /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
     if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;
