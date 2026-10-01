@@ -270,7 +270,8 @@ async function solve(plan, api) {
   }
   function needOf(S, sh, prim) {
     const out = []; const all = sh.size === 'WIDE' || sh.kind === 'ACTION' || sh.kind === 'TWO';
-    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (sh.giant && s !== prim && sh.size !== 'WIDE' && prim.creature && s.head.distanceTo(prim.head) > 1.2 * (prim.H || H0)) continue;   /* a man far from the giant's close is not kept in it for size */
+    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (sh.giant && s !== prim && sh.size !== 'WIDE' && prim.creature && s.head.distanceTo(prim.head) > 1.2 * (prim.H || H0)) continue;
+      else if (!all && s !== prim && !prim.creature && !s.creature && sh.size !== 'WIDE' && s.head.distanceTo(prim.head) > 2.5 * (prim.H || H0)) continue;   /* a mid or close on one of a crowd (six suitors reacting across a hall) keeps his neighbours, not the far end of the room: the lens stays in the room */   /* a man far from the giant's close is not kept in it for size */
       else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin);
       /* a rider (a man under a ram) is framed with the beast's silhouette, never from inside its fleece */
       if (s.carrier && (s === prim || sh.size !== 'WIDE')) { const b = s.carrier.box; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push(new V3(x, y, z)); } }
@@ -327,7 +328,7 @@ async function solve(plan, api) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
     if (sh.giant && sh.size !== 'WIDE') s += 0.8 * Math.max(-0.5, Math.min(1, I.facing));   /* the giant's face, not his back */
-    if (sh.size === 'WIDE' && !sh.giant && !(pointsCache.get(sh.primary) || {}).creature) s += 0.7 * Math.max(-0.5, Math.min(1, I.facing));   /* a wide on a man: his front or side over his back (the gate's camera behind him held three shots of the Laestrygonian harbour) */
+    if (sh.size === 'WIDE' && !sh.giant && !(pointsCache.get(sh.primary) || {}).creature) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));   /* a wide on a man: his front or side over his back (the gate's camera behind him held three shots of the Laestrygonian harbour) */
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
