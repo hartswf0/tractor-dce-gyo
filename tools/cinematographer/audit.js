@@ -11,7 +11,7 @@ module.exports = async (page, dir) => {
   const ts = []; for (let t = 0.5; t < total; t += 1) ts.push(+t.toFixed(2));
   const before = await page.evaluate(c => OdysseyTake.cineDraw(c), ts.map(t => { const r = at(t); return { t, pos: r.pos, dir: r.dir, fov: r.fov }; }));
   const after = await page.evaluate(c => OdysseyTake.cineDraw(c), ts.map(t => ({ t })));
-  const sum = A => { const n = A.length, o = { samples: n, inside: A.filter(a => a.inside).length, seen: {}, inFrame: {} }; for (const a of A) for (const [id, w] of Object.entries(a.who)) { o.inFrame[id] = (o.inFrame[id] || 0) + (w.inFrame ? 1 : 0); o.seen[id] = (o.seen[id] || 0) + (w.seen ? 1 : 0); } return o; };
-  const out = { scene: sid, rule: 'once a second: L1 (the lens inside geometry) and, per figure, its head (a creature its eye) in the frame and seen', before: sum(before), after: sum(after), samples: { before, after } };
+  const sum = A => { const n = A.length, o = { samples: n, inside: A.filter(a => a.inside).length, exposureRefused: A.filter(a => a.exposure === 'refused').map(a => a.t), seen: {}, inFrame: {} }; for (const a of A) for (const [id, w] of Object.entries(a.who)) { o.inFrame[id] = (o.inFrame[id] || 0) + (w.inFrame ? 1 : 0); o.seen[id] = (o.seen[id] || 0) + (w.seen ? 1 : 0); } return o; };
+  const out = { scene: sid, rule: 'once a second: L1 (the lens inside geometry), the exposure (mean luma 0.16-0.84, under 55% near-black, under 45% near-white) and, per figure, its head (a creature its eye) in the frame and seen', before: sum(before), after: sum(after), samples: { before, after } };
   fs.writeFileSync(path.join(dir, 'audit.json'), JSON.stringify(out, null, 1)); return { before: out.before, after: out.after };
 };
