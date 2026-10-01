@@ -172,13 +172,17 @@ async function solve(plan, api) {
     const R = api.renderer; if (!R || typeof document === 'undefined') return null;
     try { const T = api.T || {}; if (T.env) { scene.background = T.env.bg; scene.fog = T.env.fog; R.toneMapping = T.env.tone; R.toneMappingExposure = T.env.exp; }
       /* rendered as the take renders a frame (its own render pass when it has one), then drawn small onto a 2D canvas */
-      (T.render || R.render.bind(R))(scene, camera); R.getContext().finish();
+      /* while the take prepares an export its renderer's render is stubbed out: the prototype's own render draws regardless */
+      const draw = T.render || R.__draw || R.render.bind(R);
+      draw(scene, camera); R.getContext().finish();
       if (!lumCv) { lumCv = document.createElement('canvas'); lumCv.width = 64; lumCv.height = 36; }
       const g = lumCv.getContext('2d', { willReadFrequently: true }); g.drawImage(R.domElement, 0, 0, 64, 36);
       const d = g.getImageData(0, 0, 64, 27).data;   /* the caption's lower quarter left out */
       let sum = 0, dark = 0, white = 0, n = 0; for (let i = 0; i < d.length; i += 4) { const y = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; sum += y; n++; if (y < 0.1) dark++; if (y > 0.9) white++; }
+      if (sum === 0) { if (!lumErr) { lumErr = 'nothing drawn (' + (T.render ? 'take render' : 'prototype render') + ', canvas ' + R.domElement.width + 'x' + R.domElement.height + ')'; console.log('[take] cinematographer exposure: ' + lumErr); } return null; }   /* nothing was drawn (a stubbed renderer): unknown, not black */
       return { mean: +(sum / n).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2) };
-    } catch (e) { return null; } }
+    } catch (e) { if (!lumErr) { lumErr = String(e && e.message || e).slice(0, 200); console.log('[take] cinematographer exposure: ' + lumErr); } return null; } }
+  let lumErr = null;
   const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45 };
   const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white);
   function lumaAt(c, sh, subj, t) { const key = api.poseAt(t); world(key); pointsCache.clear(); for (const id of subj) { const p = points(id, t); if (p) pointsCache.set(id, p); }
@@ -406,7 +410,7 @@ async function solve(plan, api) {
     if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary }; }
   }
   camera.position.copy(saved.pos); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.updateProjectionMatrix();
-  const ms = performance.now() - t0w; console.log('[take] cinematographer: ' + solved.length + ' shots solved in ' + (ms / 1000).toFixed(1) + ' s; legal ' + report.filter(r => r.legal).length);
+  const ms = performance.now() - t0w; console.log('[take] cinematographer: ' + solved.length + ' shots solved in ' + (ms / 1000).toFixed(1) + ' s; legal ' + report.filter(r => r.legal).length + '; exposure measured ' + report.filter(r => r.luma).length + ', refused ' + report.reduce((n, r) => n + (r.lumaRefused || 0), 0));
 
   const move = (plan.direction && plan.direction.move) || 'push';
   const S = {
