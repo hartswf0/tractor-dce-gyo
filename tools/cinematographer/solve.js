@@ -18,7 +18,8 @@
      L1c creature  the lens stays out of a creature's bounding sphere by a margin scaled by its rig's scale (the shot's own creature,
                    and a rider's carrier: off its head by a third of its height); a rider is framed with its carrier's silhouette
      exposure      the chosen camera is rendered once, small, at the shot's middle: a frame nearly black or washed out (mean luma
-                   under 0.16 or over 0.84, or mostly near-black or near-white) is refused for the next best (up to twelve)
+                   under 0.16 or over 0.84, or mostly near-black or near-white) or flat (luma deviation under 0.075: one surface
+                   against the lens) is refused for the next best (up to twelve)
    Among the legal candidates the score prefers: the face turned to the lens, the profile for a handoff, the low angle for a giant,
    a change of at least 30 degrees from the shot before on the same figure, the key's own camera for a wide. A shot with no legal
    candidate keeps its least bad one and the report says which checks it failed.
@@ -178,13 +179,13 @@ async function solve(plan, api) {
       if (!lumCv) { lumCv = document.createElement('canvas'); lumCv.width = 64; lumCv.height = 36; }
       const g = lumCv.getContext('2d', { willReadFrequently: true }); g.drawImage(R.domElement, 0, 0, 64, 36);
       const d = g.getImageData(0, 0, 64, 27).data;   /* the caption's lower quarter left out */
-      let sum = 0, dark = 0, white = 0, n = 0; for (let i = 0; i < d.length; i += 4) { const y = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; sum += y; n++; if (y < 0.1) dark++; if (y > 0.9) white++; }
+      let sum = 0, sq = 0, dark = 0, white = 0, n = 0; for (let i = 0; i < d.length; i += 4) { const y = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; sum += y; sq += y * y; n++; if (y < 0.1) dark++; if (y > 0.9) white++; }
       if (sum === 0) { if (!lumErr) { lumErr = 'nothing drawn (' + (T.render ? 'take render' : 'prototype render') + ', canvas ' + R.domElement.width + 'x' + R.domElement.height + ')'; console.log('[take] cinematographer exposure: ' + lumErr); } return null; }   /* nothing was drawn (a stubbed renderer): unknown, not black */
-      return { mean: +(sum / n).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2) };
+      const mean = sum / n; return { mean: +mean.toFixed(3), sd: +Math.sqrt(Math.max(0, sq / n - mean * mean)).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2) };
     } catch (e) { if (!lumErr) { lumErr = String(e && e.message || e).slice(0, 200); console.log('[take] cinematographer exposure: ' + lumErr); } return null; } }
   let lumErr = null;
-  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45 };
-  const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white);
+  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45, sd: 0.075 };   /* sd: a frame of one flat surface (a pig's flank against the lens) */
+  const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white || (L.sd != null && L.sd < LUMA.sd));
   function lumaAt(c, sh, subj, t) { const key = api.poseAt(t); world(key); pointsCache.clear(); for (const id of subj) { const p = points(id, t); if (p) pointsCache.set(id, p); }
     const St = subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) return null; const Pt = St.find(x => x.id === sh.primary) || St[0];
     aim(c.pos, c.fov, needOf(St, sh, Pt), sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? Pt.eye : Pt.head, c.u, c.v); return luma(); }
@@ -240,6 +241,8 @@ async function solve(plan, api) {
     const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45);   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
+    /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
+    if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < -0.25) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };
     return { fail, info };
   }
   function needOf(S, sh, prim) {
