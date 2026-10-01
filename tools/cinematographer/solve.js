@@ -115,12 +115,18 @@ async function solve(plan, api) {
       if (g) { let o = g, vis = true; while (o) { if (o.visible === false) { vis = false; break; } o = o.parent; } let any = false; if (vis) g.traverse(m => { if (!any && m.isMesh) { let q = m, v = true; while (q && q !== g) { if (q.visible === false) { v = false; break; } q = q.parent; } if (v) any = true; } }); if (!vis || !any) return null; }
       const box = g ? new THREE.Box3().setFromObject(g) : null; const s = C ? CR.sample(C, id, t) : null, rig = creatures[id];
       const P = n => { const p = s && rig.point(n, s.v); return p ? new V3(p[0], p[1], p[2]) : null; };
-      const head = P('head') || (box ? box.getCenter(new V3()) : new V3()), eye = P('eye') || head, crown = P('brow') || head;
+      /* the head where it is drawn: the box of the head node's visible meshes at this drawing (the rig's anchors, sampled from the
+         compiled sheet, can sit elsewhere than the pose the take draws: old Argos's head anchor lay mid-flank while the drawn dog held
+         his head up) */
+      const nodeBox = n => { const o = rig && rig.three && rig.three.objs[n]; if (!o || o.visible === false) return null; o.updateMatrixWorld(true); const b = new THREE.Box3(); o.traverse(m => { if (!m.isMesh) return; let q = m; while (q && q !== o) { if (q.visible === false) return; q = q.parent; } b.expandByObject(m); }); return b.isEmpty() ? null : b; };
+      const hb = !P('eye') ? nodeBox('head') : null, bb = hb ? nodeBox('body') : null;
+      const hc = hb ? hb.getCenter(new V3()) : null, hf = hc && bb ? hc.clone().sub(bb.getCenter(new V3())).setY(0) : null;
+      const head = hc || P('head') || (box ? box.getCenter(new V3()) : new V3()), eye = hc ? (hf && hf.length() > 0.02 * H0 ? hc.clone().add(hf.clone().normalize().multiplyScalar(0.5 * hb.getSize(new V3()).length() * 0.5)) : hc) : P('eye') || head, crown = hc ? new V3(hc.x, hb.max.y, hc.z) : P('brow') || head;
       const corners = []; if (box && !box.isEmpty()) for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new V3(x, y, z));
       const upper = [head, eye, crown, P('grip.R'), P('grip.L'), P('lap')].filter(Boolean);
       const Hc = box ? Math.max(box.max.y - box.min.y, 0.6 * (box.max.x - box.min.x), 0.6 * (box.max.z - box.min.z)) : 3 * H0;
       const lying = !!box && (box.max.y - box.min.y) < 0.7 * Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
-      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: (() => { const f = eye.clone().sub(head).setY(0); return f.length() > 0.02 * H0 ? f.normalize() : null; })(), box };   /* a beast faces where its eye is from its head */
+      return { id, creature: true, lying, head, eye, crown, chin: hc ? new V3(hc.x, hb.min.y, hc.z) : P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: (() => { const f = eye.clone().sub(head).setY(0); return f.length() > 0.02 * H0 ? f.normalize() : null; })(), box };   /* a beast faces where its eye is from its head */
     }
     const a = api.kfActor(id); if (!a || a.rig.figure.visible === false || a.rig.absent) return null; const r = a.rig, H = Hof(id);
     const head = api.kfHead(id), crown = head.clone().add(new V3(0, 0.2 * H, 0)), chin = head.clone().add(new V3(0, -0.14 * H, 0));
@@ -172,6 +178,7 @@ async function solve(plan, api) {
       if (!own.has(k.id)) { if (d < k.r + m) return 'near ' + k.id + ' (inside its sphere)'; continue; }
       const P = pointsCache.get(k.id), hd = P && P.head ? p.distanceTo(P.head) : Infinity;
       if (hd < 0.22 * k.H + m) return 'near ' + k.id + ' (too close to the beast\'s head)';
+      if (size !== 'WIDE' && k.r < 1.5 * H0 && d < k.r + m) return 'near ' + k.id + ' (inside a small beast\'s sphere: its flank fills the frame)';   /* old Argos: a dog's close from against his back */
       if (size === 'WIDE' && k.r < 3 * H0 && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
     return null; }
   /* the exposure of a frame: the chosen camera rendered once at a drawing, small; the mean luma (sRGB) and the shares of near-black
