@@ -462,7 +462,8 @@ async function solve(plan, api) {
       /* what the lens meets along its axis (the first parts, with their owners): a frame filled by something is named */
       const ax = camera.getWorldDirection(new V3()), axis = hitsAlong(camera.position, camera.position.clone().add(ax.multiplyScalar(20 * H0))).slice(0, 4).map(h => ({ by: owner(h.object) || null, name: h.object.name || (h.object.parent && h.object.parent.name) || null, at: +h.distance.toFixed(1), H: +(h.distance / H0).toFixed(2) }));
       const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null, facesLens: p.facing ? +p.facing.dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null, headingFaces: p.heading != null ? +new V3(Math.sin(p.heading), 0, Math.cos(p.heading)).dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null } : null; });
-      return { report: r, marks, axis, sizes }; },
+      const cp = camera.position, world_ = { inside: inside(cp.clone()), props: (W.propBoxes || []).map(x => ({ id: x.id, dist: +x.b.distanceToPoint(cp).toFixed(1) })).sort((a, b) => a.dist - b.dist).slice(0, 5), creatures: (W.crS || []).map(k => ({ id: k.id, d: +k.c.distanceTo(cp).toFixed(1), r: +k.r.toFixed(1) })).sort((a, b) => a.d - b.d).slice(0, 4), luma: luma() };
+      return { report: r, marks, axis, sizes, world: world_ }; },
   };
   return S;
 }
