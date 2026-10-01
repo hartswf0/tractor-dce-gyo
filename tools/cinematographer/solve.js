@@ -110,7 +110,10 @@ async function solve(plan, api) {
   /* ── a subject's points at the current drawing ── */
   function points(id, t) {
     if (isCreature(id)) {
-      const g = crGroup(id); const box = g ? new THREE.Box3().setFromObject(g) : null; const s = C ? CR.sample(C, id, t) : null, rig = creatures[id];
+      const g = crGroup(id);
+      /* a beast not drawn at this drawing (a giant before it comes to the cliff edge) is not in the scene: its rig still answers with points, the frame would show empty sky */
+      if (g) { let o = g, vis = true; while (o) { if (o.visible === false) { vis = false; break; } o = o.parent; } let any = false; if (vis) g.traverse(m => { if (!any && m.isMesh) { let q = m, v = true; while (q && q !== g) { if (q.visible === false) { v = false; break; } q = q.parent; } if (v) any = true; } }); if (!vis || !any) return null; }
+      const box = g ? new THREE.Box3().setFromObject(g) : null; const s = C ? CR.sample(C, id, t) : null, rig = creatures[id];
       const P = n => { const p = s && rig.point(n, s.v); return p ? new V3(p[0], p[1], p[2]) : null; };
       const head = P('head') || (box ? box.getCenter(new V3()) : new V3()), eye = P('eye') || head, crown = P('brow') || head;
       const corners = []; if (box && !box.isEmpty()) for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new V3(x, y, z));
@@ -340,7 +343,9 @@ async function solve(plan, api) {
     const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
     if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
     s -= 1.5 * (I.clutter || 0) + 5 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
-    if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
+    if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5;
+      /* the shot before last: cutting away and back to the same set-up (the harbour's opening wides) */
+      if (prevCam.before && prevCam.before.primary === sh.primary && prevCam.before.pos.distanceTo(cand.pos) < 0.5 * H0) s -= 1.2; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
     return s;
   }
@@ -405,6 +410,8 @@ async function solve(plan, api) {
       for (const t of ts) { const k = api.poseAt(t); world(k); pointsCache.clear(); for (const id of new Set([...prevHold.subj, ...(prevHold.use.line || [])])) { const p = points(id, t); if (p) pointsCache.set(id, p); }
         const St = prevHold.subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) { ok = false; break; } const r = check(c, St, prevHold.use, 0); c.res.push(r); if (r.fail.length) { ok = false; break; } }
       if (ok) { A = Object.assign({}, A, { subj: prevHold.subj, alive: [c], moving: false, P0: null }); use = prevHold.use; eased = sh.primary + ' cannot be framed legally from anywhere: the shot before is held (no cut)'; } }
+    /* still nothing legal: a wide on another man in the scene (one who sees it happen) before the least bad of an illegal frame (a close in a giant's fist) */
+    if (!A.alive.length) { for (const alt of api.cast().filter(id => !isCreature(id) && id !== sh.primary).slice(0, 4)) { const v = Object.assign({}, sh, { primary: alt, subjects: [alt], size: 'WIDE', kind: 'WIDE', line: null, contact: null, profile: false, giant: null, angle: 'eye' }); const B = attempt(v, 0, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = sh.primary + ' has no legal camera at any size: a wide on ' + alt; break; } } }
     let { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
     let pick = null, legal = alive.length > 0;
     let lum = null, lumRefused = 0;
@@ -443,7 +450,7 @@ async function solve(plan, api) {
       facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null, clutterFar: pick && pick.res[0].info.clutterFar != null ? +pick.res[0].info.clutterFar.toFixed(2) : null, luma: lum, lumaRefused: lumRefused });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;
     prevHold = pick && legal && !moving ? { pick, use, subj } : null;
-    if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary }; }
+    if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary, before: prevCam ? { pos: prevCam.pos, primary: prevCam.primary } : null }; }
   }
   camera.position.copy(saved.pos); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.updateProjectionMatrix();
   const ms = performance.now() - t0w; console.log('[take] cinematographer: ' + solved.length + ' shots solved in ' + (ms / 1000).toFixed(1) + ' s; legal ' + report.filter(r => r.legal).length + '; exposure measured ' + report.filter(r => r.luma).length + ', refused ' + report.reduce((n, r) => n + (r.lumaRefused || 0), 0));
