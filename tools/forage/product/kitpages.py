@@ -193,6 +193,8 @@ WATCH = [
      'The Laestrygonian Harbour, performed', 'Book X: the fleet moored in the cliff-ringed harbour, the king\'s daughter at the spring, Antiphates seizing a scout, the giants hurling rocks from the cliffs, and Odysseus cutting his cable to row out with his one ship.'),
     ('../../films/odyssey/OD-B21-S07-performed.mp4', '../../films/odyssey/OD-B21-S07-performed.jpg', 'Film · performed',
      'The Bow Sings, performed', 'Book XXI: Odysseus strings the great bow as a singer strings a lyre, plucks it and it sings, Zeus thunders, and the arrow flies clean through all twelve axes; Telemachus arms and stands at his father\'s side.'),
+    ('../../films/odyssey/OD-B23-S04-performed.mp4', '../../films/odyssey/OD-B23-S04-performed.jpg', 'Film · performed',
+     'The Bed Test, performed', 'Book XXIII: Penelope orders the great bed carried out of the chamber, Odysseus erupts (he built it around a living olive tree), the secret proves him, she runs to him, and Athena holds back the dawn while they weep and reunite.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
