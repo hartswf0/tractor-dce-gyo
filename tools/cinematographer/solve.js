@@ -191,7 +191,7 @@ async function solve(plan, api) {
   /* is p seen from the camera, allowing hits on the subject's own meshes (and on any of `allow` within `slack` of p)? */
   function seen(p, own, allow, slack) { const t0 = performance.now(); try { return seen_(p, own, allow, slack); } finally { TIME.seen += performance.now() - t0; } }
   function seen_(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
-  function clutter(d, allow) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length || ray.intersectObjects(W.dyn, false).some(h => !(allow && allow.includes(owner(h.object))))) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
+  function clutter(d, allow, far) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length) { hit++; continue; } ray.far = d * (far || 0.45); if (ray.intersectObjects(W.dyn, false).some(h => !(allow && allow.includes(owner(h.object))))) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
 
   /* the far clutter (graded, for the score): a finer grid of rays out to 0.8 of the way to the primary, counting the set's parts (a rock,
      a wall's edge, a column) that stand between the lens and what it films; a near part counts more than one close to the subjects.
@@ -237,7 +237,7 @@ async function solve(plan, api) {
       let ok = 0; for (const p of s.body) if (!seen(p, s.id)) ok++; if (ok < s.body.length / 2) if (bad(s, 'L2 body of ' + s.id + ' hidden')) return { fail, info };
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
-    const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null);   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45);   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     return { fail, info };
