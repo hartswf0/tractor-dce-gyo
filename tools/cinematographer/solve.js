@@ -18,7 +18,7 @@
      L1c creature  the lens stays out of a creature's bounding sphere by a margin scaled by its rig's scale (the shot's own creature,
                    and a rider's carrier: off its head by a third of its height); a rider is framed with its carrier's silhouette
      exposure      the chosen camera is rendered once, small, at the shot's middle: a frame nearly black or washed out (mean luma
-                   under 0.16 or over 0.84, or mostly near-black or near-white) or flat (luma deviation under 0.075: one surface
+                   under 0.10 or over 0.84, 70% near-black or 45% near-white: a firelit cave is dark and stays legal) or flat (luma deviation under 0.075: one surface
                    against the lens) or more than 80% one colour (twelve hues, four greys), at the shot's first, middle and last
                    drawings, is refused for the next best (up to twelve)
    Among the legal candidates the score prefers: the face turned to the lens, the profile for a handoff, the low angle for a giant,
@@ -117,14 +117,15 @@ async function solve(plan, api) {
       const upper = [head, eye, crown, P('grip.R'), P('grip.L'), P('lap')].filter(Boolean);
       const Hc = box ? Math.max(box.max.y - box.min.y, 0.6 * (box.max.x - box.min.x), 0.6 * (box.max.z - box.min.z)) : 3 * H0;
       const lying = !!box && (box.max.y - box.min.y) < 0.7 * Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
-      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: null, box };
+      return { id, creature: true, lying, head, eye, crown, chin: P('mouth') || head, body: upper, whole: corners.length ? corners : upper, upper, H: Hc, feet: box ? new V3((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2) : head, facing: (() => { const f = eye.clone().sub(head).setY(0); return f.length() > 0.02 * H0 ? f.normalize() : null; })(), box };   /* a beast faces where its eye is from its head */
     }
     const a = api.kfActor(id); if (!a || a.rig.figure.visible === false || a.rig.absent) return null; const r = a.rig, H = Hof(id);
     const head = api.kfHead(id), crown = head.clone().add(new V3(0, 0.2 * H, 0)), chin = head.clone().add(new V3(0, -0.14 * H, 0));
     const hips = r.hipsP.getWorldPosition(new V3()), torso = r.torsoP.getWorldPosition(new V3()), feet = r.pos.clone();
     const hR = api.kfHand(id, 'R'), hL = api.kfHand(id, 'L');
     const carrier = (W.crS || []).find(k => k.box.clone().expandByScalar(0.1 * H).containsPoint(hips) && hips.y < k.c.y + 0.2 * k.H);   /* a rider under a ram, in a giant's grip */
-    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: new V3(Math.sin(r.heading), 0, Math.cos(r.heading)) };
+    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: (() => { /* the way the face points as posed (the head part's own forward, the neck's turn included), not the rig's stored heading */
+      const f = new V3(0, 0, -1).applyQuaternion((r.headP || r.torsoP).getWorldQuaternion(new THREE.Quaternion())).setY(0);   /* the torso part faces its local -z (checked against stills: +z is its back) */ return f.lengthSq() > 0.04 ? f.normalize() : new V3(Math.sin(r.heading), 0, Math.cos(r.heading)); })() };
   }
 
   /* ── the camera: aimed at pts with the primary's head at (u, v) where the frame allows ── */
@@ -168,7 +169,7 @@ async function solve(plan, api) {
       if (!own.has(k.id)) { if (d < k.r + m) return 'near ' + k.id + ' (inside its sphere)'; continue; }
       const P = pointsCache.get(k.id), hd = P && P.head ? p.distanceTo(P.head) : Infinity;
       if (hd < 0.22 * k.H + m) return 'near ' + k.id + ' (too close to the beast\'s head)';
-      if (size === 'WIDE' && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
+      if (size === 'WIDE' && k.r < 3 * H0 && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
     return null; }
   /* the exposure of a frame: the chosen camera rendered once at a drawing, small; the mean luma (sRGB) and the shares of near-black
      and near-white pixels. A frame nearly black (a lens in shadow, a far dusk wide) or washed out (fleece filling the frame) is refused. */
@@ -194,7 +195,7 @@ async function solve(plan, api) {
       const mean = sum / n; return { mean: +mean.toFixed(3), sd: +Math.sqrt(Math.max(0, sq / n - mean * mean)).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2), one: +(top / n).toFixed(2) };
     } catch (e) { if (!lumErr) { lumErr = String(e && e.message || e).slice(0, 200); console.log('[take] cinematographer exposure: ' + lumErr); } return null; } }
   let lumErr = null;
-  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45, sd: 0.075, one: 0.8 };   /* one: more than 80% of the frame one colour (a pig's flank, an empty sky) */   /* sd: a frame of one flat surface (a pig's flank against the lens) */
+  const LUMA = { lo: 0.1, hi: 0.84, dark: 0.7, white: 0.45, sd: 0.075, one: 0.8 };   /* one: more than 80% of the frame one colour (a pig's flank, an empty sky) */   /* sd: a frame of one flat surface (a pig's flank against the lens) */
   const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white || (L.sd != null && L.sd < LUMA.sd) || (L.one != null && L.one > LUMA.one));
   /* the exposure over the shot: its first, middle and last drawings; the worst one is the shot's */
   function lumaSpan(c, sh, subj, t0, t1) { let worst = null; for (const t of [Math.min(t1 - 0.05, t0 + 0.2), (t0 + t1) / 2, Math.max(t0 + 0.05, t1 - 0.2)]) { const L = lumaAt(c, sh, subj, t); if (!L) continue; if (lumaBad(L)) return L; if (!worst || Math.abs(L.mean - 0.5) > Math.abs(worst.mean - 0.5)) worst = L; } return worst; }
@@ -251,10 +252,17 @@ async function solve(plan, api) {
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
     const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45, S.map(x => x.id).concat(S.filter(x => x.carrier).map(x => x.carrier.id)));   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    /* an empty frame: most of the lattice of rays meets nothing (sky) or only the floor short of the subject, so the subject is a speck */
+    { let empty = 0, n = 0; const dd = pos.distanceTo(prim.head); for (let i = 0; i < 7; i++) for (let j = 0; j < 4; j++) { ray.setFromCamera(new THREE.Vector2(-0.9 + i * 0.3, -0.75 + j * 0.5), camera); n++;
+        const hs = gridRay(W.G, ray.ray.origin, ray.ray.direction, dd * 3, true); ray.near = 0; ray.far = dd * 3; if (!hs.length && !ray.intersectObjects(W.dyn, false).length) empty++; }
+      info.empty = empty / n; if (info.empty > 0.7) return { fail: ['L4 an empty frame (' + Math.round(info.empty * 100) + '% sky)'], info }; }
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
-    if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < -0.25) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };
+    if (prim.creature && prim.facing && sh.size !== 'WIDE' && ['GIANT', 'TWO', 'REACT', 'HOT'].includes(sh.kind) && info.facing < -0.1 && !prim.lying) return { fail: ['L3 the back of ' + prim.id], info };
+    /* R10 an offer: the lens on the man's side of the giant (behind or beside the giver, looking up past him) */
+    if (sh.offer) { const G = S.find(x => x.id === sh.offer); if (G) { const v = pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(prim.feet || prim.head).setY(0).normalize(); if (v.dot(w) < 0.1) return { fail: ['L5 not on the giver\'s side of the offer'], info }; } }
+    if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < 0.15) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };   /* the face itself toward the lens (the head's own forward) */
     return { fail, info };
   }
   function needOf(S, sh, prim) {
@@ -315,6 +323,7 @@ async function solve(plan, api) {
   function score(cand, res, sh, prevCam) {
     let s = 0; const I = res.info;
     if (sh.kind !== 'WIDE' && !sh.giant) s += 1.2 * Math.max(-0.5, Math.min(1, I.facing));
+    if (sh.giant && sh.size !== 'WIDE') s += 0.8 * Math.max(-0.5, Math.min(1, I.facing));   /* the giant's face, not his back */
     if (sh.profile && sh.line) { const A = pointsCache.get(sh.line[0]), B = pointsCache.get(sh.line[1]); if (A && B) { const ld = B.head.clone().sub(A.head).setY(0).normalize(), cd = I.target.clone().sub(cand.pos).setY(0).normalize(); s += 1.5 * (1 - Math.abs(ld.dot(cd))); } }
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
@@ -376,6 +385,9 @@ async function solve(plan, api) {
   let prevCam = null, prevHold = null;
   for (const sh of plan.shots) {
     const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
+    /* nobody the shot is on is in the scene at its middle (a figure not yet entered): the shot before runs on instead of an empty frame */
+    if (solved.length && (sh.subjects || []).length) { api.poseAt(mid); world(api.poseAt(mid)); const any = isCreature(sh.primary) ? !!points(sh.primary, mid) : !!points(sh.primary, mid) || [...(sh.subjects || [])].some(id => !isCreature(id) && points(id, mid));   /* the beasts standing by do not make the shot */
+      if (!any) { const last = solved[solved.length - 1]; last.dur = t1 - last.t0; report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, planned: sh.size, eased: 'none of ' + [sh.primary, ...(sh.subjects || [])].join(', ') + ' is in the scene at its middle: the shot before runs on', primary: sh.primary, subjects: sh.subjects, why: sh.why, legal: true, merged: last.id, camera: null }); continue; } }
     const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
     const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
     /* the ladder: as planned; then (no legal camera) the primary alone one size wider; then a wide on the primary */
@@ -395,12 +407,12 @@ async function solve(plan, api) {
     let lum = null, lumRefused = 0;
     if (legal) { const ranked = alive.map(c => ({ c, s: score(c, c.res[0], use, prevCam) })).sort((a, b) => b.s - a.s); pick = ranked[0].c;
       /* the exposure: the best five in turn until one is neither black nor washed out (moving cameras are checked where they stand) */
-      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = moving ? null : lumaSpan(c, use, subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
+      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = lumaSpan(c, use, subj, t0, t1);   /* a travelling camera measured where it starts */ if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
       /* every camera tested was black or washed out: the primary alone one size the other way, then the other end of the line */
       if (!lit) { const alt = [Object.assign({}, use, { subjects: [use.primary], size: use.size === 'WIDE' ? 'MID' : 'WIDE', contact: null, profile: false, angle: 'eye' })];
         const other = use.line && use.line.find(x => x !== use.primary); if (other) alt.push(Object.assign({}, use, { primary: other, subjects: [other], size: 'MID', contact: null, profile: false, giant: creatures[other] ? other : null, angle: creatures[other] ? 'low' : 'eye' }));
         for (const v of alt) { const B = attempt(v, 0, ts, mid, prevCam); if (!B.alive.length) continue; const rk = B.alive.map(c => ({ c, s: score(c, c.res[0], v, prevCam) })).sort((a, b) => b.s - a.s);
-          for (const { c } of rk.slice(0, 8)) { const L = B.moving ? null : lumaSpan(c, v, B.subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
+          for (const { c } of rk.slice(0, 8)) { const L = lumaSpan(c, v, B.subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
           if (lit) { use = v; ({ subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = B); eased = (eased ? eased + '; ' : '') + 'the planned frame was ' + (lum && lum.mean > 0.5 ? 'washed out' : 'black') + ' from every legal camera: ' + v.primary + ', ' + v.size.toLowerCase(); break; } } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
@@ -460,8 +472,9 @@ async function solve(plan, api) {
       const marks = []; for (const id of r.subjects) { const p = points(id, t); if (!p) continue; for (const n of ['head', 'eye', 'crown', 'feet']) if (p[n]) { const q = proj(p[n]); marks.push({ id, n, u: q[0], v: q[1], z: q[2] }); } if (p.box) { const b = p.box; for (const x of [b.min, b.max]) { const q = proj(x); marks.push({ id, n: 'box', u: q[0], v: q[1], z: q[2] }); } } }
       /* what the lens meets along its axis (the first parts, with their owners): a frame filled by something is named */
       const ax = camera.getWorldDirection(new V3()), axis = hitsAlong(camera.position, camera.position.clone().add(ax.multiplyScalar(20 * H0))).slice(0, 4).map(h => ({ by: owner(h.object) || null, name: h.object.name || (h.object.parent && h.object.parent.name) || null, at: +h.distance.toFixed(1), H: +(h.distance / H0).toFixed(2) }));
-      const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null } : null; });
-      return { report: r, marks, axis, sizes }; },
+      const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null, facesLens: p.facing ? +p.facing.dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null, headingFaces: p.heading != null ? +new V3(Math.sin(p.heading), 0, Math.cos(p.heading)).dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null } : null; });
+      const cp = camera.position, world_ = { inside: inside(cp.clone()), props: (W.propBoxes || []).map(x => ({ id: x.id, dist: +x.b.distanceToPoint(cp).toFixed(1) })).sort((a, b) => a.dist - b.dist).slice(0, 5), creatures: (W.crS || []).map(k => ({ id: k.id, d: +k.c.distanceTo(cp).toFixed(1), r: +k.r.toFixed(1) })).sort((a, b) => a.d - b.d).slice(0, 4), luma: luma() };
+      return { report: r, marks, axis, sizes, world: world_ }; },
   };
   return S;
 }
