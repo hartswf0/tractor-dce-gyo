@@ -19,7 +19,8 @@
                    and a rider's carrier: off its head by a third of its height); a rider is framed with its carrier's silhouette
      exposure      the chosen camera is rendered once, small, at the shot's middle: a frame nearly black or washed out (mean luma
                    under 0.16 or over 0.84, or mostly near-black or near-white) or flat (luma deviation under 0.075: one surface
-                   against the lens) is refused for the next best (up to twelve)
+                   against the lens) or more than 80% one colour (twelve hues, four greys), at the shot's first, middle and last
+                   drawings, is refused for the next best (up to twelve)
    Among the legal candidates the score prefers: the face turned to the lens, the profile for a handoff, the low angle for a giant,
    a change of at least 30 degrees from the shot before on the same figure, the key's own camera for a wide. A shot with no legal
    candidate keeps its least bad one and the report says which checks it failed.
@@ -48,7 +49,9 @@ async function solve(plan, api) {
     if (!W || W.key !== key.id) {
       const stat = []; scene.traverse(o => { if (api.kfSolid(o) && !figs.has(o) && !cr.has(o)) stat.push(o); });
       const boxes = stat.map(m => { const b = new THREE.Box3().setFromObject(m); const s = b.getSize(new V3()); return { m, b, big: Math.max(s.x, s.y, s.z) > 1.6 * H0 }; }).filter(x => !x.b.isEmpty());
-      const tg = performance.now(); W = { key: key.id, stat, boxes, G: buildGrid(stat) }; TIME.grid += performance.now() - tg;
+      /* the staged props whole (a stack of pigs, a pen, a heap): a lens inside one's box is inside the prop, gaps and all */
+      const propBoxes = []; scene.traverse(o => { if (o.name && o.name.startsWith('prop:') && o.visible !== false && !(o.userData && o.userData.held)) { const b = new THREE.Box3().setFromObject(o); if (!b.isEmpty()) { const sz = b.getSize(new V3()); if (Math.max(sz.x, sz.y, sz.z) < 12 * H0) propBoxes.push({ id: o.name.slice(5), b }); } } });
+      const tg = performance.now(); W = { key: key.id, stat, boxes, propBoxes, G: buildGrid(stat) }; TIME.grid += performance.now() - tg;
     }
     const dyn = []; scene.traverse(o => { if (api.kfSolid(o) && (figs.has(o) || cr.has(o))) dyn.push(o); });
     W.figs = figs; W.cr = cr; W.dyn = dyn;
@@ -149,6 +152,7 @@ async function solve(plan, api) {
     if (!why.length) { let back = 0, n = 0, touch = null;
       for (const d of AX) { const h = gridRay(W.G, p, d, 6 * H0, true)[0]; if (!h) continue; n++; if (h.distance < r) { touch = h; break; } if (h.back) back++; }
       if (touch) why.push('near plane in ' + (touch.object.name || 'a set part')); else if (n >= 4 && back / n > 0.6) why.push('inside a set part'); }
+    if (!why.length) for (const { id, b } of W.propBoxes || []) { if (b.clone().expandByScalar(0.15 * H0).containsPoint(p)) { why.push('inside the staged prop ' + id); break; } }
     if (!why.length) for (const { m, b } of W.dynBoxes) { if (b.clone().expandByScalar(r * 0.5).containsPoint(p)) { why.push('in ' + (owner(m) || 'a body')); break; } }
     /* beneath the floor: nothing under the lens and the lens lower than the floor (a camera outside the set, above it, is fine) */
     if (!why.length) { if (W.floorY == null) { const g = W.G; W.floorY = groundAt(new V3(g.lo[0] + g.N[0] * g.cs / 2, g.lo[1] + g.N[1] * g.cs, g.lo[2] + g.N[2] * g.cs / 2)); }
@@ -179,20 +183,28 @@ async function solve(plan, api) {
       if (!lumCv) { lumCv = document.createElement('canvas'); lumCv.width = 64; lumCv.height = 36; }
       const g = lumCv.getContext('2d', { willReadFrequently: true }); g.drawImage(R.domElement, 0, 0, 64, 36);
       const d = g.getImageData(0, 0, 64, 27).data;   /* the caption's lower quarter left out */
-      let sum = 0, sq = 0, dark = 0, white = 0, n = 0; for (let i = 0; i < d.length; i += 4) { const y = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; sum += y; sq += y * y; n++; if (y < 0.1) dark++; if (y > 0.9) white++; }
+      let sum = 0, sq = 0, dark = 0, white = 0, n = 0; const bins = new Map();
+      for (let i = 0; i < d.length; i += 4) { const r = d[i] / 255, g2 = d[i + 1] / 255, b = d[i + 2] / 255, y = 0.2126 * r + 0.7152 * g2 + 0.0722 * b; sum += y; sq += y * y; n++; if (y < 0.1) dark++; if (y > 0.9) white++;
+        /* one colour: twelve hues for a saturated pixel, four greys by lightness for the rest (shading keeps a surface in its bin) */
+        const mx = Math.max(r, g2, b), mn = Math.min(r, g2, b), sat = mx > 0 ? (mx - mn) / mx : 0; let key;
+        if (sat < 0.18 || mx < 0.12) key = 'g' + Math.min(3, Math.floor(y * 4)); else { let h = mx === r ? (g2 - b) / (mx - mn) : mx === g2 ? 2 + (b - r) / (mx - mn) : 4 + (r - g2) / (mx - mn); h = ((h * 60) + 360) % 360; key = 'h' + Math.floor(h / 30); }
+        bins.set(key, (bins.get(key) || 0) + 1); }
+      let top = 0; for (const v of bins.values()) top = Math.max(top, v);
       if (sum === 0) { if (!lumErr) { lumErr = 'nothing drawn (' + (T.render ? 'take render' : 'prototype render') + ', canvas ' + R.domElement.width + 'x' + R.domElement.height + ')'; console.log('[take] cinematographer exposure: ' + lumErr); } return null; }   /* nothing was drawn (a stubbed renderer): unknown, not black */
-      const mean = sum / n; return { mean: +mean.toFixed(3), sd: +Math.sqrt(Math.max(0, sq / n - mean * mean)).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2) };
+      const mean = sum / n; return { mean: +mean.toFixed(3), sd: +Math.sqrt(Math.max(0, sq / n - mean * mean)).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2), one: +(top / n).toFixed(2) };
     } catch (e) { if (!lumErr) { lumErr = String(e && e.message || e).slice(0, 200); console.log('[take] cinematographer exposure: ' + lumErr); } return null; } }
   let lumErr = null;
-  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45, sd: 0.075 };   /* sd: a frame of one flat surface (a pig's flank against the lens) */
-  const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white || (L.sd != null && L.sd < LUMA.sd));
+  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45, sd: 0.075, one: 0.8 };   /* one: more than 80% of the frame one colour (a pig's flank, an empty sky) */   /* sd: a frame of one flat surface (a pig's flank against the lens) */
+  const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white || (L.sd != null && L.sd < LUMA.sd) || (L.one != null && L.one > LUMA.one));
+  /* the exposure over the shot: its first, middle and last drawings; the worst one is the shot's */
+  function lumaSpan(c, sh, subj, t0, t1) { let worst = null; for (const t of [Math.min(t1 - 0.05, t0 + 0.2), (t0 + t1) / 2, Math.max(t0 + 0.05, t1 - 0.2)]) { const L = lumaAt(c, sh, subj, t); if (!L) continue; if (lumaBad(L)) return L; if (!worst || Math.abs(L.mean - 0.5) > Math.abs(worst.mean - 0.5)) worst = L; } return worst; }
   function lumaAt(c, sh, subj, t) { const key = api.poseAt(t); world(key); pointsCache.clear(); for (const id of subj) { const p = points(id, t); if (p) pointsCache.set(id, p); }
     const St = subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) return null; const Pt = St.find(x => x.id === sh.primary) || St[0];
     aim(c.pos, c.fov, needOf(St, sh, Pt), sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? Pt.eye : Pt.head, c.u, c.v); return luma(); }
   /* is p seen from the camera, allowing hits on the subject's own meshes (and on any of `allow` within `slack` of p)? */
   function seen(p, own, allow, slack) { const t0 = performance.now(); try { return seen_(p, own, allow, slack); } finally { TIME.seen += performance.now() - t0; } }
   function seen_(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
-  function clutter(d, allow, far) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length) { hit++; continue; } ray.far = d * (far || 0.45); if (ray.intersectObjects(W.dyn, false).some(h => !(allow && allow.includes(owner(h.object))))) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
+  function clutter(d, allow, far, subjIds) { const t0 = performance.now(); let hit = 0, n = 0; for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) { ray.setFromCamera(new THREE.Vector2(-0.8 + i * 0.4, -0.6 + j * 0.6), camera); ray.near = 0; ray.far = d * 0.45; n++; if (gridRay(W.G, ray.ray.origin, ray.ray.direction, ray.far, true).length) { hit++; continue; } ray.far = d * 0.8; if (ray.intersectObjects(W.dyn, false).some(h => { const o = owner(h.object); if (allow && allow.includes(o)) return false; if (subjIds && subjIds.includes(o)) return false; /* a beast that is not the shot's own, anywhere before the subject; a man within the near part */ return (o && creatures[o]) ? true : h.distance < d * (far || 0.45); })) hit++; } TIME.clutter += performance.now() - t0; return hit / n; }
 
   /* the far clutter (graded, for the score): a finer grid of rays out to 0.8 of the way to the primary, counting the set's parts (a rock,
      a wall's edge, a column) that stand between the lens and what it films; a near part counts more than one close to the subjects.
@@ -238,7 +250,7 @@ async function solve(plan, api) {
       let ok = 0; for (const p of s.body) if (!seen(p, s.id)) ok++; if (ok < s.body.length / 2) if (bad(s, 'L2 body of ' + s.id + ' hidden')) return { fail, info };
     }
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
-    const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45);   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
+    const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45, S.map(x => x.id).concat(S.filter(x => x.carrier).map(x => x.carrier.id)));   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
     info.clutterFar = clutterFar(pos.distanceTo(prim.head), prim.feet ? prim.feet.y : prim.head.y - (prim.H || H0));
     info.facing = prim.facing ? prim.facing.dot(pos.clone().sub(prim.head).setY(0).normalize()) : 0.5;
     /* a close or a mid on a man speaking, acting or reacting shows his face, not the back of his head (a wide, a two-shot, an action may) */
@@ -309,6 +321,8 @@ async function solve(plan, api) {
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
     /* R10 an offer: from the man's side (the lens behind or beside the giver, looking up past him to the giant) */
     if (sh.offer) { const G = pointsCache.get(sh.offer), K = pointsCache.get(sh.primary); if (G && K) { const v = cand.pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(K.feet || K.head).setY(0).normalize(); s += 2 * v.dot(w); } }
+    /* a man speaking to (or acting on) another is seen from the other's side: the lens toward the addressee, his face to it */
+    if (sh.line && sh.size !== 'WIDE' && !sh.giant) { const P = pointsCache.get(sh.primary), Q = pointsCache.get(sh.line.find(x => x !== sh.primary)); if (P && Q && !P.creature) { const v = cand.pos.clone().sub(P.head).setY(0).normalize(), w = Q.head.clone().sub(P.head).setY(0).normalize(); s += 1.0 * v.dot(w); } }
     if (cand.key) s += 1.5 - 1.6 * Math.max(0, (cand.far || 1) - 1.6);   /* the gate's camera, while it is near the size's distance */
     /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
     if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;
@@ -381,12 +395,12 @@ async function solve(plan, api) {
     let lum = null, lumRefused = 0;
     if (legal) { const ranked = alive.map(c => ({ c, s: score(c, c.res[0], use, prevCam) })).sort((a, b) => b.s - a.s); pick = ranked[0].c;
       /* the exposure: the best five in turn until one is neither black nor washed out (moving cameras are checked where they stand) */
-      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = moving ? null : lumaAt(c, use, subj, mid); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
+      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = moving ? null : lumaSpan(c, use, subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
       /* every camera tested was black or washed out: the primary alone one size the other way, then the other end of the line */
       if (!lit) { const alt = [Object.assign({}, use, { subjects: [use.primary], size: use.size === 'WIDE' ? 'MID' : 'WIDE', contact: null, profile: false, angle: 'eye' })];
         const other = use.line && use.line.find(x => x !== use.primary); if (other) alt.push(Object.assign({}, use, { primary: other, subjects: [other], size: 'MID', contact: null, profile: false, giant: creatures[other] ? other : null, angle: creatures[other] ? 'low' : 'eye' }));
         for (const v of alt) { const B = attempt(v, 0, ts, mid, prevCam); if (!B.alive.length) continue; const rk = B.alive.map(c => ({ c, s: score(c, c.res[0], v, prevCam) })).sort((a, b) => b.s - a.s);
-          for (const { c } of rk.slice(0, 8)) { const L = B.moving ? null : lumaAt(c, v, B.subj, mid); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
+          for (const { c } of rk.slice(0, 8)) { const L = B.moving ? null : lumaSpan(c, v, B.subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
           if (lit) { use = v; ({ subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = B); eased = (eased ? eased + '; ' : '') + 'the planned frame was ' + (lum && lum.mean > 0.5 ? 'washed out' : 'black') + ' from every legal camera: ' + v.primary + ', ' + v.size.toLowerCase(); break; } } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
