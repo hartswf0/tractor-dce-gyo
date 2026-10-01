@@ -201,6 +201,8 @@ WATCH = [
      'Argos, performed', 'Book XVII: near the palace gate old Argos lies neglected on the dung, knows his master after twenty years, lifts his head and drops his ears; Odysseus turns aside to hide a tear while asking Eumaeus about the dog, and Argos dies.'),
     ('../../films/odyssey/OD-B16-S03-performed.mp4', '../../films/odyssey/OD-B16-S03-performed.jpg', 'Film · performed',
      'Father and Son, performed', 'Book XVI: Athena restores Odysseus\'s strength and dark hair outside the swineherd\'s hut, Telemachus recoils thinking him a god, \'I am no god: I am your father\', the son\'s disbelief, and the two embrace and weep like birds robbed of their young.'),
+    ('../../films/odyssey/OD-B12-S06-performed.mp4', '../../films/odyssey/OD-B12-S06-performed.jpg', 'Film · performed',
+     'The Cattle of the Sun, performed', 'Book XII: on Thrinacia Eurylochus persuades the starving crew to sacrifice the Sun\'s best cattle, they pray with oak leaves for barley and water for wine, kill and roast them, the hides crawl and the meat bellows on the spits, and Lampetie runs to tell Helios.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
