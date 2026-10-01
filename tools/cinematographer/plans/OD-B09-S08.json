@@ -452,6 +452,18 @@
    "effect": null
   },
   {
+   "type": "offer",
+   "id": "gTake",
+   "kind": "REACH",
+   "t": 47.917,
+   "actors": [
+    "odysseus",
+    "polyphemus"
+   ],
+   "cause": null,
+   "effect": null
+  },
+  {
    "type": "reaction",
    "id": "gLook",
    "kind": "ATTEND",
@@ -476,6 +488,22 @@
     "polyphemus"
    ],
    "cause": null,
+   "effect": null
+  },
+  {
+   "type": "receive",
+   "id": "gDrink",
+   "kind": "DRINK",
+   "t": 50.517,
+   "actors": [
+    "polyphemus"
+   ],
+   "cause": {
+    "id": "gTake",
+    "actor": "odysseus",
+    "kind": "REACH",
+    "t": 49.317
+   },
    "effect": null
   },
   {
@@ -783,7 +811,7 @@
   {
    "i": 9,
    "t0": 43.417,
-   "t1": 49.317,
+   "t1": 47.917,
    "kind": "GIANT",
    "size": "WIDE",
    "subjects": [
@@ -802,8 +830,8 @@
    "why": {
     "cut": "the creature acts: WALK (gIn)",
     "rule": "R8 the creature acts (WALK gIn): low and wide with odysseus, four-chosen-helpers-4 in frame for size",
-    "heat": 1.3,
-    "contrast": 1.09,
+    "heat": 1.03,
+    "contrast": 0.77,
     "hot": "odysseus"
    },
    "giant": "polyphemus",
@@ -811,14 +839,13 @@
   },
   {
    "i": 10,
-   "t0": 49.317,
-   "t1": 52.75,
-   "kind": "GIANT",
+   "t0": 47.917,
+   "t1": 50.917,
+   "kind": "TWO",
    "size": "MID",
    "subjects": [
     "polyphemus",
-    "odysseus",
-    "four-chosen-helpers-1"
+    "odysseus"
    ],
    "primary": "polyphemus",
    "aim": "head",
@@ -829,39 +856,42 @@
    "angle": "low",
    "lens": "wide",
    "why": {
-    "cut": "the creature acts: REACH (gTake)",
-    "rule": "R8 the creature acts (REACH gTake): low and wide with odysseus, four-chosen-helpers-1 in frame for size",
-    "heat": 1.12,
-    "contrast": 1.11,
+    "cut": "R10 the offer: odysseus holds it up to polyphemus (gTake REACH)",
+    "rule": "R10 the offer gTake: odysseus and polyphemus both in frame, low and from the man's side, what passes between them in frame",
+    "heat": 1.9,
+    "contrast": 1.87,
     "hot": "odysseus"
    },
    "giant": "polyphemus",
+   "offer": "odysseus",
    "beat": "K5"
   },
   {
    "i": 11,
-   "t0": 52.75,
+   "t0": 50.917,
    "t1": 58.083,
-   "kind": "HOT",
-   "size": "CLOSE",
+   "kind": "GIANT",
+   "size": "MID",
    "subjects": [
-    "odysseus"
-   ],
-   "primary": "odysseus",
-   "aim": "head",
-   "line": [
     "polyphemus",
     "odysseus"
    ],
-   "angle": "eye",
-   "lens": "normal",
+   "primary": "polyphemus",
+   "aim": "head",
+   "line": [
+    "odysseus",
+    "polyphemus"
+   ],
+   "angle": "low",
+   "lens": "wide",
    "why": {
-    "cut": "heat moves: odysseus -> polyphemus",
-    "rule": "R1 the hot spot odysseus (heat 0.65, contrast 0.64): CLOSE by the direction's bias",
-    "heat": 0.65,
-    "contrast": 0.64,
+    "cut": "R10 the receiver: polyphemus DRINK (gDrink)",
+    "rule": "R10 the receiver's reaction: polyphemus DRINK (gDrink), low, odysseus in frame for size",
+    "heat": 0.64,
+    "contrast": 0.63,
     "hot": "odysseus"
    },
+   "giant": "polyphemus",
    "beat": "K5"
   },
   {
