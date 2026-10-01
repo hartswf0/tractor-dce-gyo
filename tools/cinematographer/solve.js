@@ -15,6 +15,10 @@
      L4 frame      what the size needs is in the frame (the whole of every subject for a wide or a contact, the head and chest for
                    a close); nothing nearer than a third of the way covers more than a fifth of the frame
      L5 line       the camera is on the side of its line (plan: the two principals of the beat) that the line's first shot took
+     L1c creature  the lens stays out of a creature's bounding sphere by a margin scaled by its rig's scale (the shot's own creature,
+                   and a rider's carrier: off its head by a third of its height); a rider is framed with its carrier's silhouette
+     exposure      the chosen camera is rendered once, small, at the shot's middle: a frame nearly black or washed out (mean luma
+                   under 0.16 or over 0.84, or mostly near-black or near-white) is refused for the next best (up to twelve)
    Among the legal candidates the score prefers: the face turned to the lens, the profile for a handoff, the low angle for a giant,
    a change of at least 30 degrees from the shot before on the same figure, the key's own camera for a wide. A shot with no legal
    candidate keeps its least bad one and the report says which checks it failed.
@@ -46,7 +50,9 @@ async function solve(plan, api) {
       const tg = performance.now(); W = { key: key.id, stat, boxes, G: buildGrid(stat) }; TIME.grid += performance.now() - tg;
     }
     const dyn = []; scene.traverse(o => { if (api.kfSolid(o) && (figs.has(o) || cr.has(o))) dyn.push(o); });
-    W.figs = figs; W.cr = cr; W.dyn = dyn; W.dynBoxes = dyn.map(m => ({ m, b: new THREE.Box3().setFromObject(m) })).filter(x => !x.b.isEmpty()); W.all = W.stat.concat(dyn); return W;
+    W.figs = figs; W.cr = cr; W.dyn = dyn;
+    /* each creature's bounding sphere at this drawing and its rig's scale (the near limit below) */
+    W.crS = Object.keys(creatures).map(id => { const g = crGroup(id); if (!g || g.visible === false) return null; const b = new THREE.Box3().setFromObject(g); if (b.isEmpty()) return null; const sz = b.getSize(new V3()); return { id, box: b, c: b.getCenter(new V3()), r: 0.5 * sz.length(), H: Math.max(sz.y, 0.6 * sz.x, 0.6 * sz.z), sc: (C && C.creatures && C.creatures[id] && C.creatures[id].scale) || 1 }; }).filter(Boolean); W.dynBoxes = dyn.map(m => ({ m, b: new THREE.Box3().setFromObject(m) })).filter(x => !x.b.isEmpty()); W.all = W.stat.concat(dyn); return W;
   }
   /* ── a uniform grid over the set's triangles (world space), built once per key's world: rays through the set cost the cells they
      cross, not every triangle of every part (the player has no BVH) ── */
@@ -113,7 +119,8 @@ async function solve(plan, api) {
     const head = api.kfHead(id), crown = head.clone().add(new V3(0, 0.2 * H, 0)), chin = head.clone().add(new V3(0, -0.14 * H, 0));
     const hips = r.hipsP.getWorldPosition(new V3()), torso = r.torsoP.getWorldPosition(new V3()), feet = r.pos.clone();
     const hR = api.kfHand(id, 'R'), hL = api.kfHand(id, 'L');
-    return { id, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: new V3(Math.sin(r.heading), 0, Math.cos(r.heading)) };
+    const carrier = (W.crS || []).find(k => k.box.clone().expandByScalar(0.1 * H).containsPoint(hips) && hips.y < k.c.y + 0.2 * k.H);   /* a rider under a ram, in a giant's grip */
+    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: new V3(Math.sin(r.heading), 0, Math.cos(r.heading)) };
   }
 
   /* ── the camera: aimed at pts with the primary's head at (u, v) where the frame allows ── */
@@ -147,6 +154,36 @@ async function solve(plan, api) {
       if (!gridRay(W.G, p, new V3(0, -1, 0), 1e5, true).length && p.y < W.floorY + 0.3 * H0) why.push('under the set'); }
     TIME.inside += performance.now() - t0; return why;
   }
+  /* L1c a creature's near limit: the lens stays outside its bounding sphere by a margin scaled by the rig's scale (a bystander beast:
+     the whole sphere; the shot's own creature: off its head by a third of its height and outside the inner part of its sphere, so a
+     giant's close still has room); a rider's carrier counts as the shot's own */
+  function nearCreature(p, S, size) {
+    const own = new Set(S.filter(s => s.creature).map(s => s.id)); for (const s of S) if (s.carrier) own.add(s.carrier.id);
+    for (const k of W.crS || []) { const m = 0.25 * H0 * k.sc, d = p.distanceTo(k.c);
+      if (!own.has(k.id)) { if (d < k.r + m) return 'near ' + k.id + ' (inside its sphere)'; continue; }
+      const P = pointsCache.get(k.id), hd = P && P.head ? p.distanceTo(P.head) : Infinity;
+      if (hd < 0.22 * k.H + m) return 'near ' + k.id + ' (too close to the beast\'s head)';
+      if (size === 'WIDE' && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
+    return null; }
+  /* the exposure of a frame: the chosen camera rendered once at a drawing, small; the mean luma (sRGB) and the shares of near-black
+     and near-white pixels. A frame nearly black (a lens in shadow, a far dusk wide) or washed out (fleece filling the frame) is refused. */
+  let lumCv = null;
+  function luma() {
+    const R = api.renderer; if (!R || typeof document === 'undefined') return null;
+    try { const T = api.T || {}; if (T.env) { scene.background = T.env.bg; scene.fog = T.env.fog; R.toneMapping = T.env.tone; R.toneMappingExposure = T.env.exp; }
+      /* rendered as the take renders a frame (its own render pass when it has one), then drawn small onto a 2D canvas */
+      (T.render || R.render.bind(R))(scene, camera); R.getContext().finish();
+      if (!lumCv) { lumCv = document.createElement('canvas'); lumCv.width = 64; lumCv.height = 36; }
+      const g = lumCv.getContext('2d', { willReadFrequently: true }); g.drawImage(R.domElement, 0, 0, 64, 36);
+      const d = g.getImageData(0, 0, 64, 27).data;   /* the caption's lower quarter left out */
+      let sum = 0, dark = 0, white = 0, n = 0; for (let i = 0; i < d.length; i += 4) { const y = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; sum += y; n++; if (y < 0.1) dark++; if (y > 0.9) white++; }
+      return { mean: +(sum / n).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2) };
+    } catch (e) { return null; } }
+  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45 };
+  const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white);
+  function lumaAt(c, sh, subj, t) { const key = api.poseAt(t); world(key); pointsCache.clear(); for (const id of subj) { const p = points(id, t); if (p) pointsCache.set(id, p); }
+    const St = subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) return null; const Pt = St.find(x => x.id === sh.primary) || St[0];
+    aim(c.pos, c.fov, needOf(St, sh, Pt), sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? Pt.eye : Pt.head, c.u, c.v); return luma(); }
   /* is p seen from the camera, allowing hits on the subject's own meshes (and on any of `allow` within `slack` of p)? */
   function seen(p, own, allow, slack) { const t0 = performance.now(); try { return seen_(p, own, allow, slack); } finally { TIME.seen += performance.now() - t0; } }
   function seen_(p, own, allow, slack) { const hs = hitsAlong(camera.position, p); for (const h of hs) { const o = owner(h.object); if (o && own && o === own) continue; if (allow && o && allow.includes(o) && h.distance > camera.position.distanceTo(p) - slack) continue; if (h.distance > camera.position.distanceTo(p) - 0.8) continue; return { by: o || (h.object.name || 'a set part'), at: h.distance }; } return null; }
@@ -182,6 +219,12 @@ async function solve(plan, api) {
     if (!(prim.creature && sh.size === 'WIDE') && !(hq[1] <= (sh.size === 'WIDE' ? 0.68 : 0.5))) return { fail: ['L3 face of ' + prim.id + (sh.size === 'WIDE' ? ' under the caption' : ' below the middle')], info };
     for (const p of need) { const q = proj(p); if (!(q[2] < 1 && q[0] > -0.01 && q[0] < 1.01 && q[1] > -0.01 && q[1] < 1.01)) { info.soft += 2; if (sh.size !== 'WIDE') return { fail: ['L4 the ' + (sh.size || '').toLowerCase() + ' needs more than the frame'], info }; break; } }
     const ins = inside(pos); if (ins.length) return { fail: ['L1 ' + ins[0]], info };
+    { const nc = nearCreature(pos, S, sh.size); if (nc) return { fail: ['L1 ' + nc], info }; }
+    /* a lens nearer a face than most of a body's height is inside the head's print, not a close-up */
+    for (const s of S) { if (s.creature) continue; const lim = (sh.size === 'CLOSE' || sh.kind === 'INSERT' ? 1.1 : 0.7) * (s.H || H0);
+      /* the figure's own surface on the way to its head counts (a posed body can bring the face well in front of the head's mark) */
+      const first = hitsAlong(pos, s.head).find(h => owner(h.object) === s.id), dn = Math.min(pos.distanceTo(s.head), first ? first.distance + 0.15 * (s.H || H0) : Infinity);
+      if (dn < lim) { if (bad(s, 'L1 too near the face of ' + s.id)) return { fail, info }; } }
     for (const s of S) {
       /* the face, not only its centre: a creature's eye, head, brow and mouth (three of four seen), a figure's head and the front of its face */
       const facePts = s.creature ? [s.eye, s.head, s.crown, s.chin] : [s.head, s.facing ? s.head.clone().add(s.facing.clone().multiplyScalar(0.08 * s.H)) : s.head];
@@ -197,7 +240,10 @@ async function solve(plan, api) {
   }
   function needOf(S, sh, prim) {
     const out = []; const all = sh.size === 'WIDE' || sh.kind === 'ACTION' || sh.kind === 'TWO';
-    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin); }
+    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (sh.giant && s !== prim && sh.size !== 'WIDE' && prim.creature && s.head.distanceTo(prim.head) > 1.2 * (prim.H || H0)) continue;   /* a man far from the giant's close is not kept in it for size */
+      else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin);
+      /* a rider (a man under a ram) is framed with the beast's silhouette, never from inside its fleece */
+      if (s.carrier && (s === prim || sh.size !== 'WIDE')) { const b = s.carrier.box; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push(new V3(x, y, z)); } }
     return out.filter(Boolean);
   }
 
@@ -225,7 +271,7 @@ async function solve(plan, api) {
       out.push({ pos, fov: Math.round(fv), az, k, y, u: 0.5, v });
     }
     /* the key's own camera for a wide (the gate approved its composition for the blocking) */
-    if (sh.size === 'WIDE' && key) { try { const R0 = api.resolved(api.keyCam(key.k || key)); api.poseAt(sh.t0 / 2 + sh.t1 / 2); out.unshift({ pos: new V3(...R0.pos), fov: Math.max(R0.fov, 40), key: true, u: 0.5, v }); } catch (e) { } }
+    if (sh.size === 'WIDE' && key) { try { const R0 = api.resolved(api.keyCam(key.k || key)); api.poseAt(sh.t0 / 2 + sh.t1 / 2); const kp = new V3(...R0.pos), far = kp.distanceTo(c) / base; if (far < 3) out.unshift({ pos: kp, fov: Math.max(R0.fov, 40), key: true, far, u: 0.5, v }); } catch (e) { } }   /* a key camera three times farther than the size wants shows the room, not the beat */
     for (const q of out) {
       if (partner && sh.size !== 'WIDE') { const P = pointsCache.get(partner); if (P) { camera.position.copy(q.pos); camera.lookAt(prim.head); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); const pp = proj(P.head), pr = proj(prim.head); q.u = pp[0] > pr[0] ? 0.38 : 0.62; } }
       if (sh.line) q.side = sideOf(q.pos, sh.line);
@@ -252,13 +298,13 @@ async function solve(plan, api) {
     if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = pointsCache.get(id); if (P && P.facing) s += 0.8 * Math.max(-0.6, Math.min(0.5, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()) + 0.2)); }
     if (sh.size !== 'WIDE' && !sh.giant) s -= Math.max(0, cand.fov - 45) / 20;   /* a close on a wide lens bends the face */
     if (sh.giant) { const lowness = cl01(1 - (cand.pos.y - (cand.ground || 0)) / (0.8 * H0)); s += 0.8 * lowness; }
-    if (cand.key) s += 1.5;
+    if (cand.key) s += 1.5 - 1.6 * Math.max(0, (cand.far || 1) - 1.6);   /* the gate's camera, while it is near the size's distance */
     /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
     if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;
     /* the lens looking steeply down on a figure reads as a plan, not a shot: only a lying giant is filmed from above */
     const lyingPrim = (pointsCache.get(sh.primary) || {}).lying;
     if (sh.angle !== 'high' && !lyingPrim) { const d = I.target.clone().sub(cand.pos).normalize(), down = Math.asin(Math.max(-1, Math.min(1, -d.y))); s -= 3 * Math.max(0, down - (sh.size === 'WIDE' ? 0.45 : 0.3)); }
-    s -= 1.5 * (I.clutter || 0) + 3 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
+    s -= 1.5 * (I.clutter || 0) + 5 * (I.clutterFar || 0) + 0.4 * (I.soft || 0);   /* the far clutter: a clear view of the act over one through rocks */
     if (prevCam) { const a = prevCam.dir, b = I.target.clone().sub(cand.pos).normalize(), ang = Math.acos(Math.max(-1, Math.min(1, a.dot(b)))); if (prevCam.primary === sh.primary && ang < 0.52) s -= 2.2; if (prevCam.pos.distanceTo(cand.pos) < 0.3 * H0) s -= 0.5; }
     s -= 0.15 * Math.abs((cand.k || 1) - 1);
     return s;
@@ -319,9 +365,18 @@ async function solve(plan, api) {
       for (const t of ts) { const k = api.poseAt(t); world(k); pointsCache.clear(); for (const id of new Set([...prevHold.subj, ...(prevHold.use.line || [])])) { const p = points(id, t); if (p) pointsCache.set(id, p); }
         const St = prevHold.subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) { ok = false; break; } const r = check(c, St, prevHold.use, 0); c.res.push(r); if (r.fail.length) { ok = false; break; } }
       if (ok) { A = Object.assign({}, A, { subj: prevHold.subj, alive: [c], moving: false, P0: null }); use = prevHold.use; eased = sh.primary + ' cannot be framed legally from anywhere: the shot before is held (no cut)'; } }
-    const { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
+    let { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
     let pick = null, legal = alive.length > 0;
-    if (legal) { let best = -1e9; for (const c of alive) { const s = score(c, c.res[0], use, prevCam); if (s > best) { best = s; pick = c; } } }
+    let lum = null, lumRefused = 0;
+    if (legal) { const ranked = alive.map(c => ({ c, s: score(c, c.res[0], use, prevCam) })).sort((a, b) => b.s - a.s); pick = ranked[0].c;
+      /* the exposure: the best five in turn until one is neither black nor washed out (moving cameras are checked where they stand) */
+      let lit = false; for (const { c } of ranked.slice(0, 12)) { const L = moving ? null : lumaAt(c, use, subj, mid); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } lumRefused++; if (lumRefused === 1) lum = L; }
+      /* every camera tested was black or washed out: the primary alone one size the other way, then the other end of the line */
+      if (!lit) { const alt = [Object.assign({}, use, { subjects: [use.primary], size: use.size === 'WIDE' ? 'MID' : 'WIDE', contact: null, profile: false, angle: 'eye' })];
+        const other = use.line && use.line.find(x => x !== use.primary); if (other) alt.push(Object.assign({}, use, { primary: other, subjects: [other], size: 'MID', contact: null, profile: false, giant: creatures[other] ? other : null, angle: creatures[other] ? 'low' : 'eye' }));
+        for (const v of alt) { const B = attempt(v, 0, ts, mid, prevCam); if (!B.alive.length) continue; const rk = B.alive.map(c => ({ c, s: score(c, c.res[0], v, prevCam) })).sort((a, b) => b.s - a.s);
+          for (const { c } of rk.slice(0, 8)) { const L = B.moving ? null : lumaAt(c, v, B.subj, mid); if (!lumaBad(L)) { pick = c; lum = L; lit = true; break; } }
+          if (lit) { use = v; ({ subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = B); eased = (eased ? eased + '; ' : '') + 'the planned frame was ' + (lum && lum.mean > 0.5 ? 'washed out' : 'black') + ' from every legal camera: ' + v.primary + ', ' + v.size.toLowerCase(); break; } } } }
     else { /* the least bad: fewest failed checks over the samples, never inside geometry if that can be had */
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
       /* never a camera inside geometry: the least bad are tested for L1 at the middle drawing, in order, until one is clear */
@@ -345,7 +400,7 @@ async function solve(plan, api) {
       camera: pick ? { pos: pick.pos.toArray().map(v => +v.toFixed(1)), fov: pick.fov, key: !!pick.key, az: pick.az != null ? +pick.az.toFixed(2) : null, travelling: moving } : null,
       legal, relaxed, keyCamera: keyFate, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
-      facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null, clutterFar: pick && pick.res[0].info.clutterFar != null ? +pick.res[0].info.clutterFar.toFixed(2) : null });
+      facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null, clutterFar: pick && pick.res[0].info.clutterFar != null ? +pick.res[0].info.clutterFar.toFixed(2) : null, luma: lum, lumaRefused: lumRefused });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;
     prevHold = pick && legal && !moving ? { pick, use, subj } : null;
     if (pick && keysT.length) { const k0 = keysT[Math.floor(keysT.length / 2)]; prevCam = { pos: new V3(...k0[1]), dir: new V3(...k0[2]).sub(new V3(...k0[1])).normalize(), primary: sh.primary }; }
@@ -373,12 +428,15 @@ async function solve(plan, api) {
         if (c.pos) { pos = new V3(...c.pos); dir = new V3(...c.dir); fov = c.fov; } else { const s = S.shotAt(c.t); S.shoot(s, c.t); pos = camera.position.clone(); dir = camera.getWorldDirection(new V3()); fov = camera.fov; }
         place(pos, fov, pos.clone().add(dir)); const ins = inside(pos); const who = {};
         for (const id of [...api.cast(), ...Object.keys(creatures)]) { const p = points(id, c.t); if (!p) continue; const q = proj(p.creature ? p.eye : p.head); const inF = q[2] < 1 && q[0] > 0 && q[0] < 1 && q[1] > 0 && q[1] < 1; who[id] = { inFrame: inF, seen: inF ? !seen(p.creature ? p.eye : p.head, id) : false, v: +q[1].toFixed(2) }; }
-        out.push({ t: c.t, inside: ins[0] || null, who }); }
+        out.push({ t: c.t, inside: ins[0] || null, who, luma: luma(), exposure: null }); out[out.length - 1].exposure = lumaBad(out[out.length - 1].luma) ? 'refused' : 'ok'; }
       return out; },
     /* after OdysseyTake.frame(t): where the shot's subjects are on the frame (for marking a still) */
     debug(t) { if (Array.isArray(t)) return S.audit(t); const s = S.shotAt(t), r = report.find(x => x.i === s.i); const key = api.poseAt(t); world(key); S.shoot(s, t); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
       const marks = []; for (const id of r.subjects) { const p = points(id, t); if (!p) continue; for (const n of ['head', 'eye', 'crown', 'feet']) if (p[n]) { const q = proj(p[n]); marks.push({ id, n, u: q[0], v: q[1], z: q[2] }); } if (p.box) { const b = p.box; for (const x of [b.min, b.max]) { const q = proj(x); marks.push({ id, n: 'box', u: q[0], v: q[1], z: q[2] }); } } }
-      return { report: r, marks }; },
+      /* what the lens meets along its axis (the first parts, with their owners): a frame filled by something is named */
+      const ax = camera.getWorldDirection(new V3()), axis = hitsAlong(camera.position, camera.position.clone().add(ax.multiplyScalar(20 * H0))).slice(0, 4).map(h => ({ by: owner(h.object) || null, name: h.object.name || (h.object.parent && h.object.parent.name) || null, at: +h.distance.toFixed(1), H: +(h.distance / H0).toFixed(2) }));
+      const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null } : null; });
+      return { report: r, marks, axis, sizes }; },
   };
   return S;
 }

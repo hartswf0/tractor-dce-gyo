@@ -14,6 +14,8 @@ defects that remain.
 
 Gate state (`node film-readymades/keyframes.cjs`): OD-B09-S08 passes 5 of 5; OD-B01-S02 passes 3 of 3; OD-B09-S10 passes K2 and K3. Its K1 still has a lying man's head in the next team's middle ram (the teams 100 apart down the lane; a ram at 1.4 with a man under it wants about 120, and the lane holds four then), K4 and K5 have men on the yard wall's and the laurels' edge on the narrow strip and two neighbours touching. None is a floating or sunk man; the men beneath the rams become the rig's riders when the engine acts the flock.
 
+Prepared (marks, rough sheet, rig desk, previz; `graphs.json` rig entries with `player: false`): OD-B09-S10 from its re-staged marks (the teams in single file, the shore keys on the strip; the performance engine's score re-authored on them with the homeostat's parameters kept) and OD-B01-S02 (marks, sheet, rig desk; the performance engine's director's module `tools/perform/scenes/OD-B01-S02.js`).
+
 Props added to `odyssey/keyframes/props.json`: `dung` (a heap over the stake), `spear` (Athena's bronze-shod spear, 4497 in gold),
 `oar` (a shaft of two 4L antennas and a blade, anchors `grip`, `loom`, `blade`).
 
