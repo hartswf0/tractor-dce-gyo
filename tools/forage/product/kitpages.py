@@ -209,6 +209,8 @@ WATCH = [
      'Aeolus, performed', 'Book X: Aeolus gives Odysseus the oxhide bag with every rough wind sewn inside and looses the West Wind to carry him home; then, when the crew have opened it and the storm has blown them back, he drives Odysseus from his island as a man the gods hate.'),
     ('../../films/odyssey/OD-B11-S01-performed.mp4', '../../films/odyssey/OD-B11-S01-performed.jpg', 'Film · performed',
      'The Rite of the Dead, performed', 'Book XI: the ship reaches the misty land of the Cimmerians at Ocean\'s edge; Odysseus digs the trench, pours the libations, sacrifices the sheep, and holds the gathering dead back from the blood with his sword until Tiresias comes.'),
+    ('../../films/odyssey/OD-B14-S01-performed.mp4', '../../films/odyssey/OD-B14-S01-performed.jpg', 'Film · performed',
+     'The Swineherd\'s Dogs, performed', 'Book XIV: Odysseus in disguise comes to Eumaeus\'s pig farm, the dogs rush him and he sits down, Eumaeus runs out and scatters them with stones, brings the stranger in, gives him his own seat and prepares two young pigs for him.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
