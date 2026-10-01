@@ -1,0 +1,827 @@
+{
+ "scene": "OD-B16-S03",
+ "mode": "cut",
+ "fps": 12,
+ "size": [
+  1280,
+  720
+ ],
+ "seconds": 42.583333333333336,
+ "frames": 511,
+ "from": 0,
+ "take": {
+  "follow": [],
+  "scene": "OD-B16-S03",
+  "mode": "cut",
+  "total": 42.61,
+  "direction": {
+   "sign": "Lo",
+   "shot_bias": {
+    "WIDE": 0.16,
+    "MID": 0.31,
+    "CLOSE": 0.51,
+    "OBJ": 0.02
+   },
+   "hold_min_s": 5,
+   "move": "push",
+   "empty_frame": false,
+   "sound_forward": false,
+   "cut_rhythm": "slow",
+   "insert_object": null,
+   "subject": "telemachus",
+   "book_tempo": "fast",
+   "tempo_conflict": true
+  },
+  "cut": null,
+  "keys": [
+   {
+    "id": "K1",
+    "t": 0
+   },
+   {
+    "id": "K2",
+    "t": 11.13,
+    "win": [
+     9.24,
+     11.94
+    ]
+   },
+   {
+    "id": "K3",
+    "t": 24.07,
+    "win": [
+     23.44,
+     24.34
+    ]
+   },
+   {
+    "id": "K4",
+    "t": 29.88,
+    "win": [
+     29.25,
+     30.15
+    ]
+   },
+   {
+    "id": "K5",
+    "t": 34.01,
+    "win": [
+     33.03,
+     34.43
+    ]
+   }
+  ],
+  "faces": [
+   "telemachus"
+  ],
+  "shots": {
+   "WIDE": 1,
+   "HOT": 4,
+   "REACT": 1,
+   "ACTION": 1
+  },
+  "cine": {
+   "time": {
+    "grid": 2.3,
+    "inside": 0.3,
+    "seen": 6.4,
+    "clutter": 2.1,
+    "pose": 0
+   },
+   "scene": "OD-B16-S03",
+   "media": "hot",
+   "direction": {
+    "shot_bias": {
+     "WIDE": 0.16,
+     "MID": 0.31,
+     "CLOSE": 0.51,
+     "OBJ": 0.02
+    },
+    "hold_min_s": 5,
+    "move": "push",
+    "empty_frame": false,
+    "sound_forward": false,
+    "cut_rhythm": "slow",
+    "insert_object": null,
+    "subject": "telemachus",
+    "book_tempo": "fast",
+    "tempo_conflict": true
+   },
+   "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
+   "solvedIn": 91.3,
+   "shots": [
+    {
+     "i": 0,
+     "t0": 0,
+     "t1": 7,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus-restored",
+     "subjects": [
+      "odysseus-restored",
+      "telemachus"
+     ],
+     "why": {
+      "cut": "the scene opens",
+      "rule": "R6 the opening wide (establishes the set and the line)",
+      "heat": 0.47,
+      "contrast": 0,
+      "hot": "odysseus-restored"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       8,
+       126.7,
+       -279.7
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L4 foreground covers n%": 8,
+      "L1 near plane in a set part": 13,
+      "L2 odysseus-restored hidden": 15,
+      "L2 body": 1,
+      "L3 head": 42
+     },
+     "candidates": 257,
+     "legalCandidates": 178,
+     "samples": [
+      3.5,
+      0.1,
+      6.9
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.239,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.637,
+      "sd": 0.239,
+      "dark": 0,
+      "white": 0.08,
+      "one": 0.4
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 1,
+     "t0": 7,
+     "t1": 12.04,
+     "kind": "HOT",
+     "size": "WIDE",
+     "planned": "MID",
+     "eased": "the mid had no legal camera: the primary alone, wide",
+     "primary": "odysseus-restored",
+     "subjects": [
+      "odysseus-restored"
+     ],
+     "why": {
+      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "rule": "R1 the hot spot odysseus-restored (heat 0.55, contrast -0.04): MID by the direction's bias",
+      "heat": 0.55,
+      "contrast": -0.04,
+      "hot": "odysseus-restored"
+     },
+     "line": [
+      "telemachus",
+      "odysseus-restored"
+     ],
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -79.6,
+       129.5,
+       -142
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 4.71,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 head of odysseus-restored cut",
+     "rejected": {
+      "L4 foreground covers n%": 5,
+      "L1 near plane in a set part": 14,
+      "L2 odysseus-restored hidden": 7,
+      "L3 head": 109,
+      "L1 too near the face": 1,
+      "L3 odysseus-restored behind the lens": 4
+     },
+     "candidates": 257,
+     "legalCandidates": 117,
+     "samples": [
+      9.52,
+      7.1,
+      11.94
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.227,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.632,
+      "sd": 0.241,
+      "dark": 0,
+      "white": 0.07,
+      "one": 0.4
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 2,
+     "t0": 12.04,
+     "t1": 17.14,
+     "kind": "REACT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "telemachus",
+     "subjects": [
+      "telemachus"
+     ],
+     "why": {
+      "cut": "reaction NOTICE of telemachus to odysseus-restored (sChanged) in 0.3 s",
+      "rule": "R3/R7 reaction of telemachus to odysseus-restored within 0.3 s, cut on the same side as its cause (the eyelines match)",
+      "heat": 0.86,
+      "contrast": 0,
+      "hot": "telemachus"
+     },
+     "line": [
+      "odysseus-restored",
+      "telemachus"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       68.1,
+       130.7,
+       -83
+      ],
+      "fov": 32,
+      "key": false,
+      "az": 3.93,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 72,
+      "L1 near plane in a set part": 19,
+      "L2 telemachus hidden": 4,
+      "L4 foreground covers n%": 2,
+      "L1 too near the face": 97,
+      "L1 in odysseus-restored": 3,
+      "L3 head": 32
+     },
+     "candidates": 256,
+     "legalCandidates": 27,
+     "samples": [
+      14.59,
+      12.14,
+      17.04
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.35,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.692,
+      "sd": 0.124,
+      "dark": 0,
+      "white": 0.03,
+      "one": 0.35
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 3,
+     "t0": 17.14,
+     "t1": 24.5,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "telemachus",
+     "subjects": [
+      "telemachus"
+     ],
+     "why": {
+      "cut": "a line begins (v3)",
+      "rule": "R1 the hot spot telemachus (heat 1.59, contrast -0.03): MID by the direction's bias",
+      "heat": 1.59,
+      "contrast": -0.03,
+      "hot": "telemachus"
+     },
+     "line": [
+      "odysseus-restored",
+      "telemachus"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       121.3,
+       200.8,
+       -27.9
+      ],
+      "fov": 38,
+      "key": false,
+      "az": 3.93,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L5 across the line": 144,
+      "L3 the back": 45,
+      "L1 near plane in a set part": 13,
+      "L2 telemachus hidden": 3,
+      "L4 foreground covers n%": 3,
+      "L1 in odysseus-restored": 2,
+      "L1 too near the face": 22,
+      "L1 in telemachus": 1,
+      "L3 face": 2,
+      "L3 head": 16
+     },
+     "candidates": 256,
+     "legalCandidates": 5,
+     "samples": [
+      20.82,
+      17.24,
+      24.4
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.374,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.733,
+      "sd": 0.135,
+      "dark": 0,
+      "white": 0.05,
+      "one": 0.45
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 24.5,
+     "t1": 29.75,
+     "kind": "HOT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "odysseus-restored",
+     "subjects": [
+      "odysseus-restored"
+     ],
+     "why": {
+      "cut": "heat moves: telemachus -> odysseus-restored",
+      "rule": "R1 the hot spot odysseus-restored (heat 0.97, contrast -0.04): CLOSE by the direction's bias",
+      "heat": 0.97,
+      "contrast": -0.04,
+      "hot": "odysseus-restored"
+     },
+     "line": [
+      "telemachus",
+      "odysseus-restored"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       98.6,
+       87.5,
+       68
+      ],
+      "fov": 32,
+      "key": false,
+      "az": 0,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L4 foreground covers n%": 9,
+      "L1 in telemachus": 8,
+      "L3 the back": 58,
+      "L1 near plane in a set part": 14,
+      "L2 odysseus-restored hidden": 4,
+      "L4 an empty frame (n% sky)": 1,
+      "L1 too near the face": 95,
+      "L3 head": 32,
+      "L3 face": 3
+     },
+     "candidates": 256,
+     "legalCandidates": 32,
+     "samples": [
+      27.13,
+      24.6,
+      29.65
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.94,
+     "headV": 0.342,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.585,
+      "sd": 0.237,
+      "dark": 0,
+      "white": 0.02,
+      "one": 0.31
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 5,
+     "t0": 29.75,
+     "t1": 34.88,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "CLOSE",
+     "eased": "the close had no legal camera: the primary alone, mid",
+     "primary": "telemachus",
+     "subjects": [
+      "telemachus"
+     ],
+     "why": {
+      "cut": "heat moves: odysseus-restored -> telemachus",
+      "rule": "R1 the hot spot telemachus (heat 1.52, contrast -0.03): CLOSE by the direction's bias",
+      "heat": 1.52,
+      "contrast": -0.03,
+      "hot": "telemachus"
+     },
+     "line": [
+      "odysseus-restored",
+      "telemachus"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       148.9,
+       200.8,
+       -55.7
+      ],
+      "fov": 38,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L5 across the line": 144,
+      "L3 the back": 49,
+      "L1 near plane in a set part": 13,
+      "L2 telemachus hidden": 3,
+      "L4 foreground covers n%": 3,
+      "L1 in odysseus-restored": 3,
+      "L1 too near the face": 26,
+      "L3 head": 10,
+      "L3 face": 2,
+      "L3 telemachus behind the lens": 2
+     },
+     "candidates": 256,
+     "legalCandidates": 1,
+     "samples": [
+      32.31,
+      29.85,
+      34.78
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.65,
+     "headV": 0.368,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.722,
+      "sd": 0.134,
+      "dark": 0,
+      "white": 0.02,
+      "one": 0.47
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 6,
+     "t0": 34.88,
+     "t1": 42.61,
+     "kind": "ACTION",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "telemachus",
+     "subjects": [
+      "telemachus",
+      "odysseus-restored"
+     ],
+     "why": {
+      "cut": "cut on the action: EMBRACE (c1047)",
+      "rule": "R2 the contact c1047 (EMBRACE: they hold each other) with every figure it names",
+      "heat": 2.23,
+      "contrast": 0,
+      "hot": "telemachus"
+     },
+     "line": [
+      "telemachus",
+      "odysseus-restored"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       46.9,
+       87.8,
+       3.2
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 5.11,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L2 the contact hidden": 47,
+      "L4 foreground covers n%": 15,
+      "L1 near plane in a set part": 19,
+      "L2 telemachus hidden": 9,
+      "L3 head": 24,
+      "L1 too near the face": 7
+     },
+     "candidates": 257,
+     "legalCandidates": 136,
+     "samples": [
+      38.75,
+      34.98,
+      42.51,
+      35.08
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.14,
+     "headV": 0.238,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.576,
+      "sd": 0.219,
+      "dark": 0,
+      "white": 0.02,
+      "one": 0.27
+     },
+     "lumaRefused": 0
+    }
+   ]
+  },
+  "clips": [
+   {
+    "gi": 1,
+    "at": 0.6,
+    "dur": 10.08,
+    "kind": "AUDITORY_ACTION",
+    "key": "K1",
+    "speaker": null,
+    "addressee": "odysseus-restored"
+   },
+   {
+    "gi": 2,
+    "at": 11.13,
+    "dur": 5.56,
+    "kind": "AUDITORY_ACTION",
+    "key": "K2",
+    "speaker": null,
+    "addressee": "odysseus-restored"
+   },
+   {
+    "gi": 3,
+    "at": 17.14,
+    "dur": 6.48,
+    "kind": "AUDITORY_ACTION",
+    "key": "K2",
+    "speaker": "telemachus",
+    "addressee": "odysseus-restored"
+   },
+   {
+    "gi": 5,
+    "at": 24.07,
+    "dur": 5.36,
+    "kind": "DIALOGUE",
+    "key": "K3",
+    "speaker": "odysseus-restored",
+    "addressee": null
+   },
+   {
+    "gi": 7,
+    "at": 29.88,
+    "dur": 3.68,
+    "kind": "DIALOGUE",
+    "key": "K4",
+    "speaker": "telemachus",
+    "addressee": "odysseus-restored"
+   },
+   {
+    "gi": 8,
+    "at": 34.01,
+    "dur": 8,
+    "kind": "AUDITORY_ACTION",
+    "key": "K5",
+    "speaker": "telemachus",
+    "addressee": "odysseus-restored"
+   }
+  ]
+ },
+ "shots": [
+  {
+   "t": 0,
+   "shot": "c0:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K1"
+  },
+  {
+   "t": 7,
+   "shot": "c1:HOT:WIDE",
+   "kind": "HOT",
+   "key": "K1"
+  },
+  {
+   "t": 12.083,
+   "shot": "c2:REACT:CLOSE",
+   "kind": "REACT",
+   "key": "K2"
+  },
+  {
+   "t": 17.167,
+   "shot": "c3:HOT:MID",
+   "kind": "HOT",
+   "key": "K2"
+  },
+  {
+   "t": 24.5,
+   "shot": "c4:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K3"
+  },
+  {
+   "t": 29.75,
+   "shot": "c5:HOT:MID",
+   "kind": "HOT",
+   "key": "K3"
+  },
+  {
+   "t": 34.917,
+   "shot": "c6:ACTION:WIDE",
+   "kind": "ACTION",
+   "key": "K5"
+  }
+ ],
+ "sound": {
+  "total": 42.61,
+  "voice": {
+   "file": "odyssey/take/voice/OD-B16-S03.m4a",
+   "clips": [
+    {
+     "at": 0.6,
+     "start": 6.58,
+     "dur": 10.08
+    },
+    {
+     "at": 11.13,
+     "start": 16.96,
+     "dur": 5.56
+    },
+    {
+     "at": 17.14,
+     "start": 22.82,
+     "dur": 6.48
+    },
+    {
+     "at": 24.07,
+     "start": 31.44,
+     "dur": 5.36
+    },
+    {
+     "at": 29.88,
+     "start": 38.84,
+     "dur": 3.68
+    },
+    {
+     "at": 34.01,
+     "start": 42.88,
+     "dur": 8
+    }
+   ]
+  },
+  "bed": {
+   "file": "odyssey/take/bed/bronze-council-16.ogg",
+   "open": 0.18,
+   "duck": 0.1,
+   "ramp": 0.15,
+   "offset": 34.95
+  },
+  "forward": false,
+  "spans": [
+   {
+    "at": 0.6,
+    "dur": 10.08
+   },
+   {
+    "at": 11.13,
+    "dur": 5.56
+   },
+   {
+    "at": 17.14,
+    "dur": 6.48
+   },
+   {
+    "at": 24.07,
+    "dur": 5.36
+   },
+   {
+    "at": 29.88,
+    "dur": 3.68
+   },
+   {
+    "at": 34.01,
+    "dur": 8
+   }
+  ]
+ },
+ "choreo": {
+  "format": "odyssey-choreo/1",
+  "layer": "add",
+  "actors": 2,
+  "cues": 56,
+  "generated": {
+   "by": "tools/perform/compile.js",
+   "from": "odyssey/score/OD-B16-S03.json",
+   "note": "the performance engine's body score: every key caused by an intent in the score; hand keys go in overrides"
+  }
+ }
+}
