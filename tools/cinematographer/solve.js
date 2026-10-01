@@ -263,6 +263,7 @@ async function solve(plan, api) {
       if (fs < (s.creature ? 3 : facePts.length)) { if (bad(s, 'L2 ' + s.id + ' hidden by ' + by.by)) return { fail, info }; continue; }
       let ok = 0; for (const p of s.body) if (!seen(p, s.id)) ok++; if (ok < s.body.length / 2) if (bad(s, 'L2 body of ' + s.id + ' hidden')) return { fail, info };
     }
+    info.embraced = embraced;
     if (cand.contact) { const b = seen(cand.contact, null, sh.subjects, 0.35 * H0); if (b) return { fail: ['L2 the contact hidden by ' + b.by], info }; }
     const cl = clutter(pos.distanceTo(prim.head), sh.kind === 'TWO' ? sh.subjects : null, sh.size === 'CLOSE' && !prim.creature ? 0.8 : 0.45, S.map(x => x.id).concat(S.filter(x => x.carrier).map(x => x.carrier.id)));   /* a close: another man's helmet anywhere before the face is foreground */   /* in a two-shot the other principal's shoulder may frame the act */ info.clutter = cl; if (cl > 0.14) return { fail: ['L4 foreground covers ' + Math.round(cl * 100) + '%'], info };
     /* an empty frame: most of the lattice of rays meets nothing (sky) or only the floor short of the subject, so the subject is a speck */
@@ -347,6 +348,8 @@ async function solve(plan, api) {
     if (sh.offer) { const G = pointsCache.get(sh.offer), K = pointsCache.get(sh.primary); if (G && K) { const v = cand.pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(K.feet || K.head).setY(0).normalize(); s += 2 * v.dot(w); } }
     /* a man speaking to (or acting on) another is seen from the other's side: the lens toward the addressee, his face to it */
     if (sh.line && sh.size !== 'WIDE' && !sh.giant) { const P = pointsCache.get(sh.primary), Q = pointsCache.get(sh.line.find(x => x !== sh.primary)); if (P && Q && !P.creature) { const v = cand.pos.clone().sub(P.head).setY(0).normalize(), w = Q.head.clone().sub(P.head).setY(0).normalize(); s += 1.0 * v.dot(w); } }
+    /* an embrace: the face that is not against the other's shoulder toward the lens (the bed's last embrace had been held on the back of Penelope's head with Odysseus's face behind it) */
+    if (sh.contact && /EMBRACE|HOLD/.test(sh.contact.kind || '')) for (const id of sh.subjects || []) { if (id === I.embraced) continue; const P = pointsCache.get(id); if (P && P.facing && !P.creature) s += 1.5 * Math.max(-1, Math.min(1, P.facing.dot(cand.pos.clone().sub(P.head).setY(0).normalize()))); }
     if (cand.key) s += 1.5 - 1.6 * Math.max(0, (cand.far || 1) - 1.6);   /* the gate's camera, while it is near the size's distance */
     /* a lens beyond the set's floor looks at a model on a table, not into the place: allowed, but the last choice */
     if (!gridRay(W.G, cand.pos, new V3(0, -1, 0), 1e5, true).length) s -= 1.5;

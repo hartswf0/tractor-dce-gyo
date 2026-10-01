@@ -197,6 +197,8 @@ WATCH = [
      'The Bed Test, performed', 'Book XXIII: Penelope orders the great bed carried out of the chamber, Odysseus erupts (he built it around a living olive tree), the secret proves him, she runs to him, and Athena holds back the dawn while they weep and reunite.'),
     ('../../films/odyssey/OD-B19-S04-performed.mp4', '../../films/odyssey/OD-B19-S04-performed.jpg', 'Film · performed',
      'The Scar, performed', 'Book XIX: Penelope bids old Eurycleia wash the beggar\'s feet, Odysseus sees the danger too late, her hand finds the boar\'s scar, the foot drops and the basin spills, and he grips her throat and makes her swear silence.'),
+    ('../../films/odyssey/OD-B17-S03-performed.mp4', '../../films/odyssey/OD-B17-S03-performed.jpg', 'Film · performed',
+     'Argos, performed', 'Book XVII: near the palace gate old Argos lies neglected on the dung, knows his master after twenty years, lifts his head and drops his ears; Odysseus turns aside to hide a tear while asking Eumaeus about the dog, and Argos dies.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
