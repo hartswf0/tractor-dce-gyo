@@ -187,6 +187,8 @@ WATCH = [
      'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
     ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
      'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
+    ('../../films/odyssey/OD-B09-S10-performed.mp4', '../../films/odyssey/OD-B09-S10-performed.jpg', 'Film · performed',
+     'Escape beneath the Rams, performed', 'Book IX: the blinded giant at the cave mouth feels every back as the flock passes; the men hang beneath; Odysseus under the great ram as the giant speaks to it.'),
     ('../../films/odyssey/OD-B22-S01-performed.mp4', '../../films/odyssey/OD-B22-S01-performed.jpg', 'Film · performed',
      "The Hall, performed", "Book XXII from the engine's causal chain and shot by the cinematographer: the leap to the threshold, the arrow, Antinous across his table, the room turning, the search for arms, the name."),
     ('../../films/odyssey/OD-B09-S09-performed-shot.mp4', '../../films/odyssey/OD-B09-S09-performed-shot.jpg', 'Film · performed',
