@@ -18,7 +18,7 @@
      L1c creature  the lens stays out of a creature's bounding sphere by a margin scaled by its rig's scale (the shot's own creature,
                    and a rider's carrier: off its head by a third of its height); a rider is framed with its carrier's silhouette
      exposure      the chosen camera is rendered once, small, at the shot's middle: a frame nearly black or washed out (mean luma
-                   under 0.16 or over 0.84, or mostly near-black or near-white) or flat (luma deviation under 0.075: one surface
+                   under 0.10 or over 0.84, 70% near-black or 45% near-white: a firelit cave is dark and stays legal) or flat (luma deviation under 0.075: one surface
                    against the lens) or more than 80% one colour (twelve hues, four greys), at the shot's first, middle and last
                    drawings, is refused for the next best (up to twelve)
    Among the legal candidates the score prefers: the face turned to the lens, the profile for a handoff, the low angle for a giant,
@@ -169,7 +169,7 @@ async function solve(plan, api) {
       if (!own.has(k.id)) { if (d < k.r + m) return 'near ' + k.id + ' (inside its sphere)'; continue; }
       const P = pointsCache.get(k.id), hd = P && P.head ? p.distanceTo(P.head) : Infinity;
       if (hd < 0.22 * k.H + m) return 'near ' + k.id + ' (too close to the beast\'s head)';
-      if (size === 'WIDE' && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
+      if (size === 'WIDE' && k.r < 3 * H0 && d < 1.2 * k.r + m) return 'near ' + k.id + ' (a wide inside its sphere: the fleece fills the frame)'; }
     return null; }
   /* the exposure of a frame: the chosen camera rendered once at a drawing, small; the mean luma (sRGB) and the shares of near-black
      and near-white pixels. A frame nearly black (a lens in shadow, a far dusk wide) or washed out (fleece filling the frame) is refused. */
@@ -195,7 +195,7 @@ async function solve(plan, api) {
       const mean = sum / n; return { mean: +mean.toFixed(3), sd: +Math.sqrt(Math.max(0, sq / n - mean * mean)).toFixed(3), dark: +(dark / n).toFixed(2), white: +(white / n).toFixed(2), one: +(top / n).toFixed(2) };
     } catch (e) { if (!lumErr) { lumErr = String(e && e.message || e).slice(0, 200); console.log('[take] cinematographer exposure: ' + lumErr); } return null; } }
   let lumErr = null;
-  const LUMA = { lo: 0.16, hi: 0.84, dark: 0.55, white: 0.45, sd: 0.075, one: 0.8 };   /* one: more than 80% of the frame one colour (a pig's flank, an empty sky) */   /* sd: a frame of one flat surface (a pig's flank against the lens) */
+  const LUMA = { lo: 0.1, hi: 0.84, dark: 0.7, white: 0.45, sd: 0.075, one: 0.8 };   /* one: more than 80% of the frame one colour (a pig's flank, an empty sky) */   /* sd: a frame of one flat surface (a pig's flank against the lens) */
   const lumaBad = L => !!L && (L.mean < LUMA.lo || L.mean > LUMA.hi || L.dark > LUMA.dark || L.white > LUMA.white || (L.sd != null && L.sd < LUMA.sd) || (L.one != null && L.one > LUMA.one));
   /* the exposure over the shot: its first, middle and last drawings; the worst one is the shot's */
   function lumaSpan(c, sh, subj, t0, t1) { let worst = null; for (const t of [Math.min(t1 - 0.05, t0 + 0.2), (t0 + t1) / 2, Math.max(t0 + 0.05, t1 - 0.2)]) { const L = lumaAt(c, sh, subj, t); if (!L) continue; if (lumaBad(L)) return L; if (!worst || Math.abs(L.mean - 0.5) > Math.abs(worst.mean - 0.5)) worst = L; } return worst; }
