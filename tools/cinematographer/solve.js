@@ -381,7 +381,10 @@ async function solve(plan, api) {
     let moving = false, follow = null;
     for (const t of ts.slice(1)) {
       key = api.poseAt(t); world(key); pointsCache.clear(); for (const id of new Set([...subj, ...(sh.line || [])])) { const p = points(id, t); if (p) pointsCache.set(id, p); }
-      const St = subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) continue;
+      const St = subj.map(id => pointsCache.get(id)).filter(Boolean);
+      /* the shot's primary (a man) not in the scene at this drawing (not yet come out, hidden inside the horse): the frame would hold the empty set, so no candidate survives it */
+      if (!pointsCache.get(sh.primary) && !isCreature(sh.primary) && t !== ts[0]) { for (const c of alive) { c.res.push({ fail: ['L2 ' + sh.primary + ' not in the scene at ' + t.toFixed(2) + ' s'], info: { soft: 0 } }); worst.push(c); } alive = []; break; }
+      if (!St.length) continue;
       const Pt = St.find(s => s.id === sh.primary) || St[0]; if (P0 && Pt.feet && P0.feet && Pt.feet.distanceTo(P0.feet) > 1.2 * (P0.H || H0) && !P0.creature) moving = true;
       if (moving) follow = follow || new Map();
       const next = [];
