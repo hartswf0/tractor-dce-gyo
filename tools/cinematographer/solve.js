@@ -110,7 +110,10 @@ async function solve(plan, api) {
   /* ── a subject's points at the current drawing ── */
   function points(id, t) {
     if (isCreature(id)) {
-      const g = crGroup(id); const box = g ? new THREE.Box3().setFromObject(g) : null; const s = C ? CR.sample(C, id, t) : null, rig = creatures[id];
+      const g = crGroup(id);
+      /* a beast not drawn at this drawing (a giant before it comes to the cliff edge) is not in the scene: its rig still answers with points, the frame would show empty sky */
+      if (g) { let o = g, vis = true; while (o) { if (o.visible === false) { vis = false; break; } o = o.parent; } let any = false; if (vis) g.traverse(m => { if (!any && m.isMesh) { let q = m, v = true; while (q && q !== g) { if (q.visible === false) { v = false; break; } q = q.parent; } if (v) any = true; } }); if (!vis || !any) return null; }
+      const box = g ? new THREE.Box3().setFromObject(g) : null; const s = C ? CR.sample(C, id, t) : null, rig = creatures[id];
       const P = n => { const p = s && rig.point(n, s.v); return p ? new V3(p[0], p[1], p[2]) : null; };
       const head = P('head') || (box ? box.getCenter(new V3()) : new V3()), eye = P('eye') || head, crown = P('brow') || head;
       const corners = []; if (box && !box.isEmpty()) for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new V3(x, y, z));
@@ -405,6 +408,8 @@ async function solve(plan, api) {
       for (const t of ts) { const k = api.poseAt(t); world(k); pointsCache.clear(); for (const id of new Set([...prevHold.subj, ...(prevHold.use.line || [])])) { const p = points(id, t); if (p) pointsCache.set(id, p); }
         const St = prevHold.subj.map(id => pointsCache.get(id)).filter(Boolean); if (!St.length) { ok = false; break; } const r = check(c, St, prevHold.use, 0); c.res.push(r); if (r.fail.length) { ok = false; break; } }
       if (ok) { A = Object.assign({}, A, { subj: prevHold.subj, alive: [c], moving: false, P0: null }); use = prevHold.use; eased = sh.primary + ' cannot be framed legally from anywhere: the shot before is held (no cut)'; } }
+    /* still nothing legal: a wide on another man in the scene (one who sees it happen) before the least bad of an illegal frame (a close in a giant's fist) */
+    if (!A.alive.length) { for (const alt of api.cast().filter(id => !isCreature(id) && id !== sh.primary).slice(0, 4)) { const v = Object.assign({}, sh, { primary: alt, subjects: [alt], size: 'WIDE', kind: 'WIDE', line: null, contact: null, profile: false, giant: null, angle: 'eye' }); const B = attempt(v, 0, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = sh.primary + ' has no legal camera at any size: a wide on ' + alt; break; } } }
     let { subj, S, cands, alive, worst, hist, relaxed, moving, P0, keyFate } = A; let key;
     let pick = null, legal = alive.length > 0;
     let lum = null, lumRefused = 0;
