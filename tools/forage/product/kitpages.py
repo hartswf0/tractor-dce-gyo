@@ -207,6 +207,8 @@ WATCH = [
      'Proteus, performed', 'Book IV: Menelaus and three men lie hidden under sealskins among the seals, grapple the Old Man of the Sea, hold on while he turns into beasts, water and a tree, and win the prophecy that Odysseus lives, held by Calypso on her island.'),
     ('../../films/odyssey/OD-B10-S01-performed.mp4', '../../films/odyssey/OD-B10-S01-performed.jpg', 'Film · performed',
      'Aeolus, performed', 'Book X: Aeolus gives Odysseus the oxhide bag with every rough wind sewn inside and looses the West Wind to carry him home; then, when the crew have opened it and the storm has blown them back, he drives Odysseus from his island as a man the gods hate.'),
+    ('../../films/odyssey/OD-B11-S01-performed.mp4', '../../films/odyssey/OD-B11-S01-performed.jpg', 'Film · performed',
+     'The Rite of the Dead, performed', 'Book XI: the ship reaches the misty land of the Cimmerians at Ocean\'s edge; Odysseus digs the trench, pours the libations, sacrifices the sheep, and holds the gathering dead back from the blood with his sword until Tiresias comes.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
