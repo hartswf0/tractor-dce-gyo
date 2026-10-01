@@ -187,6 +187,8 @@ WATCH = [
      'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
     ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
      'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
+    ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
+     'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
      'The Taunt, performed', 'Book IX: Odysseus shouting from the ship, the mountain peak hurled and the wave, his true name thrown back at the blinded giant, and Polyphemus calling on Poseidon.'),
     ('../../films/odyssey/OD-B12-S04-performed.mp4', '../../films/odyssey/OD-B12-S04-performed.jpg', 'Film · performed',
