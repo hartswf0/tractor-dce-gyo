@@ -124,7 +124,8 @@ async function solve(plan, api) {
     const hips = r.hipsP.getWorldPosition(new V3()), torso = r.torsoP.getWorldPosition(new V3()), feet = r.pos.clone();
     const hR = api.kfHand(id, 'R'), hL = api.kfHand(id, 'L');
     const carrier = (W.crS || []).find(k => k.box.clone().expandByScalar(0.1 * H).containsPoint(hips) && hips.y < k.c.y + 0.2 * k.H);   /* a rider under a ram, in a giant's grip */
-    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: new V3(Math.sin(r.heading), 0, Math.cos(r.heading)) };
+    return { id, carrier: carrier || null, head, eye: head, crown, chin, hips, torso, feet, hands: [hR, hL].filter(Boolean), body: [head, torso.clone().lerp(head, 0.3), torso, hips], whole: [crown, feet, hR, hL].filter(Boolean), upper: [crown, chin, torso, hR, hL].filter(Boolean), H, heading: r.heading, facing: (() => { /* the way the body faces as posed (the torso's own forward), not the rig's stored heading */
+      const f = new V3(0, 0, 1).applyQuaternion(r.torsoP.getWorldQuaternion(new THREE.Quaternion())).setY(0); return f.lengthSq() > 0.04 ? f.normalize() : new V3(Math.sin(r.heading), 0, Math.cos(r.heading)); })() };
   }
 
   /* ── the camera: aimed at pts with the primary's head at (u, v) where the frame allows ── */
@@ -460,7 +461,7 @@ async function solve(plan, api) {
       const marks = []; for (const id of r.subjects) { const p = points(id, t); if (!p) continue; for (const n of ['head', 'eye', 'crown', 'feet']) if (p[n]) { const q = proj(p[n]); marks.push({ id, n, u: q[0], v: q[1], z: q[2] }); } if (p.box) { const b = p.box; for (const x of [b.min, b.max]) { const q = proj(x); marks.push({ id, n: 'box', u: q[0], v: q[1], z: q[2] }); } } }
       /* what the lens meets along its axis (the first parts, with their owners): a frame filled by something is named */
       const ax = camera.getWorldDirection(new V3()), axis = hitsAlong(camera.position, camera.position.clone().add(ax.multiplyScalar(20 * H0))).slice(0, 4).map(h => ({ by: owner(h.object) || null, name: h.object.name || (h.object.parent && h.object.parent.name) || null, at: +h.distance.toFixed(1), H: +(h.distance / H0).toFixed(2) }));
-      const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null } : null; });
+      const sizes = r.subjects.map(id => { const p = points(id, t); return p ? { id, H: +(p.H || 0).toFixed(1), H0: +H0.toFixed(1), d: +camera.position.distanceTo(p.head).toFixed(1), carrier: p.carrier ? p.carrier.id : null, facesLens: p.facing ? +p.facing.dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null, headingFaces: p.heading != null ? +new V3(Math.sin(p.heading), 0, Math.cos(p.heading)).dot(camera.position.clone().sub(p.head).setY(0).normalize()).toFixed(2) : null } : null; });
       return { report: r, marks, axis, sizes }; },
   };
   return S;
