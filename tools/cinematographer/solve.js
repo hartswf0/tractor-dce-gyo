@@ -432,7 +432,10 @@ async function solve(plan, api) {
       const sev = f => f.startsWith('L1') ? 100 : f.startsWith('L2') ? 8 : f.startsWith('L3') ? 6 : f.startsWith('L5') ? 4 : 2;
       /* never a camera inside geometry: the least bad are tested for L1 at the middle drawing, in order, until one is clear */
       const ranked = [...new Set(worst)].map(c => ({ c, f: c.res.reduce((n, r) => n + r.fail.reduce((m, x) => m + sev(x), 0), 0) - 0.5 * c.res.length })).sort((a, b) => a.f - b.f);
-      key = api.poseAt(mid); world(key); for (const { c } of ranked) { if (c.res.some(r => r.fail.some(x => x.startsWith('L1')))) continue; if (!inside(c.pos).length) { pick = c; break; } }
+      key = api.poseAt(mid); world(key); let firstClear = null, tried = 0;
+      /* and never a frame of one flat colour (a blank wall, the black beyond the set): the exposure check the legal frames get, on the least bad dozen */
+      for (const { c } of ranked) { if (c.res.some(r => r.fail.some(x => x.startsWith('L1')))) continue; key = api.poseAt(mid); world(key); if (inside(c.pos).length) continue; if (!firstClear) firstClear = c; if (tried++ >= 12) break; const L = lumaSpan(c, use, subj, t0, t1); if (!lumaBad(L)) { pick = c; lum = L; break; } lumRefused++; }
+      if (!pick) pick = firstClear;
       if (!pick && ranked.length) pick = ranked[0].c; }
     /* the chosen camera's track: the pan keyed every half second (and the position, for a travelling camera) */
     const keysT = []; const n = Math.max(2, Math.ceil((t1 - t0) / 0.5) + 1);
