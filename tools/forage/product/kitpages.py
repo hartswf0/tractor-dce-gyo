@@ -187,6 +187,8 @@ WATCH = [
      'Antinous falls', 'Book XXII: the rags off, the leap to the threshold, the arrow, the hall erupting. Every figure keyed on the voice.'),
     ('../../films/odyssey/OD-B12-S03-acted.mp4', '../../films/odyssey/OD-B12-S03-acted.jpg', 'Film · acted scene',
      'The Sirens', 'Book XII: the crew rowing with wax in their ears, Odysseus straining at the mast, the Sirens singing.'),
+    ('../../films/odyssey/OD-B12-S04-performed.mp4', '../../films/odyssey/OD-B12-S04-performed.jpg', 'Film · performed',
+     'Scylla, performed', 'Book XII: Charybdis roaring, the order to row and hug the cliff, Odysseus arming against Circe\'s warning, and Scylla\'s six heads striking down to lift six men from the ship.'),
     ('../../films/odyssey/OD-B10-S04-performed.mp4', '../../films/odyssey/OD-B10-S04-performed.jpg', 'Film · performed',
      'Circe, performed', 'Book X: the scouts find Circe singing at her loom among the fawning wolves and lions, the drugged cup, the wand, the men turned to swine, and Eurylochus running back to tell it.'),
     ('../../films/odyssey/OD-B09-S08-performed.mp4', '../../films/odyssey/OD-B09-S08-performed.jpg', 'Film · performed',
