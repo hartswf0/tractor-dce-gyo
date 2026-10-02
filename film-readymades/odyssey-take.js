@@ -266,10 +266,11 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   for(const k of spec.keys)if(!first.has(k.id)&&Array.isArray(k.after)&&first.has(k.after[0]))order.push({id:k.id,k,t:first.get(k.after[0])+k.after[1]});if(!order.length)order.push({id:spec.keys[0].id,k:spec.keys[0],t:0});order.sort((a,b)=>a.t-b.t);order[0].t=0;T.keys=order;
   T.keyOf=t=>T.keys[keyIndexAt(t)].k;
   for(const K of order){stage(spec,K.k);K.snap=snap();if(K===order[0])for(const a of ButterCast.cast)T.H[kfShort(a.kind)]=figHeight(kfShort(a.kind));}
-  /* the seams: who moves between two keys, how far, and how long a walk that is */
+  /* the seams: who moves between two keys, how far, and how long a walk that is (spec.walkHeight 'first': each figure's height as the
+     first key stands it, not as the last staged key leaves it, where a man who ends the scene dead on the floor walks as a short one) */
   for(let j=1;j<order.length;j++){const A_=order[j-1].snap,B=order[j].snap,moves={};let D=0.8;
     for(const id in B){const a=A_[id],b=B[id];if(!a||!b)continue;const d=Math.hypot(b.p[0]-a.p[0],b.p[2]-a.p[2]),dj=JOINTS.some(k=>a.j[k].some((x,q)=>Math.abs(x-b.j[k][q])>0.05));if(d<0.5&&!dj&&Math.abs(a.p[1]-b.p[1])<0.5&&Math.abs(angLerp(a.h,b.h,1)-a.h)<0.02&&a.vis===b.vis)continue;
-      const H=figHeight(id),walk=d>0.35*H,dir=walk?Math.atan2(b.p[0]-a.p[0],b.p[2]-a.p[2]):b.h,yS0=a.sat?(b.sat?a.p[1]:b.p[1]):a.p[1],yS1=b.sat?(a.sat?b.p[1]:yS0):b.p[1];
+      const H=spec.walkHeight==='first'&&T.H[id]?T.H[id]:figHeight(id),walk=d>0.35*H,dir=walk?Math.atan2(b.p[0]-a.p[0],b.p[2]-a.p[2]):b.h,yS0=a.sat?(b.sat?a.p[1]:b.p[1]):a.p[1],yS1=b.sat?(a.sat?b.p[1]:yS0):b.p[1];
       moves[id]={d,H,walk,dir,yStand0:yS0,yStand1:yS1};D=Math.max(D,(walk?Math.min(5,Math.max(1.4,d/(1.15*H))):0.9)+(a.sat?0.6:0)+(b.sat?0.6:0));}
     const ks=order[j].t,lo=order[j-1].t+0.6,hi=order[j+1]?order[j+1].t-0.6:T.total;let w0=Math.max(lo,ks-0.7*D),w1=Math.min(hi,w0+D);if(w1-w0<0.6)w1=Math.min(hi,w0+0.6);
     order[j].win=[w0,w1];order[j].moves=moves;}

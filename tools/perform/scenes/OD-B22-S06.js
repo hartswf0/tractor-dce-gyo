@@ -32,9 +32,9 @@ module.exports = function author(M, X) {
   /* ── the four come up the hall; each strikes one man down (the striker's key, then the victim's) ── */
   const kills = [
     { by: O, v: S2, come: 'K1a', fall: 'K1b', how: 'STAB', what: 'Odysseus\'s sword' },
-    { by: Tm, v: S1, come: 'K1b', fall: 'K1c', how: 'STAB', what: 'Telemachus\'s spear' },
-    { by: Eu, v: S3, come: 'K1c', fall: 'K1d', how: 'STAB', what: 'the swineherd\'s spear' },
-    { by: Ph, v: S4, come: 'K1c', fall: 'K1e', how: 'STAB', what: 'the stockman\'s spear' }];
+    { by: Tm, v: S1, come: 'K1c', fall: 'K1d', how: 'STAB', what: 'Telemachus\'s spear' },
+    { by: Eu, v: S3, come: 'K1e', fall: 'K1f', how: 'STAB', what: 'the swineherd\'s spear' },
+    { by: Ph, v: S4, come: 'K1e', fall: 'K1g', how: 'STAB', what: 'the stockman\'s spear' }];
   /* the advance: every man of the four is moved by the panic he sees (the suitors scatter: the opening) */
   stimuli.push({ id: 'sOpen', t0: q(1.3), t1: q(1.8), kind: 'SIGHT', label: 'the suitors scatter: the four go in like falcons on small birds', actor: S2, because: [{ id: 'pan1' }] });
   I({ id: 'oCome', actor: O, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: S2, label: 'up the hall at the nearest', because: [{ id: 'sOpen' }] });
@@ -46,14 +46,18 @@ module.exports = function author(M, X) {
   I({ id: 's2Turn', actor: S2, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: O, label: 'turns to the king coming at him', because: [{ id: 'oCome', latency: 0.3 }] });
   I({ id: 's3Turn', actor: S3, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: Eu, label: 'turns to the swineherd', because: [{ id: 'eAdv', latency: 0.3 }] });
   I({ id: 's4Run', actor: S4, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: [195, 40, 0], label: 'runs for the tables', because: [{ id: 'pAdv', latency: 0.25 }] });
-  I({ id: 's4Run2', actor: S4, kind: 'APPROACH', key: 'K1b', t0: W('K1b')[0], t1: W('K1b')[1], target: [195, 40, 0], label: 'into the corner by the tables: cornered', because: [{ id: 's4Run' }] });
-  I({ id: 'tCome', actor: Tm, kind: 'APPROACH', key: 'K1b', t0: W('K1b')[0], t1: W('K1b')[1], target: S1, label: 'at his man', because: [{ id: 'tAdv' }] });
-  I({ id: 'pCome1', actor: Ph, kind: 'APPROACH', key: 'K1b', t0: W('K1b')[0], t1: W('K1b')[1], target: S4, label: 'after the runner', because: [{ id: 's4Run' }] });
-  I({ id: 'eCome', actor: Eu, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: S3, label: 'at his man', because: [{ id: 'eAdv' }] });
-  I({ id: 'pCome', actor: Ph, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: S4, label: 'corners him', because: [{ id: 's4Run2' }] });
-  I({ id: 's1Face', actor: S1, kind: 'APPROACH', key: 'K1b', t0: W('K1b')[0], t1: W('K1b')[1], target: Tm, label: 'backs from the spear', because: [{ id: 'tCome', latency: 0.2 }] });
-  I({ id: 's3Face', actor: S3, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: Eu, label: 'backs from the swineherd', because: [{ id: 'eCome', latency: 0.2 }] });
-  I({ id: 's4Face', actor: S4, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: Ph, label: 'turns at bay', because: [{ id: 'pCome', latency: 0.2 }] });
+    I({ id: 'tCome', actor: Tm, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: S1, label: 'at his man', because: [{ id: 'tAdv' }] });
+  I({ id: 'pCome1', actor: Ph, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: S4, label: 'after the runner, round the pillars', because: [{ id: 's4Run' }] });
+  I({ id: 'eCome', actor: Eu, kind: 'APPROACH', key: 'K1e', t0: W('K1e')[0], t1: W('K1e')[1], target: S3, label: 'at his man', because: [{ id: 'eAdv' }] });
+  I({ id: 'pCome', actor: Ph, kind: 'APPROACH', key: 'K1e', t0: W('K1e')[0], t1: W('K1e')[1], target: S4, label: 'corners him by the tables', because: [{ id: 'pCome1' }] });
+  I({ id: 's1Face', actor: S1, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: Tm, label: 'backs from the spear', because: [{ id: 'tCome', latency: 0.2 }] });
+  I({ id: 's3Face', actor: S3, kind: 'APPROACH', key: 'K1e', t0: W('K1e')[0], t1: W('K1e')[1], target: Eu, label: 'backs from the swineherd', because: [{ id: 'eCome', latency: 0.2 }] });
+  I({ id: 's4Face', actor: S4, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: Ph, label: 'turns at bay', because: [{ id: 'pCome1', latency: 0.2 }] });
+  I({ id: 's4Face2', actor: S4, kind: 'APPROACH', key: 'K1e', t0: W('K1e')[0], t1: W('K1e')[1], target: Ph, label: 'backs into the corner', because: [{ id: 'pCome', latency: 0.2 }] });
+  /* the king turns to watch each of the others' fights in turn (his blocking's facings) */
+  I({ id: 'oW1', actor: O, kind: 'APPROACH', key: 'K1c', t0: W('K1c')[0], t1: W('K1c')[1], target: Tm, label: 'turns to his son\'s fight', because: [{ id: 'tCome', latency: 0.3 }] });
+  I({ id: 'oW2', actor: O, kind: 'APPROACH', key: 'K1e', t0: W('K1e')[0], t1: W('K1e')[1], target: Eu, label: 'turns to the swineherd\'s fight', because: [{ id: 'eCome', latency: 0.3 }] });
+  I({ id: 'oW3', actor: O, kind: 'APPROACH', key: 'K1g', t0: W('K1g')[0], t1: W('K1g')[1], target: Le, label: 'turns to the priest by the hearth', because: [{ id: 'die2', latency: 0.4 }] });
   const prevKill = {};
   kills.forEach((k, n) => {
     const w = W(k.fall), tHit = q(w[0] - 0.08), tA = q(tHit - 0.48), hitId = 'hit' + n;
@@ -71,7 +75,7 @@ module.exports = function author(M, X) {
   S.forEach((s, n) => { const k = kills.find(x => x.v === s), w = W(k.fall);
     H({ id: 'hPan' + n, actor: s, t0: q(2.25 + 0.1 * n), t1: q(w[0] - 0.75), reason: 'nowhere to run: the goddess behind, the spears in front', params: { look: [[k.by, 1.0], [At, 0.7], [S[(n + 1) % 4], 0.6]], weight: true, offset: 0.2 * n }, because: [{ id: 'pan' + n }] }); });
   /* the four, between their blows: each watches his own man and the room */
-  H({ id: 'hO1', actor: O, t0: q(tOf('atk0') + 2.45), t1: q(W('K1e')[1] + 0.2), reason: 'over the dead man, the sword ready: he watches the others finish theirs', params: { look: [[S1, 1.2], [S3, 1.2], [S4, 1.2], [Le, 1.0]], weight: true }, because: [{ id: 'rec0' }] });
+  H({ id: 'hO1', actor: O, t0: q(tOf('atk0') + 2.45), t1: q(W('K2')[0] - 0.1), reason: 'over the dead man, the sword ready: he watches the others finish theirs', params: { look: [[S1, 1.2], [S3, 1.2], [S4, 1.2], [Le, 1.0]], weight: true }, because: [{ id: 'rec0' }] });
   function tOf(id) { return intents.find(x => x.id === id).t0; }
   H({ id: 'hT1', actor: Tm, t0: q(tOf('rec1') + 1.1), t1: q(W('K2')[0] - 0.1), reason: 'his man down: he looks for the next', params: { look: [[Le, 1.4], [O, 1.0], [S4, 1.2]], weight: true }, because: [{ id: 'rec1' }] });
   H({ id: 'hE1', actor: Eu, t0: q(tOf('rec2') + 1.1), t1: q(W('K2')[0] - 0.1), reason: 'his man down: he looks round the hall', params: { look: [[S4, 1.2], [O, 1.0], [Le, 1.4]], weight: true }, because: [{ id: 'rec2' }] });
@@ -81,12 +85,12 @@ module.exports = function author(M, X) {
   I({ id: 'eTurn', actor: Eu, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: Le, label: 'turns to the man running at the king', because: [{ id: 'leRun', latency: 0.3 }] });
   I({ id: 'pTurn', actor: Ph, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: Le, label: 'turns to the man running at the king', because: [{ id: 'leRun', latency: 0.4 }] });
   /* Athena: the aegis held over the slaughter, lowered when the last is down */
-  H({ id: 'hAt1', actor: At, t0: 1.7, t1: q(W('K1e')[1] + 0.4), reason: 'the aegis held up over the hall while they fall', params: { look: [[S2, 1.4], [S1, 1.4], [S3, 1.4], [S4, 1.4]], weight: false }, because: [{ id: 'aRaise' }] });
-  I({ id: 'aLower', actor: At, kind: 'GESTURE', t0: q(W('K1e')[1] + 0.5), t1: q(W('K1e')[1] + 1.9), label: 'the aegis lowered: the work is done', params: { shape: 'dismiss', at: q(W('K1e')[1] + 0.9), side: 'L', amp: 0.6, hold: 0.4 }, because: [{ id: 'die3', latency: 0.5 }] });
-  H({ id: 'hAt2', actor: At, t0: q(W('K1e')[1] + 2.0), t1: T, reason: 'the goddess watches her man settle his house', params: { look: [[O, 3.0], [Le, 1.5], [Pm, 1.5]], weight: false }, because: [{ id: 'aLower' }] });
+  H({ id: 'hAt1', actor: At, t0: 1.7, t1: q(W('K1g')[1] + 0.4), reason: 'the aegis held up over the hall while they fall', params: { look: [[S2, 1.4], [S1, 1.4], [S3, 1.4], [S4, 1.4]], weight: false }, because: [{ id: 'aRaise' }] });
+  I({ id: 'aLower', actor: At, kind: 'GESTURE', t0: q(W('K1g')[1] + 0.5), t1: q(W('K1g')[1] + 1.9), label: 'the aegis lowered: the work is done', params: { shape: 'dismiss', at: q(W('K1g')[1] + 0.9), side: 'L', amp: 0.6, hold: 0.4 }, because: [{ id: 'die3', latency: 0.5 }] });
+  H({ id: 'hAt2', actor: At, t0: q(W('K1g')[1] + 2.0), t1: T, reason: 'the goddess watches her man settle his house', params: { look: [[O, 3.0], [Le, 1.5], [Pm, 1.5]], weight: false }, because: [{ id: 'aLower' }] });
   /* ── Leiodes ── */
   H({ id: 'hLe0', actor: Le, t0: 0.3, t1: q(W('K2')[0] - 0.1), reason: 'the priest of the suitors cowers by the hearth: no sword, nowhere to run', params: { look: [[At, 0.8], [O, 1.2], [S2, 0.9], [Ph, 0.9]], weight: true }, because: [{ id: 'sHall' }] });
-  stimuli.push({ id: 'sAlone', t0: q(W('K1e')[1] + 0.1), t1: q(W('K1e')[1] + 0.5), kind: 'SIGHT', label: 'the last suitor down: nobody left to hide behind', actor: S4, because: [{ id: 'die3' }] });
+  stimuli.push({ id: 'sAlone', t0: q(W('K1g')[1] + 0.1), t1: q(W('K1g')[1] + 0.5), kind: 'SIGHT', label: 'the last suitor down: nobody left to hide behind', actor: S4, because: [{ id: 'die3' }] });
   I({ id: 'leRun', actor: Le, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: O, label: 'runs to the king and drops at his knees', because: [{ id: 'sAlone' }] });
   I({ id: 'oTurnLe', actor: O, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: Le, label: 'turns to the man at his knees', because: [{ id: 'leRun', latency: 0.3 }] });
   const tClasp = q(Math.max(W('K2')[1] + 0.1, w(V2, 'clasps', c2.at + 1.4))), tInno = q(Math.max(tClasp + 2.4, w(V2, 'innocence', c2.at + 7.5)));
