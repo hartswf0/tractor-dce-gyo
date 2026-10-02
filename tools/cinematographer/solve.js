@@ -277,6 +277,11 @@ async function solve(plan, api) {
     /* R10 an offer: the lens on the man's side of the giant (behind or beside the giver, looking up past him) */
     if (sh.offer) { const G = S.find(x => x.id === sh.offer); if (G) { const v = pos.clone().sub(G.feet || G.head).setY(0).normalize(), w = (G.feet || G.head).clone().sub(prim.feet || prim.head).setY(0).normalize(); if (v.dot(w) < 0.1) return { fail: ['L5 not on the giver\'s side of the offer'], info }; } }
     if (!prim.creature && sh.size !== 'WIDE' && ['HOT', 'REACT', 'SPK', 'MID'].includes(sh.kind) && info.facing < 0.15) return { fail: ['L3 the back of ' + prim.id + '\'s head'], info };   /* the face itself toward the lens (the head's own forward) */
+    /* a wide on a man in a line's beat (speaking to, or answering, the other) may take his side but not his back (Hermes's lines
+       to Odysseus over the moly had been held on the back of the god's helmet) */
+    if (!prim.creature && sh.size === 'WIDE' && sh.line && prim.facing && info.facing < -0.35) return { fail: ['L3 the back of ' + prim.id + ' in a wide on his line'], info };
+    /* a two-shot on a line shows both of its men at least from the side, never one's full back (the moly passed with the god's back to the lens) */
+    if (sh.kind === 'TWO' && sh.line) for (const id of sh.line) { const P = S.find(x => x.id === id); if (P && P.facing && !P.creature && P.facing.dot(pos.clone().sub(P.head).setY(0).normalize()) < -0.5) return { fail: ['L3 the back of ' + id + ' in a two-shot'], info }; }
     return { fail, info };
   }
   function needOf(S, sh, prim) {
