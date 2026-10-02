@@ -73,10 +73,10 @@
   },
   "cine": {
    "time": {
-    "grid": 2.3,
-    "inside": 0.2,
-    "seen": 5.1,
-    "clutter": 1.6,
+    "grid": 2.8,
+    "inside": 0.3,
+    "seen": 9.7,
+    "clutter": 2.8,
     "pose": 0
    },
    "scene": "OD-B13-S01",
@@ -99,7 +99,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 58.6,
+   "solvedIn": 68.3,
    "shots": [
     {
      "i": 0,
@@ -140,21 +140,27 @@
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L2 odysseus hidden": 97,
-      "L4 foreground covers n%": 23,
-      "L1 near plane in a set part": 5,
+      "L2 odysseus hidden": 105,
+      "L4 foreground covers n%": 24,
+      "L2 body": 4,
+      "L1 near plane in a set part": 4,
       "L3 head": 10,
-      "L2 body": 3,
-      "L1 under the set": 8,
+      "L1 under the set": 15,
       "L3 face": 1,
       "L1 too near the face": 2
      },
      "candidates": 257,
-     "legalCandidates": 108,
+     "legalCandidates": 92,
      "samples": [
       4.92,
       0.1,
-      9.73
+      9.73,
+      1.25,
+      2.5,
+      3.75,
+      6.25,
+      7.5,
+      8.75
      ],
      "checks": [
       "L1 not inside geometry",
@@ -168,10 +174,10 @@
      "clutterFar": 0.03,
      "luma": {
       "mean": 0.336,
-      "sd": 0.194,
-      "dark": 0.06,
+      "sd": 0.195,
+      "dark": 0.07,
       "white": 0.01,
-      "one": 0.19
+      "one": 0.18
      },
      "lumaRefused": 0
     },
@@ -217,7 +223,7 @@
      "rejected": {
       "L3 the back": 81,
       "L2 alcinous hidden": 12,
-      "L1 in part 1661": 5,
+      "L1 in part 1673": 5,
       "L1 inside the staged prop chest": 4,
       "L4 foreground covers n%": 11,
       "L1 near plane in a set part": 1,
@@ -232,7 +238,13 @@
      "samples": [
       14.04,
       9.93,
-      18.15
+      18.15,
+      11.08,
+      12.33,
+      13.58,
+      14.83,
+      16.08,
+      17.33
      ],
      "checks": [
       "L1 not inside geometry",
@@ -285,7 +297,7 @@
       "pos": [
        61.6,
        135.7,
-       -332.6
+       -333
       ],
       "fov": 46,
       "key": false,
@@ -299,9 +311,9 @@
       "L5 across the line": 145,
       "L1 under the set": 33,
       "L3 the back": 23,
-      "L2 alcinous hidden": 32,
+      "L2 alcinous hidden": 33,
       "L4 foreground covers n%": 3,
-      "L1 near plane in a set part": 5,
+      "L1 near plane in a set part": 4,
       "L1 in part construction-frame": 1,
       "L1 inside a set part": 2,
       "L2 alcinous not in the scene at 25.72 s": 13
@@ -311,7 +323,11 @@
      "samples": [
       22.04,
       18.35,
-      25.72
+      25.72,
+      19.5,
+      20.75,
+      23.25,
+      24.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -325,9 +341,9 @@
      "headV": 0.432,
      "clutterFar": 0.17,
      "luma": {
-      "mean": 0.42,
+      "mean": 0.421,
       "sd": 0.241,
-      "dark": 0.03,
+      "dark": 0.02,
       "white": 0.1,
       "one": 0.17
      },
@@ -373,7 +389,7 @@
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L2 phaeacian-convoy-crew-1 hidden": 54,
+      "L2 phaeacian-convoy-crew-1 hidden": 56,
       "L4 foreground covers n%": 41,
       "L1 near plane in a set part": 17,
       "L2 body": 2,
@@ -383,11 +399,13 @@
       "L4 an empty frame (n% sky)": 1
      },
      "candidates": 257,
-     "legalCandidates": 116,
+     "legalCandidates": 114,
      "samples": [
       28.57,
       25.92,
-      31.22
+      31.22,
+      27.07,
+      29.57
      ],
      "checks": [
       "L1 not inside geometry",
@@ -416,10 +434,10 @@
      "kind": "HOT",
      "size": "WIDE",
      "planned": "MID",
-     "eased": "odysseus has no legal camera at any size: a wide on phaeacian-convoy-crew-1",
-     "primary": "phaeacian-convoy-crew-1",
+     "eased": "odysseus has no legal camera at any size: a wide on phaeacian-convoy-crew-2",
+     "primary": "phaeacian-convoy-crew-2",
      "subjects": [
-      "phaeacian-convoy-crew-1"
+      "phaeacian-convoy-crew-2"
      ],
      "why": {
       "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
@@ -436,35 +454,35 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -132.4,
-       169.8,
-       65.5
+       98.8,
+       95.7,
+       134.5
       ],
       "fov": 46,
       "key": false,
-      "az": 5.11,
+      "az": 0.79,
       "travelling": true
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L2 phaeacian-convoy-crew-1 hidden": 80,
-      "L4 foreground covers n%": 36,
-      "L2 body": 2,
-      "L1 near plane in a set part": 30,
-      "L1 in phaeacian-convoy-crew-2": 9,
-      "L1 inside a set part": 1,
+      "L2 phaeacian-convoy-crew-2 hidden": 53,
+      "L4 foreground covers n%": 22,
+      "L1 near plane in a set part": 49,
+      "L1 in phaeacian-convoy-crew-1": 6,
       "L3 head": 50,
-      "L1 too near the face": 8,
-      "L1 inside the staged prop olive": 4
+      "L1 too near the face": 9,
+      "L1 inside the staged prop olive": 54
      },
      "candidates": 256,
-     "legalCandidates": 36,
+     "legalCandidates": 13,
      "samples": [
       34.08,
       31.43,
-      36.73
+      36.73,
+      32.58,
+      35.08
      ],
      "checks": [
       "L1 not inside geometry",
@@ -474,15 +492,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.11,
-     "headV": 0.361,
-     "clutterFar": 0.22,
+     "facing": 0.92,
+     "headV": 0.314,
+     "clutterFar": 0.07,
      "luma": {
-      "mean": 0.378,
-      "sd": 0.239,
-      "dark": 0.07,
-      "white": 0.02,
-      "one": 0.35
+      "mean": 0.357,
+      "sd": 0.19,
+      "dark": 0.05,
+      "white": 0,
+      "one": 0.39
      },
      "lumaRefused": 0
     },
@@ -514,7 +532,7 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -243.5,
+       -244.3,
        135.3,
        234.7
       ],
@@ -540,7 +558,11 @@
      "samples": [
       40.41,
       36.93,
-      43.89
+      43.89,
+      38.08,
+      39.33,
+      41.83,
+      43.08
      ],
      "checks": [
       "L1 not inside geometry",
@@ -554,8 +576,8 @@
      "headV": 0.348,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.548,
-      "sd": 0.182,
+      "mean": 0.547,
+      "sd": 0.183,
       "dark": 0.01,
       "white": 0.01,
       "one": 0.26
