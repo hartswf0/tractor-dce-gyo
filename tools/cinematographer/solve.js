@@ -419,6 +419,8 @@ async function solve(plan, api) {
       if (!any) { const alt = api.cast().find(id => !isCreature(id) && points(id, mid)); if (alt) { Object.assign(sh, { primary: alt, subjects: [alt], size: 'WIDE', kind: 'WIDE', line: null, contact: null, profile: false, giant: null, angle: 'eye', why: (sh.why ? sh.why + '; ' : '') + 'none of its figures in the scene at its middle: a wide on ' + alt }); any = true; } }
       if (!any) { const last = solved[solved.length - 1]; last.dur = t1 - last.t0; report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, planned: sh.size, eased: 'none of ' + [sh.primary, ...(sh.subjects || [])].join(', ') + ' is in the scene at its middle: the shot before runs on', primary: sh.primary, subjects: sh.subjects, why: sh.why, legal: true, merged: last.id, camera: null }); continue; } }
     const ts = [mid, Math.min(t1 - 0.05, t0 + 0.1), Math.max(t0 + 0.05, t1 - 0.1)]; if (sh.contact && sh.contact.t > t0 && sh.contact.t < t1) ts.push(sh.contact.t + 0.05);
+    /* and every 1.25 s between: a camera travelling with a walking man had gone into the rock he passed between the three samples (the convoy's stern) */
+    for (let t = t0 + 1.25; t < t1 - 0.6; t += 1.25) if (Math.abs(t - mid) > 0.4) ts.push(t);
     const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
     /* the ladder: as planned; then (no legal camera) the primary alone one size wider; then a wide on the primary */
     const WIDER = { CLOSE: 'MID', MID: 'WIDE', WIDE: 'WIDE' };
