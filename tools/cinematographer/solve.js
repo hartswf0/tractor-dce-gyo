@@ -232,7 +232,7 @@ async function solve(plan, api) {
     const pos = cand.pos;
     const prim = S.find(s => s.id === sh.primary) || S[0];
     const need = needOf(S, sh, prim);
-    const target = aim(pos, cand.fov, need, sh.size === 'WIDE' && !sh.giant ? null : sh.kind === 'INSERT' ? prim.eye : prim.head, cand.u, cand.v);
+    const target = aim(pos, cand.fov, need, (sh.size === 'WIDE' && !sh.giant) || sh.offer ? null : sh.kind === 'INSERT' ? prim.eye : prim.head, cand.u, cand.v);   /* an offer is framed on the pair (the man's head and hands under the giant's face), not on the giant's head alone */
     info.target = target;
     const hard = new Set([prim.id, ...(sh.kind === 'TWO' && sh.line ? sh.line : [])]);
     const bad = (s, why) => { if (hard.has(s.id)) { fail.push(why); return true; } info.soft++; return false; };
