@@ -79,13 +79,13 @@ def key_map(sid, turns):
     """Each keyframe key -> the turn it stills: the key's beat against the turn's payload, else by order."""
     f = REPO / 'odyssey/keyframes' / (sid + '.json')
     if not f.exists(): return {}, []
-    keys = json.loads(f.read_text())['keys']; norm = lambda s: re.sub(r'[^a-z]+', ' ', (s or '').lower()).strip()
+    keys = [k for k in json.loads(f.read_text())['keys'] if not k.get('after')]; norm   # a key placed after another (k.after) is not a turn's key = lambda s: re.sub(r'[^a-z]+', ' ', (s or '').lower()).strip()
     out = {}
     for i, k in enumerate(keys):
         hit = next((t['id'] for t in turns if norm(t.get('payload')) and norm(t['payload']) == norm(k.get('beat'))), None)
         if not hit and turns: hit = turns[min(len(turns) - 1, round(i * (len(turns) - 1) / max(1, len(keys) - 1)))]['id']
         out.setdefault(hit, k['id'])
-    return out, [k['id'] for k in keys]
+    return out, [k['id'] for k in json.loads(f.read_text())['keys']]
 
 def take(sid, actor_ids):
     vm = _j(HALF / 'drive/voice-manifest.json').get(sid)

@@ -260,7 +260,10 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   for(const a of ButterCast.cast)T.hips.set(a.rig,a.rig.hipsP.position.y);T.H={};
   /* the keys on the clock: a key begins where the first segment of its turn begins */
   const kById=new Map(spec.keys.map(k=>[k.id,k])),first=new Map();for(const c of clips)if(c.key&&!first.has(c.key))first.set(c.key,c.at);
-  const order=spec.keys.filter(k=>first.has(k.id)).map(k=>({id:k.id,k,t:first.get(k.id)}));if(!order.length)order.push({id:spec.keys[0].id,k:spec.keys[0],t:0});order.sort((a,b)=>a.t-b.t);order[0].t=0;T.keys=order;
+  const order=spec.keys.filter(k=>first.has(k.id)).map(k=>({id:k.id,k,t:first.get(k.id)}));
+  /* a key between the turns' keys (a fight's beats inside one narrated turn: each man struck down at his own moment): k.after
+     [keyId, seconds] stands it that long after the turn's key begins, on whichever clock the take plays */
+  for(const k of spec.keys)if(!first.has(k.id)&&Array.isArray(k.after)&&first.has(k.after[0]))order.push({id:k.id,k,t:first.get(k.after[0])+k.after[1]});if(!order.length)order.push({id:spec.keys[0].id,k:spec.keys[0],t:0});order.sort((a,b)=>a.t-b.t);order[0].t=0;T.keys=order;
   T.keyOf=t=>T.keys[keyIndexAt(t)].k;
   for(const K of order){stage(spec,K.k);K.snap=snap();if(K===order[0])for(const a of ButterCast.cast)T.H[kfShort(a.kind)]=figHeight(kfShort(a.kind));}
   /* the seams: who moves between two keys, how far, and how long a walk that is */
