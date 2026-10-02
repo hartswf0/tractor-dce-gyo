@@ -1,0 +1,1185 @@
+{
+ "scene": "OD-B01-S02",
+ "mode": "cut",
+ "fps": 12,
+ "size": [
+  1280,
+  720
+ ],
+ "seconds": 50.333333333333336,
+ "frames": 604,
+ "from": 0,
+ "take": {
+  "follow": [],
+  "scene": "OD-B01-S02",
+  "mode": "cut",
+  "total": 50.3,
+  "direction": {
+   "sign": "Ve",
+   "shot_bias": {
+    "WIDE": 0.42,
+    "MID": 0.41,
+    "CLOSE": 0.13,
+    "OBJ": 0.04
+   },
+   "hold_min_s": 2.5,
+   "move": "track",
+   "empty_frame": false,
+   "sound_forward": false,
+   "cut_rhythm": "mid",
+   "insert_object": "Athena's golden sandals",
+   "subject": "athena",
+   "book_tempo": "mid",
+   "tempo_conflict": false
+  },
+  "cut": null,
+  "keys": [
+   {
+    "id": "K1",
+    "t": 0
+   },
+   {
+    "id": "K2",
+    "t": 18.45,
+    "win": [
+     17.82,
+     18.72
+    ]
+   },
+   {
+    "id": "K3",
+    "t": 39.22,
+    "win": [
+     37.07,
+     40.14
+    ]
+   }
+  ],
+  "faces": [
+   "athena"
+  ],
+  "shots": {
+   "INSERT": 1,
+   "WIDE": 7,
+   "HOT": 4
+  },
+  "cine": {
+   "time": {
+    "grid": 1,
+    "inside": 0.7,
+    "seen": 13.6,
+    "clutter": 4.2,
+    "pose": 0
+   },
+   "scene": "OD-B01-S02",
+   "media": "cool",
+   "direction": {
+    "shot_bias": {
+     "WIDE": 0.42,
+     "MID": 0.41,
+     "CLOSE": 0.13,
+     "OBJ": 0.04
+    },
+    "hold_min_s": 2.5,
+    "move": "track",
+    "empty_frame": false,
+    "sound_forward": false,
+    "cut_rhythm": "mid",
+    "insert_object": "Athena's golden sandals",
+    "subject": "athena",
+    "book_tempo": "mid",
+    "tempo_conflict": false
+   },
+   "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
+   "solvedIn": 140.3,
+   "shots": [
+    {
+     "i": 0,
+     "t0": 0,
+     "t1": 3.42,
+     "kind": "INSERT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the scene opens",
+      "rule": "R6 insert_object \"Athena's golden sandals\" at its hottest (0 s)",
+      "heat": 1.78,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -208.4,
+       92.6,
+       -8.6
+      ],
+      "fov": 43,
+      "key": false,
+      "az": 4.71,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 near plane in a set part": 14,
+      "L2 athena hidden": 23,
+      "L4 foreground covers n%": 8,
+      "L3 head": 12,
+      "L3 face": 50,
+      "L1 inside a set part": 1,
+      "L1 too near the face": 16
+     },
+     "candidates": 256,
+     "legalCandidates": 132,
+     "samples": [
+      1.71,
+      0.1,
+      3.32,
+      1.25,
+      2.5
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 0.88,
+     "headV": 0.42,
+     "clutterFar": 0.01,
+     "luma": {
+      "mean": 0.686,
+      "sd": 0.192,
+      "dark": 0,
+      "white": 0.12,
+      "one": 0.37
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 1,
+     "t0": 3.42,
+     "t1": 7.42,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.23, contrast 0): WIDE by the direction's bias",
+      "heat": 1.23,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -144,
+       128.1,
+       -196.6
+      ],
+      "fov": 43.5,
+      "key": true,
+      "az": null,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L3 the back": 66,
+      "L1 near plane in a set part": 16,
+      "L2 athena hidden": 24,
+      "L4 foreground covers n%": 14,
+      "L3 face": 1,
+      "L1 inside a set part": 1,
+      "L3 head": 5,
+      "L1 too near the face": 6,
+      "L2 body": 1
+     },
+     "candidates": 257,
+     "legalCandidates": 123,
+     "samples": [
+      5.42,
+      3.52,
+      7.32,
+      4.67,
+      5.92
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.92,
+     "headV": 0.331,
+     "clutterFar": 0.06,
+     "luma": {
+      "mean": 0.689,
+      "sd": 0.204,
+      "dark": 0.03,
+      "white": 0.15,
+      "one": 0.32
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 2,
+     "t0": 7.42,
+     "t1": 9.92,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.4, contrast 0): WIDE by the direction's bias",
+      "heat": 1.4,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -14.8,
+       114.9,
+       -102.9
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 2.75,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L5 across the line": 128,
+      "L3 the back": 27,
+      "L1 near plane in a set part": 9,
+      "L2 athena hidden": 8,
+      "L4 foreground covers n%": 8,
+      "L1 too near the face": 3,
+      "L3 head": 2,
+      "L3 face": 1
+     },
+     "candidates": 257,
+     "legalCandidates": 71,
+     "samples": [
+      8.67,
+      7.52,
+      9.82
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.67,
+     "headV": 0.36,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.727,
+      "sd": 0.165,
+      "dark": 0,
+      "white": 0.16,
+      "one": 0.34
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 3,
+     "t0": 9.92,
+     "t1": 14.33,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.03, contrast 0): MID by the direction's bias",
+      "heat": 1.03,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -54.3,
+       92.7,
+       -82
+      ],
+      "fov": 38,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L5 across the line": 144,
+      "L3 the back": 44,
+      "L4 foreground covers n%": 3,
+      "L1 in hermes": 4,
+      "L1 too near the face": 24
+     },
+     "candidates": 256,
+     "legalCandidates": 37,
+     "samples": [
+      12.13,
+      10.02,
+      14.23,
+      11.17,
+      13.67
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.9,
+     "headV": 0.343,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.722,
+      "sd": 0.137,
+      "dark": 0,
+      "white": 0.07,
+      "one": 0.41
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 14.33,
+     "t1": 18.45,
+     "kind": "HOT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.34, contrast -0.02): CLOSE by the direction's bias",
+      "heat": 1.34,
+      "contrast": -0.02,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -57.8,
+       92.8,
+       -102.1
+      ],
+      "fov": 32,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L5 across the line": 128,
+      "L3 the back": 44,
+      "L1 inside a set part": 1,
+      "L4 foreground covers n%": 2,
+      "L1 too near the face": 55,
+      "L3 head": 16,
+      "L1 in hermes": 2,
+      "L3 face": 3
+     },
+     "candidates": 256,
+     "legalCandidates": 5,
+     "samples": [
+      16.39,
+      14.43,
+      18.35,
+      15.58,
+      16.83
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.88,
+     "headV": 0.345,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.736,
+      "sd": 0.118,
+      "dark": 0,
+      "white": 0.07,
+      "one": 0.36
+     },
+     "lumaRefused": 2
+    },
+    {
+     "i": 5,
+     "t0": 18.45,
+     "t1": 24.25,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena"
+     ],
+     "why": {
+      "cut": "a line begins (v3)",
+      "rule": "R1 the hot spot athena (heat 0.99, contrast 0): MID by the direction's bias",
+      "heat": 0.99,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -114.7,
+       77.2,
+       15.7
+      ],
+      "fov": 38,
+      "key": false,
+      "az": 4.71,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L4 foreground covers n%": 9,
+      "L3 the back": 80,
+      "L1 in hermes": 11,
+      "L3 head": 18,
+      "L3 face": 21,
+      "L1 too near the face": 61
+     },
+     "candidates": 256,
+     "legalCandidates": 56,
+     "samples": [
+      21.35,
+      18.55,
+      24.15,
+      19.7,
+      20.95,
+      22.2,
+      23.45
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.9,
+     "headV": 0.34,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.71,
+      "sd": 0.191,
+      "dark": 0,
+      "white": 0.1,
+      "one": 0.42
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 6,
+     "t0": 24.25,
+     "t1": 29.25,
+     "kind": "HOT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 0.69, contrast 0): MID by the direction's bias; R9 not the same size as the shot before (MID)",
+      "heat": 0.69,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -110.6,
+       114.9,
+       -29.6
+      ],
+      "fov": 32,
+      "key": false,
+      "az": 4.32,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 12,
+      "L4 foreground covers n%": 9,
+      "L2 athena hidden": 2,
+      "L5 across the line": 128,
+      "L1 in hermes": 5,
+      "L1 too near the face": 47,
+      "L3 head": 16,
+      "L1 near plane in a set part": 1
+     },
+     "candidates": 256,
+     "legalCandidates": 36,
+     "samples": [
+      26.75,
+      24.35,
+      29.15,
+      25.5,
+      28
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.61,
+     "headV": 0.351,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.801,
+      "sd": 0.165,
+      "dark": 0,
+      "white": 0.33,
+      "one": 0.55
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 7,
+     "t0": 29.25,
+     "t1": 35,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 0.71, contrast 0): WIDE by the direction's bias",
+      "heat": 0.71,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -67.8,
+       102.9,
+       235.5
+      ],
+      "fov": 40,
+      "key": true,
+      "az": null,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L5 across the line": 120,
+      "L4 foreground covers n%": 12,
+      "L1 near plane in a set part": 4,
+      "L2 athena hidden": 6,
+      "L2 body": 2,
+      "L3 head": 10,
+      "L1 too near the face": 2,
+      "L3 face": 2
+     },
+     "candidates": 257,
+     "legalCandidates": 99,
+     "samples": [
+      32.13,
+      29.35,
+      34.9,
+      30.5,
+      33,
+      34.25
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.65,
+     "headV": 0.353,
+     "clutterFar": 0.03,
+     "luma": {
+      "mean": 0.756,
+      "sd": 0.203,
+      "dark": 0,
+      "white": 0.32,
+      "one": 0.44
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 8,
+     "t0": 35,
+     "t1": 39.22,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.49, contrast 0): WIDE by the direction's bias",
+      "heat": 1.49,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       22.7,
+       176.7,
+       172.2
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 0.39,
+      "travelling": true
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 the back of athena in a wide on his line",
+     "rejected": {
+      "L5 across the line": 120,
+      "L4 foreground covers n%": 14,
+      "L1 near plane in a set part": 5,
+      "L2 athena hidden": 11,
+      "L2 body": 2,
+      "L3 head": 6,
+      "L1 too near the face": 2,
+      "L3 the back": 77,
+      "L1 inside a set part": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 17,
+     "samples": [
+      37.11,
+      35.1,
+      39.12,
+      36.25
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.33,
+     "headV": 0.449,
+     "clutterFar": 0.01,
+     "luma": {
+      "mean": 0.779,
+      "sd": 0.211,
+      "dark": 0,
+      "white": 0.37,
+      "one": 0.57
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 9,
+     "t0": 39.22,
+     "t1": 41.75,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "a line begins (v5)",
+      "rule": "R1 the hot spot athena (heat 1.33, contrast 0): WIDE by the direction's bias",
+      "heat": 1.33,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       164.1,
+       76.9,
+       -31.4
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 0,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L4 foreground covers 20%",
+     "rejected": {
+      "L4 foreground covers n%": 11,
+      "L2 athena hidden": 42,
+      "L2 body": 10,
+      "L1 near plane in a set part": 27,
+      "L3 the back": 59,
+      "L3 head": 39
+     },
+     "candidates": 257,
+     "legalCandidates": 69,
+     "samples": [
+      40.48,
+      39.32,
+      41.65
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.91,
+     "headV": 0.248,
+     "clutterFar": 0.01,
+     "luma": {
+      "mean": 0.719,
+      "sd": 0.25,
+      "dark": 0,
+      "white": 0.33,
+      "one": 0.43
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 10,
+     "t0": 41.75,
+     "t1": 45.67,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 0.47, contrast 0): WIDE by the direction's bias",
+      "heat": 0.47,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": [
+      "hermes",
+      "athena"
+     ],
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       216.5,
+       77.4,
+       -105.2
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 0.79,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L4 foreground covers 20%",
+     "rejected": {
+      "L4 foreground covers n%": 13,
+      "L2 athena hidden": 43,
+      "L2 body": 11,
+      "L1 near plane in a set part": 34,
+      "L3 the back": 51,
+      "L1 inside a set part": 1,
+      "L1 too near the face": 15,
+      "L1 inside the staged prop spear": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 86,
+     "samples": [
+      43.71,
+      41.85,
+      45.57,
+      43,
+      44.25
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.279,
+     "clutterFar": 0.05,
+     "luma": {
+      "mean": 0.755,
+      "sd": 0.19,
+      "dark": 0.01,
+      "white": 0.27,
+      "one": 0.41
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 11,
+     "t0": 45.67,
+     "t1": 50.3,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "hermes"
+     ],
+     "why": {
+      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+      "rule": "R4 cold: hold wide",
+      "heat": 0.25,
+      "contrast": 0,
+      "hot": "athena"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       109.9,
+       114.6,
+       -31.7
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L4 foreground covers 27%",
+     "rejected": {
+      "L4 foreground covers n%": 10,
+      "L2 athena hidden": 64,
+      "L2 body": 8,
+      "L1 near plane in a set part": 29,
+      "L1 inside a set part": 1,
+      "L1 inside the staged prop spear": 3,
+      "L1 too near the face": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 139,
+     "samples": [
+      47.98,
+      45.77,
+      50.2,
+      46.92,
+      49.42
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.31,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.694,
+      "sd": 0.252,
+      "dark": 0,
+      "white": 0.29,
+      "one": 0.38
+     },
+     "lumaRefused": 0
+    }
+   ]
+  },
+  "clips": [
+   {
+    "gi": 2,
+    "at": 0.6,
+    "dur": 17.4,
+    "kind": "DIALOGUE",
+    "key": "K1",
+    "speaker": "athena",
+    "addressee": "hermes"
+   },
+   {
+    "gi": 3,
+    "at": 18.45,
+    "dur": 20.32,
+    "kind": "DIALOGUE",
+    "key": "K2",
+    "speaker": "athena",
+    "addressee": "hermes"
+   },
+   {
+    "gi": 5,
+    "at": 39.22,
+    "dur": 10.48,
+    "kind": "AUDITORY_ACTION",
+    "key": "K3",
+    "speaker": "athena",
+    "addressee": "hermes"
+   }
+  ]
+ },
+ "shots": [
+  {
+   "t": 0,
+   "shot": "c0:INSERT:CLOSE",
+   "kind": "INSERT",
+   "key": "K1"
+  },
+  {
+   "t": 3.5,
+   "shot": "c1:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K1"
+  },
+  {
+   "t": 7.5,
+   "shot": "c2:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K1"
+  },
+  {
+   "t": 10,
+   "shot": "c3:HOT:MID",
+   "kind": "HOT",
+   "key": "K1"
+  },
+  {
+   "t": 14.333,
+   "shot": "c4:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K1"
+  },
+  {
+   "t": 18.5,
+   "shot": "c5:HOT:MID",
+   "kind": "HOT",
+   "key": "K2"
+  },
+  {
+   "t": 24.25,
+   "shot": "c6:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K2"
+  },
+  {
+   "t": 29.25,
+   "shot": "c7:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K2"
+  },
+  {
+   "t": 35,
+   "shot": "c8:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K2"
+  },
+  {
+   "t": 39.25,
+   "shot": "c9:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K3"
+  },
+  {
+   "t": 41.75,
+   "shot": "c10:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K3"
+  },
+  {
+   "t": 45.75,
+   "shot": "c11:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K3"
+  }
+ ],
+ "sound": {
+  "total": 50.3,
+  "voice": {
+   "file": "odyssey/take/voice/OD-B01-S02.m4a",
+   "clips": [
+    {
+     "at": 0.6,
+     "start": 7.42,
+     "dur": 17.4
+    },
+    {
+     "at": 18.45,
+     "start": 25.18,
+     "dur": 20.32
+    },
+    {
+     "at": 39.22,
+     "start": 60.04,
+     "dur": 10.48
+    }
+   ]
+  },
+  "bed": {
+   "file": "odyssey/take/bed/bronze-council-01.ogg",
+   "open": 0.18,
+   "duck": 0.1,
+   "ramp": 0.15,
+   "offset": 71.22
+  },
+  "forward": false,
+  "spans": [
+   {
+    "at": 0.6,
+    "dur": 17.4
+   },
+   {
+    "at": 18.45,
+    "dur": 20.32
+   },
+   {
+    "at": 39.22,
+    "dur": 10.48
+   }
+  ]
+ },
+ "choreo": {
+  "format": "odyssey-choreo/1",
+  "layer": "add",
+  "actors": 2,
+  "cues": 66,
+  "generated": {
+   "by": "tools/perform/compile.js",
+   "from": "odyssey/score/OD-B01-S02.json",
+   "note": "the performance engine's body score: every key caused by an intent in the score; hand keys go in overrides"
+  }
+ }
+}
