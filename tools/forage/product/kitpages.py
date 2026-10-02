@@ -221,6 +221,8 @@ WATCH = [
      'The Raft, performed', 'Book V: Calypso leads Odysseus to the island\'s edge where the tall trees stand and gives him the bronze axe, the adze and the sail-cloth; he fells twenty trees, trims, bores and fences them, rigs mast and sail, and she sends him off with a warm wind behind the raft.'),
     ('../../films/odyssey/OD-B10-S05-performed.mp4', '../../films/odyssey/OD-B10-S05-performed.jpg', 'Film · performed',
      'Hermes and the Moly, performed', 'Book X: Odysseus goes alone toward Circe\'s house to free his men; Hermes, as a young man, meets him on the path, pulls the moly from the ground, black at the root and white in flower, puts it in his hand and tells him how to stand against Circe\'s wand.'),
+    ('../../films/odyssey/OD-B01-S01-performed.mp4', '../../films/odyssey/OD-B01-S01-performed.jpg', 'Film · performed',
+     'The Council of the Gods, performed', 'Book I: with Poseidon away among the Ethiopians, the gods gather on Olympus; Athena pleads for Odysseus, held on Calypso\'s island and longing for the smoke of his own hearth, and Zeus answers that Poseidon\'s anger over the Cyclops cannot hold out against them all.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
