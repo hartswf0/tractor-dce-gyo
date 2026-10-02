@@ -1,12 +1,13 @@
 {
  "format": "odyssey-shots/1",
  "scene": "OD-B08-S05",
- "title": "The Trojan Horse Song and the Name (a first score from the needs catalogue)",
+ "title": "The Horse Song: the bard, the cloak, the king's question",
  "clock": "cut",
  "total": 56.47,
  "generated": {
   "by": "tools/cinematographer/plan.js",
-  "at": "2026-10-01"
+  "at": "2026-10-02",
+  "edited": "by hand after plan.js: the lyre insert made a close on the weeping man, the last wide split for a close as he stands (each why.rule \"hand:\")"
  },
  "sheet": {
   "from": "odyssey/score/OD-B08-S05.json",
@@ -33,27 +34,79 @@
  "media": "cool",
  "requests": {
   "elide": false,
-  "follow": false
+  "follow": true
  },
  "floor": 4,
  "longest": 6,
  "principals": [
-  "odysseus"
+  "odysseus",
+  "alcinous"
  ],
  "creatures": [],
- "heatScale": 0.107,
- "anchors": [],
+ "heatScale": 0.671,
+ "anchors": [
+  {
+   "type": "reaction",
+   "id": "aNotice",
+   "kind": "NOTICE",
+   "t": 10.583,
+   "actors": [
+    "alcinous"
+   ],
+   "cause": {
+    "id": "sSob",
+    "actor": "odysseus",
+    "t": 10.417,
+    "latency": null
+   },
+   "effect": null
+  },
+  {
+   "type": "reaction",
+   "id": "dStill",
+   "kind": "REACT",
+   "t": 19.25,
+   "actors": [
+    "demodocus"
+   ],
+   "cause": {
+    "id": "sStop",
+    "actor": "alcinous",
+    "t": 19.083,
+    "latency": null
+   },
+   "effect": null
+  },
+  {
+   "type": "reaction",
+   "id": "oUncover",
+   "kind": "REACT",
+   "t": 29.167,
+   "actors": [
+    "odysseus"
+   ],
+   "cause": {
+    "id": "sStranger",
+    "actor": "alcinous",
+    "t": 28.833,
+    "latency": null
+   },
+   "effect": null
+  }
+ ],
  "shots": [
   {
    "i": 0,
    "t0": 0,
-   "t1": 6.083,
+   "t1": 5,
    "kind": "WIDE",
    "size": "WIDE",
    "subjects": [
-    "odysseus"
+    "demodocus",
+    "odysseus",
+    "alcinous"
    ],
-   "primary": "odysseus",
+   "primary": "demodocus",
    "aim": "head",
    "line": null,
    "angle": "eye",
@@ -61,181 +114,256 @@
    "why": {
     "cut": "the scene opens",
     "rule": "R6 the opening wide (establishes the set and the line)",
-    "heat": 0,
-    "contrast": 0,
-    "hot": "odysseus"
+    "heat": 0.53,
+    "contrast": 0.25,
+    "hot": "demodocus"
    },
-   "beat": "K1"
+   "beat": "K2"
   },
   {
    "i": 1,
-   "t0": 6.083,
-   "t1": 12.13,
-   "kind": "WIDE",
-   "size": "WIDE",
+   "t0": 5,
+   "t1": 10.583,
+   "kind": "HOT",
+   "size": "CLOSE",
    "subjects": [
     "odysseus"
    ],
    "primary": "odysseus",
    "aim": "head",
-   "line": null,
+   "line": [
+    "demodocus",
+    "odysseus"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a cold stretch (mid, longest 12 s): cut where the heat changes most",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.35,
-    "contrast": 0,
+    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+    "rule": "R1 the hot spot odysseus (heat 0.85, contrast 0.56): CLOSE by the direction's bias",
+    "heat": 0.85,
+    "contrast": 0.56,
     "hot": "odysseus"
    },
-   "beat": "K1"
+   "beat": "K2"
   },
   {
    "i": 2,
-   "t0": 12.13,
-   "t1": 16.095,
-   "kind": "HOT",
-   "size": "MID",
+   "t0": 10.583,
+   "t1": 14.583,
+   "kind": "REACT",
+   "size": "CLOSE",
    "subjects": [
-    "odysseus"
+    "alcinous"
    ],
-   "primary": "odysseus",
+   "primary": "alcinous",
    "aim": "head",
-   "line": null,
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a line begins (v4)",
-    "rule": "R1 the hot spot odysseus (heat 1.18, contrast 0): MID by the direction's bias",
-    "heat": 1.18,
-    "contrast": 0,
+    "cut": "reaction NOTICE of alcinous to odysseus (sSob) in 0.17 s",
+    "rule": "R3/R7 reaction of alcinous to odysseus within 0.17 s, cut on the same side as its cause (the eyelines match)",
+    "heat": 1.21,
+    "contrast": 0.38,
     "hot": "odysseus"
    },
-   "beat": "K1"
+   "beat": "K2"
   },
   {
    "i": 3,
-   "t0": 16.095,
-   "t1": 20.06,
-   "kind": "WIDE",
-   "size": "WIDE",
+   "t0": 14.583,
+   "t1": 19.25,
+   "kind": "HOT",
+   "size": "CLOSE",
    "subjects": [
     "odysseus"
    ],
    "primary": "odysseus",
    "aim": "head",
-   "line": null,
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
     "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-    "rule": "R1 the hot spot odysseus (heat 0.66, contrast 0): WIDE by the direction's bias",
-    "heat": 0.66,
-    "contrast": 0,
-    "hot": "odysseus"
+    "rule": "hand: the weeping under the cloak, held on his face (in place of the lyre insert, which framed the back of the king's head)",
+    "heat": 0.96,
+    "contrast": 0.39,
+    "hot": "alcinous"
    },
-   "beat": "K1"
+   "beat": "K3"
   },
   {
    "i": 4,
-   "t0": 20.06,
-   "t1": 30.333,
-   "kind": "WIDE",
-   "size": "WIDE",
+   "t0": 19.25,
+   "t1": 25.167,
+   "kind": "REACT",
+   "size": "CLOSE",
    "subjects": [
-    "odysseus"
+    "demodocus"
    ],
-   "primary": "odysseus",
+   "primary": "demodocus",
    "aim": "head",
-   "line": null,
+   "line": [
+    "alcinous",
+    "demodocus"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a line begins (v6)",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.37,
-    "contrast": 0,
-    "hot": "odysseus"
+    "cut": "reaction REACT of demodocus to alcinous (sStop) in 0.17 s",
+    "rule": "R3/R7 reaction of demodocus to alcinous within 0.17 s, cut on the same side as its cause (the eyelines match)",
+    "heat": 1.11,
+    "contrast": 0.59,
+    "hot": "alcinous"
    },
-   "beat": "K1"
+   "beat": "K4"
   },
   {
    "i": 5,
-   "t0": 30.333,
-   "t1": 35.5,
-   "kind": "WIDE",
-   "size": "WIDE",
-   "subjects": [
-    "odysseus"
-   ],
-   "primary": "odysseus",
-   "aim": "head",
-   "line": null,
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "a cold stretch (mid, longest 12 s): cut where the heat changes most",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.37,
-    "contrast": 0,
-    "hot": "odysseus"
-   },
-   "beat": "K1"
-  },
-  {
-   "i": 6,
-   "t0": 35.5,
-   "t1": 40.667,
-   "kind": "WIDE",
-   "size": "WIDE",
-   "subjects": [
-    "odysseus"
-   ],
-   "primary": "odysseus",
-   "aim": "head",
-   "line": null,
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.37,
-    "contrast": 0,
-    "hot": "odysseus"
-   },
-   "beat": "K1"
-  },
-  {
-   "i": 7,
-   "t0": 40.667,
-   "t1": 45.833,
-   "kind": "WIDE",
-   "size": "WIDE",
-   "subjects": [
-    "odysseus"
-   ],
-   "primary": "odysseus",
-   "aim": "head",
-   "line": null,
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.37,
-    "contrast": 0,
-    "hot": "odysseus"
-   },
-   "beat": "K1"
-  },
-  {
-   "i": 8,
-   "t0": 45.833,
-   "t1": 50.95,
+   "t0": 25.167,
+   "t1": 29.167,
    "kind": "HOT",
    "size": "MID",
    "subjects": [
+    "alcinous"
+   ],
+   "primary": "alcinous",
+   "aim": "head",
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+    "rule": "R1 the hot spot alcinous (heat 0.96, contrast 0.56): MID by the direction's bias",
+    "heat": 0.96,
+    "contrast": 0.56,
+    "hot": "alcinous"
+   },
+   "beat": "K4"
+  },
+  {
+   "i": 6,
+   "t0": 29.167,
+   "t1": 34.167,
+   "kind": "REACT",
+   "size": "CLOSE",
+   "subjects": [
     "odysseus"
+   ],
+   "primary": "odysseus",
+   "aim": "head",
+   "line": [
+    "alcinous",
+    "odysseus"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "reaction REACT of odysseus to alcinous (sStranger) in 0.33 s",
+    "rule": "R3/R7 reaction of odysseus to alcinous within 0.33 s, cut on the same side as its cause (the eyelines match)",
+    "heat": 0.58,
+    "contrast": 0.32,
+    "hot": "alcinous"
+   },
+   "beat": "K4"
+  },
+  {
+   "i": 7,
+   "t0": 34.167,
+   "t1": 38.667,
+   "kind": "HOT",
+   "size": "CLOSE",
+   "subjects": [
+    "alcinous"
+   ],
+   "primary": "alcinous",
+   "aim": "head",
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+    "rule": "R1 the hot spot alcinous (heat 0.79, contrast 0.63): CLOSE by the direction's bias",
+    "heat": 0.79,
+    "contrast": 0.63,
+    "hot": "alcinous"
+   },
+   "beat": "K4"
+  },
+  {
+   "i": 8,
+   "t0": 38.667,
+   "t1": 44.083,
+   "kind": "HOT",
+   "size": "MID",
+   "subjects": [
+    "alcinous"
+   ],
+   "primary": "alcinous",
+   "aim": "head",
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+    "rule": "R1 the hot spot alcinous (heat 0.56, contrast 0.41): MID by the direction's bias",
+    "heat": 0.56,
+    "contrast": 0.41,
+    "hot": "alcinous"
+   },
+   "beat": "K4"
+  },
+  {
+   "i": 9,
+   "t0": 44.083,
+   "t1": 48.417,
+   "kind": "HOT",
+   "size": "CLOSE",
+   "subjects": [
+    "alcinous"
+   ],
+   "primary": "alcinous",
+   "aim": "head",
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
+    "rule": "R1 the hot spot alcinous (heat 0.71, contrast 0.4): CLOSE by the direction's bias",
+    "heat": 0.71,
+    "contrast": 0.4,
+    "hot": "alcinous"
+   },
+   "beat": "K4"
+  },
+  {
+   "i": 10,
+   "t0": 48.417,
+   "t1": 51.167,
+   "kind": "WIDE",
+   "size": "WIDE",
+   "subjects": [
+    "odysseus",
+    "alcinous",
+    "demodocus"
    ],
    "primary": "odysseus",
    "aim": "head",
@@ -243,17 +371,17 @@
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-    "rule": "R1 the hot spot odysseus (heat 0.78, contrast 0): MID by the direction's bias",
-    "heat": 0.78,
-    "contrast": 0,
+    "cut": "heat moves: alcinous -> odysseus",
+    "rule": "R4 cold: hold wide",
+    "heat": 0.34,
+    "contrast": 0.23,
     "hot": "odysseus"
    },
-   "beat": "K1"
+   "beat": "K4"
   },
   {
-   "i": 9,
-   "t0": 50.95,
+   "i": 11,
+   "t0": 51.167,
    "t1": 56.47,
    "kind": "HOT",
    "size": "CLOSE",
@@ -262,17 +390,20 @@
    ],
    "primary": "odysseus",
    "aim": "head",
-   "line": null,
+   "line": [
+    "odysseus",
+    "alcinous"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a line begins (v7)",
-    "rule": "R1 the hot spot odysseus (heat 1.36, contrast 0): CLOSE by the direction's bias",
-    "heat": 1.36,
-    "contrast": 0,
+    "cut": "heat moves: alcinous -> odysseus",
+    "rule": "hand: standing, he faces his host to give his name (his face, not the back of the king)",
+    "heat": 0.34,
+    "contrast": 0.23,
     "hot": "odysseus"
    },
-   "beat": "K2"
+   "beat": "K4"
   }
  ]
 }
