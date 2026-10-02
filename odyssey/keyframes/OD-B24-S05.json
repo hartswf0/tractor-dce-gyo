@@ -3,7 +3,7 @@
  "location": "odyssey-od-b24-s05",
  "title": "Laertes Restored",
  "source": "Homer, Odyssey XXIV, tr. Samuel Butler (public domain)",
- "note": "Hand-staged from the text at the feast table before the farmhouse on Laertes's farm; Athena's restoration shown as light.",
+ "note": "Hand-staged from the text on Laertes's farm (tools/forage/sets.js laertesFarm): Laertes comes out of the farmhouse bathed, stooped, and Athena's light straightens him; Odysseus turns from the table where Telemachus serves and marvels; Dolius and two of his sons come in from the orchard and Dolius takes Odysseus's hand; the household sits to eat. Athena's restoration is light.",
  "look": {
   "sky": [
    "#8ab4de",
@@ -44,16 +44,74 @@
     {
      "id": "laertes-restored",
      "x": 200,
-     "z": -120,
+     "z": -115,
      "y": "floor",
      "face": [
-      0,
+      200,
       0
      ],
      "props": false,
      "pose": {
+      "torsoP": [
+       0.32,
+       0,
+       0
+      ],
+      "headP": [
+       0.25,
+       0,
+       0
+      ],
       "armRP": [
-       -0.4,
+       -0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
+      ]
+     },
+     "on": "*"
+    },
+    {
+     "id": "odysseus",
+     "x": 90,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      0,
+      -110
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ]
+     },
+     "on": "*"
+    },
+    {
+     "id": "telemachus",
+     "x": 0,
+     "z": -198,
+     "y": "floor",
+     "face": [
+      0,
+      -140
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.8,
        0,
        0
       ]
@@ -62,39 +120,62 @@
     },
     {
      "id": "dolius",
-     "x": 0,
-     "z": 0,
+     "x": -200,
+     "z": -15,
      "y": "floor",
      "face": [
-      0,
-      0
+      -200,
+      100
      ],
      "props": false,
-     "absent": true
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "dolius-s-sons-1",
-     "x": 0,
-     "z": 0,
+     "x": -285,
+     "z": 25,
      "y": "floor",
      "face": [
-      0,
-      0
+      -285,
+      100
      ],
      "props": false,
-     "absent": true
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "dolius-s-sons-2",
-     "x": 0,
-     "z": 0,
+     "x": -250,
+     "z": -90,
      "y": "floor",
      "face": [
-      0,
-      0
+      -250,
+      100
      ],
      "props": false,
-     "absent": true
+     "pose": {
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "dolius-s-sons-3",
@@ -150,16 +231,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     0.7,
-     92.4,
-     -112.8
+     30,
+     95,
+     60
     ],
     "target": [
      200,
-     65,
-     -130
+     60,
+     -115
     ],
-    "fov": 50.9,
+    "fov": 46,
     "subject": "laertes-restored",
     "eye": 0.4
    },
@@ -169,21 +250,14 @@
      "min": 0.03,
      "primary": true,
      "face": false
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.02
     }
    ],
-   "turn": {
-    "around": [
-     180,
-     60,
-     -140
-    ],
-    "r": 180,
-    "h": 80,
-    "fov": 44
-   },
-   "lensAllow": [
-    "laertes-restored"
-   ]
+   "lensAllow": []
   },
   {
    "id": "K2",
@@ -195,62 +269,108 @@
    "blocking": [
     {
      "id": "laertes-restored",
-     "x": 160,
+     "x": 150,
      "z": -60,
      "y": "floor",
+     "face": "odysseus",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -0.35,
+       0,
+       -0.25
+      ]
+     },
+     "on": "*"
+    },
+    {
+     "id": "odysseus",
+     "x": 60,
+     "z": -80,
+     "y": "floor",
+     "face": "laertes-restored",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0.2
+      ]
+     },
+     "on": "*"
+    },
+    {
+     "id": "telemachus",
+     "x": 0,
+     "z": -198,
+     "y": "floor",
+     "face": "laertes-restored",
+     "props": false,
+     "on": "*"
+    },
+    {
+     "id": "dolius",
+     "x": -200,
+     "z": -15,
+     "y": "floor",
      "face": [
-      0,
+      -200,
       100
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -0.3,
+       -1.0,
        0,
        0
       ],
       "armLP": [
-       -0.3,
+       -0.9,
        0,
        0
       ]
      }
     },
     {
-     "id": "dolius",
-     "x": 0,
-     "z": 0,
-     "y": "floor",
-     "face": [
-      0,
-      0
-     ],
-     "props": false,
-     "absent": true
-    },
-    {
      "id": "dolius-s-sons-1",
-     "x": 0,
-     "z": 0,
+     "x": -285,
+     "z": 25,
      "y": "floor",
      "face": [
-      0,
-      0
+      -285,
+      100
      ],
      "props": false,
-     "absent": true
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "dolius-s-sons-2",
-     "x": 0,
-     "z": 0,
+     "x": -250,
+     "z": -90,
      "y": "floor",
      "face": [
-      0,
-      0
+      -250,
+      100
      ],
      "props": false,
-     "absent": true
+     "pose": {
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "dolius-s-sons-3",
@@ -293,9 +413,9 @@
     "lights": [
      {
       "at": [
-       100,
-       220,
-       40
+       150,
+       200,
+       -60
       ],
       "color": "#fff1b0",
       "intensity": 3.0,
@@ -309,38 +429,34 @@
    "camera": {
     "type": "wide",
     "pos": [
-     60,
-     45,
-     70
+     -40,
+     85,
+     40
     ],
     "target": [
-     160,
-     70,
+     150,
+     60,
      -60
     ],
-    "fov": 44
+    "fov": 46,
+    "subject": "laertes-restored",
+    "eye": 0.4
    },
    "subjects": [
     {
      "id": "laertes-restored",
      "min": 0.03,
      "primary": true,
-     "face": false
+     "face": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.02,
+     "cut": true
     }
    ],
-   "turn": {
-    "around": [
-     150,
-     60,
-     -40
-    ],
-    "r": 160,
-    "h": 60,
-    "fov": 44
-   },
-   "lensAllow": [
-    "laertes-restored"
-   ]
+   "lensAllow": []
   },
   {
    "id": "K3",
@@ -351,14 +467,27 @@
    ],
    "blocking": [
     {
-     "id": "dolius",
-     "x": 60,
-     "z": 40,
+     "id": "odysseus",
+     "x": 0,
+     "z": -40,
      "y": "floor",
-     "face": [
-      -40,
-      -50
-     ],
+     "face": "dolius",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "on": "*"
+    },
+    {
+     "id": "dolius",
+     "x": -55,
+     "z": -20,
+     "y": "floor",
+     "face": "odysseus",
      "props": false,
      "pose": {
       "armRP": [
@@ -375,115 +504,116 @@
      "on": "*"
     },
     {
-     "id": "laertes-restored",
-     "x": -40,
-     "z": -50,
-     "y": "floor",
-     "face": [
-      60,
-      40
-     ],
-     "props": false
-    },
-    {
      "id": "dolius-s-sons-1",
-     "x": 125,
-     "z": 30,
+     "x": -150,
+     "z": -90,
      "y": "floor",
-     "face": [
-      -40,
-      -50
-     ],
+     "face": "odysseus",
      "props": false,
      "on": "*"
     },
     {
      "id": "dolius-s-sons-2",
-     "x": 170,
-     "z": 10,
+     "x": -165,
+     "z": 25,
      "y": "floor",
-     "face": [
-      -40,
-      -50
-     ],
-     "props": false
+     "face": "odysseus",
+     "props": false,
+     "on": "*"
+    },
+    {
+     "id": "laertes-restored",
+     "x": 110,
+     "z": -55,
+     "y": "floor",
+     "face": "odysseus",
+     "props": false,
+     "on": "*"
+    },
+    {
+     "id": "telemachus",
+     "x": 0,
+     "z": -198,
+     "y": "floor",
+     "face": "odysseus",
+     "props": false,
+     "on": "*"
     },
     {
      "id": "dolius-s-sons-3",
-     "x": 40,
-     "z": 95,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -40,
-      -50
+      0,
+      0
      ],
      "props": false,
-     "on": "*"
+     "absent": true
     },
     {
      "id": "dolius-s-sons-4",
-     "x": 200,
-     "z": 90,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -40,
-      -50
+      0,
+      0
      ],
      "props": false,
-     "on": "*"
+     "absent": true
     },
     {
      "id": "dolius-s-sons-5",
-     "x": 150,
-     "z": -50,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -40,
-      -50
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -170,
-     80,
-     -70
+     -76.4,
+     120.4,
+     -232.3
     ],
     "target": [
-     70,
-     60,
-     30
+     -30,
+     55,
+     -30
     ],
-    "fov": 44
+    "fov": 50.1,
+    "subject": "dolius",
+    "place": "L",
+    "eye": 0.4
    },
    "subjects": [
     {
      "id": "dolius",
-     "min": 0.04,
-     "primary": true
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.03,
+     "cut": true
     }
    ],
-   "lensAllow": [
-    "dolius",
-    "laertes-restored",
-    "dolius-s-sons-1",
-    "dolius-s-sons-2",
-    "dolius-s-sons-3",
-    "dolius-s-sons-4",
-    "dolius-s-sons-5"
-   ],
-   "turn": {
-    "around": [
-     120,
-     55,
-     20
-    ],
-    "r": 220,
-    "h": 80,
-    "fov": 44
-   }
+   "lensAllow": [],
+   "touch": [
+    [
+     "dolius",
+     "odysseus"
+    ]
+   ]
   },
   {
    "id": "K4",
@@ -495,12 +625,12 @@
    "blocking": [
     {
      "id": "laertes-restored",
-     "x": -20,
-     "z": -192,
+     "x": 125,
+     "z": -140,
      "y": "floor",
      "face": [
-      -20,
-      -131
+      0,
+      -140
      ],
      "props": false,
      "pose": {
@@ -525,13 +655,13 @@
      "on": "*"
     },
     {
-     "id": "dolius",
-     "x": -90,
-     "z": -192,
+     "id": "odysseus",
+     "x": 40,
+     "z": -80,
      "y": "floor",
      "face": [
-      -90,
-      -131
+      40,
+      -140
      ],
      "props": false,
      "pose": {
@@ -556,13 +686,13 @@
      "on": "*"
     },
     {
-     "id": "dolius-s-sons-1",
-     "x": 50,
-     "z": -192,
+     "id": "dolius",
+     "x": -40,
+     "z": -80,
      "y": "floor",
      "face": [
-      50,
-      -131
+      -40,
+      -140
      ],
      "props": false,
      "pose": {
@@ -588,12 +718,74 @@
     },
     {
      "id": "dolius-s-sons-2",
-     "x": -90,
-     "z": -72,
+     "x": -110,
+     "z": -80,
      "y": "floor",
      "face": [
-      -90,
-      -131
+      -110,
+      -140
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.1,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 40,
+     "on": "*"
+    },
+    {
+     "id": "dolius-s-sons-1",
+     "x": -165,
+     "z": -140,
+     "y": "floor",
+     "face": [
+      0,
+      -140
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.1,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 40,
+     "on": "*"
+    },
+    {
+     "id": "telemachus",
+     "x": 10,
+     "z": -195,
+     "y": "floor",
+     "face": [
+      10,
+      -140
      ],
      "props": false,
      "pose": {
@@ -619,95 +811,38 @@
     },
     {
      "id": "dolius-s-sons-3",
-     "x": -20,
-     "z": -72,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -20,
-      -131
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.1,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 40,
-     "on": "*"
+     "absent": true
     },
     {
      "id": "dolius-s-sons-4",
-     "x": 50,
-     "z": -72,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      50,
-      -131
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.1,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 40,
-     "on": "*"
+     "absent": true
     },
     {
      "id": "dolius-s-sons-5",
-     "x": 20,
-     "z": 40,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -10,
-      80
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.1,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 40,
      "absent": true
     }
    ],
@@ -731,49 +866,37 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -260,
-     120,
-     -20
+     -66.6,
+     159.8,
+     -386.8
     ],
     "target": [
-     -20,
-     50,
-     -131
+     -10,
+     40,
+     -140
     ],
-    "fov": 44
+    "fov": 48.5,
+    "subject": "laertes-restored",
+    "place": "L",
+    "eye": 0.4
    },
    "subjects": [
     {
      "id": "laertes-restored",
-     "min": 0.03,
+     "min": 0.02,
      "primary": true,
      "face": false
     },
     {
-     "id": "dolius",
+     "id": "odysseus",
      "soft": true,
-     "min": 0.03,
-     "cut": true
+     "min": 0.02
     }
    ],
    "lensAllow": [
-    "laertes-restored",
-    "dolius",
-    "dolius-s-sons-1",
-    "dolius-s-sons-2",
-    "dolius-s-sons-3",
-    "dolius-s-sons-4"
-   ],
-   "turn": {
-    "around": [
-     -32,
-     50,
-     -95
-    ],
-    "r": 230,
-    "h": 110,
-    "fov": 44
-   }
+    "telemachus",
+    "dolius-s-sons-1"
+   ]
   }
  ]
 }

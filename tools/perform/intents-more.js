@@ -37,6 +37,22 @@ M_.TOOL_WORK = (X, I, e) => { const id = I.actor, p = I.params || {}, how = p.ho
     k(I.t1 + 0.4, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'torso.twist': 0, 'hand.R.roll': 0, 'hips.dy': 0 }); }, { label: I.label || how, params: { strokes: j } });
   for (let i = 0, tt = I.t0; tt < I.t1 - P * 0.5; tt += P, i++) { X.ev({ lane: 'CONTACT', actor: id, actors: [id], t0: tt + P * 0.55, t1: tt + P * 0.65, kind: 'TOOL', label: how + (p.on ? ' on ' + Score.short(p.on) : ''), because: [{ id: e.id, latency: X.r3(tt + P * 0.55 - e.t0) }], params: { k: 1 } });
     if ((how === 'chop' || how === 'dig') && i % 2 === 0) X.ev({ lane: 'FX', t0: tt + P * 0.55, t1: tt + P * 0.9, kind: how === 'chop' ? 'CHIPS' : 'EARTH', label: 'the stroke lands', because: [{ id: e.id, latency: X.r3(tt + P * 0.55 - e.t0) }] }); } };
+/* DUST (Laertes, Homer XXIV): grief's two-handed act with the earth for its prop: params.n handfuls, each the body bowed to the ground
+   and both hands filling (a CONTACT TOUCH on the ground), lifted and poured over the head (an FX DUST), the head bowed under it and the
+   shoulders caught (a SOUND groan stimulus after each); params.period s a handful, params.stay keeps the hands up at the end */
+M_.DUST = (X, I, e) => { const id = I.actor, p = I.params || {}, n = p.n || 2, P = p.period || 2.0; let t = I.t0; const at = [];
+  const m = X.move(id, 'act', 'DUST', e, k => { k(t, { 'arm.R.pitch': rel(X), 'arm.L.pitch': rel(X), 'arm.R.out': rel(X), 'arm.L.out': rel(X), 'torso.lean': rel(X), 'head.pitch': rel(X), 'hips.dy': rel(X), 'torso.roll': rel(X) });
+    for (let j = 0; j < n; j++) { const u = j % 2 ? 1 : -1;
+      k(t + P * 0.3, { 'arm.R.pitch': { abs: -0.7 }, 'arm.L.pitch': { abs: -0.7 }, 'arm.R.out': 0.06, 'arm.L.out': 0.06, 'torso.lean': 0.34, 'head.pitch': 0.22, 'hips.dy': -0.3 }, 'inOut');
+      k(t + P * 0.42, { 'torso.lean': 0.36, 'hips.dy': -0.6 });
+      k(t + P * 0.68, { 'arm.R.pitch': { abs: -2.8 }, 'arm.L.pitch': { abs: -2.75 }, 'arm.R.out': -0.22, 'arm.L.out': -0.22, 'torso.lean': 0.06, 'head.pitch': 0.3, 'hips.dy': 0.4 }, 'out');
+      k(t + P * 0.82, { 'torso.roll': 0.04 * u, 'hips.dy': -0.5, 'head.pitch': 0.34 }); k(t + P * 0.95, { 'torso.roll': -0.03 * u, 'hips.dy': 0.2 });
+      at.push(t); t += P; }
+    if (!p.stay) k(t + 0.6, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'arm.R.out': 0, 'arm.L.out': 0, 'torso.lean': 0.12, 'head.pitch': 0.2, 'hips.dy': 0, 'torso.roll': 0 }); }, { label: I.label || 'dust over the grey head', params: { handfuls: n } });
+  const c = m || e;
+  for (const a of at) { X.ev({ lane: 'CONTACT', actor: id, actors: [id], t0: a + P * 0.3, t1: a + P * 0.45, kind: 'TOUCH', label: 'both hands in the dust', because: [{ id: c.id, latency: X.r3(a + P * 0.3 - c.t0) }] });
+    X.ev({ lane: 'FX', t0: a + P * 0.68, t1: a + P, kind: 'DUST', label: 'the dust poured over his head', because: [{ id: c.id, latency: X.r3(a + P * 0.68 - c.t0) }] });
+    X.ev({ id: (p.groan || 'sGroan') + at.indexOf(a), lane: 'STIMULUS', actor: id, t0: a + P * 0.8, t1: a + P, kind: 'SOUND', label: 'a heavy groan', because: [{ id: c.id, latency: X.r3(a + P * 0.8 - c.t0) }] }); } };
 /* ARM: the hand goes to a weapon (params.at: where it lies or hangs, an object id or a point), takes it (a PROP event), brings it up */
 M_.ARM = (X, I, e) => { const id = I.actor, p = I.params || {}, t = I.t0, sd = p.side || 'R';
   if (p.at) X.look(id, p.at, t - 0.3, e, { label: 'to the weapon' });
