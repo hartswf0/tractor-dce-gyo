@@ -37,7 +37,7 @@ module.exports = function author(M, X) {
   I({ id: 'oIn', actor: O, kind: 'ARRIVE', t0: 0.4, t1: 2.6, label: 'reaches the farm', params: { from: [70, -50], dur: 2.2 }, because: [{ id: 'v' + c1.gi, rel: 'realises' }] });
   I({ id: 'oSee', actor: O, kind: 'NOTICE', target: L, t0: 2.7, t1: 4.6, label: 'his father: alone, old, bent over a spade', params: { gazeHold: 1.4 }, because: [{ id: 'oIn' }, { id: 'sFarm' }] });
   holds.push({ id: 'hO0', actor: O, t0: 4.7, t1: q(tPatched - 0.1), reason: 'he stands under a pear tree and looks at him: so old, so broken', params: { look: [[L, 3.0]], weight: true }, because: [{ id: 'oSee' }] });
-  I({ id: 'oWeep', actor: O, kind: 'WEEP', t0: tPatched, t1: q(tGo - 2.1), label: 'weeps to see him so', params: { side: 'L', rate: 2.4, head: 0.18, lean: 0.1 }, because: [{ id: 'hO0' }] });
+  I({ id: 'oWeep', actor: O, kind: 'WEEP', t0: tPatched, t1: q(tGo - 2.1), label: 'weeps to see him so', params: { side: 'L', rate: 2.4, pitch: -1.85, out: -0.3, head: 0.28, lean: 0.16 }, because: [{ id: 'hO0' }] });
   I({ id: 'oDecide', actor: O, kind: 'DECIDE', t0: q(tGo - 2.0), t1: q(tGo - 1.25), label: 'not to fall on his neck yet: to test him first', because: [{ id: 'oWeep' }, { id: 'v' + c2.gi, rel: 'realises' }] });
   I({ id: 'oSend', actor: O, kind: 'GESTURE', target: house, t0: q(tGo - 1.2), t1: q(tGo - 0.05), label: 'sends the companions on to the house: kill the best pig, make the dinner', params: { shape: 'dismiss', at: q(tGo - 0.8), side: 'L', amp: 0.9, hold: 0.4 }, because: [{ id: 'oDecide' }] });
   I({ id: 'oGo', actor: O, kind: 'APPROACH', key: 'K2', t0: K2.win[0], t1: K2.win[1], target: L, label: 'goes up to the old man', because: [{ id: 'oSend' }] });
@@ -51,7 +51,7 @@ module.exports = function author(M, X) {
   I({ id: 'lFall', actor: L, kind: 'RETIME', t0: q(K3.win[0] + k3d), t1: sat, label: 'a dark cloud of sorrow: he sinks down in the dust', params: { key: 'K3', delay: k3d }, because: [{ id: 'sTale' }] });
   I({ id: 'oStep', actor: O, kind: 'APPROACH', key: 'K3', t0: K3.win[0], t1: K3.win[1], target: L, label: 'a step nearer as he begins it', because: [{ id: 'hO1' }] });
   I({ id: 'lDust', actor: L, kind: 'DUST', t0: dust1, t1: dustEnd, label: 'fills both hands with dust and pours it over his grey head, groaning', params: { n: 2, period: P, groan: 'sGroan' }, because: [{ id: 'lFall' }] });
-  I({ id: 'lWeep', actor: L, kind: 'WEEP', t0: q(dustEnd + 0.1), t1: q(up - 0.3), label: 'groans, his face in his hands', params: { side: 'R', rate: 2.2, head: 0.3, lean: 0.24, pitch: -2.2 }, because: [{ id: 'lDust' }] });
+  I({ id: 'lWeep', actor: L, kind: 'WEEP', t0: q(dustEnd + 0.1), t1: q(up - 0.3), label: 'groans, his face in his hands', params: { side: 'R', rate: 2.2, head: 0.3, lean: 0.24, pitch: -1.9, out: -0.25 }, because: [{ id: 'lDust' }] });
   holds.push({ id: 'hO2', actor: O, t0: q(Math.max(tEarlier + 0.7, sat)), t1: q(g1 - 0.1), reason: 'he watches the test break his father', params: { look: [[L, 4.0]], weight: true, still: true }, because: [{ id: 'lFall' }] });
   I({ id: 'oBreak', actor: O, kind: 'REACT', t0: g1, t1: q(g1 + 0.8), label: 'the second groan: his heart is wrung, a pang in the nostrils', params: { how: 'flinch', lookAt: L }, because: [{ id: 'sGroan1' }] });
   I({ id: 'oDecide2', actor: O, kind: 'DECIDE', t0: q(g1 + 0.5), t1: q(g1 + 0.95), label: 'he can bear it no longer', because: [{ id: 'oBreak' }, { id: 'v' + c5.gi, rel: 'realises' }] });

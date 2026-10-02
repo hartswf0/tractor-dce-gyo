@@ -23,7 +23,7 @@ module.exports = function author(M, X) {
   const V2 = X.voiceOf(c2), V3 = X.voiceOf(c3), V4 = X.voiceOf(c4), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id);
   const table = [-20, 40, -140], meat = [60, 40, -140], wine = [0, 40, -150], athena = [150, 200, -60], road = [-320, 60, -60];
-  const trees = { [D]: [-190, 60, 100], [S1]: [-285, 60, 100], [S2]: [-95, 60, 100] };
+  const trees = { [D]: [-190, 60, 100], [S1]: [-285, 60, 100], [S2]: [-250, 60, 100] };
   const tTaller = q(w(V2, 'taller', c2.at + 3.4)), tRecognize = q(w(V3, 'recognize', c3.at + 5.0)), tFeast = q(w(V3, 'feast', c3.at + 8.0)), tRumors = q(w(V4, 'rumors', c4.at + 4.2));
   /* the old man straightens when the light has come (his K2 move held for it); Odysseus goes to him when he has seen it */
   const tLight = q(c2.at + 0.2), lD = q(Math.max(0, tLight + 0.6 - K2.win[0])), lUp = q(K2.win[1] + lD), oD = q(Math.max(0, tTaller + 0.6 - K2.win[0])), oThere = q(K2.win[1] + oD);
@@ -41,11 +41,11 @@ module.exports = function author(M, X) {
   /* ── Athena ── */
   stimuli.push({ id: 'sLight', t0: tLight, t1: q(tLight + 1.0), kind: 'SIGHT', label: 'Athena stands by him: a light on him, his limbs filled out', actor: L, because: [{ id: 'v' + c2.gi, rel: 'realises' }] });
   I({ id: 'lUp', actor: L, kind: 'ATTEND', target: athena, t0: q(tLight + 0.2), t1: q(lUp + 0.3), label: 'his face lifted into the light', because: [{ id: 'sLight' }] });
-  I({ id: 'lTall', actor: L, kind: 'RETIME', t0: q(K2.win[0]), t1: lUp, label: 'straightens: taller and stronger than before', params: { key: 'K2', delay: lD }, because: [{ id: 'sLight' }] });
+  I({ id: 'lTall', actor: L, kind: 'RETIME', t0: q(K2.win[0] + lD), t1: lUp, label: 'straightens: taller and stronger than before', params: { key: 'K2', delay: lD }, because: [{ id: 'sLight' }] });
   I({ id: 'lHands', actor: L, kind: 'GESTURE', t0: q(lUp + 0.2), t1: q(lUp + 2.0), label: 'opens his hands and looks at them: the strength in them', params: { shape: 'open', at: q(lUp + 0.6), side: 'R', amp: 1.0, hold: 0.9 }, because: [{ id: 'lTall' }] });
   stimuli.push({ id: 'sTaller', t0: tTaller, t1: q(tTaller + 0.4), kind: 'SIGHT', label: 'the old man stands like an immortal', actor: L, because: [{ id: 'lTall' }] });
   I({ id: 'oSee', actor: O, kind: 'NOTICE', target: L, t0: q(tTaller + 0.35), t1: q(tTaller + 2.0), label: 'his father, taller, like a god', params: { gazeHold: 1.2 }, because: [{ id: 'sTaller' }] });
-  I({ id: 'oTo', actor: O, kind: 'RETIME', t0: q(K2.win[0]), t1: oThere, label: 'puts down the knife and goes to him', params: { key: 'K2', delay: oD }, because: [{ id: 'oSee' }] });
+  I({ id: 'oTo', actor: O, kind: 'RETIME', t0: q(K2.win[0] + oD), t1: oThere, label: 'puts down the knife and goes to him', params: { key: 'K2', delay: oD }, because: [{ id: 'oSee' }] });
   I({ id: 'oMarvel', actor: O, kind: 'GESTURE', target: L, t0: q(oThere + 0.1), t1: q(oThere + 1.8), label: 'father, surely some god has made you taller and better to look on', params: { shape: 'open', at: q(oThere + 0.5), side: 'L', amp: 0.9, hold: 0.7 }, because: [{ id: 'oTo' }] });
   I({ id: 'tSee', actor: Tm, kind: 'NOTICE', target: L, t0: q(tTaller + 0.5), t1: q(tTaller + 2.2), label: 'his grandfather, changed', params: { gazeHold: 1.0 }, because: [{ id: 'sTaller' }] });
   holds.push({ id: 'hTm1', actor: Tm, t0: q(tTaller + 2.3), t1: q(K4.win[0] - 0.1), reason: 'he watches the three of them: grandfather, father, the old servant', params: { look: [[L, 2.4], [O, 2.0]], weight: true }, because: [{ id: 'tSee' }] });
