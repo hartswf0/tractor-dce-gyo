@@ -69,6 +69,9 @@ module.exports = function author(M, X) {
     intents.push({ id: 'rOut' + j, actor: r, kind: 'WALK', t0: q(tOut) + 0.6 + 0.4 * j, t1: s3 - 0.2, label: 'out past the stone to pasture', params: { path: [[q(tOut) + 0.6 + 0.4 * j, x, z], [s3 - 0.2, stone[0] + 10 * j, stone[2] + 90]], gait: 'walk' }, because: [{ id: 'gStone' }] });
     if (rK5[r]) { const [x5, z5, h5] = rK5[r], y5 = fl(x5, z5); Object.assign(creatures[r].channels, rootSpan('k5', s5, T + 1, [x5, y5, z5, h5])); intents.push({ id: 'rG' + j, actor: r, kind: 'GRAZE', t0: s5 + 1, t1: T, label: 'back in the fold', because: [{ id: 'sEve' }] }); } });
   gi({ id: 'gIn', kind: 'WALK', t0: s5, t1: s5 + 2.4, label: 'in with the flock, to his seat by the fire', params: { path: [[s5, doorIn[0], doorIn[1]], [s5 + 2.4, pK5.at[0], pK5.at[2]]], y: pK5.at[1] }, because: [{ id: 'sEve' }] });
+  /* the walk in ends with his back to the men (he came from the door, past them); at his seat he turns round to the fire and to them,
+     so the bowl is held up to his face and not to his back */
+  gi({ id: 'gTurn', kind: 'TURN', t0: s5 + 3.0, t1: s5 + 4.4, target: O, label: 'turns round at his seat, to the fire and the men', because: [{ id: 'gIn' }] });
   if (c.offer) { gi({ id: 'gLook', kind: 'ATTEND', t0: q(c.offer) + 0.2, t1: q(c.take || c.offer + 2), target: O, label: 'the small man with a bowl held up', because: [{ id: 'sResolve' }] });
     if (c.take) { gi({ id: 'gTake', kind: 'REACH', t0: q(c.take) - 0.6, t1: q(c.take) + 0.6, target: O, label: 'takes the bowl from his hands', params: { hand: 'R', y: M.H && M.H[O] ? M.H[O] * 1.6 : 90 }, because: [{ id: 'sResolve' }] });
       gi({ id: 'gDrink', kind: 'DRINK', t0: q(c.take) + 0.6, t1: q((c.sated || c.take + 5) + 0.8), label: 'drinks it off', params: { gulps: Math.max(1, c.gulps.length) }, because: [{ id: 'gTake' }] }); } }

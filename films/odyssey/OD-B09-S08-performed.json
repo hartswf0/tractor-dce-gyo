@@ -76,8 +76,8 @@
   ],
   "shots": {
    "WIDE": 1,
-   "HOT": 3,
-   "TWO": 1,
+   "HOT": 2,
+   "TWO": 2,
    "INSERT": 1,
    "ACTION": 4,
    "GIANT": 2,
@@ -85,10 +85,10 @@
   },
   "cine": {
    "time": {
-    "grid": 1.1,
-    "inside": 0.4,
-    "seen": 8.3,
-    "clutter": 4.2,
+    "grid": 1.7,
+    "inside": 0.5,
+    "seen": 9.8,
+    "clutter": 5.1,
     "pose": 0
    },
    "scene": "OD-B09-S08",
@@ -111,7 +111,7 @@
     "tempo_conflict": true
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 96.2,
+   "solvedIn": 176.8,
    "shots": [
     {
      "i": 0,
@@ -139,9 +139,9 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       66.4,
-       261.4,
-       247.6
+       66.3,
+       261.6,
+       247.5
       ],
       "fov": 75,
       "key": false,
@@ -164,7 +164,9 @@
      "samples": [
       1.67,
       0.1,
-      3.23
+      3.23,
+      1.25,
+      2.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -173,13 +175,15 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.5,
+     "facing": 0.97,
      "headV": 0.391,
      "clutterFar": 0.13,
      "luma": {
-      "mean": 0.218,
-      "dark": 0.27,
-      "white": 0
+      "mean": 0.212,
+      "sd": 0.183,
+      "dark": 0.31,
+      "white": 0,
+      "one": 0.44
      },
      "lumaRefused": 0
     },
@@ -188,9 +192,9 @@
      "t0": 3.33,
      "t1": 12.27,
      "kind": "HOT",
-     "size": "MID",
+     "size": "WIDE",
      "planned": "MID",
-     "eased": null,
+     "eased": "the mid had no legal camera: the primary alone, wide",
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -210,29 +214,44 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -3.3,
-       188.5,
-       384.9
+       -4.9,
+       188.7,
+       276.4
       ],
-      "fov": 73,
+      "fov": 75,
       "key": false,
       "az": 0,
       "travelling": true
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)",
      "rejected": {
-      "L2 odysseus hidden": 244,
-      "L2 body": 4,
-      "L4 foreground covers n%": 7
+      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 1,
+      "L2 odysseus hidden": 235,
+      "L4 an empty frame (n% sky)": 3,
+      "L2 body": 1,
+      "L4 foreground covers n%": 13,
+      "L1 in part construction-frame": 2
      },
-     "candidates": 256,
-     "legalCandidates": 1,
+     "rejectedPlanned": {
+      "L2 odysseus hidden": 242,
+      "L4 an empty frame (n% sky)": 4,
+      "L2 body": 4,
+      "L4 foreground covers n%": 6
+     },
+     "candidates": 257,
+     "legalCandidates": 2,
      "samples": [
       7.8,
       3.43,
-      12.17
+      12.17,
+      4.58,
+      5.83,
+      7.08,
+      8.33,
+      9.58,
+      10.83
      ],
      "checks": [
       "L1 not inside geometry",
@@ -242,10 +261,16 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 1,
-     "headV": 0.363,
+     "facing": 0.2,
+     "headV": 0.454,
      "clutterFar": 0.09,
-     "luma": null,
+     "luma": {
+      "mean": 0.226,
+      "sd": 0.181,
+      "dark": 0.27,
+      "white": 0,
+      "one": 0.39
+     },
      "lumaRefused": 0
     },
     {
@@ -253,13 +278,12 @@
      "t0": 12.27,
      "t1": 15.83,
      "kind": "TWO",
-     "size": "MID",
+     "size": "WIDE",
      "planned": "MID",
-     "eased": null,
+     "eased": "the mid had no legal camera: the primary alone, wide",
      "primary": "polyphemus",
      "subjects": [
-      "polyphemus",
-      "crewman-1"
+      "polyphemus"
      ],
      "why": {
       "cut": "the GRIP (c1059): both hands and what passes",
@@ -276,31 +300,43 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -606.2,
-       302.1,
-       -107.1
+       131.1,
+       212.1,
+       143
       ],
-      "fov": 51,
+      "fov": 46,
       "key": false,
-      "az": 4.71,
+      "az": 0.39,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)",
      "rejected": {
-      "L2 crewman-1 hidden": 73,
-      "L2 polyphemus hidden": 165,
-      "L4 foreground covers n%": 9,
-      "L2 body": 5
+      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 146,
+      "L2 polyphemus hidden": 45,
+      "L4 foreground covers n%": 11,
+      "L1 near plane in a set part": 11,
+      "L1 in polyphemus": 9,
+      "L1 inside a set part": 1
      },
-     "candidates": 256,
-     "legalCandidates": 4,
+     "rejectedPlanned": {
+      "L2 crewman-1 hidden": 55,
+      "L3 the back": 50,
+      "L4 an empty frame (n% sky)": 1,
+      "L2 polyphemus hidden": 142,
+      "L4 foreground covers n%": 6,
+      "L2 body": 2
+     },
+     "candidates": 257,
+     "legalCandidates": 34,
      "samples": [
       14.05,
       12.37,
       15.73,
-      14.12
+      14.12,
+      13.52,
+      14.77
      ],
      "checks": [
       "L1 not inside geometry",
@@ -310,13 +346,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.5,
-     "headV": 0.352,
-     "clutterFar": 0.21,
+     "facing": 1,
+     "headV": 0.373,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.198,
-      "dark": 0.16,
-      "white": 0
+      "mean": 0.285,
+      "sd": 0.164,
+      "dark": 0.14,
+      "white": 0,
+      "one": 0.33
      },
      "lumaRefused": 0
     },
@@ -347,40 +385,44 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       138.1,
-       91.4,
-       171.5
+       178.1,
+       85,
+       71.3
       ],
       "fov": 43,
       "key": false,
-      "az": 0.79,
+      "az": 1.57,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L4 foreground covers n%": 7,
-      "L1 near plane in a set part": 5,
-      "L1 near polyphemus (inside its sphere)": 86,
+      "L3 the back": 46,
+      "L4 foreground covers n%": 10,
+      "L1 near polyphemus (inside its sphere)": 93,
       "L1 in polyphemus": 22,
-      "L1 in crewman-2": 2,
-      "L2 ram2 hidden": 9,
-      "L1 in part construction-frame": 10,
-      "L1 near ram1 (inside its sphere)": 12,
+      "L1 inside a set part": 1,
+      "L1 in crewman-2": 1,
+      "L2 ram2 hidden": 12,
+      "L1 in part construction-frame": 12,
+      "L1 near ram1 (inside its sphere)": 11,
       "L1 in four-chosen-helpers-4": 3,
-      "L1 in odysseus": 1,
-      "L3 face": 16,
-      "L1 in crewman-1": 4,
+      "L1 near ram2 (inside a small beast's sphere: its flank fills the frame)": 14,
+      "L1 in odysseus": 2,
+      "L3 face": 14,
+      "L1 in crewman-1": 3,
       "L1 in ram1": 2
      },
      "candidates": 256,
-     "legalCandidates": 77,
+     "legalCandidates": 10,
      "samples": [
       17.71,
       15.93,
       19.48,
-      16.78
+      16.78,
+      17.08,
+      18.33
      ],
      "checks": [
       "L1 not inside geometry",
@@ -390,13 +432,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.5,
+     "facing": 0.03,
      "headV": 0.419,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.364,
-      "dark": 0.11,
-      "white": 0
+      "mean": 0.343,
+      "sd": 0.251,
+      "dark": 0.2,
+      "white": 0,
+      "one": 0.2
      },
      "lumaRefused": 0
     },
@@ -428,9 +472,9 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       37.7,
+       37.5,
        57.7,
-       531.7
+       564.6
       ],
       "fov": 58,
       "key": false,
@@ -441,19 +485,20 @@
      "relaxed": false,
      "keyCamera": "L2 ram2 hidden by a set part",
      "rejected": {
-      "L2 ram2 hidden": 61,
-      "L1 under the set": 38,
-      "L4 foreground covers n%": 19,
+      "L2 ram2 hidden": 63,
+      "L1 under the set": 43,
+      "L4 an empty frame (n% sky)": 13,
+      "L4 foreground covers n%": 14,
       "L1 in part construction-frame": 20,
-      "L1 near plane in a set part": 7,
-      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 15,
-      "L1 near ram1 (inside its sphere)": 5,
-      "L3 head": 8,
-      "L1 in polyphemus": 4,
-      "L1 in four-chosen-helpers-1": 3
+      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 19,
+      "L1 near plane in a set part": 6,
+      "L1 near ram2 (a wide inside its sphere: the fleece fills the frame)": 1,
+      "L1 near ram1 (inside its sphere)": 3,
+      "L1 in four-chosen-helpers-3": 1,
+      "L1 in four-chosen-helpers-1": 1
      },
      "candidates": 193,
-     "legalCandidates": 13,
+     "legalCandidates": 9,
      "samples": [
       21.08,
       19.68,
@@ -468,13 +513,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.5,
+     "facing": 0.95,
      "headV": 0.301,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.35,
-      "dark": 0.12,
-      "white": 0
+      "mean": 0.333,
+      "sd": 0.184,
+      "dark": 0.13,
+      "white": 0,
+      "one": 0.46
      },
      "lumaRefused": 0
     },
@@ -519,18 +566,20 @@
       "L2 odysseus hidden": 9,
       "L1 in part construction-frame": 13,
       "L1 near plane in a set part": 1,
-      "L4 foreground covers n%": 15,
-      "L1 in four-chosen-helpers-1": 4,
-      "L1 in four-chosen-helpers-2": 3,
-      "L3 head": 66
+      "L1 inside the staged prop stake": 31,
+      "L4 foreground covers n%": 12,
+      "L1 in four-chosen-helpers-1": 2,
+      "L1 in four-chosen-helpers-2": 1,
+      "L3 head": 49
      },
      "candidates": 257,
-     "legalCandidates": 140,
+     "legalCandidates": 133,
      "samples": [
       24.17,
       22.68,
       25.65,
-      23.75
+      23.75,
+      25.08
      ],
      "checks": [
       "L1 not inside geometry",
@@ -539,13 +588,15 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.63,
-     "headV": 0.288,
+     "facing": 0.74,
+     "headV": 0.287,
      "clutterFar": 0.01,
      "luma": {
-      "mean": 0.346,
-      "dark": 0.27,
-      "white": 0
+      "mean": 0.279,
+      "sd": 0.289,
+      "dark": 0.43,
+      "white": 0.01,
+      "one": 0.46
      },
      "lumaRefused": 0
     },
@@ -573,13 +624,13 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -81.1,
-       82.6,
-       79.5
+       98.5,
+       122.5,
+       249.7
       ],
       "fov": 46,
       "key": false,
-      "az": 4.71,
+      "az": 0,
       "travelling": false
      },
      "legal": true,
@@ -590,18 +641,20 @@
       "L2 odysseus hidden": 9,
       "L1 in part construction-frame": 15,
       "L1 near plane in a set part": 1,
-      "L4 foreground covers n%": 9,
-      "L1 in four-chosen-helpers-1": 5,
-      "L1 in four-chosen-helpers-2": 7,
+      "L1 inside the staged prop stake": 33,
+      "L4 foreground covers n%": 5,
+      "L1 in four-chosen-helpers-1": 3,
+      "L1 in four-chosen-helpers-2": 3,
       "L3 head": 41
      },
      "candidates": 257,
-     "legalCandidates": 168,
+     "legalCandidates": 145,
      "samples": [
       27.34,
       25.86,
       28.82,
-      25.96
+      25.96,
+      28.25
      ],
      "checks": [
       "L1 not inside geometry",
@@ -610,13 +663,15 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 1,
+     "facing": 0.97,
      "headV": 0.283,
      "clutterFar": 0.02,
      "luma": {
-      "mean": 0.392,
-      "dark": 0.16,
-      "white": 0.01
+      "mean": 0.475,
+      "sd": 0.235,
+      "dark": 0.03,
+      "white": 0,
+      "one": 0.24
      },
      "lumaRefused": 0
     },
@@ -644,36 +699,43 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -22.9,
-       189.3,
-       126.5
+       132.4,
+       122.8,
+       21.4
       ],
-      "fov": 46,
+      "fov": 63,
       "key": false,
-      "az": 4.71,
+      "az": 3.14,
       "travelling": true
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": "L2 four-chosen-helpers-1 hidden by odysseus",
      "rejected": {
-      "L2 four-chosen-helpers-1 hidden": 56,
-      "L4 foreground covers n%": 29,
+      "L2 four-chosen-helpers-1 hidden": 42,
+      "L4 foreground covers n%": 25,
       "L1 near plane in a set part": 9,
       "L1 in part construction-frame": 20,
-      "L1 in four-chosen-helpers-2": 16,
+      "L1 inside the staged prop stake": 42,
+      "L2 body": 2,
+      "L1 in four-chosen-helpers-2": 13,
       "L1 too near the face": 10,
-      "L1 in odysseus": 1,
-      "L2 body": 1,
+      "L1 inside the staged prop dung": 5,
       "L1 in four-chosen-helpers-3": 2
      },
      "candidates": 257,
-     "legalCandidates": 113,
+     "legalCandidates": 87,
      "samples": [
       33.75,
       29.02,
       38.48,
-      29.12
+      29.12,
+      30.17,
+      31.42,
+      32.67,
+      35.17,
+      36.42,
+      37.67
      ],
      "checks": [
       "L1 not inside geometry",
@@ -682,10 +744,16 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 1,
-     "headV": 0.349,
+     "facing": 0.98,
+     "headV": 0.332,
      "clutterFar": 0,
-     "luma": null,
+     "luma": {
+      "mean": 0.202,
+      "sd": 0.149,
+      "dark": 0.18,
+      "white": 0,
+      "one": 0.37
+     },
      "lumaRefused": 0
     },
     {
@@ -693,9 +761,9 @@
      "t0": 38.58,
      "t1": 43.42,
      "kind": "HOT",
-     "size": "CLOSE",
+     "size": "MID",
      "planned": "CLOSE",
-     "eased": null,
+     "eased": "the close had no legal camera: the primary alone, mid",
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -711,42 +779,61 @@
       "four-chosen-helpers-4",
       "odysseus"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -171.1,
-       114,
-       -116.4
+       -35.4,
+       180.4,
+       -24.3
       ],
-      "fov": 32,
+      "fov": 38,
       "key": false,
-      "az": 4.71,
+      "az": 0,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L4 foreground covers n%": 15,
+      "L4 foreground covers n%": 18,
+      "L2 odysseus hidden": 40,
+      "L3 the back": 71,
+      "L1 inside the staged prop dung": 13,
+      "L1 near plane in a set part": 6,
+      "L1 in part construction-frame": 5,
+      "L1 in four-chosen-helpers-3": 8,
+      "L1 in four-chosen-helpers-2": 6,
+      "L1 in four-chosen-helpers-1": 17,
+      "L3 face": 8,
+      "L3 head": 25,
+      "L1 in four-chosen-helpers-4": 10,
+      "L1 too near the face": 26
+     },
+     "rejectedPlanned": {
+      "L4 foreground covers n%": 32,
       "L2 body": 1,
-      "L2 odysseus hidden": 35,
+      "L2 odysseus hidden": 36,
+      "L3 the back": 36,
+      "L1 inside the staged prop dung": 13,
       "L1 near plane in a set part": 6,
       "L1 in four-chosen-helpers-3": 7,
-      "L1 in four-chosen-helpers-2": 9,
+      "L1 in four-chosen-helpers-2": 8,
       "L1 in four-chosen-helpers-1": 18,
-      "L3 head": 32,
-      "L1 too near the face": 60,
+      "L3 head": 33,
+      "L1 too near the face": 48,
       "L1 in four-chosen-helpers-4": 15,
       "L1 in part construction-frame": 1,
-      "L3 face": 4
+      "L3 face": 2
      },
      "candidates": 256,
-     "legalCandidates": 53,
+     "legalCandidates": 3,
      "samples": [
       41,
       38.68,
-      43.32
+      43.32,
+      39.83,
+      42.33
      ],
      "checks": [
       "L1 not inside geometry",
@@ -756,20 +843,22 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0,
-     "headV": 0.35,
-     "clutterFar": 0.02,
+     "facing": 1,
+     "headV": 0.377,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.331,
-      "dark": 0.14,
-      "white": 0
+      "mean": 0.272,
+      "sd": 0.141,
+      "dark": 0.13,
+      "white": 0,
+      "one": 0.35
      },
      "lumaRefused": 0
     },
     {
      "i": 9,
      "t0": 43.42,
-     "t1": 49.32,
+     "t1": 47.92,
      "kind": "GIANT",
      "size": "WIDE",
      "planned": "WIDE",
@@ -783,8 +872,175 @@
      "why": {
       "cut": "the creature acts: WALK (gIn)",
       "rule": "R8 the creature acts (WALK gIn): low and wide with odysseus, four-chosen-helpers-4 in frame for size",
-      "heat": 1.3,
-      "contrast": 1.09,
+      "heat": 1.06,
+      "contrast": 0.8,
+      "hot": "polyphemus"
+     },
+     "line": [
+      "odysseus",
+      "polyphemus"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       265.4,
+       50.2,
+       568.1
+      ],
+      "fov": 58,
+      "key": false,
+      "az": 0.39,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)",
+     "rejected": {
+      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 3,
+      "L1 under the set": 48,
+      "L2 polyphemus hidden": 102,
+      "L4 an empty frame (n% sky)": 5,
+      "L2 body": 1,
+      "L4 foreground covers n%": 22,
+      "L1 near ram1 (inside its sphere)": 4,
+      "L1 in part construction-frame": 5,
+      "L1 near plane in a set part": 1
+     },
+     "candidates": 193,
+     "legalCandidates": 2,
+     "samples": [
+      45.67,
+      43.52,
+      47.82,
+      44.67,
+      47.17
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": -0.98,
+     "headV": 0.302,
+     "clutterFar": 0.09,
+     "luma": {
+      "mean": 0.12,
+      "sd": 0.176,
+      "dark": 0.61,
+      "white": 0,
+      "one": 0.73
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 10,
+     "t0": 47.92,
+     "t1": 50.92,
+     "kind": "TWO",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "polyphemus",
+     "subjects": [
+      "polyphemus",
+      "odysseus"
+     ],
+     "why": {
+      "cut": "R10 the offer: odysseus holds it up to polyphemus (gTake REACH)",
+      "rule": "R10 the offer gTake: odysseus and polyphemus both in frame, low and from the man's side, what passes between them in frame",
+      "heat": 1.79,
+      "contrast": 1.76,
+      "hot": "odysseus"
+     },
+     "line": [
+      "odysseus",
+      "polyphemus"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       85.2,
+       35.9,
+       47.6
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 1.18,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 in ram1": 4,
+      "L4 foreground covers n%": 34,
+      "L1 in part construction-frame": 34,
+      "L2 odysseus hidden": 16,
+      "L1 near plane in a set part": 15,
+      "L3 the back": 81,
+      "L2 polyphemus hidden": 29,
+      "L1 inside the staged prop stake": 3,
+      "L5 not on the giver's side": 17,
+      "L1 inside the staged prop dung": 3,
+      "L1 in polyphemus": 5,
+      "L1 in four-chosen-helpers-1": 2,
+      "L1 in four-chosen-helpers-2": 3,
+      "L1 in four-chosen-helpers-3": 3,
+      "L4 the mid needs more than the frame": 1,
+      "L3 head": 5,
+      "L1 in ram2": 1,
+      "L1 near ram1 (inside its sphere)": 7
+     },
+     "candidates": 264,
+     "legalCandidates": 1,
+     "samples": [
+      49.42,
+      48.02,
+      50.82
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.72,
+     "headV": 0.323,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.111,
+      "sd": 0.176,
+      "dark": 0.67,
+      "white": 0,
+      "one": 0.64
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 11,
+     "t0": 50.92,
+     "t1": 58.08,
+     "kind": "GIANT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "polyphemus",
+     "subjects": [
+      "polyphemus",
+      "odysseus"
+     ],
+     "why": {
+      "cut": "R10 the receiver: polyphemus DRINK (gDrink)",
+      "rule": "R10 the receiver's reaction: polyphemus DRINK (gDrink), low, odysseus in frame for size",
+      "heat": 0.64,
+      "contrast": 0.63,
       "hot": "odysseus"
      },
      "line": [
@@ -792,206 +1048,74 @@
       "polyphemus"
      ],
      "side": -1,
-     "lineHeld": false,
+     "lineHeld": true,
      "camera": {
       "pos": [
-       30.5,
-       90.8,
-       601.8
+       -4.9,
+       35.9,
+       149.3
       ],
-      "fov": 58,
+      "fov": 75,
       "key": false,
       "az": 0,
       "travelling": false
      },
      "legal": true,
-     "relaxed": false,
-     "keyCamera": "L4 foreground covers 27%",
-     "rejected": {
-      "L4 foreground covers n%": 23,
-      "L1 under the set": 48,
-      "L2 polyphemus hidden": 99,
-      "L2 body": 1,
-      "L1 near ram1 (inside its sphere)": 4,
-      "L1 in part construction-frame": 7,
-      "L1 near plane in a set part": 2,
-      "L3 head": 1,
-      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 1
-     },
-     "candidates": 193,
-     "legalCandidates": 7,
-     "samples": [
-      46.37,
-      43.52,
-      49.22
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.5,
-     "headV": 0.302,
-     "clutterFar": 0.06,
-     "luma": {
-      "mean": 0.175,
-      "dark": 0.46,
-      "white": 0
-     },
-     "lumaRefused": 5
-    },
-    {
-     "i": 10,
-     "t0": 49.32,
-     "t1": 52.75,
-     "kind": "GIANT",
-     "size": "WIDE",
-     "planned": "MID",
-     "eased": "the planned frame was black from every legal camera: polyphemus, wide",
-     "primary": "polyphemus",
-     "subjects": [
-      "polyphemus"
-     ],
-     "why": {
-      "cut": "the creature acts: REACH (gTake)",
-      "rule": "R8 the creature acts (REACH gTake): low and wide with odysseus, four-chosen-helpers-1 in frame for size",
-      "heat": 1.12,
-      "contrast": 1.11,
-      "hot": "odysseus"
-     },
-     "line": [
-      "odysseus",
-      "polyphemus"
-     ],
-     "side": 1,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       196.4,
-       216.4,
-       140.5
-      ],
-      "fov": 75,
-      "key": false,
-      "az": 0.79,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": "L2 polyphemus hidden by odysseus",
-     "rejected": {
-      "L4 foreground covers n%": 29,
-      "L2 polyphemus hidden": 97,
-      "L1 near plane in a set part": 2,
-      "L1 near polyphemus (a wide inside its sphere: the fleece fills the frame)": 63,
-      "L1 inside a set part": 1
-     },
-     "candidates": 257,
-     "legalCandidates": 65,
-     "samples": [
-      51.03,
-      49.42,
-      52.65
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.5,
-     "headV": 0.3,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.189,
-      "dark": 0.36,
-      "white": 0
-     },
-     "lumaRefused": 2
-    },
-    {
-     "i": 11,
-     "t0": 52.75,
-     "t1": 58.08,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "CLOSE",
-     "eased": "the close had no legal camera: the primary alone, mid",
-     "primary": "odysseus",
-     "subjects": [
-      "odysseus"
-     ],
-     "why": {
-      "cut": "heat moves: odysseus -> polyphemus",
-      "rule": "R1 the hot spot odysseus (heat 0.65, contrast 0.64): CLOSE by the direction's bias",
-      "heat": 0.65,
-      "contrast": 0.64,
-      "hot": "odysseus"
-     },
-     "line": [
-      "polyphemus",
-      "odysseus"
-     ],
-     "side": 1,
-     "lineHeld": true,
-     "camera": {
-      "pos": [
-       -347.6,
-       188.4,
-       785.9
-      ],
-      "fov": 38,
-      "key": false,
-      "az": 5.89,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
+     "relaxed": true,
      "keyCamera": null,
      "rejected": {
-      "L2 odysseus hidden": 25,
-      "L5 across the line": 128,
-      "L3 face": 98,
-      "L2 body": 1
+      "L5 across the line": 96,
+      "L4 foreground covers n%": 21,
+      "L1 in part construction-frame": 12,
+      "L1 near plane in a set part": 8,
+      "L3 the back": 18,
+      "L2 polyphemus hidden": 3,
+      "L1 in four-chosen-helpers-4": 2,
+      "L1 inside the staged prop dung": 3,
+      "L1 inside the staged prop stake": 1,
+      "L1 in four-chosen-helpers-3": 2,
+      "L1 in polyphemus": 4,
+      "L4 the mid needs more than the frame": 22
      },
-     "candidates": 256,
-     "legalCandidates": 4,
+     "candidates": 192,
+     "legalCandidates": 2,
      "samples": [
-      55.42,
-      52.85,
-      57.98
+      54.5,
+      51.02,
+      57.98,
+      52.17,
+      53.42,
+      55.92,
+      57.17
      ],
      "checks": [
       "L1 not inside geometry",
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
       "L4 framing and foreground",
-      "L5 on the side the line took"
+      "L5 crossed: no legal camera on the line's side"
      ],
      "failed": [],
-     "facing": -0.91,
-     "headV": 0.348,
-     "clutterFar": 0.04,
+     "facing": 0.99,
+     "headV": 0.304,
+     "clutterFar": 0.02,
      "luma": {
-      "mean": 0.177,
-      "dark": 0.41,
-      "white": 0
+      "mean": 0.19,
+      "sd": 0.221,
+      "dark": 0.48,
+      "white": 0,
+      "one": 0.52
      },
-     "lumaRefused": 3
+     "lumaRefused": 0
     },
     {
      "i": 12,
      "t0": 58.08,
      "t1": 68.04,
      "kind": "REACT",
-     "size": "CLOSE",
+     "size": "WIDE",
      "planned": "CLOSE",
-     "eased": null,
+     "eased": "no legal camera at the planned size: a wide on the primary",
      "primary": "four-chosen-helpers-3",
      "subjects": [
       "four-chosen-helpers-3"
@@ -1011,36 +1135,57 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       11.7,
-       101.7,
-       152.4
+       -14.1,
+       126.2,
+       158.3
       ],
-      "fov": 32,
+      "fov": 46,
       "key": false,
       "az": 5.11,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L4 foreground covers 20%",
      "rejected": {
-      "L2 four-chosen-helpers-3 hidden": 16,
-      "L1 near polyphemus (inside its sphere)": 79,
-      "L1 in odysseus": 3,
+      "L4 foreground covers n%": 2,
+      "L3 the back": 92,
+      "L2 four-chosen-helpers-3 hidden": 17,
+      "L2 body": 1,
+      "L1 near polyphemus (inside its sphere)": 73,
       "L1 in polyphemus": 2,
-      "L1 in part construction-frame": 9,
-      "L1 too near the face": 42,
-      "L3 head": 32,
-      "L1 in four-chosen-helpers-4": 20,
-      "L4 foreground covers n%": 1,
-      "L3 face": 3
+      "L1 near plane in a set part": 2,
+      "L1 in part construction-frame": 14,
+      "L1 near ram1 (inside its sphere)": 3,
+      "L1 in odysseus": 3,
+      "L1 in four-chosen-helpers-4": 9,
+      "L1 too near the face": 7,
+      "L3 head": 10
      },
-     "candidates": 256,
-     "legalCandidates": 49,
+     "rejectedPlanned": {
+      "L3 the back": 40,
+      "L4 foreground covers n%": 17,
+      "L2 four-chosen-helpers-3 hidden": 14,
+      "L1 near polyphemus (inside its sphere)": 77,
+      "L1 in polyphemus": 1,
+      "L1 in odysseus": 3,
+      "L1 in part construction-frame": 9,
+      "L1 too near the face": 43,
+      "L3 head": 32,
+      "L1 in four-chosen-helpers-4": 20
+     },
+     "candidates": 257,
+     "legalCandidates": 22,
      "samples": [
       63.06,
       58.18,
-      67.94
+      67.94,
+      59.33,
+      60.58,
+      61.83,
+      64.33,
+      65.58,
+      66.83
      ],
      "checks": [
       "L1 not inside geometry",
@@ -1050,13 +1195,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.92,
-     "headV": 0.346,
+     "facing": 0.65,
+     "headV": 0.253,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.421,
-      "dark": 0.03,
-      "white": 0
+      "mean": 0.386,
+      "sd": 0.203,
+      "dark": 0.02,
+      "white": 0,
+      "one": 0.43
      },
      "lumaRefused": 0
     }
@@ -1166,26 +1313,32 @@
    "key": "K4"
   },
   {
+   "t": 43.417,
+   "shot": "c8:HOT:MID",
+   "kind": "HOT",
+   "key": "K4"
+  },
+  {
    "t": 43.5,
    "shot": "c9:GIANT:WIDE",
    "kind": "GIANT",
    "key": "K4"
   },
   {
-   "t": 49.333,
-   "shot": "c10:GIANT:WIDE",
+   "t": 48,
+   "shot": "c10:TWO:MID",
+   "kind": "TWO",
+   "key": "K5"
+  },
+  {
+   "t": 51,
+   "shot": "c11:GIANT:MID",
    "kind": "GIANT",
    "key": "K5"
   },
   {
-   "t": 52.75,
-   "shot": "c11:HOT:MID",
-   "kind": "HOT",
-   "key": "K5"
-  },
-  {
    "t": 58.083,
-   "shot": "c12:REACT:CLOSE",
+   "shot": "c12:REACT:WIDE",
    "kind": "REACT",
    "key": "K5"
   }
@@ -1263,5 +1416,9 @@
    "from": "odyssey/score/OD-B09-S08.json",
    "note": "the performance engine's body score: every key caused by an intent in the score; hand keys go in overrides"
   }
+ },
+ "spliced": {
+  "from": 43.4167,
+  "note": "shots from 43.42 s re-rendered (the giant turns at his seat; the offer two-shot) and spliced over the first cut; the sound is the first cut's"
  }
 }
