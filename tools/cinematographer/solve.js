@@ -286,7 +286,10 @@ async function solve(plan, api) {
   }
   function needOf(S, sh, prim) {
     const out = []; const all = sh.size === 'WIDE' || sh.kind === 'ACTION' || sh.kind === 'TWO';
-    for (const s of S) { if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (sh.giant && s !== prim && sh.size !== 'WIDE' && prim.creature && s.head.distanceTo(prim.head) > 1.2 * (prim.H || H0)) continue;
+    /* R10 an offer at a mid: the man's upper body and his hands (what passes), not his feet as well (the whole man and a giant's upper
+       body do not go into a mid from the man's side: every such frame had needed more than 75 degrees) */
+    for (const s of S) { if (sh.offer && !s.creature && sh.size !== 'WIDE') { out.push(...s.upper); continue; }
+      if (s.creature) out.push(...(sh.size === 'CLOSE' || sh.kind === 'INSERT' ? [s.head, s.eye, s.crown] : sh.size === 'WIDE' && sh.kind === 'GIANT' && !sh.lying ? s.whole : s.upper)); else if (sh.giant && s !== prim && sh.size !== 'WIDE' && prim.creature && s.head.distanceTo(prim.head) > 1.2 * (prim.H || H0)) continue;
       else if (!all && s !== prim && !prim.creature && !s.creature && sh.size !== 'WIDE' && s.head.distanceTo(prim.head) > 2.5 * (prim.H || H0)) continue;   /* a mid or close on one of a crowd (six suitors reacting across a hall) keeps his neighbours, not the far end of the room: the lens stays in the room */   /* a man far from the giant's close is not kept in it for size */
       else if (s === prim || all || sh.giant) out.push(...(all || sh.size === 'WIDE' ? s.whole : sh.size === 'CLOSE' ? [s.crown, s.chin] : s.upper)); else out.push(s.crown, s.chin);
       /* a rider (a man under a ram) is framed with the beast's silhouette, never from inside its fleece */
@@ -319,6 +322,15 @@ async function solve(plan, api) {
       const half = Math.asin(Math.min(0.97, R * 1.08 / pos.distanceTo(c))), fv = Math.max(fov0, Math.min(75, THREE.MathUtils.radToDeg(2 * half)));
       out.push({ pos, fov: Math.round(fv), az, k, y, u: 0.5, v });
     }
+    /* R10 an offer: the ring about the pair's middle stands as far off as the giant's height asks, which in a cave is beyond its mouth
+       or under its floor; so the lens is also tried where the rule puts it, just behind and beside the giver (one to two men back,
+       a third to one man to either side, from his knees to over his head), looking up past him to the giant */
+    if (sh.offer) { const G = S.find(s => s.id === sh.offer); if (G && G.feet && (prim.feet || prim.head)) {
+      const gf = G.feet, w = (prim.feet || prim.head).clone().sub(gf).setY(0).normalize(), lat = new V3(w.z, 0, -w.x), g0 = groundAt(gf), gh = G.H || H0;
+      for (const d of [1.0, 1.4, 1.9, 2.5]) for (const sd of [-1, -0.6, -0.3, 0.3, 0.6, 1]) for (const yy of [0.35, 0.7, 1.1]) {
+        const pos = gf.clone().addScaledVector(w, -d * gh).addScaledVector(lat, sd * gh); pos.y = g0 + yy * gh;
+        const half = Math.asin(Math.min(0.97, R * 1.08 / pos.distanceTo(c))), fv = Math.max(fov0, Math.min(75, THREE.MathUtils.radToDeg(2 * half)));
+        out.push({ pos, fov: Math.round(fv), az: Math.atan2(pos.x - c.x, pos.z - c.z), k: pos.distanceTo(c) / base, y: pos.y, u: 0.5, v, behind: true }); } } }
     /* the key's own camera for a wide (the gate approved its composition for the blocking) */
     if (sh.size === 'WIDE' && key) { try { const R0 = api.resolved(api.keyCam(key.k || key)); api.poseAt(sh.t0 / 2 + sh.t1 / 2); const kp = new V3(...R0.pos), far = kp.distanceTo(c) / base; if (far < 3) out.unshift({ pos: kp, fov: Math.max(R0.fov, 40), key: true, far, u: 0.5, v }); } catch (e) { } }   /* a key camera three times farther than the size wants shows the room, not the beat */
     for (const q of out) {
@@ -424,7 +436,7 @@ async function solve(plan, api) {
     const lineKey = sh.line ? sh.beat + ':' + sh.line.slice().sort().join('|') : null, lineSide = lineKey ? lines.get(lineKey) || 0 : 0;
     /* the ladder: as planned; then (no legal camera) the primary alone one size wider; then a wide on the primary */
     const WIDER = { CLOSE: 'MID', MID: 'WIDE', WIDE: 'WIDE' };
-    let use = sh, A = attempt(sh, lineSide, ts, mid, prevCam), eased = null;
+    let use = sh, A = attempt(sh, lineSide, ts, mid, prevCam), eased = null; const histPlanned = A.hist;   /* why the planned frame failed, kept when it is eased */
     if (!A.alive.length && ((sh.subjects || []).length > 1 || sh.size !== 'WIDE')) { const v = Object.assign({}, sh, { subjects: [sh.primary], size: WIDER[sh.size] || 'WIDE', contact: null, profile: false }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'the ' + sh.size.toLowerCase() + ' had no legal camera: the primary alone, ' + v.size.toLowerCase(); } }
     if (!A.alive.length && use.size !== 'WIDE') { const v = Object.assign({}, sh, { subjects: [sh.primary], size: 'WIDE', contact: null, profile: false, angle: 'eye' }); const B = attempt(v, lineSide, ts, mid, prevCam); if (B.alive.length) { A = B; use = v; eased = 'no legal camera at the planned size: a wide on the primary'; } }
     /* the primary cannot be framed legally from anywhere: the shot goes to the other end of its line (whom it reacts to, acts on) */
@@ -472,7 +484,7 @@ async function solve(plan, api) {
     solved.push(out);
     report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: use.size, planned: sh.size, eased, primary: use.primary, subjects: subj, why: sh.why, line: sh.line, side: pick ? pick.side || 0 : 0, lineHeld: !!lineSide,
       camera: pick ? { pos: pick.pos.toArray().map(v => +v.toFixed(1)), fov: pick.fov, key: !!pick.key, az: pick.az != null ? +pick.az.toFixed(2) : null, travelling: moving } : null,
-      legal, relaxed, keyCamera: keyFate, rejected: hist, candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
+      legal, relaxed, keyCamera: keyFate, rejected: hist, ...(eased ? { rejectedPlanned: histPlanned } : {}), candidates: cands.length, legalCandidates: alive.length, samples: ts.map(v => +v.toFixed(2)),
       checks: legal ? ['L1 not inside geometry', 'L2 subjects and contact seen', 'L3 heads in frame, face in the upper half', 'L4 framing and foreground', ...(sh.line ? [relaxed ? 'L5 crossed: no legal camera on the line\'s side' : 'L5 ' + (lineSide ? 'on the side the line took' : 'takes the line\'s side')] : [])] : [], failed: legal ? [] : fails,
       facing: pick ? +(pick.res[0].info.facing || 0).toFixed(2) : null, headV: pick ? pick.res[0].info.headV : null, clutterFar: pick && pick.res[0].info.clutterFar != null ? +pick.res[0].info.clutterFar.toFixed(2) : null, luma: lum, lumaRefused: lumRefused });
     stats[sh.kind + (legal ? '' : '!')] = (stats[sh.kind + (legal ? '' : '!')] || 0) + 1;

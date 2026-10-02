@@ -25,6 +25,7 @@
    FAWN     {target, path}                      a beast fawning (head low, tail going, a nuzzle)
    GRAZE    {}                                  the head to the ground and up
    CARRY    {riders: [{actor, at, lie}]}        men under a ram's belly or across a back (CONTACT RIDER)
+   TURN     {target | h}                        the whole body turned where it stands to face a figure or a point
    CHANGE   {man, at}                           the beast's half of TRANSFORM: the face on the man for one drawing, then the beast */
 'use strict';
 const Cr = require('../../film-readymades/creatures.js'), Ground = require('./ground.js');
@@ -115,6 +116,11 @@ function bearing(X, id, target, t) { const v = cstate(X, id, t).v, p = pointOf(X
 function pointOf(X, target, t) { if (Array.isArray(target)) return target; if (!target) return null; if (/^(sky|heaven|the gods|zeus|father)/i.test(target)) { const v = cstate(X, Object.keys(X.creatures)[0], t).v; return [v['root.x'] || 0, 2000, (v['root.z'] || 0) + 300]; }
   const f = figPoint(X, target, t); if (f && X.ids.includes(target)) return f; if (X.creatures[target]) { const v = cstate(X, target, t).v; return [v['root.x'], 100, v['root.z']]; }
   const pc = (X.M.pieces || []).find(p => p.label === target) || (X.M.pieces || []).find(p => p.label.includes(String(target).replace(/-/g, ' '))); if (pc) { const b = pc.box; return [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2]; } return null; }
+/* TURN {target | h}: the whole body turned where it stands to face a figure or a point (a place procedure: root kept, heading
+   turned the short way round), held after; a giant come to his seat with his back to the men turns to them */
+K.TURN = (X, I, e) => { const p = I.params || {}, s = Cr.sample({ creatures: X.creatures, step: 'twos' }, I.actor, I.t0, { stepped: false }).v, a = [s['root.x'], s['root.y'], s['root.z'], s['root.h']];
+  let h = p.h; if (h == null) { const tg = figPoint(X, I.target, I.t0); if (!tg) return null; h = Math.atan2(tg[0] - a[0], tg[2] - a[2]); }
+  return X.cmove(I.actor, 'TURN', e, { proc: { type: 'place', a, b: [a[0], a[1], a[2], r3(h)], from: I.t0, to: I.t1 } }, { label: I.label || 'turns to ' + I.target }); };
 K.ATTEND = (X, I, e) => { const b = bearing(X, I.actor, I.target, I.t0); if (!b) return null; const yaw = Math.max(-0.9, Math.min(0.9, b.yaw)), tw = Math.max(-0.4, Math.min(0.4, b.yaw - yaw)), t0 = I.t0, t1 = I.t1;
   return X.cmove(I.actor, 'ATTEND', e, { keys: { 'head.yaw@att': [[t0, 0], [t0 + 0.8, yaw], [t1, yaw * 0.9], [t1 + 0.8, 0]], 'torso.twist@att': [[t0, 0], [t0 + 1.2, tw], [t1, tw], [t1 + 1, 0]], 'head.pitch@att': [[t0, 0], [t0 + 0.8, Math.max(-0.3, Math.min(0.3, b.pitch))], [t1, 0.1], [t1 + 0.8, 0]] } }, { label: I.label || 'turns his head to ' + I.target }); };
 K.LISTEN = K.ATTEND;

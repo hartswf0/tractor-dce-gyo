@@ -24,11 +24,12 @@ module.exports = function author(M, X) {
   stimuli.push({ id: 'sEdge', t0: 0.05, t1: 0.4, kind: 'SCENE', label: 'the island\'s edge: alder, poplar and fir, long dry', because: [] });
   I({ id: 'cShow', actor: C, kind: 'DECLARE', target: O, utterance: c2.gi, t0: c2.at - 0.2, t1: c2.at + c2.dur, label: 'here the tall trees stand: take the great bronze axe', params: { shapes: ['point', 'show', 'describe', 'offer', 'show', 'open'], side: 'R', lookAt: O }, because: [{ id: 'v' + c2.gi, rel: 'realises' }, { id: 'sEdge' }] });
   I({ id: 'oHear', actor: O, kind: 'LISTEN', target: C, t0: c2.at + 0.3, t1: q(tAxe - 1.0), label: 'hears how it is to be done', params: { nods: [q(w(V2, 'water', 12.0) + 0.2)] }, because: [{ id: 'cShow' }] });
-  I({ id: 'oNear', actor: O, kind: 'STEP', target: C, t0: q(tAxe - 1.6), t1: q(tAxe - 1.0), label: 'a step to her for it', params: { dist: 0.3, dur: 0.6 }, because: [{ id: 'oHear' }] });
-  I({ id: 'cNear', actor: C, kind: 'STEP', target: O, t0: q(tAxe - 1.5), t1: q(tAxe - 0.9), label: 'a step to him with it', params: { dist: 0.3, dur: 0.6 }, because: [{ id: 'oNear' }] });
+  I({ id: 'oNear', actor: O, kind: 'STEP', target: C, t0: q(tAxe - 1.6), t1: q(tAxe - 1.0), label: 'a step to her for it', params: { dist: 0.2, dur: 0.6 }, because: [{ id: 'oHear' }] });
+  I({ id: 'cNear', actor: C, kind: 'STEP', target: O, t0: q(tAxe - 1.5), t1: q(tAxe - 0.9), label: 'a step to him with it', params: { dist: 0.2, dur: 0.6 }, because: [{ id: 'oNear' }] });
   I({ id: 'cGive', actor: C, kind: 'OFFER', target: O, t0: q(tAxe - 0.9), t1: q(tAxe + 1.2), label: 'the great bronze axe, sharp on both edges', params: { with: 'oTake' }, because: [{ id: 'oNear' }] });
   I({ id: 'oTake', actor: O, kind: 'TAKE', target: C, t0: q(tAxe - 0.9), t1: q(tAxe + 1.2), label: 'takes the axe', params: { at: q(tAxe + 0.2), prop: 'axe', reach: 0.6, from: 'calypso:L' }, because: [{ id: 'cGive' }] });
-  holds.push({ id: 'hO0', actor: O, t0: q(tAxe + 1.3), t1: K2.win[0] - 0.1, reason: 'the axe in his hand: the way home is in these trees', params: { look: [[trees, 1.8], [C, 1.2]], weight: true, grip: 'R' }, because: [{ id: 'oTake' }] });
+  I({ id: 'oBack', actor: O, kind: 'STEP', target: C, t0: q(tAxe + 1.3), t1: q(tAxe + 2.1), label: 'steps back with it, to look at the trees', params: { dist: -0.4, dur: 0.8 }, because: [{ id: 'oTake' }] });
+  holds.push({ id: 'hO0', actor: O, t0: q(tAxe + 2.2), t1: K2.win[0] - 0.1, reason: 'the axe in his hand: the way home is in these trees', params: { look: [[trees, 1.8], [C, 1.2]], weight: true, grip: 'R' }, because: [{ id: 'oBack' }] });
   holds.push({ id: 'hC0', actor: C, t0: q(tAxe + 1.3), t1: K2.win[0] - 0.1, reason: 'she has given him the means to leave her', params: { look: [[O, 2.6]], weight: true }, because: [{ id: 'cGive' }] });
   /* ── the four days ── */
   I({ id: 'oGo', actor: O, kind: 'APPROACH', key: 'K2', t0: K2.win[0], t1: K2.win[1], target: trees, label: 'to the trees', because: [{ id: 'hO0' }] });
