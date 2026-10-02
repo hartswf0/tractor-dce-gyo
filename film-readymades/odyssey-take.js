@@ -48,8 +48,14 @@ function snap(){const out={};for(const a of ButterCast.cast){const r=a.rig,f=r.f
 function figHeight(id){const r=rigOf(id);if(!r)return 60;r.figure.updateMatrixWorld(true);return Math.max(20,(kfHead(id).y-r.pos.y)*1.2);}   /* the body to the crown, not the spear held over it */
 
 /* ── the clock: clips on the take's clock ── */
+/* a scene the Regulars' Cut drops (OD-B24-S03, OD-B24-S05) plays on a performer's cut: the cut's own rule for what it drops (the
+   scene header, which the title card carries; the speaker cues, which the picture shows), the kept segments 0.45 s apart, 0.6 s in
+   and out, as cut.json lays a kept scene */
+function cutOf(tk){if(tk.cut.segments.length)return tk.cut;let at=0.6;const segments=[];
+  for(const s of tk.voice.segments){if(s.kind==='SCENE_HEADER'||s.kind==='SPEAKER_CUE')continue;if(segments.length)at+=0.45;segments.push({gi:s.gi,start:s.start,dur:s.dur,at:Math.round(at*1000)/1000});at+=s.dur;}
+  return {status:'performer',seconds:Math.round((at+0.6)*100)/100,segments,dropped:[],why:['not in the Regulars\' Cut: the performer\'s cut']};}
 function clipsOf(tk,mode){const byGi=new Map(tk.voice.segments.map(s=>[s.gi,s]));
-  if(mode==='cut')return {clips:tk.cut.segments.map(c=>({...byGi.get(c.gi),start:c.start,dur:c.dur,at:c.at})),total:tk.cut.seconds,audio:tk.cut.segments.map(c=>({at:c.at,start:c.start,dur:c.dur}))};
+  if(mode==='cut'){const cut=cutOf(tk);return {clips:cut.segments.map(c=>({...byGi.get(c.gi),start:c.start,dur:c.dur,at:c.at})),total:cut.seconds,audio:cut.segments.map(c=>({at:c.at,start:c.start,dur:c.dur}))};}
   return {clips:tk.voice.segments.map(s=>({...s,at:s.start})),total:tk.voice.total,audio:[{at:0,start:0,dur:tk.voice.total}]};}
 /* which clip is SOUNDING at t; in a gap, the one that just ended (syncwatch segAt) */
 function clipAt(t){let cur=null;for(const c of T.clips){if(t>=c.at&&t<c.at+c.dur)return c;if(c.at<=t)cur=c;}return cur||T.clips[0];}
@@ -247,7 +253,7 @@ function drawCaption(g,W,H,t){const cap=captionAt(t);if(!cap||cap.a<=0)return;co
 
 /* ── prepare: stage every key once, snapshot it, dress the named cast in their halfworld faces, lay out the lines and the shots ── */
 async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error('this location carries no take (rebuild with film-readymades/build_odyssey.py)');
-  if(T)end();const sid=tk.scene,mode=o.mode==='cut'?'cut':'full';if(mode==='cut'&&!tk.cut.segments.length)throw Error(sid+' is not in the Regulars\' Cut');
+  if(T)end();const sid=tk.scene,mode=o.mode==='cut'?'cut':'full';
   const spec=await (await fetch(root+'odyssey/keyframes/'+sid+'.json')).json();await OdysseyFilm.loadProps();
   const {clips,total,audio}=clipsOf(tk,mode);T={sid,mode,tk,spec,clips,total,audio,voiceSpans:clips,plan:new Map(),perf:new Map(),faces:new Map(),heads:[],hips:new Map(),world:null,propsNow:null,lookNow:null};
   T.dir=o.grammar?null:await directionOf(tk);   /* the sign score's direction cuts the take (o.grammar: the syncwatch grammar alone) */
