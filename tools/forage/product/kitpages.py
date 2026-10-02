@@ -217,6 +217,8 @@ WATCH = [
      'Nausicaa, performed', 'Book VI: Odysseus wakes on the Phaeacian shore, breaks a leafy branch and steps out among the girls at their ball game; the maids scatter, Nausicaa alone stands her ground, he pleads from a distance rather than clasp her knees, and she answers him and calls her maids back.'),
     ('../../films/odyssey/OD-B09-S03-performed.mp4', '../../films/odyssey/OD-B09-S03-performed.jpg', 'Film · performed',
      'The Lotus-Eaters, performed', 'Book IX: a north wind drives the ships off course for nine days; on the land of the Lotus-Eaters three scouts are given the lotus and forget their homecoming, and Odysseus has them dragged weeping to the ships and bound under the benches.'),
+    ('../../films/odyssey/OD-B05-S04-performed.mp4', '../../films/odyssey/OD-B05-S04-performed.jpg', 'Film · performed',
+     'The Raft, performed', 'Book V: Calypso leads Odysseus to the island\'s edge where the tall trees stand and gives him the bronze axe, the adze and the sail-cloth; he fells twenty trees, trims, bores and fences them, rigs mast and sail, and she sends him off with a warm wind behind the raft.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',
