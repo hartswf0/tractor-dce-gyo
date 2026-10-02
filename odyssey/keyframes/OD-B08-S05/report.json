@@ -1,38 +1,103 @@
 {
  "scene": "OD-B08-S05",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
-   "beat": "The Argives set fire to their tents and sailed away, leaving the horse on the shore.",
-   "text": "'He began with how some of the Argives set fire to their tents and sailed away, while others, hidden within the horse, were waiting with Ulysses in the Trojan place of assembly.'",
-   "pass": true,
-   "fails": [],
+   "beat": "Odysseus gives Demodocus a choice cut of meat and asks for the song of the wooden horse.",
+   "text": "'Demodocus, above all mortals I honour you... sing the wooden horse.'",
+   "pass": false,
+   "fails": [
+    "odysseus face turned away (-0.04)",
+    "prop:stoolD passes through demodocus (1640 part overlaps)",
+    "the set (throne) passes through alcinous (1532 part overlaps)",
+    "demodocus floats 28"
+   ],
    "camera": {
     "pos": [
-     202,
-     68.5,
-     497.7
+     -20,
+     100,
+     170
     ]
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": [],
+    "collide": [
+     [
+      "prop:stoolD",
+      "demodocus",
+      1640
+     ],
+     [
+      "the set (throne)",
+      "alcinous",
+      1532
+     ]
+    ],
+    "floating": [
+     [
+      "demodocus",
+      28
+     ]
+    ],
     "perched": []
    },
    "subjects": {
-    "prop:horse": {
+    "odysseus": {
      "visible": 1,
-     "size": 0.799,
+     "size": 0.668,
      "inFrame": true,
      "head": [
-      0.437,
-      0.31
+      0.557,
+      0.212
+     ],
+     "facing": -0.04,
+     "thirds": 0.11,
+     "headroom": 0.13,
+     "box": [
+      0.55,
+      0.558,
+      0.13,
+      0.799
+     ],
+     "behind": false
+    },
+    "demodocus": {
+     "visible": 1,
+     "size": 0.393,
+     "inFrame": true,
+     "head": [
+      0.322,
+      0.273
+     ],
+     "facing": 0.44,
+     "thirds": 0.011,
+     "headroom": 0.228,
+     "box": [
+      0.308,
+      0.342,
+      0.228,
+      0.62
+     ],
+     "behind": false
+    },
+    "alcinous": {
+     "visible": 1,
+     "size": 0.252,
+     "inFrame": true,
+     "head": [
+      0.696,
+      0.275
      ],
      "facing": 1,
-     "thirds": 0.023,
-     "headroom": 0.045,
+     "thirds": 0.03,
+     "headroom": 0.247,
+     "box": [
+      0.67,
+      0.719,
+      0.247,
+      0.498
+     ],
      "behind": false
     }
    },
@@ -41,46 +106,440 @@
   },
   {
    "id": "K2",
-   "beat": "Odysseus waits in the dark of the horse while the Trojans gather.",
-   "text": "'...while others, hidden within the horse, were waiting with Ulysses.'",
-   "pass": true,
-   "fails": [],
+   "beat": "The bard sings the Greeks' emergence, the sack, and Odysseus's attack on Deiphobus's house.",
+   "text": "'He sang how the Argives came out of the horse and sacked the town...'",
+   "pass": false,
+   "fails": [
+    "prop:stoolD passes through demodocus (1574 part overlaps)",
+    "prop:stoolO passes through odysseus (1476 part overlaps)",
+    "the set (throne) passes through alcinous (1532 part overlaps)",
+    "odysseus floats 28",
+    "demodocus floats 28"
+   ],
    "camera": {
     "pos": [
-     127,
-     181,
-     111.1
+     -20,
+     105,
+     240
     ]
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": [],
+    "collide": [
+     [
+      "prop:stoolD",
+      "demodocus",
+      1574
+     ],
+     [
+      "prop:stoolO",
+      "odysseus",
+      1476
+     ],
+     [
+      "the set (throne)",
+      "alcinous",
+      1532
+     ]
+    ],
+    "floating": [
+     [
+      "odysseus",
+      28
+     ],
+     [
+      "demodocus",
+      28
+     ]
+    ],
     "perched": []
    },
    "subjects": {
-    "odysseus": {
+    "demodocus": {
      "visible": 1,
-     "size": 0.359,
+     "size": 0.319,
      "inFrame": true,
      "head": [
-      0.51,
-      0.442
+      0.254,
+      0.35
+     ],
+     "facing": 0.82,
+     "thirds": 0.017,
+     "headroom": 0.314,
+     "box": [
+      0.23,
+      0.282,
+      0.314,
+      0.633
+     ],
+     "behind": false
+    },
+    "odysseus": {
+     "visible": 1,
+     "size": 0.364,
+     "inFrame": true,
+     "head": [
+      0.753,
+      0.35
+     ],
+     "facing": 0.86,
+     "thirds": 0.016,
+     "headroom": 0.308,
+     "box": [
+      0.724,
+      0.778,
+      0.308,
+      0.673
+     ],
+     "behind": false
+    },
+    "alcinous": {
+     "visible": 1,
+     "size": 0.202,
+     "inFrame": true,
+     "head": [
+      0.551,
+      0.344
      ],
      "facing": 1,
-     "thirds": 0.108,
-     "headroom": 0.403,
+     "thirds": 0.011,
+     "headroom": 0.322,
      "box": [
-      0.476,
-      0.543,
-      0.403,
-      0.762
+      0.532,
+      0.57,
+      0.322,
+      0.523
      ],
      "behind": false
     }
    },
    "others": {},
    "file": "odyssey/keyframes/OD-B08-S05/K2.png"
+  },
+  {
+   "id": "K3",
+   "beat": "Odysseus weeps like a captive woman over a fallen husband.",
+   "text": "'Ulysses drew his great purple cloak over his head and covered his face, and wept...'",
+   "pass": false,
+   "fails": [
+    "prop:stoolD passes through demodocus (1574 part overlaps)",
+    "prop:stoolO passes through odysseus (1464 part overlaps)",
+    "the set (throne) passes through alcinous (1253 part overlaps)",
+    "odysseus floats 28",
+    "demodocus floats 28"
+   ],
+   "camera": {
+    "pos": [
+     30,
+     80,
+     120
+    ]
+   },
+   "lens": 0,
+   "physics": {
+    "collide": [
+     [
+      "prop:stoolD",
+      "demodocus",
+      1574
+     ],
+     [
+      "prop:stoolO",
+      "odysseus",
+      1464
+     ],
+     [
+      "the set (throne)",
+      "alcinous",
+      1253
+     ]
+    ],
+    "floating": [
+     [
+      "odysseus",
+      28
+     ],
+     [
+      "demodocus",
+      28
+     ]
+    ],
+    "perched": []
+   },
+   "subjects": {
+    "odysseus": {
+     "visible": 1,
+     "size": 0.666,
+     "inFrame": true,
+     "head": [
+      0.527,
+      0.177
+     ],
+     "facing": 0.93,
+     "thirds": 0.14,
+     "headroom": 0.099,
+     "box": [
+      0.477,
+      0.578,
+      0.099,
+      0.765
+     ],
+     "behind": false
+    },
+    "alcinous": {
+     "visible": 1,
+     "size": 0.348,
+     "inFrame": true,
+     "head": [
+      0.191,
+      0.233
+     ],
+     "facing": 0.9,
+     "thirds": 0.1,
+     "headroom": 0.194,
+     "box": [
+      0.162,
+      0.226,
+      0.194,
+      0.542
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "demodocus": {
+     "visible": 1,
+     "size": 1.178,
+     "inFrame": false,
+     "head": [
+      -1.252,
+      0.073
+     ],
+     "facing": 0.98,
+     "thirds": 0.26,
+     "headroom": -0.076,
+     "box": [
+      -1.525,
+      -0.924,
+      -0.076,
+      1.101
+     ],
+     "behind": false
+    }
+   },
+   "file": "odyssey/keyframes/OD-B08-S05/K3.png"
+  },
+  {
+   "id": "K4",
+   "beat": "Alcinous stops the music and asks the stranger for his name, homeland, and reason for grief.",
+   "text": "'Stop the lyre, Demodocus... tell me the name your father and mother called you.'",
+   "pass": false,
+   "fails": [
+    "odysseus cut by the frame",
+    "odysseus head out of frame",
+    "prop:stoolD passes through demodocus (1480 part overlaps)",
+    "prop:stoolO passes through odysseus (1583 part overlaps)",
+    "odysseus floats 28",
+    "demodocus floats 28"
+   ],
+   "camera": {
+    "pos": [
+     20,
+     80,
+     60
+    ]
+   },
+   "lens": 0,
+   "physics": {
+    "collide": [
+     [
+      "prop:stoolD",
+      "demodocus",
+      1480
+     ],
+     [
+      "prop:stoolO",
+      "odysseus",
+      1583
+     ]
+    ],
+    "floating": [
+     [
+      "odysseus",
+      28
+     ],
+     [
+      "demodocus",
+      28
+     ]
+    ],
+    "perched": []
+   },
+   "subjects": {
+    "alcinous": {
+     "visible": 1,
+     "size": 0.564,
+     "inFrame": true,
+     "head": [
+      0.503,
+      0.223
+     ],
+     "facing": 0.99,
+     "thirds": 0.11,
+     "headroom": 0.158,
+     "box": [
+      0.45,
+      0.556,
+      0.158,
+      0.722
+     ],
+     "behind": false
+    },
+    "odysseus": {
+     "visible": 1,
+     "size": 1.342,
+     "inFrame": false,
+     "head": [
+      1.396,
+      0.104
+     ],
+     "facing": 0.21,
+     "thirds": 0.229,
+     "headroom": -0.067,
+     "box": [
+      1.252,
+      1.417,
+      -0.067,
+      1.275
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "demodocus": {
+     "visible": 1,
+     "size": 0.831,
+     "inFrame": false,
+     "head": [
+      -0.212,
+      0.16
+     ],
+     "facing": 0.39,
+     "thirds": 0.174,
+     "headroom": 0.06,
+     "box": [
+      -0.24,
+      -0.14,
+      0.06,
+      0.892
+     ],
+     "behind": false
+    }
+   },
+   "file": "odyssey/keyframes/OD-B08-S05/K4.png"
+  },
+  {
+   "id": "K5",
+   "beat": "Odysseus prepares to narrate his wanderings.",
+   "text": "'Then Ulysses answered, King Alcinous...'",
+   "pass": false,
+   "fails": [
+    "odysseus no headroom (0.023)",
+    "prop:stoolD passes through demodocus (1640 part overlaps)",
+    "prop:stoolO passes through odysseus (149 part overlaps)",
+    "demodocus floats 28"
+   ],
+   "camera": {
+    "pos": [
+     -40,
+     90,
+     80
+    ]
+   },
+   "lens": 0,
+   "physics": {
+    "collide": [
+     [
+      "prop:stoolD",
+      "demodocus",
+      1640
+     ],
+     [
+      "prop:stoolO",
+      "odysseus",
+      149
+     ]
+    ],
+    "floating": [
+     [
+      "demodocus",
+      28
+     ]
+    ],
+    "perched": []
+   },
+   "subjects": {
+    "odysseus": {
+     "visible": 1,
+     "size": 0.679,
+     "inFrame": true,
+     "head": [
+      0.777,
+      0.107
+     ],
+     "facing": 0.82,
+     "thirds": 0.111,
+     "headroom": 0.023,
+     "box": [
+      0.723,
+      0.821,
+      0.023,
+      0.701
+     ],
+     "behind": false
+    },
+    "alcinous": {
+     "visible": 1,
+     "size": 0.475,
+     "inFrame": true,
+     "head": [
+      0.314,
+      0.21
+     ],
+     "facing": -0.25,
+     "thirds": 0.02,
+     "headroom": 0.154,
+     "box": [
+      0.307,
+      0.332,
+      0.154,
+      0.629
+     ],
+     "behind": false
+    }
+   },
+   "others": {
+    "demodocus": {
+     "visible": 1,
+     "size": 1.164,
+     "inFrame": false,
+     "head": [
+      -0.698,
+      0.167
+     ],
+     "facing": 0.55,
+     "thirds": 0.166,
+     "headroom": 0.004,
+     "box": [
+      -0.769,
+      -0.415,
+      0.004,
+      1.168
+     ],
+     "behind": false
+    }
+   },
+   "file": "odyssey/keyframes/OD-B08-S05/K5.png"
   }
  ]
 }

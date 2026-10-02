@@ -229,6 +229,8 @@ WATCH = [
      'The Assembly, performed', 'Book II: Telemachus calls the first assembly on Ithaca since his father sailed; Antinous answers that the fault is Penelope\'s, tells how she wove Laertes\'s shroud by day and unravelled it by torchlight for three years, and demands she be sent back to her father to marry.'),
     ('../../films/odyssey/OD-B01-S02-performed.mp4', '../../films/odyssey/OD-B01-S02-performed.jpg', 'Film · performed',
      'Athena\'s Plan, performed', 'Book I: Athena asks Zeus to send Hermes to Calypso\'s island with the gods\' decree that Odysseus goes home, while she herself goes to Ithaca to put heart into Telemachus; then she binds on her golden sandals, takes up her spear and drops from the peaks of Olympus.'),
+    ('../../films/odyssey/OD-B08-S05-performed.mp4', '../../films/odyssey/OD-B08-S05-performed.jpg', 'Film · performed',
+     'The Horse Song, performed', 'Book VIII: at Odysseus\'s request the bard Demodocus sings of the wooden horse, the Greeks\' emergence and the sack of Troy; Odysseus weeps like a captive woman over her fallen husband, and Alcinous stops the lyre and asks the stranger at last to tell his name, his land and why he weeps.'),
     ('../../films/odyssey/OD-B12-S07-performed.mp4', '../../films/odyssey/OD-B12-S07-performed.jpg', 'Film · performed',
      'The Thunderbolt, performed', 'Book XII: Odysseus waking to the slaughtered herds, the ship leaving Thrinacia, Zeus\'s bolt on the mast, the crew lost, and Odysseus lashing keel and mast together, then clinging to the fig tree over Charybdis.'),
     ('../../films/odyssey/OD-B09-S11-performed.mp4', '../../films/odyssey/OD-B09-S11-performed.jpg', 'Film · performed',

@@ -18,10 +18,11 @@ const POSES = { crouch: { 'hips.dy': -6, 'torso.lean': 0.16, 'leg.R.pitch': -0.2
 M_.POSTURE = (X, I, e) => { const id = I.actor, p = I.params || {}, to = POSES[p.to || 'crouch'] || POSES.crouch, en = p.enter || 0.6, lv = p.leave || 0.7;
   const zero = Object.fromEntries(Object.keys(to).map(c => [c, 0])), start = Object.fromEntries(Object.keys(to).map(c => [c, rel(X)]));
   X.move(id, 'act', 'POSTURE ' + (p.to || 'crouch').toUpperCase(), e, k => { k(I.t0, start); k(I.t0 + en * 0.6, Object.fromEntries(Object.entries(to).map(([c, v]) => [c, typeof v === 'number' ? v * 1.08 : v])), 'out'); k(I.t0 + en, to); if (!p.stay) { k(I.t1, to); k(I.t1 + lv, zero); } }, { label: I.label || p.to }); };
-/* WEEP: the head down, a hand (or both) to the face, the shoulders shaking at params.rate a second, the breath caught */
-M_.WEEP = (X, I, e) => { const id = I.actor, p = I.params || {}, sd = p.side || 'R', rate = p.rate || 3.2, R = X.rng(I.id);
+/* WEEP: the head down, a hand (or both) to the face, the shoulders shaking at params.rate a second, the breath caught; params.pitch (the
+   arm's absolute pitch, default -2.35), params.out, params.head and params.lean shape the hand to the face and the bow (defaults as before) */
+M_.WEEP = (X, I, e) => { const id = I.actor, p = I.params || {}, sd = p.side || 'R', rate = p.rate || 3.2, R = X.rng(I.id), ap = p.pitch != null ? p.pitch : -2.35, ao = p.out != null ? p.out : -0.12;
   X.move(id, 'act', 'WEEP', e, k => { k(I.t0, { 'head.pitch': rel(X), 'torso.lean': rel(X), ['arm.' + sd + '.pitch']: rel(X), ['arm.' + sd + '.out']: rel(X), 'torso.roll': rel(X), 'hips.dy': rel(X) });
-    k(I.t0 + 0.7, { 'head.pitch': 0.2, 'torso.lean': 0.16, ['arm.' + sd + '.pitch']: { abs: -2.35 }, ['arm.' + sd + '.out']: -0.12 });
+    k(I.t0 + 0.7, { 'head.pitch': p.head != null ? p.head : 0.2, 'torso.lean': p.lean != null ? p.lean : 0.16, ['arm.' + sd + '.pitch']: { abs: ap }, ['arm.' + sd + '.out']: ao });
     let t = I.t0 + 0.9, j = 0; while (t < I.t1 - 0.3) { const burst = j % 7 < 4; k(t, { 'torso.roll': (j % 2 ? 1 : -1) * (burst ? 0.05 : 0.015), 'hips.dy': burst ? (j % 2 ? -0.6 : 0.3) : 0 }, 'linear'); t += 1 / rate * (0.8 + 0.4 * R()); j++; }
     k(I.t1 + 0.6, { 'head.pitch': p.stay ? 0.12 : 0, 'torso.lean': 0, ['arm.' + sd + '.pitch']: 0, ['arm.' + sd + '.out']: 0, 'torso.roll': 0, 'hips.dy': 0 }); }, { label: I.label || 'weeps' }); };
 /* TOOL_WORK params.how: chop | carve | bore | dig, params.period; each stroke a CONTACT (the tool on the thing) and, for chop and dig, FX */
