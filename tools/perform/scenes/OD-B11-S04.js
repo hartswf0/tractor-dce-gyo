@@ -30,9 +30,10 @@ module.exports = function author(M, X) {
   H({ id: 'hA1', actor: A, t0: q(W('K2')[1] + 1.85), t1: q(W('K4')[0] - 0.1), reason: 'she answers him: the wife faithful, the son on his lands, the old father grieving in the country', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'aKnow' }] });
   /* ── longing ── */
   const tLong = q(w(V4, 'longing', c4.at + 3.0));
-  stimuli.push({ id: 'sLonging', t0: tLong, t1: q(tLong + 0.4), kind: 'WORD', label: '"longing for you": no sickness took her', actor: O, because: [{ id: 'v' + c4.gi, rel: 'realises' }] });
+  
   I({ id: 'oBow', actor: O, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: A, label: 'the head goes down, the hand to his breast', because: [{ id: 'oAsk' }] });
-  I({ id: 'oGrief', actor: O, kind: 'DECLARE', target: A, utterance: c4.gi, t0: q(Math.max(c4.at - 0.2, W('K3')[1] + 0.05)), t1: q(c4.at + c4.dur), label: 'it was longing for me that stole the honey of your life: my going killed you, mother', params: { shapes: ['chest', 'open', 'chest'], side: 'R', maxBeats: 1, amp: 0.6 }, because: [{ id: 'sLonging' }] });
+  I({ id: 'oGrief', actor: O, kind: 'DECLARE', target: A, utterance: c4.gi, t0: q(Math.max(c4.at - 0.2, W('K3')[1] + 0.05)), t1: q(c4.at + c4.dur), label: 'it was longing for me that stole the honey of your life: my going killed you, mother', params: { shapes: ['chest', 'open', 'chest'], side: 'R', maxBeats: 1, amp: 0.6 }, because: [{ id: 'oBow' }, { id: 'v' + c4.gi, rel: 'realises' }] });
+  stimuli.push({ id: 'sLonging', t0: tLong, t1: q(tLong + 0.4), kind: 'WORD', label: '"longing for you": no sickness took her', actor: O, because: [{ id: 'oGrief' }] });
   I({ id: 'oWeep', actor: O, kind: 'WEEP', t0: q(tLong + 0.4), t1: q(c4.at + c4.dur - 0.4), label: 'he weeps for her', params: { side: 'L', rate: 2.2, stay: false, pitch: -1.8, out: 0, head: 0.3, lean: 0.12 }, because: [{ id: 'sLonging', latency: 0.4 }] });
   H({ id: 'hO2', actor: O, t0: q(c3.at + c3.dur + 0.05), t1: q(tLong + 0.35), reason: 'he hears it from her own mouth', params: { look: [[A, 3.0]], weight: true }, because: [{ id: 'oAsk' }] });
   /* ── the three embraces ── */
@@ -45,7 +46,7 @@ module.exports = function author(M, X) {
     const nxt = E[j + 1] ? W(E[j + 1][0])[0] - 0.1 : T;
     H({ id: 'hO3' + j, actor: O, t0: q(W(k)[1] + 0.05), t1: q(nxt), reason: j < 2 ? 'his arms closed on air: she is there, a step away' : 'mother, why do you not stay when I would hold you?', params: { look: [[A, 3.0]], weight: true }, because: [{ id: 'sEmpty' + j }] });
     H({ id: 'hA2' + j, actor: A, t0: q(W(k)[1] + 0.05), t1: q(nxt), reason: 'a shade: she cannot be held, and she looks at her son', params: { look: [[O, 3.0]], weight: false }, because: [{ id: 'aSlip' + j }] }); });
-  H({ id: 'hA1b', actor: A, t0: q(c4.at), t1: q(W('K4')[0] - 0.1), reason: 'she hears her son weep for her', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'oGrief' }] });
+  H({ id: 'hA1b', actor: A, t0: q(c4.at), t1: q(W('K4')[0] - 0.1), reason: 'she hears her son weep for her', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'oBow' }] });
   return {
     type: 'revelation', title: 'Anticleia and the Three Embraces: the blood, the knowing, the longing, the arms closed on nothing',
     actors: { [O]: { role: 'the son, alive among the dead', body: 'minifig', principal: true, affect: { weight: 0.8 } }, [A]: { role: 'his mother\'s shade', body: 'minifig', principal: true, affect: { weight: 0.5 } } },
