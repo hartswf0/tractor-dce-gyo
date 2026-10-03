@@ -70,7 +70,7 @@ const WHO = [
   [/^nausicaa/, 'queen'], [/^tiresias|^halitherses|^theoclymenus|^mentor|^aegyptius|^echeneus/, 'seer'], [/^demodocus|^phemius|medon and phemius/, 'bard'],
   [/^antinous|^eurymachus|^amphinomus|^ctesippus|^leiodes|^leocritus|^eupithes/, 'suitor'], [/^eumaeus|^philoetius|^dolius|^laertes|^melanthius/, 'herdsman'],
   [/^eurycleia|^melantho|^mill woman|^anticleia/, 'maid'], [/^medon|^eurybates/, 'servant'], [/^euryalus|^elpenor|^eurylochus|sailor/, 'sailor'], [/child/, 'child'],
-  [/patroclus|achilles|ajax|heracles/, 'warrior'],
+  [/patroclus|achilles|ajax|heracles|antilochus/, 'warrior'],
 ];
 const roleOf = name => { for (const [re, role] of WHO) if (re.test(name)) return role; return 'servant'; };
 const EXTRA = {   // the thing a character is known by, in hand
