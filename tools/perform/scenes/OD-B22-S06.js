@@ -21,14 +21,14 @@ module.exports = function author(M, X) {
   const S = ['four-suitors-1', 'four-suitors-2', 'four-suitors-3', 'four-suitors-4'], [S1, S2, S3, S4] = S;
   const clip = gi => M.clips.find(c => c.gi === gi), c1 = clip(1), c2 = clip(2), c3 = clip(3), c5 = clip(5), c6 = clip(6);
   const V2 = X.voiceOf(c2), V3 = X.voiceOf(c3), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
-  const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => holds.push(o);
+  const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };   /* a hold squeezed out between two acts is not written */
   const W = id => K(id).win, door = [0, 50, 262], aegis = [-14, 120, -165];
   /* ── the aegis ── */
   stimuli.push({ id: 'sHall', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'the hall in uproar: Antinous and Eurymachus dead, the suitors without arms', because: [{ id: 'v' + c1.gi, rel: 'realises' }] });
-  I({ id: 'aRaise', actor: At, kind: 'GESTURE', t0: 0.2, t1: 1.6, label: 'holds up the aegis over the hall', params: { shape: 'invoke', at: 0.6, side: 'L', amp: 1.0, hold: 0.8 }, because: [{ id: 'sHall' }] });
-  stimuli.push({ id: 'sAegis', t0: 0.75, t1: 1.4, kind: 'SIGHT', label: 'the aegis: the suitors\' wits are turned', actor: At, because: [{ id: 'aRaise' }] });
+  I({ id: 'aRaise', actor: At, kind: 'GESTURE', t0: 0.1, t1: 1.4, label: 'holds up the aegis over the hall', params: { shape: 'invoke', at: 0.45, side: 'L', amp: 1.0, hold: 0.8 }, because: [{ id: 'sHall' }] });
+  stimuli.push({ id: 'sAegis', t0: 0.5, t1: 1.1, kind: 'SIGHT', label: 'the aegis: the suitors\' wits are turned', actor: At, because: [{ id: 'aRaise' }] });
   /* the suitors: the startle at the aegis, then panic (a hold with its reason: the goddess behind them, the men in front) */
-  S.forEach((s, k) => I({ id: 'pan' + k, actor: s, kind: 'REACT', t0: q(0.95 + 0.12 * k), t1: q(2.2 + 0.1 * k), label: 'the aegis: terror', params: { how: 'startle', lookAt: At }, because: [{ id: 'sAegis', latency: 0.2 + 0.12 * k }] }));
+  S.forEach((s, k) => I({ id: 'pan' + k, actor: s, kind: 'REACT', t0: q(0.6 + 0.08 * k), t1: q(1.9 + 0.1 * k), label: 'the aegis: terror', params: { how: 'startle', lookAt: At }, because: [{ id: 'sAegis', latency: 0.1 + 0.08 * k }] }));
   /* ── the four come up the hall; each strikes one man down (the striker's key, then the victim's) ── */
   const kills = [
     { by: O, v: S2, come: 'K1a', fall: 'K1b', how: 'STAB', what: 'Odysseus\'s sword' },
@@ -36,7 +36,7 @@ module.exports = function author(M, X) {
     { by: Eu, v: S3, come: 'K1e', fall: 'K1f', how: 'STAB', what: 'the swineherd\'s spear' },
     { by: Ph, v: S4, come: 'K1e', fall: 'K1g', how: 'STAB', what: 'the stockman\'s spear' }];
   /* the advance: every man of the four is moved by the panic he sees (the suitors scatter: the opening) */
-  stimuli.push({ id: 'sOpen', t0: q(1.3), t1: q(1.8), kind: 'SIGHT', label: 'the suitors scatter: the four go in like falcons on small birds', actor: S2, because: [{ id: 'pan1' }] });
+  stimuli.push({ id: 'sOpen', t0: q(0.9), t1: q(1.15), kind: 'SIGHT', label: 'the suitors scatter: the four go in like falcons on small birds', actor: S2, because: [{ id: 'pan1' }] });
   I({ id: 'oCome', actor: O, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: S2, label: 'up the hall at the nearest', because: [{ id: 'sOpen' }] });
   I({ id: 'tAdv', actor: Tm, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: S1, label: 'after his father, to the left', because: [{ id: 'sOpen' }] });
   I({ id: 'eAdv', actor: Eu, kind: 'APPROACH', key: 'K1a', t0: W('K1a')[0], t1: W('K1a')[1], target: S3, label: 'to the right of the hall', because: [{ id: 'sOpen' }] });
@@ -93,7 +93,7 @@ module.exports = function author(M, X) {
   stimuli.push({ id: 'sAlone', t0: q(W('K1g')[1] + 0.1), t1: q(W('K1g')[1] + 0.5), kind: 'SIGHT', label: 'the last suitor down: nobody left to hide behind', actor: S4, because: [{ id: 'die3' }] });
   I({ id: 'leRun', actor: Le, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: O, label: 'runs to the king and drops at his knees', because: [{ id: 'sAlone' }] });
   I({ id: 'oTurnLe', actor: O, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: Le, label: 'turns to the man at his knees', because: [{ id: 'leRun', latency: 0.3 }] });
-  const tClasp = q(Math.max(W('K2')[1] + 0.1, w(V2, 'clasps', c2.at + 1.4))), tInno = q(Math.max(tClasp + 2.4, w(V2, 'innocence', c2.at + 7.5)));
+  const tClasp = q(Math.max(W('K2')[1] + 0.1, w(V2, 'clasps', c2.at + 1.4))), tCut0 = q(W('K2a')[0] - 0.62), tInno = q(Math.min(tCut0 - 1.65, Math.max(tClasp + 1.8, w(V2, 'innocence', c2.at + 7.5))));   /* the plea ends before the blow */
   I({ id: 'lePlead', actor: Le, kind: 'GESTURE', target: O, t0: q(tClasp), t1: q(tClasp + 2.2), label: 'I never did wrong in your house: I stopped the others', params: { shape: 'plead', at: q(tClasp + 0.4), side: 'R', amp: 1.0, hold: 1.2 }, because: [{ id: 'leRun' }, { id: 'v' + c2.gi, rel: 'realises' }] });
   I({ id: 'lePlead2', actor: Le, kind: 'GESTURE', target: O, t0: q(tInno - 0.6), t1: q(tInno + 1.4), label: 'only the priest who read the omens: spare me', params: { shape: 'plead', at: q(tInno - 0.2), side: 'L', amp: 1.0, hold: 0.8 }, because: [{ id: 'lePlead' }] });
   H({ id: 'hLe1', actor: Le, t0: q(tClasp + 2.3), t1: q(tInno - 0.7), reason: 'on his knees, holding the king\'s knees, looking up at him', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'lePlead' }] });
@@ -119,8 +119,8 @@ module.exports = function author(M, X) {
   I({ id: 'pmDecide', actor: Pm, kind: 'DECIDE', t0: q(tCut + 1.95), t1: q(tCut + 2.6), label: 'to the king\'s knees, and lay the lyre down', because: [{ id: 'flLe3' }] });
   I({ id: 'pmGo', actor: Pm, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: O, label: 'down the hall to kneel at his knees', because: [{ id: 'pmDecide' }] });
   stimuli.push({ id: 'sBardGoes', t0: q(W('K3')[0] + 0.3), t1: q(W('K3')[0] + 0.7), kind: 'SIGHT', label: 'the bard goes to the king\'s knees', actor: Pm, because: [{ id: 'pmGo' }] });
-  I({ id: 'mdGo', actor: Md, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: Tm, label: 'crawls out from under the hide to Telemachus\'s knees', because: [{ id: 'sBardGoes', latency: 0.3 }] });
-  I({ id: 'oTurnPm', actor: O, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: Pm, label: 'turns to the bard', because: [{ id: 'sBardGoes', latency: 0.3 }] });
+  I({ id: 'mdGo', actor: Md, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: Tm, label: 'crawls out from under the hide to Telemachus\'s knees', because: [{ id: 'pmDecide', latency: 0.6 }] });
+  I({ id: 'oTurnPm', actor: O, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: Pm, label: 'turns to the bard', because: [{ id: 'pmDecide', latency: 0.5 }] });
   I({ id: 'tTurnMd', actor: Tm, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: Md, label: 'turns to the herald at his knees', because: [{ id: 'mdGo', latency: 0.3 }] });
   const tMercy = q(Math.max(W('K3')[1] + 0.1, w(V3, 'mercy', c3.at + 3.0))), tConf = q(Math.max(tMercy + 2.4, w(V3, 'confirms', c3.at + 6.4)));
   I({ id: 'pmPlead', actor: Pm, kind: 'GESTURE', target: O, t0: q(tMercy - 0.4), t1: q(tMercy + 1.8), label: 'I sing to gods and men: you will be sorry if you kill me', params: { shape: 'plead', at: tMercy, side: 'R', amp: 1.0, hold: 1.0 }, because: [{ id: 'pmGo' }, { id: 'v' + c3.gi, rel: 'realises' }] });
@@ -130,6 +130,9 @@ module.exports = function author(M, X) {
   I({ id: 'oListen', actor: O, kind: 'NOTICE', target: Tm, t0: q(tConf + 0.6), t1: q(tConf + 2.0), label: 'to his son', params: { gazeHold: 1.0 }, because: [{ id: 'sSon' }] });
   H({ id: 'hO3', actor: O, t0: q(tCut + 2.45), t1: q(tConf + 0.5), reason: 'the bard at his knees: he looks down at him, the sword still in his hand', params: { look: [[Pm, 2.4], [Md, 0.8], [Pm, 2.0]], weight: true }, because: [{ id: 'oRec' }] });
   H({ id: 'hO4', actor: O, t0: q(tConf + 2.1), t1: q(c5.at - 0.5), reason: 'he weighs them: the bard, the herald, his son', params: { look: [[Pm, 1.6], [Md, 1.4], [Tm, 1.0]], weight: true }, because: [{ id: 'oListen' }] });
+  H({ id: 'hPm1b', actor: Pm, t0: q(W('K3')[1] + 0.05), t1: q(tMercy - 0.45), reason: 'on his knees, the lyre laid on the floor between the wine bowl and the seat: he gathers himself to speak', params: { look: [[O, 2.0], [Le, 0.8], [O, 2.0]], weight: true }, because: [{ id: 'pmGo' }] });
+  H({ id: 'hMd0b', actor: Md, t0: q(W('K3')[1] + 0.05), t1: q(tMercy + 0.15), reason: 'holding the son\'s knees: he lets the bard speak first', params: { look: [[Tm, 1.6], [Pm, 1.2], [O, 1.2]], weight: true }, because: [{ id: 'mdGo' }] });
+  H({ id: 'hT2b', actor: Tm, t0: q(tCut + 2.0), t1: q(tConf - 0.45), reason: 'the herald who looked after him as a boy crawls out to his knees: he looks down at him, then to his father', params: { look: [[Pm, 1.2], [Md, 2.0], [O, 1.2], [Md, 2.0]], weight: true }, because: [{ id: 'flLe0' }] });
   H({ id: 'hPm2', actor: Pm, t0: q(tMercy + 1.9), t1: q(K('K4').win[0] - 0.1), reason: 'on his knees, the lyre laid down: he waits for the word', params: { look: [[O, 3.0], [Tm, 1.0]], weight: true }, because: [{ id: 'pmPlead' }] });
   H({ id: 'hMd1', actor: Md, t0: q(tMercy + 2.4), t1: q(K('K4').win[0] - 0.1), reason: 'holding the son\'s knees: he waits for the word', params: { look: [[Tm, 2.0], [O, 1.6]], weight: true }, because: [{ id: 'mdPlead' }] });
   H({ id: 'hT3', actor: Tm, t0: q(tConf + 1.9), t1: q(K('K4').win[0] - 0.1), reason: 'he has spoken for them: he looks to his father', params: { look: [[O, 2.4], [Md, 1.2]], weight: true }, because: [{ id: 'tSpeak' }] });
@@ -137,9 +140,9 @@ module.exports = function author(M, X) {
   H({ id: 'hP3', actor: Ph, t0: q(tCut + 2.1), t1: q(K('K5').win[0] - 0.1), reason: 'he keeps the middle of the hall', params: { look: [[O, 1.6], [Pm, 1.4], [S4, 1.0]], weight: true, offset: 0.6 }, because: [{ id: 'flLe2' }] });
   /* ── the order, and out ── */
   I({ id: 'oOrder', actor: O, kind: 'DECLARE', t0: q(c5.at - 0.4), t1: q(c5.at + c5.dur), target: Pm, utterance: c5.gi, label: 'mark the order: out into the courtyard', params: { shapes: ['point', 'point'], side: 'R' }, because: [{ id: 'v' + c5.gi, rel: 'realises' }, { id: 'oListen' }] });
-  I({ id: 'oPoint', actor: O, kind: 'APPROACH', key: 'K4', t0: K('K4').win[0], t1: K('K4').win[1], target: door, label: 'turns to the door and points them to it', because: [{ id: 'oOrder' }] });
+  I({ id: 'oPoint', actor: O, kind: 'APPROACH', key: 'K4', t0: K('K4').win[0], t1: K('K4').win[1], target: door, label: 'turns to the door and points them to it: he has decided', because: [{ id: 'oListen' }] });
   for (const [s, j] of [[Pm, 0], [Md, 1]]) {
-    I({ id: 'up' + j, actor: s, kind: 'APPROACH', key: 'K4', t0: K('K4').win[0], t1: K('K4').win[1], target: door, label: 'gets up off his knees', because: [{ id: 'oOrder', latency: 0.3 + 0.15 * j }] });
+    I({ id: 'up' + j, actor: s, kind: 'APPROACH', key: 'K4', t0: K('K4').win[0], t1: K('K4').win[1], target: door, label: 'gets up off his knees', because: [{ id: 'oPoint', latency: 0.2 + 0.15 * j }] });
     I({ id: 'out' + j, actor: s, kind: 'APPROACH', key: 'K4a', t0: K('K4a').win[0], t1: K('K4a').win[1], target: door, label: 'out of the door into the courtyard', because: [{ id: 'up' + j }] });
     I({ id: 'gone' + j, actor: s, kind: 'APPROACH', key: 'K5', t0: K('K5').win[0], t1: K('K5').win[1], target: door, label: 'gone out', because: [{ id: 'out' + j }] });
     H({ id: 'hOut' + j, actor: s, t0: q(K('K4').win[1] + 0.05), t1: q(K('K4a').win[0] - 0.05), reason: 'looking back at the king as he goes, still afraid', params: { look: [[O, 1.0], [door, 1.0]], weight: true }, because: [{ id: 'up' + j }] });
