@@ -50,6 +50,7 @@ ol.rules b { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
 <h1>The Cinematographer</h1>
 <p class="lede">The performance engine makes the figures act: a score of stimuli, intents, actions and contacts, each with its causes, and a motion, causal and media heat for every figure at every drawing. The shots were still planned from the blocking alone. Now they are chosen from the performance: the camera goes where the heat is, cuts when the heat moves, and every camera is tested against the real set before it is used.</p>
 <p class="note">Code: <code>tools/cinematographer/plan.js</code> (the plan, from the score), <code>tools/cinematographer/solve.js</code> (the cameras, in the player), the hook in <code>film-readymades/odyssey-take.js</code>. The engine: <a href="index.html">the performance engine</a>.</p>
+<p class="note">Re-shoots never overwrite: every earlier take of a scene is kept in <code>films/odyssey/takes/&lt;scene&gt;/take&lt;N&gt;.mp4</code> and listed in <code>films/odyssey/takes/index.json</code> (<code>tools/perform/keeptake.py</code> moves the published film there before a re-shot <code>-r2</code> replaces it). Each scene below names its earlier takes; <a href="../making/index.html">the making-of page</a> plays them side by side with what changed and why.</p>
 
 <h2>The rules</h2>
 <h3>Choosing the shots (plan.js)</h3>
@@ -134,10 +135,13 @@ const SCENES = [
 const WRONG = [];
 (async () => {
   const host = document.getElementById('scenes'); let html = ''; let AUDIT = {}; try { AUDIT = await (await fetch('camera-audit.json')).json(); } catch (e) { }
+  let TAKES = {}; try { for (const sc of (await (await fetch('../../films/odyssey/takes/index.json')).json()).scenes) TAKES[sc.scene] = sc.takes; } catch (e) { }
   for (const S of SCENES) {
     let J = null; try { J = await (await fetch('../../films/odyssey/' + S.after + '.json')).json(); } catch (e) { }
     const R = J && J.take && J.take.cine;
     html += `<h2>${esc(S.name)} <span class="note">${S.id}</span></h2>`;
+    const TK = (TAKES[S.id] || []).filter(t => !t.published);
+    if (TK.length) html += `<p class="note">Earlier takes kept: ${TK.map(t => `<a href="../../films/odyssey/takes/${t.file}">take ${t.n}</a> (${esc(t.date)}, ${t.seconds} s)`).join(', ')}; <a href="../making/index.html#${S.id}">side by side, with what changed</a>.</p>`;
     if (S.before) {
     html += `<div class="pair"><figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.before}.jpg" src="../../films/odyssey/${S.before}.mp4"></video><figcaption>Before: shots planned from the blocking (${S.before})</figcaption></figure>`;
     html += `<figure><video controls preload="none" playsinline poster="../../films/odyssey/${S.after}.jpg" src="../../films/odyssey/${S.after}.mp4"></video><figcaption>After: shots chosen from the performance (${S.after})</figcaption></figure></div>`;

@@ -40,6 +40,7 @@ node tools/perform/probe.js            OD-B09-S09 [--poses] [--ground-only] [--v
 | `patches.js` | instruction -> patch table; timeline and body diffs |
 | `hardware.js` | pose sheet and servo timeline (figures, and creatures' angular channels on a giant puppet's segment model) |
 | `previz.js`, `previz-draw.js` | the light previz |
+| `keeptake.py` | publish a re-shot film (`-r2`) and keep the take it replaces in `films/odyssey/takes/` (see Re-shooting a film) |
 | `scenes/<scene>.js` | a scene's direction (authors the score). Director's modules: OD-B01-S03 (the Gate), OD-B09-S08 (the Stake), OD-B09-S09 (the Blinding), OD-B09-S10 (the Rams), OD-B09-S11 (the Taunt), OD-B10-S04 (Circe), OD-B10-S02 (the Harbour), OD-B12-S03 (the Sirens), OD-B12-S04 (Scylla), OD-B12-S07 (the Thunderbolt), OD-B05-S05 (the Storm and the Raft), OD-B22-S01 (the Hall), OD-B17-S03 (Argos), OD-B21-S07 (the Bow), OD-B23-S04 (the Bed), OD-B12-S06 (the Cattle), OD-B19-S04 (the Scar), OD-B16-S03 (Father and Son), OD-B14-S01 (the Dogs), OD-B10-S05 (Hermes and the Moly), OD-B04-S04 (Inside the Horse), OD-B11-S01 (the Rite), OD-B09-S03 (the Lotus-Eaters), OD-B06-S03 (Nausicaa), OD-B05-S04 (the Raft), OD-B13-S01 (the Convoy), OD-B01-S01 (the Council), OD-B02-S02 (the Assembly), OD-B10-S01 (Aeolus), OD-B04-S05 (Proteus). Modules for scenes with a sea build on the first score (`require('./_auto.js')(M, X, needs)`) and lay the direction over it |
 
 Data: `odyssey/score/<scene>.json` (score), `<scene>.choreo.json` (sheet the take plays: `tools/export-odyssey.js --choreo`),
@@ -262,6 +263,23 @@ channel diversity, contact integrity, pose legality, balance. Temperatures: T_m 
 (bits), T_media (0-1, McLuhan's definition, not thermodynamics), C_T (hottest on screen minus the room), V (violations).
 Homeostat essential variables H1-H4 with bands by scene type (homeostat.js WORD, TYPES); patches set bands relative to the scene's
 current reading.
+
+## Re-shooting a film: takes are kept, never overwritten
+
+A re-shoot never overwrites a film. The new cut renders beside the published one as `films/odyssey/<scene>-performed-r2.*`;
+before it is renamed over `<scene>-performed.*`, the current film (mp4, poster jpg, vtt, json) moves to
+`films/odyssey/takes/<scene>/take<N>.*` (oldest = take1) and `films/odyssey/takes/index.json` gets its entry: the take's date,
+length, shots, what it was, and what the next take changed and why. One command does both, in that order:
+
+```
+python3 tools/perform/keeptake.py OD-B11-S07 r2 "what the new take changed" "what the new take is"
+```
+
+It refuses to overwrite a kept take. The making-of page (`odyssey/making/index.html`) reads `index.json` and shows every scene's
+takes side by side, so the process log stays visible: the camera page (`odyssey/perform/camera.html`) shows the published take and
+its note, the making-of page shows how it got there. The takes made before this rule were recovered from git history by
+`tools/making/takes_from_git.py` (the same blobs, so the repository does not grow); the earlier stages of a scene (animatic, cut,
+acted, performed, re-shot) are listed in `index.json` under `stages` (`tools/making/stages.json`).
 
 ## Rebuilding the player
 
