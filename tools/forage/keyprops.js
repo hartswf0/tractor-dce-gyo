@@ -189,6 +189,7 @@ props.olive = { parts: [row('4032a', 70, L.T(0, -8, 0)), ...[0, 1, 2, 3].map(k =
   anchors: { foot: [0, 0, 0], crown: [0, -184, 0] } };
 props.rug = { parts: [row('3020', 5, L.RY(Math.PI / 2)), row('3710', 15, L.mul(L.T(0, -8, -30), L.RY(Math.PI / 2))), row('3710', 5, L.mul(L.T(0, 0, 40), L.RY(Math.PI / 2)))], anchors: { bed: [0, -8, 0] } };
 props.sword = { parts: [row('98370', 71, L.I12)], anchors: { grip: [0, 10, 0] } };
+props.bow = { parts: [row('4499', 70, L.I12)], anchors: { grip: [0, 0, 0] } };   /* the great bow passed from hand to hand (OD-B21-S03): the minifig bow, reddish brown */
 /* the Wooden Horse (Homer IV, VIII): "the horse of wood, which Epeus made with Minerva's help": a brick build on a plank platform; four
    legs of 2 x 2 bricks, a hollow body of bricks on a floor plate, a neck stepping forward, a head with a sloped muzzle and cone ears, a
    tail; a gold hatch in the flank. horseOpen leaves the near flank off, a cutaway to see the men inside */
