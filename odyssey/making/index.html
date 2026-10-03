@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Making of the Odyssey</title>
+<meta name="description" content="How the LEGO Odyssey learned to act: from an animatic where the figures do nothing, to a cut with a camera, to hand-acted scenes, to scenes performed by the engine and re-shot by the cinematographer. Every take kept, side by side, with what changed and why.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e;
+  --b-red: #c91a09; --b-yellow: #f2cd37; --b-blue: #0055bf; --b-green: #237841; --b-orange: #fe8a18; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(40px, 8vw, 80px); line-height: .95; }
+h2 { font-size: 32px; margin: 60px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 24px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+code { font: 13px ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.kicker a { color: inherit; text-decoration: none; }
+.lede { font-size: 19px; color: var(--muted); max-width: 840px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 840px; }
+.studs { display: flex; gap: 6px; margin: 18px 0 0; }
+.studs i { width: 34px; height: 14px; border-radius: 3px; position: relative; }
+.studs i::before, .studs i::after { content: ''; position: absolute; top: -5px; width: 10px; height: 5px; border-radius: 2px 2px 0 0; background: inherit; }
+.studs i::before { left: 5px; } .studs i::after { right: 5px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.links a { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); color: var(--ink); text-decoration: none; }
+.links a:hover { background: var(--ink); color: var(--paper); }
+video { width: 100%; height: auto; display: block; background: #000; aspect-ratio: 16/9; }
+figure { margin: 0; min-width: 0; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.hero { border: 2px solid var(--ink); background: var(--card); padding: 12px; margin: 8px 0 0; }
+/* the timeline */
+.timeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 20px 0 6px; border-top: 6px solid var(--ink); }
+.step { padding: 14px 12px 6px 0; position: relative; min-width: 0; }
+.step::before { content: ''; position: absolute; top: -14px; left: 0; width: 22px; height: 22px; border: 3px solid var(--ink); background: var(--c, var(--paper)); border-radius: 3px; }
+.step .n { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 10px 0 2px; }
+.step h3 { font-size: 22px; margin-bottom: 8px; }
+.step p { font-size: 14px; color: var(--muted); }
+.step .date { font: 600 12px ui-monospace, Menlo, monospace; color: var(--ink); }
+.chains { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; margin-top: 14px; }
+.chain { border: 1px solid var(--rule); background: var(--card); padding: 12px; min-width: 0; }
+.chain .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+/* takes */
+.scene { margin: 34px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); scroll-margin-top: 12px; }
+.scene header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.scene .id { font: 12px ui-monospace, Menlo, monospace; color: var(--muted); }
+.scene .why { color: var(--muted); margin: 4px 0 10px; }
+.takes { display: grid; grid-template-columns: repeat(var(--k, 2), minmax(0, 1fr)); gap: 14px; }
+.take { border: 1px solid var(--rule); background: var(--card); min-width: 0; display: flex; flex-direction: column; }
+.take.pub { border: 2px solid var(--ink); }
+.take .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.meta b { color: var(--blue); }
+.tag { font: 700 11px Inter, sans-serif; letter-spacing: .08em; padding: 1px 6px; color: #141414; }
+.tag.kept { background: var(--b-yellow); } .tag.pub { background: var(--b-green); color: #fff; }
+.take p { font-size: 14px; margin: 0; }
+.changed { font-size: 14px; border-left: 4px solid var(--b-red); padding: 4px 0 4px 10px; margin-top: auto; }
+.changed b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.sync { font: 600 13px Inter, sans-serif; padding: 6px 12px; border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; }
+.sync[aria-pressed="true"] { background: transparent; color: var(--ink); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.toc a { font-size: 13px; padding: 3px 8px; border: 1px solid var(--rule); text-decoration: none; color: var(--ink); background: var(--card); }
+.note { color: var(--muted); font-size: 14px; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (max-width: 900px) { .timeline { grid-template-columns: minmax(0, 1fr); border-top: 0; border-left: 6px solid var(--ink); }
+  .step { padding: 0 0 18px 20px; } .step::before { top: 2px; left: -15px; } .step .n { margin-top: 0; } }
+@media (max-width: 700px) { .takes { grid-template-columns: minmax(0, 1fr); } .chains { grid-template-columns: minmax(0, 1fr); } h2 { font-size: 28px; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker"><a href="../kits/index.html">The Odyssey in LEGO</a> &middot; behind the scenes</p>
+<h1>How the Odyssey learned to act</h1>
+<div class="studs" aria-hidden="true"><i style="background:var(--b-red)"></i><i style="background:var(--b-yellow)"></i><i style="background:var(--b-blue)"></i><i style="background:var(--b-green)"></i><i style="background:var(--b-orange)"></i></div>
+<p class="lede">The first LEGO scene of the Odyssey had voices, faces and a set, and the figures did nothing at all. This page keeps the whole process log: every stage a scene went through, and every take of every scene that was shot again, side by side with what changed and why. Nothing is thrown away; a re-shoot moves the old film to the archive before the new one takes its place.</p>
+<div class="links"><a href="../perform/camera.html">The cinematographer (camera page)</a><a href="../perform/index.html">The performance engine</a><a href="../../films/odyssey/takes/index.json">The takes, as data</a><a href="../kits/index.html">The Odyssey Line hub</a></div>
+
+<!--MAKING-OF-VIDEO-->
+
+<h2>The evolution</h2>
+<p class="sub">One scene, Athena waiting at the gate in Book I, went through every stage first. Each stage is a real film, kept.</p>
+<div class="timeline" id="timeline"></div>
+
+<h3 style="margin-top:30px">Other scenes, stage by stage</h3>
+<div class="chains" id="chains"></div>
+
+<h2>The takes, side by side</h2>
+<p class="sub">Every scene that was shot more than once. The outlined take is the one published today; the others are kept in <code>films/odyssey/takes/</code>. Under each kept take: what the next take changed, and why. <b>Play side by side</b> starts a scene's takes together (only the newest with sound).</p>
+<div class="toc" id="toc"></div>
+<div id="takes"><p class="note">Loading the takes&hellip;</p></div>
+
+<h2>How a re-shoot works now</h2>
+<p class="sub">A re-shoot never overwrites. The new cut is rendered beside the published film as <code>&lt;scene&gt;-performed-r2.mp4</code>. Before it is renamed into place, <code>tools/perform/keeptake.py</code> moves the current film (with its poster, captions and shot data) to <code>films/odyssey/takes/&lt;scene&gt;/take&lt;N&gt;</code> and writes its entry in <code>films/odyssey/takes/index.json</code>, which this page reads. The takes made before that rule were recovered from the repository's history (<code>tools/making/takes_from_git.py</code>), the same stored files, so nothing grew.</p>
+
+<footer>The Odyssey in LEGO &middot; <a href="../kits/index.html">the hub</a> &middot; <a href="../perform/camera.html">the cinematographer</a> &middot; <a href="../perform/index.html">the performance engine</a> &middot; <a href="../../index.html">home</a></footer>
+</main>
+<script>
+const F = '../../films/odyssey/', T = F + 'takes/';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const vid = (src, poster, label) => `<video controls preload="none" playsinline poster="${esc(poster)}" src="${esc(src)}" aria-label="${esc(label)}"></video>`;
+const STEPS = [
+  { c: 'var(--b-red)', n: 'Stage 1', h: 'The animatic', f: 'OD-B01-S03', d: '2026-09-27', p: 'Voices, lip-synced faces, captions, the set and the music, cut on title cards. The figures stand on their marks and do nothing: the problem the rest of the work set out to solve.' },
+  { c: 'var(--b-yellow)', n: 'Stage 2', h: 'The cut, with a camera', f: 'OD-B01-S03-cut', d: '2026-09-27', p: 'The scene edited down, with wides, mids and closes chosen by a cutting grammar. Better to watch; still nobody moves.' },
+  { c: 'var(--b-blue)', n: 'Stage 3', h: 'Acted by hand', f: 'OD-B01-S03-acted', d: '2026-09-29', p: 'Choreography keyed on the voice: Telemachus sees her, rises, crosses, welcomes her and takes her spear, while the suitors feast.' },
+  { c: 'var(--b-green)', n: 'Stage 4', h: 'Performed by the engine', f: 'OD-B01-S03-performed', d: '2026-09-30', p: 'Every movement now has a cause written in a score: a line spoken, a thing seen, another figure\'s act. The engine turns those intents into the body on the LEGO rigs.' },
+  { c: 'var(--b-orange)', n: 'Stage 5', h: 'Re-shot by the cinematographer', f: 'OD-B09-S09-performed-shot', d: '2026-09-30 on', p: 'The camera follows the performance: it goes where the action is hottest, cuts when it moves, and tests every camera against the set. Faults it misses are seen on contact sheets and the scene is shot again. Here: the Blinding of Polyphemus.' },
+];
+document.getElementById('timeline').innerHTML = STEPS.map(s => `<div class="step" style="--c:${s.c}">${vid(F + s.f + '.mp4', F + s.f + '.jpg', s.h)}<div class="n">${s.n} &middot; <span class="date">${s.d}</span></div><h3>${s.h}</h3><p>${s.p}</p></div>`).join('');
+const plainSecs = s => s == null ? '' : `${Math.round(s)} s`;
+const shotTxt = sh => !sh ? '' : sh.legal == null ? `${sh.n} shots` : `${sh.n} shots, ${sh.legal} legal`;
+(async () => {
+  let D; try { D = await (await fetch(T + 'index.json')).json(); } catch (e) { document.getElementById('takes').innerHTML = '<p class="note">The takes could not be loaded (open this page from the site, not as a file).</p>'; return; }
+  document.getElementById('chains').innerHTML = D.stages.filter(c => c.scene !== 'OD-B01-S03').map(c => `<div class="chain"><h3>${esc(c.name)}</h3><span class="note">${esc(c.scene)}</span><div class="pair">${c.steps.map(s => `<figure>${vid(T + s.file, T + s.poster, c.name + ', ' + s.stage)}<figcaption><b>${esc(s.stage)}</b> &middot; ${esc(s.date)} &middot; ${plainSecs(s.seconds)}<br>${esc(s.what)}</figcaption></figure>`).join('')}</div></div>`).join('');
+  document.getElementById('toc').innerHTML = D.scenes.map(s => `<a href="#${s.scene}">${esc(s.name)} (${s.takes.length})</a>`).join('');
+  document.getElementById('takes').innerHTML = D.scenes.map(s => `<section class="scene" id="${s.scene}"><header><h3>${esc(s.name)}</h3><span class="id">${s.scene}</span><button type="button" class="sync" aria-pressed="false">Play side by side</button></header><p class="why">${esc(s.why)}</p>
+    <div class="takes" style="--k:${s.takes.length}">${s.takes.map(t => `<article class="take${t.published ? ' pub' : ''}">${vid(T + t.file, T + t.poster, s.name + ', take ' + t.n)}<div class="body">
+      <div class="meta"><b>Take ${t.n}</b><span>${esc(t.date)}</span><span>${plainSecs(t.seconds)}</span><span>${shotTxt(t.shots)}</span><span class="tag ${t.published ? 'pub' : 'kept'}">${t.published ? 'PUBLISHED' : 'KEPT'}</span></div>
+      <p>${esc(t.summary)}</p>${t.next_changed ? `<div class="changed"><b>What take ${t.n + 1} changed</b>${esc(t.next_changed)}</div>` : ''}</div></article>`).join('')}</div></section>`).join('');
+  for (const sec of document.querySelectorAll('.scene')) {
+    const btn = sec.querySelector('.sync'), vs = [...sec.querySelectorAll('video')];
+    btn.addEventListener('click', () => {
+      const on = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', on); btn.textContent = on ? 'Pause' : 'Play side by side';
+      vs.forEach((v, i) => { if (on) { v.muted = i !== vs.length - 1; v.currentTime = 0; v.play().catch(() => { }); } else v.pause(); });
+    });
+  }
+  if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>
