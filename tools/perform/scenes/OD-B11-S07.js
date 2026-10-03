@@ -29,7 +29,7 @@ module.exports = function author(M, X) {
   if (cA) {
     I({ id: 'acAnswer', actor: AC, kind: 'DECLARE', target: O, utterance: cA.gi, t0: q(cA.at - 0.2), t1: q(cA.at + cA.dur), label: 'say not a word in death\'s favour: rather a hired man, alive, than rule over all the dead', params: { shapes: ['dismiss', 'chest', 'open'], side: 'R', maxBeats: 2, amp: 0.85 }, because: [{ id: 'oPraise' }, { id: 'v' + cA.gi, rel: 'realises' }] });
     I({ id: 'acTurn', actor: AC, kind: 'APPROACH', key: 'K2a', t0: W('K2a')[0], t1: W('K2a')[1], target: O, label: 'the head up to him, bitter', because: [{ id: 'acAnswer', rel: 'anticipates' }] });
-    I({ id: 'oStill', actor: O, kind: 'APPROACH', key: 'K2a', t0: W('K2a')[0], t1: W('K2a')[1], target: AC, label: 'the hand drops', because: [{ id: 'acAnswer', latency: 0.3 }] });
+    I({ id: 'oStill', actor: O, kind: 'APPROACH', key: 'K2a', t0: W('K2a')[0], t1: W('K2a')[1], target: AC, label: 'the hand drops', because: [{ id: 'acAnswer', rel: 'anticipates' }] });
     H({ id: 'hOA', actor: O, t0: q(W('K2a')[1] + 0.05), t1: q(cA.at + cA.dur + 0.3), reason: 'the greatest of the Achaeans would rather be a hired man, alive', params: { look: [[AC, 3.0]], weight: true }, because: [{ id: 'acAnswer' }] });
     H({ id: 'hAcA', actor: AC, t0: q(cA.at + cA.dur + 0.05), t1: q(cS.at + 0.5), reason: 'he has said it; he waits for news of the living', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'acAnswer' }] });
   }
