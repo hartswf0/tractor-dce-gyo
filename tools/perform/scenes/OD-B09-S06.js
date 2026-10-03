@@ -32,11 +32,12 @@ module.exports = function author(M, X) {
   MEN.forEach((m, k) => I({ id: 'mStart' + k, actor: m, kind: 'REACT', t0: q(tWood + 0.15 + 0.06 * k), t1: q(tWood + 1.2 + 0.06 * k), label: 'the crash: they shrink into the back of the cave', params: { how: 'startle', lookAt: G }, because: [{ id: 'sCrash', latency: 0.15 + 0.06 * k }] }));
   MEN.forEach((m, k) => H({ id: 'hM0' + k, actor: m, t0: 0.3 + 0.08 * k, t1: q(tWood + 0.1), reason: 'hidden at the back among the cheese racks: the giant is home', params: { look: [[G, 2.0], [O, 0.8], [G, 2.0]], weight: true, offset: 0.3 * k }, because: [{ id: 'sDusk' }] }));
   /* ── the flock in ── */
-  gi({ id: 'gDrive', kind: 'WALK', t0: tK1a, t1: q(W('K1a')[1]), label: 'drives the ewes in before him', params: { path: [[tK1a, g1.at[0], g1.at[2]], [q(W('K1a')[1]), g1a.at[0], g1a.at[2]]], y: g1a.at[1] }, because: [{ id: 'gWood' }] });
+  const tD0 = q(tWood + 1.0), tD1 = q(W('K1a')[1]);
+  gi({ id: 'gDrive', kind: 'WALK', t0: tD0, t1: tD1, label: 'drives the ewes in before him', params: { path: [[tD0, g1.at[0], g1.at[2]], [tD1, g1a.at[0], g1a.at[2]]], y: g1a.at[1] }, because: [{ id: 'gWood' }] });
   R.forEach((r, j) => { const [x, z] = rK1[r], [x1, z1] = rK1a[r], t0 = q(tWood + 1.0 + 0.4 * j), t1 = q(W('K1a')[1] + 0.4 * j);
     intents.push({ id: 'rIn' + j, actor: r, kind: 'WALK', t0, t1, label: 'into the cave to the pen', params: { path: [[t0, x, z], [t1, x1, z1]], gait: 'walk' }, because: [{ id: 'gWood', latency: 1.0 + 0.4 * j }] });
     intents.push({ id: 'rGraze' + j, actor: r, kind: 'GRAZE', t0: q(t1 + 0.3), t1: T, label: 'in the pen', because: [{ id: 'rIn' + j }] }); });
-  MEN.forEach((m, k) => H({ id: 'hM1' + k, actor: m, t0: q(tWood + 1.3 + 0.06 * k), t1: q(tK2 + 0.6), reason: 'not a breath: the flock goes past them into the pen, the giant behind it', params: { look: [[G, 1.8], ['ram' + (1 + k % 3), 1.0], [G, 1.8]], weight: true, offset: 0.3 * k }, because: [{ id: 'mStart' + k }] }));
+  MEN.forEach((m, k) => H({ id: 'hM1' + k, actor: m, t0: q(tWood + 1.3 + 0.06 * k), t1: q(tK3 + 0.45), reason: 'not a breath: the flock goes past them into the pen, the giant behind it', params: { look: [[G, 1.8], ['ram' + (1 + k % 3), 1.0], [G, 1.8]], weight: true, offset: 0.3 * k }, because: [{ id: 'mStart' + k }] }));
   /* ── the stone ── */
   const tHeave = q(tK2 - 1.6);
   gi({ id: 'gTurnDoor', kind: 'TURN', t0: q(W('K1a')[1] + 0.2), t1: q(tHeave - 0.1), target: O, label: 'turns back to the door', params: { h: 0 }, because: [{ id: 'gDrive' }] });
@@ -44,17 +45,18 @@ module.exports = function author(M, X) {
   stimuli.push({ id: 'sThud', t0: q(tK2 + 0.6), t1: q(tK2 + 1.0), kind: 'SOUND', label: 'the stone in the door: the last of the light gone', actor: G, because: [{ id: 'gStone' }] });
   MEN.forEach((m, k) => I({ id: 'mCower' + k, actor: m, kind: 'POSTURE', t0: q(tK2 + 0.8 + 0.08 * k), t1: q(tK3 + 0.4), label: m === O ? 'crouched, watching' : 'pressed into the rock: shut in', params: { to: m === O ? 'crouch' : 'cower' }, because: [{ id: 'sThud', latency: 0.2 + 0.08 * k }] }));
   /* ── the milking, the fire ── */
-  gi({ id: 'gToPen', kind: 'WALK', t0: tK3, t1: q(W('K3')[1]), label: 'to the pen, to milk', params: { path: [[tK3, g2.at[0], g2.at[2]], [q(W('K3')[1]), g3.at[0], g3.at[2]]], y: g3.at[1] }, because: [{ id: 'gStone' }, { id: 'v' + c3.gi, rel: 'realises' }] });
-  const tMilk = q(W('K3')[1] + 0.3), tFire = q(Math.max(tMilk + 4.5, c3.at + c3.dur - 3.0));
+  const tP0 = q(W('K2')[1] + 2.4), tP1 = q(tP0 + 3.6);
+  gi({ id: 'gToPen', kind: 'WALK', t0: tP0, t1: tP1, label: 'to the pen, to milk', params: { path: [[tP0, g2.at[0], g2.at[2]], [tP1, g3.at[0], g3.at[2]]], y: g3.at[1] }, because: [{ id: 'gStone' }, { id: 'v' + c3.gi, rel: 'realises' }] });
+  const tMilk = q(tP1 + 0.3), tFire = q(Math.max(tMilk + 4.5, c3.at + c3.dur - 3.0));
   gi({ id: 'gMilk', kind: 'CARESS', t0: tMilk, t1: q(tFire - 0.6), target: 'ram1', label: 'milks the ewes and the goats, each in turn, and puts the lambs under their mothers', params: { strokes: 3 }, because: [{ id: 'gToPen' }] });
   gi({ id: 'gFire', kind: 'REACH', t0: q(tFire - 0.5), t1: q(tFire + 0.8), target: fire, label: 'lights the fire', params: { hand: 'L' }, because: [{ id: 'gMilk' }] });
   stimuli.push({ id: 'sLit', t0: q(tFire + 0.4), t1: q(tFire + 0.9), kind: 'SIGHT', label: 'the fire flares: the back of the cave is lit, and the men in it', because: [{ id: 'gFire' }] });
-  MEN.forEach((m, k) => H({ id: 'hM2' + k, actor: m, t0: q(tK3 + 0.5), t1: q(tFire + 0.35), reason: 'shut in with him: they watch the great hands at the ewes', params: { look: [[G, 2.4], [door, 0.8], [G, 2.2]], weight: true, offset: 0.3 * k }, because: [{ id: 'mCower' + k }] }));
+  MEN.forEach((m, k) => H({ id: 'hM2' + k, actor: m, t0: q(tK3 + 0.5), t1: q(tFire + 1.2), reason: 'shut in with him: they watch the great hands at the ewes', params: { look: [[G, 2.4], [door, 0.8], [G, 2.2]], weight: true, offset: 0.3 * k }, because: [{ id: 'mCower' + k }] }));
   MEN.forEach((m, k) => I({ id: 'mLit' + k, actor: m, kind: 'REACT', t0: q(tFire + 0.6 + 0.07 * k), t1: q(tFire + 1.6 + 0.07 * k), label: 'the light on them', params: { how: m === O ? 'turn' : 'flinch', lookAt: G }, because: [{ id: 'sLit', latency: 0.2 + 0.07 * k }] }));
   /* ── he sees them ── */
-  gi({ id: 'gTurnMen', kind: 'TURN', t0: tK4, t1: q(W('K4')[1]), target: O, label: 'turns from the fire to the men', because: [{ id: 'sLit' }] });
+  gi({ id: 'gTurnMen', kind: 'TURN', t0: q(tK4 - 1.0), t1: q(W('K4')[1]), target: O, label: 'turns from the fire to the men', because: [{ id: 'sLit' }] });
   gi({ id: 'gSee', kind: 'ATTEND', t0: q(W('K4')[1] + 0.05), t1: T, target: O, label: 'the one eye on them', because: [{ id: 'gTurnMen' }] });
-  gi({ id: 'gAsk', kind: 'TALK', t0: q(c4.at), t1: q(c4.at + c4.dur), utterance: c4.gi, label: 'Strangers, who are you? traders, or pirates?', because: [{ id: 'gSee' }, { id: 'v' + c4.gi, rel: 'realises' }] });
+  gi({ id: 'gAsk', kind: 'TALK', t0: q(c4.at), t1: q(c4.at + c4.dur), utterance: c4.gi, label: 'Strangers, who are you? traders, or pirates?', because: [{ id: 'gTurnMen' }, { id: 'v' + c4.gi, rel: 'realises' }] });
   stimuli.push({ id: 'sVoice', t0: q(c4.at + 0.4), t1: q(c4.at + 0.9), kind: 'SOUND', label: 'the great voice', actor: G, because: [{ id: 'gAsk' }] });
   E.forEach((m, k) => I({ id: 'mFlinch' + k, actor: m, kind: 'REACT', t0: q(c4.at + 0.6 + 0.07 * k), t1: q(c4.at + 1.7 + 0.07 * k), label: 'their hearts broken by the voice', params: { how: 'flinch', lookAt: G }, because: [{ id: 'sVoice', latency: 0.2 + 0.07 * k }] }));
   I({ id: 'oStand', actor: O, kind: 'APPROACH', key: 'K4', t0: tK4, t1: q(W('K4')[1]), target: G, label: 'straightens: he will answer', because: [{ id: 'gTurnMen', latency: 0.2 }] });
