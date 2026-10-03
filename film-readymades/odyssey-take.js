@@ -252,6 +252,16 @@ function drawCaption(g,W,H,t){const cap=captionAt(t);if(!cap||cap.a<=0)return;co
   g.font=(isLine?'600 ':'italic 500 ')+(isLine?22:19)*k+'px ui-monospace,Menlo,"DejaVu Sans Mono",monospace';g.fillStyle=isLine?'#141414':'#5c5c58';let y=py+46*k+lh*0.72;for(const L of lines){g.fillText(L,W/2,y);y+=lh;}g.restore();}
 
 /* ── prepare: stage every key once, snapshot it, dress the named cast in their halfworld faces, lay out the lines and the shots ── */
+/* ── the shades: translucent, pale, tinted, self-lit, no shadow (each mesh's own materials cloned, the originals kept for end()) ── */
+const SHADE={opacity:0.6,tint:'#a9c6ee',pale:0.55,glow:0.4};
+function shadesOf(spec){const out=new Map(),put=(id,o)=>out.set(id,Object.assign({},SHADE,typeof o==='object'&&o?o:{}));const S=spec.shades;
+  if(Array.isArray(S))S.forEach(id=>put(id));else if(S&&typeof S==='object')for(const [id,o] of Object.entries(S))put(id,o);
+  for(const k of spec.keys||[])for(const e of k.blocking||[])if(e.shade&&!out.has(e.id))put(e.id,e.shade);for(const e of spec.blocking||[])if(e.shade&&!out.has(e.id))put(e.id,e.shade);return out;}
+function shadeCast(){if(!T||!T.shades||!T.shades.size)return;for(const a of ButterCast.cast){const o=T.shades.get(kfShort(a.kind));if(!o)continue;const tint=new THREE.Color(o.tint);
+  a.rig.figure.traverse(m=>{if(!m.isMesh||m.userData.shadeOrig)return;const one=x=>{const c=x.clone();c.transparent=true;c.opacity=o.opacity*(x.opacity??1);c.depthWrite=true;
+      if(c.color)c.color.lerp(tint,o.pale);if(c.emissive){c.emissive.copy(tint);c.emissiveIntensity=o.glow;}return c;};
+    m.userData.shadeOrig={material:m.material,cast:m.castShadow};m.material=Array.isArray(m.material)?m.material.map(one):one(m.material);m.castShadow=false;m.renderOrder=2;});}}
+function unshade(){for(const a of ButterCast.cast)a.rig.figure.traverse(m=>{const u=m.userData.shadeOrig;if(!u)return;m.material=u.material;m.castShadow=u.cast;m.renderOrder=0;delete m.userData.shadeOrig;});}
 async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error('this location carries no take (rebuild with film-readymades/build_odyssey.py)');
   if(T)end();const sid=tk.scene,mode=o.mode==='cut'?'cut':'full';
   const spec=await (await fetch(root+'odyssey/keyframes/'+sid+'.json')).json();await OdysseyFilm.loadProps();
@@ -282,6 +292,9 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
       const plain=await ButterMovieator.parse('3626b.dat',skin);plain.matrixAutoUpdate=false;plain.matrix.copy(old.matrix);plain.name='take:plain-head';plain.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;for(const m of [].concat(o.material))m.side=THREE.DoubleSide;}});
       old.visible=false;r.headP.add(plain);T.heads.push({old,plain,rig:r});
       const f=Face.attach(r,'halfworld:'+who,THREE);if(f){f.mesh.castShadow=false;f.mesh.receiveShadow=false;f.mesh.material.fog=true;T.faces.set(id,f);P.face=f;}}catch(e){console.warn('[take] no face for',id,e);}}
+  /* the shades: a figure the keyframes name a shade (spec.shades: [id] or {id: {opacity, tint, pale, glow}}, or a blocking entry's
+     `shade: true`) is drawn translucent and pale, tinted and faintly self-lit, and casts no shadow: the dead among the living */
+  T.shades=shadesOf(spec);shadeCast();
   /* the lines: each dialogue segment spoken by its voice, the text as visemes, the envelope slice gating the jaw; the key beat on its emotion */
   const env=tk.voice.env,hz=tk.voice.hz;
   for(const c of clips){if(c.kind!=='DIALOGUE'||!c.voice)continue;const P=T.perf.get(c.voice);if(!P)continue;const K=T.keys[keyIndexAt(c.at+0.01)],s=K.snap[c.voice];
@@ -319,7 +332,7 @@ async function prepare(o={}){const A=filmAsset(),tk=A&&A.take;if(!tk)throw Error
   T.world=null;T.stats=stats;
   /*[choreo]*/ /* the choreography (odyssey/choreo/<scene>.json, film-readymades/choreo.js): every servo of every actor on the voice clock, over the blocking; o.choreo an object, false for none */
   if(window.OdysseyChoreo&&o.choreo!==false){let C=typeof o.choreo==='object'?o.choreo:null;if(!C)try{const r=await fetch(root+'odyssey/choreo/'+sid+'.json',{cache:'no-store'});if(r.ok)C=await r.json();}catch(e){}
-    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);
+    if(C&&(C.clock||'cut')===mode)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label),point:p=>{try{return kfPoint(p);}catch(e){return null;}}});else if(C)console.warn('[take] the choreography is on the',C.clock,'clock, not',mode);
     if(C&&C.creatures&&(C.clock||'cut')===mode&&window.OdysseyCreatures)try{T.creatures=await creaturesStage(C);}catch(e){console.warn('[take] creatures',e);}}/*[/choreo]*/
   /*[motion]*/ /* a key that names motion, fields, swaps or optics (its own spec, or the exporter's plan o.motion.keys[id]): film-readymades/motion.js */
   if(window.OdysseyMotion)T.motion=await OdysseyMotion.takeStage(T,o.motion,{scene,renderer,actorOf:id=>kfActor(id),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind)),scale:filmAsset().scale,pieces:()=>OdysseyFilm.pieces()});/*[/motion]*/
@@ -331,7 +344,7 @@ async function cineFetch(sid,mode,C){try{const r=await fetch(root+'tools/cinemat
     const g=(C.generated||{}).from||null;if(P.clock!==mode||(P.sheet&&P.sheet.from!==g)||Math.abs((P.total||0)-(C.total||0))>0.05){console.warn('[take] the shot plan was made for another sheet or clock: not used');return null;}return P;}
   catch(e){console.warn('[take] no shot plan',e);return null;}}
 function cineApi(){return {THREE,scene,camera,renderer,T,V3,kfActor,kfHead,kfHand,kfSolid,kfShort,rigOf,figHeight,OdysseyFilm,shoot:kfShoot,
-  poseAt:t=>{const {state,key}=castAt(t);worldFor(key);poseCast(state,t);/*[motion]*/if(T.motion)T.motion.frame(t,key);/*[/motion]*/scene.updateMatrixWorld(true);return key;},
+  poseAt:t=>{const {state,key}=castAt(t);worldFor(key);poseCast(state,t);shadeCast();/*[motion]*/if(T.motion)T.motion.frame(t,key);/*[/motion]*/scene.updateMatrixWorld(true);return key;},
   keyCam:k=>keyCam(k),resolved:spec=>resolved(spec),cast:()=>ButterCast.cast.filter(a=>a.rig.figure.visible!==false&&!a.rig.absent).map(a=>kfShort(a.kind))};}
 async function cineStart(plan){if(!window.OdysseyCine||T.cineReload){const src=await (await fetch(root+'tools/cinematographer/solve.js',{cache:'no-store'})).text();(0,eval)(src);}
   const S=await OdysseyCine.solve(plan,cineApi());T.cine=S;T.world=null;return S.report();}
@@ -392,7 +405,7 @@ function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prep
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
 function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
 function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
-function end(){if(!T)return;stop();/*[choreo]*/if(T.creatures)T.creatures.dispose();if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);T=null;}
+function end(){if(!T)return;stop();/*[choreo]*/if(T.creatures)T.creatures.dispose();if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);unshade();T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the
    page draws it, and the caption sits over the picture ── */
@@ -412,7 +425,7 @@ function stop(){if(!live)return;renderer.render=live.orig;live.voice.pause();liv
 /* the export: the page's own drawing stopped (as the keyframe gate stops it); frames drawn only on request */
 function exportStart(o={}){const orig=renderer.__draw||renderer.render.bind(renderer);renderer.__draw=orig;renderer.render=()=>{};   /* __draw: the real render while it is stubbed (the cinematographer's exposure check renders a frame during prepare) */
 renderer.setPixelRatio(1);renderer.setSize(o.w||1280,o.h||720,false);camera.aspect=(o.w||1280)/(o.h||720);camera.updateProjectionMatrix();return prepare(o).then(inf=>{T.render=orig;return inf;});}
-window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/creatures:()=>{if(!T||!T.creatures)return null;const out={};for(const [id,rig] of Object.entries(T.creatures.rigs)){let n=0;const g=T.creatures.group.getObjectByName('creature:'+id);if(g)g.traverse(o=>{if(o.isMesh)n++;});out[id]={kind:rig.kind,meshes:n};}return out;},marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label)});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),cineReload:p=>cineReload(p),cineDraw:t=>T&&T.cine&&T.cine.debug?T.cine.debug(t):null,cineAudit:c=>T&&T.cine&&T.cine.audit?T.cine.audit(c):null,get take(){return filmAsset()?.take||null;}};
+window.OdysseyTake={prepare,exportStart,frame,apply,play,stop,end,soundLog,captions,/*[choreo]*/creatures:()=>{if(!T||!T.creatures)return null;const out={};for(const [id,rig] of Object.entries(T.creatures.rigs)){let n=0;const g=T.creatures.group.getObjectByName('creature:'+id);if(g)g.traverse(o=>{if(o.isMesh)n++;});out[id]={kind:rig.kind,meshes:n};}return out;},marks:()=>T&&marks(),pose:t=>T&&pose(t),useChoreo:C=>{if(!T)return false;if(T.choreo){T.choreo.dispose();T.choreo=null;}if(C)T.choreo=OdysseyChoreo.player(C,{THREE,scene,rigOf:id=>rigOf(id),hipsOf:r=>T.hips.get(r),pieceMeshes:label=>choreoPieces(label),point:p=>{try{return kfPoint(p);}catch(e){return null;}}});T.world=null;return !!T.choreo;},get choreo(){return T&&T.choreo?T.choreo.C:null;},/*[/choreo]*/info:()=>T&&info(),shotAt:t=>T&&shotAt(t),cineReload:p=>cineReload(p),cineDraw:t=>T&&T.cine&&T.cine.debug?T.cine.debug(t):null,cineAudit:c=>T&&T.cine&&T.cine.audit?T.cine.audit(c):null,get take(){return filmAsset()?.take||null;}};
 /* a Take button beside the forage shelf; ?take (or ?take=cut) plays the current location's scene on load */
 {const b=document.createElement('button');b.id='takeOpen';b.textContent='Take';b.title='Play this scene on its recorded performance (voice, faces, captions, cut)';b.onclick=()=>{if(live){stop();return;}play({mode:new URLSearchParams(location.search).get('take')==='cut'?'cut':'full'}).catch(e=>alert(e.message));};
  (document.getElementById('filmWorldTools')||document.body).appendChild(b);if(b.parentElement===document.body)Object.assign(b.style,{position:'fixed',right:'12px',top:'12px',zIndex:61});}

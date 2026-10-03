@@ -159,6 +159,38 @@ function applyProps(THREE, C, t, ctx, S) {
     P.parts.forEach((p, i) => { if (p.parent !== dest) dest.add(p); p.visible = vis[n] != null ? vis[n] : P.vis0[i]; });
   }
 }
+/* a prop's flight (the sheet's {op: 'fly'}: THROW with params.prop): from `t` it rides the thrower's live hand (`hand`, its centre on
+   the hand plus `grip`), from each leg's t0 to t1 it flies on a parabola (arc: rise over the chord) to the leg's `to` (ctx.point:
+   an actor's head, 'hand:<id>:R', '@anchor', [x, y, z]) plus `off`, turning `spin` turns about the level axis across its path, and
+   after the last leg it lies where it landed until `until` (the take's next key stages it again). The staged prop object is looked up
+   by name each drawing (each key re-stages its props). */
+function applyFlights(THREE, C, t, ctx) {
+  if (!ctx.point) return;
+  for (const e of compile(C).props) { if (e.op !== 'fly' || t < e.t || (e.until != null && t >= e.until)) continue;
+    let o = null; ctx.scene.traverse(q => { if (!o && q.name === e.what) o = q; }); if (!o) continue;
+    if (!o.userData.fly) { o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
+      o.userData.fly = { d: c.sub(o.position).applyQuaternion(o.quaternion.clone().invert()), q: o.quaternion.clone(), p: o.position.clone() }; }
+    const F = o.userData.fly, P = v => v && new THREE.Vector3(...[v.x, v.y, v.z]), pt = (w, off) => { const v = P(ctx.point(w)); return v ? v.add(new THREE.Vector3(...(off || [0, 0, 0]))) : null; };
+    let at = pt(e.hand, e.grip), spin = 0, axis = new THREE.Vector3(1, 0, 0);
+    if (!at) continue;
+    for (const L of e.legs) { if (t < L.t0) break; const to = pt(L.to, L.off); if (!to) break; const u = Math.min(1, (t - L.t0) / Math.max(1e-3, L.t1 - L.t0)), ch = to.clone().sub(at);
+      const flat = new THREE.Vector3(ch.x, 0, ch.z); if (flat.lengthSq() > 1e-6) axis = new THREE.Vector3(-flat.z, 0, flat.x).normalize();
+      at = at.clone().add(ch.multiplyScalar(u)); at.y += (L.arc || 0) * 4 * u * (1 - u); spin += (L.spin || 0) * u; if (u < 1) break; }
+    const q = new THREE.Quaternion().setFromAxisAngle(axis, spin * 2 * Math.PI).multiply(F.q);
+    o.quaternion.copy(q); o.position.copy(at.sub(F.d.clone().applyQuaternion(q))); o.updateMatrixWorld(true); }
+}
+/* a set piece moved (the sheet's {op: 'slide'}: a creature's MOVE_STONE with params.piece): before `t` the piece stands at `from` (an
+   offset from where the set has it), from `t` to `t1` it is carried to `to` (default its own place) on an eased path lifted by `arc`
+   at the middle, and it stays there after. The piece's meshes are found once by label (ctx.pieceMeshes) at their built place. */
+function applySlides(THREE, C, t, ctx, S) {
+  if (!ctx.pieceMeshes) return;
+  for (const e of compile(C).props) { if (e.op !== 'slide') continue; S.slides = S.slides || {};
+    let st = S.slides[e.what]; if (!st) { const ms = ctx.pieceMeshes(e.what.replace(/^piece:/, '')) || []; st = S.slides[e.what] = ms.map(m => ({ m, p: m.position.clone() })); }
+    const a = e.from || [0, 0, 0], b = e.to || [0, 0, 0], u = t <= e.t ? 0 : t >= e.t1 ? 1 : (x => x * x * (3 - 2 * x))((t - e.t) / Math.max(1e-3, e.t1 - e.t));
+    const off = new THREE.Vector3(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u + (e.arc || 0) * 4 * u * (1 - u), a[2] + (b[2] - a[2]) * u);
+    for (const s of st) { s.m.position.copy(s.p).add(off); s.m.updateMatrixWorld(true); } }
+}
+function restoreSlides(S) { if (!S || !S.slides) return; for (const st of Object.values(S.slides)) for (const s of st) { s.m.position.copy(s.p); s.m.updateMatrixWorld(true); } }
 function restoreProps(S) { if (!S || !S.props) return; for (const P of S.props.values()) if (P.kind === 'held') P.parts.forEach((p, i) => { if (p.parent !== P.home) P.home.add(p); p.visible = P.vis0[i]; }); }
 /* the ship: a set piece turned about its pivot; its riders turned and lifted with it */
 function applyShip(THREE, R, v, ctx, S, t) {
@@ -181,16 +213,18 @@ function player(C, ctx) {
       for (const id of Object.keys(X.actors)) { const r = ctx.rigOf(id); if (!r || r.figure.visible === false || r.absent) continue; applyRig(THREE, r, sampleActor(C, id, t), { hipsY: ctx.hipsOf(r), layer: C.layer || 'abs' }); }
       for (const [id, R] of Object.entries(X.rigs)) if (R.type === 'ship' || id === 'ship') applyShip(THREE, R, sampleRig(C, id, t), ctx, S, t);
       applyProps(THREE, C, t, ctx, S);
+      applyFlights(THREE, C, t, ctx);
+      applySlides(THREE, C, t, ctx, S);
     },
     /* whether an actor is travelling at t (the take's camera tracks a walker) */
     walking(id, t) { if ((C.layer || 'abs') === 'add') return false;   /* an acting layer's root offsets (a step back, a lean) are not walks: the take's own walks are the blocking's */
       const a = sampleActor(C, id, t, { stepped: false }), b = sampleActor(C, id, t + 0.25, { stepped: false }); if (!a || a['root.x'] == null) return false; return Math.hypot(b['root.x'] - a['root.x'], b['root.z'] - a['root.z']) > 2.5; },
     /* the ship's turn and offset at the last apply (the take lays a rope from the mast with it) */
     ship() { return S.shipQ ? { Q: S.shipQ, off: S.shipOff } : null; },
-    dispose() { restoreProps(S); restoreShip(S); }
+    dispose() { restoreProps(S); restoreShip(S); restoreSlides(S); }
   };
 }
-const API = { CH, CLAMP, EASE, drawT, sampleKeys, sampleActor, sampleRig, propsAt, compile, merged, player, applyRig, version: 1 };
+const API = { CH, CLAMP, EASE, drawT, sampleKeys, sampleActor, sampleRig, propsAt, compile, merged, player, applyRig, applyFlights, applySlides, version: 1 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 root.OdysseyChoreo = API;
 })(typeof window !== 'undefined' ? window : globalThis);

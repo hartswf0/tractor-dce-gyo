@@ -138,6 +138,10 @@ K.MOVE_STONE = (X, I, e) => { const p = I.params || {}, from = pointOf(X, I.targ
   const ev1 = X.cmove(I.actor, 'MOVE STONE', e, { proc: { type: 'reach', hand: hands(from), from: t0, to: t0 + 1.0, fade: 0.5 }, keys: { 'torso.lean@stone': [[t0, 0], [t0 + 0.8, 0.5], [t1, 0.45], [t1 + 0.8, 0]], 'hips.dy@stone': [[t0, 0], [t0 + 0.8, -10 * sc], [t1, -8 * sc], [t1 + 0.8, 0]] } }, { label: I.label || 'the stone rolled aside' });
   const track = []; for (let t = t0 + 1.0; t <= t0 + 1.0 + d + 1e-6; t += 1 / 12) { const u = X.sm((t - t0 - 1.0) / d); track.push([X.r3(t), [X.r3(X.lerp(from[0], to[0], u)), from[1], X.r3(X.lerp(from[2], to[2], u))]]); }
   X.cmove(I.actor, 'PUSH', ev1, { proc: { type: 'reach', hand: [['R', [to[0] - 14 * sc, to[1], to[2]]], ['L', [to[0] + 14 * sc, to[1], to[2]]]], from: t0 + 1.0, to: t1, fade: 0.6 } }, { label: 'the weight carried round' });
+  /* params.piece: the stone is a set piece the take draws (its label): the sheet carries it from `from` to `to` as an offset from its
+     built place (params.home: where the set has it, [x, z]; default `to`), lifted by params.lift at the middle (choreo.js applySlides) */
+  if (p.piece) { const home = p.home || [to[0], to[2]], o = v => [X.r3(v[0] - home[0]), 0, X.r3(v[2] - home[1])];
+    X.props.push({ t: X.r3(t0 + 1.0), t1: X.r3(t0 + 1.0 + d), op: 'slide', by: I.actor, what: 'piece:' + p.piece, from: o(from), to: o(to), arc: p.lift || 0 }); }
   const mv = X.ev({ lane: 'PROP', actor: I.actor, t0: X.r3(t0 + 1.0), t1: X.r3(t0 + 1.0 + d), kind: 'MOVED', label: (I.target || 'the stone') + ' rolled from the door', because: [{ id: ev1.id, latency: 1.0 }], params: { prop: I.target || 'stone', track: track.filter((_, i) => i % 3 === 0) } });
   X.ev({ lane: 'CONTACT', actor: I.actor, actors: [I.actor], t0: X.r3(t0 + 0.9), t1: X.r3(t1), kind: 'PUSH', label: 'both hands on the stone', because: [{ id: ev1.id, latency: 0.9 }], params: { k: 5 } });
   X.S.objects = X.S.objects || {}; const oid = p.object || 'door-stone'; X.S.objects[oid] = Object.assign({ kind: 'door', material: 'stone', affords: ['block the way out'] }, X.S.objects[oid] || {}, { track: [[0, from], ...track] });

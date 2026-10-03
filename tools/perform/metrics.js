@@ -90,7 +90,7 @@ function measure(Tr, o = {}) {
   const stim = [];
   for (const c of M.clips || []) if (c.kind === 'DIALOGUE' && c.voice) { const { voiceOf } = require('./compile.js'); for (const p of voiceOf(M, c).phrases) stim.push({ t: p.t0, src: c.voice, kind: 'phrase', to: c.addressee }); }
   for (const id of ids) for (const [a, b] of spans[id]) { const x = byActor[id][a]; let peak = 0; for (let i = a; i <= b; i++) peak = Math.max(peak, sig[id].d[i]); if (x) stim.push({ t: a / F, src: id, kind: 'action', peak }); }
-  for (const p of (Tr.C && Tr.C.props) || []) { const who = (p.from || p.what || '').split(':')[0]; stim.push({ t: p.t, src: who, kind: 'prop:' + p.op }); }
+  for (const p of (Tr.C && Tr.C.props) || []) { const who = p.by || String(typeof p.from === 'string' ? p.from : p.what || '').split(':')[0]; stim.push({ t: p.t, src: who, kind: 'prop:' + p.op }); }
   for (const e of E) if (e.lane === 'STIMULUS' && e.kind !== 'BLOCKING' && e.kind !== 'SCENE') stim.push({ t: e.t0, src: e.actor || null, kind: 'score:' + (e.kind || '').toLowerCase() });
   stim.sort((a, b) => a.t - b.t);
   /* reactions: the first readable change toward a stimulus within the window */

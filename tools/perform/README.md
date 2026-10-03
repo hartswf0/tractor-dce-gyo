@@ -131,6 +131,23 @@ Every realiser writes through `X.move(actor, layer, kind, cause, k => { k(t, {ch
 - The bow (OD-B21-S07): `STRING_BOW {bends, strungId}` (the horn braced on the thigh, the bends, a CONTACT BOW and a STRUNG sight) and
   `PLUCK {soundId}` (a SOUND stimulus: the note, which the scene's thunder can take as its cause).
 
+### Props in flight, set pieces carried, shades, restored turns
+
+- `THROW {params: prop, to, off, flight, arc, spin, fall: [{dt, to, off, arc, spin}], until}`: the thrown thing is a staged prop (the
+  take's `prop:<id>`): the sheet's props get `{op: 'fly'}` and choreo.js (`applyFlights`) carries it in the thrower's live hand
+  through the wind-up, flies it on a parabola from the release to `to` (an actor's head, `hand:<id>:R`, `@anchor` or a point) and
+  down the `fall` legs, and leaves it where it landed until `until` (the next key stages it again). A PROP FLIGHT event. (The Stool.)
+- A creature's `MOVE_STONE {params: piece, lift, home}`: the stone is a set piece (its label): `{op: 'slide'}` in the sheet, and
+  choreo.js (`applySlides`) holds the piece at `from` (an offset from where the set has it) until the heave, then carries it into
+  place, lifted by `lift` at the middle. (The Cave's great stone.)
+- Shades: a keyframes file's `shades: {id: {opacity, tint, pale, glow}}` (or `[id]`, or a blocking entry's `shade: true`) has the
+  take draw that figure translucent, pale and tinted, faintly self-lit and without a shadow (odyssey-take.js `shadeCast`; each mesh's
+  materials cloned, restored at `end()`). (Achilles, Patroclus, Antilochus, Ajax; Anticleia.)
+- Restored turns: `odyssey/kits/cut-restore.json`, read by film-readymades/odyssey_take.py over the Regulars' Cut for one scene's take:
+  `restore: [gi]` puts a dropped segment of the recording back; `add: [...]` appends a clip the recording never voiced (synthesized
+  offline; the source is recorded in the entry) to the scene's voice file as a segment of its own, with its turn, speaker and
+  keyframe key (`turnId` on the key). The segments after it move later; the book clock of the other scenes does not.
+
 ### Machinery
 
 `authored.machinery: [{kind: 'ROWING', clock: {period, t0, t1}, offsets: {actor: fraction}, amp, busy}, {kind: 'SIRENS_CHAIN', ...}]`
