@@ -17,12 +17,12 @@ module.exports = function author(M, X) {
   const clip = gi => M.clips.find(c => c.gi === gi), c1 = clip(1), c2 = clip(2), c3 = clip(3), c5 = clip(5), c6 = clip(6);
   const V2 = X.voiceOf(c2), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
-  const fire = [-79, 40, 186];
+  const fire = [-79, 40, 186], BX0 = -32, BZ0 = 96;
   stimuli.push({ id: 'sNight', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'night, the fire low, the maids gone: the queen and the beggar alone across the hearth', because: [{ id: 'v' + c1.gi, rel: 'realises' }] });
   /* ── the Cretan tale ── */
   I({ id: 'bTale', actor: B, kind: 'DECLARE', target: P, utterance: c1.gi, t0: q(c1.at - 0.2), t1: q(c1.at + c1.dur), label: 'Aethon of Crete, brother of Idomeneus: I had your husband as my guest', params: { shapes: ['chest', 'open', 'point', 'open'], side: 'R', maxBeats: 1, amp: 0.7 }, because: [{ id: 'v' + c1.gi, rel: 'realises' }] });
   H({ id: 'hP0', actor: P, t0: 0.3, t1: q(W('K2')[0] - 0.1), reason: 'a stranger who says he saw her husband: such tales have been told her before, for a cloak and a meal', params: { look: [[B, 2.6], [fire, 1.0], [B, 2.4]], weight: true }, because: [{ id: 'sNight' }] });
-  I({ id: 'pNod', actor: P, kind: 'REACT', t0: q(c1.at + c1.dur - 0.6), t1: q(c1.at + c1.dur + 0.5), label: 'then tell me: what was he wearing?', params: { how: 'nod', lookAt: B }, because: [{ id: 'bTale', latency: 0.4 }] });
+  I({ id: 'pNod', actor: P, kind: 'REACT', t0: q(W('K2')[0] - 1.0), t1: q(W('K2')[0] + 0.1), label: 'then tell me: what was he wearing?', params: { how: 'nod', lookAt: B }, because: [{ id: 'bTale', latency: 0.4 }] });
   /* ── the cloak, the brooch, the herald ── */
   I({ id: 'bLean', actor: B, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: P, label: 'leans in to count it off', because: [{ id: 'pNod', latency: 0.3 }] });
   I({ id: 'pSit', actor: P, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: B, label: 'straightens on her stool', because: [{ id: 'bLean', latency: 0.2 }] });
@@ -34,6 +34,10 @@ module.exports = function author(M, X) {
   I({ id: 'pChest', actor: P, kind: 'GESTURE', target: B, t0: q(tBrooch + 0.3), t1: q(tBrooch + 1.8), label: 'the hand to her breast: she pinned that brooch on him', params: { shape: 'chest', at: q(tBrooch + 0.7), side: 'R', amp: 1.0, hold: 1.0 }, because: [{ id: 'sBrooch', latency: 0.3 }] });
   H({ id: 'hP1', actor: P, t0: q(tCloak + 1.35), t1: q(tBrooch + 0.25), reason: 'every word true so far: she does not breathe', params: { look: [[B, 3.0]], weight: true }, because: [{ id: 'pNotice' }] });
   H({ id: 'hP2', actor: P, t0: q(tBrooch + 1.85), t1: q(W('K3')[0] - 0.1), reason: 'the herald too, round-shouldered, dark, curly-haired: it is all true', params: { look: [[B, 2.2], [fire, 0.8], [B, 2.0]], weight: true }, because: [{ id: 'pChest' }] });
+  H({ id: 'hB0', actor: B, t0: q(c1.at), t1: q(c1.at + c1.dur), reason: 'the tale told steadily, his eyes on hers to see what it does', params: { look: [[P, 2.4], [fire, 0.7], [P, 2.4]], weight: true }, because: [{ id: 'bTale' }] });
+  H({ id: 'hB0b', actor: B, t0: q(W('K2')[1] + 0.05), t1: q(c2.at + c2.dur), reason: 'counting it off as if he saw it before him: the cloak, the brooch, the man', params: { look: [[P, 2.0], [[BX0, 60, BZ0 - 60], 0.8], [P, 2.4]], weight: true }, because: [{ id: 'bDescribe' }] });
+  H({ id: 'hP0b', actor: P, t0: q(W('K2')[1] + 0.05), t1: q(tCloak + 0.25), reason: 'she leans to hear what he will say he saw', params: { look: [[B, 3.0]], weight: true }, because: [{ id: 'pSit' }] });
+  H({ id: 'hP2b', actor: P, t0: q(W('K4')[0] - 3.2), t1: q(W('K4')[0] - 0.85), reason: 'the tears run on: she looks up at him through them', params: { look: [[B, 1.6], [fire, 0.6], [B, 1.6]], weight: true }, because: [{ id: 'pWeep' }] });
   /* ── the weeping ── */
   const tWeep = q(W('K3')[0]);
   I({ id: 'pBow', actor: P, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: B, label: 'the head goes down, the hands to her face', because: [{ id: 'sBrooch', latency: 0.5 }] });
