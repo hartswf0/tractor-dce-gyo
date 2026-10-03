@@ -277,6 +277,8 @@ WATCH = [
      'The Gate, performed', 'Book I from the engine\'s score: Athena waits unseen, the knock, Telemachus rises, crosses, welcomes her, and the spear changes hands.'),
     ('../making/index.html', '../../films/odyssey/making-of.jpg', 'Behind the scenes',
      'How the Odyssey learned to act', 'The making of: the animatic where nobody moves, the cut, the acting, the engine, the re-shoots. Every take kept and shown side by side with what changed and why.'),
+    ('../forensics/index.html', None, 'Behind the scenes · evidence',
+     'Forensic report', 'How and what this was made, from the record: every commit and who made it, the renders and their hours, the films hashed, the voices traced to their sources, and every defect found. Each claim cites a commit, a file or a hash.'),
     ('../perform/camera.html', None, 'Engine · camera', 'The cinematographer', 'Shots chosen from the performance: the causal hot spot framed, cuts on heat moving, no camera inside the set, the giant from below.'),
     ('../creatures/index.html', '../creatures/media/ram-rider.jpg', 'Engine · creatures', 'The creature rigs', 'Polyphemus, the Laestrygonians, Scylla, rams, dogs, Argos, cattle, and Circe\'s beasts as jointed rigs with gaits, reach and grope.'),
     ('../perform/index.html', '../perform/media/previz-OD-B09-S09.jpg', 'Engine · performance',
