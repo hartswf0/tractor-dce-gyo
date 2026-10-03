@@ -22,7 +22,7 @@ module.exports = function author(M, X) {
   [PA, AL].forEach((m, k) => H({ id: 'hC0' + k, actor: m, t0: 0.3 + 0.2 * k, t1: q(W('K4')[0] - 0.1), reason: 'at Achilles\'s side, as in life', params: { look: [[O, 2.0], [AC, 1.4]], weight: true, offset: 0.4 * k }, because: [{ id: 'sShades' }] }));
   H({ id: 'hAj0', actor: AJ, t0: 0.3, t1: q(W('K5')[0] - 0.1), reason: 'apart: still angry over the arms of Achilles', params: { look: [[O, 0.8], [meadow, 2.4], [O, 0.6]], weight: true }, because: [{ id: 'sShades' }] });
   /* ── the praise ── */
-  I({ id: 'oPraise', actor: O, kind: 'DECLARE', target: AC, utterance: cP.gi, t0: q(cP.at - 0.2), t1: q(cP.at + cP.dur), label: 'no man was ever more blessed: here you rule among the dead; do not grieve at dying', params: { shapes: ['open', 'show', 'open'], side: 'R', maxBeats: 1, amp: 0.8 }, because: [{ id: 'v' + cP.gi, rel: 'realises' }] });
+  I({ id: 'oPraise', actor: O, kind: 'DECLARE', target: AC, utterance: cP.gi, t0: q(Math.min(cP.at - 0.2, W('K2')[0] - 0.3)), t1: q(cP.at + cP.dur), label: 'no man was ever more blessed: here you rule among the dead; do not grieve at dying', params: { shapes: ['open', 'show', 'open'], side: 'R', maxBeats: 1, amp: 0.8 }, because: [{ id: 'v' + cP.gi, rel: 'realises' }] });
   I({ id: 'oStep', actor: O, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: AC, label: 'the hand out to him', because: [{ id: 'oPraise' }] });
   I({ id: 'acHear', actor: AC, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: O, label: 'a step nearer, listening', because: [{ id: 'oPraise', latency: 0.3 }] });
   /* ── the son ── */
@@ -42,12 +42,12 @@ module.exports = function author(M, X) {
   [PA, AL].forEach((m, k) => H({ id: 'hC1' + k, actor: m, t0: q(W('K4')[1] + 0.05), t1: q(W('K5')[0] - 0.1), reason: 'with him', params: { look: [[AC, 2.0], [meadow, 1.0]], weight: false }, because: [{ id: 'cGo' + k }] }));
   /* ── Ajax ── */
   stimuli.push({ id: 'sAjax', t0: q(W('K4')[1] + 0.4), t1: q(W('K4')[1] + 0.8), kind: 'SIGHT', label: 'Ajax alone, apart', actor: AJ, because: [{ id: 'oWatch' }] });
-  I({ id: 'oSoft', actor: O, kind: 'GESTURE', target: AJ, t0: q(Math.max(W('K4')[1] + 0.9, cAj.at)), t1: q(Math.max(W('K4')[1] + 0.9, cAj.at) + 2.0), label: 'soft words to him: let the anger go', params: { shape: 'open', at: q(Math.max(W('K4')[1] + 1.3, cAj.at + 0.4)), side: 'R', amp: 0.9, hold: 1.0 }, because: [{ id: 'sAjax' }, { id: 'v' + cAj.gi, rel: 'realises' }] });
+  I({ id: 'oSoft', actor: O, kind: 'GESTURE', target: AJ, t0: q(W('K5')[0] - 2.2), t1: q(W('K5')[0] - 0.2), label: 'soft words to him: let the anger go', params: { shape: 'open', at: q(W('K5')[0] - 1.8), side: 'R', amp: 0.9, hold: 1.0 }, because: [{ id: 'sAjax' }] });
   I({ id: 'ajGo', actor: AJ, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: meadow, label: 'answers nothing, and goes away among the dead', because: [{ id: 'oSoft' }] });
   I({ id: 'oTurn', actor: O, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: AJ, label: 'a step after him', because: [{ id: 'ajGo', latency: 0.2 }] });
   H({ id: 'hAj1', actor: AJ, t0: q(W('K5')[1] + 0.05), t1: T, reason: 'silent: the arms of Achilles', params: { look: [[meadow, 3.0]], weight: true }, because: [{ id: 'ajGo' }] });
   H({ id: 'hO2', actor: O, t0: q(W('K5')[1] + 0.05), t1: T, reason: 'he watches the one he wronged go into the dark', params: { look: [[AJ, 3.0]], weight: true }, because: [{ id: 'oTurn' }] });
-  H({ id: 'hO1b', actor: O, t0: q(W('K4')[1] + 0.05), t1: q(Math.max(W('K4')[1] + 0.9, cAj.at) - 0.05), reason: 'he watches Achilles go, and sees Ajax', params: { look: [[AC, 1.6], [AJ, 1.6]], weight: true }, because: [{ id: 'oWatch' }] });
+  H({ id: 'hO1b', actor: O, t0: q(W('K4')[1] + 0.05), t1: q(W('K5')[0] - 2.25), reason: 'he watches Achilles go, and sees Ajax', params: { look: [[AC, 1.6], [AJ, 1.6]], weight: true }, because: [{ id: 'oWatch' }] });
   return {
     type: 'revelation', title: 'Achilles Chooses Life in Retrospect: the praise, the son, the stride across the asphodel, Ajax silent',
     actors: { [O]: { role: 'the living man among the dead', body: 'minifig', principal: true }, [AC]: { role: 'the shade of Achilles', body: 'minifig', principal: true }, [AJ]: { role: 'the shade of Ajax', body: 'minifig', principal: true },
