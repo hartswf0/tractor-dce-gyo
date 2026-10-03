@@ -38,7 +38,7 @@ module.exports = function author(M, X) {
   stimuli.push({ id: 'sNo', t0: q(c3.at + c3.dur - 0.6), t1: q(c3.at + c3.dur), kind: 'WORD', label: 'none of you shall escape', actor: O, because: [{ id: 'oNo' }] });
   I({ id: 'eShock', actor: E, kind: 'REACT', t0: q(c3.at + c3.dur - 0.3), t1: q(c3.at + c3.dur + 1.0), label: 'no bargain: his knees go', params: { how: 'flinch', lookAt: O }, because: [{ id: 'sNo', latency: 0.3 }] });
   S.forEach((s, k) => I({ id: 'sShock' + k, actor: s, kind: 'REACT', t0: q(c3.at + c3.dur - 0.1 + 0.1 * k), t1: q(c3.at + c3.dur + 1.1 + 0.1 * k), label: 'no quarter', params: { how: 'flinch', lookAt: O }, because: [{ id: 'sNo', latency: 0.5 + 0.1 * k }] }));
-  H({ id: 'hO1', actor: O, t0: q(c3.at + c3.dur + 0.1), t1: q(W('K4')[0] - 1.2), reason: 'the bow on Eurymachus: he waits for him to move', params: { look: [[E, 3.0], [A, 0.8]], weight: false }, because: [{ id: 'oNo' }] });
+  H({ id: 'hO1', actor: O, t0: q(c3.at + c3.dur + 0.1), t1: q(W('K4a')[0] - 1.8), reason: 'the bow on Eurymachus: he waits for him to move', params: { look: [[E, 3.0], [A, 0.8]], weight: false }, because: [{ id: 'oNo' }] });
   /* ── the rally ── */
   I({ id: 'eRally', actor: E, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: S[0], label: 'turns on the suitors and draws his sword', because: [{ id: 'sNo', latency: 0.4 }] });
   const tRush = q(w(V4, 'rush', c4.at + 3.6)), tTables = q(w(V4, 'tables', c4.at + 6.8));
@@ -47,6 +47,11 @@ module.exports = function author(M, X) {
   I({ id: 'aDraw', actor: A, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: O, label: 'draws his sword', because: [{ id: 'eRally', latency: 0.4 }] });
   I({ id: 'tReady', actor: Tm, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: E, label: 'the spear up: they are coming', because: [{ id: 'eRally', latency: 0.3 }] });
   S.forEach((s, k) => I({ id: 'sCry' + k, actor: s, kind: 'REACT', t0: q(tTables + 0.1 * k), t1: q(tTables + 1.2 + 0.1 * k), label: 'the tables up', params: { how: 'lean', lookAt: O }, because: [{ id: 'eCry', latency: 0.4 + 0.1 * k }] }));
+  /* between the rally and the charge: each holds with his reason */
+  const tCry0 = q(Math.max(W('K3')[1] + 0.1, tRush - 0.5));
+  H({ id: 'hE2', actor: E, t0: q(W('K3')[1] + 0.05), t1: q(tCry0 - 0.05), reason: 'the sword up, his back to the archer: are you with me?', params: { look: [[S[0], 0.8], [S[1], 0.8], [A, 0.8]], weight: true }, because: [{ id: 'eRally' }] });
+  H({ id: 'hA0b', actor: A, t0: q(W('K3')[1] + 0.05), t1: q(W('K3a')[0] - 0.05), reason: 'his sword drawn, he waits for the rush', params: { look: [[E, 1.0], [O, 1.4]], weight: true }, because: [{ id: 'aDraw' }] });
+  S.slice(0, 2).forEach((s, k) => H({ id: 'hSw' + k, actor: s, t0: q(W('K3')[1] + 0.05), t1: q(W('K3a')[0] - 0.05), reason: 'the arms up for the tables: waiting for his word', params: { look: [[E, 1.2], [O, 1.0]], weight: true, offset: 0.2 * k }, because: [{ id: 'sUp' + k }] }));
   /* ── the charge, the arrow ── */
   stimuli.push({ id: 'sGo', t0: q(W('K3a')[0] - 0.4), t1: q(W('K3a')[0]), kind: 'SOUND', label: 'his war cry', actor: E, because: [{ id: 'eCry' }] });
   I({ id: 'eCharge', actor: E, kind: 'APPROACH', key: 'K3a', t0: W('K3a')[0], t1: W('K3a')[1], target: O, label: 'springs at the door with a cry, the sword up', because: [{ id: 'sGo' }] });
@@ -55,6 +60,7 @@ module.exports = function author(M, X) {
   I({ id: 'oTrack', actor: O, kind: 'APPROACH', key: 'K3a', t0: W('K3a')[0], t1: W('K3a')[1], target: E, label: 'the arrow follows him', because: [{ id: 'sGo', latency: 0.2 }] });
   I({ id: 'eClose', actor: E, kind: 'APPROACH', key: 'K4', t0: W('K4')[0], t1: W('K4')[1], target: O, label: 'the last strides', because: [{ id: 'eCharge' }] });
   const wE = W('K4a'), tLoose = q(wE[0] - 0.35), tDraw = q(tLoose - 1.4);
+  S.slice(0, 2).forEach((s, k) => H({ id: 'hSr' + k, actor: s, t0: q(W('K3a')[1] + 0.05), t1: q(tLoose + 0.25), reason: 'behind Eurymachus, the arms up: he is almost at the door', params: { look: [[E, 1.0], [O, 1.0]], weight: true, offset: 0.2 * k }, because: [{ id: 'sFol' + k }] }));
   I({ id: 'oShoot', actor: O, kind: 'SHOOT', t0: tDraw, t1: q(tLoose + 1.4), target: E, label: 'into his breast by the nipple', params: { draw: 0.9, hold: 0.5, looseId: 'sLoose' }, because: [{ id: 'eCharge' }] });
   I({ id: 'eHit', actor: E, kind: 'IMPACT', t0: q(tLoose + 0.08), t1: q(wE[0] + 0.3), label: 'the arrow in his chest: the sword falls from his hand', params: { until: q(wE[0] + 0.25) }, because: [{ id: 'sLoose', latency: 0.08 }] });
   I({ id: 'eDie', actor: E, kind: 'DIE', t0: wE[0], t1: wE[1], label: 'falls doubled over, dead', params: { key: 'K4a' }, because: [{ id: 'eHit' }] });
@@ -76,7 +82,7 @@ module.exports = function author(M, X) {
   I({ id: 'tRec', actor: Tm, kind: 'RECOVER', t0: q(tSt + 1.35), t1: q(tSt + 2.3), label: 'leaves the spear: back to his father', because: [{ id: 'tStab' }] });
   H({ id: 'hT2', actor: Tm, t0: q(tSt + 2.35), t1: T, reason: 'over the dead man, watching the rest', params: { look: [[S[0], 1.4], [S[1], 1.4], [O, 1.0]], weight: true }, because: [{ id: 'tRec' }] });
   S.slice(0, 2).forEach((s, k) => { I({ id: 'flA' + k, actor: s, kind: 'REACT', t0: q(tSt + 0.8 + 0.1 * k), t1: q(tSt + 1.9 + 0.1 * k), label: 'Amphinomus down', params: { how: 'flinch', lookAt: A }, because: [{ id: 'hitA', latency: 0.3 + 0.1 * k }] });
-    I({ id: 'sBack' + k, actor: s, kind: 'APPROACH', key: 'K5a', t0: wA[0], t1: wA[1], target: O, label: 'backs off from the door', because: [{ id: 'flA' + k }] });
+    I({ id: 'sBack' + k, actor: s, kind: 'APPROACH', key: 'K5a', t0: wA[0], t1: wA[1], target: O, label: 'backs off from the door: the spear comes', because: [{ id: 'tStab', latency: 0.4 }] });
     H({ id: 'hS3' + k, actor: s, t0: q(wA[1] + 0.2), t1: T, reason: 'two more dead between them and the door', params: { look: [[A, 1.0], [O, 1.6], [Tm, 1.2]], weight: true, offset: 0.3 * k }, because: [{ id: 'flA' + k }] }); });
   I({ id: 'oOver', actor: O, kind: 'APPROACH', key: 'K5a', t0: wA[0], t1: wA[1], target: S[0], label: 'the bow back on the room', because: [{ id: 'hitA', latency: 0.4 }] });
   H({ id: 'hO2', actor: O, t0: q(wA[1] + 0.2), t1: T, reason: 'the bow on the room again: who is next?', params: { look: [[S[0], 1.6], [S[1], 1.6], [S[2], 1.4]], weight: false }, because: [{ id: 'oOver' }] });
