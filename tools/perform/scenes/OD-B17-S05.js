@@ -45,8 +45,8 @@ module.exports = function author(M, X) {
   H({ id: 'hB1', actor: B, t0: q(wH[1] + 0.05), t1: q(W('K5')[0] - 0.85), reason: 'standing like a rock: he broods on evil in his heart', params: { look: [[AN, 3.0]], weight: true, still: true }, because: [{ id: 'bRock' }] });
   H({ id: 'hAn2', actor: AN, t0: q(tT + 1.65), t1: q(W('K6')[0] - 0.1), reason: 'the beggar did not fall', params: { look: [[B, 2.6], [R[0], 0.8]], weight: true }, because: [{ id: 'anThrow' }] });
   /* ── the threshold, the curse ── */
-  I({ id: 'bGo', actor: B, kind: 'DECIDE', t0: q(W('K5')[0] - 0.8), t1: q(W('K5')[0]), label: 'back to the threshold, the wallet down', because: [{ id: 'hB1' }, { id: 'v' + c8.gi, rel: 'realises' }] });
-  I({ id: 'bSit', actor: B, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: door, label: 'goes to the threshold and sits down there', because: [{ id: 'bGo' }] });
+  I({ id: 'bGo', actor: B, kind: 'DECIDE', t0: q(W('K5')[0] - 0.8), t1: q(W('K5')[0]), label: 'back to the threshold, the wallet down; he turns there to face the hall', because: [{ id: 'hB1' }, { id: 'v' + c8.gi, rel: 'realises' }] });
+  I({ id: 'bSit', actor: B, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: door, label: 'goes back to the threshold and turns to face him', because: [{ id: 'bGo' }] });
   I({ id: 'bCurse', actor: B, kind: 'DECLARE', target: AN, utterance: c8.gi, t0: q(Math.max(c8.at - 0.2, W('K5')[1] + 0.05)), t1: q(c8.at + c8.dur), label: 'gods, avengers of the poor: let Antinous die before his wedding', params: { shapes: ['invoke', 'point'], side: 'R', maxBeats: 1, amp: 1.0 }, because: [{ id: 'bSit' }] });
   R.forEach((r, k) => H({ id: 'hR1' + k, actor: r, t0: q(tHit + 1.4 + 0.08 * k), t1: q(W('K6')[0] - 0.1), reason: 'they watch the beggar to the door, and hear the curse', params: { look: [[B, 2.0], [AN, 1.0]], weight: true, offset: 0.3 * k }, because: [{ id: 'rStart' + k }] }));
   /* ── the rebuke ── */
