@@ -2,8 +2,8 @@
    prize. Odysseus girds up his rags and shows his thighs, his chest and his arms; Athena stands by him and fills out his limbs, and the
    suitors stare. Irus trembles and would slip away; Antinous threatens him and the servants push him in. Odysseus weighs it, kill him
    or only drop him, and drops him: one blow under the ear, the bones broken; Irus falls kicking, the blood at his mouth, and the
-   suitors throw up their hands and almost die of laughing. Odysseus drags him out by the foot to the gate and props him against the
-   wall: sit there and keep off the dogs and the pigs. They laugh; Amphinomus brings him bread and a golden cup.
+   suitors throw up their hands and almost die of laughing. Odysseus stands over him (the film leaves out the drag to the gate):
+   sit there and keep off the dogs and the pigs. They laugh; Amphinomus brings him bread and a golden cup.
 
    The chain: the ring (SCENE) -> his line and the rags girded (DECLARE) -> Athena's work on him (SIGHT, the take's K2 his APPROACH)
    -> the suitors' startle and Irus's flinch -> Antinous's threat (GESTURE) -> Irus pushed in (K3) -> Odysseus's guard (K3) -> his
@@ -50,7 +50,7 @@ module.exports = function author(M, X) {
   I({ id: 'bPunch', actor: B, kind: 'PUNCH', target: IR, t0: tA, t1: q(tA + 1.2), label: 'one blow on the neck under the ear: the bones broken', params: { hit: true, impactId: 'hitI', side: 'R' }, because: [{ id: 'bIn' }] });
   I({ id: 'iHit', actor: IR, kind: 'IMPACT', t0: q(tHit + 0.05), t1: q(wF[0] + 0.4), label: 'the blood at his mouth', params: { until: q(wF[0] + 0.35) }, because: [{ id: 'hitI', latency: 0.05 }] });
   I({ id: 'iFall', actor: IR, kind: 'FALL', t0: wF[0], t1: wF[1], label: 'down in the dust, kicking the ground', params: { key: 'K4a' }, because: [{ id: 'iHit' }] });
-  H({ id: 'hI3', actor: IR, t0: q(wF[1] + 0.1), t1: q(W('K5')[0] - 0.1), reason: 'on his back, gnashing his teeth, kicking the ground', params: { look: [[B, 1.0]], weight: true }, because: [{ id: 'iFall' }] });
+  H({ id: 'hI3', actor: IR, t0: q(wF[1] + 0.1), t1: q(W('K5')[1] + 0.05), reason: 'on his back, gnashing his teeth, kicking the ground', params: { look: [[B, 1.0]], weight: true }, because: [{ id: 'iFall' }] });
   stimuli.push({ id: 'sDown', t0: q(wF[0] + 0.2), t1: q(wF[0] + 0.6), kind: 'SIGHT', label: 'Irus down in one blow', actor: IR, because: [{ id: 'iFall' }] });
   S.forEach((s, k) => I({ id: 'sLaugh' + k, actor: s, kind: 'REACT', t0: q(wF[0] + 0.4 + 0.1 * k), t1: q(wF[0] + 1.6 + 0.1 * k), label: 'throw up their hands and almost die of laughing', params: { how: 'laugh', lookAt: IR }, because: [{ id: 'sDown', latency: 0.3 + 0.1 * k }] }));
   I({ id: 'anLaugh', actor: AN, kind: 'REACT', t0: q(wF[0] + 0.5), t1: q(wF[0] + 1.6), label: 'laughs', params: { how: 'laugh', lookAt: IR }, because: [{ id: 'sDown', latency: 0.4 }] });
@@ -59,11 +59,10 @@ module.exports = function author(M, X) {
   S.forEach((s, k) => H({ id: 'hS2' + k, actor: s, t0: q(wF[0] + 1.7 + 0.1 * k), t1: q(W('K6')[0] - 0.1), reason: 'still laughing at the king of the beggars in the dust', params: { look: [[IR, 1.2], [B, 1.2], [S[(k + 1) % 4], 0.6]], weight: true, offset: 0.3 * k }, because: [{ id: 'sLaugh' + k }] }));
   H({ id: 'hAn2', actor: AN, t0: q(wF[0] + 1.7), t1: q(W('K6')[0] - 0.1), reason: 'the prize is the old man\'s', params: { look: [[B, 2.0], [IR, 1.0]], weight: true }, because: [{ id: 'anLaugh' }] });
   /* ── to the gate ── */
-  I({ id: 'bDrag', actor: B, kind: 'DECIDE', t0: q(W('K5')[0] - 0.8), t1: q(W('K5')[0]), label: 'out to the gate with him, by the foot', because: [{ id: 'hB3' }, { id: 'v' + c7.gi, rel: 'realises' }] });
-  I({ id: 'bGo', actor: B, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: gate, label: 'drags him by the foot through the court to the gate', because: [{ id: 'bDrag' }] });
-  I({ id: 'iDragged', actor: IR, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: gate, label: 'dragged out and propped against the wall', because: [{ id: 'bGo', latency: 0.1 }] });
+  I({ id: 'bDrag', actor: B, kind: 'DECIDE', t0: q(W('K5')[0] - 0.8), t1: q(W('K5')[0]), label: 'he will tell him what he is: the king of the beggars no longer', because: [{ id: 'hB3' }, { id: 'v' + c7.gi, rel: 'realises' }] });
+  I({ id: 'bGo', actor: B, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: gate, label: 'stands over him, the finger pointed', because: [{ id: 'bDrag' }] });
   I({ id: 'bWord', actor: B, kind: 'DECLARE', target: IR, utterance: c7.gi, t0: q(Math.max(c7.at - 0.2, W('K5')[1] + 0.05)), t1: q(c7.at + c7.dur), label: 'sit there in the dirt and keep off the dogs and the pigs', params: { shapes: ['point', 'chop', 'point'], side: 'R', maxBeats: 1, amp: 0.9 }, because: [{ id: 'bGo' }] });
-  H({ id: 'hI4', actor: IR, t0: q(W('K5')[1] + 0.05), t1: T, reason: 'propped against the gate wall, the head hanging', params: { look: [[B, 1.0], [gate, 2.0]], weight: true, still: true }, because: [{ id: 'iDragged' }] });
+  H({ id: 'hI4', actor: IR, t0: q(W('K5')[1] + 0.05), t1: T, reason: 'in the dust where he fell, the head lolling', params: { look: [[B, 1.0], [gate, 2.0]], weight: true, still: true }, because: [{ id: 'iFall' }] });
   /* ── the cheer, the bread and the cup ── */
   stimuli.push({ id: 'sCheer', t0: q(W('K6')[0] - 0.4), t1: q(W('K6')[0]), kind: 'SOUND', label: 'the suitors laugh until the rafters take it up', because: [{ id: 'bWord' }, { id: 'v' + c8.gi, rel: 'realises' }] });
   I({ id: 'bReturn', actor: B, kind: 'APPROACH', key: 'K6', t0: W('K6')[0], t1: W('K6')[1], target: AM, label: 'back into the hall', because: [{ id: 'sCheer' }] });
