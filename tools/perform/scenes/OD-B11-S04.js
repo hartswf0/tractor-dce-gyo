@@ -40,12 +40,19 @@ module.exports = function author(M, X) {
   const E = [['K4', 'the first'], ['K4a', 'the second'], ['K4b', 'the third']];
   I({ id: 'oDecide', actor: O, kind: 'DECIDE', t0: q(W('K4')[0] - 0.7), t1: q(W('K4')[0]), label: 'to hold her once', because: [{ id: 'oGrief' }, { id: 'v' + c5.gi, rel: 'realises' }] });
   E.forEach(([k, l], j) => {
-    I({ id: 'oSpring' + j, actor: O, kind: 'APPROACH', key: k, t0: W(k)[0], t1: W(k)[1], target: A, label: l + ' time he springs to take her in his arms', because: [{ id: j ? 'aSlip' + (j - 1) : 'oDecide' }] });
-    I({ id: 'aSlip' + j, actor: A, kind: 'APPROACH', key: k, t0: q(W(k)[0] + 0.15), t1: W(k)[1], target: O, label: 'she slips from his arms like a shadow or a dream', because: [{ id: 'oSpring' + j, latency: 0.15 }] });
-    stimuli.push({ id: 'sEmpty' + j, t0: q(W(k)[1]), t1: q(W(k)[1] + 0.3), kind: 'SIGHT', label: 'the arms close on nothing', actor: O, because: [{ id: 'aSlip' + j }] });
+    const ks = k + 's', has = !!K(ks), Wk = W(k), Ws = has ? W(ks) : Wk;
+    I({ id: 'oSpring' + j, actor: O, kind: 'APPROACH', key: k, t0: Wk[0], t1: Wk[1], target: A, label: l + ' time he springs to take her in his arms: they pass through her', because: [{ id: j ? 'aSlip' + (j - 1) : 'oDecide' }] });
+    /* she is a shade: his arms go through her (K4, K4a, K4b), and only then is she a step farther off, his arms closed on the air (the
+       's' keys) */
+    stimuli.push({ id: 'sThrough' + j, t0: q(Wk[1] - 0.2), t1: q(Wk[1] + 0.2), kind: 'SIGHT', label: 'his arms pass through her', actor: O, because: [{ id: 'oSpring' + j }] });
+    I({ id: 'aSlip' + j, actor: A, kind: 'APPROACH', key: has ? ks : k, t0: has ? Ws[0] : q(Wk[0] + 0.15), t1: Ws[1], target: O, label: 'she slips from his arms like a shadow or a dream', because: [{ id: has ? 'sThrough' + j : 'oSpring' + j, latency: 0.15 }] });
+    if (has) I({ id: 'oClose' + j, actor: O, kind: 'APPROACH', key: ks, t0: q(Ws[0] + 0.1), t1: Ws[1], target: A, label: 'his arms close on nothing', because: [{ id: 'sThrough' + j, latency: 0.1 }] });
+    stimuli.push({ id: 'sEmpty' + j, t0: q(Ws[1]), t1: q(Ws[1] + 0.3), kind: 'SIGHT', label: 'the arms close on nothing', actor: O, because: [{ id: 'aSlip' + j }] });
+    if (has) H({ id: 'hA3' + j, actor: A, t0: q(Wk[1] + 0.05), t1: q(Ws[0] - 0.05), reason: 'his arms are through her: she feels nothing of them', params: { look: [[O, 3.0]], weight: false }, because: [{ id: 'oSpring' + j }] });
+    if (has) H({ id: 'hO4' + j, actor: O, t0: q(Wk[1] + 0.05), t1: q(Ws[0] + 0.05), reason: 'he holds what is not there', params: { look: [[A, 3.0]], weight: true }, because: [{ id: 'sThrough' + j }] });
     const nxt = E[j + 1] ? W(E[j + 1][0])[0] - 0.1 : T;
-    H({ id: 'hO3' + j, actor: O, t0: q(W(k)[1] + 0.05), t1: q(nxt), reason: j < 2 ? 'his arms closed on air: she is there, a step away' : 'mother, why do you not stay when I would hold you?', params: { look: [[A, 3.0]], weight: true }, because: [{ id: 'sEmpty' + j }] });
-    H({ id: 'hA2' + j, actor: A, t0: q(W(k)[1] + 0.05), t1: q(nxt), reason: 'a shade: she cannot be held, and she looks at her son', params: { look: [[O, 3.0]], weight: false }, because: [{ id: 'aSlip' + j }] }); });
+    H({ id: 'hO3' + j, actor: O, t0: q(Ws[1] + 0.05), t1: q(nxt), reason: j < 2 ? 'his arms closed on air: she is there, a step away' : 'mother, why do you not stay when I would hold you?', params: { look: [[A, 3.0]], weight: true }, because: [{ id: 'sEmpty' + j }] });
+    H({ id: 'hA2' + j, actor: A, t0: q(Ws[1] + 0.05), t1: q(nxt), reason: 'a shade: she cannot be held, and she looks at her son', params: { look: [[O, 3.0]], weight: false }, because: [{ id: 'aSlip' + j }] }); });
   H({ id: 'hA1b', actor: A, t0: q(c4.at), t1: q(W('K4')[0] - 0.1), reason: 'she hears her son weep for her', params: { look: [[O, 3.0]], weight: true }, because: [{ id: 'oBow' }] });
   return {
     type: 'revelation', title: 'Anticleia and the Three Embraces: the blood, the knowing, the longing, the arms closed on nothing',

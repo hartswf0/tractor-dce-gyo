@@ -3,7 +3,7 @@
  "location": "odyssey-od-b11-s04",
  "title": "Anticleia and the Three Embraces",
  "source": "Homer, Odyssey XI, tr. Samuel Butler (public domain)",
- "note": "Hand-staged from the text on the Cimmerian shore by the pit (the rite's set): Odysseus bids his mother drink and know him; she comes to him; he asks of home and learns his going killed her; three times he springs to embrace her and three times she slips a step away from his arms, like a dream. Anticleia is a figure the rig can move (the shade card was a ghost the rig could not), white-haired.",
+ "note": "Hand-staged from the text on the Cimmerian shore by the pit (the rite's set): Odysseus bids his mother drink and know him; she comes to him; he asks of home and learns his going killed her; three times he springs to embrace her and his arms pass through her, and three times she is a step farther off when they close, like a dream. Anticleia is a figure the rig can move, drawn as a shade by the take (spec.shades: translucent, pale, self-lit, no shadow).",
  "look": {
   "sky": [
    "#141a26",
@@ -316,12 +316,12 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -8,
-     "z": 135,
+     "x": -36,
+     "z": 137,
      "y": "floor",
      "face": [
-      -50,
-      139
+      -56,
+      141
      ],
      "props": false,
      "pose": {
@@ -344,14 +344,21 @@
     },
     {
      "id": "anticleia",
-     "x": -58,
+     "x": -56,
      "z": 141,
      "y": "floor",
      "face": [
-      -8,
-      135
+      -36,
+      137
      ],
-     "props": false
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
     }
    ],
    "camera": {
@@ -395,22 +402,109 @@
    "lensAllow": []
   },
   {
-   "id": "K4a",
+   "id": "K4s",
    "after": [
     "K4",
-    3.3
+    1.5
    ],
-   "beat": "The second embrace: she is a step farther",
+   "beat": "she is not there: his arms close on the air where she stood",
+   "text": "She slipped from his arms like a shadow or a dream.",
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -36,
+     "z": 137,
+     "y": "floor",
+     "face": [
+      -100,
+      148
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.35
+      ],
+      "armLP": [
+       -1.2,
+       0,
+       -0.35
+      ],
+      "headP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "anticleia",
+     "x": -100,
+     "z": 148,
+     "y": "floor",
+     "face": [
+      -36,
+      137
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -76,
+     65,
+     280
+    ],
+    "target": [
+     -68.0,
+     42,
+     188
+    ],
+    "fov": 46,
+    "subject": "odysseus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "anticleia",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "hide": [
+    "ithaca family memory"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K4a",
+   "beat": "The second embrace: his arms pass through her again",
    "text": "Thrice she flitted from my embrace as it were a dream or phantom.",
    "blocking": [
     {
      "id": "odysseus",
-     "x": -40,
-     "z": 137,
+     "x": -80,
+     "z": 145,
      "y": "floor",
      "face": [
-      -92,
-      147
+      -100,
+      148
      ],
      "props": false,
      "pose": {
@@ -433,14 +527,21 @@
     },
     {
      "id": "anticleia",
-     "x": -92,
-     "z": 147,
+     "x": -100,
+     "z": 148,
      "y": "floor",
      "face": [
-      -40,
-      137
+      -80,
+      145
      ],
-     "props": false
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
     }
    ],
    "camera": {
@@ -472,6 +573,10 @@
      "min": 0.03
     }
    ],
+   "after": [
+    "K4",
+    3.3
+   ],
    "hide": [
     "ithaca family memory"
    ],
@@ -484,22 +589,22 @@
    "lensAllow": []
   },
   {
-   "id": "K4b",
+   "id": "K4as",
    "after": [
     "K4",
-    6.6
+    4.8
    ],
-   "beat": "The third embrace, and his arms close on nothing",
-   "text": "Being touched to the quick, I said to her, \"Mother, why do you not stay still when I would embrace you?\"",
+   "beat": "she is not there: his arms close on the air where she stood",
+   "text": "She slipped from his arms like a shadow or a dream.",
    "blocking": [
     {
      "id": "odysseus",
-     "x": -72,
-     "z": 143,
+     "x": -80,
+     "z": 145,
      "y": "floor",
      "face": [
-      -128,
-      155
+      -142,
+      156
      ],
      "props": false,
      "pose": {
@@ -522,12 +627,99 @@
     },
     {
      "id": "anticleia",
-     "x": -128,
-     "z": 155,
+     "x": -142,
+     "z": 156,
      "y": "floor",
      "face": [
-      -72,
-      143
+      -80,
+      145
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -120,
+     65,
+     280
+    ],
+    "target": [
+     -111.0,
+     42,
+     188
+    ],
+    "fov": 46,
+    "subject": "odysseus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "anticleia",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "hide": [
+    "ithaca family memory"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K4b",
+   "beat": "The third embrace, and his arms close on nothing",
+   "text": "Being touched to the quick, I said to her, \"Mother, why do you not stay still when I would embrace you?\"",
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -122,
+     "z": 153,
+     "y": "floor",
+     "face": [
+      -142,
+      156
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       -0.3
+      ],
+      "armLP": [
+       -1.5,
+       0,
+       0.3
+      ],
+      "torsoP": [
+       0.1,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "anticleia",
+     "x": -142,
+     "z": 156,
+     "y": "floor",
+     "face": [
+      -122,
+      153
      ],
      "props": false,
      "pose": {
@@ -568,11 +760,116 @@
      "min": 0.03
     }
    ],
+   "after": [
+    "K4",
+    6.6
+   ],
+   "hide": [
+    "ithaca family memory"
+   ],
+   "touch": [
+    [
+     "odysseus",
+     "anticleia"
+    ]
+   ],
+   "lensAllow": []
+  },
+  {
+   "id": "K4bs",
+   "after": [
+    "K4",
+    8.1
+   ],
+   "beat": "she is not there: his arms close on the air where she stood",
+   "text": "She slipped from his arms like a shadow or a dream.",
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -122,
+     "z": 153,
+     "y": "floor",
+     "face": [
+      -182,
+      162
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.35
+      ],
+      "armLP": [
+       -1.2,
+       0,
+       -0.35
+      ],
+      "headP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "anticleia",
+     "x": -182,
+     "z": 162,
+     "y": "floor",
+     "face": [
+      -122,
+      153
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -162,
+     65,
+     280
+    ],
+    "target": [
+     -152.0,
+     42,
+     188
+    ],
+    "fov": 46,
+    "subject": "odysseus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "anticleia",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
    "hide": [
     "ithaca family memory"
    ],
    "touch": [],
    "lensAllow": []
   }
- ]
+ ],
+ "shades": {
+  "anticleia": {
+   "opacity": 0.55
+  }
+ }
 }

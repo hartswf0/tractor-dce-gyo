@@ -41,7 +41,7 @@ module.exports = function author(M, X) {
   /* ── the stone ── */
   const tHeave = q(tK2 - 1.6);
   gi({ id: 'gTurnDoor', kind: 'TURN', t0: q(W('K1a')[1] + 0.2), t1: q(tHeave - 0.1), target: O, label: 'turns back to the door', params: { h: 0 }, because: [{ id: 'gDrive' }] });
-  gi({ id: 'gStone', kind: 'MOVE_STONE', t0: tHeave, t1: q(tK2 + 1.2), target: [door[0] + 80, door[1], door[2]], label: 'lifts the great stone and sets it in the door: twenty-two waggons would not shift it', params: { to: [door[0], door[2]], object: 'door-stone' }, because: [{ id: 'gTurnDoor' }, { id: 'v' + c2.gi, rel: 'realises' }] });
+  gi({ id: 'gStone', kind: 'MOVE_STONE', t0: tHeave, t1: q(tK2 + 1.2), target: [door[0] + 110, door[1], door[2] - 40], label: 'lifts the great stone and sets it in the door: twenty-two waggons would not shift it', params: { to: [door[0], door[2]], object: 'door-stone', piece: 'the great stone', lift: 6 }, because: [{ id: 'gTurnDoor' }, { id: 'v' + c2.gi, rel: 'realises' }] });
   stimuli.push({ id: 'sThud', t0: q(tK2 + 0.6), t1: q(tK2 + 1.0), kind: 'SOUND', label: 'the stone in the door: the last of the light gone', actor: G, because: [{ id: 'gStone' }] });
   MEN.forEach((m, k) => I({ id: 'mCower' + k, actor: m, kind: 'POSTURE', t0: q(tK2 + 0.8 + 0.08 * k), t1: q(tK3 + 0.4), label: m === O ? 'crouched, watching' : 'pressed into the rock: shut in', params: { to: m === O ? 'crouch' : 'cower' }, because: [{ id: 'sThud', latency: 0.2 + 0.08 * k }] }));
   /* ── the milking, the fire ── */
@@ -67,7 +67,7 @@ module.exports = function author(M, X) {
   return {
     type: 'machinery', title: 'Polyphemus Seals the Cave: the wood, the flock, the stone, the fire, the question',
     actors: { [O]: { role: 'the captain', body: 'minifig', principal: true }, ...Object.fromEntries(E.map(m => [m, { role: 'one of his men', body: 'minifig', group: 'crew' }])), [G]: { role: 'the giant (a rig)', body: 'prop', principal: true } },
-    objects: { [G]: { kind: 'giant', material: 'flesh', at: [g3.at[0], 120 * sc, g3.at[2]], affords: ['seal', 'milk', 'ask'] }, 'door-stone': { kind: 'door', material: 'stone', at: [door[0] + 80, door[1], door[2]], exit: true, affords: ['seal the cave'] }, fire: { kind: 'fire', material: 'fire', at: fire, affords: ['light'] } },
+    objects: { [G]: { kind: 'giant', material: 'flesh', at: [g3.at[0], 120 * sc, g3.at[2]], affords: ['seal', 'milk', 'ask'] }, 'door-stone': { kind: 'door', material: 'stone', at: [door[0] + 110, door[1], door[2] - 40], exit: true, affords: ['seal the cave'] }, fire: { kind: 'fire', material: 'fire', at: fire, affords: ['light'] } },
     authored: { intents, holds, stimuli, creatures, goals: { [O]: 'stay hidden; then answer', [G]: 'home: the flock, the milk, the fire' },
       couplings: [{ from: G, to: 'door-stone', via: 'stone', t0: tHeave, t1: q(tK2 + 1.2) }],
       causal: { tau: 0.7, actions: {

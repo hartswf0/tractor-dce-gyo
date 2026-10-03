@@ -3,7 +3,7 @@
  "location": "odyssey-od-b11-s07",
  "title": "Achilles Chooses Life in Retrospect",
  "source": "Homer, Odyssey XI, tr. Samuel Butler (public domain)",
- "note": "Hand-staged from the text on the Cimmerian shore (Anticleia's set, lit brighter so the shades read): Achilles with Patroclus and Antilochus comes to Odysseus, Ajax apart; Odysseus praises him and tells of Neoptolemus; Achilles strides off rejoicing; Ajax goes away in silence. The shades are figures the rig can move (the shade cards were ghosts it could not).",
+ "note": "Hand-staged from the text on the Cimmerian shore (Anticleia's set, lit brighter so the shades read): Achilles with Patroclus and Antilochus comes to Odysseus, Ajax apart; Odysseus praises him and tells of Neoptolemus; Achilles strides off rejoicing; Ajax goes away in silence. The shades are figures the rig can move, drawn as shades by the take (spec.shades: translucent, pale, self-lit, no shadow); Achilles answers (K2a, an added turn: odyssey/kits/cut-restore.json).",
  "look": {
   "sky": [
    "#1c2433",
@@ -279,6 +279,127 @@
      "soft": true,
      "min": 0.03,
      "cut": true
+    }
+   ],
+   "hide": [],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K2a",
+   "turnId": "OD-B11-S07-T02a",
+   "beat": "Achilles answers: rather a hired man alive than king over all the dead.",
+   "text": "\"Say not a word in death's favour; I would rather be a paid servant in a poor man's house and be above ground than king of kings among the dead.\"",
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 50,
+     "z": 140,
+     "y": "floor",
+     "face": [
+      -25,
+      145
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "achilles",
+     "x": -25,
+     "z": 145,
+     "y": "floor",
+     "face": [
+      50,
+      140
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0.12,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.7,
+       0,
+       -0.25
+      ],
+      "armLP": [
+       -0.35,
+       0,
+       0.1
+      ]
+     }
+    },
+    {
+     "id": "patroclus",
+     "x": -100,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      50,
+      140
+     ],
+     "props": false
+    },
+    {
+     "id": "antilochus",
+     "x": -95,
+     "z": 190,
+     "y": "floor",
+     "face": [
+      50,
+      140
+     ],
+     "props": false
+    },
+    {
+     "id": "ajax",
+     "x": -210,
+     "z": 160,
+     "y": "floor",
+     "face": [
+      50,
+      140
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0.15,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     30,
+     62,
+     200
+    ],
+    "target": [
+     -25,
+     50,
+     145
+    ],
+    "fov": 36,
+    "subject": "achilles",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "achilles",
+     "min": 0.05,
+     "primary": true,
+     "face": true
     }
    ],
    "hide": [],
@@ -612,5 +733,14 @@
    "touch": [],
    "lensAllow": []
   }
- ]
+ ],
+ "shades": {
+  "achilles": {},
+  "patroclus": {},
+  "antilochus": {},
+  "ajax": {
+   "tint": "#9fb8e0",
+   "opacity": 0.55
+  }
+ }
 }

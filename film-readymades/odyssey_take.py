@@ -10,6 +10,8 @@ For one scene id this reads, from the halfworld clone (read-only):
   audio/albums.json           the bed: the book's BRONZE COUNCIL track (trackFor(book), as harness/build-film-audio.mjs)
 and from this repository:
   odyssey/kits/cut.json       the Regulars' Cut: the segments kept for the scene, on the scene's own cut clock
+  odyssey/kits/cut-restore.json  turns put back over the cut for one scene: a dropped segment restored, or a turn the recording
+                              never voiced added as a clip of its own (appended to the scene's voice file; see restored())
   odyssey/keyframes/<id>.json the keyframe stills: each key is tied to the turn whose beat it stills
   odyssey/cineosis/score.json the sign score: the scene's direction block and its signs, attached as take.direction and
                               take.signs (odyssey-take.js cuts by them; odyssey/cineosis/WIRING.md)
@@ -76,17 +78,67 @@ def face_for(actor):
     return b if b in FACES else None
 
 def key_map(sid, turns):
-    """Each keyframe key -> the turn it stills: the key's beat against the turn's payload, else by order."""
+    """Each keyframe key -> the turn it stills: a key's own `turnId` (an added turn's key), else the key's beat against the turn's
+    payload, else by order."""
     f = REPO / 'odyssey/keyframes' / (sid + '.json')
     if not f.exists(): return {}, []
-    keys = [k for k in json.loads(f.read_text())['keys'] if not k.get('after')]   # a key placed after another (k.after) is not a turn's key
+    allk = json.loads(f.read_text())['keys']
+    out = {k['turnId']: k['id'] for k in allk if k.get('turnId') and not k.get('after')}
+    keys = [k for k in allk if not k.get('after') and not k.get('turnId')]   # a key placed after another (k.after) is not a turn's key
     norm = lambda s: re.sub(r'[^a-z]+', ' ', (s or '').lower()).strip()
-    out = {}
     for i, k in enumerate(keys):
         hit = next((t['id'] for t in turns if norm(t.get('payload')) and norm(t['payload']) == norm(k.get('beat'))), None)
         if not hit and turns: hit = turns[min(len(turns) - 1, round(i * (len(turns) - 1) / max(1, len(keys) - 1)))]['id']
         out.setdefault(hit, k['id'])
     return out, [k['id'] for k in json.loads(f.read_text())['keys']]
+
+def restored(sid):
+    """odyssey/kits/cut-restore.json for one scene: {restore: [gi], add: [{turn, after, kind, speakerId, sp, ad, speakerName, line,
+    file, key?, act?, delivery?, source}], why}, and the cut's gap; None when the scene has none."""
+    f = REPO / 'odyssey/kits/cut-restore.json'
+    if not f.exists(): return None
+    d = _j(f); r = d['scenes'].get(sid)
+    return dict(r, gap=d.get('gap', 0.45)) if r else None
+
+def pcm(path, sr=24000):
+    raw = subprocess.run([ffmpeg(), '-v', 'error', '-i', str(path), '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True, check=True).stdout
+    return np.frombuffer(raw, dtype='<i2')
+
+def voice_with(src, dst, adds, total, sr=24000):
+    """The scene's voice: the halfworld recording, then each added clip after a second of silence. Returns each clip's [start, dur]
+    in the joined file. Re-joined only when an input changed (dst + '.json' keeps the inputs' sizes)."""
+    sig = dict(src=src.stat().st_size, adds=[[a['file'], (REPO / a['file']).stat().st_size] for a in adds])
+    sf = dst.with_suffix('.added.json')
+    if dst.exists() and sf.exists():
+        old = json.loads(sf.read_text())
+        if old.get('sig') == sig: return old['spans']
+    x = pcm(src, sr); head = max(len(x), int(round(total * sr))); parts = [x, np.zeros(head - len(x) + sr, dtype='<i2')]; at = head + sr; spans = []
+    for a in adds:
+        y = pcm(REPO / a['file'], sr); spans.append([round(at / sr, 3), round(len(y) / sr, 3)]); parts += [y, np.zeros(sr, dtype='<i2')]; at += len(y) + sr
+    wav = dst.with_suffix('.join.wav'); import wave
+    w = wave.open(str(wav), 'wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(np.concatenate(parts).tobytes()); w.close()
+    subprocess.run([ffmpeg(), '-v', 'error', '-y', '-i', str(wav), '-c:a', 'aac', '-b:a', '96k', '-ar', str(sr), '-ac', '1', str(dst)], check=True); wav.unlink()
+    sf.write_text(json.dumps(dict(sig=sig, spans=spans)))
+    return spans
+
+def recut(cut, vsegs, rs):
+    """The scene's cut with the restore applied: restored and added segments laid in after their predecessor, every later segment
+    moved by the inserted length and the cut's gap; the cut's seconds grow by as much."""
+    if not cut or not rs: return cut
+    cut = json.loads(json.dumps(cut)); gap = rs['gap']; byGi = {s['gi']: s for s in vsegs}
+    ins = [(g, None) for g in rs.get('restore', [])] + [(a['gi'], a['after']) for a in rs.get('add', [])]
+    for gi, after in ins:
+        segs = cut['segments']; s = byGi[gi]
+        if after is None: after = max([g['gi'] for g in segs if g['gi'] < gi], default=None)
+        i = next((k for k, g in enumerate(segs) if g['gi'] == after), -1)
+        at = (segs[i]['at'] + segs[i]['dur'] + gap) if i >= 0 else segs[0]['at']
+        shift = s['dur'] + gap
+        for g in segs[i + 1:]: g['at'] = round(g['at'] + shift, 3)
+        segs.insert(i + 1, dict(gi=gi, start=s['start'], dur=s['dur'], at=round(at, 3), restored=True))
+        cut['dropped_segments'] = [d for d in cut.get('dropped_segments', []) if d['gi'] != gi]
+        cut['seconds'] = round(cut['seconds'] + shift, 2)
+    cut['why'] = list(cut.get('why', [])) + ['restored: ' + rs.get('why', '')]
+    return cut
 
 def take(sid, actor_ids):
     vm = _j(HALF / 'drive/voice-manifest.json').get(sid)
@@ -99,11 +151,26 @@ def take(sid, actor_ids):
     # the voice, copied beside the player; its envelope measured from the file itself
     TAKE.joinpath('voice').mkdir(parents=True, exist_ok=True); TAKE.joinpath('bed').mkdir(parents=True, exist_ok=True)
     src = HALF / vm['file']; dst = TAKE / 'voice' / (sid + '.m4a')
-    if not dst.exists() or dst.stat().st_size != src.stat().st_size: shutil.copyfile(src, dst)
+    rs = restored(sid); adds = (rs or {}).get('add', [])
+    vsegs, total = list(vm['segments']), vm['total']; dsegs = list(ds['segments'])
+    if adds:   # turns the recording never voiced: their clips joined after it, each a segment and a turn of its own
+        spans = voice_with(src, dst, adds, vm['total'])
+        for a, (st, du) in zip(adds, spans):
+            a['gi'] = len(dsegs)
+            dsegs.append(dict(kind=a['kind'], speakerId=a['speakerId'], sourceTurnId=a['turn'], text=a['line'], speakerName=a['speakerName']))
+            vsegs.append(dict(gi=a['gi'], start=st, dur=du)); total = round(st + du, 3)
+            tmap[a['turn']] = dict(id=a['turn'], sp=a['sp'], ad=a['ad'], spName=a['speakerName'], act=a.get('act'), delivery=a.get('delivery'))
+            spoken = dict(spoken); spoken[a['turn']] = dict(line=a['line'])
+            if a.get('key'): kmap[a['turn']] = a['key']
+    elif not dst.exists() or dst.stat().st_size != src.stat().st_size: shutil.copyfile(src, dst)
     env, real = envelope(dst)
+    # the order the segments play in on the cut: an added turn sits after its `after` segment (its key carried from there)
+    order = [s['gi'] for s in vm['segments']]
+    for a in adds: order.insert(order.index(a['after']) + 1, a['gi'])
+    byGi = {s['gi']: s for s in vsegs}
     segs, key = [], (korder[0] if korder else None)
-    for s in vm['segments']:
-        d = ds['segments'][s['gi']]; tn = tmap.get(d.get('sourceTurnId')) or {}
+    for s in [byGi[g] for g in order]:
+        d = dsegs[s['gi']]; tn = tmap.get(d.get('sourceTurnId')) or {}
         line = (spoken.get(d.get('sourceTurnId')) or {}).get('line') or ''
         is_line = bool(line) and d['kind'] == 'DIALOGUE'
         voice = resolve(d['speakerId'], actor_ids)                        # who makes the sound (None: the narrator)
@@ -122,19 +189,20 @@ def take(sid, actor_ids):
         if L > best: key_gi, best = g['gi'], L
     a, t = bed_for(ds['book']); bsrc = HALF / a['dir'] / t['file']; bdst = TAKE / 'bed' / ('bronze-council-%02d.ogg' % t['num'])
     if not bdst.exists(): shutil.copyfile(bsrc, bdst)
-    cuts = _j(REPO / 'odyssey/kits/cut.json')['scenes']; cut = next((c for c in cuts if c['id'] == sid), None)
+    cuts = _j(REPO / 'odyssey/kits/cut.json')['scenes']; cut0 = next((c for c in cuts if c['id'] == sid), None)
+    cut = recut(cut0, vsegs, rs)
     # where the scene falls in its book's bed: the bed loops from the book's first scene (build-film-audio.mjs), on either clock
     vman = _j(HALF / 'drive/voice-manifest.json'); book_of = {s['id']: s['book'] for s in _j(HALF / 'drive/drive-script.json')['scenes']}
     off_full = sum(vman[i]['total'] for i in sorted(vman) if i < sid and book_of.get(i) == ds['book'])
-    off_cut = (cut['at'] - min(c['at'] for c in cuts if c['book'] == ds['book'])) if cut else 0.0
+    off_cut = (cut0['at'] - min(c['at'] for c in cuts if c['book'] == ds['book'])) if cut0 else 0.0
     b = beats().get(sid)
     sc = next((x for x in _j(REPO / 'odyssey/cineosis/score.json')['scenes'] if x['id'] == sid), None)   # the sign score: how the scene is cut
     return dict(scene=sid, book=ds['book'], bookTitle=ds.get('bookTitle'), title=ds.get('title'),
-        voice=dict(file='odyssey/take/voice/%s.m4a' % sid, total=vm['total'], seconds=round(real, 3), hz=50, env=env, segments=segs),
+        voice=dict(file='odyssey/take/voice/%s.m4a' % sid, total=total, seconds=round(real, 3), hz=50, env=env, segments=segs),
         keyGi=key_gi, beat=dict(emotion=b[0], note=b[1]) if b else None,
         cast={i: face_for(i) for i in actor_ids},
         bed=dict(file='odyssey/take/bed/' + bdst.name, album=a['name'], title=t['title'], num=t['num'], offsetFull=round(off_full, 3), offsetCut=round(off_cut, 3), open=BED_OPEN, duck=BED_DUCK, ramp=RAMP),
-        cut=dict(status=cut['status'], seconds=cut['seconds'], segments=[dict(gi=g['gi'], start=g['start'], dur=g['dur'], at=round(g['at'] - cut['at'], 3)) for g in cut['segments']],
+        cut=dict(status=cut['status'], seconds=cut['seconds'], segments=[dict(gi=g['gi'], start=g['start'], dur=g['dur'], at=round(g['at'] - cut['at'], 3), **({'restored': True} if g.get('restored') else {})) for g in cut['segments']],
                  dropped=[dict(gi=g['gi'], why=g['why']) for g in cut.get('dropped_segments', [])], why=cut.get('why', [])) if cut else dict(status='dropped', seconds=0, segments=[], dropped=[], why=[]),
         keys=korder,
         direction=sc.get('direction') if sc else None,

@@ -7,12 +7,12 @@
    The chain: the trial (SCENE) -> Leiodes's STRAIN on the bow (the take's K1) -> his giving up (DECLARE, the voice's turn) -> the next
    man's turn (K2, his APPROACH caused by Leiodes setting it down) and his STRAIN -> Antinous's order for the fire (GESTURE point) ->
    Melanthius at the fire (K3) and Eurymachus warming the bow (TOOL_WORK) -> Eurymachus to the threshold and his STRAIN (K4) -> his
-   failure (K4a: the head down; DECLARE the shame) -> Antinous's word (K5, DECLARE: Apollo's day) -> the suitors' relief. */
+   failure (K4a: the head down; DECLARE the shame, his own line: an added turn) -> Antinous's word (K5, DECLARE: Apollo's day) -> the suitors' relief. */
 'use strict';
 module.exports = function author(M, X) {
   const K = id => M.keys.find(k => k.id === id), W = id => K(id).win || [K(id).t, K(id).t + 0.6], T = M.total, q = t => Math.round(t * 12) / 12;
   const LE = 'leiodes', EU = 'eurymachus', ME = 'melanthius', AN = 'antinous', S = [1, 2, 3, 4, 5].map(i => 'suitor-bow-challengers-' + i), S4 = S[3];
-  const clip = gi => M.clips.find(c => c.gi === gi), c2 = clip(2), c3 = clip(3), c4 = clip(4), c5 = clip(5), c6 = clip(6);
+  const clip = gi => M.clips.find(c => c.gi === gi), c2 = clip(2), c3 = clip(3), c4 = clip(4), c5 = clip(5), c6 = clip(6), c7 = M.clips.find(c => c.voice === 'eurymachus');   /* c7: his line, an added turn (odyssey/kits/cut-restore.json) */
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
   const th = [-10, 40, 205], fire = [-17, 40, 115];
   stimuli.push({ id: 'sTrial', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'the bow of Odysseus: whoever strings it takes the queen', because: [{ id: 'v' + c2.gi, rel: 'realises' }] });
@@ -43,13 +43,15 @@ module.exports = function author(M, X) {
   I({ id: 'euGo', actor: EU, kind: 'APPROACH', key: 'K4', t0: W('K4')[0], t1: W('K4')[1], target: th, label: 'to the threshold with the warm bow', because: [{ id: 'euTurn' }, { id: 'v' + c5.gi, rel: 'realises' }] });
   I({ id: 'euStrain', actor: EU, kind: 'STRAIN', t0: q(W('K4')[1] + 0.1), t1: q(W('K4a')[0] - 0.1), label: 'heats it, strains: it will not bend', because: [{ id: 'euGo' }] });
   I({ id: 'euFail', actor: EU, kind: 'APPROACH', key: 'K4a', t0: W('K4a')[0], t1: W('K4a')[1], target: th, label: 'the bow lowered, the head down', because: [{ id: 'euStrain' }] });
-  I({ id: 'euShame', actor: EU, kind: 'GESTURE', t0: q(W('K4a')[1] + 0.1), t1: q(W('K4a')[1] + 1.7), label: 'it is not the marriage: it is the shame', params: { shape: 'chest', at: q(W('K4a')[1] + 0.5), side: 'R', amp: 0.8, hold: 0.6 }, because: [{ id: 'euFail' }] });
-  stimuli.push({ id: 'sShame', t0: q(W('K4a')[1] + 0.4), t1: q(W('K4a')[1] + 0.8), kind: 'WORD', label: '"the shame"', actor: EU, because: [{ id: 'euShame' }] });
+  const tSh0 = c7 ? q(Math.max(c7.at - 0.2, W('K4a')[1] + 0.05)) : q(W('K4a')[1] + 0.1), tSh1 = c7 ? q(c7.at + c7.dur) : q(W('K4a')[1] + 1.7);
+  if (c7) I({ id: 'euShame', actor: EU, kind: 'DECLARE', target: AN, utterance: c7.gi, t0: tSh0, t1: tSh1, label: 'it is not the marriage: it is the shame', params: { shapes: ['chest', 'dismiss'], side: 'R', maxBeats: 1, amp: 0.8 }, because: [{ id: 'euFail' }, { id: 'v' + c7.gi, rel: 'realises' }] });
+  else I({ id: 'euShame', actor: EU, kind: 'GESTURE', t0: tSh0, t1: tSh1, label: 'it is not the marriage: it is the shame', params: { shape: 'chest', at: q(tSh0 + 0.4), side: 'R', amp: 0.8, hold: 0.6 }, because: [{ id: 'euFail' }] });
+  stimuli.push({ id: 'sShame', t0: q(tSh1 - 0.6), t1: q(tSh1 - 0.2), kind: 'WORD', label: '"the shame"', actor: EU, because: [{ id: 'euShame' }] });
   /* ── Apollo's day ── */
   I({ id: 'anStep', actor: AN, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: EU, label: 'steps out: enough', because: [{ id: 'sShame' }, { id: 'v' + c6.gi, rel: 'realises' }] });
   I({ id: 'anSay', actor: AN, kind: 'DECLARE', target: EU, utterance: c6.gi, t0: q(Math.max(c6.at - 0.2, W('K5')[1] + 0.05)), t1: q(c6.at + c6.dur), label: 'it is Apollo\'s day: pour the wine, and we finish this tomorrow', params: { shapes: ['dismiss', 'open'], side: 'R', maxBeats: 1, amp: 0.9 }, because: [{ id: 'anStep' }] });
   I({ id: 'euLower', actor: EU, kind: 'APPROACH', key: 'K5', t0: W('K5')[0], t1: W('K5')[1], target: AN, label: 'turns to Antinous, the bow hanging', because: [{ id: 'anStep', latency: 0.2 }] });
-  H({ id: 'hEu1', actor: EU, t0: q(W('K4a')[1] + 1.75), t1: q(W('K5')[0] - 0.1), reason: 'shamed before them all', params: { look: [[th, 1.4], [AN, 1.2]], weight: true }, because: [{ id: 'euShame' }] });
+  H({ id: 'hEu1', actor: EU, t0: q(tSh1 + 0.05), t1: q(W('K5')[0] - 0.1), reason: 'shamed before them all', params: { look: [[th, 1.4], [AN, 1.2]], weight: true }, because: [{ id: 'euShame' }] });
   H({ id: 'hEu2', actor: EU, t0: q(W('K5')[1] + 0.05), t1: T, reason: 'glad of the excuse', params: { look: [[AN, 3.0]], weight: true }, because: [{ id: 'euLower' }] });
   S.forEach((s, k) => I({ id: 'sRelief' + k, actor: s, kind: 'REACT', t0: q(c6.at + 1.5 + 0.1 * k), t1: q(c6.at + 2.6 + 0.1 * k), label: 'relief: tomorrow', params: { how: 'nod', lookAt: AN }, because: [{ id: 'anSay', latency: 0.5 + 0.1 * k }] }));
   S.forEach((s, k) => H({ id: 'hS2' + k, actor: s, t0: q(c6.at + 2.7 + 0.1 * k), t1: T, reason: 'the wine, and tomorrow', params: { look: [[AN, 1.6], [EU, 1.0]], weight: true, offset: 0.3 * k }, because: [{ id: 'sRelief' + k }] }));

@@ -118,7 +118,17 @@ M_.SACRIFICE = (X, I, e) => { const id = I.actor, t = I.t0, p = I.params || {};
 M_.THROW = (X, I, e) => { const id = I.actor, t = I.t0, sd = (I.params || {}).side || 'R', a = X.ampOf(I);
   if (I.target) X.look(id, I.target, t - 0.4, e, { label: 'the aim' });
   const m = X.move(id, 'act', 'THROW', e, k => { k(t, { ['arm.' + sd + '.pitch']: rel(X), 'torso.lean': rel(X), 'torso.twist': rel(X), 'hips.dy': rel(X) }); k(t + 0.45, { ['arm.' + sd + '.pitch']: { abs: -2.8 }, 'torso.lean': -0.14 * a, 'torso.twist': 0.35 * (sd === 'R' ? 1 : -1), 'hips.dy': 1 }); k(t + 0.62, { ['arm.' + sd + '.pitch']: { abs: -1.2 }, 'torso.lean': 0.25 * a, 'torso.twist': -0.25 * (sd === 'R' ? 1 : -1), 'hips.dy': -1.8 }, 'in'); k(t + 0.9, { ['arm.' + sd + '.pitch']: { abs: -0.2 }, 'torso.lean': 0.3 * a }); k(t + 1.6, { ['arm.' + sd + '.pitch']: 0, 'torso.lean': 0, 'torso.twist': 0, 'hips.dy': 0 }); }, { label: 'at ' + Score.short(I.target || 'it') });
-  X.ev({ id: (I.params || {}).releaseId, lane: 'STIMULUS', actor: id, t0: t + 0.62, t1: t + 0.9, kind: 'SIGHT', label: 'the thing in the air', because: m ? [{ id: m.id, latency: 0.62 }] : [] }); };
+  X.ev({ id: (I.params || {}).releaseId, lane: 'STIMULUS', actor: id, t0: t + 0.62, t1: t + 0.9, kind: 'SIGHT', label: 'the thing in the air', because: m ? [{ id: m.id, latency: 0.62 }] : [] });
+  /* params.prop: the thing thrown is a staged prop (the take's 'prop:<id>'), carried in the hand through the wind-up and flown on a
+     parabola from the release to params.to (an actor's head, a hand 'hand:<id>:R', an anchor '@...', or a point) with params.off,
+     arc (rise over the chord, units) and spin (turns); params.fall: [{dt, to, off, arc, spin}] legs after the hit (a stool falling off
+     a shoulder to the floor); params.until: when the take's next key re-stages it. A PROP FLIGHT event on the PROP lane and a sheet
+     props event {op: 'fly'} that choreo.js plays */
+  const p = I.params || {};
+  if (p.prop) { const tr = X.r3(X.q(t + 0.62)), fl = p.flight || 0.32, legs = [{ t0: tr, t1: X.r3(tr + fl), to: p.to || I.target, off: p.off || [0, 0, 0], arc: p.arc ?? 14, spin: p.spin ?? 0.75 }];
+    let tt = tr + fl; for (const f of p.fall || []) { legs.push({ t0: X.r3(tt), t1: X.r3(tt + f.dt), to: f.to, off: f.off || [0, 0, 0], arc: f.arc ?? 4, spin: f.spin ?? 0.25 }); tt += f.dt; }
+    X.props.push({ t: X.r3(X.q(t)), op: 'fly', by: id, what: 'prop:' + p.prop, from: id + ':' + sd, hand: 'hand:' + id + ':' + sd, grip: p.grip || [0, 0, 0], legs, until: p.until != null ? X.r3(p.until) : null });
+    X.ev({ id: (p.releaseId || I.id) + ':flight', lane: 'PROP', actor: id, t0: tr, t1: X.r3(tt), kind: 'FLIGHT', label: 'the ' + p.prop + ' in the air', params: { prop: p.prop, legs }, because: m ? [{ id: m.id, latency: 0.62 }] : [] }); } };
 /* SWING {target, params.hit}: an ATTACK with a blade: the wind-up, the swing across, and then either IMPACT (a CONTACT; the target's
    own IMPACT intent follows it) or a MISS: the blade overtravels (the body turned past, an opening) - a STIMULUS the target can answer
    (the swing -> the duck -> the miss -> the overtravel -> the opening seen -> the advance) */
