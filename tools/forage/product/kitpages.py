@@ -275,7 +275,7 @@ WATCH = [
      'The Sirens, performed', 'Book XII from the engine\'s score, shot from the performance: the crew on one rowing clock, the wax, Odysseus bound and straining at the mast.'),
     ('../../films/odyssey/OD-B01-S03-performed.mp4', '../../films/odyssey/OD-B01-S03-performed.jpg', 'Film · performed',
      'The Gate, performed', 'Book I from the engine\'s score: Athena waits unseen, the knock, Telemachus rises, crosses, welcomes her, and the spear changes hands.'),
-    ('../making/index.html', '../../films/odyssey/takes/OD-B11-S07/take1.jpg', 'Behind the scenes',
+    ('../making/index.html', '../../films/odyssey/making-of.jpg', 'Behind the scenes',
      'How the Odyssey learned to act', 'The making of: the animatic where nobody moves, the cut, the acting, the engine, the re-shoots. Every take kept and shown side by side with what changed and why.'),
     ('../perform/camera.html', None, 'Engine · camera', 'The cinematographer', 'Shots chosen from the performance: the causal hot spot framed, cuts on heat moving, no camera inside the set, the giant from below.'),
     ('../creatures/index.html', '../creatures/media/ram-rider.jpg', 'Engine · creatures', 'The creature rigs', 'Polyphemus, the Laestrygonians, Scylla, rams, dogs, Argos, cattle, and Circe\'s beasts as jointed rigs with gaits, reach and grope.'),
