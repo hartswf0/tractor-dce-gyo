@@ -21,6 +21,7 @@ import geometry_compiler as G
 from catalogue import parse, placements
 import staging
 import odyssey_take   # the recorded performance joined to the location: voice, cast, bed, the Regulars' Cut
+import geo_split      # the locations' geometry as files beside the player, not inside it
 
 R = Path(__file__).parent; REPO = R.parent; OUT = R / 'production'
 G.ROOT = REPO / 'ldraw'                                   # the whole library, not the donor subset
@@ -236,6 +237,7 @@ if __name__ == '__main__':
     s = s.replace('window.ButterMovieatorIndex=[', 'window.ButterMovieatorIndex=[' + ','.join(json.dumps(m) for m in more) + (',' if more else ''), 1)
     payload = s.split('window.ButterFilmData=', 1)[1].split(';window.ButterAssemblyPlans=', 1)[0]
     films = json.loads(payload); films = entries + (films if KEEP_BASE else [])   # the Odyssey's locations only, unless --with-readymades
+    geo_split.split(entries, OUT)   # each location's geometry beside the player, production/geo/<id>.json.gz (geo_split.py)
     start = s.index('window.ButterFilmData='); end = s.index(';window.ButterAssemblyPlans=', start)
     s = s[:start] + 'window.ButterFilmData=' + json.dumps(films, separators=(',', ':')).replace('</', '<\\/') + s[end:]
     # the Odyssey cast in the character catalogue, their parts in the loader's cache
@@ -259,6 +261,7 @@ if __name__ == '__main__':
     css = '#locationReview{position:absolute;bottom:14px;left:14px;right:14px;z-index:42;background:#132320ed;border:1px solid #667b65;border-radius:9px;padding:8px 12px;color:#eaf0df;font:12px/1.4 system-ui;max-height:130px;overflow:auto}#locationReview[hidden],#locationView[hidden]{display:none!important}#locationReview>div{display:flex;align-items:center;gap:10px}#locationReview input{flex:1;min-width:20px;accent-color:#c4f46a}#locationReview p{margin:4px 0}#locationReview button{min-height:32px;min-width:32px}#locationView{max-width:145px}'
     s = s.replace('</body>', '<style>' + css + (R / 'odyssey-runtime.css').read_text() + '</style></body>')
     s = s.replace('<title>', '<title>Odyssey · ', 1)
+    s = geo_split.patch_loader(s)   # the player fetches a location's geometryUrl
     (OUT / 'Film-Butter-Odyssey.html.gz').write_bytes(gzip.compress(s.encode(), 9))   # the player, gzipped, behind a small loader page as Film-Butter-Readymades is
     stub = (OUT / 'Film-Butter-Readymades.html').read_text().replace('Film-Butter-Readymades.html.gz', 'Film-Butter-Odyssey.html.gz').replace('<title>Film Butter', '<title>Film Butter · Odyssey').replace('<h1>Film Butter', '<h1>Film Butter · Odyssey')
     (OUT / 'Film-Butter-Odyssey.html').write_text(stub)

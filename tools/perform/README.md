@@ -259,7 +259,9 @@ windows, and the creature stage that loads the rigs and hides the staged prop of
 3. Re-apply every patch, always, after any rebuild: `python3 film-readymades/patch_motion.py --take`. This one command embeds
    motion.js, choreo.js and creatures.js as their own scripts, refreshes the trailer runtime, and replaces the take block with the
    working-tree `film-readymades/odyssey-take.js` (the creature and choreography hooks live there; there is no separate creature
-   patch). It prints the size and fails if the .gz is 95 MB or more.
+   patch). It prints the size and fails if the .gz is 95 MB or more. Each location's geometry is not in the player but beside it,
+   `film-readymades/production/geo/<id>.json.gz`, fetched when the location loads (`film-readymades/geo_split.py`; the build
+   writes a file only when its location changed, so commit `production/geo/` with the player). The player is about 6 MB.
 4. Check: `curl -s localhost:8899/film-readymades/production/Film-Butter-Odyssey.html.gz | zcat | grep -c 'data-odyssey-creatures'`
    prints 1, and `grep -c creaturesStage` on the same stream prints at least 1.
 5. Delete the lock.
