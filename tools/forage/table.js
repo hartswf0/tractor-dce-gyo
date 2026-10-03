@@ -77,7 +77,7 @@ const EXTRA = {   // the thing a character is known by, in hand
   'character.odysseus': s => ({ ...s, L: ['4499', C.rbrown] }), 'character.odysseus-restored': s => ({ ...s, torso: '973p2z', top: C.silver, cape: C.dred, L: ['4499', C.rbrown] }),
   'character.odysseus-revealed': s => ({ ...s, L: ['4499', C.rbrown], back: ['4498', C.rbrown] }), 'character.penelope-at-the-loom': s => ({ ...s, R: ['4332', C.rbrown] }),
   'character.circe': s => ({ ...s, top: C.purple, R: ['36752a', C.gold], L: ['2343', C.gold] }), 'character.calypso': s => ({ ...s, top: C.dturq, R: ['2343', C.gold] }),
-  'character.eurycleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.woman, R: ['3899', C.white] }), 'character.argos': s => s,
+  'character.eurycleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.woman, R: ['3899', C.white] }), 'character.anticleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.woman, R: null }),   /* the mother among the dead (OD-B11-S04): a figure the rig can move, white-haired */ 'character.argos': s => s,
   'character.helen-at-the-horse': s => ({ ...s, R: ['95050', C.gold] }), 'character.nausicaa': s => ({ ...s, top: C.white, R: ['4332', C.tan] }),
   'character.eumaeus': s => ({ ...s, R: ['3957a', C.rbrown], back: null }), 'character.proteus': s => ({ ...s, top: C.sblue, face: FACE.white, beard: ['60750', C.white] }),
   'character.two-seized-sailors': s => s, 'character.eurymachus': s => ({ ...s, R: ['3847', C.lbg] }), 'character.amphinomus': s => ({ ...s, R: ['3847', C.lbg] }),   /* the swords they draw on the archer (Odyssey XXII) */ 'character.elpenor': s => ({ ...s, R: ['2542', C.rbrown] }),
