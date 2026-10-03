@@ -39,7 +39,7 @@ function kfCast(){return ButterCast.cast.map(a=>{const b=new THREE.Box3().setFro
 function kfPieces(){const A=filmAsset();return (A.pages||[]).map((pg,i)=>({label:pg.label,x:+A.rows[i].x.toFixed(1),z:+A.rows[i].z.toFixed(1),box:pg.box||null}));}
 /* the floor under a figure: the first surface below its knee (a deck, a crag, the plate), not a yard or a roof above it */
 function kfFloor(a){const r=a.rig,k=r.headP.getWorldScale(new THREE.Vector3()).y,meshes=[],figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
-  const ray=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+40*k,r.pos.z),new THREE.Vector3(0,-1,0));ray.far=400;const h=ray.intersectObjects(meshes,true)[0];return h?h.point.y:r.pos.y;}
+  const ray=new THREE.Raycaster(new THREE.Vector3(r.pos.x,Math.max(r.pos.y,0)+40*k,r.pos.z),new THREE.Vector3(0,-1,0));ray.far=400;   /* from above the floor even when the figure was last sat on it (its root below the floor) */const h=ray.intersectObjects(meshes,true)[0];return h?h.point.y:r.pos.y;}
 /* a crowd given room: figures nearer than min (world units) are pushed apart, evenly, until none are, then stood on their floor */
 function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includes(kfShort(a.kind)));
   for(let it=0;it<60;it++){let moved=false;for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const p=acts[i].rig.pos,q=acts[j].rig.pos,dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);

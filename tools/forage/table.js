@@ -80,7 +80,7 @@ const EXTRA = {   // the thing a character is known by, in hand
   'character.eurycleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.woman, R: ['3899', C.white] }), 'character.argos': s => s,
   'character.helen-at-the-horse': s => ({ ...s, R: ['95050', C.gold] }), 'character.nausicaa': s => ({ ...s, top: C.white, R: ['4332', C.tan] }),
   'character.eumaeus': s => ({ ...s, R: ['3957a', C.rbrown], back: null }), 'character.proteus': s => ({ ...s, top: C.sblue, face: FACE.white, beard: ['60750', C.white] }),
-  'character.two-seized-sailors': s => s, 'character.elpenor': s => ({ ...s, R: ['2542', C.rbrown] }),
+  'character.two-seized-sailors': s => s, 'character.eurymachus': s => ({ ...s, R: ['3847', C.lbg] }), 'character.amphinomus': s => ({ ...s, R: ['3847', C.lbg] }),   /* the swords they draw on the archer (Odyssey XXII) */ 'character.elpenor': s => ({ ...s, R: ['2542', C.rbrown] }),
 };
 /* a giant is built, not worn: a brick figure three minifigures tall, legs bonded into a tunic, arms bonded into the chest,
    a head with one great eye for the Cyclops; the stud grid holds it (the DSL bonds the courses) */
