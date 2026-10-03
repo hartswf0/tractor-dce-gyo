@@ -41,7 +41,7 @@ module.exports = function author(M, X) {
   /* ── the weeping ── */
   const tWeep = q(W('K3')[0]);
   I({ id: 'pBow', actor: P, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: B, label: 'the head goes down, the hands to her face', because: [{ id: 'sBrooch', latency: 0.5 }] });
-  I({ id: 'pWeep', actor: P, kind: 'WEEP', t0: tWeep, t1: q(W('K4')[0] - 0.9), label: 'she weeps, as the snow the west wind piles melts on the high mountains and the rivers run full', params: { side: 'R', rate: 2.4, stay: true, pitch: -1.9, out: -0.3, head: 0.35, lean: 0.2 }, because: [{ id: 'sBrooch' }, { id: 'v' + c3.gi, rel: 'realises' }] });
+  I({ id: 'pWeep', actor: P, kind: 'WEEP', t0: tWeep, t1: q(W('K4')[0] - 0.9), label: 'she weeps, as the snow the west wind piles melts on the high mountains and the rivers run full', params: { side: 'R', rate: 2.4, stay: true, pitch: -1.85, out: 0, head: 0.35, lean: 0.2 }, because: [{ id: 'sBrooch' }, { id: 'v' + c3.gi, rel: 'realises' }] });
   stimuli.push({ id: 'sSob', t0: q(tWeep + 0.8), t1: q(tWeep + 1.3), kind: 'SOUND', label: 'her weeping', actor: P, because: [{ id: 'pWeep' }] });
   H({ id: 'hB1', actor: B, t0: q(c2.at + c2.dur + 0.1), t1: q(tWeep + 0.9), reason: 'he has said it all: he watches it reach her', params: { look: [[P, 3.0]], weight: true }, because: [{ id: 'bDescribe' }] });
   H({ id: 'hB2', actor: B, t0: q(tWeep + 1.0), t1: q(W('K4')[0] + 0.2), reason: 'he pities his wife weeping for him beside him, and keeps his eyes as hard as horn or iron, unmoving under the lids', params: { look: [[P, 4.0]], weight: true, still: true }, because: [{ id: 'sSob' }] });
