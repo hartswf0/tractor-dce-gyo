@@ -1,0 +1,741 @@
+{
+ "scene": "OD-B23-S04",
+ "mode": "cut",
+ "fps": 12,
+ "size": [
+  1280,
+  720
+ ],
+ "seconds": 45.5,
+ "frames": 546,
+ "from": 0,
+ "take": {
+  "follow": [],
+  "scene": "OD-B23-S04",
+  "mode": "cut",
+  "total": 45.53,
+  "direction": {
+   "sign": "Sb",
+   "shot_bias": {
+    "WIDE": 0.12,
+    "MID": 0.12,
+    "CLOSE": 0.37,
+    "OBJ": 0.39
+   },
+   "hold_min_s": 4,
+   "move": "push",
+   "empty_frame": false,
+   "sound_forward": false,
+   "cut_rhythm": "slow",
+   "insert_object": "the olive bed",
+   "subject": "penelope",
+   "book_tempo": "slow",
+   "tempo_conflict": false
+  },
+  "cut": null,
+  "keys": [
+   {
+    "id": "K1",
+    "t": 0
+   },
+   {
+    "id": "K2",
+    "t": 5.77,
+    "win": [
+     4.79,
+     6.19
+    ]
+   },
+   {
+    "id": "K3",
+    "t": 18.98,
+    "win": [
+     18,
+     19.4
+    ]
+   },
+   {
+    "id": "K4",
+    "t": 30.32,
+    "win": [
+     29.34,
+     30.74
+    ]
+   },
+   {
+    "id": "K5",
+    "t": 35.17,
+    "win": [
+     33.77,
+     35.77
+    ]
+   }
+  ],
+  "faces": [
+   "penelope",
+   "odysseus",
+   "eurycleia"
+  ],
+  "shots": {
+   "INSERT": 1,
+   "WIDE": 1,
+   "HOT": 1,
+   "ACTION": 3
+  },
+  "cine": {
+   "time": {
+    "grid": 1.5,
+    "inside": 0.4,
+    "seen": 7.1,
+    "clutter": 2,
+    "pose": 0
+   },
+   "scene": "OD-B23-S04",
+   "media": "hot",
+   "direction": {
+    "shot_bias": {
+     "WIDE": 0.12,
+     "MID": 0.12,
+     "CLOSE": 0.37,
+     "OBJ": 0.39
+    },
+    "hold_min_s": 4,
+    "move": "push",
+    "empty_frame": false,
+    "sound_forward": false,
+    "cut_rhythm": "slow",
+    "insert_object": "the olive bed",
+    "subject": "penelope",
+    "book_tempo": "slow",
+    "tempo_conflict": false
+   },
+   "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
+   "solvedIn": 86.4,
+   "shots": [
+    {
+     "i": 0,
+     "t0": 0,
+     "t1": 9.33,
+     "kind": "INSERT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "penelope",
+     "subjects": [
+      "penelope",
+      "odysseus",
+      "eurycleia"
+     ],
+     "why": {
+      "cut": "the scene opens",
+      "rule": "R6 insert_object \"the olive bed\" at its hottest (0 s)",
+      "heat": 0.89,
+      "contrast": 0.47,
+      "hot": "penelope"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -288.9,
+       96.2,
+       155.8
+      ],
+      "fov": 60,
+      "key": false,
+      "az": 5.11,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L2 body": 1,
+      "L2 penelope hidden": 93,
+      "L4 foreground covers n%": 17,
+      "L1 near plane in a set part": 11,
+      "L3 face": 5
+     },
+     "candidates": 256,
+     "legalCandidates": 129,
+     "samples": [
+      4.67,
+      0.1,
+      9.23
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 0.85,
+     "headV": 0.422,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.186,
+      "sd": 0.237,
+      "dark": 0.59,
+      "white": 0,
+      "one": 0.54
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 1,
+     "t0": 9.33,
+     "t1": 19.42,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "penelope",
+      "eurycleia"
+     ],
+     "why": {
+      "cut": "heat moves: penelope -> odysseus",
+      "rule": "R4 cold: hold wide",
+      "heat": 0.21,
+      "contrast": 0.04,
+      "hot": "odysseus"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -135.6,
+       130.2,
+       247.4
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L2 odysseus hidden": 76,
+      "L4 foreground covers n%": 21,
+      "L1 near plane in a set part": 11,
+      "L2 body": 1,
+      "L3 head": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 145,
+     "samples": [
+      14.38,
+      9.43,
+      19.32
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.405,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.295,
+      "sd": 0.262,
+      "dark": 0.39,
+      "white": 0.01,
+      "one": 0.49
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 2,
+     "t0": 19.42,
+     "t1": 26.13,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "CLOSE",
+     "eased": "penelope cannot be framed legally from anywhere: the shot goes to odysseus (penelope in frame if seen)",
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "penelope"
+     ],
+     "why": {
+      "cut": "heat moves: odysseus -> penelope",
+      "rule": "R1 the hot spot penelope (heat 0.53, contrast 0.42): CLOSE by the direction's bias",
+      "heat": 0.53,
+      "contrast": 0.42,
+      "hot": "penelope"
+     },
+     "line": [
+      "odysseus",
+      "penelope"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -103.3,
+       87.9,
+       372.5
+      ],
+      "fov": 51,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 90,
+      "L2 odysseus hidden": 126,
+      "L4 foreground covers n%": 19,
+      "L2 body": 4,
+      "L1 near plane in a set part": 12
+     },
+     "candidates": 256,
+     "legalCandidates": 5,
+     "samples": [
+      22.77,
+      19.52,
+      26.03
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.48,
+     "headV": 0.345,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.322,
+      "sd": 0.247,
+      "dark": 0.32,
+      "white": 0.01,
+      "one": 0.54
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 3,
+     "t0": 26.13,
+     "t1": 30.94,
+     "kind": "ACTION",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "penelope",
+     "subjects": [
+      "penelope",
+      "odysseus"
+     ],
+     "why": {
+      "cut": "cut on the action: EMBRACE (c1055)",
+      "rule": "R2 the contact c1055 (EMBRACE: her arms round his neck) with every figure it names",
+      "heat": 3,
+      "contrast": 1.35,
+      "hot": "penelope"
+     },
+     "line": [
+      "penelope",
+      "odysseus"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       144.3,
+       138.5,
+       -20
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 1.96,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L5 across the line",
+     "rejected": {
+      "L5 across the line": 149,
+      "L1 near plane in a set part": 4,
+      "L4 foreground covers n%": 2,
+      "L1 in eurycleia": 2,
+      "L2 the contact hidden": 19,
+      "L1 too near the face": 2
+     },
+     "candidates": 257,
+     "legalCandidates": 79,
+     "samples": [
+      28.54,
+      26.23,
+      30.84,
+      26.33
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.93,
+     "headV": 0.269,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.237,
+      "sd": 0.248,
+      "dark": 0.47,
+      "white": 0,
+      "one": 0.37
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 30.94,
+     "t1": 36.42,
+     "kind": "ACTION",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "penelope"
+     ],
+     "why": {
+      "cut": "cut on the action: HOLD (c1065)",
+      "rule": "R2 the contact c1065 (HOLD: his hand on her shoulder while she speaks) with every figure it names",
+      "heat": 2.74,
+      "contrast": 0.46,
+      "hot": "penelope"
+     },
+     "line": [
+      "odysseus",
+      "penelope"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       85.8,
+       105.1,
+       -16.8
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 2.36,
+      "travelling": true
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L2 the contact hidden": 69,
+      "L1 near plane in a set part": 27,
+      "L2 body": 1,
+      "L3 face": 5,
+      "L1 too near the face": 5,
+      "L3 head": 11,
+      "L4 an empty frame (n% sky)": 1,
+      "L2 odysseus hidden": 29,
+      "L4 foreground covers n%": 8
+     },
+     "candidates": 257,
+     "legalCandidates": 101,
+     "samples": [
+      33.68,
+      31.04,
+      36.32,
+      31.14
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.97,
+     "headV": 0.356,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.237,
+      "sd": 0.272,
+      "dark": 0.52,
+      "white": 0,
+      "one": 0.48
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 5,
+     "t0": 36.42,
+     "t1": 45.53,
+     "kind": "ACTION",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "penelope"
+     ],
+     "why": {
+      "cut": "cut on the action: EMBRACE (c1071)",
+      "rule": "R2 the contact c1071 (EMBRACE: holding each other a long time) with every figure it names",
+      "heat": 1.76,
+      "contrast": 0.31,
+      "hot": "odysseus"
+     },
+     "line": [
+      "odysseus",
+      "penelope"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -164.5,
+       101.3,
+       -79.6
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 4.71,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L2 the contact hidden by penelope",
+     "rejected": {
+      "L2 the contact hidden": 62,
+      "L1 near plane in a set part": 14,
+      "L2 odysseus hidden": 21,
+      "L4 foreground covers n%": 7,
+      "L1 too near the face": 4
+     },
+     "candidates": 257,
+     "legalCandidates": 149,
+     "samples": [
+      40.98,
+      36.52,
+      45.43,
+      36.62
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.324,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.277,
+      "sd": 0.256,
+      "dark": 0.36,
+      "white": 0,
+      "one": 0.36
+     },
+     "lumaRefused": 0
+    }
+   ]
+  },
+  "clips": [
+   {
+    "gi": 2,
+    "at": 0.6,
+    "dur": 4.72,
+    "kind": "DIALOGUE",
+    "key": "K1",
+    "speaker": "penelope",
+    "addressee": "eurycleia"
+   },
+   {
+    "gi": 3,
+    "at": 5.77,
+    "dur": 12.76,
+    "kind": "AUDITORY_ACTION",
+    "key": "K2",
+    "speaker": "odysseus",
+    "addressee": "penelope"
+   },
+   {
+    "gi": 4,
+    "at": 18.98,
+    "dur": 5.16,
+    "kind": "NARRATION",
+    "key": "K3",
+    "speaker": null,
+    "addressee": "penelope"
+   },
+   {
+    "gi": 5,
+    "at": 24.59,
+    "dur": 5.28,
+    "kind": "AUDITORY_ACTION",
+    "key": "K3",
+    "speaker": "penelope",
+    "addressee": "odysseus"
+   },
+   {
+    "gi": 7,
+    "at": 30.32,
+    "dur": 4.4,
+    "kind": "DIALOGUE",
+    "key": "K4",
+    "speaker": "penelope",
+    "addressee": "odysseus"
+   },
+   {
+    "gi": 8,
+    "at": 35.17,
+    "dur": 9.76,
+    "kind": "AUDITORY_ACTION",
+    "key": "K5",
+    "speaker": null,
+    "addressee": "penelope"
+   }
+  ]
+ },
+ "shots": [
+  {
+   "t": 0,
+   "shot": "c0:INSERT:CLOSE",
+   "kind": "INSERT",
+   "key": "K1"
+  },
+  {
+   "t": 9.333,
+   "shot": "c1:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K2"
+  },
+  {
+   "t": 19.5,
+   "shot": "c2:HOT:MID",
+   "kind": "HOT",
+   "key": "K3"
+  },
+  {
+   "t": 26.167,
+   "shot": "c3:ACTION:WIDE",
+   "kind": "ACTION",
+   "key": "K3"
+  },
+  {
+   "t": 31,
+   "shot": "c4:ACTION:WIDE",
+   "kind": "ACTION",
+   "key": "K4"
+  },
+  {
+   "t": 36.5,
+   "shot": "c5:ACTION:WIDE",
+   "kind": "ACTION",
+   "key": "K5"
+  }
+ ],
+ "sound": {
+  "total": 45.53,
+  "voice": {
+   "file": "odyssey/take/voice/OD-B23-S04.m4a",
+   "clips": [
+    {
+     "at": 0.6,
+     "start": 6.78,
+     "dur": 4.72
+    },
+    {
+     "at": 5.77,
+     "start": 11.86,
+     "dur": 12.76
+    },
+    {
+     "at": 18.98,
+     "start": 24.92,
+     "dur": 5.16
+    },
+    {
+     "at": 24.59,
+     "start": 30.5,
+     "dur": 5.28
+    },
+    {
+     "at": 30.32,
+     "start": 37.88,
+     "dur": 4.4
+    },
+    {
+     "at": 35.17,
+     "start": 42.64,
+     "dur": 9.76
+    }
+   ]
+  },
+  "bed": {
+   "file": "odyssey/take/bed/bronze-council-23.ogg",
+   "open": 0.18,
+   "duck": 0.1,
+   "ramp": 0.15,
+   "offset": 106.77
+  },
+  "forward": false,
+  "spans": [
+   {
+    "at": 0.6,
+    "dur": 4.72
+   },
+   {
+    "at": 5.77,
+    "dur": 12.76
+   },
+   {
+    "at": 18.98,
+    "dur": 5.16
+   },
+   {
+    "at": 24.59,
+    "dur": 5.28
+   },
+   {
+    "at": 30.32,
+    "dur": 4.4
+   },
+   {
+    "at": 35.17,
+    "dur": 9.76
+   }
+  ]
+ },
+ "choreo": {
+  "format": "odyssey-choreo/1",
+  "layer": "add",
+  "actors": 3,
+  "cues": 73,
+  "generated": {
+   "by": "tools/perform/compile.js",
+   "from": "odyssey/score/OD-B23-S04.json",
+   "note": "the performance engine's body score: every key caused by an intent in the score; hand keys go in overrides"
+  }
+ }
+}
