@@ -100,6 +100,9 @@ def scene(sid):
     if sid == 'OD-B25-S02':   # the restart: the power goes 1.9 s before "the lights", comes back 1.7 s before "nothing is lost"
         k4 = next(s for s in segs if s['key'] == 'K4')['start']; down = by(10) - 1.9; up = by(12) - 1.7
         ev = {'hum': [(k4 - 2.2, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
+    if sid == 'OD-B25-S06':   # the loom at night: the farm's hum while the agents run; the cap stops the run 1.2 s before "the run stops"; the next run starts 1.6 s before the sweeper speaks
+        down = by(3) - 1.2; up = by(4) - 1.6
+        ev = {'hum': [(0.0, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
     bfile = bed(sid, total, ev)
     take = dict(scene=sid, title=sc['title'], book=25, bookTitle='The making of the LEGO Odyssey',
                 voice=dict(file=f'odyssey/take/voice/{sid}.m4a', total=total, seconds=total, hz=50, env=envelope(y), segments=segs),
