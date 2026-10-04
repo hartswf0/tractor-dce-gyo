@@ -28,11 +28,14 @@ SPECIAL = {
                 ('K6', 'g12', 'WIDE', ['agent', 'odysseus'], 'the power back: the towers lit again')],
  'OD-B25-S03': [(0, 'g1', 'WIDE', ['agent', 'director', 'cinematographer'], 'the block of the player against the 95 MB wall, too tall for the gate'),
                 ('g3+', 'g4', 'MID', ['agent'], 'the block split: the agent carries one small brick through the gate')],
- 'OD-B25-S04': [(0, 'g0+', 'MID', ['director', 'examiner'], 'the examiner at the ledger, the glass over the page, the director by her'),
+ 'OD-B25-S04': [('g4', 'g4+', 'WIDE', ['examiner', 'director', 'agent'], 'the glass held to the reels: the hashes, the crew round her'),
+                ('g6', 'g6+', 'MID', ['director', 'examiner'], 'the director answers the gap'),
+                (0, 'g0+', 'MID', ['director', 'examiner'], 'the examiner at the ledger, the glass over the page, the director by her'),
                 ('g9+', 'g11', 'MID', ['director', 'agent', 'examiner', 'odysseus'], 'the camera turned on the crew: the film is about them'),
                 ('g11', 'end', 'WIDE', ['director', 'agent', 'examiner', 'odysseus'], 'action called on the crew itself: the last shot holds them, looking into the lens')],
 }
 
+NOLINE = {'OD-B25-S04'}   # a crowd round one figure: no 180-degree line, so the solver may take the side the faces are on
 def build(sid):
     tk = json.loads((REPO / 'odyssey/take/making' / (sid + '.json')).read_text())
     plan_f = REPO / 'tools/cinematographer/plans' / (sid + '.json'); P = json.loads(plan_f.read_text())
@@ -49,7 +52,7 @@ def build(sid):
     def add(t0, t1, size, subj, why, line=None, kind=None):
         if t1 - t0 < 0.3: return
         shots.append(dict(t0=round(t0, 3), t1=round(t1, 3), kind=kind or ('WIDE' if size == 'WIDE' else 'HOT'), size=size, subjects=subj, primary=subj[0], aim='head',
-                          line=line, angle='eye', lens='normal', beat=keyAt(t0 + 0.05), why=dict(cut='hand', rule='hand: ' + why)))
+                          line=None if sid in NOLINE else line, angle='eye', lens='normal', beat=keyAt(t0 + 0.05), why=dict(cut='hand', rule='hand: ' + why)))
     # the conversation: each line on its speaker; the gaps (walks, acts) wide
     last = {}; t = 0.0
     for i, s in enumerate(segs):

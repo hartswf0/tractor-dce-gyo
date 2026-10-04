@@ -143,7 +143,7 @@ SC[sid] = [
  key('K6', B(examiner=fig('examiner', 130, 60, face=(-120, -60), props=True), director=fig('director', 40, 40, face=(-120, -60), props=False),
              agent=fig('agent', 85, 50, face=(-120, -60), props=False), odysseus=fig('odysseus', 175, 70, face=(-120, -60), props=True),
              cinematographer=fig('cinematographer', -180, -94, face=(60, 50), props=False)),
-     [x for x in pr if x['id'] != 'camera'] + [CAMERA(-120, -60, AIM(-120, -60, 90, 50))], DAY, cam((-230, 120, -170), (60, 80, 50), 46),
+     [x for x in pr if x['id'] != 'camera'] + [CAMERA(-120, -60, AIM(-120, -60, 90, 50))], DAY, cam((-190, 125, -105), (70, 70, 40), 40),
      [dict(id='director', primary=True, face=True), dict(id='agent', soft=True), dict(id='examiner', soft=True)], beat(sid, 'K6')),
 ]
 
