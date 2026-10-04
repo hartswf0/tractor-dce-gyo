@@ -160,6 +160,13 @@ def loom():
             rows.append('1 %d %s %s %s %s %s' % (col, f(x + fx), f(fy), f(z0 + 45 + fz), ' '.join(parts[5:14]), parts[14]))
     return rows
 
+def speaker():
+    """the loudspeaker the mandates come from (part two): a black 2 x 2 box two bricks high with a dark grey round grille facing the room,
+    on a pole of round 1 x 1 bricks at the back of the studio, beside the painted flat"""
+    x, z = -30, 290; rows = [L(0, x, -24 * (k + 1), z, '3062b.dat') for k in range(6)]
+    rows += [L(0, x, -168, z, '3003.dat'), L(0, x, -192, z, '3003.dat'), L(72, x, -180, z - 22, '4032a.dat', (1, 0, 0, 0, 0, -1, 0, 1, 0))]
+    return rows
+
 def lamps():
     rows = []
     for x, z in ((-400 + 30, 60), (-30, 300)):
@@ -201,14 +208,17 @@ CAST = [  # (file name, who, note, at x, z, facing y-turn, rows)
 # part two: the sweeper, the agent that commits a book (the halfworld's per-book sweep): the agent's orange, a cap, a broom
 SWEEPER = ('sweeper', 'THE SWEEPER', 'the agent that sweeps a book into the record: orange torso, dark grey cap, a broom', 300, -120, 0,
            figure('973', 402, 72, 72, '3626bp01', '4485b', 72, held=('4332', 6, -34)))
-def cast_of(sid): return CAST + [SWEEPER] if sid in PART2 else CAST
+# part two: the First AD (the parent session, after the writers' room bible): navy, headphones, a clipboard (a white 2 x 2 tile)
+FIRSTAD = ('firstad', 'THE FIRST AD', 'the first assistant director: navy jacket, headphones, a clipboard', -10, -140, 0,
+           figure('973', 272, 72, 72, '3626bp01', '14045', 0, held=('3068b', 15, 0)))
+def cast_of(sid): return CAST + [SWEEPER, FIRSTAD] if sid in PART2 else CAST
 
 def block(name, title, rows): return f'0 FILE {name}\n0 {title}\n0 Name: {name}\n' + HEAD + '\n' + '\n'.join(rows) + '\n'
 
 def card(sid):
     P = lambda n: f'{sid} - {n}.ldr'
     pieces = [('floor', floor()), ('little-set', little_set()), ('chair', chair()), ('desk', desk()), ('farm', farm()), ('wall', big_wall()),
-              ('shelf', shelf()), ('lectern', lectern()), ('lamps', lamps())] + ([('loom', loom())] if sid in PART2 else [])
+              ('shelf', shelf()), ('lectern', lectern()), ('lamps', lamps())] + ([('loom', loom()), ('speaker', speaker())] if sid in PART2 else [])
     cast = cast_of(sid)
     plate = [L(72, 0, 8, 0, '3958.dat')]   # a 6 x 6 plate under the floor's middle: the card's plate (the floor is the set)
     out = [block(f'{sid}.ldr', TITLES[sid], ['0 // card', '1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P('plate'), '0 STEP', '1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P('the-studio-scene'), '0 STEP'])]

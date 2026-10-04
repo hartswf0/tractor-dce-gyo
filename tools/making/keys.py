@@ -158,98 +158,103 @@ CARD = dict(name='promptCard', id='card', after=True, aim=dict(to='hand:agent:R'
 SHEET_HELD = dict(name='halftone', id='sheet', after=True, scale=0.6, aim=dict(to='hand:agent:R', anchor='centre', dir=[0, -1, 0]))
 def base2(**d):
     b = dict(director=fig('director', 0, 0, absent=True), agent=fig('agent', 0, 0, absent=True), cinematographer=fig('cinematographer', 0, 0, absent=True),
-             odysseus=fig('odysseus', 0, 0, absent=True), examiner=fig('examiner', 0, 0, absent=True), sweeper=fig('sweeper', 0, 0, absent=True))
+             odysseus=fig('odysseus', 0, 0, absent=True), examiner=fig('examiner', 0, 0, absent=True), sweeper=fig('sweeper', 0, 0, absent=True),
+             firstad=fig('firstad', 0, 0, absent=True))
     b.update(d); return b
 def B2(base, **over): d = dict(base); d.update(over); return list(d.values())
 
 # ---- 5: the card and the atlas ----
+SPK = dict(name='speaker', at=None)   # the loudspeaker is set (studio.py speaker()), at x -30, z 290, about 190 up
 sid = 'OD-B25-S05'
+AD = lambda x, z, face, **kw: fig('firstad', x, z, face=face, props=True, **kw)
 base = base2(examiner=fig('examiner', *EXL, face=LEDGER, pose={'armRP': [-1.2, 0, 0]}, props=True), director=fig('director', -215, -125, face=EXL, props=False),
              agent=fig('agent', *DESK_A, face=(160, 0), props=False), cinematographer=fig('cinematographer', -150, -60, face=(-215, -125), props=False),
-             odysseus=fig('odysseus', *O_SET, face=(-215, -125), props=True))
+             odysseus=fig('odysseus', *O_SET, face=(-215, -125), props=True), firstad=AD(-170, -175, (-215, -125)))
 pr = SET_PROPS + [RAM(), CAMERA(*CAM0, AIM(*CAM0, *O_SET)), prop('reels17', 90, 290, h=48, floor=False, pid='kept')]
+SHEET = prop('halftone', -300, -200, h=64, floor=False, scale=0.6)
 SC[sid] = [
- key('K1', B2(base), pr, DAY2, cam((-120, 110, -60), (-290, 80, -190), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
- key('K2', B2(base, agent=fig('agent', -140, -165, face=(-215, -125), pose={'armRP': [-1.3, 0, 0]}, props=False), director=fig('director', -215, -125, face=(-140, -165), props=False)),
-     pr + [CARD], DAY2, cam((-90, 110, -300), (-200, 80, -130), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K2')),
- key('K3', B2(base, agent=fig('agent', -160, -150, face=(-215, -125), props=False), director=fig('director', -215, -125, face=(-160, -150), props=False),
-             examiner=fig('examiner', -240, -140, face=(-160, -150), props=True)),
-     pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-40, 100, -260), (-200, 80, -140), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
- key('K4', B2(base, agent=fig('agent', -160, -160, face=(-240, -140), props=False), director=fig('director', -205, -110, face=(-240, -140), props=False),
-             examiner=fig('examiner', -240, -140, face=(-215, -125), props=True)),
-     pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-140, 100, -320), (-250, 80, -160), 42), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
- key('K5', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM, props=False),
-             examiner=fig('examiner', -200, -230, face=LOOM, props=True), cinematographer=fig('cinematographer', -150, -170, face=LOOM, props=False)),
-     pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-60, 120, -390), (40, 70, -210), 46),
-     [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
+ key('K1', B2(base), pr, DAY2, cam((-120, 110, -330), (-230, 80, -150), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
+ key('K2', B2(base, agent=fig('agent', -115, -195, face=(-170, -175), pose={'armRP': [-1.3, 0, 0]}, props=False), firstad=AD(-170, -175, (-115, -195)),
+             director=fig('director', -215, -125, face=(-115, -195), props=False)),
+     pr + [CARD], DAY2, cam((-60, 110, -330), (-160, 80, -160), 44), [dict(id='agent', primary=True, face=True), dict(id='firstad', soft=True)], beat(sid, 'K2')),
+ key('K3', B2(base, agent=fig('agent', -115, -195, face=(-215, -125), props=False), director=fig('director', -215, -125, face=(-115, -195), props=False),
+             examiner=fig('examiner', -240, -140, face=(-215, -125), props=True), firstad=AD(-170, -175, (-215, -125))),
+     pr + [SHEET], DAY2, cam((-80, 100, -330), (-200, 80, -150), 44), [dict(id='examiner', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K3')),
+ key('K4', B2(base, agent=fig('agent', -115, -200, face=(-165, -175), props=False), director=fig('director', -205, -110, face=(-165, -175), props=False),
+             examiner=fig('examiner', -240, -140, face=(-205, -110), props=True), firstad=AD(-165, -175, (-205, -110))),
+     pr + [SHEET], DAY2, cam((-60, 100, -330), (-180, 80, -150), 44), [dict(id='firstad', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
+ key('K5', B2(base, agent=fig('agent', *LOOM_L, face=LOOM, props=False), firstad=AD(-130, -268, (-70, -250)), director=fig('director', -160, -215, face=LOOM, props=False),
+             examiner=fig('examiner', -210, -235, face=LOOM, props=True), cinematographer=fig('cinematographer', -165, -160, face=LOOM, props=False)),
+     pr + [SHEET], DAY2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='firstad', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K5')),
 ]
 # ---- 6: the loom at night; the cap; the sweeper; the skip list ----
 sid = 'OD-B25-S06'
 S_IN = (240, -265); HEAP = (185, -262)
-base = base2(agent=fig('agent', *LOOM_L, face=(-140, -235), props=False), director=fig('director', -140, -235, face=LOOM_L, props=False),
-             examiner=fig('examiner', *EXL, face=LOOM, props=True), sweeper=fig('sweeper', 265, -90, face=LOOM, props=True))
+base = base2(agent=fig('agent', *LOOM_L, face=LOOM, props=False), director=fig('director', -165, -220, face=(-120, -265), props=False),
+             firstad=AD(-120, -265, (-165, -220)), examiner=fig('examiner', *EXL, face=LOOM, props=True), sweeper=fig('sweeper', 265, -90, face=LOOM, props=True))
 pr = SET_PROPS + [RAM(), CAMERA(*CAM0, AIM(*CAM0, *O_SET))]
 SC[sid] = [
- key('K1', B2(base), pr, NIGHT2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
- key('K2', B2(base, agent=fig('agent', *LOOM_L, face=LOOM, props=False), director=fig('director', -140, -235, face=LOOM, props=False)), pr, DARK2,
-     cam((0, 120, -390), (80, 70, -200), 46), [dict(id='agent', primary=True)], beat(sid, 'K2')),
+ key('K1', B2(base), pr, NIGHT2, cam((-60, 120, -390), (0, 70, -220), 46), [dict(id='firstad', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
+ key('K2', B2(base), pr, DARK2, cam((0, 120, -390), (80, 70, -200), 46), [dict(id='agent', primary=True)], beat(sid, 'K2')),
  key('K3', B2(base, sweeper=fig('sweeper', *S_IN, face=HEAP, props=True), examiner=fig('examiner', 100, -305, face=S_IN, props=True),
-             agent=fig('agent', *LOOM_L, face=S_IN, props=False), director=fig('director', -140, -235, face=S_IN, props=False)),
+             firstad=AD(-120, -265, S_IN), director=fig('director', -165, -220, face=S_IN, props=False)),
      pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((120, 110, -390), (200, 70, -250), 44), [dict(id='sweeper', primary=True, face=True), dict(id='examiner', soft=True)], beat(sid, 'K3')),
- key('K4', B2(base, sweeper=fig('sweeper', *S_IN, face=(40, -285), props=True), examiner=fig('examiner', 100, -305, face=S_IN, props=True),
-             agent=fig('agent', 40, -285, face=(-140, -235), props=False), director=fig('director', -140, -235, face=(40, -285), props=False)),
-     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-20, 110, -390), (40, 70, -250), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
- key('K5', B2(base, sweeper=fig('sweeper', *S_IN, face=(40, -285), props=True), examiner=fig('examiner', 100, -305, face=(40, -285), props=True),
-             agent=fig('agent', 40, -285, face=(-140, -235), props=False), director=fig('director', -90, -260, face=(40, -285), props=False)),
-     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
+ key('K4', B2(base, sweeper=fig('sweeper', *S_IN, face=(-120, -265), props=True), examiner=fig('examiner', 100, -305, face=(-120, -265), props=True),
+             firstad=AD(-120, -265, (-165, -220)), director=fig('director', -165, -220, face=(-120, -265), props=False)),
+     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-20, 110, -390), (40, 70, -250), 44), [dict(id='firstad', primary=True, face=True), dict(id='sweeper', soft=True)], beat(sid, 'K4')),
+ key('K5', B2(base, sweeper=fig('sweeper', *S_IN, face=(-70, -250), props=True), examiner=fig('examiner', 100, -305, face=(-70, -250), props=True),
+             agent=fig('agent', *LOOM_L, face=(-120, -265), props=False), firstad=AD(-120, -265, (-70, -250)), director=fig('director', -165, -220, face=(-70, -250), props=False)),
+     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='agent', primary=True, face=True), dict(id='firstad', soft=True)], beat(sid, 'K5')),
 ]
 # ---- 7: the voices ----
 sid = 'OD-B25-S07'
-base = base2(director=fig('director', -90, 40, face=O_SET, props=False), odysseus=fig('odysseus', -205, 150, face=(-90, 40), props=True),
+base = base2(director=fig('director', -90, 40, face=O_SET, props=False), firstad=AD(-40, 0, (-90, 40)), odysseus=fig('odysseus', -205, 150, face=(-90, 40), props=True),
              agent=fig('agent', *DESK_A, face=(160, 0), props=False), cinematographer=fig('cinematographer', -205, -40, face=O_SET, props=False),
-             examiner=fig('examiner', -100, -60, face=O_SET, props=True))
+             examiner=fig('examiner', -110, -60, face=O_SET, props=True))
 pr = SET_PROPS + [RAM(), CAMERA(-170, 20, AIM(-170, 20, -205, 150))]
 SC[sid] = [
  key('K1', B2(base), pr, DAY, cam((-20, 120, -120), (-170, 70, 100), 44), [dict(id='odysseus', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
- key('K2', B2(base, agent=fig('agent', -30, 60, face=(-90, 40), props=False), director=fig('director', -90, 40, face=(-30, 60), props=False)), pr, DAY,
+ key('K2', B2(base, agent=fig('agent', -20, 70, face=(-90, 40), props=False), director=fig('director', -90, 40, face=(-20, 70), props=False)), pr, DAY,
      cam((40, 110, -60), (-60, 70, 60), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K2')),
- key('K3', B2(base, agent=fig('agent', -30, 60, face=(-205, -40), props=False), director=fig('director', -90, 40, face=(-30, 60), props=False),
-             cinematographer=fig('cinematographer', -180, -60, face=(-30, 60), props=False)), pr, DAY,
-     cam((0, 110, -160), (-110, 70, 20), 44), [dict(id='agent', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K3')),
- key('K4', B2(base, agent=fig('agent', -30, 60, face=(-100, -40), props=False), director=fig('director', -90, 40, face=(-100, -40), props=False),
-             cinematographer=fig('cinematographer', -180, -60, face=(-100, -40), props=False), examiner=fig('examiner', -100, -40, face=(-90, 40), props=True)), pr, DAY,
-     cam((-40, 100, -170), (-120, 70, 0), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
- key('K5', B2(base, agent=fig('agent', -30, 60, face=(-100, -40), props=False), director=fig('director', -90, 40, face=(-100, -40), props=False),
-             cinematographer=fig('cinematographer', -180, -60, face=(-100, -40), props=False), examiner=fig('examiner', -100, -40, face=(-90, 40), props=True),
-             odysseus=fig('odysseus', -120, 125, face=(-100, -40), props=True)), pr, DAY,
-     cam((-10, 100, -150), (-120, 70, 20), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
+ key('K3', B2(base, agent=fig('agent', -20, 70, face=(-40, 0), props=False), director=fig('director', -90, 40, face=(-40, 0), props=False), firstad=AD(-40, 0, (-90, 40))), pr, DAY,
+     cam((20, 110, -160), (-60, 70, 20), 44), [dict(id='firstad', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K3')),
+ key('K4', B2(base, agent=fig('agent', -20, 70, face=(-110, -40), props=False), director=fig('director', -90, 40, face=(-110, -40), props=False),
+             firstad=AD(-40, 0, (-110, -40)), examiner=fig('examiner', -110, -40, face=(-90, 40), props=True)), pr, DAY,
+     cam((-40, 100, -170), (-110, 70, 0), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
+ key('K5', B2(base, agent=fig('agent', -20, 70, face=(-110, -40), props=False), director=fig('director', -90, 40, face=(-110, -40), props=False), firstad=AD(-40, 0, (-110, -40)),
+             cinematographer=fig('cinematographer', -180, -65, face=(-110, -40), props=False), examiner=fig('examiner', -110, -40, face=(-180, -65), props=True),
+             odysseus=fig('odysseus', -120, 125, face=(-110, -40), props=True)), pr, DAY,
+     cam((-10, 100, -170), (-130, 70, 0), 44), [dict(id='examiner', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K5')),
 ]
-# ---- 8: the bridge; the helpers; the names; action ----
+# ---- 8: the bridge; the helpers; the restart; the names; action ----
 sid = 'OD-B25-S08'
-base = base2(director=fig('director', 20, -10, face=DESK_A, props=False), agent=fig('agent', *DESK_A, face=(20, -10), props=False),
-             examiner=fig('examiner', -40, -10, face=(20, -10), props=True), cinematographer=fig('cinematographer', -150, -60, face=(20, -10), props=False),
-             odysseus=fig('odysseus', *O_SET, face=(20, -10), props=True))
+TK8 = json.loads((REPO / 'odyssey/take/making' / (sid + '.json')).read_text()); K4AT8 = next(g['start'] for g in TK8['voice']['segments'] if g['key'] == 'K4')
+UP8 = TK8['events']['up'][0]
+base = base2(director=fig('director', 20, -10, face=(75, 15), props=False), agent=fig('agent', 75, 15, face=(20, -10), props=False),
+             firstad=AD(-30, -50, (20, -10)), examiner=fig('examiner', -60, 15, face=(20, -10), props=True),
+             cinematographer=fig('cinematographer', -150, -60, face=(20, -10), props=False), odysseus=fig('odysseus', *O_SET, face=(20, -10), props=True))
 pr = SET_PROPS + [RAM(), CAMERA(*CAM0, AIM(*CAM0, *O_SET)), prop('reels17', 90, 290, h=48, floor=False, pid='kept')]
+mid = dict(agent=fig('agent', -75, 140, face=(40, 70), props=False), examiner=fig('examiner', -25, 205, face=(-100, 205), pose=LENS, props=True),
+           director=fig('director', -10, 110, face=(40, 70), props=False), firstad=AD(40, 70, (-10, 110)))
 SC[sid] = [
  key('K1', B2(base, agent=fig('agent', 75, 15, face=(20, -10), pose={'armRP': [-1.3, 0, 0]}, props=False)), pr + [SHEET_HELD], DAY2,
-     cam((-10, 110, -90), (110, 70, 60), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
+     cam((-10, 110, -150), (60, 70, 20), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
  key('K2', B2(base, agent=fig('agent', -75, 140, face=(-100, 205), props=False), examiner=fig('examiner', -25, 205, face=(-100, 205), pose=LENS, props=True),
-             director=fig('director', -10, 120, face=(-60, 150), props=False)), pr, DAY2,
-     cam((60, 110, 20), (-70, 70, 190), 44), [dict(id='agent', primary=True, face=True), dict(id='examiner', soft=True)], beat(sid, 'K2')),
- key('K3', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM_L, props=False),
-             examiner=fig('examiner', -190, -215, face=LOOM_L, props=True), cinematographer=fig('cinematographer', -150, -150, face=LOOM, props=False)), pr, DAY2,
-     cam((-90, 120, -390), (0, 70, -220), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
- key('K4', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM_L, props=False),
-             examiner=fig('examiner', -190, -215, face=(-140, -240), props=True), cinematographer=fig('cinematographer', -150, -150, face=(-140, -240), props=False)), pr, DAY2,
-     cam((-60, 110, -380), (-110, 70, -220), 44), [dict(id='director', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K4')),
- key('K5', B2(base, examiner=fig('examiner', *EXL, face=(-215, -135), pose={'armRP': [-1.2, 0, 0]}, props=True), director=fig('director', -215, -135, face=EXL, props=False),
-             agent=fig('agent', -170, -175, face=EXL, props=False), cinematographer=fig('cinematographer', -150, -100, face=EXL, props=False)), pr, DAY2,
-     cam((-120, 110, -60), (-290, 80, -190), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
- key('K6', B2(base, examiner=fig('examiner', 130, -25, face=(-120, -60), props=True), director=fig('director', 40, -20, face=(-120, -60), props=False),
-             agent=fig('agent', 85, -30, face=(-120, -60), props=False), odysseus=fig('odysseus', 175, -15, face=(-120, -60), props=True),
+             director=fig('director', -10, 110, face=(-75, 140), props=False), firstad=AD(40, 70, (-10, 110))), pr, DAY2,
+     cam((60, 110, 20), (-70, 70, 190), 44), [dict(id='examiner', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K2')),
+ key('K3', B2(base, **mid), pr, DAY2, cam((80, 110, -40), (0, 70, 100), 44), [dict(id='firstad', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
+ key('K4', B2(base, **mid), pr, DARK2, cam((80, 110, -40), (0, 70, 100), 44), [dict(id='agent', primary=True)], beat(sid, 'K4')),
+ key('K4b', B2(base, **mid), pr, DAY2, cam((80, 110, -40), (0, 70, 100), 44), [dict(id='agent', primary=True, face=True)], 'The power comes back: a new agent, reading the handover.', after=['K4', round(UP8 - K4AT8, 2)]),
+ key('K5', B2(base, **dict(mid, director=fig('director', -10, 110, face=(40, 70), props=False))), pr, DAY2,
+     cam((80, 110, -40), (0, 70, 100), 44), [dict(id='director', primary=True, face=True), dict(id='firstad', soft=True)], beat(sid, 'K5')),
+ key('K6', B2(base, examiner=fig('examiner', *EXL, face=(-215, -135), pose={'armRP': [-1.2, 0, 0]}, props=True), director=fig('director', -215, -135, face=EXL, props=False),
+             agent=fig('agent', -170, -180, face=EXL, props=False), firstad=AD(-165, -120, EXL), cinematographer=fig('cinematographer', -110, -95, face=EXL, props=False)), pr, DAY2,
+     cam((-120, 110, -330), (-240, 80, -150), 44), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K6')),
+ key('K7', B2(base, examiner=fig('examiner', 130, -25, face=(-120, -60), props=True), director=fig('director', 40, -20, face=(-120, -60), props=False),
+             agent=fig('agent', 85, -30, face=(-120, -60), props=False), odysseus=fig('odysseus', 175, -15, face=(-120, -60), props=True), firstad=AD(220, -20, (-120, -60)),
              cinematographer=fig('cinematographer', -180, -94, face=(60, -20), props=False)),
      [x for x in pr if x['id'] != 'camera'] + [CAMERA(-120, -60, AIM(-120, -60, 90, -20))], DAY2, cam((-190, 125, -105), (70, 70, -20), 40),
-     [dict(id='director', primary=True, face=True), dict(id='agent', soft=True), dict(id='examiner', soft=True)], beat(sid, 'K6')),
+     [dict(id='director', primary=True, face=True), dict(id='agent', soft=True), dict(id='examiner', soft=True)], beat(sid, 'K7')),
 ]
 
 def cheat_out(keys):
