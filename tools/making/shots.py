@@ -26,9 +26,9 @@ SPECIAL = {
                 ('K6', 'g12', 'WIDE', ['agent', 'odysseus'], 'the power back: the towers lit again')],
  'OD-B25-S03': [(0, 'g1', 'WIDE', ['agent', 'director', 'cinematographer'], 'the block of the player against the 95 MB wall, too tall for the gate'),
                 ('g3+', 'g4', 'MID', ['agent'], 'the block split: the agent carries one small brick through the gate')],
- 'OD-B25-S04': [(0, 'g0+', 'WIDE', ['examiner', 'director', 'agent', 'cinematographer', 'odysseus'], 'the examiner at the ledger, the crew round her'),
-                ('g9+', 'g11', 'WIDE', ['director', 'agent', 'examiner', 'odysseus'], 'the camera turned on the crew: the film is about them'),
-                ('g11', 'end', 'WIDE', ['director', 'agent', 'examiner', 'odysseus', 'cinematographer'], 'action called on the crew itself: the last shot holds them in the studio')],
+ 'OD-B25-S04': [(0, 'g0+', 'MID', ['director', 'examiner'], 'the examiner at the ledger, the glass over the page, the director by her'),
+                ('g9+', 'g11', 'MID', ['director', 'agent', 'examiner', 'odysseus'], 'the camera turned on the crew: the film is about them'),
+                ('g11', 'end', 'WIDE', ['director', 'agent', 'examiner', 'odysseus'], 'action called on the crew itself: the last shot holds them, looking into the lens')],
 }
 
 def build(sid):
