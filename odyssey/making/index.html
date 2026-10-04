@@ -74,6 +74,7 @@ footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px
 @media (max-width: 900px) { .timeline { grid-template-columns: minmax(0, 1fr); border-top: 0; border-left: 6px solid var(--ink); }
   .step { padding: 0 0 18px 20px; } .step::before { top: 2px; left: -15px; } .step .n { margin-top: 0; } }
 @media (max-width: 700px) { .takes { grid-template-columns: minmax(0, 1fr); } .chains { grid-template-columns: minmax(0, 1fr); } h2 { font-size: 28px; } }
+details.earlier { margin: 18px 0 8px; } details.earlier summary { cursor: pointer; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -82,12 +83,16 @@ footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px
 <h1>How the Odyssey learned to act</h1>
 <div class="studs" aria-hidden="true"><i style="background:var(--b-red)"></i><i style="background:var(--b-yellow)"></i><i style="background:var(--b-blue)"></i><i style="background:var(--b-green)"></i><i style="background:var(--b-orange)"></i></div>
 <p class="lede">The first LEGO scene of the Odyssey had voices, faces and a set, and the figures did nothing at all. This page keeps the whole process log: every stage a scene went through, and every take of every scene that was shot again, side by side with what changed and why. Nothing is thrown away; a re-shoot moves the old film to the archive before the new one takes its place.</p>
-<div class="links"><a href="../perform/camera.html">The cinematographer (camera page)</a><a href="../perform/index.html">The performance engine</a><a href="../../films/odyssey/takes/index.json">The takes, as data</a><a href="../kits/index.html">The Odyssey Line hub</a></div>
+<div class="links"><a href="../perform/camera.html">The cinematographer (camera page)</a><a href="../perform/index.html">The performance engine</a><a href="../../films/odyssey/takes/index.json">The takes, as data</a><a href="../kits/index.html">The Odyssey Line hub</a><a href="../forensics/index.html">The forensic report</a></div>
 
 <h2>The making-of film</h2>
-<p class="sub">A LEGO film about making the LEGO film: the problem, how a scene is made, the cinematographer and its re-shoots, the engine's new tricks, and every take kept. Built entirely from the real material on this site.</p>
-<figure class="hero"><video controls preload="metadata" playsinline poster="../../films/odyssey/making-of.jpg" src="../../films/odyssey/making-of.mp4" aria-label="The making-of film"><track kind="captions" srclang="en" label="English" src="../../films/odyssey/making-of.vtt" default></video>
-<figcaption>About four minutes, with captions. <b>The narration voice is synthetic</b> (Kokoro-82M, a text-to-speech model run offline); the films' own sound plays low beneath it. <a href="../../films/odyssey/making-of-short.mp4">A 45-second cut</a>.</figcaption></figure>
+<p class="sub">A LEGO film about making the LEGO film, acted by minifigures in a LEGO film studio and performed by the same engine as the Odyssey's scenes. The director asks, the agent builds, the cinematographer shoots, Odysseus waits and then acts, and the examiner reads the record. Every number the examiner says is from <a href="../forensics/index.html">the forensic report</a>.</p>
+<figure class="hero"><video controls preload="metadata" playsinline poster="../../films/odyssey/making-of.jpg" src="../../films/odyssey/making-of.mp4" aria-label="The making-of film, a LEGO film"><track kind="captions" srclang="en" label="English" src="../../films/odyssey/making-of.vtt" default></video>
+<figcaption>4 min 29 s, with captions (each line named by its speaker). Four scenes in one studio: <i>the characters do nothing</i>; <i>the camera in the wool, the night, the restart</i>; <i>the 95 MB wall, keep both</i>; <i>the ledger, make it a film</i>. <b>The voices are synthetic</b>: Kokoro-82M, a text-to-speech model run offline, a different voice for each character (the director bm_george, the agent af_heart, the cinematographer am_michael, Odysseus am_onyx, the examiner bf_emma), as the film's end caption says. There is no music under it: the examiner's one gap is the music the Odyssey's scenes use.</figcaption></figure>
+<details class="earlier"><summary>The earlier take: the slide show (4 min 19 s)</summary>
+<p class="sub">The first making-of was an explainer: footage, screenshots and title cards under one narrating voice (Kokoro-82M). The director asked for a LEGO film instead, not a slide show, and this is kept as its first take, as every re-shot scene's takes are kept.</p>
+<figure class="hero"><video controls preload="none" playsinline poster="../../films/odyssey/takes/making-of/take1.jpg" src="../../films/odyssey/takes/making-of/take1.mp4" aria-label="The making-of, first take: the slide show"><track kind="captions" srclang="en" label="English" src="../../films/odyssey/takes/making-of/take1.vtt"></video>
+<figcaption>Take 1, the slide show. <b>The narration voice is synthetic</b> (Kokoro-82M, af_heart). <a href="../../films/odyssey/making-of-short.mp4">Its 45-second cut</a>.</figcaption></figure></details>
 
 <h2>The evolution</h2>
 <p class="sub">One scene, Athena waiting at the gate in Book I, went through every stage first. Each stage is a real film, kept.</p>
@@ -104,7 +109,7 @@ footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px
 <h2>How a re-shoot works now</h2>
 <p class="sub">A re-shoot never overwrites. The new cut is rendered beside the published film as <code>&lt;scene&gt;-performed-r2.mp4</code>. Before it is renamed into place, <code>tools/perform/keeptake.py</code> moves the current film (with its poster, captions and shot data) to <code>films/odyssey/takes/&lt;scene&gt;/take&lt;N&gt;</code> and writes its entry in <code>films/odyssey/takes/index.json</code>, which this page reads. The takes made before that rule were recovered from the repository's history (<code>tools/making/takes_from_git.py</code>), the same stored files, so nothing grew.</p>
 
-<footer>The making-of film&rsquo;s narration is a synthetic voice (Kokoro-82M). The Odyssey in LEGO &middot; <a href="../kits/index.html">the hub</a> &middot; <a href="../perform/camera.html">the cinematographer</a> &middot; <a href="../perform/index.html">the performance engine</a> &middot; <a href="../../index.html">home</a></footer>
+<footer>The voices in the making-of film are synthetic (Kokoro-82M, run offline); so is the narration of its first take. The Odyssey in LEGO &middot; <a href="../kits/index.html">the hub</a> &middot; <a href="../perform/camera.html">the cinematographer</a> &middot; <a href="../perform/index.html">the performance engine</a> &middot; <a href="../../index.html">home</a></footer>
 </main>
 <script>
 const F = '../../films/odyssey/', T = F + 'takes/';

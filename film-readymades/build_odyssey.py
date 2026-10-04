@@ -174,6 +174,8 @@ def clear_mark(target, dist, rise, want, boxes, subj):
 
 # the scenes the Odyssey player carries: the opening (the gods in council, the stranger at the gate), the Cyclops's cave, then the sea
 SCENES = ['OD-B01-S01', 'OD-B01-S02', 'OD-B01-S03', 'OD-B04-S04', 'OD-B08-S05', 'OD-B04-S05', 'OD-B14-S01', 'OD-B16-S03', 'OD-B10-S05', 'OD-B02-S02', 'OD-B24-S03', 'OD-B24-S05', 'OD-B10-S02', 'OD-B06-S03', 'OD-B11-S01', 'OD-B19-S04', 'OD-B22-S01', 'OD-B23-S04', 'OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S08', 'OD-B09-S09', 'OD-B09-S10', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01', 'OD-B22-S06', 'OD-B22-S02', 'OD-B19-S03', 'OD-B13-S03', 'OD-B18-S02', 'OD-B09-S06', 'OD-B11-S04', 'OD-B17-S05', 'OD-B21-S03', 'OD-B11-S07']
+# the making-of film (tools/making/): four scenes played in the LEGO film studio, a "book 25" after the poem, voiced offline
+MAKING = ['OD-B25-S01', 'OD-B25-S02', 'OD-B25-S03', 'OD-B25-S04']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()
@@ -218,7 +220,7 @@ def pack_texts(files):
 
 if __name__ == '__main__':
     KEEP_BASE = '--with-readymades' in sys.argv
-    ids = [a for a in sys.argv[1:] if not a.startswith('--')] or SCENES
+    ids = [a for a in sys.argv[1:] if not a.startswith('--')] or SCENES + MAKING
     entries, kinds = [], {}
     for sid in ids:
         e, ks = scene(sid); entries.append(e)
