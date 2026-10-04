@@ -305,6 +305,20 @@ A render already running has loaded the player and is not affected by a rebuild;
 while the lock exists. After a rebuild, a render of a scene whose sheet has `creatures` logs `creatures {"<id>":{"kind":..,"meshes":N}}`
 in its export log: N > 0 means the rig was attached.
 
+## The making-of film: four scenes in the LEGO film studio (OD-B25-S01..S04)
+
+The making-of film (`films/odyssey/making-of.mp4`) is staged and performed by this engine like the poem's scenes, as a "book 25"
+after the poem, so every tool that takes an `OD-Bxx-Syy` id takes them. The set is one studio built once
+(`tools/making/studio.py` writes the four cards on it), the cast five minifigures (the director, the agent, the cinematographer,
+Odysseus, the examiner). The voices are not the halfworld's: `tools/making/lego_script.py` is the script (the examiner's numbers
+from `odyssey/forensics/findings.json`), `tools/making/voices.py` synthesizes each line offline with Kokoro-82M (a voice for each
+character, loudness-matched) and writes `odyssey/take/making/<scene>.json`, which `film-readymades/odyssey_take.py` reads in
+place of the halfworld's recording (`made()`); the beds are a synthesized room tone (the render farm's hum, the power down and up
+in the night scene), no music. Keys: `tools/making/keys.py`; director's modules `scenes/OD-B25-S0N.js` on the shared grammar
+`scenes/_making.js` (say, hear, hold, walk); shots: plan.js, then `tools/making/shots.py` edits them by hand (the conversation
+followed); `tools/cinematographer/dev.js --planfile` shows a hand-edited plan. `tools/making/lego_film.py` joins the four renders
+with the end caption (the voices are synthetic). The earlier making-of (the slide show) is kept as `films/odyssey/takes/making-of/take1`.
+
 ## Hooks for later work
 
 - A creature rig (film-readymades/creatures.js, to come) gives a giant or a quadruped channels: add them to body.js's pivot tree,

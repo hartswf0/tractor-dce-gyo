@@ -241,7 +241,7 @@ props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
   props.brickHeap = { parts: [[0, 0, 0], [40, 0, 10], [-40, 0, -10], [20, 0, 40], [-20, 0, 40], [0, -24, 20], [30, -24, 20], [-30, -24, 10], [10, 0, -40], [50, 0, -30]]
       .map(([x, y, z], i) => row(i % 3 ? '3003' : '3004', smallCols[i], L.mul(L.T(x, y - 24, z), L.RY(i * 0.7)))), anchors: { top: [0, -48, 10] } };
   props.brickStack = { parts: [0, 1, 2, 3, 4].map(k => row('3003', smallCols[k + 3], L.T(0, -24 * (k + 1), 0))), anchors: { top: [0, -120, 0] } };
-  const reel = (x, col = 72) => [row('4032a', col, L.mul(L.T(x - 3, -20, 0), RXq)), row('4032a', col, L.mul(L.T(x + 3, -20, 0), RXq)), row('6141', 15, L.mul(L.T(x, -20, 0), RXq))];
+  const reel = (x, col = 72) => [row('4032a', col, L.mul(L.T(x, -20, 0), RXq)), row('6141', 15, L.mul(L.T(x, -20, -8), RXq))];   /* one round plate on edge, its hub */
   props.reel = { parts: reel(0), anchors: { hub: [0, -20, 0] } };
   for (const n of [8, 16, 17]) props['reels' + n] = { parts: Array.from({ length: n }, (_, i) => reel((i - (n - 1) / 2) * 11, i % 5 === 3 ? 320 : 72)).flat(), anchors: { first: [-(n - 1) * 5.5, -20, 0], last: [(n - 1) * 5.5, -20, 0] } };
   const FONT = { O: ['###', '#.#', '#.#', '#.#', '###'], D: ['##.', '#.#', '#.#', '#.#', '##.'], Y: ['#.#', '#.#', '.#.', '.#.', '.#.'], S: ['###', '#..', '###', '..#', '###'], E: ['###', '#..', '##.', '#..', '###'] };

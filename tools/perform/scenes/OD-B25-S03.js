@@ -23,7 +23,8 @@ module.exports = function author(M, X) {
   hold(C, 0.1, q(c(2).at - 0.3), 'he looks from the block to the wall', [[bundle, 2.0], [wall95, 2.4], [A, 1.6]], { because: [{ id: 'sWall' }] });
   hold(O, 0, T, 'off the take, on the little set: he watches the crew at work across the studio', [[bundle, 3.0], [A, 2.0], [D, 2.6]], { because: [{ id: 'sWall' }] });
   say(0, { shapes: ['point'], target: bundle });
-  I({ id: 'aStop', actor: A, kind: 'REACT', t0: q(end(c(0)) + 0.1), t1: q(c(1).at), label: 'stops pushing and turns to the question', params: { how: 'turn', lookAt: D }, because: [{ id: 'say0' }] });
+  I({ id: 'aStop', actor: A, kind: 'REACT', t0: q(end(c(0)) + 0.1), t1: q(c(1).at - 0.6), label: 'stops pushing and turns to the question', params: { how: 'turn', lookAt: D }, because: [{ id: 'say0' }] });
+  walk(A, 'K1a', D, 'steps round the block to face him', [{ id: 'aStop' }], 'aGo1a');
   say(1, { shapes: ['show', 'describe', 'open'], maxBeats: 1, target: D, because: [{ id: 'aStop' }] });
   hear(D, 1, { id: 'dHear1' }); hear(C, 1, { id: 'cHear1', nod: false });
   say(2, { shapes: ['point'], target: wall95 });
@@ -46,15 +47,15 @@ module.exports = function author(M, X) {
   hold(C, q(end(c(5)) + 0.2), q(K3.win[0] - 0.1), 'it passed: he looks at the wall, then goes back to his camera', [[wall95, 1.6], [A, 1.8]], { because: [{ id: 'say5' }] });
   /* ── the takes ── */
   St({ id: 'sSolved', t0: q(end(c(5)) - 0.4), t1: q(end(c(5))), kind: 'WORD', label: '"six megabytes now": the wall is behind them', actor: A, because: [{ id: 'say5' }] });
-  walk(D, 'K3', P(-40, 40, -60), 'back to his chair', [{ id: 'sSolved' }], 'dGo3');
+  walk(D, 'K3', P(-40, 40, -60), 'back by his chair', [{ id: 'sSolved' }], 'dGo3');
   walk(C, 'K3', P(-210, 80, -20), 'back to the camera', [{ id: 'sSolved' }], 'cGo3');
   walk(A, 'K3', shelf, 'back through the gate to the shelf of reels, with a new take', [{ id: 'aDown' }], 'aGo3');
-  hold(D, q(K3.win[1] + 0.2), q(c(6).at + 1.0), 'in his chair: the agent at the shelf', [[A, 2.4], [shelf, 1.2]], { because: [{ id: 'dGo3' }] });
+  hold(D, q(K3.win[1] + 0.2), q(c(6).at + 1.0), 'by his chair: he watches the agent at the shelf', [[A, 2.4], [shelf, 1.2]], { because: [{ id: 'dGo3' }] });
   hold(C, q(K3.win[1] + 0.1), q(c(10).at - 0.5), 'at the camera: he watches the agent at the shelf', [[A, 2.6], [D, 1.4]], { because: [{ id: 'cGo3' }] });
   say(6, { shapes: ['show', 'point'], target: D });
   St({ id: 'sOver', t0: tOver, t1: q(tOver + 0.4), kind: 'WORD', label: '"over the old one": the old take about to go', actor: A, because: [{ id: 'say6' }] });
   I({ id: 'dNotice', actor: D, kind: 'NOTICE', target: A, t0: q(tOver + 0.1), t1: q(c(7).at - 0.05), label: 'over the old one?', params: { gazeHold: 0.6 }, because: [{ id: 'sOver' }] });
-  I({ id: 'dRise', actor: D, kind: 'RISE', t0: q(c(7).at - 0.1), t1: q(c(7).at + 0.8), label: 'up out of the chair', because: [{ id: 'dNotice' }] });
+  I({ id: 'dRise', actor: D, kind: 'STEP', target: A, t0: q(c(7).at - 0.1), t1: q(c(7).at + 0.6), label: 'a step toward the shelf', params: { dist: 0.35, dur: 0.6 }, because: [{ id: 'dNotice' }] });
   say(7, { shapes: ['chop', 'point'], target: A, kind: 'COMMAND', because: [{ id: 'dNotice' }] });
   I({ id: 'aFreeze', actor: A, kind: 'REACT', t0: q(c(7).at + 0.2), t1: q(c(7).at + 1.0), label: 'stops, the reel still up', params: { how: 'turn', lookAt: D }, because: [{ id: 'say7' }] });
   hold(A, q(c(7).at + 1.1), q(K4.win[0] - 0.1), 'the reel held: it waits for the director', [[D, 3.0]], { because: [{ id: 'aFreeze' }] });
