@@ -4,7 +4,8 @@
    The scene's module lays its own acts over this: the walks (APPROACH owns the take's walk between keys), the work, the notices.
    Every movement is caused: by a line (the clip's VOICE event 'v<gi>'), by a stimulus the module names, or by another body's act. */
 'use strict';
-const NAMES = { director: 'the director', agent: 'the agent', cinematographer: 'the cinematographer', odysseus: 'Odysseus', examiner: 'the examiner' };
+const NAMES = { director: 'the director', agent: 'the agent', cinematographer: 'the cinematographer', odysseus: 'Odysseus', examiner: 'the examiner', firstad: 'the First AD', sweeper: 'the sweeper',
+  polyphemus: 'Polyphemus', irus: 'Irus', antinous: 'Antinous', achilles: 'Achilles', anticleia: 'Anticleia', calypso: 'Calypso' };
 module.exports = function making(M, X) {
   const q = t => Math.round(t * 12) / 12, T = M.total, K = id => M.keys.find(k => k.id === id);
   const clip = gi => M.clips.find(c => c.gi === gi);

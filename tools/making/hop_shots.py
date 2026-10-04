@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""tools/making/hop_shots.py — Hearts of Plastic: the episodes' shots, edited by hand over the cinematographer's plan (as
+tools/making/shots.py does for the making-of studio), with what the episodes add: a creature that speaks is shot as a giant (low,
+from below: his request, and plan.js R8), the slates are mids on the First AD and her clapperboard, the physical gags (the stone,
+the ram) are mids and closes, never a far wide (the broom stroke read weakly in a wide), and a dailies window is a held mid of the
+crew at the monitor (the real take is cut in over it by hop_film.py).
+
+    python3 tools/making/hop_shots.py OD-B26-S01      (after tools/cinematographer/plan.js)"""
+import json, sys
+from pathlib import Path
+REPO = Path(__file__).resolve().parents[2]
+CREATURES = {'polyphemus'}
+PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'polyphemus']}
+# the episode's own moments over the conversation: (t0, t1, size, subjects, why, opts); t as seconds, 'g<gi>' (a line's start),
+# 'g<gi>+' (its end), 'c<j>' (the j-th clap), 'd<j>' / 'd<j>+' (a dailies window), 'b<j>' / 'b<j>+' (a beat), 'end'
+SPECIAL = {
+ 'OD-B26-S01': [
+  (0, 'g0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram', {}),
+  ('g0', 'c0+', 'MID', ['firstad'], 'the slate: the AD and her clapperboard', {}),
+  ('g1', 'g1+', 'MID', ['director'], 'the one-word call from the chair', {}),
+  ('b0', 'g2', 'MID', ['cinematographer', 'odysseus'], 'rolling: the cinematographer at the eyepiece, the lens in the ram', {}),
+  ('g3', 'g3+', 'MID', ['cinematographer'], '"in the ram": the camera and the wool, in a mid, not a wide', {}),
+  ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g10', 'c1+', 'MID', ['firstad'], 'the slate', {}),
+  ('d1', 'd1+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g15', 'g15+', 'MID', ['firstad', 'polyphemus'], 'the AD to the giant: his close-up', {}),
+  ('c2', 'g19+', 'CLOSE', ['polyphemus'], 'his close-up, from below, as he asked: "Strangers, who are you?"', dict(kind='GIANT', angle='low', giant='polyphemus')),
+  ('g22', 'c3+', 'MID', ['firstad'], 'the slate', {}),
+  ('b1', 'b1', 'MID', ['polyphemus'], 'take one: the giant reaches for the stone beside the door', dict(kind='GIANT', angle='low', giant='polyphemus', t1off=1.9)),
+  ('b1', 'g24', 'CLOSE', ['director'], 'take one: on the Director while the stone goes into the door (unseen: as it was)', dict(t0off=1.9)),
+  ('g25', 'g25+', 'MID', ['polyphemus', 'cinematographer'], '"now it is in the door": the giant and the stone in the door', dict(kind='GIANT', angle='low', giant='polyphemus')),
+  ('g27', 'g29+', 'MID', ['odysseus'], '"Nobody." "That\'s my name."', {}),
+  ('g31', 'c4+', 'MID', ['firstad'], 'the slate: take two', {}),
+  ('b2', 'b2+', 'MID', ['polyphemus'], 'take two: the stone carried into the door, seen, low and close', dict(kind='GIANT', angle='low', giant='polyphemus')),
+  ('d2', 'd3+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g36', 'end', 'MID', ['director', 'cinematographer'], '"Keep it."', {}),
+ ],
+}
+
+def build(sid):
+    tk = json.loads((REPO / 'odyssey/take/making' / (sid + '.json')).read_text()); hop = tk['hop']
+    plan_f = REPO / 'tools/cinematographer/plans' / (sid + '.json'); P = json.loads(plan_f.read_text())
+    M = json.loads((REPO / 'odyssey/choreo/marks' / (sid + '.json')).read_text())
+    T = M['total']; segs = tk['voice']['segments']
+    keyAt = lambda t: max((k for k in M['keys'] if k['t'] <= t + 1e-6), key=lambda k: k['t'])['id']
+    def tt(x):
+        if isinstance(x, (int, float)): return float(x)
+        if x == 'end': return T
+        plus = x.endswith('+'); x = x.rstrip('+'); n = int(x[1:])
+        if x[0] == 'g': s = segs[n]; return s['start'] + s['dur'] + 0.25 if plus else s['start'] - 0.15
+        if x[0] == 'c': t = hop['clap'][n]; return t + 0.6 if plus else t - 0.6
+        if x[0] in 'db': e = (hop['dailies'] if x[0] == 'd' else hop['beats'])[n]; return e['start'] + e['dur'] + 0.1 if plus else e['start'] - 0.1
+    shots = []
+    def add(t0, t1, size, subj, why, line=None, kind=None, **o):
+        if t1 - t0 < 0.3: return
+        giant = o.get('giant') or (subj[0] if subj[0] in CREATURES else None)
+        shots.append(dict(t0=round(t0, 3), t1=round(t1, 3), kind=kind or ('GIANT' if giant else 'WIDE' if size == 'WIDE' else 'HOT'), size=size, subjects=subj, primary=subj[0], aim='head',
+                          line=line, angle=o.get('angle') or ('low' if giant else 'eye'), lens='wide' if giant and size == 'WIDE' else 'normal', beat=keyAt(t0 + 0.05),
+                          why=dict(cut='hand', rule='hand: ' + why), **({'giant': giant} if giant else {})))
+    last = {}; t = 0.0
+    for i, s in enumerate(segs):
+        a = s['start'] - 0.15; b = segs[i + 1]['start'] - 0.15 if i + 1 < len(segs) else T; e = s['start'] + s['dur'] + 0.25
+        if a - t > 0.3: add(t, a, 'WIDE', PRINC[sid][:3], 'between the lines: the bodies that move, whole')
+        who, to = s['voice'], s.get('addressee')
+        size = 'MID' if last.get(who) == 'CLOSE' else 'CLOSE'
+        lineP = [who, to] if to in PRINC[sid] and who not in CREATURES and to not in CREATURES else None
+        if to and to in PRINC[sid] and s['dur'] > 5.5:
+            mid = a + (e - a) * 0.62; add(a, mid, size, [who], f'{who} speaks: on the face that says it', lineP)
+            add(mid, e if b - e > 1.5 else b, 'MID', [to, who], f'what {who} says lands on {to}', lineP, kind='REACT'); last[to] = 'MID'
+        else: add(a, e if b - e > 1.5 else b, size, [who], f'{who} speaks: on the face that says it', lineP)
+        last[who] = size; t = e if b - e > 1.5 else b
+    if T - t > 0.3: add(t, T, 'WIDE', PRINC[sid][:3], 'the episode ends on the set')
+    for x0, x1, size, subj, why, o in SPECIAL.get(sid, []):
+        a, b = tt(x0) + o.get('t0off', 0), tt(x1) + o.get('t1off', 0); keep = []
+        for s in shots:
+            if s['t1'] <= a + 1e-6 or s['t0'] >= b - 1e-6: keep.append(s); continue
+            if s['t0'] < a: keep.append(dict(s, t1=round(a, 3)))
+            if s['t1'] > b: keep.append(dict(s, t0=round(b, 3)))
+        shots = keep; add(a, b, size, subj, why, kind=o.get('kind'), angle=o.get('angle'), giant=o.get('giant')); shots.sort(key=lambda s: s['t0'])
+    out = []
+    for s in sorted(shots, key=lambda s: s['t0']):
+        if out and s['t1'] - s['t0'] < 1.0: out[-1]['t1'] = s['t1']; continue
+        if out and out[-1]['t1'] - out[-1]['t0'] < 1.0: s = dict(s, t0=out[-1]['t0']); out.pop()
+        out.append(s)
+    for i, s in enumerate(out): s['i'] = i
+    if 'planned' not in P: P['planned'] = P['shots']
+    P['shots'] = out; P['edited'] = 'by hand after plan.js (tools/making/hop_shots.py): the conversation followed; the slates, the giant from below, the gags in mids and closes'
+    plan_f.write_text(json.dumps(P, indent=1))
+    print(sid, len(out), 'shots:', ' '.join(f"{s['t0']:.1f}{s['size'][0]}:{s['primary'][:4]}" for s in out))
+
+if __name__ == '__main__':
+    for sid in sys.argv[1:]: build(sid)
