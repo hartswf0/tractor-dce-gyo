@@ -295,11 +295,12 @@ footer {{ margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1p
 <h1>Forensic report: tractor-dce-gyo</h1>
 <div class="studs" aria-hidden="true"><i style="background:var(--b-red)"></i><i style="background:var(--b-yellow)"></i><i style="background:var(--b-blue)"></i><i style="background:var(--b-green)"></i><i style="background:var(--b-orange)"></i></div>
 <p class="lede">This report covers what exists in the repository, how and by what each part was made, when, at what cost, and what is wrong with it. Each claim cites its evidence: a commit, a file path, a log line or a hash. Where there is no evidence, the report says so. Examined at commit {c(F["generated_at_commit"])}, 2026-10-03.</p>
-<div class="links"><a href="manifest.json">Manifest (JSON)</a><a href="manifest.csv">Manifest (CSV)</a><a href="findings.json">Raw numbers</a><a href="../making/index.html">The making-of</a><a href="../perform/camera.html">The cinematographer</a><a href="../kits/index.html">The hub</a></div>
+<div class="links"><a href="origins.html">Chapter two: origins and assembly</a><a href="manifest.json">Manifest (JSON)</a><a href="manifest.csv">Manifest (CSV)</a><a href="findings.json">Raw numbers</a><a href="../making/index.html">The making-of</a><a href="../perform/camera.html">The cinematographer</a><a href="../kits/index.html">The hub</a></div>
 <div class="stats">{stats}</div>
 
 <h2 id="summary">Summary of findings</h2>
 <ol class="findings">{summary}</ol>
+<p class="note"><b>Chapter two.</b> Where all this came from and how agents assembled it: the halfworld's first commit and adaptation prompt, its per-book fan-out of agents (the session cap, the <code>git add -A</code> sweep, the skip list), its voices and music, the bridge into LEGO through the forage, and this session's parent and sub-agents. <a href="origins.html">Origins and assembly: the halfworld, the forage, the agents</a>.</p>
 
 <h2 id="custody">Chain of custody</h2>
 <p class="sub">Work ran in a Claude Code session on the branch <code>claude/odyssey-lego-ldraw-game-ahw23j</code>. Each finished step was merged to <code>main</code> and then into <code>gh-pages</code>, which serves hartswf0.github.io/tractor-dce-gyo. The local <code>main</code> and <code>gh-pages</code> are stale; the figures below use the <code>origin/</code> refs after a fetch. The repository has {F["remote_branches"]} remote branches and {F["all_refs_commits"]:,} commits across all refs.</p>

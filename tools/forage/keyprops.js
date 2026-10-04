@@ -248,7 +248,14 @@ props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
   const word = 'ODYSSEY', W = word.length * 4 + 1, sign = [];
   for (let r = 0; r < 7; r++) for (let c = 0; c < W; c++) { const ch = word[Math.floor((c - 1) / 4)], g = c >= 1 && (c - 1) % 4 < 3 && r >= 1 && r <= 5 ? FONT[ch][r - 1][(c - 1) % 4] : '.';
     sign.push(row('3005', g === '#' ? 14 : 0, L.T((c - (W - 1) / 2) * 20, -24 * (7 - r), 0))); }
-  props.studioSign = { parts: sign, anchors: { centre: [0, -84, 0] } }; }
+  props.studioSign = { parts: sign, anchors: { centre: [0, -84, 0] } };
+  /* part two (OD-B25-S05..S08): the prompt card (a white 2 x 4 tile, three black lines of text on it, stood on edge to be read), and a
+     halftone sheet (a white 6 x 6 plate printed in black round plates, the dots growing from light to dark: the halfworld's drawings) */
+  props.promptCard = { parts: [row('87079', 15, RXq), row('3069b', 0, L.mul(RXq, L.T(-10, -8, -10))), row('3069b', 0, L.mul(RXq, L.T(10, -8, -10))), row('3069b', 0, L.mul(RXq, L.T(0, -8, 10)))],
+    anchors: { centre: [0, 0, 0] } };
+  const dots = [];
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) if ((i * 7 + j * 3) % 6 < i + 1) dots.push(row('4073', 0, L.T(-50 + 20 * j, -8, -50 + 20 * i)));
+  props.halftone = { parts: [row('3958', 15, L.I12)].concat(dots), anchors: { centre: [0, -8, 0] } }; }
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

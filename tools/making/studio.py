@@ -20,8 +20,10 @@ from pathlib import Path
 import json, math
 
 REPO = Path(__file__).resolve().parents[2]
-SCENES = ['OD-B25-S01', 'OD-B25-S02', 'OD-B25-S03', 'OD-B25-S04']
-TITLES = {'OD-B25-S01': 'THE CHARACTERS DO NOTHING', 'OD-B25-S02': 'THE CAMERA AND THE NIGHT', 'OD-B25-S03': 'THE WALL AND THE TAKES', 'OD-B25-S04': 'THE LEDGER'}
+SCENES = ['OD-B25-S01', 'OD-B25-S02', 'OD-B25-S03', 'OD-B25-S04', 'OD-B25-S05', 'OD-B25-S06', 'OD-B25-S07', 'OD-B25-S08']
+TITLES = {'OD-B25-S01': 'THE CHARACTERS DO NOTHING', 'OD-B25-S02': 'THE CAMERA AND THE NIGHT', 'OD-B25-S03': 'THE WALL AND THE TAKES', 'OD-B25-S04': 'THE LEDGER',
+          'OD-B25-S05': 'THE CARD AND THE ATLAS', 'OD-B25-S06': 'THE LOOM AT NIGHT', 'OD-B25-S07': 'THE VOICES', 'OD-B25-S08': 'THE BRIDGE'}
+PART2 = {'OD-B25-S05', 'OD-B25-S06', 'OD-B25-S07', 'OD-B25-S08'}   # the second part (the origins): the loom on the set, the sweeper in the cast
 HEAD = '0 Author: tools/making/studio.py (the making-of studio)\n0 !LDRAW_ORG Unofficial_Model\n0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt\n'
 
 I = (1, 0, 0, 0, 1, 0, 0, 0, 1)
@@ -138,6 +140,26 @@ def lectern():
     rows += [L(15, x - 10, -64, z, '3069b.dat', RY90), L(15, x + 10, -64, z, '3069b.dat', RY90), L(0, x, -64, z - 20, '3024.dat')]
     return rows
 
+def loom():
+    """the loom (part two only): a workbench 12 studs along x at the front right, the 24 books on it as two rows of twelve 1 x 1 tiles
+    in turn colours (the books woven at once), and eight small agents behind it facing the room (the halfworld's per-book agents: one
+    costume, the agent's). They are set, not cast: they do not move or speak."""
+    rows, x0, z0 = [], -20, -200
+    for k in range(6):                      # the bench: 2 x 2 bricks two high, a 2 x 12 plate on top
+        x = x0 + 20 + 40 * k
+        rows += [L(70, x, -24, z0, '3003.dat'), L(70, x, -48, z0, '3003.dat')]
+    rows += [L(28, x0 + 120, -56, z0, '2445.dat')]   # 2 x 12 plate along x
+    cols = [4, 14, 1, 2, 25, 15, 22, 19, 5, 13, 26, 27]
+    for r, dz in enumerate((-10, 10)):
+        for c in range(12): rows.append(L(cols[(c + 5 * r) % 12], x0 + 10 + 20 * c, -64, z0 + dz, '3070b.dat'))
+    hair = ['11256', '3901', '13251', '12890']
+    for i in range(8):                      # the agents, behind the bench (z0 + 45), facing -z (the room), as a figure stands unturned
+        x = x0 + 15 + 30 * i
+        for line in figure('973', 402, 15, 15, '3626bp01', hair[i % 4], [308, 0, 6, 70][i % 4]):
+            parts = line.split(); col = int(parts[1]); fx, fy, fz = map(float, parts[2:5])
+            rows.append('1 %d %s %s %s %s %s' % (col, f(x + fx), f(fy), f(z0 + 45 + fz), ' '.join(parts[5:14]), parts[14]))
+    return rows
+
 def lamps():
     rows = []
     for x, z in ((-400 + 30, 60), (-30, 300)):
@@ -176,26 +198,31 @@ CAST = [  # (file name, who, note, at x, z, facing y-turn, rows)
     ('examiner', 'THE EXAMINER', 'the forensic investigator: dark tan jacket and fedora, a magnifying glass', -300, -250, 0,
      figure('973p1y', 308, 72, 72, '3626bp01', '61506', 308, held=('30152ap01', 0, 0))),
 ]
+# part two: the sweeper, the agent that commits a book (the halfworld's per-book sweep): the agent's orange, a cap, a broom
+SWEEPER = ('sweeper', 'THE SWEEPER', 'the agent that sweeps a book into the record: orange torso, dark grey cap, a broom', 300, -120, 0,
+           figure('973', 402, 72, 72, '3626bp01', '4485b', 72, held=('4332', 6, -34)))
+def cast_of(sid): return CAST + [SWEEPER] if sid in PART2 else CAST
 
 def block(name, title, rows): return f'0 FILE {name}\n0 {title}\n0 Name: {name}\n' + HEAD + '\n' + '\n'.join(rows) + '\n'
 
 def card(sid):
     P = lambda n: f'{sid} - {n}.ldr'
     pieces = [('floor', floor()), ('little-set', little_set()), ('chair', chair()), ('desk', desk()), ('farm', farm()), ('wall', big_wall()),
-              ('shelf', shelf()), ('lectern', lectern()), ('lamps', lamps())]
+              ('shelf', shelf()), ('lectern', lectern()), ('lamps', lamps())] + ([('loom', loom())] if sid in PART2 else [])
+    cast = cast_of(sid)
     plate = [L(72, 0, 8, 0, '3958.dat')]   # a 6 x 6 plate under the floor's middle: the card's plate (the floor is the set)
     out = [block(f'{sid}.ldr', TITLES[sid], ['0 // card', '1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P('plate'), '0 STEP', '1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P('the-studio-scene'), '0 STEP'])]
     out.append(block(P('the-studio-scene'), 'the studio scene', ['0 // group', '1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P('the-studio')] +
-                     [L(16, x, 0, z, P(n), ry(a)) for n, _, _, x, z, a, _ in CAST]))
+                     [L(16, x, 0, z, P(n), ry(a)) for n, _, _, x, z, a, _ in cast]))
     out.append(block(P('the-studio'), 'the studio', ['0 // group'] + ['1 16 0 0 0 1 0 0 0 1 0 0 0 1 ' + P(n) for n, _ in pieces]))
     for n, rows in pieces: out.append(block(P(n), n.replace('-', ' '), rows))
-    for n, who, note, *_, rows in CAST: out.append(block(P(n), n, ['0 // figure: ' + note] + rows))
+    for n, who, note, *_, rows in cast: out.append(block(P(n), n, ['0 // figure: ' + note] + rows))
     out.append(block(P('plate'), 'plate', plate))
     return '\n'.join(out)
 
 def previs(sid, shots):
     return dict(id=sid, title=TITLES[sid], book=25, set='THE LEGO FILM STUDIO', size=[40, 32], marks={}, duration=shots[-1][1],
-                cast=[dict(who='character.' + n, name=n.upper(), type='character', file=f'{sid} - {n}.ldr', at=[x, 0, z]) for n, who, _, x, z, _, _ in CAST],
+                cast=[dict(who='character.' + n, name=n.upper(), type='character', file=f'{sid} - {n}.ldr', at=[x, 0, z]) for n, who, _, x, z, _, _ in cast_of(sid)],
                 shots=[dict(n=i + 1, t0=a, t1=b, beat=beat, camera=dict(kind=kind, subject=subj, object=-1), speaker=-1, action=-1, moves=[]) for i, (a, b, beat, kind, subj) in enumerate(shots)])
 
 BEATS = {
@@ -206,6 +233,10 @@ BEATS = {
  'OD-B25-S03': [(0, 20, 'The player bundle at the 95 MB wall.', 'establish', 1), (20, 40, 'Split into small files, it passes.', 'medium', 1),
                 (40, 60, 'Keep both: the shelf of takes.', 'medium', 0)],
  'OD-B25-S04': [(0, 20, 'The examiner reads the ledger.', 'medium', 4), (20, 40, 'One gap: the music.', 'medium', 4), (40, 60, 'Make it a film.', 'pullback', 0)],
+ 'OD-B25-S05': [(0, 20, 'The examiner: before the bricks, the halfworld.', 'medium', 4), (20, 40, 'The card: paste this into Claude with any book.', 'medium', 1), (40, 60, 'Fan out: the loom.', 'establish', 1)],
+ 'OD-B25-S06': [(0, 20, 'The loom at night: every book at once.', 'establish', 1), (20, 40, 'The cap; the sweeper sweeps up three other books.', 'medium', 5), (40, 60, 'Stage explicit paths; the skip list.', 'medium', 1)],
+ 'OD-B25-S07': [(0, 20, 'A stage direction spoken aloud.', 'medium', 3), (20, 40, '706 of 706 lines written; re-recorded in batches.', 'medium', 1), (40, 60, 'Seven still speak the summary; the music.', 'medium', 4)],
+ 'OD-B25-S08': [(0, 20, 'The drawings handed across.', 'medium', 1), (20, 40, 'Word to world, stud by stud; one parent, many helpers.', 'medium', 4), (40, 60, 'The names; action.', 'pullback', 0)],
 }
 
 if __name__ == '__main__':
