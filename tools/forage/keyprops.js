@@ -222,6 +222,33 @@ props.dogBlack = { parts: [row('92586', 0, L.I12)], anchors: {} };
 props.dogWhite = { parts: [row('92586', 15, L.I12)], anchors: {} };
 props.staff = { parts: [row('3957a', 70, L.I12), row('3957a', 70, L.T(0, -88, 0))], anchors: { grip: [0, -60, 0] } };
 props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
+/* the making-of studio (tools/making/studio.py; the film OD-B25-S01..S04): the film camera on its tripod (three legs of 4L bars splayed
+   from a round plate, a black body two bricks long, a round lens hood with a trans clear lens, two round film magazines on top, a
+   handle at the back); the player bundle (a block of yellow bricks with bands of colour, six studs by four and eight bricks high:
+   wider and taller than the 95 MB wall's gate); the small files it is split into (a heap of 2 x 2 and 1 x 2 bricks, and one stack);
+   film reels standing on edge (two black round plates with a silver hub), in rows as the shelf holds them; the studio's sign */
+{ const RXq = RX(Math.PI / 2), leg = a => L.mul(L.mul(L.T(10 * Math.sin(a), -60, 10 * Math.cos(a)), L.RY(a)), RX(0.6));
+  props.movieCamera = { parts: [row('30374', 0, leg(0)), row('30374', 0, leg(2.094)), row('30374', 0, leg(4.189)), row('4032a', 72, L.T(0, -64, 0)), row('3062b', 0, L.T(0, -72, 0)),
+      row('3001', 0, L.mul(L.T(0, -96, 0), L.RY(Math.PI / 2))), row('3001', 0, L.mul(L.T(0, -120, 0), L.RY(Math.PI / 2))),
+      row('3941', 0, L.mul(L.T(0, -108, -50), RXq)), row('4032a', 47, L.mul(L.T(0, -108, -62), RXq)),
+      row('4032a', 72, L.mul(L.T(-10, -134, 20), RXq)), row('4032a', 72, L.mul(L.T(-10, -134, -16), RXq)), row('3062b', 71, L.T(0, -96, 46))],
+    anchors: { lens: [0, -108, -64], eye: [0, -108, 50], top: [0, -134, 0], foot: [0, 0, 0] } };
+  const bands = [14, 14, 4, 14, 1, 14, 2, 14];
+  props.bundle = { parts: Array.from({ length: 8 }, (_, k) => [[-40, -20], [40, -20], [-40, 20], [40, 20]].map(([x, z]) => row('3001', bands[k], L.T(x, -24 * (k + 1), z)))).flat()
+      .concat([row('3020', 72, L.T(-40, -200, 0)), row('3020', 72, L.T(40, -200, 0))]),
+    anchors: { top: [0, -200, 0], front: [0, -100, -40], back: [0, -100, 40], base: [0, 0, 0] } };
+  const smallCols = [14, 4, 1, 2, 14, 15, 14, 4, 2, 1, 14, 25];
+  props.brickHeap = { parts: [[0, 0, 0], [40, 0, 10], [-40, 0, -10], [20, 0, 40], [-20, 0, 40], [0, -24, 20], [30, -24, 20], [-30, -24, 10], [10, 0, -40], [50, 0, -30]]
+      .map(([x, y, z], i) => row(i % 3 ? '3003' : '3004', smallCols[i], L.mul(L.T(x, y - 24, z), L.RY(i * 0.7)))), anchors: { top: [0, -48, 10] } };
+  props.brickStack = { parts: [0, 1, 2, 3, 4].map(k => row('3003', smallCols[k + 3], L.T(0, -24 * (k + 1), 0))), anchors: { top: [0, -120, 0] } };
+  const reel = (x, col = 0) => [row('4032a', col, L.mul(L.T(x - 3, -20, 0), RXq)), row('4032a', col, L.mul(L.T(x + 3, -20, 0), RXq)), row('6141', 71, L.mul(L.T(x, -20, 0), L.mul(RXq, L.RY(Math.PI / 2))))];
+  props.reel = { parts: reel(0), anchors: { hub: [0, -20, 0] } };
+  for (const n of [8, 16, 17]) props['reels' + n] = { parts: Array.from({ length: n }, (_, i) => reel((i - (n - 1) / 2) * 11, i % 5 === 3 ? 320 : 0)).flat(), anchors: { first: [-(n - 1) * 5.5, -20, 0], last: [(n - 1) * 5.5, -20, 0] } };
+  const FONT = { O: ['###', '#.#', '#.#', '#.#', '###'], D: ['##.', '#.#', '#.#', '#.#', '##.'], Y: ['#.#', '#.#', '.#.', '.#.', '.#.'], S: ['###', '#..', '###', '..#', '###'], E: ['###', '#..', '##.', '#..', '###'] };
+  const word = 'ODYSSEY', W = word.length * 4 + 1, sign = [];
+  for (let r = 0; r < 7; r++) for (let c = 0; c < W; c++) { const ch = word[Math.floor((c - 1) / 4)], g = c >= 1 && (c - 1) % 4 < 3 && r >= 1 && r <= 5 ? FONT[ch][r - 1][(c - 1) % 4] : '.';
+    sign.push(row('3005', g === '#' ? 14 : 0, L.T((c - (W - 1) / 2) * 20, -24 * (7 - r), 0))); }
+  props.studioSign = { parts: sign, anchors: { centre: [0, -84, 0] } }; }
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

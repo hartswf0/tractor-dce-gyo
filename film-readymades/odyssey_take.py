@@ -140,7 +140,22 @@ def recut(cut, vsegs, rs):
     cut['why'] = list(cut.get('why', [])) + ['restored: ' + rs.get('why', '')]
     return cut
 
+def made(sid, actor_ids):
+    """A scene with a take of its own (odyssey/take/making/<sid>.json, written by tools/making/voices.py: the making-of film's
+    scenes, voiced offline, not the halfworld's): its voice, cut, bed and cast as written, the envelope measured from the file,
+    the keys in the keyframes' order."""
+    tk = json.loads((TAKE / 'making' / (sid + '.json')).read_text())
+    env, real = envelope(REPO / tk['voice']['file']); tk['voice']['env'] = env; tk['voice']['seconds'] = round(real, 3)
+    tk['cast'] = {i: tk['cast'].get(i) for i in actor_ids}
+    segs = tk['voice']['segments']; tk['keyGi'] = max(segs, key=lambda g: len(g['caption']))['gi'] if segs else -1
+    f = REPO / 'odyssey/keyframes' / (sid + '.json')
+    tk['keys'] = [k['id'] for k in json.loads(f.read_text())['keys']] if f.exists() else []
+    tk.update(beat=None, direction=None, signs=[])
+    for k in ('events', 'voices'): tk.pop(k, None)
+    return tk
+
 def take(sid, actor_ids):
+    if (TAKE / 'making' / (sid + '.json')).exists(): return made(sid, actor_ids)
     vm = _j(HALF / 'drive/voice-manifest.json').get(sid)
     if not vm: return None
     ds = next(s for s in _j(HALF / 'drive/drive-script.json')['scenes'] if s['id'] == sid)
