@@ -148,18 +148,16 @@ def loom():
     for k in range(6):                      # the bench: 2 x 2 bricks two high, a 2 x 12 plate on top
         x = x0 + 20 + 40 * k
         rows += [L(70, x, -24, z0, '3003.dat'), L(70, x, -48, z0, '3003.dat')]
-    rows += [L(28, x0 + 120, -56, z0, '2445.dat', RY90)]   # 2 x 12 plate along x
+    rows += [L(28, x0 + 120, -56, z0, '2445.dat')]   # 2 x 12 plate along x
     cols = [4, 14, 1, 2, 25, 15, 22, 19, 5, 13, 26, 27]
     for r, dz in enumerate((-10, 10)):
         for c in range(12): rows.append(L(cols[(c + 5 * r) % 12], x0 + 10 + 20 * c, -64, z0 + dz, '3070b.dat'))
     hair = ['11256', '3901', '13251', '12890']
-    for i in range(8):                      # the agents, behind the bench (z0 + 45), turned to face -z (the room)
+    for i in range(8):                      # the agents, behind the bench (z0 + 45), facing -z (the room), as a figure stands unturned
         x = x0 + 15 + 30 * i
         for line in figure('973', 402, 15, 15, '3626bp01', hair[i % 4], [308, 0, 6, 70][i % 4]):
-            parts = line.split(); col = int(parts[1]); fx, fy, fz = map(float, parts[2:5]); R = [float(v) for v in parts[5:14]]
-            # turned half round about y: x -> -x, z -> -z
-            M = [-R[0], -R[1], -R[2], R[3], R[4], R[5], -R[6], -R[7], -R[8]]
-            rows.append(L(col, x - fx, fy, z0 + 45 - fz, parts[14], tuple(M)))
+            parts = line.split(); col = int(parts[1]); fx, fy, fz = map(float, parts[2:5])
+            rows.append('1 %d %s %s %s %s %s' % (col, f(x + fx), f(fy), f(z0 + 45 + fz), ' '.join(parts[5:14]), parts[14]))
     return rows
 
 def lamps():

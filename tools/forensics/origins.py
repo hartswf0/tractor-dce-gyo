@@ -420,6 +420,8 @@ td.t {{ text-align: right; font-variant-numeric: tabular-nums; white-space: nowr
 .dia .bt {{ fill: var(--ink); font: 600 13px Inter, sans-serif; }} .dia .bs {{ fill: var(--muted); font: 12px Inter, sans-serif; }}
 .dia .ar {{ stroke: var(--muted); stroke-width: 1.6; }} .dia .thin {{ stroke-width: 1; }} .dia .ahp {{ fill: var(--muted); }}
 .dia .ag {{ fill: var(--b-orange); }}
+.diawrap {{ overflow-x: auto; max-width: 100%; }} .diahint {{ display: none; }}
+@media (max-width: 760px) {{ .diawrap .dia {{ min-width: 760px; }} .diahint {{ display: block; }} }}
 .legend {{ display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); margin: 6px 0; }}
 .legend i {{ display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }}
 #tip {{ position: fixed; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 12.5px; padding: 5px 8px; border-radius: 3px; display: none; z-index: 5; max-width: 280px; }}
@@ -461,7 +463,8 @@ footer {{ margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1p
 
 <h2 id="fanout">The per-book fan-out</h2>
 <p class="sub">Book XVI was built first, with a workflow of its own ({hf("bookXVI/build-book-xvi.workflow.mjs")}) and the reference scene OD-B16-S03; what it taught went into the brief mid-run ({h("4a0a1cc")}). Books XVII to XXIV then ran through {hf("bookXVI/finish-books.workflow.mjs")}. The diagram is drawn from that file.</p>
-{dia_hw}
+<div class="diawrap">{dia_hw}</div>
+<p class="note diahint">On a narrow screen the diagram scrolls sideways.</p>
 <div class="grid2">
 <div><h3>The jobs per book</h3><div class="scroll"><table><thead><tr><th>book</th><th>new asset jobs</th><th>reused</th><th>scenes</th></tr></thead><tbody>{jobs_rows}</tbody></table></div>
 <p class="note">From <code>bookNN/jobs.json</code>: 134 new asset jobs for Books XVII–XXIV, where the workflow's description says 125. Its asset prompt tells an agent whose job is another hall or hut to skip it as a duplicate room ({hf("bookXVI/finish-books.workflow.mjs", 73)}); the list the run actually received is not recorded (<code>bookXVI/run-plan.json</code> is empty).</p></div>
@@ -480,7 +483,7 @@ footer {{ margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1p
 
 <h2 id="session">This session's assembly</h2>
 <p class="sub">Session 01SQFS6z has {TO["session_01SQFS6z"]["commits"]} commits on the branch, from {t(TO["session_01SQFS6z"]["first"])}. It worked as one parent and many helpers. The parent took the director's requests, wrote briefs, started sub-agents in the background for builds, readings and render queues, committed snapshots of their work while they ran ("as their builders leave them", "not yet reviewed"), and set itself reminders to check on them. Renders ran one at a time; each frame is written to disk as it is drawn, so a render interrupted by a container restart resumes where it stopped. Nothing was published until a contact sheet of every shot had been looked at, and since {t("0821cda9")} a re-shoot never overwrites the take it replaces.</p>
-{dia_s}
+<div class="diawrap">{dia_s}</div>
 <div class="grid2">
 <div><h3>Sub-agents by day</h3><div class="scroll"><table><thead><tr><th>day</th><th>started</th><th>their labels</th></tr></thead><tbody>{sub_days}</tbody></table></div>
 <p class="note">Source: {E(SB["source"])}. The day is when each transcript's metadata was written.</p></div>

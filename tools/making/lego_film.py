@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""tools/making/lego_film.py — the making-of LEGO film assembled from its four performed scenes.
+"""tools/making/lego_film.py — the making-of LEGO film assembled from its performed scenes (part one OD-B25-S01..S04, part two the origins OD-B25-S05..S08).
 
     python3 tools/making/lego_film.py [--poster-scene OD-B25-S01 --poster-t 50.5]
 
 Reads films/odyssey/OD-B25-S0N-performed.{mp4,vtt,json} (each rendered by tools/export-odyssey.js from the scene's take, as the
-Odyssey's scenes are) and writes films/odyssey/making-of.{mp4,vtt,jpg,json}: the four joined with a short dip through black between
+Odyssey's scenes are) and writes films/odyssey/making-of.{mp4,vtt,jpg,json}: the scenes joined with a short dip through black between
 them (the sound faded with the picture), and over the last seconds the end caption, which says the voices are synthetic. The caption
 is drawn with PIL (this ffmpeg has no drawtext) and laid over the last shot; the cue is also in the captions file."""
 import json, os, re, subprocess, sys
@@ -13,11 +13,11 @@ import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont
 REPO = Path(__file__).resolve().parents[2]; F = REPO / 'films/odyssey'; FF = imageio_ffmpeg.get_ffmpeg_exe()
 A = sys.argv; arg = lambda k, d=None: A[A.index('--' + k) + 1] if '--' + k in A else d
-SCENES = arg('scenes', 'OD-B25-S01,OD-B25-S02,OD-B25-S03,OD-B25-S04').split(',')   # --scenes, --name: a trial of part of it
+SCENES = arg('scenes', 'OD-B25-S01,OD-B25-S02,OD-B25-S03,OD-B25-S04,OD-B25-S05,OD-B25-S06,OD-B25-S07,OD-B25-S08').split(',')   # --scenes, --name: a trial of part of it
 WORK = Path(arg('work', '/tmp/claude-0/-home-user/4aa29a79-b8f5-55cd-b69e-84f439d17223/scratchpad/mk2/film')); WORK.mkdir(parents=True, exist_ok=True)
 CAPTION = ['The voices in this film are synthetic.', 'Kokoro-82M, run offline: a different voice for each character.',
            'The studio, the figures and every movement: LDraw parts, staged and performed by the Odyssey\'s own engine.']
-CRF = arg('crf', '26')   # the joined film under GitHub's 100 MB file limit
+CRF = arg('crf', '29')   # the joined film under GitHub's 100 MB file limit (eight scenes, about 9.5 minutes)
 END = 6.0   # seconds of end caption over the last shot
 def ff(*a): subprocess.run(['nice', FF, '-v', 'error', '-y', *a], check=True)
 def dur(p):
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     ps, pt = arg('poster-scene', 'OD-B25-S01'), float(arg('poster-t', '50'))
     ff('-ss', f'{pt:.2f}', '-i', str(F / f'{ps}-performed.mp4'), '-frames:v', '1', '-q:v', '3', str(F / f'{NAME}.jpg'))
     (F / f'{NAME}.json').write_text(json.dumps(dict(title='The making of the LEGO Odyssey: a LEGO film', seconds=round(total, 2), size=[1280, 720], fps=12,
-        scenes=info, voices='Kokoro-82M (kokoro_onnx, offline): the director bm_george, the agent af_heart, the cinematographer am_michael, Odysseus am_onyx, the examiner bf_emma',
+        scenes=info, voices='Kokoro-82M (kokoro_onnx, offline): the director bm_george, the agent af_heart, the cinematographer am_michael, Odysseus am_onyx, the examiner bf_emma, the sweeper bm_lewis',
         made_by='tools/making/studio.py, keys.py, lego_script.py, voices.py; tools/perform/scenes/OD-B25-S0N.js; tools/cinematographer/plan.js; tools/export-odyssey.js; tools/making/lego_film.py',
-        facts='odyssey/forensics/findings.json (generated at 0c780fb2)'), indent=1))
+        facts='odyssey/forensics/findings.json (generated at 0c780fb2; part two from its "origins", odyssey/forensics/origins.html)'), indent=1))
     print('making-of.mp4', round(total, 1), 's,', len(caps), 'captions')
