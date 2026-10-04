@@ -14,8 +14,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 PRINC = {'OD-B25-S01': ['director', 'agent', 'odysseus', 'cinematographer'], 'OD-B25-S02': ['director', 'agent', 'cinematographer', 'odysseus'],
          'OD-B25-S03': ['agent', 'director', 'cinematographer'], 'OD-B25-S04': ['examiner', 'director', 'agent', 'cinematographer', 'odysseus'],
-         'OD-B25-S05': ['agent', 'director', 'examiner', 'cinematographer'], 'OD-B25-S06': ['agent', 'director', 'sweeper', 'examiner'],
-         'OD-B25-S07': ['director', 'odysseus', 'agent', 'examiner', 'cinematographer'], 'OD-B25-S08': ['agent', 'director', 'examiner', 'cinematographer', 'odysseus']}
+         'OD-B25-S05': ['agent', 'director', 'firstad', 'examiner', 'cinematographer'], 'OD-B25-S06': ['firstad', 'director', 'agent', 'sweeper', 'examiner'],
+         'OD-B25-S07': ['director', 'odysseus', 'firstad', 'agent', 'examiner', 'cinematographer'], 'OD-B25-S08': ['agent', 'director', 'firstad', 'examiner', 'cinematographer', 'odysseus']}
 # the scene's own moments: (t0 or a line's gi as 'g<gi>' / 'g<gi>+' for its end, t1 likewise, size, subjects, why)
 SPECIAL = {
  'OD-B25-S01': [(0, 'g1', 'WIDE', ['odysseus', 'director', 'cinematographer'], 'the animatic: action is called and nobody on the little set moves; the set, the camera and the director in one frame'),
@@ -30,17 +30,28 @@ SPECIAL = {
                 ('K6', 'g12', 'WIDE', ['agent', 'odysseus'], 'the power back: the towers lit again')],
  'OD-B25-S03': [(0, 'g1', 'WIDE', ['agent', 'director', 'cinematographer'], 'the block of the player against the 95 MB wall, too tall for the gate'),
                 ('g3+', 'g4', 'MID', ['agent'], 'the block split: the agent carries one small brick through the gate')],
- 'OD-B25-S05': [('g3', 'g3+', 'MID', ['agent', 'director'], 'the card held up between them'),
-                ('g10', 'end', 'WIDE', ['agent', 'director', 'examiner'], 'the loom of agents: many of me, at once')],
- 'OD-B25-S06': [('K2', 'g3+', 'WIDE', ['agent', 'director'], 'the cap: the loom goes dark'),
-                ('g4', 'g4+', 'MID', ['sweeper'], 'the sweeper with his broom, and his orders'),
-                ('g5', 'g5+', 'MID', ['examiner', 'sweeper'], 'what his commit holds, said to him'),
-                ('g9', 'g9+', 'MID', ['agent', 'sweeper'], 'stage explicit paths: the rule given to the sweeper')],
- 'OD-B25-S07': [('g1', 'g1+', 'MID', ['odysseus'], 'the stage direction read as a line, on the actor'),
-                ('g2', 'g2+', 'MID', ['director', 'odysseus'], 'the director stops him')],
- 'OD-B25-S08': [('g1', 'g2+', 'WIDE', ['agent', 'examiner', 'director'], 'the forage build: the horse, the glass on its studs'),
-                ('g4', 'g4+', 'WIDE', ['agent', 'director', 'examiner'], 'the loom: the helpers'),
-                ('g9', 'end', 'WIDE', ['director', 'agent', 'examiner', 'odysseus'], 'action called on the crew: the last shot holds them, looking into the lens')],
+ 'OD-B25-S05': [('g1', 'g1+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g7', 'g7+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g3', 'g4+', 'MID', ['agent', 'firstad'], 'the card read out, held up between them'),
+                ('g6', 'g6+', 'WIDE', ['agent', 'director', 'examiner'], 'how a figure draws itself: the three of them by the lectern and its halftone sheet (a two-shot here found only the movie camera in front of them)'),
+                ('g10', 'end', 'WIDE', ['firstad', 'agent', 'director'], 'the loom of agents: "To you. All of you."')],
+ 'OD-B25-S06': [('g1', 'g1+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g11', 'g11+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g3', 'g3+', 'MID', ['agent'], 'the agent at the bench, cut off mid-word'),
+                ('g4', 'g5+', 'WIDE', ['agent', 'firstad', 'director'], 'the cap: the loom dark, the speaker calm'),
+                ('g6', 'g7+', 'WIDE', ['sweeper', 'examiner'], 'the one broom stroke: everything into one heap'),
+                ('g9', 'g9+', 'MID', ['sweeper'], '"They were on the floor."'),
+                ('g13', 'g13+', 'MID', ['sweeper'], '"Never add everything."')],
+ 'OD-B25-S07': [('g0', 'g0+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g12', 'g12+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g2', 'g3+', 'MID', ['odysseus'], 'the stage direction read as a line, and the beggar explains'),
+                ('g3+', 'g4+', 'MID', ['director', 'firstad'], 'the slow turn, and the verdict'),
+                ('g8', 'g8+', 'WIDE', ['firstad', 'director', 'agent'], 'the speaker: the day\'s limit')],
+ 'OD-B25-S08': [('g1', 'g1+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g4', 'g4+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
+                ('g3', 'g3+', 'WIDE', ['examiner', 'agent', 'director'], 'the forage build: the horse, the glass on its studs'),
+                ('g6', 'g7+', 'WIDE', ['agent', 'firstad'], 'the restart: the dark, and a new agent in the same bricks'),
+                ('g12', 'end', 'WIDE', ['director', 'agent', 'examiner', 'odysseus'], 'action called on the crew: the last shot holds them, looking into the lens')],
  'OD-B25-S04': [('g4', 'g4+', 'WIDE', ['examiner', 'director', 'agent'], 'the glass held to the reels: the hashes, the crew round her'),
                 ('g6', 'g6+', 'MID', ['director', 'examiner'], 'the director answers the gap'),
                 (0, 'g0+', 'MID', ['director', 'examiner'], 'the examiner at the ledger, the glass over the page, the director by her'),
@@ -73,6 +84,8 @@ def build(sid):
         e = s['start'] + s['dur'] + 0.25
         if a - t > 0.3: add(t, a, 'WIDE', [x for x in PRINC[sid] if x != 'examiner' or sid >= 'OD-B25-S04'][:3], 'between the lines: the bodies that move, whole')
         who, to = s['voice'], s.get('addressee')
+        if who == 'pa':   # the loudspeaker (part two): no face to cut to; the room hears it
+            add(a, e if b - e > 1.5 else b, 'WIDE', [x for x in PRINC[sid] if x != 'examiner'][:3], 'the speaker: every head turns up'); t = e if b - e > 1.5 else b; continue
         size = 'MID' if last.get(who) == 'CLOSE' else 'CLOSE'
         if to and to in PRINC[sid] and s['dur'] > 5.5:
             mid = a + (e - a) * 0.62; add(a, mid, size, [who], f'{who} speaks: on the face that says it', [who, to])

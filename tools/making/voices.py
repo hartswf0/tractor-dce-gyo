@@ -47,6 +47,12 @@ def matched(x, target_db=-20.0):
     pk = np.abs(x).max(); lim = 10 ** (-1 / 20)
     return x * (lim / pk if pk > lim else 1.0)
 
+def tannoy(x):
+    """the loudspeaker: the voice band-limited to 350-3400 Hz, a little drive, a short slap back off the studio wall"""
+    X = np.fft.rfft(x); f = np.fft.rfftfreq(len(x), 1 / SR); X[(f < 350) | (f > 3400)] = 0; y = np.fft.irfft(X, len(x))
+    y = np.tanh(2.2 * y) / np.tanh(2.2); d = int(0.07 * SR); y = y + 0.25 * np.concatenate([np.zeros(d), y[:-d]])
+    return y / (np.abs(y).max() + 1e-9) * 0.75
+
 def bed(sid, total, events):
     """the room: brown noise, low; the farm's hum and fans where the script runs it, the power down and up"""
     rng = np.random.default_rng(25); n = int(total * SR) + SR
@@ -84,8 +90,9 @@ def scene(sid):
     sc = S.SCENES[sid]; at = sc['head']; clips = []; segs = []
     for gi, (key, who, to, pause, text) in enumerate(sc['lines']):
         c = S.CAST[who]; x = matched(synth(text, c['voice'], c['speed']))
+        if who == 'pa': x = tannoy(x)
         at += pause if gi else 0; clips.append((at, x)); d = len(x) / SR
-        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=who,
+        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='NARRATION' if who == 'pa' else 'DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=who,
                          addressee=to, speakerName=c['name'], subjectName=c['name'], caption=text, isLine=True, act=None, delivery=None))
         at += d + 0.35
     total = round(at - 0.35 + sc['tail'], 3)
@@ -100,8 +107,11 @@ def scene(sid):
     if sid == 'OD-B25-S02':   # the restart: the power goes 1.9 s before "the lights", comes back 1.7 s before "nothing is lost"
         k4 = next(s for s in segs if s['key'] == 'K4')['start']; down = by(10) - 1.9; up = by(12) - 1.7
         ev = {'hum': [(k4 - 2.2, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
-    if sid == 'OD-B25-S06':   # the loom at night: the farm's hum while the agents run; the cap stops the run 1.2 s before "the run stops"; the next run starts 1.6 s before the sweeper speaks
-        down = by(3) - 1.2; up = by(4) - 1.6
+    if sid == 'OD-B25-S06':   # the loom at night: the farm's hum while the agents run; the cap cuts the agent off (the power goes as its line ends, before the speaker); the next run starts 1.6 s before the sweeper speaks
+        down = by(4) - 0.1; up = by(6) - 1.6
+        ev = {'hum': [(0.0, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
+    if sid == 'OD-B25-S08':   # the restart: the power goes 0.6 s before the speaker says so; it comes back 1.4 s before the new agent's "Hi"
+        down = by(6) - 0.6; up = by(7) - 1.4
         ev = {'hum': [(0.0, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
     bfile = bed(sid, total, ev)
     take = dict(scene=sid, title=sc['title'], book=25, bookTitle='The making of the LEGO Odyssey',
