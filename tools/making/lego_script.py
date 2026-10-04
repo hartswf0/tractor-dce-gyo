@@ -170,3 +170,7 @@ SCENES = {
     ('K7', 'director', None, 0.8, "Quiet on the set. And... action."),
  ]),
 }
+
+# Hearts of Plastic, the episodes on the film's own sets (OD-B26-S0N): their scripts and the Odyssey actors' voices
+from hop_script import CAST as _HOP_CAST, SCENES as _HOP_SCENES
+CAST.update(_HOP_CAST); SCENES.update(_HOP_SCENES)

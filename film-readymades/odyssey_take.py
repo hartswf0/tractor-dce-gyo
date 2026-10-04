@@ -151,7 +151,7 @@ def made(sid, actor_ids):
     f = REPO / 'odyssey/keyframes' / (sid + '.json')
     tk['keys'] = [k['id'] for k in json.loads(f.read_text())['keys']] if f.exists() else []
     tk.update(beat=None, direction=None, signs=[])
-    for k in ('events', 'voices'): tk.pop(k, None)
+    for k in ('events', 'voices', 'hop'): tk.pop(k, None)
     return tk
 
 def take(sid, actor_ids):

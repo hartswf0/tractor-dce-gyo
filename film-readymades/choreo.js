@@ -184,7 +184,10 @@ function applyFlights(THREE, C, t, ctx) {
    at the middle, and it stays there after. The piece's meshes are found once by label (ctx.pieceMeshes) at their built place. */
 function applySlides(THREE, C, t, ctx, S) {
   if (!ctx.pieceMeshes) return;
-  for (const e of compile(C).props) { if (e.op !== 'slide') continue; S.slides = S.slides || {};
+  /* a piece slid more than once (a take, back to one, another take): at t only its latest slide begun by t counts (its first before any) */
+  const all = compile(C).props.filter(e => e.op === 'slide'), cur = {};
+  for (const e of all) { const c = cur[e.what]; if (!c || (e.t <= t && (c.t > t || e.t >= c.t)) || (c.t > t && e.t < c.t)) cur[e.what] = e; }
+  for (const e of all) { if (cur[e.what] !== e) continue; S.slides = S.slides || {};
     let st = S.slides[e.what]; if (!st) { const ms = ctx.pieceMeshes(e.what.replace(/^piece:/, '')) || []; st = S.slides[e.what] = ms.map(m => ({ m, p: m.position.clone() })); }
     const a = e.from || [0, 0, 0], b = e.to || [0, 0, 0], u = t <= e.t ? 0 : t >= e.t1 ? 1 : (x => x * x * (3 - 2 * x))((t - e.t) / Math.max(1e-3, e.t1 - e.t));
     const off = new THREE.Vector3(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u + (e.arc || 0) * 4 * u * (1 - u), a[2] + (b[2] - a[2]) * u);

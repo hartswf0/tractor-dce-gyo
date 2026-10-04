@@ -255,7 +255,14 @@ props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
     anchors: { centre: [0, 0, 0] } };
   const dots = [];
   for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) if ((i * 7 + j * 3) % 6 < i + 1) dots.push(row('4073', 0, L.T(-50 + 20 * j, -8, -50 + 20 * i)));
-  props.halftone = { parts: [row('3958', 15, L.I12)].concat(dots), anchors: { centre: [0, -8, 0] } }; }
+  props.halftone = { parts: [row('3958', 15, L.I12)].concat(dots), anchors: { centre: [0, -8, 0] } };
+  /* Hearts of Plastic (the episodes on the film's own sets, OD-B26-S0N, tools/making/hop.py): the crew's furniture walked onto a set.
+     The director's chair (the studio's: a reddish brown 2 x 2 brick, a black plate, the black seat with its back); the clapperboard (a black 2 x 2 tile on edge, its clapstick two 1 x 2 tiles, white and black, opened a
+     little at the hinge), held by the First AD */
+  props.directorChair = { parts: [row('3003', 70, L.T(0, -24, 0)), row('3022', 0, L.T(0, -32, 0)), row('4079', 0, L.mul(L.T(0, -32, 0), L.RY(2)))],
+    anchors: { seat: [0, -40, 0], foot: [0, 0, 0] } };
+  props.clapper = { parts: [row('3068b', 0, RXq), row('3069b', 15, L.mul(L.T(-10, -26, 0), L.mul(RZ(-0.25), RXq))), row('3069b', 0, L.mul(L.T(10, -31, 0), L.mul(RZ(-0.25), RXq)))],
+    anchors: { centre: [0, 10, 0] } }; }
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
