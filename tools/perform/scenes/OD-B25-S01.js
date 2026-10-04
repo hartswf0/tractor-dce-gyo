@@ -58,7 +58,7 @@ module.exports = function author(M, X) {
   say(7, { shapes: ['chop'], target: O, kind: 'COMMAND', label: 'again: action' });
   St({ id: 'sAction', t0: q(end(c7) - 0.3), t1: q(end(c7)), kind: 'WORD', label: '"action"', actor: D, because: [{ id: 'say7' }] });
   hold(A, q(K4.win[1] + 0.1), q(c10.at - 0.4), 'it watches what it wired: the voice, the intent, the body', [[O, 3.0], [D, 1.0]], { because: [{ id: 'aGo4' }] });
-  hold(C, q(K4.win[0] + 0.1), T, 'rolling again: on the actor', [[O, 4.0], [D, 1.2]], { because: [{ id: 'sAction' }] });
+  hold(C, q(K4.win[0] + 0.1), T, 'the take again: his eye on the actor', [[O, 4.0], [D, 1.2]], { because: [{ id: 'say6' }] });
   I({ id: 'oCue', actor: O, kind: 'DECIDE', t0: q(end(c7)), t1: q(c8.at - 0.1), label: 'his cue: he begins', because: [{ id: 'sAction' }] });
   say(8, { shapes: ['invoke', 'describe', 'open'], maxBeats: 1, target: null, label: 'the Odyssey\'s first sentence', because: [{ id: 'oCue' }] });
   St({ id: 'sTroy', t0: tTroy, t1: q(tTroy + 0.4), kind: 'WORD', label: '"the famous town of Troy": the horse that took it stands beside him', actor: O, because: [{ id: 'say8' }] });

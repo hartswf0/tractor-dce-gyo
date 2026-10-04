@@ -3,7 +3,7 @@
    about ten minutes to prepare on swiftshader; a plan re-solves in one or two).
 
      NODE_PATH=<playwright> node tools/cinematographer/dev.js OD-B09-S09 --dir <scratch dir> [--sheet odyssey/score/<scene>.choreo.json]
-          [--size 640x360]
+          [--size 640x360] [--planfile tools/cinematographer/plans/<scene>.json  (a plan edited by hand; solve re-reads it)]
 
    Then write commands, one per line, to <dir>/cmd (the file is consumed):
      solve              re-plan (tools/cinematographer/plan.js) and re-solve (solve.js, read afresh) -> <dir>/report.json
@@ -35,7 +35,8 @@ const Plan = require('./plan.js');
   await page.evaluate(() => { document.body.classList.add('kf'); const st = document.createElement('style'); st.textContent = 'body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools{visibility:hidden!important}'; document.head.appendChild(st); });
   say('location', loc, 'loaded; preparing');
   const C = JSON.parse(fs.readFileSync(path.join(ROOT, sheet), 'utf8'));
-  const plan0 = Plan.plan(sid, { sheet }); fs.writeFileSync(path.join(dir, 'plan.json'), JSON.stringify(plan0, null, 1));
+  const planOf = () => opt('planfile', null) ? JSON.parse(fs.readFileSync(path.resolve(opt('planfile')), 'utf8')) : Plan.plan(sid, { sheet });   /* --planfile: a plan edited by hand (re-read by solve) */
+  const plan0 = planOf(); fs.writeFileSync(path.join(dir, 'plan.json'), JSON.stringify(plan0, null, 1));
   const info = await page.evaluate(o => OdysseyTake.exportStart(o), { mode: 'cut', w: W, h: H, choreo: C, shots: plan0 });
   fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(info.cine, null, 1)); say('prepared; shots', JSON.stringify(info.shots));
   const cmdF = path.join(dir, 'cmd');
@@ -47,7 +48,7 @@ const Plan = require('./plan.js');
       const [cmd, arg] = L.split(/\s+/); say('>', L);
       try {
         if (cmd === 'exit') { await browser.close(); return; }
-        if (cmd === 'solve') { delete require.cache[require.resolve('./plan.js')]; const P = require('./plan.js').plan(sid, { sheet }); fs.writeFileSync(path.join(dir, 'plan.json'), JSON.stringify(P, null, 1));
+        if (cmd === 'solve') { delete require.cache[require.resolve('./plan.js')]; const P = opt('planfile', null) ? planOf() : require('./plan.js').plan(sid, { sheet }); fs.writeFileSync(path.join(dir, 'plan.json'), JSON.stringify(P, null, 1));
           const rep = await page.evaluate(P => OdysseyTake.cineReload(P), P); fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(rep, null, 1));
           say('solved in', rep.solvedIn, 's; legal', rep.shots.filter(s => s.legal).length, 'of', rep.shots.length); }
         if (cmd === 'stills') for (const t of arg.split(',').map(Number)) { const r = await still(t, path.join(dir, 't' + t.toFixed(1) + '.jpg')); say('still', t, r.shot); }

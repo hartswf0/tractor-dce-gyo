@@ -87,13 +87,13 @@ SC[sid] = [
              agent=fig('agent', 85, 10, face=(-95, -40), props=False)), pr0 + [CAMERA(-110, 5, AIM(-110, 5, -235, 150))], DAY,
      cam((40, 120, -160), (-120, 70, 60), 44), [dict(id='cinematographer', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
  key('K4', B(director=fig('director', *CHAIR, face=O_SET, sit=True, props=False), cinematographer=fig('cinematographer', 0, 0, absent=True),
-             agent=fig('agent', 300, 170, face=(300, 300), props=False), odysseus=fig('odysseus', 225, 120, face=(300, 170), props=True)),
+             agent=fig('agent', 285, 150, face=(300, 300), props=False), odysseus=fig('odysseus', 225, 120, face=(285, 150), props=True)),
      pr0 + [CAMERA(-110, 5, AIM(-110, 5, -235, 150))], NIGHT, cam((120, 120, -40), (280, 90, 200), 46), [dict(id='agent', primary=True), dict(id='odysseus', soft=True)], beat(sid, 'K4')),
  key('K5', B(director=fig('director', *CHAIR, face=O_SET, sit=True, props=False), cinematographer=fig('cinematographer', 0, 0, absent=True),
-             agent=fig('agent', 285, 150, face=(225, 120), props=False), odysseus=fig('odysseus', 225, 120, face=(285, 150), props=True)),
+             agent=fig('agent', 285, 150, face=(300, 300), props=False), odysseus=fig('odysseus', 225, 120, face=(285, 150), props=True)),
      pr0 + [CAMERA(-110, 5, AIM(-110, 5, -235, 150))], DARK, cam((140, 110, -20), (260, 80, 160), 46), [dict(id='agent', primary=True), dict(id='odysseus', soft=True)], 'The power goes: the container restarts.', after=['K4', round(DOWN - K4AT, 2)]),
  key('K6', B(director=fig('director', *CHAIR, face=O_SET, sit=True, props=False), cinematographer=fig('cinematographer', 0, 0, absent=True),
-             agent=fig('agent', 285, 150, face=(225, 120), props=False), odysseus=fig('odysseus', 225, 120, face=(285, 150), props=True)),
+             agent=fig('agent', 285, 150, face=(300, 300), props=False), odysseus=fig('odysseus', 225, 120, face=(285, 150), props=True)),
      pr0 + [CAMERA(-110, 5, AIM(-110, 5, -235, 150))], NIGHT, cam((140, 110, -20), (260, 80, 160), 46), [dict(id='agent', primary=True, face=True)], 'The power comes back; the render resumes.', after=['K4', round(UP - K4AT, 2)]),
 ]
 # ---- 3: the wall; keep both ----

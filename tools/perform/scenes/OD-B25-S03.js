@@ -31,7 +31,7 @@ module.exports = function author(M, X) {
   hear(C, 3, { id: 'cHear3' }); hear(D, 3, { id: 'dHear3', nod: false });
   /* ── split ── */
   St({ id: 'sRefused', t0: tRefused, t1: q(tRefused + 0.4), kind: 'WORD', label: '"a bigger player is refused"', actor: A, because: [{ id: 'say3' }] });
-  I({ id: 'aDecide', actor: A, kind: 'DECIDE', t0: q(end(c(3)) + 0.05), t1: q(tSplit - 1.2), label: 'it will have to be split', because: [{ id: 'sRefused' }] });
+  I({ id: 'aDecide', actor: A, kind: 'DECIDE', t0: q(Math.min(end(c(3)) + 0.05, tSplit - 1.6)), t1: q(tSplit - 1.2), label: 'it will have to be split', because: [{ id: 'sRefused' }] });
   I({ id: 'aSplit', actor: A, kind: 'TOOL_WORK', t0: q(tSplit - 1.05), t1: q(tSplit + 0.2), target: bundle, label: 'splits the block: two strokes', params: { how: 'chop', period: 0.6, on: bundle }, because: [{ id: 'aDecide' }] });
   St({ id: 'sSplit', t0: tSplit, t1: q(tSplit + 0.4), kind: 'SIGHT', label: 'the block falls into small bricks', actor: A, because: [{ id: 'aSplit' }] });
   I({ id: 'dSee', actor: D, kind: 'NOTICE', target: bundle, t0: q(tSplit + 0.2), t1: q(tSplit + 1.6), label: 'the block in pieces', params: { gazeHold: 0.8 }, because: [{ id: 'sSplit' }] });
@@ -42,7 +42,7 @@ module.exports = function author(M, X) {
   hear(D, 4, { id: 'dHear4' }); hear(C, 4, { id: 'cHear4', nod: false });
   say(5, { shapes: ['open'], target: D });
   hear(D, 5, { id: 'dHear5' });
-  I({ id: 'aDown', actor: A, kind: 'SET_DOWN', t0: q(end(c(5)) + 0.2), t1: q(end(c(5)) + 1.4), label: 'sets the brick on the stack beyond the wall', params: { side: 'R', what: 'the small brick' }, because: [{ id: 'say5' }] });
+  I({ id: 'aDown', actor: A, kind: 'SET_DOWN', t0: q(Math.min(end(c(5)) + 0.2, K3.win[0] - 1.3)), t1: q(Math.min(end(c(5)) + 1.4, K3.win[0] - 0.1)), label: 'sets the brick on the stack beyond the wall', params: { side: 'R', what: 'the small brick' }, because: [{ id: 'say5' }] });
   hold(C, q(end(c(5)) + 0.2), q(K3.win[0] - 0.1), 'it passed: he looks at the wall, then goes back to his camera', [[wall95, 1.6], [A, 1.8]], { because: [{ id: 'say5' }] });
   /* ── the takes ── */
   St({ id: 'sSolved', t0: q(end(c(5)) - 0.4), t1: q(end(c(5))), kind: 'WORD', label: '"six megabytes now": the wall is behind them', actor: A, because: [{ id: 'say5' }] });

@@ -169,7 +169,7 @@ CAST = [  # (file name, who, note, at x, z, facing y-turn, rows)
     ('director', 'THE DIRECTOR', 'the human who directs: plaid jacket, dark red beret', -40, -100, 0,
      figure('973p0l', 0, 72, 72, '3626bp35', '90386', 320)),
     ('agent', 'THE AGENT', 'Claude, the builder: orange (terracotta) torso and arms, white legs', 160, 120, math.pi,
-     figure('973', 484, 15, 15, '3626bp01', '11256', 308, held=('3003', 14, -12))),
+     figure('973', 402, 15, 15, '3626bp01', '11256', 308, held=('3003', 14, -12))),
     ('cinematographer', 'THE CINEMATOGRAPHER', 'leather vest, cap with headphones', -220, -60, 0,
      figure('973p0u', 272, 72, 72, '3626bp35', '2514', 0)),
     ('odysseus', 'ODYSSEUS', 'the actor in costume: the hero\'s armour, sword and cape', -220, 170, 0, ODYSSEUS),

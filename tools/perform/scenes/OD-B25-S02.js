@@ -44,11 +44,11 @@ module.exports = function author(M, X) {
   /* ── the clean shot ── */
   walk(C, 'K3', O, 'moves the camera off the ram and off the actor\'s shoulder', [{ id: 'say4' }], 'cGo3');
   walk(D, 'K3', C, 'comes over to see the new frame', [{ id: 'say4' }], 'dGo3'); walk(A, 'K3', C, 'comes with him', [{ id: 'dGo3' }], 'aGo3');
-  I({ id: 'cCheck', actor: C, kind: 'GESTURE', target: P(-110, 100, 5), t0: q(K3.win[1] + 0.1), t1: q(c(5).at - 0.1), label: 'his hand on the camera: the lens checked against the set', params: { shape: 'reach', at: q(K3.win[1] + 0.4), side: 'R', amp: 0.8, hold: 0.8 }, because: [{ id: 'cGo3' }] });
-  say(5, { shapes: ['show', 'open'], target: D, because: [{ id: 'cCheck' }] });
+  I({ id: 'cCheck', actor: C, kind: 'GESTURE', target: P(-110, 100, 5), t0: q(Math.min(K3.win[1] + 0.1, c(5).at - 1.0)), t1: q(c(5).at - 0.1), label: 'his hand on the camera: the lens checked against the set', params: { shape: 'reach', at: q(Math.min(K3.win[1] + 0.4, c(5).at - 0.7)), side: 'R', amp: 0.8, hold: 0.8 }, because: [{ id: 'cGo3' }] });
+  say(5, { shapes: ['show', 'open'], target: D });
   hear(D, 5, { id: 'dHear5' }); hear(A, 5, { id: 'aHear5', nod: false });
   say(6, { shapes: ['point'], target: C, kind: 'COMMAND' });
-  hold(C, q(end(c(5)) + 0.1), q(K4.win[0] - 0.1), 'the take on: his eye to the camera', [[O, 3.0]], { because: [{ id: 'say6' }] });
+  hold(C, q(end(c(5)) + 0.1), q(K4.win[0] - 0.1), 'the frame is clean: his eye to the camera', [[O, 3.0]], { because: [{ id: 'say5' }] });
   hold(A, q(end(c(5)) + 0.4), q(K4.win[0] - 0.1), 'the shot is clean: it watches the take', [[O, 2.4], [D, 1.2]], { because: [{ id: 'say5' }] });
   /* ── night ── */
   St({ id: 'sNight', t0: q(K4.win[0] - 0.4), t1: q(K4.win[0]), kind: 'SCENE', label: 'night: the studio dark, the render farm running', because: [{ id: 'say6' }] });

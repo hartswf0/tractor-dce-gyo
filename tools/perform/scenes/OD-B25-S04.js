@@ -30,7 +30,7 @@ module.exports = function author(M, X) {
   St({ id: 'sAgentW', t0: tAgent, t1: q(tAgent + 0.3), kind: 'WORD', label: '"by the agent"', actor: E, because: [{ id: 'say1' }] });
   I({ id: 'dToA', actor: D, kind: 'REACT', t0: q(tAgent + 0.15), t1: q(tAgent + 1.0), label: 'a look at the agent', params: { how: 'turn', lookAt: A }, because: [{ id: 'sAgentW' }] });
   /* ── the farm ── */
-  St({ id: 'sTurn', t0: q(end(c(2)) + 0.2), t1: q(end(c(2)) + 0.6), kind: 'WORD', label: 'the ledger read: the render logs next', actor: E, because: [{ id: 'say2' }] });
+  St({ id: 'sTurn', t0: q(Math.min(end(c(2)) - 0.3, K2.win[0] - 0.5)), t1: q(Math.min(end(c(2)), K2.win[0] - 0.1)), kind: 'WORD', label: 'the ledger read: the render logs next', actor: E, because: [{ id: 'say2' }] });
   walk(E, 'K2', towers, 'to the render farm: the logs', [{ id: 'sTurn' }], 'eGo2');
   for (const who of [D, A, C, O]) walk(who, 'K2', E, 'follows the examiner to the farm', [{ id: 'eGo2' }], 'go2' + who.slice(0, 3));
   say(3, { shapes: ['show', 'describe', 'point', 'open'], maxBeats: 1, target: D });
