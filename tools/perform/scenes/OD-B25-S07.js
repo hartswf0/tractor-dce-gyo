@@ -38,7 +38,7 @@ module.exports = function author(M, X) {
   hear(D, 5, { id: 'dHear5' });
   St({ id: 'sBatch', t0: tTime, t1: q(tTime + 0.4), kind: 'WORD', label: '"a book at a time"', actor: A, because: [{ id: 'say5' }] });
   I({ id: 'cTurn', actor: C, kind: 'REACT', t0: q(tTime + 0.1), t1: q(tTime + 1.0), label: 'looks up from the camera', params: { how: 'turn', lookAt: A }, because: [{ id: 'sBatch' }] });
-  walk(C, 'K3', A, 'a step from the camera toward the agent', [{ id: 'cTurn' }], 'cGo3');
+  walk(C, 'K3', A, 'a step from the camera toward the talk: the take is stopped', [{ id: 'say4' }], 'cGo3');
   say(6, { shapes: ['open'], target: A });
   hear(A, 6, { id: 'aHear6', nod: false });
   say(7, { shapes: ['show', 'open'], target: C });

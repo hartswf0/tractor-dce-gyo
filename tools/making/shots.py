@@ -31,6 +31,7 @@ SPECIAL = {
  'OD-B25-S03': [(0, 'g1', 'WIDE', ['agent', 'director', 'cinematographer'], 'the block of the player against the 95 MB wall, too tall for the gate'),
                 ('g3+', 'g4', 'MID', ['agent'], 'the block split: the agent carries one small brick through the gate')],
  'OD-B25-S05': [('g3', 'g3+', 'MID', ['agent', 'director'], 'the card held up between them'),
+                ('g5', 'g6+', 'MID', ['agent', 'director'], 'the phases and the drawings: the agent and the director together (a close on the agent could only look down over the director)'),
                 ('g10', 'end', 'WIDE', ['agent', 'director', 'examiner'], 'the loom of agents: many of me, at once')],
  'OD-B25-S06': [('K2', 'g3+', 'WIDE', ['agent', 'director'], 'the cap: the loom goes dark'),
                 ('g4', 'g4+', 'MID', ['sweeper'], 'the sweeper with his broom, and his orders'),

@@ -180,7 +180,7 @@ SC[sid] = [
      pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-140, 100, -320), (-250, 80, -160), 42), [dict(id='examiner', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
  key('K5', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM, props=False),
              examiner=fig('examiner', -200, -230, face=LOOM, props=True), cinematographer=fig('cinematographer', -150, -170, face=LOOM, props=False)),
-     pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-180, 150, -440), (80, 60, -190), 46),
+     pr + [prop('halftone', -300, -200, h=64, floor=False, scale=0.6)], DAY2, cam((-60, 120, -390), (40, 70, -210), 46),
      [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
 ]
 # ---- 6: the loom at night; the cap; the sweeper; the skip list ----
@@ -190,18 +190,18 @@ base = base2(agent=fig('agent', *LOOM_L, face=(-140, -235), props=False), direct
              examiner=fig('examiner', *EXL, face=LOOM, props=True), sweeper=fig('sweeper', 265, -90, face=LOOM, props=True))
 pr = SET_PROPS + [RAM(), CAMERA(*CAM0, AIM(*CAM0, *O_SET))]
 SC[sid] = [
- key('K1', B2(base), pr, NIGHT2, cam((-160, 150, -450), (60, 60, -190), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
+ key('K1', B2(base), pr, NIGHT2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K1')),
  key('K2', B2(base, agent=fig('agent', *LOOM_L, face=LOOM, props=False), director=fig('director', -140, -235, face=LOOM, props=False)), pr, DARK2,
-     cam((-60, 140, -430), (100, 60, -180), 46), [dict(id='agent', primary=True)], beat(sid, 'K2')),
+     cam((0, 120, -390), (80, 70, -200), 46), [dict(id='agent', primary=True)], beat(sid, 'K2')),
  key('K3', B2(base, sweeper=fig('sweeper', *S_IN, face=HEAP, props=True), examiner=fig('examiner', 100, -305, face=S_IN, props=True),
              agent=fig('agent', *LOOM_L, face=S_IN, props=False), director=fig('director', -140, -235, face=S_IN, props=False)),
-     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((80, 120, -440), (220, 70, -240), 44), [dict(id='sweeper', primary=True, face=True), dict(id='examiner', soft=True)], beat(sid, 'K3')),
+     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((120, 110, -390), (200, 70, -250), 44), [dict(id='sweeper', primary=True, face=True), dict(id='examiner', soft=True)], beat(sid, 'K3')),
  key('K4', B2(base, sweeper=fig('sweeper', *S_IN, face=(40, -285), props=True), examiner=fig('examiner', 100, -305, face=S_IN, props=True),
              agent=fig('agent', 40, -285, face=(-140, -235), props=False), director=fig('director', -140, -235, face=(40, -285), props=False)),
-     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-40, 120, -440), (60, 70, -250), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
+     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-20, 110, -390), (40, 70, -250), 44), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K4')),
  key('K5', B2(base, sweeper=fig('sweeper', *S_IN, face=(40, -285), props=True), examiner=fig('examiner', 100, -305, face=(40, -285), props=True),
              agent=fig('agent', 40, -285, face=(-140, -235), props=False), director=fig('director', -90, -260, face=(40, -285), props=False)),
-     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-120, 130, -460), (60, 60, -200), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
+     pr + [prop('brickHeap', *HEAP)], NIGHT2, cam((-60, 120, -390), (40, 70, -210), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K5')),
 ]
 # ---- 7: the voices ----
 sid = 'OD-B25-S07'
@@ -238,7 +238,7 @@ SC[sid] = [
      cam((60, 110, 20), (-70, 70, 190), 44), [dict(id='agent', primary=True, face=True), dict(id='examiner', soft=True)], beat(sid, 'K2')),
  key('K3', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM_L, props=False),
              examiner=fig('examiner', -190, -215, face=LOOM_L, props=True), cinematographer=fig('cinematographer', -150, -150, face=LOOM, props=False)), pr, DAY2,
-     cam((-200, 150, -450), (40, 60, -200), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
+     cam((-90, 120, -390), (0, 70, -220), 46), [dict(id='agent', primary=True, face=True), dict(id='director', soft=True)], beat(sid, 'K3')),
  key('K4', B2(base, agent=fig('agent', *LOOM_L, face=(-140, -240), props=False), director=fig('director', -140, -240, face=LOOM_L, props=False),
              examiner=fig('examiner', -190, -215, face=(-140, -240), props=True), cinematographer=fig('cinematographer', -150, -150, face=(-140, -240), props=False)), pr, DAY2,
      cam((-60, 110, -380), (-110, 70, -220), 44), [dict(id='director', primary=True, face=True), dict(id='agent', soft=True)], beat(sid, 'K4')),
@@ -251,6 +251,21 @@ SC[sid] = [
      [x for x in pr if x['id'] != 'camera'] + [CAMERA(-120, -60, AIM(-120, -60, 90, -20))], DAY2, cam((-190, 125, -105), (70, 70, -20), 40),
      [dict(id='director', primary=True, face=True), dict(id='agent', soft=True), dict(id='examiner', soft=True)], beat(sid, 'K6')),
 ]
+
+def cheat_out(keys):
+    """part two: a figure turned to another is opened toward the audience (halfway between its partner and the room, +z in the
+    location's frame), as actors cheat out on a stage; its head still turns to whom it speaks (the director's modules)."""
+    for key in keys:
+        figs = {b['id']: (b['x'], b['z']) for b in key['blocking'] if not b.get('absent')}
+        for b in key['blocking']:
+            f = b.get('face')
+            if b.get('absent') or not isinstance(f, list): continue
+            if not any(i != b['id'] and math.hypot(p[0] - f[0], p[1] - f[1]) < 25 for i, p in figs.items()): continue
+            dx, dz = f[0] - b['x'], f[1] - b['z']; n = math.hypot(dx, dz) or 1
+            dx, dz = dx / n, dz / n + 1.0; n = math.hypot(dx, dz)
+            if n < 0.3: continue
+            b['face'] = [round(b['x'] + 80 * dx / n, 1), round(b['z'] + 80 * dz / n, 1)]
+for sid in ('OD-B25-S05', 'OD-B25-S06', 'OD-B25-S07', 'OD-B25-S08'): cheat_out(SC[sid])
 
 if __name__ == '__main__':
     ONLY = [a for a in sys.argv[1:] if a.startswith('OD-B25-')]

@@ -34,11 +34,11 @@ module.exports = function author(M, X) {
   hold(W, q(tDark), q(c(4).at - 2.6), 'the dark: he waits', [[loom, 3.0]], { because: [{ id: 'sDark' }] });
   /* the sweeper */
   St({ id: 'sUp', t0: q(c(4).at - 1.6), t1: q(c(4).at - 1.0), kind: 'SOUND', label: 'the next run starts: the hum again, the lights', because: [] });
-  walk(W, 'K3', heap, 'crosses to the bench with his broom: his book is done', [{ id: 'sUp' }], 'wGo3');
+  walk(W, 'K3', heap, 'crosses to the bench with his broom: his book is done, the run is over', [{ id: 'say3' }], 'wGo3');
   walk(A, 'K3', W, 'turns to see him', [{ id: 'wGo3' }], 'aGo3'); walk(D, 'K3', W, 'turns to see him', [{ id: 'wGo3' }], 'dGo3');
   say(4, { shapes: ['chest', 'open'], target: A });
   I({ id: 'wSweep', actor: W, kind: 'TOOL_WORK', t0: q(end(c(4)) + 0.1), t1: q(c(6).at - 0.3), target: heap, label: 'sweeps everything on the floor into one heap', params: { how: 'dig', period: 0.9, on: heap }, because: [{ id: 'say4' }] });
-  walk(E, 'K3', W, 'from the ledger to the sweeper: what did he commit?', [{ id: 'say4' }], 'eGo3');
+  walk(E, 'K3', W, 'from the ledger after the sweeper: what will he commit?', [{ id: 'wGo3' }], 'eGo3');
   say(5, { shapes: ['point', 'chop', 'open'], maxBeats: 1, target: W });
   for (const who of [A, D]) hear(who, 5, { id: 'hear5' + who.slice(0, 3), nod: false });
   say(6, { shapes: ['open'], target: E });
@@ -66,7 +66,7 @@ module.exports = function author(M, X) {
     authored: { intents: G.intents, holds: G.holds, stimuli: G.stimuli, goals: { [A]: 'every book built and checked', [D]: 'to understand the night', [W]: 'his book committed', [E]: 'what each commit holds' },
       couplings: [],
       causal: { tau: 0.7, actions: {
-        [W]: [{ a: 'wait', base: 1.0, f: { 'after:sUp': -2.6 } }, { a: 'sweep and commit', base: -2.0, f: { 'after:sUp': 3.4, 'after:say9': -3.0 } }],
+        [W]: [{ a: 'wait', base: 1.0, f: { 'after:say3': -2.6 } }, { a: 'sweep and commit', base: -2.0, f: { 'after:say3': 3.4, 'after:say9': -3.0 } }],
         [E]: [{ a: 'read the ledger', base: 1.0, f: { 'after:say4': -2.4 } }, { a: 'check the commit', base: -2.0, f: { 'after:say4': 3.2 } }],
         [A]: [{ a: 'explain the run', base: 1.0, f: { 'after:sDark': -1.0 } }, { a: 'fix the instruction', base: -2.0, f: { 'after:say6': 3.2 } }],
       } },

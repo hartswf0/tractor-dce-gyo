@@ -109,9 +109,9 @@ SCENES = {
     ('K3', 'agent', 'director', 2.0, "First the atlas: every book broken into scenes, every scene into beats, each beat causing the next. Then one engine. Then the drawings."),
     ('K3', 'agent', 'director', 0.8, "Every figure is a small program that draws itself in flat tone. One last pass prints the frame as dots on a grid, as Knowlton's films were made at Bell Labs in 1963."),
     ('K4', 'examiner', 'director', 2.2, "Fifteen books were already in that first commit: three hundred and seven drawings, ninety-four scenes. How they were made before it, the record does not say."),
-    ('K5', 'agent', 'director', 1.8, "The card says how. Build a few, verify, then fan out."),
-    ('K5', 'director', 'agent', 0.6, "Fan out to whom?"),
-    ('K5', 'agent', 'director', 0.6, "To many of me, at once."),
+    ('K4', 'agent', 'director', 1.4, "The card says how. Build a few, verify, then fan out."),
+    ('K4', 'director', 'agent', 0.6, "Fan out to whom?"),
+    ('K5', 'agent', 'director', 3.2, "To many of me, at once."),
  ]),
  'OD-B25-S06': dict(title='The Loom at Night', head=1.2, tail=2.4, lines=[
     ('K1', 'agent', 'director', 0.0, "Books seventeen to twenty-four, all at once, in one tree. One agent for each drawing, one for each scene, and a sweeper for each book."),
