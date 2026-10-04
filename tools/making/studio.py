@@ -167,14 +167,14 @@ ODYSSEUS = ['1 28 0 -40 0 1 0 0 0 1 0 0 0 1 3815b.dat', '1 28 0 -28 0 1 0 0 0 1 
             '1 14 0 -96 0 1 0 0 0 1 0 0 0 1 3626bp88.dat', '1 308 0 -96 0 1 0 0 0 1 0 0 0 1 3901.dat', '1 320 0 -74 0 1 0 0 0 1 0 0 0 1 4524.dat']
 CAST = [  # (file name, who, note, at x, z, facing y-turn, rows)
     ('director', 'THE DIRECTOR', 'the human who directs: plaid jacket, dark red beret', -40, -100, 0,
-     figure('973p0l', 15, 72, 72, '3626bp35', '90386', 320)),
+     figure('973p0l', 0, 72, 72, '3626bp35', '90386', 320)),
     ('agent', 'THE AGENT', 'Claude, the builder: orange (terracotta) torso and arms, white legs', 160, 120, math.pi,
-     figure('973', 25, 15, 15, '3626bp01', '11256', 308, held=('3003', 14, -12))),
+     figure('973', 484, 15, 15, '3626bp01', '11256', 308, held=('3003', 14, -12))),
     ('cinematographer', 'THE CINEMATOGRAPHER', 'leather vest, cap with headphones', -220, -60, 0,
-     figure('973p0u', 72, 28, 28, '3626bp35', '2514', 72)),
+     figure('973p0u', 272, 72, 72, '3626bp35', '2514', 0)),
     ('odysseus', 'ODYSSEUS', 'the actor in costume: the hero\'s armour, sword and cape', -220, 170, 0, ODYSSEUS),
     ('examiner', 'THE EXAMINER', 'the forensic investigator: dark tan jacket and fedora, a magnifying glass', -300, -250, 0,
-     figure('973p1y', 28, 72, 72, '3626bp01', '61506', 28, held=('30152ap01', 0, 0))),
+     figure('973p1y', 308, 72, 72, '3626bp01', '61506', 308, held=('30152ap01', 0, 0))),
 ]
 
 def block(name, title, rows): return f'0 FILE {name}\n0 {title}\n0 Name: {name}\n' + HEAD + '\n' + '\n'.join(rows) + '\n'
