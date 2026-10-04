@@ -17,6 +17,7 @@ SCENES = arg('scenes', 'OD-B25-S01,OD-B25-S02,OD-B25-S03,OD-B25-S04').split(',')
 WORK = Path(arg('work', '/tmp/claude-0/-home-user/4aa29a79-b8f5-55cd-b69e-84f439d17223/scratchpad/mk2/film')); WORK.mkdir(parents=True, exist_ok=True)
 CAPTION = ['The voices in this film are synthetic.', 'Kokoro-82M, run offline: a different voice for each character.',
            'The studio, the figures and every movement: LDraw parts, staged and performed by the Odyssey\'s own engine.']
+CRF = arg('crf', '26')   # the joined film under GitHub's 100 MB file limit
 END = 6.0   # seconds of end caption over the last shot
 def ff(*a): subprocess.run(['nice', FF, '-v', 'error', '-y', *a], check=True)
 def dur(p):
@@ -50,10 +51,10 @@ if __name__ == '__main__':
         if i == len(SCENES) - 1:   # the end caption: the last shot held END seconds more (the scene's own captions are burned into its frames), the caption over the hold
             png = WORK / 'caption.png'; caption_png(1280, 720).save(png)
             ff('-i', str(src), '-loop', '1', '-i', str(png), '-filter_complex', f'[0:v]tpad=stop_mode=clone:stop_duration={END}[h];[1:v]format=rgba,fade=t=in:st={d:.3f}:d=0.8:alpha=1[c];[h][c]overlay=0:0:shortest=1:enable=\'gte(t,{d:.3f})\',fade=t=in:st=0:d=0.5,fade=t=out:st={d + END - 0.8:.3f}:d=0.8[v]',
-               '-map', '[v]', '-map', '0:a', '-af', f'apad=pad_dur={END},afade=t=in:st=0:d=0.4,afade=t=out:st={d + END - 1.5:.3f}:d=1.5', '-t', f'{d + END:.3f}', '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-r', '12', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', str(seg))
+               '-map', '[v]', '-map', '0:a', '-af', f'apad=pad_dur={END},afade=t=in:st=0:d=0.4,afade=t=out:st={d + END - 1.5:.3f}:d=1.5', '-t', f'{d + END:.3f}', '-c:v', 'libx264', '-crf', CRF, '-preset', 'medium', '-pix_fmt', 'yuv420p', '-r', '12', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', str(seg))
             d += END
         else:
-            ff('-i', str(src), '-vf', fo, '-af', afo, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-r', '12', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', str(seg))
+            ff('-i', str(src), '-vf', fo, '-af', afo, '-c:v', 'libx264', '-crf', CRF, '-preset', 'medium', '-pix_fmt', 'yuv420p', '-r', '12', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', str(seg))
         parts.append(seg)
         for a, b, t in parse_vtt(F / f'{s}-performed.vtt'): caps.append((a + off, b + off, t))
         info.append(dict(scene=s, at=round(off, 2), seconds=round(d, 2), shots=len(json.loads((F / f'{s}-performed.json').read_text()).get('shots', []))))
