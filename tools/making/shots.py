@@ -33,7 +33,7 @@ SPECIAL = {
  'OD-B25-S05': [('g1', 'g1+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
                 ('g7', 'g7+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
                 ('g3', 'g4+', 'MID', ['agent', 'firstad'], 'the card read out, held up between them'),
-                ('g6', 'g6+', 'MID', ['agent', 'director'], 'how a figure draws itself: the agent and the director together'),
+                ('g6', 'g6+', 'WIDE', ['agent', 'director', 'examiner'], 'how a figure draws itself: the three of them by the lectern and its halftone sheet (a two-shot here found only the movie camera in front of them)'),
                 ('g10', 'end', 'WIDE', ['firstad', 'agent', 'director'], 'the loom of agents: "To you. All of you."')],
  'OD-B25-S06': [('g1', 'g1+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
                 ('g11', 'g11+', 'MID', ['director', 'firstad'], 'the Director\'s call and the AD who will translate it (a close on the beret looks down on it)'),
