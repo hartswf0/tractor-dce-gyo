@@ -79,15 +79,15 @@
   "shots": {
    "INSERT": 1,
    "WIDE": 1,
-   "HOT": 3,
-   "ACTION": 2
+   "HOT": 1,
+   "ACTION": 3
   },
   "cine": {
    "time": {
-    "grid": 3.5,
-    "inside": 0.6,
-    "seen": 15.4,
-    "clutter": 4.2,
+    "grid": 1.5,
+    "inside": 0.4,
+    "seen": 7.1,
+    "clutter": 2,
     "pose": 0
    },
    "scene": "OD-B23-S04",
@@ -110,7 +110,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 210.4,
+   "solvedIn": 86.4,
    "shots": [
     {
      "i": 0,
@@ -486,20 +486,23 @@
     {
      "i": 5,
      "t0": 36.42,
-     "t1": 40.5,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
+     "t1": 45.53,
+     "kind": "ACTION",
+     "size": "WIDE",
+     "planned": "WIDE",
      "eased": null,
-     "primary": "penelope",
+     "primary": "odysseus",
      "subjects": [
-      "penelope",
-      "odysseus"
+      "odysseus",
+      "penelope"
      ],
      "why": {
-      "cut": "take 2: the embrace closer",
-      "rule": "R2 the contact c1071 (EMBRACE) in a profile two-shot",
-      "hot": "odysseus"
+      "cut": "cut on the action: EMBRACE (c1071)",
+      "rule": "R2 the contact c1071 (EMBRACE: holding each other a long time) with every figure it names",
+      "heat": 1.76,
+      "contrast": 0.31,
+      "hot": "odysseus",
+      "direction": "the last embrace on the bed seen from above its foot (both of them, not the back of one head)"
      },
      "line": [
       "odysseus",
@@ -509,35 +512,31 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       68.9,
-       118.3,
-       -9
+       -122.2,
+       187,
+       -28.9
       ],
-      "fov": 38,
+      "fov": 46,
       "key": false,
-      "az": 0.79,
+      "az": 5.11,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L2 the contact hidden by penelope",
      "rejected": {
-      "L3 the back": 54,
-      "L2 penelope hidden": 35,
-      "L1 near plane in a set part": 6,
-      "L4 foreground covers n%": 2,
-      "L3 face": 44,
-      "L3 head": 15,
-      "L1 too near the face": 57
+      "L2 the contact hidden": 130,
+      "L1 near plane in a set part": 5,
+      "L2 odysseus hidden": 6,
+      "L1 too near the face": 16
      },
-     "candidates": 256,
-     "legalCandidates": 43,
+     "candidates": 193,
+     "legalCandidates": 36,
      "samples": [
-      38.46,
+      40.98,
       36.52,
-      40.4,
-      37.67,
-      38.92
+      45.43,
+      36.62
      ],
      "checks": [
       "L1 not inside geometry",
@@ -547,94 +546,22 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.76,
-     "headV": 0.429,
+     "facing": 0.93,
+     "headV": 0.317,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.293,
-      "sd": 0.219,
-      "dark": 0.28,
+      "mean": 0.413,
+      "sd": 0.224,
+      "dark": 0.13,
       "white": 0,
-      "one": 0.59
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 6,
-     "t0": 40.5,
-     "t1": 45.53,
-     "kind": "HOT",
-     "size": "CLOSE",
-     "planned": "CLOSE",
-     "eased": null,
-     "primary": "odysseus",
-     "subjects": [
-      "odysseus"
-     ],
-     "why": {
-      "cut": "take 2: the last shot a close on the two of them",
-      "rule": "the ending held on the embrace, close",
-      "hot": "penelope"
-     },
-     "line": [
-      "odysseus",
-      "penelope"
-     ],
-     "side": -1,
-     "lineHeld": true,
-     "camera": {
-      "pos": [
-       -88,
-       143.6,
-       24.4
-      ],
-      "fov": 32,
-      "key": false,
-      "az": 5.5,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L3 the back": 40,
-      "L5 across the line": 98,
-      "L2 odysseus hidden": 14,
-      "L4 foreground covers n%": 5,
-      "L1 too near the face": 54,
-      "L3 head": 32
-     },
-     "candidates": 256,
-     "legalCandidates": 13,
-     "samples": [
-      43.02,
-      40.6,
-      45.43,
-      41.75,
-      44.25
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 on the side the line took"
-     ],
-     "failed": [],
-     "facing": 0.71,
-     "headV": 0.35,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.422,
-      "sd": 0.197,
-      "dark": 0.06,
-      "white": 0,
-      "one": 0.65
+      "one": 0.54
      },
      "lumaRefused": 0
     }
    ],
-   "carried": "shots 0-4 carried frame for frame from take 3; shots 5-6 solved and drawn for take 4"
+   "notes": [
+    "the last shot (36.42-45.5 s) re-shot as a span from above the bed, both of them in frame, and spliced in"
+   ]
   },
   "clips": [
    {
@@ -726,14 +653,8 @@
   },
   {
    "t": 36.5,
-   "shot": "c5:HOT:MID",
-   "kind": "HOT",
-   "key": "K5"
-  },
-  {
-   "t": 40.5,
-   "shot": "c6:HOT:CLOSE",
-   "kind": "HOT",
+   "shot": "c5:ACTION:WIDE",
+   "kind": "ACTION",
    "key": "K5"
   }
  ],
