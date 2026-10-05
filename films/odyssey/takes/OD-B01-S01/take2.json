@@ -1,0 +1,1001 @@
+{
+ "scene": "OD-B01-S01",
+ "mode": "cut",
+ "fps": 12,
+ "size": [
+  1280,
+  720
+ ],
+ "seconds": 71.25,
+ "frames": 855,
+ "from": 0,
+ "take": {
+  "follow": [],
+  "scene": "OD-B01-S01",
+  "mode": "cut",
+  "total": 71.22,
+  "direction": {
+   "sign": "Mi",
+   "shot_bias": {
+    "WIDE": 0.44,
+    "MID": 0.24,
+    "CLOSE": 0.23,
+    "OBJ": 0.09
+   },
+   "hold_min_s": 5,
+   "move": "pull",
+   "empty_frame": false,
+   "sound_forward": false,
+   "cut_rhythm": "slow",
+   "insert_object": "Poseidon's empty throne",
+   "subject": "athena",
+   "book_tempo": "mid",
+   "tempo_conflict": false
+  },
+  "cut": null,
+  "keys": [
+   {
+    "id": "K1",
+    "t": 0
+   },
+   {
+    "id": "K3",
+    "t": 12.77,
+    "win": [
+     10.62,
+     13.69
+    ]
+   },
+   {
+    "id": "K4",
+    "t": 40.66,
+    "win": [
+     39.19,
+     41.29
+    ]
+   }
+  ],
+  "faces": [
+   "athena"
+  ],
+  "shots": {
+   "INSERT": 1,
+   "HOT": 4,
+   "REACT": 2,
+   "WIDE": 2
+  },
+  "cine": {
+   "time": {
+    "grid": 4.1,
+    "inside": 0.8,
+    "seen": 18.5,
+    "clutter": 7.3,
+    "pose": 0
+   },
+   "scene": "OD-B01-S01",
+   "media": "cool",
+   "direction": {
+    "shot_bias": {
+     "WIDE": 0.44,
+     "MID": 0.24,
+     "CLOSE": 0.23,
+     "OBJ": 0.09
+    },
+    "hold_min_s": 5,
+    "move": "pull",
+    "empty_frame": false,
+    "sound_forward": false,
+    "cut_rhythm": "slow",
+    "insert_object": "Poseidon's empty throne",
+    "subject": "athena",
+    "book_tempo": "mid",
+    "tempo_conflict": false
+   },
+   "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
+   "solvedIn": 274.8,
+   "shots": [
+    {
+     "i": 0,
+     "t0": 0,
+     "t1": 7.75,
+     "kind": "INSERT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "zeus",
+     "subjects": [
+      "zeus",
+      "athena",
+      "assembly-of-gods-1"
+     ],
+     "why": {
+      "cut": "the scene opens",
+      "rule": "R6 insert_object \"Poseidon's empty throne\" at its hottest (0 s)",
+      "heat": 0.37,
+      "contrast": 0.35,
+      "hot": "zeus"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -174.6,
+       136.6,
+       197
+      ],
+      "fov": 60,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L2 zeus hidden": 161,
+      "L4 an empty frame (n% sky)": 1,
+      "L2 body": 5,
+      "L4 foreground covers n%": 32,
+      "L1 near plane in a set part": 2
+     },
+     "candidates": 256,
+     "legalCandidates": 55,
+     "samples": [
+      3.88,
+      0.1,
+      7.65,
+      1.25,
+      2.5,
+      5,
+      6.25
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 0.57,
+     "headV": 0.422,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.692,
+      "sd": 0.203,
+      "dark": 0,
+      "white": 0.19,
+      "one": 0.38
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 1,
+     "t0": 7.75,
+     "t1": 14,
+     "kind": "HOT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": "athena cannot be framed legally from anywhere: the shot before is held (no cut)",
+     "primary": "zeus",
+     "subjects": [
+      "zeus",
+      "athena",
+      "assembly-of-gods-1"
+     ],
+     "why": {
+      "cut": "heat moves: zeus -> athena",
+      "rule": "R1 the hot spot athena (heat 1.43, contrast 1.27): CLOSE by the direction's bias",
+      "heat": 1.43,
+      "contrast": 1.27,
+      "hot": "athena"
+     },
+     "line": [
+      "zeus",
+      "athena"
+     ],
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -174.6,
+       136.6,
+       197
+      ],
+      "fov": 60,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 71,
+      "L1 near plane in a set part": 30,
+      "L4 foreground covers n%": 8,
+      "L2 body": 5,
+      "L2 athena hidden": 20,
+      "L1 inside a set part": 4,
+      "L1 too near the face": 82,
+      "L3 head": 32,
+      "L1 in athena": 4
+     },
+     "rejectedPlanned": {
+      "L3 the back": 71,
+      "L1 near plane in a set part": 30,
+      "L4 foreground covers n%": 8,
+      "L2 body": 5,
+      "L2 athena hidden": 20,
+      "L1 inside a set part": 4,
+      "L1 too near the face": 82,
+      "L3 head": 32,
+      "L1 in athena": 4
+     },
+     "candidates": 256,
+     "legalCandidates": 1,
+     "samples": [
+      10.88,
+      7.85,
+      13.9,
+      9,
+      10.25,
+      11.5,
+      12.75
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": -0.15,
+     "headV": 0.422,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.692,
+      "sd": 0.203,
+      "dark": 0,
+      "white": 0.19,
+      "one": 0.38
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 2,
+     "t0": 14,
+     "t1": 23.42,
+     "kind": "REACT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "assembly-of-gods-5",
+     "subjects": [
+      "assembly-of-gods-5"
+     ],
+     "why": {
+      "cut": "reaction ATTEND of assembly-of-gods-5 to assembly-of-gods-4 (gToA3) in 0.25 s",
+      "rule": "R3/R7 reaction of assembly-of-gods-5 to assembly-of-gods-4 within 0.25 s, cut on the same side as its cause (the eyelines match)",
+      "heat": 1.21,
+      "contrast": 1.03,
+      "hot": "athena"
+     },
+     "line": [
+      "assembly-of-gods-4",
+      "assembly-of-gods-5"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -92.4,
+       99.5,
+       -45.4
+      ],
+      "fov": 32,
+      "key": false,
+      "az": 0.39,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 in athena": 1,
+      "L2 assembly-of-gods-5 hidden": 10,
+      "L1 in zeus": 9,
+      "L1 near plane in a set part": 10,
+      "L3 the back": 78,
+      "L4 foreground covers n%": 11,
+      "L2 body": 1,
+      "L1 inside a set part": 2,
+      "L1 in assembly-of-gods-1": 4,
+      "L1 too near the face": 90,
+      "L3 head": 32
+     },
+     "candidates": 256,
+     "legalCandidates": 8,
+     "samples": [
+      18.71,
+      14.1,
+      23.32,
+      15.25,
+      16.5,
+      17.75,
+      20.25,
+      21.5,
+      22.75
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.95,
+     "headV": 0.346,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.817,
+      "sd": 0.139,
+      "dark": 0,
+      "white": 0.42,
+      "one": 0.59
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 3,
+     "t0": 23.42,
+     "t1": 31.58,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "assembly-of-gods-5",
+      "assembly-of-gods-1"
+     ],
+     "why": {
+      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.49, contrast 1.35): WIDE by the direction's bias",
+      "heat": 1.49,
+      "contrast": 1.35,
+      "hot": "athena"
+     },
+     "line": [
+      "zeus",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       131.5,
+       114.6,
+       -99
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 1.57,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 head of athena cut",
+     "rejected": {
+      "L3 head": 3,
+      "L3 the back": 44,
+      "L2 athena hidden": 111,
+      "L4 foreground covers n%": 41,
+      "L2 body": 12,
+      "L1 near plane in a set part": 13,
+      "L3 face": 1
+     },
+     "candidates": 257,
+     "legalCandidates": 32,
+     "samples": [
+      27.5,
+      23.52,
+      31.48,
+      24.67,
+      25.92,
+      28.42,
+      29.67,
+      30.92
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.93,
+     "headV": 0.48,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.75,
+      "sd": 0.168,
+      "dark": 0,
+      "white": 0.25,
+      "one": 0.38
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 31.58,
+     "t1": 39.67,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena",
+      "zeus",
+      "assembly-of-gods-5"
+     ],
+     "why": {
+      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "rule": "R1 the hot spot athena (heat 1.03, contrast 0.89): WIDE by the direction's bias",
+      "heat": 1.03,
+      "contrast": 0.89,
+      "hot": "athena"
+     },
+     "line": [
+      "zeus",
+      "athena"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       91.7,
+       114.6,
+       32.5
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 0.79,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 head of athena cut",
+     "rejected": {
+      "L3 head": 3,
+      "L5 across the line": 144,
+      "L2 athena hidden": 42,
+      "L3 the back": 8,
+      "L4 foreground covers n%": 20,
+      "L2 body": 1,
+      "L1 near plane in a set part": 5,
+      "L4 an empty frame (n% sky)": 1
+     },
+     "candidates": 257,
+     "legalCandidates": 33,
+     "samples": [
+      35.63,
+      31.68,
+      39.57,
+      32.83,
+      34.08,
+      36.58,
+      37.83
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.37,
+     "headV": 0.539,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.76,
+      "sd": 0.168,
+      "dark": 0,
+      "white": 0.27,
+      "one": 0.39
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 5,
+     "t0": 39.67,
+     "t1": 47.5,
+     "kind": "HOT",
+     "size": "WIDE",
+     "planned": "MID",
+     "eased": "the planned frame was washed out from every legal camera: zeus, wide",
+     "primary": "zeus",
+     "subjects": [
+      "zeus"
+     ],
+     "why": {
+      "cut": "heat moves: athena -> zeus",
+      "rule": "R1 the hot spot zeus (heat 1.09, contrast 0.9): MID by the direction's bias",
+      "heat": 1.09,
+      "contrast": 0.9,
+      "hot": "zeus"
+     },
+     "line": [
+      "athena",
+      "zeus"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -66.9,
+       99.4,
+       -62.5
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 in athena": 3,
+      "L2 zeus hidden": 60,
+      "L1 near plane in a set part": 24,
+      "L4 foreground covers n%": 21,
+      "L1 in assembly-of-gods-5": 4,
+      "L1 too near the face": 7,
+      "L1 in zeus": 3
+     },
+     "rejectedPlanned": {
+      "L5 across the line": 143,
+      "L2 zeus hidden": 23,
+      "L1 near plane in a set part": 12,
+      "L4 foreground covers n%": 9,
+      "L1 in assembly-of-gods-5": 4,
+      "L3 the back": 13,
+      "L1 too near the face": 18,
+      "L3 head": 2,
+      "L1 in zeus": 9
+     },
+     "candidates": 256,
+     "legalCandidates": 134,
+     "samples": [
+      43.58,
+      39.77,
+      47.4,
+      40.92,
+      42.17,
+      44.67,
+      45.92
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.318,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.832,
+      "sd": 0.126,
+      "dark": 0,
+      "white": 0.43,
+      "one": 0.65
+     },
+     "lumaRefused": 12
+    },
+    {
+     "i": 6,
+     "t0": 47.5,
+     "t1": 56.92,
+     "kind": "REACT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "athena",
+     "subjects": [
+      "athena"
+     ],
+     "why": {
+      "cut": "take 2",
+      "rule": "R3/R7 athena hears her father's answer (was a wide of the hall)",
+      "hot": "athena"
+     },
+     "line": [
+      "zeus",
+      "athena"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -58.7,
+       77.4,
+       -95.6
+      ],
+      "fov": 38,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 123,
+      "L2 athena hidden": 5,
+      "L4 foreground covers n%": 2,
+      "L1 too near the face": 42,
+      "L1 near plane in a set part": 1,
+      "L3 face": 12,
+      "L3 head": 20,
+      "L1 in athena": 5
+     },
+     "candidates": 256,
+     "legalCandidates": 46,
+     "samples": [
+      52.21,
+      47.6,
+      56.82,
+      48.75,
+      50,
+      51.25,
+      53.75,
+      55,
+      56.25
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.93,
+     "headV": 0.34,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.716,
+      "sd": 0.109,
+      "dark": 0,
+      "white": 0.02,
+      "one": 0.39
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 7,
+     "t0": 56.92,
+     "t1": 64.58,
+     "kind": "HOT",
+     "size": "WIDE",
+     "planned": "CLOSE",
+     "eased": "the planned frame was washed out from every legal camera: zeus, wide",
+     "primary": "zeus",
+     "subjects": [
+      "zeus"
+     ],
+     "why": {
+      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "rule": "R1 the hot spot zeus (heat 0.91, contrast 0.77): CLOSE by the direction's bias",
+      "heat": 0.91,
+      "contrast": 0.77,
+      "hot": "zeus"
+     },
+     "line": [
+      "athena",
+      "zeus"
+     ],
+     "side": -1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       -41.4,
+       99.4,
+       -125.3
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 5.89,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 in athena": 3,
+      "L2 zeus hidden": 53,
+      "L4 foreground covers n%": 24,
+      "L1 near plane in a set part": 23,
+      "L1 in assembly-of-gods-5": 3,
+      "L1 too near the face": 13
+     },
+     "rejectedPlanned": {
+      "L3 the back": 13,
+      "L1 near plane in a set part": 17,
+      "L4 foreground covers n%": 6,
+      "L2 zeus hidden": 10,
+      "L5 across the line": 128,
+      "L1 too near the face": 43,
+      "L3 head": 16
+     },
+     "candidates": 256,
+     "legalCandidates": 137,
+     "samples": [
+      60.75,
+      57.02,
+      64.48,
+      58.17,
+      59.42,
+      61.92,
+      63.17
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.28,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.823,
+      "sd": 0.145,
+      "dark": 0,
+      "white": 0.45,
+      "one": 0.61
+     },
+     "lumaRefused": 12
+    },
+    {
+     "i": 8,
+     "t0": 64.58,
+     "t1": 71.22,
+     "kind": "HOT",
+     "size": "WIDE",
+     "planned": "CLOSE",
+     "eased": "the planned frame was washed out from every legal camera: zeus, wide",
+     "primary": "zeus",
+     "subjects": [
+      "zeus"
+     ],
+     "why": {
+      "cut": "take 2",
+      "rule": "the ending on the speaker, close",
+      "hot": "zeus"
+     },
+     "line": [
+      "athena",
+      "zeus"
+     ],
+     "side": 1,
+     "lineHeld": true,
+     "camera": {
+      "pos": [
+       25.5,
+       99.4,
+       -99.6
+      ],
+      "fov": 63,
+      "key": false,
+      "az": 0.39,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 in athena": 2,
+      "L2 zeus hidden": 53,
+      "L4 foreground covers n%": 24,
+      "L1 near plane in a set part": 23,
+      "L1 in assembly-of-gods-5": 3,
+      "L1 too near the face": 12
+     },
+     "rejectedPlanned": {
+      "L3 the back": 13,
+      "L1 near plane in a set part": 16,
+      "L4 foreground covers n%": 6,
+      "L2 zeus hidden": 11,
+      "L5 across the line": 128,
+      "L1 too near the face": 43,
+      "L3 head": 16
+     },
+     "candidates": 256,
+     "legalCandidates": 139,
+     "samples": [
+      67.9,
+      64.68,
+      71.12,
+      65.83,
+      67.08,
+      68.33,
+      69.58
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.81,
+     "headV": 0.3,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.823,
+      "sd": 0.154,
+      "dark": 0,
+      "white": 0.44,
+      "one": 0.61
+     },
+     "lumaRefused": 12
+    }
+   ]
+  },
+  "clips": [
+   {
+    "gi": 1,
+    "at": 0.6,
+    "dur": 11.72,
+    "kind": "AUDITORY_ACTION",
+    "key": "K1",
+    "speaker": "assembly-of-gods-1",
+    "addressee": null
+   },
+   {
+    "gi": 5,
+    "at": 12.77,
+    "dur": 27.44,
+    "kind": "DIALOGUE",
+    "key": "K3",
+    "speaker": "athena",
+    "addressee": "assembly-of-gods-1"
+   },
+   {
+    "gi": 6,
+    "at": 40.66,
+    "dur": 29.96,
+    "kind": "DIALOGUE",
+    "key": "K4",
+    "speaker": "zeus",
+    "addressee": "athena"
+   }
+  ]
+ },
+ "shots": [
+  {
+   "t": 0,
+   "shot": "c0:INSERT:CLOSE",
+   "kind": "INSERT",
+   "key": "K1"
+  },
+  {
+   "t": 7.75,
+   "shot": "c1:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K1"
+  },
+  {
+   "t": 14,
+   "shot": "c2:REACT:CLOSE",
+   "kind": "REACT",
+   "key": "K3"
+  },
+  {
+   "t": 23.5,
+   "shot": "c3:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K3"
+  },
+  {
+   "t": 31.583,
+   "shot": "c4:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K3"
+  },
+  {
+   "t": 39.75,
+   "shot": "c5:HOT:WIDE",
+   "kind": "HOT",
+   "key": "K3"
+  },
+  {
+   "t": 47.5,
+   "shot": "c6:REACT:MID",
+   "kind": "REACT",
+   "key": "K4"
+  },
+  {
+   "t": 57,
+   "shot": "c7:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K4"
+  },
+  {
+   "t": 64.583,
+   "shot": "c8:HOT:WIDE",
+   "kind": "HOT",
+   "key": "K4"
+  }
+ ],
+ "sound": {
+  "total": 71.22,
+  "voice": {
+   "file": "odyssey/take/voice/OD-B01-S01.m4a",
+   "clips": [
+    {
+     "at": 0.6,
+     "start": 11.78,
+     "dur": 11.72
+    },
+    {
+     "at": 12.77,
+     "start": 55.44,
+     "dur": 27.44
+    },
+    {
+     "at": 40.66,
+     "start": 83.24,
+     "dur": 29.96
+    }
+   ]
+  },
+  "bed": {
+   "file": "odyssey/take/bed/bronze-council-01.ogg",
+   "open": 0.18,
+   "duck": 0.1,
+   "ramp": 0.15,
+   "offset": 0
+  },
+  "forward": false,
+  "spans": [
+   {
+    "at": 0.6,
+    "dur": 11.72
+   },
+   {
+    "at": 12.77,
+    "dur": 27.44
+   },
+   {
+    "at": 40.66,
+    "dur": 29.96
+   }
+  ]
+ },
+ "choreo": {
+  "format": "odyssey-choreo/1",
+  "layer": "add",
+  "actors": 7,
+  "cues": 234,
+  "generated": {
+   "by": "tools/perform/compile.js",
+   "from": "odyssey/score/OD-B01-S01.json",
+   "note": "the performance engine's body score: every key caused by an intent in the score; hand keys go in overrides"
+  }
+ }
+}

@@ -76,18 +76,18 @@
   ],
   "shots": {
    "WIDE": 2,
-   "ACTION": 5,
-   "HOT": 10,
+   "ACTION": 6,
+   "HOT": 8,
+   "MID": 1,
    "REACT": 1,
-   "GIANT": 1,
-   "WIDE!": 1
+   "GIANT!": 1
   },
   "cine": {
    "time": {
-    "grid": 3.8,
-    "inside": 1.2,
-    "seen": 13.9,
-    "clutter": 8.6,
+    "grid": 2.5,
+    "inside": 0.9,
+    "seen": 11,
+    "clutter": 6.3,
     "pose": 0
    },
    "scene": "OD-B10-S04",
@@ -110,7 +110,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 309.1,
+   "solvedIn": 244.9,
    "shots": [
     {
      "i": 0,
@@ -742,18 +742,21 @@
     {
      "i": 8,
      "t0": 17.63,
-     "t1": 20.4,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
+     "t1": 20.98,
+     "kind": "MID",
+     "size": "CLOSE",
+     "planned": "CLOSE",
      "eased": null,
      "primary": "circe",
      "subjects": [
-      "circe"
+      "circe",
+      "five-scouts-1"
      ],
      "why": {
-      "cut": "take 2: the drug mixed, on her",
-      "rule": "R1 circe pours",
+      "cut": "wind-up of POUR (iPour) before IMPACT",
+      "rule": "R3 the wind-up: POUR of circe (iPour), the cause of IMPACT cWand0; R9 not the same size as the shot before (MID)",
+      "heat": 0.3,
+      "contrast": 0.3,
       "hot": "circe"
      },
      "line": [
@@ -764,36 +767,35 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       -13.9,
-       70.5,
-       -35.9
+       -148.2,
+       104.4,
+       42.5
       ],
-      "fov": 38,
+      "fov": 60,
       "key": false,
-      "az": 4.32,
+      "az": 5.11,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 37,
-      "L5 across the line": 104,
-      "L2 circe hidden": 4,
-      "L3 head": 18,
-      "L3 face": 27,
-      "L4 foreground covers n%": 5,
-      "L1 too near the face": 17,
-      "L1 in five-scouts-2": 12,
-      "L1 in five-scouts-3": 1,
-      "L2 body": 1
+      "L3 the back": 31,
+      "L4 foreground covers n%": 27,
+      "L2 circe hidden": 28,
+      "L5 across the line": 128,
+      "L2 body": 9,
+      "L1 in eurylochus": 2,
+      "L1 near plane in a set part": 9,
+      "L3 face": 1,
+      "L3 head": 1
      },
      "candidates": 256,
-     "legalCandidates": 30,
+     "legalCandidates": 20,
      "samples": [
-      19.02,
+      19.31,
       17.73,
-      20.3
+      20.88
      ],
      "checks": [
       "L1 not inside geometry",
@@ -803,32 +805,33 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.99,
-     "headV": 0.341,
-     "clutterFar": 0,
+     "facing": 0.8,
+     "headV": 0.343,
+     "clutterFar": 0.1,
      "luma": {
-      "mean": 0.745,
-      "sd": 0.151,
-      "dark": 0,
-      "white": 0.1,
-      "one": 0.33
+      "mean": 0.689,
+      "sd": 0.239,
+      "dark": 0.01,
+      "white": 0.18,
+      "one": 0.45
      },
      "lumaRefused": 0
     },
     {
      "i": 9,
-     "t0": 20.4,
+     "t0": 20.98,
      "t1": 23.83,
-     "kind": "HOT",
+     "kind": "ACTION",
      "size": "WIDE",
-     "planned": "MID",
-     "eased": "the mid had no legal camera: the primary alone, wide",
+     "planned": "WIDE",
+     "eased": null,
      "primary": "circe",
      "subjects": [
-      "circe"
+      "circe",
+      "five-scouts-1"
      ],
      "why": {
-      "cut": "take 2: the strikes framed at mid size from the wind-up",
+      "cut": "cut on the action: IMPACT (cWand0)",
       "rule": "R2 the contact cWand0 (IMPACT: the blade lands) with every figure it names",
       "heat": 4.51,
       "contrast": 4.51,
@@ -842,48 +845,35 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       34.3,
-       104.2,
-       166.4
+       24.3,
+       104.3,
+       123.1
       ],
-      "fov": 46,
+      "fov": 75,
       "key": false,
-      "az": 5.89,
+      "az": 0,
       "travelling": true
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": "L4 foreground covers 33%",
      "rejected": {
-      "L4 foreground covers n%": 15,
-      "L1 near plane in a set part": 5,
-      "L5 across the line": 116,
-      "L1 in five-scouts-1": 2,
-      "L3 the back": 82,
-      "L2 body": 2,
-      "L2 circe hidden": 14,
-      "L1 in five-scouts-2": 6,
-      "L1 near pig1 (a wide inside its sphere: the fleece fills the frame)": 9
-     },
-     "rejectedPlanned": {
-      "L2 circe hidden": 29,
-      "L2 the contact hidden": 44,
+      "L2 circe hidden": 48,
+      "L2 body": 10,
+      "L2 the contact hidden": 28,
       "L5 across the line": 128,
-      "L2 body": 8,
-      "L4 foreground covers n%": 20,
-      "L3 the back": 21,
-      "L1 in eurylochus": 2,
-      "L1 near plane in a set part": 4
+      "L4 foreground covers n%": 21,
+      "L1 near plane in a set part": 6,
+      "L3 head": 1,
+      "L1 in part construction-frame": 1
      },
      "candidates": 257,
-     "legalCandidates": 6,
+     "legalCandidates": 14,
      "samples": [
-      22.12,
-      20.5,
+      22.41,
+      21.08,
       23.73,
-      21.18,
-      21.65,
-      22.9
+      21.18
      ],
      "checks": [
       "L1 not inside geometry",
@@ -893,15 +883,15 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.48,
-     "headV": 0.367,
+     "facing": -0.09,
+     "headV": 0.423,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.72,
-      "sd": 0.244,
-      "dark": 0.02,
-      "white": 0.2,
-      "one": 0.5
+      "mean": 0.779,
+      "sd": 0.196,
+      "dark": 0.01,
+      "white": 0.3,
+      "one": 0.65
      },
      "lumaRefused": 0
     },
@@ -1619,8 +1609,7 @@
      },
      "lumaRefused": 0
     }
-   ],
-   "carried": "shots 0,1,2,3,4,5,6,7,10,11,12,13,14,15,16,17,18,19 carried frame for frame from the take before; shots 8,9 solved and drawn for this take"
+   ]
   },
   "clips": [
    {
@@ -1730,14 +1719,14 @@
   },
   {
    "t": 17.667,
-   "shot": "c8:HOT:MID",
-   "kind": "HOT",
+   "shot": "c8:MID:CLOSE",
+   "kind": "MID",
    "key": "K2"
   },
   {
-   "t": 20.417,
-   "shot": "c9:HOT:WIDE",
-   "kind": "HOT",
+   "t": 21,
+   "shot": "c9:ACTION:WIDE",
+   "kind": "ACTION",
    "key": "K2"
   },
   {
