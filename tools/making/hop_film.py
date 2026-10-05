@@ -82,7 +82,15 @@ if __name__ == '__main__':
         fc.append(f"[{k}:v]scale=1280:720,fps=12,setpts=PTS-STARTPTS+{dl['start']:.3f}/TB[dv{j}];[{k + 1}:v]format=rgba,setpts=PTS-STARTPTS+{dl['start']:.3f}/TB[ds{j}];[dv{j}][ds{j}]overlay=0:0:eof_action=pass[dd{j}]")
         fc.append(f"[{cur}][dd{j}]overlay=0:0:eof_action=pass:enable='between(t,{dl['start']:.3f},{dl['start'] + dl['dur'] - 0.01:.3f})'[w{j}]"); cur = f'w{j}'
     fc.append(f"[1:v]format=rgba,fade=t=in:st={d:.3f}:d=0.8:alpha=1[ec];[{cur}][ec]overlay=0:0:shortest=1:enable='gte(t,{d:.3f})',fade=t=in:st=0:d=0.4,fade=t=out:st={d + END - 0.8:.3f}:d=0.8,format=yuv420p[v]")
-    ff(*inputs, '-filter_complex', ';'.join(fc), '-map', '[v]', '-map', '0:a', '-af', f'apad=pad_dur={END},afade=t=out:st={d + END - 1.5:.3f}:d=1.5', '-t', f'{d + END:.3f}',
+    # a dailies' own sound where the script asks for it (the take's voice is the point), laid in at its window
+    aud = [(j, dl) for j, dl in enumerate(hop['dailies']) if dl.get('audio')]; amix = '[0:a]apad=pad_dur=%s' % END
+    for n, (j, dl) in enumerate(aud):
+        inputs += ['-ss', f"{dl['at']:.3f}", '-t', f"{dl['dur']:.3f}", '-i', str(REPO / dl['file'])]
+        k = 2 + 2 * len(hop['dailies']) + n; ms = int(dl['start'] * 1000)
+        fc.append(f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,afade=t=in:d=0.15,afade=t=out:st={dl['dur'] - 0.2:.3f}:d=0.2,adelay={ms}|{ms}[da{n}]")
+    if aud: fc.append(amix + '[a0];[a0]' + ''.join(f'[da{n}]' for n in range(len(aud))) + f'amix=inputs={1 + len(aud)}:normalize=0,afade=t=out:st={d + END - 1.5:.3f}:d=1.5[a]')
+    else: fc.append(amix + f',afade=t=out:st={d + END - 1.5:.3f}:d=1.5[a]')
+    ff(*inputs, '-filter_complex', ';'.join(fc), '-map', '[v]', '-map', '[a]', '-t', f'{d + END:.3f}',
        '-c:v', 'libx264', '-crf', arg('crf', '24'), '-preset', 'medium', '-r', '12', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', str(WORK / 'body.mp4'))
     (WORK / 'list.txt').write_text(f"file '{WORK / 'title.mp4'}'\nfile '{WORK / 'body.mp4'}'\n")
     out = F / f'hearts-of-plastic-e{N}.mp4'

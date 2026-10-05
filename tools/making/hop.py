@@ -11,7 +11,7 @@ frame (its centre and scale) is the source location's, and marks written in that
 
     python3 tools/making/hop.py [OD-B26-S01 ...]"""
 from pathlib import Path
-import json, math, re, sys
+import json, math, re, subprocess, sys
 REPO = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(Path(__file__).parent))
 import studio as ST
 
@@ -23,6 +23,9 @@ EPISODES = {
                     crew=dict(director=(-160, 110), firstad=(-110, 130), cinematographer=(-60, 150))),
  'OD-B26-S02': dict(src='OD-B17-S05', title='HEARTS OF PLASTIC: THE HALL', keep=['odysseus-as-beggar', 'antinous', 'chair'], borrow=[('OD-B18-S02', 'irus', 'irus')],
                     borrow_at=dict(irus=(-40, 200)), crew=dict(director=(120, 180), firstad=(40, 120), cinematographer=(-5, 155))),
+ # Achilles as he was cast before 5d16363d took the visored gladiator helmet (95676) off him: the helmet the fans want
+ 'OD-B26-S03': dict(src='OD-B11-S04', title='HEARTS OF PLASTIC: THE UNDERWORLD', keep=['odysseus', 'anticleia'], borrow=[('OD-B11-S07', 'achilles', 'achilles', '5d16363d^')],
+                    borrow_at=dict(achilles=(240, 180)), crew=dict(director=(90, 230), firstad=(40, 200), cinematographer=(-30, 265))),
 }
 
 def _blocks(text): return [b for b in re.split(r'(?m)^(?=0 FILE )', text) if b.startswith('0 FILE ')]
@@ -43,8 +46,9 @@ def card(eid):
     keep = {f'{eid} - {k}.ldr' for k in E['keep']} | {stage}
     out_lines = [l for l in lines if not l.startswith('1 ') or l.split(' ', 14)[14] in keep]
     extra = []
-    for bsid, stem, new in E['borrow']:
-        bb = next(b for b in _blocks((REPO / 'odyssey/cards' / (bsid + '.mpd')).read_text()) if _name(b) == f'{bsid} - {stem}.ldr')
+    for bsid, stem, new, *rev in E['borrow']:   # rev: a commit to take the figure from (the card as it was then)
+        text_b = subprocess.run(['git', 'show', f'{rev[0]}:odyssey/cards/{bsid}.mpd'], cwd=REPO, capture_output=True, text=True, check=True).stdout if rev else (REPO / 'odyssey/cards' / (bsid + '.mpd')).read_text()
+        bb = next(b for b in _blocks(text_b) if _name(b) == f'{bsid} - {stem}.ldr')
         fn = f'{eid} - {new}.ldr'; extra.append(bb.replace(f'{bsid} - {stem}.ldr', fn))
         x, z = to_ldraw(*E['borrow_at'][new]); out_lines.append(f'1 16 {x:.0f} -8 {z:.0f} 1 0 0 0 1 0 0 0 1 {fn}')
         pv['cast'].append(dict(who='character.' + new, name=new.replace('-', ' ').upper(), type='character', file=fn))

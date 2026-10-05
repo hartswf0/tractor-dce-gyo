@@ -106,8 +106,8 @@ def scene(sid):
         at += pause if not first else 0; first = False
         if who == 'clap': ev_hop['clap'].append(round(at, 3)); at += 0.5; continue
         if who == 'dailies':
-            f, cap = text.split('|', 1); fn, span = f.split('@'); a0, d = map(float, span.split('+'))
-            ev_hop['dailies'].append(dict(key=key, start=round(at, 3), dur=d, file=fn, at=a0, caption=cap)); at += d + 0.35; continue
+            f, cap, *flag = text.split('|'); fn, span = f.split('@'); a0, d = map(float, span.split('+'))
+            ev_hop['dailies'].append(dict(key=key, start=round(at, 3), dur=d, file=fn, at=a0, caption=cap, audio='audio' in flag)); at += d + 0.35; continue
         if who == 'beat':
             d, what = text.split('|', 1); ev_hop['beats'].append(dict(key=key, start=round(at, 3), dur=float(d), what=what)); at += float(d) + 0.35; continue
         gi = len(segs); c = S.CAST[who]; x = synth(text, c['voice'], c['speed'])
