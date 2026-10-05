@@ -14,6 +14,7 @@ Besides the cast, three speakers lay events on the clock and are not voices:
 # voice by resampling (a third slower and deeper); 'shade' the faint echo the restored Achilles line has (odyssey/kits/cut-restore.json)
 CAST = {
     'polyphemus': dict(name='Polyphemus', face=None, voice='am_fenrir', speed=1.08, fx='giant', creature=True),
+    'odysseus-as-beggar': dict(name='Odysseus', face='odysseus', voice='am_onyx', speed=0.92),   # Odysseus in the beggar's rags (OD-B17-S05's actor id), his voice
     'irus':       dict(name='Irus',       face=None, voice='bm_fable',  speed=1.0),
     'antinous':   dict(name='Antinous',   face=None, voice='am_puck',   speed=1.0),
     'anticleia':  dict(name='Anticleia',  face=None, voice='bf_isabella', speed=0.95, fx='shade'),
@@ -95,7 +96,7 @@ SCENES = {
     ('K1', 'director', 'firstad', 0.3, "Which one is Irus?"),
     ('K1', 'firstad', 'director', 0.7, "Irus is the one on the left."),
     ('K1', 'irus', 'firstad', 0.6, "I'm on the right."),
-    ('K1', 'odysseus', 'director', 0.7, "I am the unknown beggar."),
+    ('K1', 'odysseus-as-beggar', 'director', 0.7, "I am the unknown beggar."),
     ('K2', 'cinematographer', 'director', 1.4, "Same head. Same grey beard. Same rags, same staff. Part for part, and colour for colour."),
     ('K2', 'director', 'firstad', 0.8, "Wardrobe."),
     ('K2', 'firstad', 'cinematographer', 0.6, "He means: can we tell them apart?"),
@@ -119,7 +120,7 @@ SCENES = {
     ('K4', 'clap', None, 0.4, ''),
     ('K4', 'director', 'antinous', 0.6, "Action."),
     ('K4', 'beat', None, 0.2, '3.2|Antinous throws again: six tenths of a second, the smear bricks on two drawings'),
-    ('K4', 'odysseus', 'director', 0.6, "I stand like a rock. It's in the book."),
+    ('K4', 'odysseus-as-beggar', 'director', 0.6, "I stand like a rock. It's in the book."),
     ('K4', 'director', 'cinematographer', 0.8, "Was that it?"),
     ('K4', 'cinematographer', 'director', 0.6, "Six tenths of a second."),
     ('K5', 'dailies', None, 0.6, 'films/odyssey/OD-B17-S05-performed.mp4@45.4+3.2|DAILIES · Antinous Throws the Stool, take 3: six tenths of a second, two drawings of smear bricks'),

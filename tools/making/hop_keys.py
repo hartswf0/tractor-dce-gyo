@@ -24,7 +24,7 @@ def prop(name, x, z, rot=0.0, scale=1.0, pid=None, y=0, floor=True, **kw):
     e.update(kw); return e
 def AIM(x, z, tx, tz): return math.atan2(tx - x, -(tz - z))   # a prop's yaw that turns its -z (the camera's lens) from (x, z) toward (tx, tz)
 def FACE(x, z, tx, tz): return math.atan2(-(tx - x), -(tz - z))   # the chair turned so its sitter faces (tx, tz) (its back toward -z ... set by stills)
-CAMERA = lambda x, z, tx, tz: prop('movieCamera', x, z, rot=AIM(x, z, tx, tz), pid='camera')
+CAMERA = lambda x, z, tx, tz: prop('movieCamera', x, z, rot=AIM(x, z, tx, tz), pid='camera', scale=0.75)   # three quarters: the studio's camera stands over a minifigure on a set
 CHAIR = lambda x, z, tx, tz: prop('directorChair', x, z, rot=AIM(x, z, tx, tz) + math.pi, pid='chair')
 CLAP = dict(name='clapper', id='clapper', after=True, aim=dict(to='hand:firstad:L', anchor='centre', dir=[0, -1, 0]))
 def cam(pos, target, fov=50): return dict(type='wide', pos=list(pos), target=list(target), fov=fov)
@@ -57,10 +57,10 @@ SC[sid] = [   # the cinematographer beside his camera, not behind it (a face the
  key('K1', [D(0, 60), AD(-95, 125, 0, 60), C(35, 140, 0, 60), O(75, 95, 0, 125)],
      [CHAIR(*CH, 0, 60), CAMERA(0, 125, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((-260, 230, -40), (-20, 40, 120), 52),
      [dict(id='cinematographer', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), HIDE),
- key('K2', [D(0, 125), AD(-45, 140, 35, 140), C(35, 140, -45, 140), O(75, 95, 0, 125)],
+ key('K2', [D(-20, 160), AD(-85, 150, -20, 160), C(-20, 160, -85, 150), O(75, 95, 0, 125)],
      [CHAIR(*CH, 0, 60), CAMERA(0, 125, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
      [dict(id='cinematographer', primary=True, face=True), dict(id='firstad', soft=True)], beat(sid, 'K2'), HIDE),
- key('K3', [D(35, 140), AD(-60, 135, *CH), C(35, 140, *CH), O(75, 95, 0, 125)],
+ key('K3', [D(-20, 160), AD(-85, 150, *CH), C(-20, 160, *CH), O(75, 95, 0, 125)],
      [CHAIR(*CH, 0, 60), CAMERA(0, 120, -30, -100), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K3'), HIDE),
  key('K4', [D(*G0), AD(-115, -40, *G0), C(-80, -60, *G0), O(75, 95, *G0)],

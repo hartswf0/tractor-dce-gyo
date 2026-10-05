@@ -20,7 +20,7 @@ module.exports = function author(M, X) {
   ['K2', 'K3', 'K4'].forEach((k, j) => { const t = K(k).t;
     St({ id: 'sThrough' + j, t0: q(t - 0.2), t1: q(t + 0.3), kind: 'SIGHT', label: 'his arms pass through her', actor: O, because: [{ id: 'go' + k + 'ody' }] });
     hold(A, q(t - 0.1), q(t + 1.0), 'his arms are through her: she feels nothing of them, and waits', [[O, 1.2]], { id: 'hAemb' + j, weight: false, because: [{ id: 'sThrough' + j }] }); });
-  hold(A, q(K('K4s').t + 1.0), q(c(14).at), 'she waits by the pit, patient: she has eternity', [[O, 3.0], [D, 1.5]], { id: 'hApat', weight: false, because: [{ id: 'say13' }] });
+  hold(A, q(K('K4s').t + 1.0), q(c(14).at), 'she waits by the pit, patient: she has eternity', [[O, 3.0], [D, 1.5]], { id: 'hApat', weight: false, because: [{ id: 'say10' }] });
   /* Achilles: off up the shore until he is called; the helmet stays on */
   hold(H, 0.2, q(K('K5a').win ? K('K5a').win[0] : c(14).at + 1.0), 'up the shore in the visored helmet, waiting to be called', [[camAt, 4.0], [A, 2.0]], { id: 'hHwait', because: [] });
   /* "That's my voice": Odysseus turns from the monitor to Achilles */
