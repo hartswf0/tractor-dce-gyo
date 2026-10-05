@@ -175,6 +175,34 @@ def unleak(cut, segs):
     cut['why'] = list(cut.get('why', [])) + ['the last segment dropped: a leaked line (odyssey_take.leaked)']
     return cut
 
+def performer(segs, rs, added=()):
+    """The performer's cut of a scene the Regulars' Cut drops, for a scene with a restore entry (odyssey-take.js cutOf lays the same cut
+    for one without): the cut's own rule for what it drops (the scene header, which the title card carries; the speaker cues, which
+    the picture shows) and the restore's `drop` (segments of a stale recording replaced by added clips), the kept segments the cut's
+    gap apart, 0.6 s in and out."""
+    gap = rs.get('gap', 0.45); drop = set(rs.get('drop', [])); at = 0.6; out = []
+    for g in segs:
+        if g['kind'] in ('SCENE_HEADER', 'SPEAKER_CUE') or g['gi'] in drop: continue
+        if out: at += gap
+        out.append(dict(gi=g['gi'], start=g['start'], dur=g['dur'], at=round(at, 3), **({'restored': True} if g['gi'] in added else {}))); at += g['dur']
+    return dict(status='performer', at=0.0, seconds=round(at + 0.6, 2), segments=out,
+                dropped_segments=[dict(gi=g, why=rs.get('dropWhy', 'replaced by an added clip')) for g in sorted(drop)],
+                why=["not in the Regulars' Cut: the performer's cut", 'restored: ' + rs.get('why', '')])
+
+def dropped(cut, rs):
+    """A Regulars' Cut with the restore's `drop` taken out: each later segment moved earlier by the dropped length and the cut's gap."""
+    drop = set((rs or {}).get('drop', []))
+    if not cut or not drop: return cut
+    cut = json.loads(json.dumps(cut)); gap = rs.get('gap', 0.45); segs = cut['segments']
+    for gi in sorted(drop):
+        i = next((k for k, g in enumerate(segs) if g['gi'] == gi), None)
+        if i is None: continue
+        s = segs.pop(i); shift = s['dur'] + gap
+        for g in segs[i:]: g['at'] = round(g['at'] - shift, 3)
+        cut['seconds'] = round(cut['seconds'] - shift, 2)
+        cut.setdefault('dropped_segments', []).append(dict(gi=gi, start=s['start'], dur=s['dur'], why=rs.get('dropWhy', 'replaced by an added clip')))
+    return cut
+
 def take(sid, actor_ids):
     if (TAKE / 'making' / (sid + '.json')).exists(): return made(sid, actor_ids)
     vm = _j(HALF / 'drive/voice-manifest.json').get(sid)
@@ -227,7 +255,7 @@ def take(sid, actor_ids):
     a, t = bed_for(ds['book']); bsrc = HALF / a['dir'] / t['file']; bdst = TAKE / 'bed' / ('bronze-council-%02d.ogg' % t['num'])
     if not bdst.exists(): shutil.copyfile(bsrc, bdst)
     cuts = _j(REPO / 'odyssey/kits/cut.json')['scenes']; cut0 = next((c for c in cuts if c['id'] == sid), None)
-    cut = unleak(recut(cut0, vsegs, rs), segs)
+    cut = unleak(dropped(recut(cut0, vsegs, rs), rs), segs) if cut0 else (unleak(performer(segs, rs, {a['gi'] for a in adds}), segs) if rs else None)
     # where the scene falls in its book's bed: the bed loops from the book's first scene (build-film-audio.mjs), on either clock
     vman = _j(HALF / 'drive/voice-manifest.json'); book_of = {s['id']: s['book'] for s in _j(HALF / 'drive/drive-script.json')['scenes']}
     off_full = sum(vman[i]['total'] for i in sorted(vman) if i < sid and book_of.get(i) == ds['book'])

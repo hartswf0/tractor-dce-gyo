@@ -146,6 +146,12 @@ props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))]
    centred on the stool's middle, so choreo.js can lay it from where the stool is back along the way it came */
 props.stoolSmear = { parts: [row('3941', 70, L.T(0, -12, 0)), row('4032a', 70, L.T(0, -20, 0)), row('3004', 70, L.mul(L.T(0, -12, 30), L.RY(1))),
     row('3710', 70, L.mul(L.T(0, -4, 50), L.RY(1))), row('3023', 19, L.mul(L.T(0, 0, 80), L.RY(1)))], anchors: { front: [0, 0, 0], tail: [0, 0, 90] } };
+/* the ox hoof Ctesippus throws (Homer XX: "he took an ox's foot from the basket where it lay"): a faun's leg, its cloven hoof down, in
+   reddish brown, held by the top of the shank; and its smear bricks for the drawings in flight (as the stool's: the hoof at the front,
+   a 1 x 2 brick, a 1 x 4 plate and a 1 x 2 plate trailing back along +z) */
+props.oxHoof = { parts: [row('24083', 70, L.T(-10, -8, 0))], anchors: { grip: [0, -14, 0], hoof: [0, 18, -8] } };
+props.oxHoofSmear = { parts: [row('24083', 70, L.mul(L.T(-10, -8, 0), RX(Math.PI / 2))), row('3004', 70, L.mul(L.T(0, -4, 34), L.RY(Math.PI / 2))),
+    row('3710', 70, L.mul(L.T(0, 0, 58), L.RY(Math.PI / 2))), row('3023', 19, L.mul(L.T(0, 2, 88), L.RY(Math.PI / 2)))], anchors: { front: [0, 0, -12], tail: [0, 0, 96] } };
 /* the sea batch (Homer X, XII, XIII): the ox-hide bag of the winds tied with a silver cord; the winds bursting out; a whirlpool; the
    fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins under its helmet: one hurling a boulder,
    one reaching to seize, one with the boulder raised in both hands); the gift chest */

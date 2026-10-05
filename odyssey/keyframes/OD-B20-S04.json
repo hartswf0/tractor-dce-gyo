@@ -1,0 +1,743 @@
+{
+ "scene": "OD-B20-S04",
+ "location": "odyssey-od-b20-s04",
+ "title": "The Ox Hoof",
+ "source": "Homer, Odyssey XX, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text in the megaron at dinner: the beggar by the threshold wall, Ctesippus in the middle of the hall with an ox's foot from the meat basket, Telemachus by his father's seat, three suitors at the tables (added to the forage's cast by film-readymades/staging.py). The hoof thrown (K2: THROW with a prop flight and smear bricks, as the Stool's take 3), the beggar's head turned aside and down, the hoof against the wall and on the floor (K2a), the suitors' laughter, Telemachus forward with his threat (K3). The card's own ox hoof piece is hidden; the keyframes stage the hoof (tools/forage/keyprops.js oxHoof).",
+ "look": {
+  "sun": {
+   "dir": [
+    0.3,
+    0.8,
+    0.55
+   ],
+   "color": "#fff0d6",
+   "intensity": 1.05,
+   "shadow": true
+  },
+  "fill": {
+   "sky": "#c9d4e6",
+   "ground": "#3a3026",
+   "intensity": 0.45
+  },
+  "exposure": 0.95
+ },
+ "spread": 0,
+ "walkHeight": "first",
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "turnId": "OD-B20-S04-T02a",
+   "beat": "At the meal Ctesippus mocks the beggar, an ox hoof in his hand.",
+   "text": "\"Hear what I have to say. The stranger has already had as large a portion as anyone else; I will make him a present on my own account.\" As he spoke he picked up a heifer's foot from the meat-basket in which it lay at his hand.",
+   "blocking": [
+    {
+     "id": "odysseus-as-beggar",
+     "x": 200,
+     "z": 222,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.35,
+       0,
+       -0.1
+      ]
+     }
+    },
+    {
+     "id": "ctesippus",
+     "x": 0,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.55,
+       0,
+       0.12
+      ],
+      "armLP": [
+       -1.1,
+       0,
+       -0.35
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -27,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitor-2",
+     "x": -200,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-3",
+     "x": 170,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-4",
+     "x": -200,
+     "z": -28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false
+    }
+   ],
+   "props": [
+    {
+     "name": "oxHoof",
+     "id": "oxHoof",
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:ctesippus:R",
+      "dir": [
+       0,
+       1,
+       0
+      ],
+      "off": [
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "name": "oxHoofSmear",
+     "id": "oxHoofSmear",
+     "at": [
+      120,
+      0,
+      200
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true,
+     "free": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -120,
+     80,
+     20
+    ],
+    "target": [
+     80,
+     40,
+     160
+    ],
+    "fov": 46,
+    "subject": "ctesippus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "ctesippus",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "odysseus-as-beggar",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "hide": [
+    "ox hoof"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K2",
+   "beat": "Odysseus dodges",
+   "text": "He threw it at Ulysses, but Ulysses turned his head a little aside, and avoided it.",
+   "blocking": [
+    {
+     "id": "odysseus-as-beggar",
+     "x": 200,
+     "z": 222,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.35,
+       0,
+       -0.1
+      ]
+     }
+    },
+    {
+     "id": "ctesippus",
+     "x": 0,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -27,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false,
+     "free": true
+    },
+    {
+     "id": "suitor-2",
+     "x": -200,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-3",
+     "x": 170,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-4",
+     "x": -200,
+     "z": -28,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false
+    }
+   ],
+   "props": [
+    {
+     "name": "oxHoof",
+     "id": "oxHoof",
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:ctesippus:R",
+      "dir": [
+       0,
+       1,
+       0
+      ],
+      "off": [
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "name": "oxHoofSmear",
+     "id": "oxHoofSmear",
+     "at": [
+      120,
+      0,
+      200
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true,
+     "free": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     60,
+     75,
+     60
+    ],
+    "target": [
+     150,
+     40,
+     220
+    ],
+    "fov": 46,
+    "subject": "odysseus-as-beggar",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus-as-beggar",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "ctesippus",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "hide": [
+    "ox hoof"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K2a",
+   "after": [
+    "K2",
+    1.5
+   ],
+   "beat": "The hoof hits the wall; the beggar smiles grimly",
+   "text": "Smiling grimly Sardonic fashion as he did so, and it hit the wall, not him.",
+   "blocking": [
+    {
+     "id": "odysseus-as-beggar",
+     "x": 200,
+     "z": 222,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       -0.1
+      ],
+      "headP": [
+       -0.1,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "ctesippus",
+     "x": 0,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -27,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      200,
+      222
+     ],
+     "props": false,
+     "free": true
+    },
+    {
+     "id": "suitor-2",
+     "x": -200,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
+       -0.5
+      ],
+      "armLP": [
+       -1.9,
+       0,
+       0.5
+      ],
+      "headP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitor-3",
+     "x": 170,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
+       -0.5
+      ],
+      "armLP": [
+       -1.9,
+       0,
+       0.5
+      ],
+      "headP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitor-4",
+     "x": -200,
+     "z": -28,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
+       -0.5
+      ],
+      "armLP": [
+       -1.9,
+       0,
+       0.5
+      ],
+      "headP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "props": [
+    {
+     "name": "oxHoof",
+     "id": "oxHoof",
+     "at": [
+      212,
+      0,
+      240
+     ],
+     "floor": true,
+     "free": true,
+     "rot": [
+      0,
+      0.6,
+      1.4
+     ]
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     60,
+     75,
+     60
+    ],
+    "target": [
+     150,
+     40,
+     220
+    ],
+    "fov": 46,
+    "subject": "odysseus-as-beggar",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "odysseus-as-beggar",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    }
+   ],
+   "hide": [
+    "ox hoof"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K3",
+   "turnId": "OD-B20-S04-T04a",
+   "beat": "Telemachus threatens to spear the offender if another assault occurs.",
+   "text": "Then Telemachus spoke fiercely to Ctesippus: \"It is a good thing for you that the stranger turned his head so that you missed him. If you had hit him I should have run you through with my spear.\"",
+   "blocking": [
+    {
+     "id": "odysseus-as-beggar",
+     "x": 200,
+     "z": 222,
+     "y": "floor",
+     "face": [
+      -12,
+      -30
+     ],
+     "props": false,
+     "free": true
+    },
+    {
+     "id": "ctesippus",
+     "x": 0,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      -12,
+      -30
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       -0.1
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -12,
+     "z": -30,
+     "y": "floor",
+     "face": [
+      0,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -1.45,
+       0,
+       0.05
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitor-2",
+     "x": -200,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      -12,
+      -30
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-3",
+     "x": 170,
+     "z": 28,
+     "y": "floor",
+     "face": [
+      -12,
+      -30
+     ],
+     "props": false
+    },
+    {
+     "id": "suitor-4",
+     "x": -200,
+     "z": -28,
+     "y": "floor",
+     "face": [
+      -12,
+      -30
+     ],
+     "props": false
+    }
+   ],
+   "props": [
+    {
+     "name": "oxHoof",
+     "id": "oxHoof",
+     "at": [
+      212,
+      0,
+      240
+     ],
+     "floor": true,
+     "free": true,
+     "rot": [
+      0,
+      0.6,
+      1.4
+     ]
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -90,
+     70,
+     40
+    ],
+    "target": [
+     -12,
+     45,
+     -30
+    ],
+    "fov": 44,
+    "subject": "telemachus",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "telemachus",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "ctesippus",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "hide": [
+    "ox hoof"
+   ],
+   "touch": [],
+   "lensAllow": []
+  }
+ ]
+}

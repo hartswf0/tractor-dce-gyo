@@ -101,7 +101,45 @@ def b09_s10(text, pv):
     return '\n'.join(o.rstrip('\n') + '\n' for o in out), pv
 
 
-OVERLAYS = {'OD-B09-S08': b09_s08, 'OD-B09-S10': b09_s10}
+def add_cast(sid, top, src, extra):
+    """an overlay that adds figures to a card's cast, each dressed as a figure of another card (src: that card's id): extra is
+    [(its file's name there, the new figure's name, LDraw x, z, {old part: new part})], placed in the card's top group"""
+    def f(text, pv):
+        pv = copy.deepcopy(pv); s = (CARDS / (src + '.mpd')).read_text()
+        for old, name, x, z, swap in extra:
+            fn = f'{sid} - {name}.ldr'; oldf = f'{src} - {old}.ldr'
+            blk = _file(s, oldf).replace(oldf, fn).replace(old.replace('-', ' '), name.replace('-', ' '))
+            for a, b in (swap or {}).items(): blk = blk.replace(a, b)
+            text = text.rstrip('\n') + '\n\n' + blk
+            i = text.index(f'0 FILE {top}'); j = text.index('\n0 FILE ', i + 1) if '\n0 FILE ' in text[i + 1:] else len(text)
+            grp = text[i:j].rstrip('\n') + f'\n1 16 {x} -8 {z} 1 0 0 0 1 0 0 0 1 {fn}\n'
+            text = text[:i] + grp + text[j:]
+            who = ('ensemble.' + re.sub(r'-\d+$', 's', name)) if re.search(r'-\d+$', name) else 'character.' + name
+            pv['cast'].append(dict(who=who, name=name.replace('-', ' ').upper(), type='character', file=fn, at=[x, -8, z]))
+        return text, pv
+    return f
+
+
+# the Ox Hoof (OD-B20-S04): the forage's hall holds only Ctesippus, the beggar and Telemachus; three suitors at the tables to laugh at
+# the throw and fall silent at the prince's threat, dressed as the Hall of Death's (OD-B20-S05) suitors 2 and 3 and its fourth with
+# another head (its own is suitor 2's)
+b20_s04 = add_cast('OD-B20-S04', 'OD-B20-S04 - the-ox-hoof.ldr', 'OD-B20-S05',
+                   [('suitor-2', 'suitor-2', -220, 20, None), ('suitor-3', 'suitor-3', 220, 20, None), ('suitor-4', 'suitor-4', -220, -120, {'3626bp3r': '3626bp35'})])
+
+# Supplication at Arete's Knees (OD-B07-S03): two Phaeacian lords at their wine in the hall, to fall silent at the stranger (dressed as
+# the Convoy's (OD-B13-S01) Phaeacian sailors 3 and 5; the keyframes empty their hands)
+b07_s03 = add_cast('OD-B07-S03', 'OD-B07-S03 - supplication-at-arete-s-knees.ldr', 'OD-B13-S01',
+                   [('sailor-3', 'phaeacian-1', 200, 60, None), ('sailor-5', 'phaeacian-2', -200, 60, None)])
+# Athena Reveals Herself at Pylos (OD-B03-S05): the forage's card has Athena only inside its transformation set piece (a still figure
+# beside a sea-eagle); Mentor, whose shape she wears, as an actor of the cast, dressed as the previous scene's (OD-B03-S04)
+b03_s05 = add_cast('OD-B03-S05', 'OD-B03-S05 - athena-reveals-herself-at-pylos.ldr', 'OD-B03-S04',
+                   [('athena-as-mentor', 'athena-as-mentor', 80, -200, None)])
+# Telemachus Lands in Secret (OD-B15-S05): Piraeus, to whom Telemachus entrusts the seer, and two of the crew on the beach, dressed as
+# the voyage's (OD-B15-S03) sailors 2, 3 and 4
+b15_s05 = add_cast('OD-B15-S05', 'OD-B15-S05 - telemachus-lands-in-secret.ldr', 'OD-B15-S03',
+                   [('sailor-2', 'piraeus', 100, -160, None), ('sailor-3', 'sailor-1', 60, -240, None), ('sailor-4', 'sailor-2', 140, -240, None)])
+
+OVERLAYS = {'OD-B09-S08': b09_s08, 'OD-B09-S10': b09_s10, 'OD-B20-S04': b20_s04, 'OD-B07-S03': b07_s03, 'OD-B03-S05': b03_s05, 'OD-B15-S05': b15_s05}
 
 
 def card(sid, text, pv):

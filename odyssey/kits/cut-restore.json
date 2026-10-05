@@ -4,7 +4,8 @@
  "rules": [
   "restore: a dropped segment of the halfworld recording (its gi) put back into the scene's cut in the recording's order, the segments after it moved later by its length and the cut's gap",
   "add: a turn the halfworld recording never voiced (the card's line, or the speech the scene is named for) as a clip of its own: the clip is appended to the scene's recording after a second of silence (odyssey/take/voice/<scene>.m4a is then the halfworld file and the added clips), takes the next gi, and goes into the cut after the segment `after`; its key (`key`) is the keyframe key it stills (odyssey/keyframes/<scene>.json, the key's `turnId`)",
-  "an added clip is synthesized (`source`): the halfworld cast is Gemini TTS (harness/build-drive-audio.mjs), which this repository cannot call; these are Kokoro-82M (kokoro-js voices, the q8 ONNX weights of kokoro-q8-shards) rendered offline, loudness-matched to the recording's lines (about -20.5 LUFS)"
+  "an added clip is synthesized (`source`): the halfworld cast is Gemini TTS (harness/build-drive-audio.mjs), which this repository cannot call; these are Kokoro-82M (kokoro-js voices, the q8 ONNX weights of kokoro-q8-shards) rendered offline, loudness-matched to the recording's lines (about -20.5 LUFS)",
+  "drop: segments of the recording taken out of the scene's cut (a stale take of a turn, voiced from the drive script's direction fragments, not the turn's spoken line, replaced by an added clip of the line); a scene the Regulars' Cut drops plays on the performer's cut (odyssey_take.performer) with the drop applied"
  ],
  "gap": 0.45,
  "scenes": {
@@ -29,6 +30,54 @@
      "source": "Kokoro-82M voice am_michael at 0.95, loudnorm; the card's spoken line for the turn (viewer/spoken-lines.json OD-B21-S03-T04), which the recording narrates instead"}
    ],
    "why": "Eurymachus's line (the shame, not the marriage) is the turn's spoken line; the recording gives the turn to the narrator, so the shame is never said by the man who feels it"
+  },
+  "OD-B20-S04": {
+   "drop": [2, 4, 6],
+   "dropWhy": "a stale take: the recording voices the drive script's fragments ('No. I will not immediate action.', 'Is that the best you can offer, the beggar and hurls an ox hoof as a guest-gift?', 'Continue, and to spear the offender if another assault occurs.') instead of the turns' spoken lines (7.6 and 8.8 words a second against the lines' text: the halfworld's re-voicing of Books XVI-XXIV missed this scene); T01 belongs to the scene before (the eagle and the dove)",
+   "add": [
+    {"turn": "OD-B20-S04-T02a", "after": 4, "kind": "DIALOGUE", "speakerId": "character.ctesippus", "sp": "character.ctesippus", "ad": "character.odysseus-as-beggar", "speakerName": "Ctesippus",
+     "line": "The stranger has had his share like the rest of us. Here is a guest-gift from me, worthy of the bath-woman and the servants he keeps company with.",
+     "file": "odyssey/take/added/OD-B20-S04-T02a.m4a", "key": "K1", "act": "MOCK", "delivery": "loud, to the hall, the hoof already in his hand",
+     "source": "Kokoro-82M voice am_fenrir at 0.92, loudnorm -20.5 LUFS; the turn's spoken line (viewer/spoken-lines.json OD-B20-S04-T02), which the recording does not voice"},
+    {"turn": "OD-B20-S04-T04a", "after": 5, "kind": "DIALOGUE", "speakerId": "character.telemachus", "sp": "character.telemachus", "ad": "character.ctesippus", "speakerName": "Telemachus",
+     "line": "Ctesippus, be glad you missed. If you had struck my guest, my father's spear would be in your belly, and your father would be building your tomb instead of your wedding. Not one more insult in this house. I am a boy no longer, and I see everything you do.",
+     "file": "odyssey/take/added/OD-B20-S04-T04a.m4a", "key": "K3", "act": "THREAT", "delivery": "on his feet, hard, to Ctesippus across the hall",
+     "source": "Kokoro-82M voice am_liam at 0.88, loudnorm -20.5 LUFS; the turn's spoken line (viewer/spoken-lines.json OD-B20-S04-T04), which the recording does not voice"}
+   ],
+   "why": "the Ox Hoof is not in the Regulars' Cut and its recording is the stale one: the two speeches it is about are restored as their spoken lines, the narrator's 'Odysseus dodges.' kept between them; the last narration ('No. I will not control her choice.', Agelaus's challenge run into Telemachus's refusal) is a leaked line and is dropped (odyssey_take.leaked/unleak)"
+  },
+  "OD-B07-S03": {
+   "restore": [5],
+   "drop": [3],
+   "dropWhy": "Odysseus's supplication is voiced in Athena's voice (the drive script gives the turn to character.athena, VOICE.ATHENA; a woman's voice, about 240 Hz, from the stranger kneeling at the queen's knees): replaced by an added clip of the same spoken line in a man's voice",
+   "add": [
+    {"turn": "OD-B07-S03-T02a", "after": 3, "kind": "DIALOGUE", "speakerId": "character.odysseus", "sp": "character.odysseus", "ad": "character.arete", "speakerName": "Odysseus",
+     "line": "Arete, daughter of Rhexenor, after many trials I come to your knees, and to your king, and to all these feasters. May the gods give you long joy. For me, ask only this: grant me convoy to my own country, for I have suffered long, far from everyone I love.",
+     "file": "odyssey/take/added/OD-B07-S03-T02a.m4a", "key": "K2", "act": "SUPPLICATE", "delivery": "low, on his knees, his arms round her knees",
+     "source": "Kokoro-82M voice am_onyx at 0.8, loudnorm -20.5 LUFS; the turn's spoken line (viewer/spoken-lines.json OD-B07-S03-T02), which the recording voices as Athena"}
+   ],
+   "why": "the supplication is the scene: said by the man who kneels (an added clip: the recording gives his words to Athena's voice), and Echeneus's rebuke after the silence (dropped by the cut) put back, so the hall's silence is broken by the elder and the raising follows from it"
+  },
+  "OD-B03-S05": {
+   "restore": [3],
+   "drop": [7],
+   "dropWhy": "'Telemachus is bathed and dressed for departure' is the next morning's beat (the bath by Polycaste, the chariot): the film ends on Nestor's prayer to the goddess who has just flown",
+   "why": "Athena's refusal as Mentor (dropped by the cut) is the turn the scene is named for: she speaks, and is gone as a sea-eagle; without it Nestor's prayer answers nothing"
+  },
+  "OD-B15-S05": {
+   "restore": [1],
+   "why": "the hawk tearing the dove beside Telemachus (dropped by the cut) is the omen Theoclymenus reads in the next turn: without it his reading reads nothing"
+  },
+  "OD-B20-S05": {
+   "drop": [5],
+   "dropWhy": "a stale take: the recording voices the drive script's fragment ('Announces their approaching destruction and leaves when they mock him.') for Theoclymenus's speech, a stage direction read aloud in his voice, not his spoken line",
+   "add": [
+    {"turn": "OD-B20-S05-T04a", "after": 5, "kind": "DIALOGUE", "speakerId": "character.theoclymenus", "sp": "character.theoclymenus", "ad": "ensemble.suitors", "speakerName": "Theoclymenus",
+     "line": "Your heads are wrapped in darkness and your knees are gone. The walls are running with blood, the porch is full of ghosts going down to the dark, and the sun has died out of the sky. Laugh. I am going out of this house while its door still opens.",
+     "file": "odyssey/take/added/OD-B20-S05-T04a.m4a", "key": "K3", "act": "DECLARE", "delivery": "a seer's vision, slow, over their laughter",
+     "source": "Kokoro-82M voice bm_george at 0.9, a faint echo (aecho 60 ms), loudnorm -20.5 LUFS; the turn's spoken line (viewer/spoken-lines.json OD-B20-S05-T04), which the recording does not voice"}
+   ],
+   "why": "the vision is the scene: Theoclymenus says what he sees (the recording has him read the stage direction instead)"
   }
  }
 }
