@@ -42,9 +42,9 @@ src = json.loads((REPO / 'odyssey/keyframes/OD-B09-S06.json').read_text())
 LIT = dict(src['keys'][3]['look']); LIT['lights'] = LIT['lights'] + [dict(at=[-170, 210, 170], color='#fff2dc', intensity=1.1, distance=560, decay=1.0)]   # the milking's light, and the crew's work lamp by the door
 LIT['exposure'] = 1.2
 HIDE = ['polyphemus', 'cyclops flock', 'cave-blocking stone', 'fire and dry logs']
-G0, GS = (-30, -150), (-10, 140)          # the giant at his mark at the back; at the stone (turned to the door, as in OD-B09-S06)
-RAM_CAM = (-30, 100)                       # the ram the camera went into
-CH = (-160, 10)                            # the director's chair, where it stays
+G0, GS = (-30, -150), (40, 135)          # the giant at his mark at the back; at the great stone, turned to the door
+RAM_CAM = (0, 60)                          # the ram the camera went into, in the open floor between the fire and the pen
+CH = (-160, 120)                           # the director's chair, where it stays
 def giant(x, z, h): return prop('polyphemus', x, z, rot=h, pid='polyphemus', y=15, scale=1.4)
 def rams(r1=RAM_CAM, h1=math.pi / 2): return [prop('ram', r1[0], r1[1], rot=h1, pid='ram1', scale=1.5), prop('ram', 110, -60, rot=0.6, pid='ram2', scale=1.5), prop('ramBlack', 150, -105, rot=1.2, pid='ram3', scale=1.5)]
 D = lambda tx, tz: fig('director', CH[0], CH[1], face=(tx, tz), sit=True, props=False)
@@ -52,27 +52,28 @@ AD = lambda x, z, tx, tz: fig('firstad', x, z, face=(tx, tz), props=True)
 C = lambda x, z, tx, tz, **kw: fig('cinematographer', x, z, face=(tx, tz), props=False, **kw)
 O = lambda x, z, tx, tz: fig('odysseus', x, z, face=(tx, tz), props=True)
 EYE = {'armRP': [-1.9, 0, 0]}
-SC[sid] = [
- key('K1', [D(-30, 120), AD(-120, 70, -30, 140), C(-30, 195, -30, 100, pose=EYE), O(70, 90, -30, 160)],
-     [CHAIR(*CH, -30, 120), CAMERA(-30, 165, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((-260, 230, -40), (-20, 40, 120), 52),
+DOOR = (-10, 215)
+SC[sid] = [   # the cinematographer beside his camera, not behind it (a face the lens can find); the crew in the open floor at the front left
+ key('K1', [D(0, 60), AD(-95, 125, 0, 60), C(35, 140, 0, 60), O(75, 95, 0, 125)],
+     [CHAIR(*CH, 0, 60), CAMERA(0, 125, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((-260, 230, -40), (-20, 40, 120), 52),
      [dict(id='cinematographer', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), HIDE),
- key('K2', [D(-30, 170), AD(-80, 175, -30, 195), C(-30, 195, -80, 175), O(70, 90, -30, 160)],
-     [CHAIR(*CH, -30, 120), CAMERA(-30, 165, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
+ key('K2', [D(0, 125), AD(-45, 140, 35, 140), C(35, 140, -45, 140), O(75, 95, 0, 125)],
+     [CHAIR(*CH, 0, 60), CAMERA(0, 125, *RAM_CAM), CLAP, giant(*G0, 0)] + rams(), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
      [dict(id='cinematographer', primary=True, face=True), dict(id='firstad', soft=True)], beat(sid, 'K2'), HIDE),
- key('K3', [D(-30, 170), AD(-90, 175, CH[0], CH[1]), C(-30, 200, -30, -100, pose=EYE), O(70, 90, -30, 160)],
-     [CHAIR(*CH, -30, 120), CAMERA(-30, 172, -30, -100), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
+ key('K3', [D(35, 140), AD(-60, 135, *CH), C(35, 140, *CH), O(75, 95, 0, 125)],
+     [CHAIR(*CH, 0, 60), CAMERA(0, 120, -30, -100), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((60, 120, 260), (-40, 50, 130), 46),
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K3'), HIDE),
- key('K4', [D(-30, -120), AD(-95, -35, *G0), C(-30, -45, *G0, pose=EYE), O(70, 90, *G0)],
-     [CHAIR(*CH, -30, -120), CAMERA(-30, -75, *G0), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((120, 60, 40), (-30, 110, -150), 56),
+ key('K4', [D(*G0), AD(-115, -40, *G0), C(-80, -60, *G0), O(75, 95, *G0)],
+     [CHAIR(*CH, 0, 60), CAMERA(-40, -65, *G0), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((120, 60, 40), (-30, 110, -150), 56),
      [dict(id='cinematographer', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K4'), HIDE),
- key('K5', [D(-10, 160), AD(-110, 90, -10, 160), C(-150, 125, -10, 200, pose=EYE), O(-200, 160, CH[0], CH[1])],
-     [CHAIR(*CH, -10, 160), CAMERA(-125, 140, -10, 200), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
+ key('K5', [D(*DOOR), AD(-75, 125, *DOOR), C(-140, 70, *DOOR, pose=EYE), O(-110, 165, *CH)],
+     [CHAIR(*CH, 0, 60), CAMERA(-120, 95, *DOOR), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
      [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K5'), HIDE),
- key('K6', [D(-10, 160), AD(-110, 90, -10, 160), C(-150, 125, -10, 200, pose=EYE), O(-200, 160, -10, 180)],
-     [CHAIR(*CH, -10, 160), CAMERA(-125, 140, -10, 200), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
+ key('K6', [D(*DOOR), AD(-75, 125, *DOOR), C(-140, 70, *DOOR, pose=EYE), O(-110, 165, *DOOR)],
+     [CHAIR(*CH, 0, 60), CAMERA(-120, 95, *DOOR), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
      [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K6'), HIDE),
- key('K7', [D(60, 0), AD(-100, 90, CH[0], CH[1]), C(-130, 60, CH[0], CH[1]), O(-200, 160, 60, 0)],
-     [CHAIR(*CH, 60, 0), CAMERA(-60, -60, 70, 0), CLAP, giant(40, 0, 2.2)] + rams((100, 30), 0.3), LIT, cam((-260, 160, 120), (0, 50, 0), 50),
+ key('K7', [D(-120, 95), AD(-75, 125, *CH), C(-140, 70, *CH), O(-110, 165, 40, 0)],
+     [CHAIR(*CH, 0, 60), CAMERA(-120, 95, *DOOR), CLAP, giant(40, 0, 2.2)] + rams((100, 30), 0.3), LIT, cam((-260, 160, 120), (0, 50, 0), 50),
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K7'), HIDE),
 ]
 

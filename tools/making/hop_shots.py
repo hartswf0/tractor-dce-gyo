@@ -11,13 +11,15 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 CREATURES = {'polyphemus'}
 PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'polyphemus'],
-         'OD-B26-S02': ['director', 'firstad', 'cinematographer', 'odysseus-as-beggar', 'irus', 'antinous']}
+         'OD-B26-S02': ['director', 'firstad', 'cinematographer', 'odysseus-as-beggar', 'irus', 'antinous'],
+         'OD-B26-S03': ['director', 'firstad', 'cinematographer', 'odysseus', 'anticleia', 'achilles'],
+         'OD-B26-S04': ['director', 'firstad', 'cinematographer', 'odysseus', 'calypso', 'crew-at-the-oars-1', 'crew-at-the-oars-2', 'crew-at-the-oars-3', 'crew-at-the-oars-5', 'the-sirens-4']}
 # the episode's own moments over the conversation: (t0, t1, size, subjects, why, opts); t as seconds, 'g<gi>' (a line's start),
 # 'g<gi>+' (its end), 'c<j>' (the j-th clap), 'd<j>' / 'd<j>+' (a dailies window), 'b<j>' / 'b<j>+' (a beat), 'end'
 SPECIAL = {
  'OD-B26-S01': [
-  (0, 'g0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram', {}),
-  ('g0', 'c0+', 'MID', ['firstad'], 'the slate: the AD and her clapperboard', {}),
+  (0, 'g0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram', dict(t1off=2.4)),
+  ('g0', 'c0+', 'MID', ['firstad'], 'the slate: the AD and her clapperboard', dict(t0off=2.4)),
   ('g1', 'g1+', 'MID', ['director'], 'the one-word call from the chair', {}),
   ('b0', 'g2', 'MID', ['cinematographer', 'odysseus'], 'rolling: the cinematographer at the eyepiece, the lens in the ram', {}),
   ('g3', 'g3+', 'MID', ['cinematographer'], '"in the ram": the camera and the wool, in a mid, not a wide', {}),
@@ -52,6 +54,41 @@ SPECIAL = {
   ('g23', 'g23+', 'CLOSE', ['odysseus-as-beggar'], '"I stand like a rock."', {}),
   ('d1', 'd1+', 'MID', ['director', 'firstad'], 'the dailies: the new take (cut in over this)', {}),
   ('g27', 'end', 'MID', ['irus', 'firstad'], '"Do I get a stool?"', {}),
+ ],
+ 'OD-B26-S03': [
+  (0, 'g0', 'WIDE', ['firstad', 'director', 'odysseus'], 'cold open: the crew on the shore of the dead', dict(t1off=2.4)),
+  ('g0', 'c0+', 'MID', ['firstad'], 'the slate', dict(t0off=2.4)),
+  ('g1', 'g1+', 'MID', ['director'], 'the call', {}),
+  ('b0', 'g2+', 'MID', ['odysseus', 'anticleia'], 'the first embrace, in a mid: his arms through her', {}),
+  ('g3', 'g3+', 'MID', ['director'], '"Again."', {}),
+  ('g4', 'c1+', 'MID', ['firstad'], 'the slate', {}),
+  ('b1', 'g5+', 'MID', ['anticleia', 'odysseus'], 'the second embrace: "Still dead."', {}),
+  ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g9', 'c2+', 'MID', ['firstad'], 'the slate', {}),
+  ('b2', 'g10+', 'MID', ['odysseus', 'anticleia'], 'the third embrace: "I have eternity."', {}),
+  ('g13', 'g13+', 'CLOSE', ['anticleia'], 'her patience, on her own face', {}),
+  ('b3', 'b3+', 'MID', ['achilles'], 'Achilles comes up the shore in the visored helmet', {}),
+  ('g15', 'g15+', 'CLOSE', ['achilles'], '"The fans want the helmet": the visor, close', {}),
+  ('g16', 'g16+', 'MID', ['cinematographer', 'achilles'], '"I can\'t find his face."', {}),
+  ('g21', 'g21+', 'CLOSE', ['achilles'], '"I am ACHILLES."', {}),
+  ('d1', 'd1+', 'MID', ['odysseus', 'achilles'], 'the dailies, with their sound (cut in over this)', {}),
+  ('g23', 'g23+', 'CLOSE', ['odysseus'], '"That\'s my voice."', {}),
+  ('g27', 'end', 'MID', ['achilles', 'firstad'], '"The fans..."', {}),
+ ],
+ 'OD-B26-S04': [
+  (0, 'g0', 'WIDE', ['firstad', 'director', 'crew-at-the-oars-1'], 'cold open: the crew on the deck of the Sirens\' ship', dict(t1off=1.6)),
+  ('g0', 'c0+', 'MID', ['firstad'], 'the slate', dict(t0off=1.6)),
+  ('g1', 'g1+', 'MID', ['director'], 'the call', {}),
+  ('b0', 'b0+', 'MID', ['crew-at-the-oars-1', 'crew-at-the-oars-3'], 'the rowers on one clock, in a mid', {}),
+  ('g3', 'g3+', 'MID', ['crew-at-the-oars-2', 'crew-at-the-oars-4'], 'the clock described over the strokes', {}),
+  ('g7', 'g7+', 'MID', ['the-sirens-4'], 'the Siren on the shore', {}),
+  ('g12', 'c1+', 'MID', ['firstad'], 'the slate', {}),
+  ('g13', 'g13+', 'MID', ['director'], 'the call', {}),
+  ('b1', 'g14+', 'MID', ['odysseus'], 'he steps in, his face to the lens: her trees behind his head', {}),
+  ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g19', 'g19+', 'CLOSE', ['calypso'], '"Seven years I kept him."', {}),
+  ('b2', 'g22+', 'MID', ['calypso', 'odysseus'], 'a man\'s height apart: her face, her trees', {}),
+  ('g23', 'g23+', 'MID', ['odysseus', 'calypso'], 'the bow on his back still across the frame', {}),
  ],
 }
 

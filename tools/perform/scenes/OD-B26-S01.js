@@ -15,7 +15,7 @@ const Ic = require('../intents-creature.js'), Ground = require('../ground.js');
 module.exports = function author(M, X) {
   const D = 'director', F = 'firstad', C = 'cinematographer', O = 'odysseus', G = 'polyphemus';
   const hop = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../odyssey/take/making/OD-B26-S01.json'), 'utf8')).hop;
-  const camAt = [-30, 70, 165], door = [-10, 60, 215], side = [100, 60, 175], G0 = [-30, -150], GS = [-10, 140], RAM = [-30, 100];
+  const camAt = [0, 70, 125], door = [-10, 60, 215], side = [100, 60, 175], G0 = [-30, -150], GS = [40, 135], RAM = [0, 60];
   const G_ = require('./_making2.js')(M, X, { present: [D, F, C, O], speaker: camAt, talk: [G],
     shapes: { 1: ['chop'], 6: ['dismiss'], 23: ['chop'], 32: ['chop'], 33: ['open'], 36: ['open'], 27: ['chest'], 29: ['chest'] },
     walkTo: {}, walkLabel: {} });
@@ -46,7 +46,7 @@ module.exports = function author(M, X) {
   for (const r of ['ram1', 'ram2', 'ram3']) I({ id: 'graze' + r, actor: r, kind: 'GRAZE', t0: 0.3, t1: r === 'ram1' ? q(c(9).at + 1.2) : T, label: 'grazing', because: [] });
   St({ id: 'sFree', t0: q(end(c(9))), t1: q(end(c(9)) + 0.4), kind: 'SIGHT', label: '"or a face": the camera pulled out of the wool', actor: C, because: [{ id: 'say9' }] });
   const tR0 = q(end(c(9)) + 0.6), tR1 = q(tR0 + 4.0);
-  I({ id: 'ramOut', actor: 'ram1', kind: 'WALK', t0: tR0, t1: tR1, label: 'freed of the lens, the ram goes back to the pen', params: { path: [[tR0, RAM[0], RAM[1]], [q(tR0 + 2), 30, 60], [tR1, 100, 30]], gait: 'walk' }, because: [{ id: 'sFree' }] });
+  I({ id: 'ramOut', actor: 'ram1', kind: 'WALK', t0: tR0, t1: tR1, label: 'freed of the lens, the ram goes back to the pen', params: { path: [[tR0, RAM[0], RAM[1]], [q(tR0 + 2), 50, 50], [tR1, 100, 30]], gait: 'walk' }, because: [{ id: 'sFree' }] });
   I({ id: 'ramGraze', actor: 'ram1', kind: 'GRAZE', t0: q(tR1 + 0.3), t1: T, label: 'in the pen', because: [{ id: 'ramOut' }] });
   /* ── K4: the giant's close-up; he looks at whoever speaks to him ── */
   gi({ id: 'gWait', kind: 'ATTEND', t0: 0.3, t1: q(c(15).at - 0.2), target: C, label: 'at his mark, waiting for his close-up', because: [] });
@@ -54,7 +54,7 @@ module.exports = function author(M, X) {
   gi({ id: 'gHearD', kind: 'ATTEND', t0: q(c(20).at + 0.2), t1: q(end(c(21)) + 0.4), target: D, label: '"half your face is in shadow": to the Director', because: [{ id: 'say20' }] });
   /* ── K5: to the stone; take one: the stone is in the door after a cut ── */
   const tW0 = q(end(c(22)) + 0.2), tW1 = q(tW0 + 4.2);
-  gi({ id: 'gToStone', kind: 'WALK', t0: q(end(c(21)) + 1.0), t1: q(c(22).at + 1.6), label: 'off his mark, to the great stone', params: { path: [[q(end(c(21)) + 1.0), g0.at[0], g0.at[2]], [q(end(c(21)) + 3.0), 25, -40], [q(c(22).at + 0.2), 25, 70], [q(c(22).at + 1.6), gS.at[0], gS.at[2]]], y: gS.at[1] }, because: [{ id: 'say21' }] });
+  gi({ id: 'gToStone', kind: 'WALK', t0: q(end(c(21)) + 1.0), t1: q(c(22).at + 1.6), label: 'off his mark, to the great stone', params: { path: [[q(end(c(21)) + 1.0), g0.at[0], g0.at[2]], [q(end(c(21)) + 3.0), 35, -100], [q(c(22).at + 0.2), 35, 60], [q(c(22).at + 1.6), gS.at[0], gS.at[2]]], y: gS.at[1] }, because: [{ id: 'say21' }] });
   const b5 = hop.beats.find(b => b.key === 'K5'), b6 = hop.beats.find(b => b.key === 'K6');
   gi({ id: 'gReach1', kind: 'REACH', t0: q(b5.start), t1: q(b5.start + 1.4), target: side, label: 'take one: he reaches for the stone', params: { hand: 'R' }, because: [{ id: 'say23' }] });
   gi({ id: 'gPop', kind: 'MOVE_STONE', t0: q(b5.start + 1.1), t1: q(b5.start + 2.7), target: side, label: 'take one: the stone in the door, not seen to move (as take one was)', params: { to: [door[0], door[2]], object: 'door-stone', piece: 'the great stone', lift: 0 }, because: [{ id: 'gReach1' }] });
@@ -64,7 +64,7 @@ module.exports = function author(M, X) {
   St({ id: 'sCarried', t0: q(b6.start + b6.dur - 0.3), t1: q(b6.start + b6.dur + 0.2), kind: 'SIGHT', label: 'the stone set in the door, carried', because: [{ id: 'gCarry' }] });
   /* ── K7: the milking ── */
   const tM0 = q(end(c(33)) + 0.4), tM1 = q(tM0 + 3.6);
-  gi({ id: 'gToPen', kind: 'WALK', t0: tM0, t1: tM1, label: 'to the pen, to milk', params: { path: [[tM0, gS.at[0], gS.at[2]], [q(tM0 + 1.8), 25, 70], [tM1, gP.at[0], gP.at[2]]], y: gP.at[1] }, because: [{ id: 'say33' }] });
+  gi({ id: 'gToPen', kind: 'WALK', t0: tM0, t1: tM1, label: 'to the pen, to milk', params: { path: [[tM0, gS.at[0], gS.at[2]], [q(tM0 + 1.8), 35, 70], [tM1, gP.at[0], gP.at[2]]], y: gP.at[1] }, because: [{ id: 'say33' }] });
   gi({ id: 'gTurnPen', kind: 'TURN', t0: q(tM1), t1: q(tM1 + 0.8), target: 'ram1', label: 'to the ewe', params: { h: 2.2 }, because: [{ id: 'gToPen' }] });
   gi({ id: 'gMilk', kind: 'CARESS', t0: q(tM1 + 0.9), t1: q(T - 0.3), target: 'ram1', label: 'milks the ewe, in the light they made for it', params: { strokes: 4 }, because: [{ id: 'gTurnPen' }] });
   /* the director in his chair watches the takes; Odysseus waits for his cue, and is still when nothing is asked of him */

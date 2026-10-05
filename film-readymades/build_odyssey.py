@@ -177,7 +177,7 @@ SCENES = ['OD-B01-S01', 'OD-B01-S02', 'OD-B01-S03', 'OD-B04-S04', 'OD-B08-S05', 
 # the making-of film (tools/making/): four scenes played in the LEGO film studio, a "book 25" after the poem, voiced offline
 MAKING = ['OD-B25-S01', 'OD-B25-S02', 'OD-B25-S03', 'OD-B25-S04', 'OD-B25-S05', 'OD-B25-S06', 'OD-B25-S07', 'OD-B25-S08']
 # Hearts of Plastic, the episodes on the film's own sets (tools/making/hop.py): a "book 26", each on a real location's card with the crew
-HOP = ['OD-B26-S01', 'OD-B26-S02', 'OD-B26-S03']
+HOP = ['OD-B26-S01', 'OD-B26-S02', 'OD-B26-S03', 'OD-B26-S04']
 MAKING += HOP
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
