@@ -15,9 +15,61 @@
  ],
  "metrics_before": {
   "stage": "take 1 as published (films/odyssey/OD-B19-S03-performed.mp4, 51.2 s, 13 shots)",
-  "shot6": {"t0": 22.2, "dur": 6.2, "kind": "HOT MID penelope", "motion": 2.48, "still": 0.0},
-  "shot7": {"t0": 28.5, "dur": 4.3, "kind": "REACT CLOSE odysseus", "motion": 0.26, "still": 0.8},
-  "shot8": {"t0": 32.8, "dur": 2.8, "kind": "HOT CLOSE penelope", "motion": 2.12, "still": 0.21}
+  "shot6": {
+   "t0": 22.2,
+   "dur": 6.2,
+   "kind": "HOT MID penelope",
+   "motion": 2.48,
+   "still": 0.0
+  },
+  "shot7": {
+   "t0": 28.5,
+   "dur": 4.3,
+   "kind": "REACT CLOSE odysseus",
+   "motion": 0.26,
+   "still": 0.8
+  },
+  "shot8": {
+   "t0": 32.8,
+   "dur": 2.8,
+   "kind": "HOT CLOSE penelope",
+   "motion": 2.12,
+   "still": 0.21
+  }
  },
- "metrics_after": null, "result": null, "keep": null
+ "metrics_after": {
+  "stage": "take 2, NOT published: kept as films/odyssey/takes/OD-B19-S03/take2.* (161 frames drawn, 453 carried); take 1 stays the published film",
+  "shot7a": {
+   "t0": 28.5,
+   "dur": 2.3,
+   "kind": "HOT MID penelope",
+   "motion": 1.45,
+   "still": 0.0
+  },
+  "shot7b": {
+   "t0": 30.8,
+   "dur": 2.0,
+   "kind": "REACT CLOSE odysseus",
+   "motion": 2.77,
+   "still": 0.87
+  },
+  "shot9": {
+   "t0": 32.8,
+   "dur": 2.8,
+   "kind": "HOT CLOSE penelope",
+   "motion": 2.92,
+   "still": 0.12
+  },
+  "film": {
+   "motion": 3.01,
+   "still": 0.28,
+   "still_tail_s": 0.1
+  },
+  "film_before": {
+   "motion": 2.87,
+   "still": 0.32
+  }
+ },
+ "result": "Not kept (an honest failure). By the audit's numbers the take is better (film still share 0.32 -> 0.28; the 4.3 s still close under the line is now 2.3 s of her and 2 s of him). On the contact sheet it is not: from the front, the cameras today's solver picks for her, the turned WEEP still reads as a hand raised beside her head (a wave or an oath), the head barely bowed, because a minifig's arm cannot cross the face and the legality layer keeps the hand out of the head; and the close at 32.8 s, which in take 1 was cut from her side where the hand covers the face and reads as weeping, was re-solved from the front. The weeping is a pose and angle problem: a next take should hold take 1's side angle for every shot of her and bow the head into the hand there (WEEP params.twist is in tools/perform/intents-more.js for it). The sheet, the plan and the scene module are back as take 1 has them.",
+ "keep": false
 }
