@@ -76,17 +76,17 @@
    "telemachus"
   ],
   "shots": {
-   "HOT": 4,
+   "WIDE": 5,
+   "HOT": 3,
    "REACT": 2,
-   "WIDE": 4,
    "INSERT": 1
   },
   "cine": {
    "time": {
-    "grid": 3.9,
-    "inside": 0.5,
-    "seen": 13.2,
-    "clutter": 4.7,
+    "grid": 1.9,
+    "inside": 0.3,
+    "seen": 8.5,
+    "clutter": 2.6,
     "pose": 0
    },
    "scene": "OD-B21-S07",
@@ -109,23 +109,27 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 251.6,
+   "solvedIn": 123.7,
    "shots": [
     {
      "i": 0,
      "t0": 0,
      "t1": 5.17,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
      "eased": null,
      "primary": "odysseus",
      "subjects": [
-      "odysseus"
+      "odysseus",
+      "six-suitors-1",
+      "six-suitors-4"
      ],
      "why": {
-      "cut": "the scene opens on the act",
-      "rule": "take 2: the stringing seen from its first drawing (was the opening wide)",
+      "cut": "the scene opens",
+      "rule": "R6 the opening wide (establishes the set and the line)",
+      "heat": 2.39,
+      "contrast": 2.36,
       "hot": "odysseus"
      },
      "line": null,
@@ -133,36 +137,35 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -80.5,
-       96.3,
-       130.5
+       -322.8,
+       184.9,
+       -44.1
       ],
-      "fov": 38,
+      "fov": 63,
       "key": false,
-      "az": 3.93,
+      "az": 4.32,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L3 head of odysseus cut",
      "rejected": {
-      "L3 the back": 91,
-      "L1 under the set": 8,
-      "L4 an empty frame (n% sky)": 2,
-      "L1 inside the staged prop axes": 15,
-      "L1 near plane in a set part": 1,
-      "L2 body": 4,
-      "L3 face": 32,
-      "L1 too near the face": 42
+      "L3 head": 1,
+      "L1 under the set": 43,
+      "L2 odysseus hidden": 95,
+      "L4 foreground covers n%": 18,
+      "L2 body": 5,
+      "L1 near plane in a set part": 9,
+      "L1 inside the staged prop axes": 1,
+      "L1 in part construction-frame": 1,
+      "L1 in six-suitors-2": 2
      },
-     "candidates": 256,
-     "legalCandidates": 61,
+     "candidates": 257,
+     "legalCandidates": 82,
      "samples": [
       2.58,
       0.1,
-      5.07,
-      1.25,
-      3.75
+      5.07
      ],
      "checks": [
       "L1 not inside geometry",
@@ -171,15 +174,15 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.8,
-     "headV": 0.339,
-     "clutterFar": 0.04,
+     "facing": 0.72,
+     "headV": 0.418,
+     "clutterFar": 0.05,
      "luma": {
-      "mean": 0.68,
-      "sd": 0.155,
+      "mean": 0.723,
+      "sd": 0.153,
       "dark": 0.01,
-      "white": 0.01,
-      "one": 0.35
+      "white": 0.06,
+      "one": 0.4
      },
      "lumaRefused": 0
     },
@@ -941,8 +944,7 @@
      },
      "lumaRefused": 0
     }
-   ],
-   "carried": "shots 1,2,3,4,5,6,7,8,9,10 carried frame for frame from the take before; shots 0 solved and drawn for this take"
+   ]
   },
   "clips": [
    {
@@ -1004,8 +1006,8 @@
  "shots": [
   {
    "t": 0,
-   "shot": "c0:HOT:MID",
-   "kind": "HOT",
+   "shot": "c0:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K1"
   },
   {
