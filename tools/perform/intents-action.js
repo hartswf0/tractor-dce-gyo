@@ -164,7 +164,18 @@ A_.IMPACT = (X, I, e) => { const id = I.actor, t = I.t0, a = X.ampOf(I), p = I.p
 A_.FALL = (X, I, e) => { const id = I.actor, K = X.M.keys.find(k => k.id === (I.params || {}).key), w = K && K.win ? K.win : [I.t0, I.t1];
   X.move(id, 'act', 'FALL', e, k => { k(w[0] - 0.1, { 'hips.dy': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0) });
     k(w[0] + 0.35, { 'hips.dy': -3.5, 'torso.lean': 0.2, 'head.pitch': -0.15, 'arm.R.pitch': -0.6, 'arm.L.pitch': -0.3 }, 'in'); k(X.lerp(w[0], w[1], 0.6), { 'hips.dy': -2, 'torso.lean': 0.3, 'head.pitch': 0.18, 'arm.R.pitch': 0.4, 'arm.L.pitch': 0.5 }, 'out');
-    k(w[1] + 0.1, { 'hips.dy': 0, 'torso.lean': 0.06, 'head.pitch': 0.1, 'arm.R.pitch': 0.15, 'arm.L.pitch': 0.1 }, 'back'); k(w[1] + 0.9, { 'torso.lean': 0, 'head.pitch': 0.05, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }); }, { label: I.label || 'the fall' }); };
+    k(w[1] + 0.1, { 'hips.dy': 0, 'torso.lean': 0.06, 'head.pitch': 0.1, 'arm.R.pitch': 0.15, 'arm.L.pitch': 0.1 }, 'back'); k(w[1] + 0.9, { 'torso.lean': 0, 'head.pitch': 0.05, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }); }, { label: I.label || 'the fall' });
+  /* params.topple {at, dur, bounce}: the blocking's tip (the key's pitch, laid in linearly across its whole window) taken as one
+     fall: the body kept up (a small sway into it) until `at`, then over in `dur` seconds, accelerating like a falling body, a
+     bounce where it lands and the rest at the key's pitch; root.pitch offsets over what the blocking has at each drawing */
+  const tp = (I.params || {}).topple; if (!tp || !K || !K.snap[id]) return;
+  const end = K.snap[id].rot[0], ta = tp.at, td = tp.dur || 0.5, bo = tp.bounce == null ? 0.12 : tp.bounce;
+  const want = t => t < ta ? end * 0.07 * X.sm((t - w[0]) / Math.max(0.1, ta - w[0])) : t < ta + td ? end * (0.07 + 0.93 * Math.pow((t - ta) / td, 2))
+    : t < ta + td + 0.25 ? end * (1 - bo * Math.sin(Math.PI * (t - ta - td) / 0.25)) : end;
+  X.move(id, 'loco', 'TOPPLE', e, k => { const tz = Math.max(w[1], ta + td + 0.25) + 1 / X.F;
+    for (let t = w[0] - 2 / X.F; t <= tz + 1e-6; t += 1 / X.F) { const s = X.at(id, t); if (!s) continue;
+      k(t, { 'root.pitch': t < w[0] || t >= tz - 1e-6 ? 0 : want(t) - s.rot[0] }, 'linear'); } },
+    { label: 'over in ' + td.toFixed(2) + ' s at ' + ta.toFixed(2) + ' s (the key\'s tip as one fall)', rigid: true }); };
 /* EVADE / DUCK: out of the line of the threat (a step aside and back, the head down) */
 A_.DUCK = (X, I, e) => { const id = I.actor, t = I.t0, a = X.ampOf(I); X.move(id, 'react', 'DUCK', e, k => { k(t, { 'hips.dy': X.sheet.rel(0), 'torso.lean': X.sheet.rel(0), 'head.pitch': X.sheet.rel(0), 'arm.R.pitch': X.sheet.rel(0), 'arm.L.pitch': X.sheet.rel(0) }); k(t + 0.2, { 'hips.dy': -5 * a, 'torso.lean': 0.28 * a, 'head.pitch': 0.15, 'arm.R.pitch': -1.8 * a, 'arm.L.pitch': -1.7 * a }, 'out'); k(t + 0.9, { 'hips.dy': -3.5 * a, 'torso.lean': 0.2 * a, 'arm.R.pitch': -1.3, 'arm.L.pitch': -1.2 }); k(I.t1, { 'hips.dy': 0, 'torso.lean': 0, 'head.pitch': 0, 'arm.R.pitch': 0, 'arm.L.pitch': 0 }); }, { label: I.label || 'under it' }); };
 A_.EVADE = (X, I, e) => { const p = I.params || {}; A_.RECOIL(X, { ...I, params: { ...p, label: I.label || 'out of the line' } }, e); };

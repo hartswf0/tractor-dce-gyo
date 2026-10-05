@@ -9,6 +9,7 @@
      solve              re-plan (tools/cinematographer/plan.js) and re-solve (solve.js, read afresh) -> <dir>/report.json
      stills a,b,c       frames at those times -> <dir>/t<time>.jpg
      sheet [name]       one frame in the middle of every shot -> <dir>/<name>/NN.jpg and <dir>/<name>.jpg (a contact sheet)
+     choreo [file]      play a re-compiled sheet (default: the --sheet file read again); then solve to re-plan on it
      exit
    Needs the repository served on :8899 and a player that carries the take's cinematographer hook. */
 'use strict';
@@ -51,6 +52,7 @@ const Plan = require('./plan.js');
         if (cmd === 'solve') { delete require.cache[require.resolve('./plan.js')]; const P = opt('planfile', null) ? planOf() : require('./plan.js').plan(sid, { sheet }); fs.writeFileSync(path.join(dir, 'plan.json'), JSON.stringify(P, null, 1));
           const rep = await page.evaluate(P => OdysseyTake.cineReload(P), P); fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(rep, null, 1));
           say('solved in', rep.solvedIn, 's; legal', rep.shots.filter(s => s.legal).length, 'of', rep.shots.length); }
+        if (cmd === 'choreo') { const C2 = JSON.parse(fs.readFileSync(path.resolve(arg || path.join(ROOT, sheet)), 'utf8')); say('sheet reloaded', await page.evaluate(C => OdysseyTake.useChoreo(C), C2)); }   /* a re-compiled sheet, without preparing the take again */
         if (cmd === 'stills') for (const t of arg.split(',').map(Number)) { const r = await still(t, path.join(dir, 't' + t.toFixed(1) + '.jpg')); say('still', t, r.shot); }
         if (cmd === 'mark') for (const t of arg.split(',').map(Number)) { const f = path.join(dir, 'm' + t.toFixed(1) + '.jpg'); await still(t, f); const d = await page.evaluate(t => OdysseyTake.cineDraw(t), t);
           fs.writeFileSync(f + '.json', JSON.stringify(d)); execFileSync('python3', ['-c', `
