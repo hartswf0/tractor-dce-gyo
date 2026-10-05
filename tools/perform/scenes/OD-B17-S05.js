@@ -49,9 +49,9 @@ module.exports = function author(M, X) {
   I({ id: 'anFury', actor: AN, kind: 'DECIDE', t0: q(tStay), t1: q(Math.max(tStay + 0.3, W('K4')[0])), label: 'the footstool: he seizes it', because: [{ id: 'sSalt' }] });
   I({ id: 'bTurn', actor: B, kind: 'APPROACH', key: 'K4', t0: W('K4')[0], t1: W('K4')[1], target: door, label: 'turns away to the door', because: [{ id: 'anFury', latency: 0.2 }] });
   I({ id: 'anRaise', actor: AN, kind: 'APPROACH', key: 'K4', t0: W('K4')[0], t1: W('K4')[1], target: B, label: 'the stool up', because: [{ id: 'anFury' }, { id: 'v' + c7.gi, rel: 'realises' }] });
-  const wH = W('K4a'), FL = 0.33, tHit = q(wH[0] - 0.08), tT = q(tHit - FL - 0.62), gy = G.at(M, DOWN[0], DOWN[1]).y;
+  const wH = W('K4a'), FL = 0.6,   /* take 3 (Hearts of Plastic, odyssey/experiments/OD-B17-S05.json): the flight 0.33 s -> 0.6 s, and smear bricks on two drawings */ tHit = q(wH[0] - 0.08), tT = q(tHit - FL - 0.62), gy = G.at(M, DOWN[0], DOWN[1]).y;
   I({ id: 'anThrow', actor: AN, kind: 'THROW', target: B, t0: tT, t1: q(tT + 1.6), label: 'throws the footstool at his back', because: [{ id: 'anRaise' }],
-    params: { side: 'R', releaseId: 'sStool', prop: 'stool', to: B, off: [0, -9, 0], flight: FL, arc: 9, spin: 0.6, fall: [{ dt: 0.45, to: [DOWN[0], gy + 4, DOWN[1]], arc: 5, spin: 0.35 }], until: K('K4a').t } });
+    params: { side: 'R', releaseId: 'sStool', prop: 'stool', to: B, off: [0, -9, 0], flight: FL, arc: 9, spin: 0.6, fall: [{ dt: 0.45, to: [DOWN[0], gy + 4, DOWN[1]], arc: 5, spin: 0.35 }], until: K('K4a').t, smear: { prop: 'stoolSmear', frames: [2, 3], span: 2 } } });
   stimuli.push({ id: 'sHit', t0: tHit, t1: q(tHit + 0.3), kind: 'SOUND', label: 'the stool on the back of his right shoulder', actor: B, because: [{ id: 'sStool', latency: FL }] });
   I({ id: 'bHit', actor: B, kind: 'IMPACT', t0: q(tHit + 0.04), t1: q(wH[0] + 0.5), label: 'the blow does not even stagger him', params: { until: q(wH[0] + 0.4) }, because: [{ id: 'sHit', latency: 0.04 }] });
   I({ id: 'bRock', actor: B, kind: 'APPROACH', key: 'K4a', t0: wH[0], t1: wH[1], target: AN, label: 'he turns back and looks at him: shakes his head in silence', because: [{ id: 'bHit' }] });

@@ -15,6 +15,11 @@ module.exports = function converse(M, X, o) {
       for (const a of present) I({ id: 'up' + c.gi + a.slice(0, 3), actor: a, kind: 'ATTEND', target: speaker, t0: q(c.at + 0.25), t1: q(end(c) + 0.3), label: 'looks up at the speaker', because: [{ id: 'pa' + c.gi }] });
       continue;
     }
+    if (o.talk && o.talk.includes(c.voice)) {   /* a creature's line (Hearts of Plastic: Polyphemus): its jaw on the voice (TALK), heard by all */
+      I({ id: 'say' + c.gi, actor: c.voice, kind: 'TALK', t0: q(c.at), t1: end(c), utterance: c.gi, label: '"' + c.caption.slice(0, 60) + '"', because: [{ id: 'v' + c.gi, rel: 'realises' }].concat(o.because && o.because[c.gi] ? [{ id: o.because[c.gi] }] : []) });
+      for (const a of present) hear(a, c.gi, { id: 'h' + c.gi + a.slice(0, 3), nod: a === c.addressee });
+      continue;
+    }
     const sh = (o.shapes && o.shapes[c.gi]) || ['open', 'describe', 'point'];
     say(c.gi, { shapes: sh, maxBeats: 1, target: c.addressee || (o.lens || undefined), side: (o.side && o.side[c.gi]) || 'R', because: o.because && o.because[c.gi] ? [{ id: o.because[c.gi] }] : [] });
     for (const a of present) if (a !== c.voice && !(o.deaf && o.deaf[c.gi] && o.deaf[c.gi].includes(a))) hear(a, c.gi, { id: 'h' + c.gi + a.slice(0, 3), nod: a === c.addressee });

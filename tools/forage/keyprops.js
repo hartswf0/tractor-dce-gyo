@@ -141,6 +141,11 @@ props.veil = { parts: [row('2335', 15, L.I12), row('2335', 15, L.T(0, 0, 50))], 
 /* the arrows poured before him on the threshold (Homer XXII), and one to aim */
 props.arrows = { parts: Array.from({ length: 7 }, (_, i) => [row('30374', 71, L.mul(L.T(i * 7 - 21, -4, (i % 3) * 5), [0, 0, 0, Math.cos(0.1 * i), 0, Math.sin(0.1 * i), 0, 0, -1, -Math.sin(0.1 * i), 1, 0].map((v, j) => j < 3 ? v : v)))]).flat(), anchors: {} };
 props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))], anchors: { seat: [0, -8, 0] } };
+/* the stool's smear bricks (after The LEGO Movie: a fast thing drawn long for a drawing or two, in bricks, not blur): the stool's own
+   round brick and plate at the front, and behind it along +z a 1 x 2 brick, a 1 x 4 plate and a 1 x 2 plate, the trail thinning (about four and a half studs: three times the stool's travel over two drawings);
+   centred on the stool's middle, so choreo.js can lay it from where the stool is back along the way it came */
+props.stoolSmear = { parts: [row('3941', 70, L.T(0, -12, 0)), row('4032a', 70, L.T(0, -20, 0)), row('3004', 70, L.mul(L.T(0, -12, 30), L.RY(1))),
+    row('3710', 70, L.mul(L.T(0, -4, 50), L.RY(1))), row('3023', 19, L.mul(L.T(0, 0, 80), L.RY(1)))], anchors: { front: [0, 0, 0], tail: [0, 0, 90] } };
 /* the sea batch (Homer X, XII, XIII): the ox-hide bag of the winds tied with a silver cord; the winds bursting out; a whirlpool; the
    fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins under its helmet: one hurling a boulder,
    one reaching to seize, one with the boulder raised in both hands); the gift chest */
@@ -255,7 +260,14 @@ props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
     anchors: { centre: [0, 0, 0] } };
   const dots = [];
   for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) if ((i * 7 + j * 3) % 6 < i + 1) dots.push(row('4073', 0, L.T(-50 + 20 * j, -8, -50 + 20 * i)));
-  props.halftone = { parts: [row('3958', 15, L.I12)].concat(dots), anchors: { centre: [0, -8, 0] } }; }
+  props.halftone = { parts: [row('3958', 15, L.I12)].concat(dots), anchors: { centre: [0, -8, 0] } };
+  /* Hearts of Plastic (the episodes on the film's own sets, OD-B26-S0N, tools/making/hop.py): the crew's furniture walked onto a set.
+     The director's chair (the studio's: a reddish brown 2 x 2 brick, a black plate, the black seat with its back); the clapperboard (a black 2 x 2 tile on edge, its clapstick two 1 x 2 tiles, white and black, opened a
+     little at the hinge), held by the First AD */
+  props.directorChair = { parts: [row('3003', 70, L.T(0, -24, 0)), row('3022', 0, L.T(0, -32, 0)), row('4079', 0, L.mul(L.T(0, -32, 0), L.RY(2)))],
+    anchors: { seat: [0, -40, 0], foot: [0, 0, 0] } };
+  props.clapper = { parts: [row('3068b', 0, RXq), row('3069b', 15, L.mul(L.T(-10, -26, 0), L.mul(RZ(-0.25), RXq))), row('3069b', 0, L.mul(L.T(10, -31, 0), L.mul(RZ(-0.25), RXq)))],
+    anchors: { centre: [0, 10, 0] } }; }
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

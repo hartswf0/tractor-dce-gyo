@@ -19,7 +19,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(Path(__file__).parent))
 import lego_script as S
 A = sys.argv; TTS = Path(A[A.index('--tts') + 1]) if '--tts' in A else None
-ONLY = [a for a in A[1:] if a.startswith('OD-B25-')]
+ONLY = [a for a in A[1:] if a.startswith('OD-B2')]
 SR = 24000
 def ffmpeg():
     import imageio_ffmpeg; return imageio_ffmpeg.get_ffmpeg_exe()
@@ -86,14 +86,39 @@ def envelope(x, hz=50):
     top = np.sort(e)[int(len(e) * 0.95)] or 1.0
     return [round(float(min(1.0, v / top)), 3) for v in e]
 
+def giant(x, k=1.26):
+    """a giant's voice: resampled k times longer, so lower by as much (Polyphemus)"""
+    n = int(len(x) * k); return np.interp(np.arange(n) / k, np.arange(len(x)), x).astype(np.float32)
+
+def shade(x):
+    """the shade's faint echo (70 and 140 ms), as the restored Achilles line has it"""
+    y = x.copy()
+    for d, g in ((0.07, 0.35), (0.14, 0.2)):
+        k = int(d * SR); y = np.concatenate([y, np.zeros(k, np.float32)]); y[k:] += g * np.concatenate([x, np.zeros(len(y) - k - len(x), np.float32)])
+    return y / (np.abs(y).max() + 1e-9) * min(1.0, np.abs(x).max() * 1.05)
+
 def scene(sid):
-    sc = S.SCENES[sid]; at = sc['head']; clips = []; segs = []
-    for gi, (key, who, to, pause, text) in enumerate(sc['lines']):
-        c = S.CAST[who]; x = matched(synth(text, c['voice'], c['speed']))
+    """the lines on the clock; for an episode (OD-B26) also its events that are not voices: the clapperboard, the dailies (a real take
+    on the monitor, cut in by hop_film.py), a beat held for action"""
+    sc = S.SCENES[sid]; at = sc['head']; clips = []; segs = []; ev_hop = dict(clap=[], dailies=[], beats=[]); first = True
+    for li, line in enumerate(sc['lines']):
+        key, who, to, pause, text = line[:5]
+        at += pause if not first else 0; first = False
+        if who == 'clap': ev_hop['clap'].append(round(at, 3)); at += 0.5; continue
+        if who == 'dailies':
+            f, cap, *flag = text.split('|'); fn, span = f.split('@'); a0, d = map(float, span.split('+'))
+            ev_hop['dailies'].append(dict(key=key, start=round(at, 3), dur=d, file=fn, at=a0, caption=cap, audio='audio' in flag)); at += d + 0.35; continue
+        if who == 'beat':
+            d, what = text.split('|', 1); ev_hop['beats'].append(dict(key=key, start=round(at, 3), dur=float(d), what=what)); at += float(d) + 0.35; continue
+        gi = len(segs); c = S.CAST[who]; x = synth(text, c['voice'], c['speed'])
+        if c.get('fx') == 'giant': x = giant(x)
+        x = matched(x)
+        if c.get('fx') == 'shade': x = shade(x)
         if who == 'pa': x = tannoy(x)
-        at += pause if gi else 0; clips.append((at, x)); d = len(x) / SR
-        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='NARRATION' if who == 'pa' else 'DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=who,
-                         addressee=to, speakerName=c['name'], subjectName=c['name'], caption=text, isLine=True, act=None, delivery=None))
+        clips.append((at, x)); d = len(x) / SR
+        cr = lambda x: x is not None and S.CAST.get(x, {}).get('creature')   # a creature (a rig, not a cast figure) is nobody's speaker or addressee to the take's cameras
+        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='NARRATION' if who == 'pa' else 'DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=None if cr(who) else who,
+                         addressee=None if cr(to) or cr(who) else to, speakerName=c['name'], subjectName=c['name'], caption=text, isLine=True, act=None, delivery=None))
         at += d + 0.35
     total = round(at - 0.35 + sc['tail'], 3)
     y = np.zeros(int(total * SR) + 1, dtype=np.float32)
@@ -113,13 +138,15 @@ def scene(sid):
     if sid == 'OD-B25-S08':   # the restart: the power goes 0.6 s before the speaker says so; it comes back 1.4 s before the new agent's "Hi"
         down = by(6) - 0.6; up = by(7) - 1.4
         ev = {'hum': [(0.0, down), (up + 0.6, total + 1)], 'down': [down], 'up': [up]}
+    if sid.startswith('OD-B26'): ev = {'clap': ev_hop['clap']}
     bfile = bed(sid, total, ev)
-    take = dict(scene=sid, title=sc['title'], book=25, bookTitle='The making of the LEGO Odyssey',
+    hop = sid.startswith('OD-B26')
+    take = dict(scene=sid, title=sc['title'], book=26 if hop else 25, bookTitle='Hearts of Plastic' if hop else 'The making of the LEGO Odyssey',
                 voice=dict(file=f'odyssey/take/voice/{sid}.m4a', total=total, seconds=total, hz=50, env=envelope(y), segments=segs),
                 cast={k: v['face'] for k, v in S.CAST.items()},
                 bed=dict(file=bfile, album='studio room tone (synthesized, tools/making/voices.py)', title='the studio', num=0, offsetFull=0.0, offsetCut=0.0, open=1.0, duck=0.85, ramp=0.15),
                 cut=dict(status='performer', seconds=total, segments=[dict(gi=s['gi'], start=s['start'], dur=s['dur'], at=s['start']) for s in segs], dropped=[], why=['the making-of film: its own clock']),
-                events=ev, voices={k: dict(voice=v['voice'], speed=v['speed'], engine='Kokoro-82M (kokoro_onnx 0.6.1, q8 ONNX), offline') for k, v in S.CAST.items()})
+                events=ev, hop=ev_hop if hop else None, voices={k: dict(voice=v['voice'], speed=v['speed'], engine='Kokoro-82M (kokoro_onnx 0.6.1, q8 ONNX), offline') for k, v in S.CAST.items()})
     (REPO / 'odyssey/take/making').mkdir(parents=True, exist_ok=True)
     (REPO / 'odyssey/take/making' / f'{sid}.json').write_text(json.dumps(take, indent=1))
     print(sid, f'{total:.1f} s,', len(segs), 'lines,', 'bed', bfile, 'events', {k: [round(v, 2) if not isinstance(v, tuple) else tuple(round(q, 2) for q in v) for v in vs] for k, vs in ev.items()})
