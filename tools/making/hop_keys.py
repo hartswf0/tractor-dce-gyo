@@ -26,7 +26,7 @@ def AIM(x, z, tx, tz): return math.atan2(tx - x, -(tz - z))   # a prop's yaw tha
 def FACE(x, z, tx, tz): return math.atan2(-(tx - x), -(tz - z))   # the chair turned so its sitter faces (tx, tz) (its back toward -z ... set by stills)
 CAMERA = lambda x, z, tx, tz: prop('movieCamera', x, z, rot=AIM(x, z, tx, tz), pid='camera', scale=0.75)   # three quarters: the studio's camera stands over a minifigure on a set
 CHAIR = lambda x, z, tx, tz: prop('directorChair', x, z, rot=AIM(x, z, tx, tz) + math.pi, pid='chair')
-CLAP = dict(name='clapper', id='clapper', after=True, aim=dict(to='hand:firstad:L', anchor='centre', dir=[0, -1, 0]))
+CLAP = dict(name='clapper', id='clapper', after=True, scale=0.6, aim=dict(to='hand:firstad:L', anchor='centre', dir=[0, -1, 0]))   # small: it covered her face in her closes
 def cam(pos, target, fov=50): return dict(type='wide', pos=list(pos), target=list(target), fov=fov)
 def key(id, blocking, props, look, camera, subjects=(), beat='', hide=(), after=None):
     k = dict(id=id, beat=beat, text=beat, hide=list(hide), props=list(props), blocking=blocking, camera=camera, subjects=list(subjects), look=look)
@@ -67,13 +67,13 @@ SC[sid] = [   # the crew in a row facing what is being shot, a stride apart (no 
  key('K4', [D(*G0), AD(-130, -30, *G0), C(-80, -55, *G0), O(75, 95, *G0)],
      [CHAIR(*CH, *RAM_CAM), CAMERA(-40, -65, *G0), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((120, 60, 40), (-30, 110, -150), 56),
      [dict(id='cinematographer', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K4'), HIDE),
- key('K5', [D(*DOOR), AD(-190, 40, *DOOR), C(-150, 60, *DOOR), O(-60, 100, *DOOR)],
+ key('K5', [D(*DOOR), AD(-190, 40, *DOOR), C(-150, 60, *DOOR), O(-120, 20, *DOOR)],
      [CHAIR(*CH, *RAM_CAM), CAMERA(-120, 95, *DOOR), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, STONE_CAM,
      [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K5'), HIDE),
- key('K6', [D(*DOOR), AD(-190, 40, *DOOR), C(-150, 60, *DOOR), O(-60, 100, *DOOR)],
+ key('K6', [D(*DOOR), AD(-190, 40, *DOOR), C(-150, 60, *DOOR), O(-120, 20, *DOOR)],
      [CHAIR(*CH, *RAM_CAM), CAMERA(-120, 95, *DOOR), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, STONE_CAM,
      [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K6'), HIDE),
- key('K7', [D(40, 0), AD(-190, 40, 40, 0), C(-150, 60, 40, 0), O(-60, 100, 40, 0)],
+ key('K7', [D(40, 0), AD(-190, 40, 40, 0), C(-150, 60, 40, 0), O(-120, 20, 40, 0)],
      [CHAIR(*CH, *RAM_CAM), CAMERA(-120, 95, *DOOR), CLAP, giant(40, 0, 2.2)] + rams((100, 30), 0.3), LIT, cam((-40, 120, 150), (60, 40, -20), 50),
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K7'), HIDE),
 ]
@@ -83,12 +83,12 @@ SC[sid] = [   # the crew in a row facing what is being shot, a stride apart (no 
 sid = 'OD-B26-S02'
 src = json.loads((REPO / 'odyssey/keyframes/OD-B17-S05.json').read_text())
 HALL = dict(src['look']); HALL['lights'] = [dict(at=[60, 220, 230], color='#fff2dc', intensity=1.1, distance=560, decay=1.0)]   # the hall's sun, and the crew's work lamp by the threshold
-CH2 = (140, 140); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (0, 130)
+CH2 = (190, 170); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (0, 130)
 B2 = lambda x, z, tx, tz: fig('odysseus-as-beggar', x, z, face=(tx, tz), props=True)
 IR2 = lambda x, z, tx, tz: fig('irus', x, z, face=(tx, tz), props=True)
 AN2 = lambda tx, tz, **kw: fig('antinous', AN[0], AN[1], face=(tx, tz), props=True, **kw)
 D2 = lambda tx, tz: fig('director', CH2[0], CH2[1], face=(tx, tz), sit=True, props=False)
-AD2 = lambda tx, tz: fig('firstad', 80, 130, face=(tx, tz), props=True)
+AD2 = lambda tx, tz: fig('firstad', 120, 200, face=(tx, tz), props=True)   # behind the director's line of sight
 C2 = lambda tx, tz, **kw: fig('cinematographer', 38, 145, face=(tx, tz), props=False, **kw)
 STOOL_HAND = dict(name='stool', id='stool', aim=dict(anchor='seat', to='hand:antinous:R', dir=[0, -1, 0], off=[0, 6, 0]))
 STOOL_DOWN = prop('stool', -110, -25, pid='stool')
@@ -96,7 +96,7 @@ SMEAR = prop('stoolSmear', -260, 200, pid='stoolSmear')
 base2 = lambda: [CHAIR(*CH2, -60, 0), CAMERA(*CAM2, -60, 0), CLAP]
 cam2 = cam((150, 140, 230), (-80, 40, 0), 50)
 PAIR2 = cam((-57, 75, 125), (-57, 45, 0), 46)        # the two beggars from the front, side by side
-THROW2 = cam((-150, 110, 175), (-140, 40, -10), 50)   # the throw from the front: Antinous at his table, the beggar on his mark, the stool between
+THROW2 = cam((-250, 100, 150), (-140, 40, -10), 50)   # the throw from the front: Antinous at his table, the beggar on his mark, the stool between
 SC[sid] = [
  key('K1', [B2(-110, 225, -110, 100), IR2(-70, 225, -70, 100), AN2(-80, 0), D2(-60, 0), AD2(-60, 0), C2(-60, 0, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
      [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), ['thrown footstool']),
@@ -117,7 +117,7 @@ SC[sid] = [
 sid = 'OD-B26-S03'
 src = json.loads((REPO / 'odyssey/keyframes/OD-B11-S04.json').read_text())
 DEAD = json.loads(json.dumps(src['look'])); DEAD['lights'] = DEAD['lights'] + [dict(at=[60, 200, 290], color='#fff2dc', intensity=0.9, distance=520, decay=1.0)]; DEAD['exposure'] = 1.0
-CH3 = (120, 245); O3, A3, AC3 = (10, 133), (-60, 140), (60, 150)
+CH3 = (120, 245); O3, A3, AC3 = (10, 133), (-60, 140), (115, 170)   # Achilles's mark a stride from Odysseus: no head in his closes
 EMB = {'armRP': [-1.5, 0, -0.3], 'armLP': [-1.5, 0, 0.3], 'torsoP': [0.1, 0, 0]}
 O_ = lambda x, z, tx, tz, pose=None: fig('odysseus', x, z, face=(tx, tz), props=False, **({'pose': pose} if pose else {}))
 AN_ = lambda tx, tz: fig('anticleia', *A3, face=(tx, tz), props=False, pose={'headP': [0.15, 0, 0]})

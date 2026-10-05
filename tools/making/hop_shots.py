@@ -18,8 +18,7 @@ PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'p
 # 'g<gi>+' (its end), 'c<j>' (the j-th clap), 'd<j>' / 'd<j>+' (a dailies window), 'b<j>' / 'b<j>+' (a beat), 'end'
 SPECIAL = {
  'OD-B26-S01': [
-  (0, 'g0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram', dict(t1off=2.4)),
-  ('g0', 'c0+', 'MID', ['firstad'], 'the slate: the AD and her clapperboard', dict(t0off=2.4)),
+  (0, 'c0+', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram, the first slate', {}),
   ('g1', 'g1+', 'MID', ['director'], 'the one-word call from the chair', {}),
   ('b0', 'g2', 'MID', ['cinematographer', 'odysseus'], 'rolling: the cinematographer at the eyepiece, the lens in the ram', {}),
   ('g3', 'g3+', 'MID', ['cinematographer'], '"in the ram": the camera and the wool, in a mid, not a wide', {}),
@@ -50,7 +49,7 @@ SPECIAL = {
   ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
   ('g21', 'c1+', 'MID', ['firstad'], 'the slate: take three', {}),
   ('g22', 'g22+', 'MID', ['director'], 'the call', {}),
-  ('b2', 'b2+', 'WIDE', ['antinous', 'odysseus-as-beggar'], 'take three: six tenths of a second, the smear bricks, from the front (the key\'s camera)', dict(kind='WIDE')),
+  ('b2', 'b2+', 'MID', ['antinous'], 'take three: on Antinous as he throws, the smear bricks leaving his hand (the beggar is the dailies\' button)', {}),
   ('g23', 'g23+', 'CLOSE', ['odysseus-as-beggar'], '"I stand like a rock."', {}),
   ('d1', 'd1+', 'MID', ['director', 'firstad'], 'the dailies: the new take (cut in over this)', {}),
   ('g27', 'end', 'MID', ['irus', 'firstad'], '"Do I get a stool?"', {}),
