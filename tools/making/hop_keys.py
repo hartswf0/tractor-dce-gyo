@@ -83,12 +83,12 @@ SC[sid] = [   # the crew in a row facing what is being shot, a stride apart (no 
 sid = 'OD-B26-S02'
 src = json.loads((REPO / 'odyssey/keyframes/OD-B17-S05.json').read_text())
 HALL = dict(src['look']); HALL['lights'] = [dict(at=[60, 220, 230], color='#fff2dc', intensity=1.1, distance=560, decay=1.0)]   # the hall's sun, and the crew's work lamp by the threshold
-CH2 = (140, 140); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (0, 130)
+CH2 = (190, 170); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (0, 130)
 B2 = lambda x, z, tx, tz: fig('odysseus-as-beggar', x, z, face=(tx, tz), props=True)
 IR2 = lambda x, z, tx, tz: fig('irus', x, z, face=(tx, tz), props=True)
 AN2 = lambda tx, tz, **kw: fig('antinous', AN[0], AN[1], face=(tx, tz), props=True, **kw)
 D2 = lambda tx, tz: fig('director', CH2[0], CH2[1], face=(tx, tz), sit=True, props=False)
-AD2 = lambda tx, tz: fig('firstad', 80, 130, face=(tx, tz), props=True)
+AD2 = lambda tx, tz: fig('firstad', 120, 200, face=(tx, tz), props=True)   # behind the director's line of sight
 C2 = lambda tx, tz, **kw: fig('cinematographer', 38, 145, face=(tx, tz), props=False, **kw)
 STOOL_HAND = dict(name='stool', id='stool', aim=dict(anchor='seat', to='hand:antinous:R', dir=[0, -1, 0], off=[0, 6, 0]))
 STOOL_DOWN = prop('stool', -110, -25, pid='stool')
@@ -96,7 +96,7 @@ SMEAR = prop('stoolSmear', -260, 200, pid='stoolSmear')
 base2 = lambda: [CHAIR(*CH2, -60, 0), CAMERA(*CAM2, -60, 0), CLAP]
 cam2 = cam((150, 140, 230), (-80, 40, 0), 50)
 PAIR2 = cam((-57, 75, 125), (-57, 45, 0), 46)        # the two beggars from the front, side by side
-THROW2 = cam((-150, 110, 175), (-140, 40, -10), 50)   # the throw from the front: Antinous at his table, the beggar on his mark, the stool between
+THROW2 = cam((-250, 100, 150), (-140, 40, -10), 50)   # the throw from the front: Antinous at his table, the beggar on his mark, the stool between
 SC[sid] = [
  key('K1', [B2(-110, 225, -110, 100), IR2(-70, 225, -70, 100), AN2(-80, 0), D2(-60, 0), AD2(-60, 0), C2(-60, 0, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
      [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), ['thrown footstool']),
