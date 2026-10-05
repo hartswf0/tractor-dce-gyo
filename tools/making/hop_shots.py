@@ -18,8 +18,7 @@ PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'p
 # 'g<gi>+' (its end), 'c<j>' (the j-th clap), 'd<j>' / 'd<j>+' (a dailies window), 'b<j>' / 'b<j>+' (a beat), 'end'
 SPECIAL = {
  'OD-B26-S01': [
-  (0, 'g0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram', dict(t1off=2.4)),
-  ('g0', 'c0+', 'MID', ['firstad'], 'the slate: the AD and her clapperboard', dict(t0off=2.4)),
+  (0, 'c0+', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew on the Cyclops\'s real set, the camera at a ram, the first slate', {}),
   ('g1', 'g1+', 'MID', ['director'], 'the one-word call from the chair', {}),
   ('b0', 'g2', 'MID', ['cinematographer', 'odysseus'], 'rolling: the cinematographer at the eyepiece, the lens in the ram', {}),
   ('g3', 'g3+', 'MID', ['cinematographer'], '"in the ram": the camera and the wool, in a mid, not a wide', {}),
