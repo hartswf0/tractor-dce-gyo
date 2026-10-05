@@ -123,7 +123,7 @@ SCENES = {
     ('K4', 'odysseus-as-beggar', 'director', 0.6, "I stand like a rock. It's in the book."),
     ('K4', 'director', 'cinematographer', 0.8, "Was that it?"),
     ('K4', 'cinematographer', 'director', 0.6, "Six tenths of a second."),
-    ('K5', 'dailies', None, 0.6, 'films/odyssey/OD-B17-S05-performed.mp4@45.4+3.2|DAILIES · Antinous Throws the Stool, take 3: six tenths of a second, two drawings of smear bricks'),
+    ('K5', 'dailies', None, 0.6, 'films/odyssey/OD-B17-S05-performed.mp4@45.7+3.2|DAILIES · Antinous Throws the Stool, take 3: six tenths of a second, two drawings of smear bricks'),
     ('K5', 'director', 'firstad', 0.6, "Print it."),
     ('K5', 'irus', 'firstad', 1.2, "Do I get a stool?"),
     ('K5', 'firstad', 'irus', 0.6, "You get dropped. Next week."),

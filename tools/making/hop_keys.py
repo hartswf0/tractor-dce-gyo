@@ -83,28 +83,30 @@ SC[sid] = [   # the crew in a row facing what is being shot, a stride apart (no 
 sid = 'OD-B26-S02'
 src = json.loads((REPO / 'odyssey/keyframes/OD-B17-S05.json').read_text())
 HALL = dict(src['look']); HALL['lights'] = [dict(at=[60, 220, 230], color='#fff2dc', intensity=1.1, distance=560, decay=1.0)]   # the hall's sun, and the crew's work lamp by the threshold
-CH2 = (110, 140); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (-120, 120)
+CH2 = (140, 140); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (0, 130)
 B2 = lambda x, z, tx, tz: fig('odysseus-as-beggar', x, z, face=(tx, tz), props=True)
 IR2 = lambda x, z, tx, tz: fig('irus', x, z, face=(tx, tz), props=True)
 AN2 = lambda tx, tz, **kw: fig('antinous', AN[0], AN[1], face=(tx, tz), props=True, **kw)
 D2 = lambda tx, tz: fig('director', CH2[0], CH2[1], face=(tx, tz), sit=True, props=False)
-AD2 = lambda tx, tz: fig('firstad', 40, 130, face=(tx, tz), props=True)
-C2 = lambda tx, tz, **kw: fig('cinematographer', -155, 135, face=(tx, tz), props=False, **kw)
+AD2 = lambda tx, tz: fig('firstad', 80, 130, face=(tx, tz), props=True)
+C2 = lambda tx, tz, **kw: fig('cinematographer', 38, 145, face=(tx, tz), props=False, **kw)
 STOOL_HAND = dict(name='stool', id='stool', aim=dict(anchor='seat', to='hand:antinous:R', dir=[0, -1, 0], off=[0, 6, 0]))
 STOOL_DOWN = prop('stool', -110, -25, pid='stool')
 SMEAR = prop('stoolSmear', -260, 200, pid='stoolSmear')
 base2 = lambda: [CHAIR(*CH2, -60, 0), CAMERA(*CAM2, -60, 0), CLAP]
 cam2 = cam((150, 140, 230), (-80, 40, 0), 50)
+PAIR2 = cam((-57, 75, 125), (-57, 45, 0), 46)        # the two beggars from the front, side by side
+THROW2 = cam((-150, 110, 175), (-140, 40, -10), 50)   # the throw from the front: Antinous at his table, the beggar on his mark, the stool between
 SC[sid] = [
- key('K1', [B2(-10, 225, -10, 100), IR2(20, 225, 20, 100), AN2(-80, 0), D2(-60, 0), AD2(-60, 0), C2(-60, 0, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
+ key('K1', [B2(-110, 225, -110, 100), IR2(-70, 225, -70, 100), AN2(-80, 0), D2(-60, 0), AD2(-60, 0), C2(-60, 0, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
      [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), ['thrown footstool']),
- key('K1a', [B2(*BG, -40, 130), IR2(*IR, -40, 130), AN2(*BG), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_DOWN], HALL, cam2,
+ key('K1a', [B2(*BG, -40, 130), IR2(*IR, -40, 130), AN2(*BG), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_DOWN], HALL, PAIR2,
      [dict(id='odysseus-as-beggar', primary=True), dict(id='irus', soft=True)], 'The two beggars walk in from the threshold to their marks.', ['thrown footstool'], after=['K1', 6.8]),
- key('K2', [B2(*BG, *CH2), IR2(*IR, *CH2), AN2(*BG), D2(-60, 0), AD2(-60, 0), C2(*CH2)], base2() + [STOOL_DOWN], HALL, cam2,
+ key('K2', [B2(*BG, *CH2), IR2(*IR, *CH2), AN2(*BG), D2(-60, 0), AD2(-60, 0), C2(*CH2)], base2() + [STOOL_DOWN], HALL, PAIR2,
      [dict(id='cinematographer', primary=True), dict(id='director', soft=True)], beat(sid, 'K2'), ['thrown footstool']),
- key('K3', [B2(*BG, -40, 130), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_HAND], HALL, cam2,
+ key('K3', [B2(*BG, -40, 130), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_HAND], HALL, THROW2,
      [dict(id='antinous', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K3'), ['thrown footstool']),
- key('K4', [B2(*BG, -40, 130), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_HAND, SMEAR], HALL, cam2,
+ key('K4', [B2(*BG, -40, 130), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(-60, 0), AD2(-60, 0), C2(-60, 0)], base2() + [STOOL_HAND, SMEAR], HALL, THROW2,
      [dict(id='cinematographer', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K4'), ['thrown footstool']),
  key('K5', [B2(*BG, *CH2), IR2(*IR, 40, 100), AN2(*BG), D2(-60, 0), AD2(-60, 0), C2(*CH2)], base2() + [STOOL_DOWN], HALL, cam2,
      [dict(id='director', primary=True), dict(id='irus', soft=True)], beat(sid, 'K5'), ['thrown footstool']),
