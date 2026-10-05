@@ -154,6 +154,27 @@ def made(sid, actor_ids):
     for k in ('events', 'voices', 'hop'): tk.pop(k, None)
     return tk
 
+LEAK = re.compile(r"\b(I|my|me|mine|we|our|us)\b")
+def leaked(kind, text):
+    """A narration that speaks in the first person is a character's line run into the narrator's stage direction by the recording's
+    script (OD-B11-S07-T06 'No. I will not reconciliation and withdraws in silence.': Ajax's refusal fused with the direction of
+    his exit). The narrator never says I, my or we; such a segment is not captioned, and dropped from the cut when it is the
+    scene's last (a silent exit plays silent)."""
+    return kind == 'NARRATION' and bool(LEAK.search(text or ''))
+
+def unleak(cut, segs):
+    """The cut without a leaked narration at its end (its seconds shortened by the segment and the gap before it)."""
+    if not cut or not cut['segments']: return cut
+    bad = {g['gi'] for g in segs if g.get('leak')}; last = cut['segments'][-1]
+    if last['gi'] not in bad: return cut
+    cut = json.loads(json.dumps(cut)); segs_ = cut['segments']; last = segs_.pop()
+    prev_end = (segs_[-1]['at'] + segs_[-1]['dur']) if segs_ else cut['at']
+    cut['seconds'] = round(cut['seconds'] - (last['at'] + last['dur'] - prev_end), 2)
+    cut.setdefault('dropped_segments', []).append(dict(gi=last['gi'], start=last['start'], dur=last['dur'], kind='NARRATION',
+        why="a character's line run into the narrator's stage direction (first person in the narration): the exit plays silent"))
+    cut['why'] = list(cut.get('why', [])) + ['the last segment dropped: a leaked line (odyssey_take.leaked)']
+    return cut
+
 def take(sid, actor_ids):
     if (TAKE / 'making' / (sid + '.json')).exists(): return made(sid, actor_ids)
     vm = _j(HALF / 'drive/voice-manifest.json').get(sid)
@@ -195,7 +216,8 @@ def take(sid, actor_ids):
         segs.append(dict(gi=s['gi'], start=s['start'], dur=s['dur'], kind=d['kind'], turn=d.get('sourceTurnId'), key=key,
                          voice=voice, speaker=subj, addressee=ad if ad != subj else None,
                          speakerName=tn.get('spName') if d['kind'] == 'DIALOGUE' else d.get('speakerName'), subjectName=tn.get('spName'),
-                         caption=line if is_line else d['text'], isLine=is_line, act=tn.get('act'), delivery=tn.get('delivery')))
+                         caption=line if is_line else ('' if leaked(d['kind'], d['text']) else d['text']), isLine=is_line, act=tn.get('act'), delivery=tn.get('delivery'),
+                         **({'leak': True} if leaked(d['kind'], d['text']) else {})))
     # the key beat: the segment carrying the longest authored line (odyssey-syncwatch.html)
     key_gi, best = -1, 0
     for g in segs:
@@ -205,7 +227,7 @@ def take(sid, actor_ids):
     a, t = bed_for(ds['book']); bsrc = HALF / a['dir'] / t['file']; bdst = TAKE / 'bed' / ('bronze-council-%02d.ogg' % t['num'])
     if not bdst.exists(): shutil.copyfile(bsrc, bdst)
     cuts = _j(REPO / 'odyssey/kits/cut.json')['scenes']; cut0 = next((c for c in cuts if c['id'] == sid), None)
-    cut = recut(cut0, vsegs, rs)
+    cut = unleak(recut(cut0, vsegs, rs), segs)
     # where the scene falls in its book's bed: the bed loops from the book's first scene (build-film-audio.mjs), on either clock
     vman = _j(HALF / 'drive/voice-manifest.json'); book_of = {s['id']: s['book'] for s in _j(HALF / 'drive/drive-script.json')['scenes']}
     off_full = sum(vman[i]['total'] for i in sorted(vman) if i < sid and book_of.get(i) == ds['book'])
