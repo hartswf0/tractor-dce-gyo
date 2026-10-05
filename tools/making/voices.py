@@ -116,8 +116,9 @@ def scene(sid):
         if c.get('fx') == 'shade': x = shade(x)
         if who == 'pa': x = tannoy(x)
         clips.append((at, x)); d = len(x) / SR
-        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='NARRATION' if who == 'pa' else 'DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=who,
-                         addressee=to, speakerName=c['name'], subjectName=c['name'], caption=text, isLine=True, act=None, delivery=None))
+        cr = lambda x: x is not None and S.CAST.get(x, {}).get('creature')   # a creature (a rig, not a cast figure) is nobody's speaker or addressee to the take's cameras
+        segs.append(dict(gi=gi, start=round(at, 3), dur=round(d, 3), kind='NARRATION' if who == 'pa' else 'DIALOGUE', turn=f'{sid}-T{gi + 1:02d}', key=key, voice=who, speaker=None if cr(who) else who,
+                         addressee=None if cr(to) or cr(who) else to, speakerName=c['name'], subjectName=c['name'], caption=text, isLine=True, act=None, delivery=None))
         at += d + 0.35
     total = round(at - 0.35 + sc['tail'], 3)
     y = np.zeros(int(total * SR) + 1, dtype=np.float32)

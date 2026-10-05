@@ -26,6 +26,8 @@ EPISODES = {
  # Achilles as he was cast before 5d16363d took the visored gladiator helmet (95676) off him: the helmet the fans want
  'OD-B26-S03': dict(src='OD-B11-S04', title='HEARTS OF PLASTIC: THE UNDERWORLD', keep=['odysseus', 'anticleia'], borrow=[('OD-B11-S07', 'achilles', 'achilles', '5d16363d^')],
                     borrow_at=dict(achilles=(240, 180)), crew=dict(director=(90, 230), firstad=(40, 200), cinematographer=(-30, 265))),
+ 'OD-B26-S04': dict(src='OD-B12-S03', title='HEARTS OF PLASTIC: THE SEA', keep=['odysseus', 'sailor-1', 'sailor-2', 'sailor-3', 'sailor-4', 'sailor-5', 'nymph-2', 'nymph-4'],
+                    borrow=[('OD-B05-S04', 'calypso', 'calypso')], borrow_at=dict(calypso=(10, 125)), crew=dict(director=(40, 205), firstad=(-55, 180), cinematographer=(-17, 195))),
 }
 
 def _blocks(text): return [b for b in re.split(r'(?m)^(?=0 FILE )', text) if b.startswith('0 FILE ')]

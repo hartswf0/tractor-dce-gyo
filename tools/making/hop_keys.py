@@ -108,6 +108,67 @@ SC[sid] = [
      [dict(id='director', primary=True), dict(id='irus', soft=True)], beat(sid, 'K5'), ['thrown footstool']),
 ]
 
+# ======== E3: the Underworld (the location of OD-B11-S04: the Cimmerian shore and the pit behind, the open sand toward z 296; mother
+# and son a few steps apart at z 135-140 as in OD-B11-S04; Achilles comes in from the right; the crew toward the front) ========
+sid = 'OD-B26-S03'
+src = json.loads((REPO / 'odyssey/keyframes/OD-B11-S04.json').read_text())
+DEAD = json.loads(json.dumps(src['look'])); DEAD['lights'] = DEAD['lights'] + [dict(at=[60, 200, 290], color='#fff2dc', intensity=0.9, distance=520, decay=1.0)]; DEAD['exposure'] = 1.0
+CH3 = (90, 235); O3, A3, AC3 = (10, 133), (-60, 140), (60, 150)
+EMB = {'armRP': [-1.5, 0, -0.3], 'armLP': [-1.5, 0, 0.3], 'torsoP': [0.1, 0, 0]}
+O_ = lambda x, z, tx, tz, pose=None: fig('odysseus', x, z, face=(tx, tz), props=False, **({'pose': pose} if pose else {}))
+AN_ = lambda tx, tz: fig('anticleia', *A3, face=(tx, tz), props=False, pose={'headP': [0.15, 0, 0]})
+ACH = lambda x, z, tx, tz: fig('achilles', x, z, face=(tx, tz), props=True)
+D3 = lambda tx, tz: fig('director', CH3[0], CH3[1], face=(tx, tz), sit=True, props=False)
+AD3 = lambda tx, tz: fig('firstad', 40, 205, face=(tx, tz), props=True)
+C3 = lambda tx, tz, **kw: fig('cinematographer', -30, 268, face=(tx, tz), props=False, **kw)
+base3 = lambda: [CHAIR(*CH3, -30, 140), CAMERA(-30, 240, -30, 140), CLAP]
+cam3 = cam((200, 150, 330), (-20, 40, 150), 50)
+crew3 = lambda: [D3(-30, 140), AD3(-30, 140), C3(-30, 140, pose=EYE)]
+off3 = ACH(250, 185, 60, 150)
+def emb(id, beat_, after=None, out=False):
+    o = O_(*O3, *A3) if out else O_(-38, 138, *A3, EMB)
+    k = key(id, [o, AN_(*(O3 if out else (-38, 138))), off3] + crew3(), base3(), DEAD, cam3, [dict(id='odysseus', primary=True), dict(id='anticleia', soft=True)], beat_, ['ithaca family memory'], after)
+    if not out: k['touch'] = [['odysseus', 'anticleia']]   # his arms through her: she is a shade
+    return k
+SC[sid] = [
+ key('K1', [O_(*O3, *A3), AN_(*O3), off3] + crew3(), base3(), DEAD, cam3, [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), ['ithaca family memory']),
+ emb('K2', 'The first embrace: his arms through her.'), emb('K2s', 'He steps back from her.', ['K2', 2.4], out=True),
+ emb('K3', 'The second embrace.'), emb('K3s', 'He steps back.', ['K3', 1.6], out=True),
+ emb('K4', 'The third embrace.'), emb('K4s', 'He steps back.', ['K4', 2.6], out=True),
+ key('K5', [O_(*O3, 40, 205), AN_(*O3), off3, D3(40, 205), AD3(250, 185), C3(-30, 140, pose=EYE)], base3(), DEAD, cam3,
+     [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K5'), ['ithaca family memory']),
+ key('K5a', [O_(*O3, *AC3), AN_(*AC3), ACH(*AC3, 40, 205), D3(*AC3), AD3(*AC3), C3(*AC3)], base3(), DEAD, cam3,
+     [dict(id='achilles', primary=True), dict(id='firstad', soft=True)], 'Achilles comes up the shore in the visored helmet.', ['ithaca family memory'], ['K5', 4.2]),
+ key('K6', [O_(*O3, *AC3), AN_(*AC3), ACH(*AC3, 40, 205), D3(*AC3), AD3(*AC3), C3(*AC3)], base3(), DEAD, cam3,
+     [dict(id='achilles', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K6'), ['ithaca family memory']),
+]
+SHADES = {'OD-B26-S03': {'anticleia': {'opacity': 0.62, 'pale': 0.4, 'glow': 0.35}, 'achilles': {'opacity': 0.7, 'pale': 0.35, 'glow': 0.3}}}
+
+# ======== E4: the Sea (the location of OD-B12-S03: the black ship at anchor on the set, its deck at y 50, the mast at (-17, 107), the
+# four rowers on their benches, the helmsman aft at (-17, 232); the Sirens on the flowered shore at -z; the crew on the deck aft,
+# Calypso a guest on the deck before the mast) ========
+sid = 'OD-B26-S04'
+src = json.loads((REPO / 'odyssey/keyframes/OD-B12-S03.json').read_text())
+SEA = dict(src['look']); SEA['lights'] = [dict(at=[-17, 200, 230], color='#fff2dc', intensity=0.8, distance=420, decay=1.0)]
+DECK = 50.0
+row = {b['id']: b for b in src['blocking'] if b['id'].startswith('crew-at-the-oars') or b['id'] in ('the-sirens-2', 'the-sirens-4')}
+def deck(id, x, z, face=None, **kw): e = fig(id, x, z, face=face, **kw); e['y'] = DECK; e['on'] = '*'; return e
+CAM4, CAL = (-17, 185), (15, 120)
+crew4 = lambda look: [deck('director', 40, 205, face=look, sit=True, props=False), deck('firstad', -55, 180, face=look, props=True), deck('cinematographer', -17, 210, face=look, props=False, pose=EYE)]
+base4 = lambda tx, tz: [dict(CHAIR(40, 205, tx, tz), floor=False, at=[40, DECK, 205]), dict(CAMERA(*CAM4, tx, tz), floor=False, at=[CAM4[0], DECK, CAM4[1]]), CLAP]
+rowers = lambda: [dict(row[i]) for i in sorted(row)]
+cam4 = cam((-240, 170, 300), (-10, 60, 100), 48)
+SC[sid] = [
+ key('K1', rowers() + [deck('odysseus', -17, 107, face=(-17, 185), props=True), deck('calypso', 60, 150, face=(-17, 107), props=False)] + crew4((20, 20)), base4(20, 20), SEA, cam4,
+     [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1')),
+ key('K2', rowers() + [deck('odysseus', -40, 120, face=CAL, props=True), deck('calypso', *CAL, face=CAM4, props=False)] + crew4(CAL), base4(*CAL), SEA, cam4,
+     [dict(id='calypso', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K2')),
+ key('K2a', rowers() + [deck('odysseus', 3, 146, face=CAM4, props=True), deck('calypso', *CAL, face=CAM4, props=False)] + crew4(CAL), base4(*CAL), SEA, cam4,
+     [dict(id='odysseus', primary=True), dict(id='calypso', soft=True)], beat(sid, 'K2a')),
+ key('K3', rowers() + [deck('odysseus', -58, 128, face=CAL, props=True), deck('calypso', *CAL, face=CAM4, props=False)] + crew4(CAL), base4(*CAL), SEA, cam4,
+     [dict(id='calypso', primary=True), dict(id='odysseus', soft=True)], beat(sid, 'K3')),
+]
+
 if __name__ == '__main__':
     ONLY = [a for a in sys.argv[1:] if a.startswith('OD-B26-')]
     for sid, keys in SC.items():
@@ -117,5 +178,6 @@ if __name__ == '__main__':
                     source='Hearts of Plastic (odyssey/writers-room/BIBLE.md): tools/making/hop_script.py (the script and its evidence)',
                     note=f"Episode {sc['episode']} on the set of {sc['location']} (its card, tools/making/hop.py), the crew walked onto it. Marks in tools/making/hop_keys.py, in that location's coordinates.",
                     look=keys[0]['look'], spread=0, blocking=[], walkHeight='first', keys=keys)
+        if sid in SHADES: spec['shades'] = SHADES[sid]
         (REPO / 'odyssey/keyframes' / (sid + '.json')).write_text(json.dumps(spec, indent=1))
         print(sid, len(keys), 'keys')
