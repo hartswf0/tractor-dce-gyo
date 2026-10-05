@@ -239,7 +239,7 @@ function ropeLive(t){for(const m of (T.ropeMeshes||[])){m.parent&&m.parent.remov
 /* ── captions, in the syncwatch's type ── */
 function tracked(g,s,x,y,size,track,weight){g.font=(weight||900)+' '+size+'px ui-monospace,Menlo,"DejaVu Sans Mono",monospace';const ch=[...s],w=ch.reduce((n,c)=>n+g.measureText(c).width,0)+track*(ch.length-1);let cx=x-w/2;for(const c of ch){g.fillText(c,cx+g.measureText(c).width/2,y);cx+=g.measureText(c).width+track;}}
 function wrap(g,txt,w){const out=[];let line='';for(const word of String(txt).split(/\s+/)){const t=line?line+' '+word:word;if(g.measureText(t).width>w&&line){out.push(line);line=word;}else line=t;}if(line)out.push(line);return out;}
-function captionAt(t){for(const c of T.clips){if(c.kind==='SPEAKER_CUE')continue;if(t>=c.at-0.1&&t<=c.at+c.dur+0.4)return {c,a:Math.min(cl01((t-c.at+0.1)/0.2),cl01((c.at+c.dur+0.4-t)/0.25))};}return null;}
+function captionAt(t){for(const c of T.clips){if(c.kind==='SPEAKER_CUE'||!c.caption)continue;if(t>=c.at-0.1&&t<=c.at+c.dur+0.4)return {c,a:Math.min(cl01((t-c.at+0.1)/0.2),cl01((c.at+c.dur+0.4-t)/0.25))};}return null;}
 function drawCaption(g,W,H,t){const cap=captionAt(t);if(!cap||cap.a<=0)return;const c=cap.c,k=H/720;g.save();g.globalAlpha=cap.a;g.textAlign='center';g.textBaseline='alphabetic';
   if(c.kind==='SCENE_HEADER'){const roman=n=>{const R=[[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let s='';for(const [v,l] of R)while(n>=v){s+=l;n-=v;}return s;};
     const PW=W*0.56,PH=150*k,px=(W-PW)/2,py=H*0.30;g.fillStyle='rgba(253,253,250,0.93)';g.fillRect(px,py,PW,PH);g.strokeStyle='#141414';g.lineWidth=2.5*k;g.strokeRect(px,py,PW,PH);g.fillStyle='#141414';
@@ -404,7 +404,7 @@ function frame(t,{quality=0.9,captions=true}={}){if(!T)throw Error('no take prep
   const jpeg=comp.toDataURL('image/jpeg',quality).split(',')[1];return {jpeg,shot:sh.id,kind:sh.kind,key:T.keyOf(t).id,ms:[m1-m0,m2-m1,performance.now()-m2].map(v=>Math.round(v))};}
 /* the sound as the exporter renders it: the voice clips on the clock, the bed and its law, the offset into the book's track */
 function soundLog(){const b=T.tk.bed;return {total:T.total,voice:{file:T.tk.voice.file,clips:T.audio},bed:{file:b.file,open:b.open,duck:b.duck,ramp:b.ramp,offset:T.mode==='cut'?b.offsetCut||0:b.offsetFull||0},forward:!!(T.dir&&T.dir.d.sound_forward),spans:T.dir&&T.dir.d.sound_forward?[]:T.voiceSpans.map(c=>({at:c.at,dur:c.dur}))};}   /* sound forward: no spans, so the exporter's bed is not ducked either */
-function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE').map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
+function captions(){return T.clips.filter(c=>c.kind!=='SPEAKER_CUE'&&c.caption).map(c=>({t0:c.at,t1:c.at+c.dur,name:c.kind==='SCENE_HEADER'?'':c.isLine?c.speakerName:'Narrator',text:c.kind==='SCENE_HEADER'?(T.tk.title+' — '+c.caption):c.caption,isLine:c.isLine}));}
 function end(){if(!T)return;stop();/*[choreo]*/if(T.creatures)T.creatures.dispose();if(T.choreo)T.choreo.dispose();/*[/choreo]*//*[motion]*/if(T.motion)T.motion.dispose();/*[/motion]*/for(const h of T.heads){h.old.visible=true;h.plain.parent&&h.plain.parent.remove(h.plain);}for(const f of T.faces.values())Face.detach(f);unshade();T=null;}
 
 /* ── live: the player's own take mode. The voice carries the clock; the bed chases the duck; the frame is posed just before the

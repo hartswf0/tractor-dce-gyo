@@ -22,9 +22,10 @@ M_.POSTURE = (X, I, e) => { const id = I.actor, p = I.params || {}, to = POSES[p
    arm's absolute pitch, default -2.35), params.out, params.head and params.lean shape the hand to the face and the bow (defaults as before) */
 M_.WEEP = (X, I, e) => { const id = I.actor, p = I.params || {}, sd = p.side || 'R', rate = p.rate || 3.2, R = X.rng(I.id), ap = p.pitch != null ? p.pitch : -2.35, ao = p.out != null ? p.out : -0.12;
   X.move(id, 'act', 'WEEP', e, k => { k(I.t0, { 'head.pitch': rel(X), 'torso.lean': rel(X), ['arm.' + sd + '.pitch']: rel(X), ['arm.' + sd + '.out']: rel(X), 'torso.roll': rel(X), 'hips.dy': rel(X) });
-    k(I.t0 + 0.7, { 'head.pitch': p.head != null ? p.head : 0.2, 'torso.lean': p.lean != null ? p.lean : 0.16, ['arm.' + sd + '.pitch']: { abs: ap }, ['arm.' + sd + '.out']: ao });
+    k(I.t0 + 0.7, { 'head.pitch': p.head != null ? p.head : 0.2, 'torso.lean': p.lean != null ? p.lean : 0.16, ['arm.' + sd + '.pitch']: { abs: ap }, ['arm.' + sd + '.out']: ao,
+      ...(p.twist ? { 'torso.twist': p.twist, 'head.yaw': p.twist } : {}) });   /* params.twist: the body and head turned into the hand (the face into it, not the hand beside it) */
     let t = I.t0 + 0.9, j = 0; while (t < I.t1 - 0.3) { const burst = j % 7 < 4; k(t, { 'torso.roll': (j % 2 ? 1 : -1) * (burst ? 0.05 : 0.015), 'hips.dy': burst ? (j % 2 ? -0.6 : 0.3) : 0 }, 'linear'); t += 1 / rate * (0.8 + 0.4 * R()); j++; }
-    k(I.t1 + 0.6, { 'head.pitch': p.stay ? 0.12 : 0, 'torso.lean': 0, ['arm.' + sd + '.pitch']: 0, ['arm.' + sd + '.out']: 0, 'torso.roll': 0, 'hips.dy': 0 }); }, { label: I.label || 'weeps' }); };
+    k(I.t1 + 0.6, { 'head.pitch': p.stay ? 0.12 : 0, 'torso.lean': 0, ['arm.' + sd + '.pitch']: 0, ['arm.' + sd + '.out']: 0, 'torso.roll': 0, 'hips.dy': 0, ...(p.twist ? { 'torso.twist': 0, 'head.yaw': 0 } : {}) }); }, { label: I.label || 'weeps' }); };
 /* TOOL_WORK params.how: chop | carve | bore | dig, params.period; each stroke a CONTACT (the tool on the thing) and, for chop and dig, FX */
 M_.TOOL_WORK = (X, I, e) => { const id = I.actor, p = I.params || {}, how = p.how || 'chop', P = p.period || (how === 'carve' ? 0.7 : how === 'bore' ? 0.9 : 1.2); let t = I.t0, j = 0;
   if (p.on) X.look(id, p.on, t - 0.2, e, { label: 'the work', noFeet: true });

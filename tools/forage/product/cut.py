@@ -392,10 +392,16 @@ def value_segments(s):
         g['tags'] = tags
         g['protected'] = g['kind'] not in ('SCENE_HEADER', 'SPEAKER_CUE') and (
             g['gi'] == key or g['gi'] in SUNDANCE_SEG.get(i, {}) or (g['gi'] == last and g['dur'] <= EXIT_PROTECT_MAX))
-        droppable_kind = (g['kind'] == 'SCENE_HEADER' and not KEEP_HEADERS) or (g['kind'] == 'SPEAKER_CUE' and not KEEP_SPEAKER_CUES)
+        # a narration in the first person is a character's line run into the narrator's stage direction by the recording's script
+        # ('No. I will not reconciliation and withdraws in silence.'); as a scene's last segment it is dropped (the exit plays
+        # silent), elsewhere film-readymades/odyssey_take.py leaves it uncaptioned (odyssey_take.leaked)
+        leak = g['kind'] == 'NARRATION' and g['gi'] == last and bool(re.search(r"\b(I|my|me|mine|we|our|us)\b", g.get('script_text') or ''))
+        if leak: g['protected'] = False
+        droppable_kind = (g['kind'] == 'SCENE_HEADER' and not KEEP_HEADERS) or (g['kind'] == 'SPEAKER_CUE' and not KEEP_SPEAKER_CUES) or leak
         g['keep'] = not droppable_kind
         g['why'] = ('scene header: the title card carries it' if g['kind'] == 'SCENE_HEADER' and not KEEP_HEADERS else
-                    'speaker cue: the picture shows who speaks' if g['kind'] == 'SPEAKER_CUE' and not KEEP_SPEAKER_CUES else '')
+                    'speaker cue: the picture shows who speaks' if g['kind'] == 'SPEAKER_CUE' and not KEEP_SPEAKER_CUES else
+                    "a character's line run into the narrator's stage direction: the exit plays silent" if leak else '')
     if content and not any(g['protected'] for g in segs):
         max(content, key=lambda g: g['value'])['protected'] = True
 
