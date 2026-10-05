@@ -277,7 +277,7 @@ WATCH = [
      'The Gate, performed', 'Book I from the engine\'s score: Athena waits unseen, the knock, Telemachus rises, crosses, welcomes her, and the spear changes hands.'),
     ('../making/index.html', '../../films/odyssey/making-of.jpg', 'Behind the scenes',
      'How the Odyssey learned to act', 'The making of: the animatic where nobody moves, the cut, the acting, the engine, the re-shoots. Every take kept and shown side by side with what changed and why.'),
-    ('../making/index.html#hearts-of-plastic', '../../films/odyssey/hearts-of-plastic-e1.jpg', 'Behind the scenes · mockumentary',
+    ('../making/index.html#hearts-of-plastic', '../../films/odyssey/hearts-of-plastic-e3.jpg', 'Behind the scenes · mockumentary',
      'Hearts of Plastic', 'The behind-the-scenes shot on the film\'s own sets: the crew walk into the Cyclops\'s cave, the megaron, the shore of the dead and the Sirens\' ship, the Odyssey\'s actors play themselves, and every gag is a real take, camera note or commit. Each episode an experiment.'),
     ('../forensics/index.html', None, 'Behind the scenes · evidence',
      'Forensic report', 'How and what this was made, from the record: every commit and who made it, the renders and their hours, the films hashed, the voices traced to their sources, and every defect found. Each claim cites a commit, a file or a hash.'),
