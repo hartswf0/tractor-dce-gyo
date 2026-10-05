@@ -75,16 +75,16 @@
    "telemachus"
   ],
   "shots": {
-   "WIDE": 4,
-   "HOT": 15,
+   "WIDE": 5,
+   "HOT": 14,
    "REACT": 3
   },
   "cine": {
    "time": {
-    "grid": 4.5,
-    "inside": 1.2,
-    "seen": 23.9,
-    "clutter": 9.9,
+    "grid": 1.8,
+    "inside": 1,
+    "seen": 24.8,
+    "clutter": 12.7,
     "pose": 0
    },
    "scene": "OD-B22-S01",
@@ -107,7 +107,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 344.8,
+   "solvedIn": 41.8,
    "shots": [
     {
      "i": 0,
@@ -578,83 +578,6 @@
      "i": 7,
      "t0": 19.06,
      "t1": 22.17,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
-     "eased": null,
-     "primary": "antinous",
-     "subjects": [
-      "antinous"
-     ],
-     "why": {
-      "cut": "take 2: the fall in a shot of its own",
-      "rule": "R2 the fall (TOPPLE) framed on the falling man",
-      "hot": "antinous"
-     },
-     "line": [
-      "odysseus-revealed",
-      "antinous"
-     ],
-     "side": 1,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       268.5,
-       118.9,
-       -29
-      ],
-      "fov": 38,
-      "key": false,
-      "az": 0.79,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L1 in suitors-5": 1,
-      "L1 near plane in a set part": 12,
-      "L3 the back": 67,
-      "L1 in part construction-frame": 4,
-      "L4 foreground covers n%": 9,
-      "L2 antinous hidden": 3,
-      "L3 face": 9,
-      "L3 head": 18,
-      "L4 an empty frame (n% sky)": 3,
-      "L1 too near the face": 72
-     },
-     "candidates": 256,
-     "legalCandidates": 58,
-     "samples": [
-      20.62,
-      19.16,
-      22.07,
-      21.56
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.56,
-     "headV": 0.345,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.708,
-      "sd": 0.24,
-      "dark": 0.01,
-      "white": 0.22,
-      "one": 0.49
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 8,
-     "t0": 22.17,
-     "t1": 25.5,
      "kind": "REACT",
      "size": "CLOSE",
      "planned": "CLOSE",
@@ -664,69 +587,124 @@
       "suitors-4"
      ],
      "why": {
-      "cut": "take 2: the cold wide replaced by the nearest man's reaction to the fall",
-      "rule": "R3/R7 reaction to antinous",
+      "cut": "reaction RECOIL of suitors-4 to antinous (sTable) in 0.23 s",
+      "rule": "R3/R7 reaction of suitors-4 to antinous within 0.23 s, cut on the same side as its cause (the eyelines match)",
+      "heat": 0.97,
+      "contrast": 0.63,
       "hot": "suitors-4"
      },
      "line": [
       "antinous",
       "suitors-4"
      ],
-     "side": -1,
-     "lineHeld": false,
+     "side": 1,
+     "lineHeld": true,
      "camera": {
       "pos": [
-       -179.9,
-       117.3,
-       85.2
+       -188.2,
+       93.5,
+       -34.6
       ],
       "fov": 32,
       "key": false,
-      "az": 1.18,
-      "travelling": false
+      "az": 2.36,
+      "travelling": true
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 39,
-      "L1 in suitors-3": 6,
-      "L2 suitors-4 hidden": 41,
-      "L4 foreground covers n%": 6,
-      "L1 near plane in a set part": 32,
-      "L1 too near the face": 74,
-      "L2 body": 2,
+      "L5 across the line": 112,
+      "L2 suitors-4 hidden": 29,
+      "L1 near plane in a set part": 23,
+      "L4 foreground covers n%": 1,
       "L3 head": 32,
-      "L1 in suitors-2": 10
+      "L1 in suitors-2": 7,
+      "L2 body": 1
      },
      "candidates": 256,
-     "legalCandidates": 14,
+     "legalCandidates": 51,
      "samples": [
-      23.83,
-      22.27,
-      25.4,
-      23.42,
-      24.67
+      20.62,
+      19.16,
+      22.07
      ],
      "checks": [
       "L1 not inside geometry",
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
       "L4 framing and foreground",
-      "L5 takes the line's side"
+      "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.93,
-     "headV": 0.351,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.689,
-      "sd": 0.174,
-      "dark": 0,
-      "white": 0.04,
-      "one": 0.46
+     "facing": 0.94,
+     "headV": 0.346,
+     "clutterFar": 0
+    },
+    {
+     "i": 8,
+     "t0": 22.17,
+     "t1": 25.5,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus-revealed",
+     "subjects": [
+      "odysseus-revealed",
+      "suitors-1",
+      "suitors-2"
+     ],
+     "why": {
+      "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
+      "rule": "R4 cold: hold wide",
+      "heat": 0.26,
+      "contrast": 0.11,
+      "hot": "odysseus-revealed"
      },
-     "lumaRefused": 0
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       221.6,
+       115.7,
+       45.2
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 1.57,
+      "travelling": false
+     },
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 head of odysseus-revealed cut",
+     "rejected": {
+      "L3 head": 3,
+      "L2 odysseus-revealed hidden": 188,
+      "L4 foreground covers n%": 9,
+      "L1 near plane in a set part": 6,
+      "L2 body": 1,
+      "L1 in suitors-5": 2,
+      "L1 in part 1687": 1
+     },
+     "candidates": 257,
+     "legalCandidates": 47,
+     "samples": [
+      23.83,
+      22.27,
+      25.4
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 0.64,
+     "headV": 0.491,
+     "clutterFar": 0.14
     },
     {
      "i": 9,
@@ -1594,8 +1572,7 @@
      "headV": 0.342,
      "clutterFar": 0
     }
-   ],
-   "carried": "shots 0-6 and 9-21 carried frame for frame from take 1 (their cameras as take 1 solved them); shots 7-8 solved and drawn for take 2"
+   ]
   },
   "clips": [
    {
@@ -1690,14 +1667,14 @@
   },
   {
    "t": 19.083,
-   "shot": "c7:HOT:MID",
-   "kind": "HOT",
+   "shot": "c7:REACT:CLOSE",
+   "kind": "REACT",
    "key": "K2"
   },
   {
    "t": 22.25,
-   "shot": "c8:REACT:CLOSE",
-   "kind": "REACT",
+   "shot": "c8:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K3"
   },
   {

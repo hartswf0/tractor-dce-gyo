@@ -164,4 +164,19 @@ M_.TRANSFORM = (X, I, e) => { const id = I.actor, into = (I.params && I.params.i
     { label: 'down onto all fours, on twos: ' + into, rigid: true, exact: true, params: { into, swapAt: X.r3(tSwap), key: K ? K.id : null } });
   X.ev({ lane: 'SET/VEHICLE', actor: id, t0: X.r3(tSwap), t1: X.r3(tSwap + 0.2), kind: 'SWAP', label: id + ' becomes a ' + into + ' (the take stages the animal at ' + (K ? K.id : 'the key') + ')', because: [{ id: ev ? ev.id : e.id, latency: 8 / 12 }], params: { into } });
   return ev; };
+/* DROWSE {params: period, sway, reach (a target the hand goes out to, slowly), side, nod, layer}: drugged lethargy (the
+   Lotus-eaters): never a frozen frame and never a purposeful act; the body sways on a slow clock of its own, the head nods down and
+   comes up late, and every few cycles the hand drifts out toward the lotus, half closes and comes back short. A HOLD's stillness
+   with the motion of sleep in it. Keys on its own layer (params.layer, default 'drowse') */
+M_.DROWSE = (X, I, e) => { const id = I.actor, p = I.params || {}, P = p.period || 3.4, sw = p.sway == null ? 0.07 : p.sway, sd = p.side || 'R', R = X.rng(I.id + id), nod = p.nod == null ? 0.28 : p.nod;
+  const L = p.layer || 'drowse', C = ['root.roll', 'torso.roll', 'torso.lean', 'head.pitch', 'head.yaw', 'arm.' + sd + '.pitch', 'arm.' + sd + '.out', 'hand.' + sd + '.roll', 'hips.dy'];
+  if (p.reach && p.look) X.look(id, p.reach, I.t0 + 0.4, e, { label: 'the lotus', noFeet: true, speed: 0.4 });
+  X.move(id, L, 'DROWSE', e, k => { k(I.t0, Object.fromEntries(C.map(c => [c, rel(X)])));
+    let t = I.t0 + 0.3 + R() * 0.8, j = 0; const z = Object.fromEntries(C.map(c => [c, 0]));
+    while (t < I.t1 - 1.2) { const u = j % 2 ? 1 : -1, d = P * (0.8 + 0.4 * R()), reach = p.reach && j % 3 === 1;
+      k(t + d * 0.45, { 'root.roll': sw * u * 0.6, 'torso.roll': sw * u, 'torso.lean': 0.1 + 0.05 * R(), 'head.pitch': nod * (0.6 + 0.4 * R()), 'head.yaw': 0.15 * u, 'hips.dy': -1.2,
+        ['arm.' + sd + '.pitch']: reach ? { abs: -1.15 } : 0, ['arm.' + sd + '.out']: reach ? 0.15 : 0, ['hand.' + sd + '.roll']: reach ? 0.5 : 0 });   /* down and over: the head drops, the hand drifts out */
+      k(t + d * 0.8, { 'torso.roll': sw * u * 0.4, 'head.pitch': nod * 0.15, 'torso.lean': 0.03, 'hips.dy': -0.3, ['arm.' + sd + '.pitch']: reach ? { abs: -0.7 } : 0, ['hand.' + sd + '.roll']: 0 });   /* comes up late; the hand back short */
+      t += d; j++; }
+    k(I.t1, z); }, { label: I.label || 'drugged: swaying, nodding, the hand drifting to the lotus', rigid: true }); };
 module.exports = M_;

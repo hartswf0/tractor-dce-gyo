@@ -34,7 +34,7 @@ module.exports = function author(M, X) {
   I({ id: 'iAim', actor: O, kind: 'SHOOT', t0: tDraw, t1: tLoose + 1.6, target: A, label: 'at Antinous', params: { draw: 1.0, hold: tLoose - tDraw - 1.0, looseId: 'sLoose' }, because: [{ id: 'iPour' }] });
   I({ id: 'iHit', actor: A, kind: 'IMPACT', t0: tLoose + 0.1, t1: K3.win[0], label: 'the arrow through the throat: the cup falls, the hand to the wound', params: { until: K3.win[0] }, because: [{ id: 'sLoose' }] });
   stimuli.push({ id: 'sCupFalls', t0: tLoose + 0.3, t1: tLoose + 0.6, kind: 'SOUND', label: 'the cup rings on the floor', actor: A, because: [{ id: 'iHit' }] });
-  I({ id: 'iFall', actor: A, kind: 'FALL', t0: K3.win[0], t1: K3.win[1], label: 'falls across the table', params: { key: 'K3' }, because: [{ id: 'iHit' }] });
+  I({ id: 'iFall', actor: A, kind: 'FALL', t0: K3.win[0], t1: K3.win[1], label: 'falls across the table', params: { key: 'K3', topple: { at: q(w(V3, 'falls', 19.9)) + 0.1, dur: 0.45 } }, because: [{ id: 'iHit' }] });   /* take 2: the key's tip as one fall on the word, not a lean across the window */
   holds.push({ id: 'hDead', actor: A, t0: K3.win[1] + 1.0, t1: T, reason: 'dead across his table', params: { still: true }, because: [{ id: 'iFall' }] });
   stimuli.push({ id: 'sTable', t0: q(X.lerp ? K3.win[0] + 1.8 : K3.win[0] + 1.8), t1: K3.win[0] + 2.2, kind: 'SET', label: 'the table goes over: food and wine across the floor', actor: A, because: [{ id: 'iFall' }] });
   /* ── the room: startle, the spill, the flight ── */
