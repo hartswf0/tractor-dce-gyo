@@ -49,7 +49,7 @@ SPECIAL = {
   ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
   ('g21', 'c1+', 'MID', ['firstad'], 'the slate: take three', {}),
   ('g22', 'g22+', 'MID', ['director'], 'the call', {}),
-  ('b2', 'b2+', 'WIDE', ['antinous', 'odysseus-as-beggar'], 'take three: six tenths of a second, the smear bricks, from the front (the key\'s camera)', dict(kind='WIDE')),
+  ('b2', 'b2+', 'MID', ['antinous'], 'take three: on Antinous as he throws, the smear bricks leaving his hand (the beggar is the dailies\' button)', {}),
   ('g23', 'g23+', 'CLOSE', ['odysseus-as-beggar'], '"I stand like a rock."', {}),
   ('d1', 'd1+', 'MID', ['director', 'firstad'], 'the dailies: the new take (cut in over this)', {}),
   ('g27', 'end', 'MID', ['irus', 'firstad'], '"Do I get a stool?"', {}),
