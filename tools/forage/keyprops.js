@@ -141,6 +141,11 @@ props.veil = { parts: [row('2335', 15, L.I12), row('2335', 15, L.T(0, 0, 50))], 
 /* the arrows poured before him on the threshold (Homer XXII), and one to aim */
 props.arrows = { parts: Array.from({ length: 7 }, (_, i) => [row('30374', 71, L.mul(L.T(i * 7 - 21, -4, (i % 3) * 5), [0, 0, 0, Math.cos(0.1 * i), 0, Math.sin(0.1 * i), 0, 0, -1, -Math.sin(0.1 * i), 1, 0].map((v, j) => j < 3 ? v : v)))]).flat(), anchors: {} };
 props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))], anchors: { seat: [0, -8, 0] } };
+/* the stool's smear bricks (after The LEGO Movie: a fast thing drawn long for a drawing or two, in bricks, not blur): the stool's own
+   round brick and plate at the front, and behind it along +z a 2 x 4 brick, a 1 x 4 plate and a 1 x 2 plate, the trail thinning;
+   centred on the stool's middle, so choreo.js can lay it from where the stool is back along the way it came */
+props.stoolSmear = { parts: [row('3941', 70, L.T(0, -12, 0)), row('4032a', 70, L.T(0, -20, 0)), row('3001', 70, L.mul(L.T(0, -12, 42), L.RY(1))),
+    row('3710', 70, L.mul(L.T(0, -4, 92), L.RY(1))), row('3023', 19, L.mul(L.T(0, 0, 124), L.RY(1)))], anchors: { front: [0, 0, 0], tail: [0, 0, 134] } };
 /* the sea batch (Homer X, XII, XIII): the ox-hide bag of the winds tied with a silver cord; the winds bursting out; a whirlpool; the
    fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins under its helmet: one hurling a boulder,
    one reaching to seize, one with the boulder raised in both hands); the gift chest */

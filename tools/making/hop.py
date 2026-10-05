@@ -21,6 +21,8 @@ CREW = {c[0]: c for c in ST.CAST + [ST.SWEEPER, ST.FIRSTAD]}
 EPISODES = {
  'OD-B26-S01': dict(src='OD-B09-S06', title='HEARTS OF PLASTIC: THE CAVE', keep=['odysseus', 'polyphemus', 'stone', 'fire-and-dry-logs', 'cyclops-flock'], borrow=[],
                     crew=dict(director=(-160, 110), firstad=(-110, 130), cinematographer=(-60, 150))),
+ 'OD-B26-S02': dict(src='OD-B17-S05', title='HEARTS OF PLASTIC: THE HALL', keep=['odysseus-as-beggar', 'antinous', 'chair'], borrow=[('OD-B18-S02', 'irus', 'irus')],
+                    borrow_at=dict(irus=(-40, 200)), crew=dict(director=(120, 180), firstad=(40, 120), cinematographer=(-5, 155))),
 }
 
 def _blocks(text): return [b for b in re.split(r'(?m)^(?=0 FILE )', text) if b.startswith('0 FILE ')]

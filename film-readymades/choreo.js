@@ -166,18 +166,33 @@ function applyProps(THREE, C, t, ctx, S) {
    by name each drawing (each key re-stages its props). */
 function applyFlights(THREE, C, t, ctx) {
   if (!ctx.point) return;
-  for (const e of compile(C).props) { if (e.op !== 'fly' || t < e.t || (e.until != null && t >= e.until)) continue;
-    let o = null; ctx.scene.traverse(q => { if (!o && q.name === e.what) o = q; }); if (!o) continue;
+  const find = n => { let o = null; ctx.scene.traverse(q => { if (!o && q.name === n) o = q; }); return o; };
+  for (const e of compile(C).props) { if (e.op !== 'fly') continue;
+    /* smear bricks (after The LEGO Movie): on the drawings listed in e.smear.at the thing in flight is not drawn; a brick build drawn
+       long (e.smear.what, a staged prop) lies along its path instead, its front where the thing is and its tail back along the way it
+       came. The smear is hidden on every other drawing. */
+    const sm = e.smear && find(e.smear.what), onSmear = !!(e.smear && e.smear.at.some(x => Math.abs(x - t) < 1 / 48));
+    if (sm) sm.visible = false;
+    if (t < e.t || (e.until != null && t >= e.until)) continue;
+    const o = find(e.what); if (!o) continue;
     if (!o.userData.fly) { o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
       o.userData.fly = { d: c.sub(o.position).applyQuaternion(o.quaternion.clone().invert()), q: o.quaternion.clone(), p: o.position.clone() }; }
     const F = o.userData.fly, P = v => v && new THREE.Vector3(...[v.x, v.y, v.z]), pt = (w, off) => { const v = P(ctx.point(w)); return v ? v.add(new THREE.Vector3(...(off || [0, 0, 0]))) : null; };
-    let at = pt(e.hand, e.grip), spin = 0, axis = new THREE.Vector3(1, 0, 0);
-    if (!at) continue;
-    for (const L of e.legs) { if (t < L.t0) break; const to = pt(L.to, L.off); if (!to) break; const u = Math.min(1, (t - L.t0) / Math.max(1e-3, L.t1 - L.t0)), ch = to.clone().sub(at);
-      const flat = new THREE.Vector3(ch.x, 0, ch.z); if (flat.lengthSq() > 1e-6) axis = new THREE.Vector3(-flat.z, 0, flat.x).normalize();
-      at = at.clone().add(ch.multiplyScalar(u)); at.y += (L.arc || 0) * 4 * u * (1 - u); spin += (L.spin || 0) * u; if (u < 1) break; }
-    const q = new THREE.Quaternion().setFromAxisAngle(axis, spin * 2 * Math.PI).multiply(F.q);
-    o.quaternion.copy(q); o.position.copy(at.sub(F.d.clone().applyQuaternion(q))); o.updateMatrixWorld(true); }
+    const where = tq => { let at = pt(e.hand, e.grip), spin = 0, axis = new THREE.Vector3(1, 0, 0); if (!at) return null;
+      for (const L of e.legs) { if (tq < L.t0) break; const to = pt(L.to, L.off); if (!to) break; const u = Math.min(1, (tq - L.t0) / Math.max(1e-3, L.t1 - L.t0)), ch = to.clone().sub(at);
+        const flat = new THREE.Vector3(ch.x, 0, ch.z); if (flat.lengthSq() > 1e-6) axis = new THREE.Vector3(-flat.z, 0, flat.x).normalize();
+        at = at.clone().add(ch.multiplyScalar(u)); at.y += (L.arc || 0) * 4 * u * (1 - u); spin += (L.spin || 0) * u; if (u < 1) break; }
+      return { at, spin, axis }; };
+    const w = where(t); if (!w) continue;
+    const q = new THREE.Quaternion().setFromAxisAngle(w.axis, w.spin * 2 * Math.PI).multiply(F.q);
+    o.quaternion.copy(q); o.position.copy(w.at.clone().sub(F.d.clone().applyQuaternion(q))); o.updateMatrixWorld(true);
+    if (sm && onSmear) { const w0 = where(t - (e.smear.span || 2) / 12) || w, dir = w.at.clone().sub(w0.at);
+      if (dir.lengthSq() > 1e-6) { o.visible = false; o.userData.smeared = true; sm.visible = true;
+        if (!sm.userData.front) { const q0 = sm.quaternion.clone(); sm.quaternion.identity(); sm.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(sm), c = b.getCenter(new THREE.Vector3());
+          sm.userData.front = new THREE.Vector3(c.x - sm.position.x, c.y - sm.position.y, b.max.z - sm.position.z); sm.quaternion.copy(q0); }   /* the LDraw build's +z tail is -z here: its front is the box's +z end */
+        sm.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir.clone().normalize());   /* the front toward where it is going, the tail back along the path */
+        sm.position.copy(w.at.clone().sub(sm.userData.front.clone().applyQuaternion(sm.quaternion))); sm.updateMatrixWorld(true); } }
+    else if (o.userData.smeared) { o.visible = true; o.userData.smeared = false; } }
 }
 /* a set piece moved (the sheet's {op: 'slide'}: a creature's MOVE_STONE with params.piece): before `t` the piece stands at `from` (an
    offset from where the set has it), from `t` to `t1` it is carried to `to` (default its own place) on an eased path lifted by `arc`

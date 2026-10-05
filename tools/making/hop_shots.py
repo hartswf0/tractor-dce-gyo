@@ -10,7 +10,8 @@ import json, sys
 from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 CREATURES = {'polyphemus'}
-PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'polyphemus']}
+PRINC = {'OD-B26-S01': ['director', 'firstad', 'cinematographer', 'odysseus', 'polyphemus'],
+         'OD-B26-S02': ['director', 'firstad', 'cinematographer', 'odysseus-as-beggar', 'irus', 'antinous']}
 # the episode's own moments over the conversation: (t0, t1, size, subjects, why, opts); t as seconds, 'g<gi>' (a line's start),
 # 'g<gi>+' (its end), 'c<j>' (the j-th clap), 'd<j>' / 'd<j>+' (a dailies window), 'b<j>' / 'b<j>+' (a beat), 'end'
 SPECIAL = {
@@ -34,6 +35,23 @@ SPECIAL = {
   ('b2', 'b2+', 'MID', ['polyphemus'], 'take two: the stone carried into the door, seen, low and close', dict(kind='GIANT', angle='low', giant='polyphemus')),
   ('d2', 'd3+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
   ('g36', 'end', 'MID', ['director', 'cinematographer'], '"Keep it."', {}),
+ ],
+ 'OD-B26-S02': [
+  (0, 'b0', 'WIDE', ['firstad', 'director', 'cinematographer'], 'cold open: the crew in the megaron, the camera on the beggars\' marks', {}),
+  ('b0', 'b0+', 'MID', ['odysseus-as-beggar', 'irus'], 'the two beggars walk in side by side', {}),
+  ('g1', 'g1+', 'MID', ['director'], '"Which one is Irus?"', {}),
+  ('g2', 'g4+', 'MID', ['irus', 'odysseus-as-beggar'], 'the two beggars in one frame, the same figure twice, while each says who he is', {}),
+  ('g10', 'c0+', 'MID', ['firstad'], 'the slate: take two', {}),
+  ('g11', 'g13+', 'MID', ['antinous'], 'Antinous with the stool: which beggar?', {}),
+  ('g14', 'g14+', 'MID', ['director'], 'the call', {}),
+  ('b1', 'b1+', 'MID', ['antinous', 'odysseus-as-beggar'], 'the throw as take two had it, in a mid: a third of a second', {}),
+  ('d0', 'd0+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
+  ('g21', 'c1+', 'MID', ['firstad'], 'the slate: take three', {}),
+  ('g22', 'g22+', 'MID', ['director'], 'the call', {}),
+  ('b2', 'b2+', 'MID', ['antinous', 'odysseus-as-beggar'], 'take three: six tenths of a second, the smear bricks, in a mid', {}),
+  ('g23', 'g23+', 'CLOSE', ['odysseus-as-beggar'], '"I stand like a rock."', {}),
+  ('d1', 'd1+', 'MID', ['director', 'firstad'], 'the dailies: the new take (cut in over this)', {}),
+  ('g27', 'end', 'MID', ['irus', 'firstad'], '"Do I get a stool?"', {}),
  ],
 }
 

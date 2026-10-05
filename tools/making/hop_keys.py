@@ -64,16 +64,48 @@ SC[sid] = [
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K3'), HIDE),
  key('K4', [D(-30, -120), AD(-95, -35, *G0), C(-30, -45, *G0, pose=EYE), O(70, 90, *G0)],
      [CHAIR(*CH, -30, -120), CAMERA(-30, -75, *G0), CLAP, giant(*G0, 0)] + rams((100, 30), 0.3), LIT, cam((120, 60, 40), (-30, 110, -150), 56),
-     [dict(id='polyphemus', primary=True), dict(id='cinematographer', soft=True)], beat(sid, 'K4'), HIDE),
+     [dict(id='cinematographer', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K4'), HIDE),
  key('K5', [D(-10, 160), AD(-110, 90, -10, 160), C(-150, 125, -10, 200, pose=EYE), O(-200, 160, CH[0], CH[1])],
      [CHAIR(*CH, -10, 160), CAMERA(-125, 140, -10, 200), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
-     [dict(id='polyphemus', primary=True), dict(id='director', soft=True)], beat(sid, 'K5'), HIDE),
+     [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K5'), HIDE),
  key('K6', [D(-10, 160), AD(-110, 90, -10, 160), C(-150, 125, -10, 200, pose=EYE), O(-200, 160, -10, 180)],
      [CHAIR(*CH, -10, 160), CAMERA(-125, 140, -10, 200), CLAP, giant(*GS, 0)] + rams((100, 30), 0.3), LIT, cam((-240, 140, 20), (-10, 70, 190), 50),
-     [dict(id='polyphemus', primary=True), dict(id='director', soft=True)], beat(sid, 'K6'), HIDE),
+     [dict(id='director', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K6'), HIDE),
  key('K7', [D(60, 0), AD(-100, 90, CH[0], CH[1]), C(-130, 60, CH[0], CH[1]), O(-200, 160, 60, 0)],
      [CHAIR(*CH, 60, 0), CAMERA(-60, -60, 70, 0), CLAP, giant(40, 0, 2.2)] + rams((100, 30), 0.3), LIT, cam((-260, 160, 120), (0, 50, 0), 50),
      [dict(id='director', primary=True, face=True), dict(id='cinematographer', soft=True)], beat(sid, 'K7'), HIDE),
+]
+
+# ======== E2: the Hall (the location of OD-B17-S05: the megaron; Antinous's table at the left, the four columns, the braziers before the
+# threshold at z 250; the beggars' marks between the columns, the crew toward the threshold) ========
+sid = 'OD-B26-S02'
+src = json.loads((REPO / 'odyssey/keyframes/OD-B17-S05.json').read_text())
+HALL = dict(src['look']); HALL['lights'] = [dict(at=[60, 220, 230], color='#fff2dc', intensity=1.1, distance=560, decay=1.0)]   # the hall's sun, and the crew's work lamp by the threshold
+CH2 = (110, 170); BG, IR = (-80, 0), (-35, 0); AN = (-205, -25); CAM2 = (-20, 120)
+B2 = lambda x, z, tx, tz: fig('odysseus-as-beggar', x, z, face=(tx, tz), props=True)
+IR2 = lambda x, z, tx, tz: fig('irus', x, z, face=(tx, tz), props=True)
+AN2 = lambda tx, tz, **kw: fig('antinous', AN[0], AN[1], face=(tx, tz), props=True, **kw)
+D2 = lambda tx, tz: fig('director', CH2[0], CH2[1], face=(tx, tz), sit=True, props=False)
+AD2 = lambda tx, tz: fig('firstad', 40, 100, face=(tx, tz), props=True)
+C2 = lambda tx, tz, **kw: fig('cinematographer', -15, 150, face=(tx, tz), props=False, **kw)
+STOOL_HAND = dict(name='stool', id='stool', aim=dict(anchor='seat', to='hand:antinous:R', dir=[0, -1, 0], off=[0, 6, 0]))
+STOOL_DOWN = prop('stool', -110, -25, pid='stool')
+SMEAR = prop('stoolSmear', -260, 200, pid='stoolSmear')
+base2 = lambda: [CHAIR(*CH2, -60, 0), CAMERA(*CAM2, -60, 0), CLAP]
+cam2 = cam((150, 140, 230), (-80, 40, 0), 50)
+SC[sid] = [
+ key('K1', [B2(-30, 225, -30, 100), IR2(10, 225, 10, 100), AN2(-80, 0), D2(-60, 0), AD2(-60, 0), C2(-60, 0, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
+     [dict(id='firstad', primary=True), dict(id='director', soft=True)], beat(sid, 'K1'), ['thrown footstool']),
+ key('K1a', [B2(*BG, -20, 120), IR2(*IR, -20, 120), AN2(*BG), D2(*BG), AD2(*BG), C2(*BG, pose=EYE)], base2() + [STOOL_DOWN], HALL, cam2,
+     [dict(id='odysseus-as-beggar', primary=True), dict(id='irus', soft=True)], 'The two beggars walk in from the threshold to their marks.', ['thrown footstool'], after=['K1', 6.8]),
+ key('K2', [B2(*BG, *CH2), IR2(*IR, *CH2), AN2(*BG), D2(*BG), AD2(*CH2), C2(*CH2)], base2() + [STOOL_DOWN], HALL, cam2,
+     [dict(id='cinematographer', primary=True), dict(id='director', soft=True)], beat(sid, 'K2'), ['thrown footstool']),
+ key('K3', [B2(*BG, -20, 120), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(*BG), AD2(*AN), C2(*BG, pose=EYE)], base2() + [STOOL_HAND], HALL, cam2,
+     [dict(id='antinous', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K3'), ['thrown footstool']),
+ key('K4', [B2(*BG, -20, 120), IR2(*IR, *AN), AN2(*BG, pose={'armRP': [-1.2, 0, 0]}), D2(-15, 150), AD2(-15, 150), C2(40, 100)], base2() + [STOOL_HAND, SMEAR], HALL, cam2,
+     [dict(id='cinematographer', primary=True), dict(id='firstad', soft=True)], beat(sid, 'K4'), ['thrown footstool']),
+ key('K5', [B2(*BG, *CH2), IR2(*IR, 40, 100), AN2(*BG), D2(40, 100), AD2(*IR), C2(*CH2)], base2() + [STOOL_DOWN], HALL, cam2,
+     [dict(id='director', primary=True), dict(id='irus', soft=True)], beat(sid, 'K5'), ['thrown footstool']),
 ]
 
 if __name__ == '__main__':
