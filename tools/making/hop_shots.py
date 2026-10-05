@@ -29,12 +29,12 @@ SPECIAL = {
   ('g15', 'g15+', 'MID', ['firstad', 'polyphemus'], 'the AD to the giant: his close-up', {}),
   ('c2', 'g19+', 'CLOSE', ['polyphemus'], 'his close-up, from below, as he asked: "Strangers, who are you?"', dict(kind='GIANT', angle='low', giant='polyphemus')),
   ('g22', 'c3+', 'MID', ['firstad'], 'the slate', {}),
-  ('b1', 'b1', 'WIDE', ['polyphemus'], 'take one: the giant reaches for the stone beside the door, seen from inside the cave', dict(kind='GIANT', angle='high', giant='polyphemus', t1off=1.9)),
-  ('b1', 'g24', 'MID', ['odysseus'], 'take one: on Odysseus, who sees nothing, while the stone goes into the door (unseen: as it was)', dict(t0off=1.9)),
-  ('g25', 'g25+', 'WIDE', ['polyphemus'], '"now it is in the door": the giant and the stone in the door', dict(kind='GIANT', angle='high', giant='polyphemus')),
+  ('b1', 'b1', 'WIDE', ['polyphemus'], 'take one: the giant reaches for the stone beside the door (the key\'s camera: from the pen side, the giant in profile, the stone and the door)', dict(kind='WIDE', nogiant=True, t1off=1.9)),
+  ('b1', 'g24', 'MID', ['cinematographer'], 'take one: on the cinematographer at his camera while the stone goes into the door (unseen: as it was)', dict(t0off=1.9)),
+  ('g25', 'g25+', 'WIDE', ['polyphemus'], '"now it is in the door": the same frame, the stone in the door', dict(kind='WIDE', nogiant=True)),
   ('g27', 'g29+', 'MID', ['odysseus'], '"Nobody." "That\'s my name."', {}),
   ('g31', 'c4+', 'MID', ['firstad'], 'the slate: take two', {}),
-  ('b2', 'b2+', 'WIDE', ['polyphemus'], 'take two: the stone carried into the door, seen whole from inside the cave (the giant is the whole frame: a near wide)', dict(kind='GIANT', angle='high', giant='polyphemus')),
+  ('b2', 'b2+', 'WIDE', ['polyphemus'], 'take two: the stone carried into the door, seen whole (the key\'s camera, as take one)', dict(kind='WIDE', nogiant=True)),
   ('d2', 'd3+', 'MID', ['director', 'firstad'], 'the dailies (cut in over this)', {}),
   ('g36', 'end', 'MID', ['director', 'cinematographer'], '"Keep it."', {}),
  ],
@@ -108,7 +108,7 @@ def build(sid):
     shots = []
     def add(t0, t1, size, subj, why, line=None, kind=None, **o):
         if t1 - t0 < 0.3: return
-        giant = o.get('giant') or (subj[0] if subj[0] in CREATURES else None)
+        giant = o.get('giant') or (subj[0] if subj[0] in CREATURES and not o.get('nogiant') else None)
         shots.append(dict(t0=round(t0, 3), t1=round(t1, 3), kind=kind or ('GIANT' if giant else 'WIDE' if size == 'WIDE' else 'HOT'), size=size, subjects=subj, primary=subj[0], aim='head',
                           line=line, angle=o.get('angle') or ('low' if giant else 'eye'), lens='wide' if giant and size == 'WIDE' else 'normal', beat=keyAt(t0 + 0.05),
                           why=dict(cut='hand', rule='hand: ' + why), **({'giant': giant} if giant else {})))
@@ -131,7 +131,7 @@ def build(sid):
             if s['t1'] <= a + 1e-6 or s['t0'] >= b - 1e-6: keep.append(s); continue
             if s['t0'] < a: keep.append(dict(s, t1=round(a, 3)))
             if s['t1'] > b: keep.append(dict(s, t0=round(b, 3)))
-        shots = keep; add(a, b, size, subj, why, kind=o.get('kind'), angle=o.get('angle'), giant=o.get('giant')); shots.sort(key=lambda s: s['t0'])
+        shots = keep; add(a, b, size, subj, why, kind=o.get('kind'), angle=o.get('angle'), giant=o.get('giant'), nogiant=o.get('nogiant')); shots.sort(key=lambda s: s['t0'])
     out = []
     for s in sorted(shots, key=lambda s: s['t0']):
         if out and s['t1'] - s['t0'] < 1.0: out[-1]['t1'] = s['t1']; continue

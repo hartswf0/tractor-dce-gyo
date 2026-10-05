@@ -8,7 +8,7 @@
 'use strict';
 module.exports = function author(M, X) {
   const D = 'director', F = 'firstad', C = 'cinematographer', O = 'odysseus', A = 'anticleia', H = 'achilles', sid = 'OD-B26-S03';
-  const camAt = [-30, 70, 240];
+  const camAt = [-110, 70, 235];
   const G_ = require('./_making2.js')(M, X, { present: [D, F, C, O, A, H], speaker: camAt,
     shapes: { 1: ['chop'], 3: ['chop'], 17: ['chop'], 26: ['open'], 19: ['chest'], 21: ['chest', 'fist'], 25: ['chest'], 23: ['chest'], 2: ['open'], 13: ['open'], 15: ['open'] },
     walkLabel: { K2: { [O]: 'springs to hold his mother' }, K3: { [O]: 'springs to hold her again' }, K4: { [O]: 'the third time he springs to her' },

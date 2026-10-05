@@ -39,7 +39,7 @@ module.exports = function author(M, X) {
   hop.dailies.forEach((d, j) => {
     const cause = M.clips.filter(x => x.at < d.start).pop();
     St({ id: 'sDaily' + j, t0: q(d.start), t1: q(d.start + 0.5), kind: 'SIGHT', label: 'the dailies on the monitor: ' + d.caption.slice(10, 70), because: cause ? [{ id: 'say' + cause.gi }] : [] });
-    for (const a of [D, F, C]) hold(a, q(d.start + 0.1), q(d.start + d.dur), 'watching the take on the monitor', [[camAt, d.dur]], { id: 'hD' + j + a.slice(0, 3), because: [{ id: 'sDaily' + j }] });
+    for (const a of [D, F, C]) hold(a, q(d.start + 0.1), q(d.start + d.dur), 'watching the take on the monitor', [[d.key === 'K7' ? [-120, 70, 95] : camAt, d.dur]], { id: 'hD' + j + a.slice(0, 3), because: [{ id: 'sDaily' + j }] });
   });
   /* ── K1-K2: the camera in the ram ── */
   hold(C, 0.2, q(c(3).at - 0.3), 'at the eyepiece: rolling, the lens deep in the wool', [[[RAM[0], 40, RAM[1]], 6]], { id: 'hCeye', because: [] });

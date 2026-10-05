@@ -62,7 +62,7 @@ SCENES = {
     ('K5', 'clap', None, 0.4, ''),
     ('K5', 'director', 'polyphemus', 0.5, "Action."),
     ('K5', 'beat', None, 0.2, '3.2|the giant reaches for the stone; the cut; the stone is in the door'),
-    ('K5', 'director', 'cinematographer', 0.3, "Did it move?"),
+    ('K5', 'director', None, 0.3, "Did it move?"),
     ('K5', 'cinematographer', 'director', 0.6, "It was beside the door. Now it is in the door."),
     ('K5', 'director', 'odysseus', 0.9, "Did anyone see it move?"),
     ('K5', 'odysseus', 'director', 0.7, "Nobody."),

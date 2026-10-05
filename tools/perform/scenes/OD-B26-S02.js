@@ -11,7 +11,7 @@ const fs = require('fs'), path = require('path'), Ground = require('../ground.js
 module.exports = function author(M, X) {
   const D = 'director', F = 'firstad', C = 'cinematographer', B = 'odysseus-as-beggar', IR = 'irus', AN = 'antinous';
   const hop = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../odyssey/take/making/OD-B26-S02.json'), 'utf8')).hop;
-  const camAt = [-20, 70, 120], table = [-205, 50, -60];
+  const camAt = [-120, 70, 120], table = [-205, 50, -60];
   const G_ = require('./_making2.js')(M, X, { present: [D, F, C, B, IR, AN], speaker: camAt,
     shapes: { 6: ['chop'], 14: ['chop'], 22: ['chop'], 26: ['open'], 23: ['chest'], 3: ['chest'], 4: ['chest'], 11: ['open'], 13: ['open'], 27: ['open'] },
     walkLabel: { K1a: { [B]: 'in from the threshold to his mark', [IR]: 'in from the threshold to his mark, beside the other beggar' } } });
