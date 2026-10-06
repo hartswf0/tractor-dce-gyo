@@ -21,7 +21,7 @@ module.exports = function author(M, X) {
   /* ── the hawk and the dove ── */
   I({ id: 'hawk', actor: TH, kind: 'FLY', t0: tHawk, t1: tGone, label: 'a hawk on the right, a dove in its talons', params: { prop: 'hawkDove', from: H0, legs: [{ dt: tPass - tHawk, to: H1, arc: -6 }, { dt: tGone - tPass, to: H2, arc: 14 }], until: K('K2').t }, because: [{ id: 'sShore' }] });
   stimuli.push({ id: 'sHawk', t0: q(tHawk + 0.4), t1: q(tHawk + 0.9), kind: 'SIGHT', label: 'the hawk over the shore, the dove in its claws', because: [{ id: 'hawk' }] });
-  I({ id: 'feath', actor: TE, kind: 'FLY', t0: tPass, t1: q(tPass + 3.2), label: 'the feathers fall between him and the ship', params: { prop: 'feathers', from: FE, legs: [{ dt: 3.0, to: [FD[0], 4, FD[1]], arc: 3, spin: 0.6 }], until: K('K2').t }, because: [{ id: 'hawk' }] });
+  I({ id: 'feath', actor: TE, kind: 'FLY', t0: tPass, t1: q(tPass + 3.2), label: 'the feathers fall between him and the ship', params: { prop: 'feathers', from: FE, legs: [{ dt: 3.0, to: [FD[0], -18, FD[1]], arc: 3, spin: 0.6 }], until: K('K2').t }, because: [{ id: 'hawk' }] });
   H({ id: 'hT0', actor: TE, t0: 0.3, t1: q(tHawk + 0.45), reason: 'ashore at last, the crew round him', params: { look: [[C[0], 1.6], [TH, 1.2], [PI, 1.2]], weight: true }, because: [{ id: 'sShore' }] });
   H({ id: 'hTh0', actor: TH, t0: 0.3, t1: q(tHawk + 0.5), reason: 'the seer on a strange shore, watching the sky as seers do', params: { look: [[TE, 1.4], [H0, 1.6]], weight: true }, because: [{ id: 'sShore' }] });
   H({ id: 'hP0', actor: PI, t0: 0.3, t1: q(tHawk + 0.6), reason: 'with the prince on the beach', params: { look: [[TE, 2.0], [C[1], 1.0]], weight: true }, because: [{ id: 'sShore' }] });
