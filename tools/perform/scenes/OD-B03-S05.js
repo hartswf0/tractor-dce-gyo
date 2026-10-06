@@ -20,7 +20,7 @@ module.exports = function author(M, X) {
   const cA = clips.find(c => c.speaker === A) || clips[0], cN = clips.find(c => c.speaker === N) || clips[1];
   const VA = X.voiceOf(cA), VN = X.voiceOf(cN), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
-  const tGone = q(W('K1a')[0]), P0 = [62, 52, 138], P1 = [88, 92, 178], P2 = [170, 185, 330], P3 = [300, 320, 520], HEIFER = [0, 30, -20];
+  const tGone = q(K('K1a').t), P0 = [62, 95, 138], P1 = [88, 92, 178], P2 = [170, 185, 330], P3 = [300, 320, 520], HEIFER = [0, 30, -20];
   stimuli.push({ id: 'sEve', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'evening at Pylos: Nestor will not have his guests sleep on the ship', because: [{ id: 'v' + cA.gi, rel: 'realises' }] });
   /* ── Mentor's refusal ── */
   I({ id: 'aSay', actor: A, kind: 'DECLARE', target: N, utterance: cA.gi, t0: q(cA.at - 0.2), t1: q(cA.at + cA.dur), label: 'go with him, Telemachus; I go back to the ship, and at dawn to the Cauconians', params: { shapes: ['open', 'point', 'dismiss', 'chest'], side: 'R', maxBeats: 3, amp: 0.8 }, because: [{ id: 'sEve' }, { id: 'v' + cA.gi, rel: 'realises' }] });
