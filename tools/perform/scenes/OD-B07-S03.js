@@ -25,7 +25,7 @@ module.exports = function author(M, X) {
   stimuli.push({ id: 'sHall', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'the hall of Alcinous at evening: the lords pour their last cups', because: [{ id: 'v' + cN.gi, rel: 'realises' }] });
   /* ── the mist ── */
   I({ id: 'oMist', actor: O, kind: 'FLY', t0: 0, t1: q(tSink + 1.1), label: 'Athena\'s mist about him, carried with him up the hall; at the queen\'s knees it sinks away',
-    params: { prop: 'mist', from: O, grip: [0, -27, 0], ride: tSink, legs: [{ dt: 1.0, to: [-62, -24, -166] }], until: K('K2').t }, because: [{ id: 'sHall' }] });
+    params: { prop: 'mist', from: O, grip: [0, -30, 0], ride: tSink, legs: [{ dt: 1.1, to: [-62, -80, -166] }], until: K('K2').t }, because: [{ id: 'sHall' }] });
   I({ id: 'oWalk', actor: O, kind: 'APPROACH', key: 'K1a', t0: K1a[0], t1: K1a[1], target: AR, label: 'straight up the hall to the queen, unseen', because: [{ id: 'sHall' }] });
   H({ id: 'hO0', actor: O, t0: 0.3, t1: q(K1a[0] - 0.05), reason: 'in the mist at the door: he looks for the queen, as Athena told him', params: { look: [[AR, 2.0], [AL, 0.8], [AR, 2.0]], weight: true }, because: [{ id: 'sHall' }] });
   stimuli.push({ id: 'sSeen', t0: q(tSink + 0.2), t1: q(tSink + 0.6), kind: 'SIGHT', label: 'a stranger at the queen\'s knees, out of nowhere', actor: O, because: [{ id: 'oMist' }] });
