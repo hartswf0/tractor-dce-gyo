@@ -21,13 +21,13 @@ module.exports = function author(M, X) {
   const clips = M.clips.filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
   const c1 = clips[0], c3 = clips[1], cV = clips.find(c => c.speaker === TH && c.kind === 'DIALOGUE') || clips[2], c6 = clips[clips.length - 1];
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
-  const rng = X.rng('hall'), tK2 = q(K('K2').t), tK3 = q(K('K3').t), tK3a = q(K('K3a').t), tK4 = q(K('K4').t);
+  const rng = (() => { let a = 20051; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })(), tK2 = q(K('K2').t), tK3 = q(K('K3').t), tK3a = q(K('K3a').t), tK4 = q(K('K4').t);
   const WALLS = [[-318, 80, -40], [282, 80, 100], [0, 80, 246], [-200, 80, 246]], PORCH = [10, 40, 240];
   stimuli.push({ id: 'sFeast', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'the suitors at their meat', because: [{ id: 'v' + c1.gi, rel: 'realises' }] });
   stimuli.push({ id: 'sMad', t0: 0.3, t1: 0.6, kind: 'SCENE', label: 'Athena turns their wits: they laugh with jaws not their own', because: [{ id: 'sFeast' }] });
   /* ── the laughter: each suitor on his own clock, from the start, again over the seer, and at him ── */
   const laughs = (s, k, from, to, why) => { let t = from + 0.25 * k + 0.4 * rng(); let n = 0; while (t + 1.1 < to) { I({ id: `lf${k}_${n}`, actor: s, kind: 'REACT', t0: q(t), t1: q(t + 1.1), label: 'laughing past control', params: { how: 'laugh', lookAt: S[(k + 1 + n) % S.length], amp: 1.3 }, because: [{ id: why, latency: 0.2 }] }); t += 1.25 + 0.9 * rng(); n++; } return n; };
-  S.forEach((s, k) => { const n = laughs(s, k, 0.5, tK2 + 6.0, 'sMad'); H({ id: 'hS0' + k, actor: s, t0: 0.3, t1: q(0.5 + 0.25 * k), reason: 'at the meat', params: { look: [[S[(k + 2) % 5], 1.0]], weight: true }, because: [{ id: 'sFeast' }] }); });
+  S.forEach((s, k) => { const n = laughs(s, k, 0.5, tK3 + 1.0 + 0.3 * k, 'sMad'); H({ id: 'hS0' + k, actor: s, t0: 0.3, t1: q(0.5 + 0.25 * k), reason: 'at the meat', params: { look: [[S[(k + 2) % 5], 1.0]], weight: true }, because: [{ id: 'sFeast' }] }); });
   /* the blood from the meat, drop by drop onto the tables */
   const DROPS = [[-214, 66], [-200, -66], [178, 66], [190, -66]];
   DROPS.forEach(([x, z], i) => I({ id: 'drop' + i, actor: S[i], kind: 'FLY', t0: q(2.2 + 1.9 * i), t1: q(2.9 + 1.9 * i), label: 'a drop of blood from the meat to the board', params: { prop: 'drop' + i, from: [x + 4, 62, z + 2], legs: [{ dt: 0.5, to: [x + 6, 56, z + 4] }], until: null }, because: [{ id: 'sMad' }] }));
@@ -51,9 +51,9 @@ module.exports = function author(M, X) {
   S.forEach((s, k) => H({ id: 'hS2' + k, actor: s, t0: q(tK3a - 0.95 + 0.15 * k), t1: T, reason: 'back to the meat and the wine, still laughing low', params: { look: [[S[(k + 2) % 5], 1.6], [TH, 0.8]], weight: true, offset: 0.4 * k }, because: [{ id: 'mock' + k }] }));
   H({ id: 'hTE1', actor: TE, t0: q(tK2 + 0.35), t1: q(tK4 + 0.3), reason: 'he hears the seer: he does not laugh', params: { look: [[TH, 3.0], [B, 1.0], [TH, 2.0]], weight: true }, because: [{ id: 'sDark' }] });
   H({ id: 'hB1', actor: B, t0: q(tK2 + 0.45), t1: q(tK4 + 0.4), reason: 'the beggar hears the seer say what he himself will do', params: { look: [[TH, 3.0], [TE, 1.2], [TH, 2.0]], weight: true, still: true }, because: [{ id: 'sDark' }] });
-  I({ id: 'teLook', actor: TE, kind: 'ATTEND', target: B, t0: q(tK4 + 0.35), t1: q(tK4 + 3.2), label: 'across the feast to his father', params: { track: true }, because: [{ id: 'thGo' }, { id: 'v' + c6.gi, rel: 'realises' }] });
-  I({ id: 'bLook', actor: B, kind: 'ATTEND', target: TE, t0: q(tK4 + 0.45), t1: q(tK4 + 3.4), label: 'the father back at his son', params: { track: true }, because: [{ id: 'teLook', latency: 0.1 }] });
-  I({ id: 'bNod', actor: B, kind: 'REACT', t0: q(tK4 + 3.5), t1: q(tK4 + 4.4), label: 'not yet', params: { how: 'nod', lookAt: TE }, because: [{ id: 'bLook' }] });
+  H({ id: 'teLook', actor: TE, t0: q(tK4 + 0.35), t1: q(tK4 + 4.55), reason: 'across the feast to his father: is it now?', params: { look: [[B, 2.2], [S[2], 0.6], [B, 2.0]], weight: true }, because: [{ id: 'thGo' }, { id: 'v' + c6.gi, rel: 'realises' }] });
+  H({ id: 'bLook', actor: B, t0: q(tK4 + 0.45), t1: q(tK4 + 3.45), reason: 'the father back at his son', params: { look: [[TE, 2.0], [S[0], 0.6], [TE, 1.6]], weight: true }, because: [{ id: 'thGo' }] });
+  I({ id: 'bNod', actor: B, kind: 'REACT', t0: q(tK4 + 3.5), t1: q(tK4 + 4.4), label: 'not yet', params: { how: 'nod', lookAt: TE }, because: [{ id: 'thGo' }] });
   I({ id: 'teNod', actor: TE, kind: 'REACT', t0: q(tK4 + 4.6), t1: q(tK4 + 5.5), label: 'he waits for the sign', params: { how: 'nod', lookAt: B }, because: [{ id: 'bNod', latency: 1.1 }] });
   H({ id: 'hTE2', actor: TE, t0: q(tK4 + 5.55), t1: T, reason: 'waiting for the moment', params: { look: [[B, 3.0], [S[0], 0.8]], weight: true, still: true }, because: [{ id: 'teNod' }] });
   H({ id: 'hB2', actor: B, t0: q(tK4 + 4.45), t1: T, reason: 'the doomed feast before him', params: { look: [[TE, 1.6], [S[2], 1.4], [S[0], 1.4]], weight: true }, because: [{ id: 'bNod' }] });
