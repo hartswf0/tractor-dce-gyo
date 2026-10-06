@@ -1,0 +1,70 @@
+{
+ "scene": "OD-B20-S04",
+ "title": "The Ox Hoof",
+ "take": 1,
+ "part": "The four books with no filmed scene (3, 7, 15, 20): Book 20's key scene, filmed for the first time",
+ "hypothesis": "The scene is one action (a thrown ox hoof, a head turned aside, the wall struck) between two speeches. It reads if the hoof is seen in the hand during the mockery, in the air on its way past the beggar's head (the Stool's take 3: THROW with a prop flight and smear bricks), and the beggar's duck is seen in the same shot as the hoof going by; and if the scene's voice says the turns' lines, not the stale recording's fragments, and ends without the leaked last narration.",
+ "variable": "First take: the Stool's throw (THROW params.prop/flight/arc/spin/fall/smear, choreo.js applyFlights) on a new prop (tools/forage/keyprops.js oxHoof, a faun's leg with its cloven hoof at 0.55 scale, and oxHoofSmear); a new flight option, the first leg leaving from where the hand was at the release (THROW params.freeze: the live hand had carried the Stool's flight start down with the follow-through, and the hoof went past the beggar's hips); the throw cut in two (a mid on Ctesippus from the wind-up through the release, a mid on the beggar as it goes past his head).",
+ "held": [
+  "the set: the forage's megaron as for the Stool (OD-B17-S05), three suitors added from the Hall of Death's card (film-readymades/staging.py add_cast)",
+  "the lens set and the solver"
+ ],
+ "voice": {
+  "recording": "odyssey/take/voice/OD-B20-S04.m4a from the halfworld (37.8 s): a stale take, the drive script's fragments voiced in place of the turns' spoken lines ('No. I will not immediate action.' 5.3 s for a 40-word line, 'Is that the best you can offer, the beggar and hurls an ox hoof as a guest-gift?', 'Continue, and to spear the offender if another assault occurs.')",
+  "cut": "not in the Regulars' Cut: the performer's cut (odyssey_take.performer), with the restore's drop (segments 2, 4, 6) and two added Kokoro-82M clips of the spoken lines (Ctesippus am_fenrir 0.92, Telemachus am_liam 0.88; odyssey/kits/cut-restore.json); the narrator's 'Odysseus dodges.' kept from the recording",
+  "leaked_line": "segment 7, NARRATION 'No. I will not control her choice.' (T05: Agelaus's challenge run into Telemachus's refusal by the script) is first person in a narration: odyssey_take.leaked flags it (no caption) and unleak drops it as the scene's last; before this take the rule applied only to scenes in the Regulars' Cut, and for this one (a performer's cut laid by odyssey-take.js cutOf) the line would have played uncaptioned as the film's last 5.5 s. Fixed in both places: odyssey_take.performer + unleak, and cutOf drops a trailing leaked segment.",
+  "seconds": 27.36
+ },
+ "metrics_before": {
+  "stage": "no film (the scene was never filmed)"
+ },
+ "metrics_after": {
+  "stage": "rendered and published as take 1 (films/odyssey/OD-B20-S04-performed.*, 27.3 s, 13 shots, all legal)",
+  "seconds": 27.33,
+  "shots": 13,
+  "median_shot_s": 2.08,
+  "longest_shot_s": 3.33,
+  "audit": {
+   "motion": 3.94,
+   "still": 0.05,
+   "still_tail_s": 0.1,
+   "opening": "a mid on Ctesippus speaking, the hoof in his hand (motion 3.31, still 0.00)",
+   "ending": "a close on the beggar watching his son (motion 1.02, still 0.30)"
+  },
+  "perform": {
+   "coverage": 1.0,
+   "dead": 0,
+   "unmotivated_freeze_s": 0,
+   "legality": "0/0/0/0",
+   "homeostat": "25 attempts, not stable; nearest kept (amp 1.49)"
+  },
+  "throw": {
+   "windup_s": 9.17,
+   "release_s": 9.75,
+   "flight_s": 0.55,
+   "smear_drawings_s": [
+    9.917,
+    10.0
+   ],
+   "duck_s": [
+    9.83,
+    11.0
+   ],
+   "wall_s": 10.3,
+   "fall_s": [
+    10.3,
+    10.7
+   ]
+  },
+  "captions": [
+   "Ctesippus: the stranger has had his share ...",
+   "Narrator: Odysseus dodges.",
+   "Telemachus: Ctesippus, be glad you missed ..."
+  ],
+  "sheets": [
+   "scratchpad odx/sheets/b20s04-sheet.jpg, b20s04-every.jpg (every 2 s), b20s04-throw.jpg (9.0-11.0 s, every drawing)"
+  ]
+ },
+ "result": "Kept. The hoof is seen in Ctesippus's hand from the first shot, raised overhead in the wind-up (9.2-9.75 s), and in the beggar's mid it comes at the lens as smear bricks, goes past his head as he ducks with his arms up, and is gone behind him; he straightens and looks at Ctesippus. The captions are the three turns as said (the stale fragments are not in the cut), and the leaked last narration is gone from the sound and the captions: the film ends on Telemachus's threat over a close of the beggar. Loose: the hoof's strike on the wall and its fall are behind the beggar's body in that mid (the wall is not seen struck); the shots are quick (median 2.1 s against the audit's 3.4 s), as the scene is 27 s of one throw between two speeches; the cast (three suitors) is the hall's whole company; the voices of the two speeches are synthetic (Kokoro), the narrator's line the recording's.",
+ "keep": true
+}

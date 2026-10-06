@@ -1,0 +1,473 @@
+{
+ "scene": "OD-B03-S05",
+ "location": "odyssey-od-b03-s05",
+ "title": "Athena Reveals Herself at Pylos",
+ "source": "Homer, Odyssey III, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the shore at Pylos in the evening, the heifer's court behind: Mentor (Athena; added to the forage's cast by film-readymades/staging.py, the forage's still Athena and eagle hidden) refuses Nestor's bed (K1); then Mentor is not drawn and a sea-eagle rises from where he stood and flies out over the sea (K1a: tools/forage/keyprops.js seaEagle, wings up and level on alternate drawings, FLY in the director's module). The change itself is not shown: it is a cut, the figure gone and the bird in his place, as the poem tells it ('she flew away in the form of an eagle'). Nestor and Telemachus stare after it; Nestor takes the boy by the hand (K2) and prays with his arms up, vowing the heifer (K2a).",
+ "look": {
+  "sun": {
+   "dir": [
+    -0.5,
+    0.45,
+    0.6
+   ],
+   "color": "#ffcf9a",
+   "intensity": 1.0,
+   "shadow": true
+  },
+  "fill": {
+   "sky": "#c4cce6",
+   "ground": "#3a3026",
+   "intensity": 0.5
+  },
+  "exposure": 0.95
+ },
+ "spread": 0,
+ "walkHeight": "first",
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Athena refuses and suddenly flies away in the form of a sea-eagle",
+   "text": "\"Go with him, Telemachus ... but I will return to the ship and put heart into my men.\" ... ",
+   "blocking": [
+    {
+     "id": "athena-as-mentor",
+     "x": 62,
+     "z": 138,
+     "y": "floor",
+     "face": [
+      -22,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nestor",
+     "x": -22,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      62,
+      138
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -42,
+     "z": 172,
+     "y": "floor",
+     "face": [
+      62,
+      138
+     ],
+     "props": false,
+     "free": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -60,
+     70,
+     280
+    ],
+    "target": [
+     20,
+     40,
+     140
+    ],
+    "fov": 46,
+    "subject": "athena-as-mentor",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "athena-as-mentor",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "nestor",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "hide": [
+    "athena-to-sea-eagle transformation"
+   ],
+   "touch": [],
+   "lensAllow": [],
+   "props": []
+  },
+  {
+   "id": "K1a",
+   "after": [
+    "K1",
+    24.35
+   ],
+   "beat": "Mentor is gone: a sea-eagle rises from where he stood",
+   "text": "With these words she flew away in the form of an eagle, and all marvelled as they beheld it.",
+   "blocking": [
+    {
+     "id": "athena-as-mentor",
+     "x": 62,
+     "z": 138,
+     "y": "floor",
+     "face": [
+      -22,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "absent": true
+    },
+    {
+     "id": "nestor",
+     "x": -22,
+     "z": 112,
+     "y": "floor",
+     "face": [
+      120,
+      260
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ],
+      "headP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -42,
+     "z": 172,
+     "y": "floor",
+     "face": [
+      120,
+      260
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "headP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "props": [
+    {
+     "name": "seaEagleUp",
+     "id": "seaEagle",
+     "at": [
+      62,
+      95,
+      138
+     ],
+     "free": true,
+     "scale": 0.22,
+     "rot": [
+      0,
+      0.45,
+      0
+     ]
+    },
+    {
+     "name": "seaEagle",
+     "id": "seaEagleSmear",
+     "at": [
+      0,
+      0,
+      0
+     ],
+     "free": true,
+     "scale": 0.22
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -120,
+     40,
+     40
+    ],
+    "target": [
+     60,
+     90,
+     200
+    ],
+    "fov": 50,
+    "subject": "nestor",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "nestor",
+     "min": 0.03,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "telemachus",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "hide": [
+    "athena-to-sea-eagle transformation"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K2",
+   "beat": "Nestor recognizes divine favor and prays to Athena",
+   "text": "Nestor took Telemachus by the hand. \"My friend,\" said he, \"I see that you are going to be a great hero some day, since the gods wait upon you thus ... this is none other than the daughter of Jove.\"",
+   "blocking": [
+    {
+     "id": "athena-as-mentor",
+     "x": 62,
+     "z": 138,
+     "y": "floor",
+     "face": [
+      -22,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "absent": true
+    },
+    {
+     "id": "nestor",
+     "x": 30,
+     "z": 150,
+     "y": "floor",
+     "face": [
+      -42,
+      172
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -42,
+     "z": 172,
+     "y": "floor",
+     "face": [
+      30,
+      150
+     ],
+     "props": false,
+     "free": true
+    }
+   ],
+   "props": [
+    {
+     "name": "seaEagleUp",
+     "id": "seaEagle",
+     "at": [
+      62,
+      95,
+      138
+     ],
+     "free": true,
+     "scale": 0.22,
+     "rot": [
+      0,
+      0.45,
+      0
+     ]
+    },
+    {
+     "name": "seaEagle",
+     "id": "seaEagleSmear",
+     "at": [
+      0,
+      0,
+      0
+     ],
+     "free": true,
+     "scale": 0.22
+    }
+   ],
+   "camera": {
+    "type": "mid",
+    "pos": [
+     40,
+     55,
+     230
+    ],
+    "target": [
+     -35,
+     45,
+     155
+    ],
+    "fov": 40,
+    "subject": "nestor",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "nestor",
+     "min": 0.05,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "telemachus",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "hide": [
+    "athena-to-sea-eagle transformation"
+   ],
+   "touch": [],
+   "lensAllow": []
+  },
+  {
+   "id": "K2a",
+   "after": [
+    "K2",
+    17.5
+   ],
+   "beat": "Nestor prays to the goddess and vows the heifer",
+   "text": "\"Be propitious to me, O Queen, and vouchsafe me a good name ... and I will sacrifice you a broad-browed heifer of a year old, unbroken ... I will gild her horns.\"",
+   "blocking": [
+    {
+     "id": "athena-as-mentor",
+     "x": 62,
+     "z": 138,
+     "y": "floor",
+     "face": [
+      -22,
+      112
+     ],
+     "props": false,
+     "free": true,
+     "absent": true
+    },
+    {
+     "id": "nestor",
+     "x": 30,
+     "z": 150,
+     "y": "floor",
+     "face": [
+      120,
+      300
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       0
+      ],
+      "headP": [
+       -0.35,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": -42,
+     "z": 172,
+     "y": "floor",
+     "face": [
+      120,
+      300
+     ],
+     "props": false,
+     "free": true,
+     "pose": {
+      "headP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     80,
+     45,
+     300
+    ],
+    "target": [
+     -30,
+     60,
+     140
+    ],
+    "fov": 46,
+    "subject": "nestor",
+    "eye": 0.4
+   },
+   "subjects": [
+    {
+     "id": "nestor",
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "telemachus",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "hide": [
+    "athena-to-sea-eagle transformation"
+   ],
+   "touch": [],
+   "lensAllow": [],
+   "props": []
+  }
+ ]
+}

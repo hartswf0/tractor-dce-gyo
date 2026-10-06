@@ -52,7 +52,9 @@ function figHeight(id){const r=rigOf(id);if(!r)return 60;r.figure.updateMatrixWo
    scene header, which the title card carries; the speaker cues, which the picture shows), the kept segments 0.45 s apart, 0.6 s in
    and out, as cut.json lays a kept scene */
 function cutOf(tk){if(tk.cut.segments.length)return tk.cut;let at=0.6;const segments=[];
-  for(const s of tk.voice.segments){if(s.kind==='SCENE_HEADER'||s.kind==='SPEAKER_CUE')continue;if(segments.length)at+=0.45;segments.push({gi:s.gi,start:s.start,dur:s.dur,at:Math.round(at*1000)/1000});at+=s.dur;}
+  /* a leaked line at the scene's end (odyssey_take.leaked: a narration in the first person) is dropped, as unleak() drops it from a kept scene */
+  const vs=tk.voice.segments.filter(s=>s.kind!=='SCENE_HEADER'&&s.kind!=='SPEAKER_CUE');if(vs.length&&vs[vs.length-1].leak)vs.pop();
+  for(const s of vs){if(segments.length)at+=0.45;segments.push({gi:s.gi,start:s.start,dur:s.dur,at:Math.round(at*1000)/1000});at+=s.dur;}
   return {status:'performer',seconds:Math.round((at+0.6)*100)/100,segments,dropped:[],why:['not in the Regulars\' Cut: the performer\'s cut']};}
 function clipsOf(tk,mode){const byGi=new Map(tk.voice.segments.map(s=>[s.gi,s]));
   if(mode==='cut'){const cut=cutOf(tk);return {clips:cut.segments.map(c=>({...byGi.get(c.gi),start:c.start,dur:c.dur,at:c.at})),total:cut.seconds,audio:cut.segments.map(c=>({at:c.at,start:c.start,dur:c.dur}))};}
