@@ -18,7 +18,7 @@ module.exports = function author(M, X) {
   const B = 'odysseus-as-beggar', C = 'ctesippus', TE = 'telemachus', S = ['suitor-2', 'suitor-3', 'suitor-4'];
   const clips = M.clips.filter(c => c.kind !== 'SCENE_HEADER' && c.kind !== 'SPEAKER_CUE');
   const cM = clips.find(c => c.speaker === C) || clips[0], cN = clips.find(c => c.kind === 'AUDITORY_ACTION') || clips[1], cT = clips.find(c => c.speaker === TE && c.at > cN.at) || clips[2];
-  const G = require('../ground.js'), HIT = [214, 62, 247], DOWN = [212, 240];
+  const G = require('../ground.js'), HIT = [240, 100, 247], DOWN = [236, 238];
   const VM = X.voiceOf(cM), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
   stimuli.push({ id: 'sHall', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'the hall at dinner: the beggar fed by the threshold like the rest', because: [{ id: 'v' + cM.gi, rel: 'realises' }] });
@@ -32,7 +32,7 @@ module.exports = function author(M, X) {
   H({ id: 'hT0', actor: TE, t0: 0.3, t1: q(tHit + 0.3), reason: 'by his father\'s seat: he watches Ctesippus', params: { look: [[C, 2.4], [B, 1.0], [C, 2.4]], weight: true }, because: [{ id: 'sHall' }] });
   S.forEach((s, k) => H({ id: 'hS0' + k, actor: s, t0: 0.3 + 0.1 * k, t1: q(tHit + 0.2 + 0.1 * k), reason: 'they grin: Ctesippus is going to have his joke', params: { look: [[C, 1.6], [B, 1.4], [C, 1.2]], weight: true, offset: 0.3 * k }, because: [{ id: 'sHall' }] }));
   I({ id: 'cThrow', actor: C, kind: 'THROW', target: B, t0: tT, t1: q(tT + 1.6), label: 'throws the ox hoof at the beggar\'s head', because: [{ id: 'sGift' }],
-    params: { side: 'R', releaseId: 'sHoof', prop: 'oxHoof', to: HIT, off: [0, 0, 0], flight: FL, arc: 10, spin: 1.3, fall: [{ dt: 0.4, to: [DOWN[0], gy + 3, DOWN[1]], arc: 3, spin: 0.4 }], until: K('K2a').t, smear: { prop: 'oxHoofSmear', frames: [2, 3], span: 2 } } });
+    params: { side: 'R', releaseId: 'sHoof', prop: 'oxHoof', freeze: true, to: HIT, off: [0, 0, 0], flight: FL, arc: 10, spin: 1.3, fall: [{ dt: 0.4, to: [DOWN[0], gy + 3, DOWN[1]], arc: 3, spin: 0.4 }], until: K('K2a').t, smear: { prop: 'oxHoofSmear', frames: [2, 3], span: 2 } } });
   /* the beggar sees it leave the hand and turns his head aside and down: it passes where his head was */
   I({ id: 'bDuck', actor: B, kind: 'DUCK', t0: q(tRel + 0.08), t1: q(tRel + 1.25), label: 'turns his head a little aside: it goes by', params: { amp: 1.5 }, because: [{ id: 'sHoof', latency: 0.08 }] });
   stimuli.push({ id: 'sWall', t0: tHit, t1: q(tHit + 0.3), kind: 'SOUND', label: 'the hoof against the wall, not him', because: [{ id: 'sHoof', latency: FL }] });
@@ -47,7 +47,7 @@ module.exports = function author(M, X) {
   I({ id: 'tThreat', actor: TE, kind: 'DECLARE', target: C, utterance: cT.gi, t0: q(Math.max(cT.at - 0.2, W('K3')[1] + 0.05)), t1: q(cT.at + cT.dur), label: 'be glad you missed: my father\'s spear would be in your belly', params: { shapes: ['point', 'chop', 'fist', 'point'], side: 'R', maxBeats: 3, amp: 1.0 }, because: [{ id: 'tCome' }] });
   H({ id: 'hT1', actor: TE, t0: q(tHit + 1.05), t1: q(W('K3')[0] - 0.05), reason: 'the anger rising', params: { look: [[C, 3.0]], weight: true }, because: [{ id: 'tAnger' }] });
   const tQuiet = q(cT.at + 0.6);
-  stimuli.push({ id: 'sPrince', t0: q(cT.at), t1: tQuiet, kind: 'WORD', label: '"Ctesippus": the prince on his feet', actor: TE, because: [{ id: 'tThreat' }] });
+  stimuli.push({ id: 'sPrince', t0: q(cT.at), t1: tQuiet, kind: 'WORD', label: '"Ctesippus": the prince on his feet', actor: TE, because: [{ id: 'tCome' }, { id: 'v' + cT.gi, rel: 'realises' }] });
   I({ id: 'cTurn', actor: C, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: TE, label: 'turns to the prince', because: [{ id: 'tCome', latency: 0.3 }] });
   H({ id: 'hC1', actor: C, t0: q(Math.max(cT.at - 0.25, W('K3')[1] + 0.05)), t1: T, reason: 'the prince\'s threat: he says nothing', params: { look: [[TE, 3.2], [B, 0.8], [TE, 3.0]], weight: true }, because: [{ id: 'sPrince' }] });
   S.forEach((s, k) => I({ id: 'sTurn' + k, actor: s, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: TE, label: 'the laughter stops: they turn to the prince', because: [{ id: 'tCome', latency: 0.2 + 0.15 * k }] }));

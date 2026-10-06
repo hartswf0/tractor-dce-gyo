@@ -130,7 +130,7 @@ M_.THROW = (X, I, e) => { const id = I.actor, t = I.t0, sd = (I.params || {}).si
     let tt = tr + fl; for (const f of p.fall || []) { legs.push({ t0: X.r3(tt), t1: X.r3(tt + f.dt), to: f.to, off: f.off || [0, 0, 0], arc: f.arc ?? 4, spin: f.spin ?? 0.25 }); tt += f.dt; }
     /* params.smear {prop, frames: [k, ...] (drawings after the release, on twelves), span}: smear bricks drawn in its place on those drawings */
     const smear = p.smear ? { what: 'prop:' + p.smear.prop, at: (p.smear.frames || [2, 3]).map(k => X.r3(tr + k / 12)), span: p.smear.span || 2 } : null;
-    X.props.push(Object.assign({ t: X.r3(X.q(t)), op: 'fly', by: id, what: 'prop:' + p.prop, from: id + ':' + sd, hand: 'hand:' + id + ':' + sd, grip: p.grip || [0, 0, 0], legs, until: p.until != null ? X.r3(p.until) : null }, smear ? { smear } : {}));
+    X.props.push(Object.assign({ t: X.r3(X.q(t)), op: 'fly', by: id, what: 'prop:' + p.prop, from: id + ':' + sd, hand: 'hand:' + id + ':' + sd, grip: p.grip || [0, 0, 0], legs, until: p.until != null ? X.r3(p.until) : null }, smear ? { smear } : {}, p.freeze ? { freeze: true } : {}));
     X.ev({ id: (p.releaseId || I.id) + ':flight', lane: 'PROP', actor: id, t0: tr, t1: X.r3(tt), kind: 'FLIGHT', label: 'the ' + p.prop + ' in the air', params: { prop: p.prop, legs }, because: m ? [{ id: m.id, latency: 0.62 }] : [] }); } };
 /* SWING {target, params.hit}: an ATTACK with a blade: the wind-up, the swing across, and then either IMPACT (a CONTACT; the target's
    own IMPACT intent follows it) or a MISS: the blade overtravels (the body turned past, an opening) - a STIMULUS the target can answer

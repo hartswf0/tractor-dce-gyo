@@ -164,6 +164,7 @@ function applyProps(THREE, C, t, ctx, S) {
    an actor's head, 'hand:<id>:R', '@anchor', [x, y, z]) plus `off`, turning `spin` turns about the level axis across its path, and
    after the last leg it lies where it landed until `until` (the take's next key stages it again). The staged prop object is looked up
    by name each drawing (each key re-stages its props). */
+const FREEZE = new Map();
 function applyFlights(THREE, C, t, ctx) {
   if (!ctx.point) return;
   const find = n => { let o = null; ctx.scene.traverse(q => { if (!o && q.name === n) o = q; }); return o; };
@@ -179,6 +180,9 @@ function applyFlights(THREE, C, t, ctx) {
       o.userData.fly = { d: c.sub(o.position).applyQuaternion(o.quaternion.clone().invert()), q: o.quaternion.clone(), p: o.position.clone() }; }
     const F = o.userData.fly, P = v => v && new THREE.Vector3(...[v.x, v.y, v.z]), pt = (w, off) => { const v = P(ctx.point(w)); return v ? v.add(new THREE.Vector3(...(off || [0, 0, 0]))) : null; };
     const where = tq => { let at = pt(e.hand, e.grip), spin = 0, axis = new THREE.Vector3(1, 0, 0); if (!at) return null;
+      /* e.freeze: the first leg leaves from where the hand (or the rider's point) was at the release, not from where the follow-through
+         has carried it since (an ox hoof thrown from overhead does not fall back to the thrower's hip); kept per event while the take plays on */
+      if (e.freeze && e.legs.length) { const rk = e.what + '@' + e.t; if (tq < e.legs[0].t0) FREEZE.delete(rk); else { if (!FREEZE.has(rk)) FREEZE.set(rk, at.clone()); at = FREEZE.get(rk).clone(); } }
       for (const L of e.legs) { if (tq < L.t0) break; const to = pt(L.to, L.off); if (!to) break; const u = Math.min(1, (tq - L.t0) / Math.max(1e-3, L.t1 - L.t0)), ch = to.clone().sub(at);
         const flat = new THREE.Vector3(ch.x, 0, ch.z); if (flat.lengthSq() > 1e-6) axis = new THREE.Vector3(-flat.z, 0, flat.x).normalize();
         at = at.clone().add(ch.multiplyScalar(u)); at.y += (L.arc || 0) * 4 * u * (1 - u); spin += (L.spin || 0) * u; if (u < 1) break; }

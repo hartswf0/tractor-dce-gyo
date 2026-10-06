@@ -183,6 +183,6 @@ E_.FASTEN = (X, I, e) => { const id = I.actor, p = I.params || {}, n = p.strokes
 E_.FLY = (X, I, e) => { const p = I.params || {}, r3 = v => Math.round(v * 1000) / 1000; let tt = I.t0 + (p.ride || 0); const legs = [];
   for (const f of p.legs || []) { legs.push({ t0: r3(tt), t1: r3(tt + f.dt), to: f.to, off: f.off || [0, 0, 0], arc: f.arc ?? 0, spin: f.spin ?? 0 }); tt += f.dt; }
   const t1 = legs.length ? legs[0].t0 : I.t0, smear = p.smear ? { what: 'prop:' + p.smear.prop, at: (p.smear.frames || [2, 3]).map(k => r3(t1 + k / 12)), span: p.smear.span || 2 } : null;
-  X.props.push(Object.assign({ t: r3(X.q(I.t0)), op: 'fly', by: I.actor, what: 'prop:' + p.prop, from: typeof p.from === 'string' ? p.from : 'point', hand: p.from, grip: p.grip || [0, 0, 0], legs, until: p.until != null ? r3(p.until) : null }, smear ? { smear } : {}));
+  X.props.push(Object.assign({ t: r3(X.q(I.t0)), op: 'fly', by: I.actor, what: 'prop:' + p.prop, from: typeof p.from === 'string' ? p.from : 'point', hand: p.from, grip: p.grip || [0, 0, 0], legs, until: p.until != null ? r3(p.until) : null, freeze: true }, smear ? { smear } : {}));
   X.ev({ id: I.id + ':flight', lane: 'PROP', actor: I.actor, t0: r3(I.t0), t1: r3(Math.max(tt, I.t0 + 0.1)), kind: 'FLIGHT', label: I.label || ('the ' + p.prop + ' moves'), params: { prop: p.prop, legs }, because: e ? [{ id: e.id }] : [] }); };
 module.exports = E_;
