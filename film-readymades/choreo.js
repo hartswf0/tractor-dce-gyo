@@ -217,6 +217,7 @@ function restoreProps(S) { if (!S || !S.props) return; for (const P of S.props.v
 /* the ship: a set piece turned about its pivot; its riders turned and lifted with it */
 function applyShip(THREE, R, v, ctx, S, t) {
   if (!R || !v) return; S.ship = S.ship || {};
+  if (ctx.shipV) v = ctx.shipV(R, v, t) || v;   /* the sea kit (odyssey-sea.js): the hull rides the water drawn under it */
   let st = S.ship[R.piece]; if (!st) { const ms = ctx.pieceMeshes ? ctx.pieceMeshes(R.piece) : []; st = S.ship[R.piece] = { ms: ms.map(m => ({ m, p: m.position.clone(), q: m.quaternion.clone() })) }; }
   const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(v.pitch || 0, R.yaw || 0, v.roll || 0, 'YXZ')), q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, R.yaw || 0, 0, 'YXZ'));
   const Q = q.clone().multiply(q0.clone().invert()), piv = new THREE.Vector3(...R.pivot), off = piv.clone().sub(piv.clone().applyQuaternion(Q)); off.y += v.heave || 0; off.x += v.dx || 0; off.z += v.dz || 0;
