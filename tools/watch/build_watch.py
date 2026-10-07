@@ -156,7 +156,7 @@ h2.per { font-size:30px; margin:0 0 12px; }
 <p class="lede">Every performed scene in the order Homer tells it: %COUNT% filmed of %CARDS% scenes, about %MIN% minutes. Press play and it runs from Book 1 to Book 24, skipping what is not yet filmed. The gaps are listed below as they are.</p>
 %SOFAR%
 <div class="stage">
-  <div><video id="v" controls playsinline preload="metadata"><track id="t" kind="captions" srclang="en" label="English" default></video></div>
+  <div><video id="v" controls playsinline preload="metadata"><track id="t" kind="captions" srclang="en" label="English (also burned into the picture)"></video></div>
   <div class="now"><div class="n" id="pos"></div><h2 id="ttl">The Odyssey</h2>
     <div class="ctl"><button class="main" id="play">Play in order</button><button id="prev">Previous</button><button id="next">Next</button></div>
     <div class="bar"><i id="prog"></i></div><div class="small" id="left"></div>
