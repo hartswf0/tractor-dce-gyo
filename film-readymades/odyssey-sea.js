@@ -177,8 +177,10 @@ function stage(ctx) {
   const hideList = ['stage plate', 'swell*', 'splash*', 'four-wind storm'];
   const hidden = []; const hideNow = () => { for (const m of hidden) m.visible = false; };
   const cellLand = new Map();
+  /* done at the first parameters: P.land false takes the island out too, P.hide names more pieces to hide (a sea with nothing else in it) */
+  function stripSea(SP) {
   if (seaP) for (const pm of meshesOf(seaP.label)) {
-    filterMesh(pm.mesh, c => !watery(c));
+    filterMesh(pm.mesh, c => SP.land !== false && !watery(c)); if (SP.land === false) continue;
     /* each land triangle marks the 1x1 cell under its centroid and, for the large triangles of a baseplate, the cells its corners span */
     const P = pm.mesh.geometry.attributes.position, g = pm.mesh.geometry, mw = pm.mesh.matrixWorld, va = new V3(), vb = new V3(), vc = new V3(), ix = g.index;
     const mark = (x, z) => { const i = Math.round(((x - cx) / U.stud - 0.5)), j = Math.round(((z - cz) / U.stud - 0.5)); cellLand.set(i + ',' + j, 1); };
@@ -190,7 +192,8 @@ function stage(ctx) {
         if ((e0 >= 0 && e1 >= 0 && e2 >= 0) || (e0 <= 0 && e1 <= 0 && e2 <= 0)) mark(x, z); } }
     for (let c = 0; c < N; c++) if (cells.k[c] === 0 && cellLand.has(Math.round((cells.x[c] - cx) / U.stud - 0.5) + ',' + Math.round((cells.z[c] - cz) / U.stud - 0.5))) cells.land[c] = 1;
   }
-  for (const pat of hideList) for (const pm of meshesOf(pat)) { const m = pm.mesh, v = m.visible; hidden.push(m); restore.push(() => { m.visible = v; }); }
+  for (const pat of hideList.concat(SP.hide || [])) for (const pm of meshesOf(pat)) { const m = pm.mesh, v = m.visible; hidden.push(m); restore.push(() => { m.visible = v; }); }
+  }
 
   /* the layers */
   const water = rings.map((sk, k) => new Layer(grp, geo('tile' + sk), std({ rough: 0.22 }), cells.k.filter(x => x === k).length));
@@ -242,6 +245,7 @@ function stage(ctx) {
   }
   /* rides: the sheet's ship (through the choreo hook) and the other hulls (props, pieces) turned here */
   function initRides(P) {
+    stripSea(P);
     const list = P.ride ? [].concat(P.ride) : null;
     if (list) for (const rd of list) { const H = hullOf(rd); if (H) rides.push(H); }
     else { for (const nm of ['raft', 'ship', 'boat']) { const o = ctx.prop && ctx.prop(nm); if (o) { rides.push(hullOf({ prop: nm })); break; } }
@@ -281,7 +285,7 @@ function stage(ctx) {
   const ofAmp = P => 2.4 * P.swell * (1 + 2 * P.storm);
   let P = Object.assign({}, P0), ws = rings.map(() => []), amp = 2, mean = seaTop;
   function setParams(p) {
-    P = Object.assign({}, P0, p || {}); if (P.stars == null) P.stars = Math.pow(cl01(P.night), 1.6); if (P.clouds == null) P.clouds = P.storm; if (P.rain == null) P.rain = cl01((P.storm - 0.35) / 0.4);
+    P = Object.assign({}, P0, p || {}); if (P.stars == null) P.stars = Math.pow(cl01((P.night - 0.3) / 0.65), 1.2);   /* none until the sky has darkened */ if (P.clouds == null) P.clouds = P.storm; if (P.rain == null) P.rain = cl01((P.storm - 0.35) / 0.4);
     amp = ofAmp(P); mean = seaTop + (P.level || 0) * U.plate;
     ws = rings.map(sk => waveSet(P, U, sk * 2.6));
     if (!inited) { inited = true; initRides(P); }
@@ -293,9 +297,11 @@ function stage(ctx) {
     const ax = yaw != null ? new V3(Math.sin(yaw), 0, Math.cos(yaw)) : G.ax, lat = yaw != null ? new V3(Math.cos(yaw), 0, -Math.sin(yaw)) : G.lat, L = G.half * 0.8, W = Math.max(G.beam, U.stud) * 0.9;
     const p = pivot || G.c, at = (a, b) => swell(ws[0], p.x + ax.x * a + lat.x * b, p.z + ax.z * a + lat.z * b, t, amp).h;
     const hf = at(L, 0), hb = at(-L, 0), hp = at(0, W), hs = at(0, -W), hc = at(0, 0);
-    const heave = (hf + hb + hp + hs + 2 * hc) / 6 * U.plate * 0.9;
-    const pitch = -Math.atan2((hf - hb) * U.plate, 2 * L), roll = Math.atan2((hp - hs) * U.plate, 2 * W);
-    const lim = (8 + 6 * P.storm) * DEG; return { heave, pitch: Math.max(-lim, Math.min(lim, pitch)), roll: Math.max(-lim * 1.3, Math.min(lim * 1.3, roll)) };
+    /* gains over the plain geometry of the swell under the hull: a long hull on a long swell barely tilts, and the eye reads a couple
+       of degrees and a plate or two of heave as a ship at sea (the hull's own roll on its keel) */
+    const heave = (hf + hb + hp + hs + 2 * hc) / 6 * U.plate * 1.15;
+    const pitch = -Math.atan2((hf - hb) * U.plate, 2 * L) * 2.4, roll = Math.atan2((hp - hs) * U.plate, 2 * W) * 2.2 + Math.sin(t * 2 * Math.PI / 5.3) * (1.2 + 3 * P.storm) * DEG * P.swell;
+    const lim = (5 + 6 * P.storm) * DEG; return { heave, pitch: Math.max(-lim, Math.min(lim, pitch)), roll: Math.max(-lim * 1.3, Math.min(lim * 1.3, roll)) };
   }
   /* the choreo hook: the sheet's ship channels replaced by the sea's (a third of the sheet's own pitch and roll kept: its impulses) */
   function shipV(Rg, v, t) {
@@ -307,6 +313,7 @@ function stage(ctx) {
   const _b = new THREE.Box3();
   function ride(t) {
     hideNow(); const tq = onTwos(t);
+    if (P.hideCast && ctx.cast) { const res = [].concat(P.hideCast).map(p => new RegExp('^' + String(p).replace(/\*/g, '.*') + '$', 'i')); for (const A of ctx.cast()) if (res.some(r => r.test(A.id))) A.r.figure.visible = false; }
     for (const H of rides) { if (H.rig) continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && !H.o.parent) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
       /* re-staged since the last drawing (a key's props): the staged place is the new rest */
       const o0 = objs[0]; if (!H.set || !o0.position.equals(H.set.p) || !o0.quaternion.equals(H.set.q)) { H.base = objs.map(o => ({ o, p: o.position.clone(), q: o.quaternion.clone() })); H.G = Object.assign(measure(H), { beam: H.beam || measure(H).beam }); }
@@ -326,7 +333,7 @@ function stage(ctx) {
   function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
 
   /* ── one drawing ── */
-  const cc = new C(), ramp = ['darkBlue', 'blue', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFE2A8');
+  const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFE2A8');
   function frame(t, look) {
     hideNow();
     const tq = onTwos(t), F = drawing(t), cam = ctx.camera; cam.updateMatrixWorld(); const cp = cam.position, fwd = cam.getWorldDirection(new V3());
@@ -355,8 +362,8 @@ function stage(ctx) {
     const pathDir = moonVis > 0.15 ? md : sunL && night < 0.6 && storm < 0.5 ? sunL : null, pathC = moonVis > 0.15 ? cGlint : cGlintSun, pathK = moonVis > 0.15 ? moonVis : (1 - night) * (1 - storm);
     /* the stars, the large first, behind the clouds */
     starL.begin(); const sv = cl01(P.stars) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);
-    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; const k = cl01((sv - S_.thr) / 0.12) * (rnd(i, F, 7) < 0.05 ? 0.5 : 1);
-      _Q.setFromUnitVectors(new V3(0, 1, 0), S_.d.clone().negate()); cc.copy(S_.c).multiplyScalar(k); starL.put(cp.x + S_.d.x * S_.r, cp.y + S_.d.y * S_.r, cp.z + S_.d.z * S_.r, s * S_.sc * (S_.r / 2500), s * S_.sc * (S_.r / 2500), s * S_.sc * (S_.r / 2500), _Q, cc); }
+    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
+      _Q.setFromUnitVectors(new V3(0, 1, 0), S_.d.clone().negate()); starL.put(cp.x + S_.d.x * S_.r, cp.y + S_.d.y * S_.r, cp.z + S_.d.z * S_.r, sz, sz, sz, _Q, S_.c); }
     starL.end();
     /* clouds: masses of dark plates drifting with the wind */
     cloudL.begin(); cloudB.begin(); const cv = cl01(P.clouds);
@@ -372,7 +379,8 @@ function stage(ctx) {
     const bowA = G ? G.bowSign : -1;
     /* ── the ocean ── */
     for (const L of water) L.begin(); foamL.begin(); glintL.begin(); foamTile.begin();
-    const bot = mean - (Math.ceil(amp * 1.25) + 2) * U.plate, Amax = amp * 1.2, crestAt = Amax * (0.92 - 0.2 * foamK - 0.12 * wind - 0.15 * storm), V = new V3(), Nn = new V3(), Rv = new V3();
+    const faceL = (pathDir || sunL || md || new V3(0.5, 0.6, 0.4)).clone().setY(0).normalize();
+    const bot = mean - (Math.ceil(amp * 1.25) + 2) * U.plate, Amax = amp * 1.2, crestAt = Amax * (0.95 - 0.15 * foamK - 0.1 * wind - 0.15 * storm), V = new V3(), Nn = new V3(), Rv = new V3();
     const fogFar = fog.far * 1.15;
     for (let c = 0; c < N; c++) {
       if (cells.land[c]) continue; const k = cells.k[c], x = cells.x[c], z = cells.z[c], sk = rings[k], T = sk * U.stud;
@@ -382,16 +390,19 @@ function stage(ctx) {
       let h = H.h, q = Math.round(h), clear = false, wake = 0;
       if (G && k <= 1) { const ox = X.off, solid = rides[0] && rides[0].kind === 'piece', d = new V3(x - G.c.x - ox.x, 0, z - G.c.z - ox.z), a = d.dot(G.ax), l = d.dot(G.lat), ah = a / (G.half * 0.98), lb = l / (G.beam * 1.02);
         if (ah * ah * ah * ah + lb * lb < 1) clear = solid;
-        else if (way > 0 || P.foam > 0.6) { const ab = a * bowA, astern = -ab - G.half * 0.9, kel = Math.abs(l) - G.beam * 0.6 - Math.max(0, astern) * 0.36;
-          if (astern > -G.half * 0.12 && kel < U.stud * 0.5 && astern < 26 * U.stud) { const along = Math.floor((astern / U.stud) - way * 1.6 * tq), side = Math.round(l / U.stud), fade = 1 - cl01(astern / (26 * U.stud)); wake = cl01(way / 2.5) * (rnd(side, along, 41) < 0.12 + 0.33 * fade ? 1 : 0.2); }
-          if (ab > G.half * 0.45 && Math.abs(l) - G.beam < 1.1 * U.stud && Math.abs(l) > G.beam * 0.8) wake = Math.max(wake, cl01((way + P.swell * (1 + storm)) / 3) * (rnd(cells.i[c], cells.j[c], F >> 1) < 0.35 ? 0.8 : 0.2)); } }
+        else if (way > 0 || P.foam > 0.6) { const ab = a * bowA, astern = -ab - G.half * 0.9, kel = Math.abs(l) - G.beam * 0.45 - Math.max(0, astern) * 0.22;
+          if (astern > -G.half * 0.05 && kel < U.stud * 0.35 && astern < 26 * U.stud) { const along = Math.floor((astern / U.stud) - way * 1.6 * tq), side = Math.round(l / U.stud), fade = 1 - cl01(astern / (26 * U.stud)); wake = cl01(way / 2.5) * (rnd(side, along, 41) < 0.08 + 0.32 * fade ? 1 : 0.2); }
+          if (ab > G.half * 0.62 && Math.abs(l) - G.beam < 0.6 * U.stud && Math.abs(l) > G.beam * 0.8) wake = Math.max(wake, cl01((way + P.swell * (1 + storm)) / 3) * (rnd(cells.i[c], cells.j[c], F >> 1) < 0.2 ? 0.8 : 0.2)); } }
       if (clear) q = Math.min(q, -Math.ceil(amp * 1.2) - 1);
       const y = mean + q * U.plate, L = water[k];
       /* colour by height, slope (the face toward the wind lighter) and a tile-by-tile dither */
-      const lv = cl01((h / Amax + 1) / 2) * 3.2 + (H.dt > 0 ? 0.45 : -0.15) + (rnd(cells.i[c], cells.j[c], 3) - 0.5) * 0.7, li = Math.max(0, Math.min(4, Math.round(lv)));
+      /* the shade: troughs dark blue, crests medium and light blue, a face turned to the light a step lighter and one turned away a step
+         darker, so a still frame shows the swell's shape and not only its steps */
+      const lit = Math.max(-1.3, Math.min(1.3, -(H.gx * faceL.x + H.gz * faceL.z) * U.plate * 7 / Math.max(0.6, amp / 2.4)));
+      const lv = cl01((h / Amax + 0.75) / 1.85) * 5 + lit + (rnd(cells.i[c], cells.j[c], 3) - 0.5) * 0.35, li = Math.max(0, Math.min(5, Math.round(lv)));
       cc.copy(ramp[li]);
-      const crest = !clear && h > crestAt && H.dt > -0.15 * amp, whitecap = !clear && h > Amax * 0.45 && rnd(cells.i[c], cells.j[c], F >> 2) < foamK * wind * 0.12;
-      if (crest || wake > 0.5) cc.lerp(k >= 2 ? cFoamTile : cWhite, k >= 2 ? 0.65 : 0.25);
+      const crest = !clear && h > crestAt && H.dt > -0.1 * amp && rnd(cells.i[c], cells.j[c], F >> 1) < 0.6 * (1 - cl01(dist / 1400)), whitecap = !clear && storm > 0.3 && h > Amax * 0.5 && rnd(cells.i[c], cells.j[c], F >> 2) < foamK * wind * storm * 0.08;
+      if (crest || wake > 0.5) cc.lerp(k >= 2 ? cFoamTile : cWhite, k >= 2 ? 0.6 : 0.3);
       /* the path of light: the tile's facet (the swell's slope, steepened) mirroring the light into the lens */
       let glint = false;
       if (pathDir && pathK > 0.05 && !clear && dist < fogFar) { V.set(x - cp.x, y + U.plate - cp.y, z - cp.z).normalize(); Nn.set(-H.gx * U.plate * 5, 1, -H.gz * U.plate * 5).normalize(); Rv.copy(V).addScaledVector(Nn, -2 * V.dot(Nn));
@@ -400,7 +411,7 @@ function stage(ctx) {
       const topY = y + U.plate;
       if (glint && k <= 3) { const n = k <= 1 ? 1 : k === 2 ? 3 : 5; for (let g = 0; g < n; g++) { const ox = k <= 1 ? 0 : (rnd(c, g, F) - 0.5) * T * 0.8, oz = k <= 1 ? 0 : (rnd(c, g, F + 7) - 0.5) * T * 0.8, sc2 = s * (k <= 1 ? sk * 0.9 : 1.6); cc.copy(pathC).multiplyScalar(0.55 + 0.45 * pathK); glintL.put(x + ox, topY - 6.5 * s, z + oz, sc2, s, sc2, null, cc); } }
       /* foam: round plates on the crest, the wake, whitecaps */
-      if ((crest || wake > 0.5 || whitecap) && k <= 1 && (dist > 140 || rnd(cells.i[c], cells.j[c], 5) < 0.12)) { const n = sk === 1 ? 1 : 1 + Math.floor(rnd(cells.i[c], cells.j[c], F >> 1) * 3.2);
+      if ((crest || wake > 0.5 || whitecap) && k <= 1 && (dist > 140 || rnd(cells.i[c], cells.j[c], 5) < 0.12)) { const n = sk === 1 ? 1 : 1 + (rnd(cells.i[c], cells.j[c], F >> 1) < 0.3 ? 1 : 0);
         for (let f = 0; f < n; f++) { const ox = sk === 1 ? 0 : ((f & 1) - 0.5) * U.stud, oz = sk === 1 ? 0 : ((f >> 1) - 0.5) * U.stud; foamL.put(x + ox, topY, z + oz, s, s, s, null, cWhite); } }
       else if (crest && k === 2) foamTile.put(x + (rnd(c, 1) - 0.5) * T * 0.5, topY, z + (rnd(c, 2) - 0.5) * T * 0.5, s * 2, s, s * 2, null, cWhite);
     }
@@ -450,9 +461,9 @@ function stage(ctx) {
     rainL.end(); splashL.end();
     /* ── lightning: one drawing, a bolt of trans-yellow plates from the cloud to the sea ahead of the lens ── */
     boltL.begin();
-    if (strike) { const i = strike.i, d = lerp(700, 1300, rnd(i, 71)), side = (rnd(i, 72) - 0.5) * 1.1 * d, rt = new V3(-fwd.z, 0, fwd.x).normalize(), f2 = new V3(fwd.x, 0, fwd.z).normalize();
-      let p = cp.clone().addScaledVector(f2, d).addScaledVector(rt, side); p.y = mean + 520; const segs = 16, pts = [p.clone()]; for (let k = 1; k <= segs; k++) { p = p.clone(); p.y = lerp(mean + 520, mean, k / segs); p.addScaledVector(rt, (rnd(i, k, 73) - 0.5) * 70).addScaledVector(f2, (rnd(i, k, 74) - 0.5) * 50); pts.push(p); }
-      const by = col('transYellow').lerp(col('#FFF8D8'), 0.5); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], dv = b.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, s * 1.4, s * 1.4, len / 40, _Q, by); } }
+    if (strike) { const i = strike.i, d = lerp(650, 1000, rnd(i, 71)), side = (rnd(i, 72) - 0.5) * 0.7 * d, rt = new V3(-fwd.z, 0, fwd.x).normalize(), f2 = new V3(fwd.x, 0, fwd.z).normalize();
+      let p = cp.clone().addScaledVector(f2, d).addScaledVector(rt, side); const top = Math.min(mean + 520, Math.max(mean + 260, cp.y + 160)); p.y = top; const segs = 16, pts = [p.clone()]; for (let k = 1; k <= segs; k++) { p = p.clone(); p.y = lerp(top, mean, k / segs); p.addScaledVector(rt, (rnd(i, k, 73) - 0.5) * 70).addScaledVector(f2, (rnd(i, k, 74) - 0.5) * 50); pts.push(p); }
+      const by = col('transYellow').lerp(col('#FFF8D8'), 0.5); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], dv = b.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, s * 2.2, s * 2.2, len / 40, _Q, by); } }
     boltL.end();
     last = { t, F, strike: !!strike, cells: N, drawn: water.reduce((a, L) => a + L.n, 0), foam: foamL.n, glints: glintL.n, stars: starL.n, rain: rainL.n, clouds: cloudL.n + cloudB.n };
     return last;

@@ -24,6 +24,8 @@ const storm = !args.includes('--no-storm');
 const SEA = { swell: 1.25, wind: 0.4, dir: 60, foam: 0.5, way: 1.6, sky: ['#3a4a7a', '#f2a36b'], fog: [700, 2600],
   night: sh([[0, 0], [1.5, 0.05], [8, 1]]), moon: { az: 38, el: 13, size: 7 }, oars: { sweep: 16, period: 2.4, dip: 0.5 },
   sail: { at: [-17, 128], y0: 140, y1: 232, width: 8, depth: 3 },
+  /* open sea: the Sirens' island, its ground and its singers taken out of this shot */
+  land: false, hide: ['crag', 'rocks', 'cypress', 'olive tree', 'flowers*', 'bones*'], hideCast: ['the-sirens*'],
   storm: storm ? sh([[0, 0], [8.8, 0], [10.2, 1]]) : 0, strikes: storm ? [+(10.9 + T0).toFixed(3)] : [] };
 /* the camera: low by the water off the port quarter, then rising and drawing back over the ship */
 const sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }, L = (a, b, u) => a.map((v, i) => v + (b[i] - v) * u);
