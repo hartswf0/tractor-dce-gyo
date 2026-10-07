@@ -32,22 +32,29 @@ module.exports = function author(M, X) {
   /* the hall before: the lords at their cups, the king and queen */
   H({ id: 'hAR0', actor: AR, t0: 0.3, t1: q(tSink + 0.25), reason: 'the queen on her throne by the king, the evening\'s last cups', params: { look: [[AL, 1.6], [EC, 1.2], [P[0], 1.0]], weight: true }, because: [{ id: 'sHall' }] });
   H({ id: 'hAL0', actor: AL, t0: 0.3, t1: q(tSink + 0.3), reason: 'the king watches his lords pour to Hermes', params: { look: [[EC, 1.8], [P[1], 1.2], [AR, 1.0]], weight: true }, because: [{ id: 'sHall' }] });
-  H({ id: 'hEC0', actor: EC, t0: 0.3, t1: q(tSink + 0.35), reason: 'the eldest lord, at his wine', params: { look: [[AL, 2.0], [P[0], 1.2]], weight: true }, because: [{ id: 'sHall' }] });
-  P.forEach((p, k) => H({ id: 'hP0' + k, actor: p, t0: 0.3 + 0.1 * k, t1: q(tSink + 0.35 + 0.1 * k), reason: 'pouring the last cup to Hermes before bed', params: { look: [[AL, 1.6], [EC, 1.4]], weight: true, offset: 0.3 * k }, because: [{ id: 'sHall' }] }));
+  H({ id: 'hEC0', actor: EC, t0: 0.3, t1: q(tSink + 3.25), reason: 'the eldest lord, at his wine', params: { look: [[AL, 2.0], [P[0], 1.2]], weight: true }, because: [{ id: 'sHall' }] });
+  P.forEach((p, k) => H({ id: 'hP0' + k, actor: p, t0: 0.3 + 0.1 * k, t1: q(tSink + 3.45 + 0.2 * k), reason: 'pouring the last cup to Hermes before bed', params: { look: [[AL, 1.6], [EC, 1.4]], weight: true, offset: 0.3 * k }, because: [{ id: 'sHall' }] }));
   /* ── the knees, the silence ── */
-  I({ id: 'oKneel', actor: O, kind: 'POSTURE', t0: q(tReach - 0.1), t1: 23.0, label: 'down on his knees, his hands on her knees', params: { to: 'kneel', enter: 0.5, leave: 0.4 }, because: [{ id: 'oWalk' }] });
+  /* take 2: down on both knees (the shins flat behind him, bent forward to her), and both hands clasping her knees (GRIP on the knee
+     points, solved at every drawing), held through his whole prayer: the scene's promise, seen from the side */
+  I({ id: 'oKneel', actor: O, kind: 'POSTURE', t0: q(tReach - 0.1), t1: 23.0, label: 'down on his knees before the queen', params: { to: 'supplicate', enter: 0.8, leave: 0.5 }, because: [{ id: 'oWalk' }] });
+  I({ id: 'oIn', actor: O, kind: 'STEP', target: AR, t0: q(tReach - 0.1), t1: q(tReach + 0.4), label: 'in to her knees as he goes down', params: { dist: 0.07, dur: 0.5 }, because: [{ id: 'oWalk' }] });
+  I({ id: 'oOut', actor: O, kind: 'STEP', target: AR, t0: 22.9, t1: 23.35, label: 'back from her as he rises', params: { dist: -0.07, dur: 0.45 }, because: [{ id: 'oPray' }] });
+  I({ id: 'oClaspR', actor: O, kind: 'GRIP', target: AR, t0: q(tReach + 0.3), t1: 22.6, label: 'his right hand on her knee', params: { point: 'knee', side: 'R', targetSide: 'L', reach: 0.4 }, because: [{ id: 'oKneel' }] });
+  I({ id: 'oClaspL', actor: O, kind: 'GRIP', target: AR, t0: q(tReach + 0.35), t1: 22.6, label: 'his left hand on her other knee', params: { point: 'knee', side: 'L', targetSide: 'R', reach: 0.4 }, because: [{ id: 'oKneel' }] });
   I({ id: 'arStart', actor: AR, kind: 'REACT', t0: q(tSink + 0.25), t1: q(tSink + 1.4), label: 'a man at her knees', params: { how: 'startle', lookAt: O }, because: [{ id: 'sSeen', latency: 0.25 }] });
   I({ id: 'alStart', actor: AL, kind: 'REACT', t0: q(tSink + 0.35), t1: q(tSink + 1.5), label: 'the king starts', params: { how: 'startle', lookAt: O }, because: [{ id: 'sSeen', latency: 0.35 }] });
-  I({ id: 'ecStart', actor: EC, kind: 'REACT', t0: q(tSink + 0.4), t1: q(tSink + 1.5), label: 'the elder turns', params: { how: 'turn', lookAt: O }, because: [{ id: 'sSeen', latency: 0.4 }] });
-  P.forEach((p, k) => I({ id: 'pStart' + k, actor: p, kind: 'REACT', t0: q(tSink + 0.45 + 0.1 * k), t1: q(tSink + 1.6 + 0.1 * k), label: 'the cup stops at his lips', params: { how: 'startle', lookAt: O }, because: [{ id: 'sSeen', latency: 0.45 + 0.1 * k }] }));
+  /* the hall takes it in after the king and queen, a wave down the room (take 2: the lords' start later, down the hall, in their own shot) */
+  I({ id: 'ecStart', actor: EC, kind: 'REACT', t0: q(tSink + 3.3), t1: q(tSink + 4.4), label: 'the elder turns', params: { how: 'turn', lookAt: O }, because: [{ id: 'sSeen', latency: 3.3 }] });
+  P.forEach((p, k) => I({ id: 'pStart' + k, actor: p, kind: 'REACT', t0: q(tSink + 3.5 + 0.2 * k), t1: q(tSink + 4.7 + 0.2 * k), label: 'the cup stops at his lips', params: { how: 'startle', lookAt: O }, because: [{ id: 'sSeen', latency: 3.5 + 0.2 * k }] }));
   /* ── the supplication ── */
   const tConvoy = q(w(VO, 'convoy', cO.at + cO.dur * 0.6));
-  I({ id: 'oPray', actor: O, kind: 'DECLARE', target: AR, utterance: cO.gi, t0: q(cO.at - 0.2), t1: q(cO.at + cO.dur), label: 'Arete, I come to your knees: grant me convoy to my own country', params: { shapes: ['plead'], side: 'R', maxBeats: 1, amp: 0.7 }, because: [{ id: 'sSeen' }, { id: 'v' + cO.gi, rel: 'realises' }] });
+  I({ id: 'oPray', actor: O, kind: 'DECLARE', target: AR, utterance: cO.gi, t0: q(cO.at - 0.2), t1: q(cO.at + cO.dur), label: 'Arete, I come to your knees: grant me convoy to my own country', params: { shapes: ['plead'], side: 'R', maxBeats: 1, amp: 0.01 }, because: [{ id: 'sSeen' }, { id: 'v' + cO.gi, rel: 'realises' }] });
   stimuli.push({ id: 'sConvoy', t0: tConvoy, t1: q(tConvoy + 0.4), kind: 'WORD', label: '"convoy to my own country"', actor: O, because: [{ id: 'oPray' }] });
   H({ id: 'hAR1', actor: AR, t0: q(tSink + 1.45), t1: q(cE.at + 1.0), reason: 'the stranger at her knees: she does not answer; the hall is silent', params: { look: [[O, 4.0], [AL, 1.0], [O, 3.0]], weight: true, still: true }, because: [{ id: 'arStart' }] });
   H({ id: 'hAL1', actor: AL, t0: q(tSink + 1.55), t1: q(cE.at + 0.3), reason: 'the king says nothing: a suppliant at his hearth', params: { look: [[O, 3.5], [AR, 1.0], [O, 3.0]], weight: true, still: true }, because: [{ id: 'alStart' }] });
-  H({ id: 'hEC1', actor: EC, t0: q(tSink + 1.55), t1: q(K('K3').t - 1.2), reason: 'no one speaks', params: { look: [[O, 3.0], [AL, 1.0]], weight: true, still: true }, because: [{ id: 'ecStart' }] });
-  P.forEach((p, k) => H({ id: 'hP1' + k, actor: p, t0: q(tSink + 1.65 + 0.1 * k), t1: q(cZ.at - 0.2), reason: 'struck dumb, they look at the man', params: { look: [[O, 3.0], [AL, 1.2], [O, 2.0]], weight: true, still: true, offset: 0.4 * k }, because: [{ id: 'pStart' + k }] }));
+  H({ id: 'hEC1', actor: EC, t0: q(tSink + 4.45), t1: q(K('K3').t - 1.2), reason: 'no one speaks', params: { look: [[O, 3.0], [AL, 1.0]], weight: true, still: true }, because: [{ id: 'ecStart' }] });
+  P.forEach((p, k) => H({ id: 'hP1' + k, actor: p, t0: q(tSink + 4.75 + 0.2 * k), t1: q(cZ.at - 0.2), reason: 'struck dumb, they look at the man', params: { look: [[O, 3.0], [AL, 1.2], [O, 2.0]], weight: true, still: true, offset: 0.4 * k }, because: [{ id: 'pStart' + k }] }));
   /* ── the ashes ── */
   I({ id: 'oAshes', actor: O, kind: 'DECIDE', t0: q(cO.at + cO.dur - 1.0), t1: q(cO.at + cO.dur - 0.2), label: 'he has asked: he goes and sits in the ashes, a suppliant', because: [{ id: 'oPray' }] });
   I({ id: 'oSit', actor: O, kind: 'APPROACH', key: 'K3', t0: W('K3')[0], t1: W('K3')[1], target: AL, label: 'to the hearth, and down in the ashes', because: [{ id: 'oAshes' }] });

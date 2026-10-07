@@ -4,7 +4,7 @@
    ROW          {params: clock (a name: one clock per name), period, origin, offset, amp}   a rower on a shared phase clock: every
                 ROW of one clock strokes on the same period from the same origin, each body at its own offset (a fraction of the
                 stroke), so rowers who join late still pull together; each stroke an ACTION caused by the CLOCK
-   GRIP         {target, params: point (shoulder | arm | wrist | hand | waist | neck | head | back), side, reach}   a held grip: the
+   GRIP         {target, params: point (shoulder | arm | wrist | hand | waist | neck | head | back | knee), side, reach}   a held grip: the
                 hand solved to the point on the other body at every drawing on twos (forward kinematics on the sheet as written), a
                 CONTACT GRIP from the take hold to the release with the residual (units) of each drawing
    ATTACK       {target, params: kind (swing | stab | club | shove | punch), hit}     DEFEND {target, params: kind (block | parry |
@@ -37,7 +37,7 @@ E_.ROW = (X, I, e) => { const id = I.actor, p = I.params || {}, name = p.clock |
   X.move(id, 'mech', 'SHIP OARS', e, k => { k(I.t1, { 'arm.R.pitch': rel(X), 'arm.L.pitch': rel(X), 'torso.lean': rel(X), 'hips.dy': rel(X) }); k(I.t1 + 0.8, { 'arm.R.pitch': 0, 'arm.L.pitch': 0, 'torso.lean': 0, 'hips.dy': 0 }); }, { silent: true }); };
 
 /* ═════ GRIP: a held grip, solved every drawing on twos ═════ */
-const POINT = { shoulder: s => 'sh' + s, arm: s => 'el' + s, wrist: s => 'hand' + s, hand: s => 'hand' + s, waist: () => 'hips', neck: () => 'neck', head: () => 'head', back: () => 'chest', chest: () => 'chest' };
+const POINT = { shoulder: s => 'sh' + s, arm: s => 'el' + s, wrist: s => 'hand' + s, hand: s => 'hand' + s, waist: () => 'hips', neck: () => 'neck', head: () => 'head', back: () => 'chest', chest: () => 'chest', knee: s => 'knee' + s };
 E_.GRIP = (X, I, e) => { const id = I.actor, tg = I.target, p = I.params || {}, sd = p.side || 'R', far = p.targetSide || (sd === 'R' ? 'L' : 'R'), reach = p.reach || 0.45, pt = (POINT[p.point || 'shoulder'] || POINT.shoulder)(far);
   X.look(id, tg, I.t0 - 0.3, e, { label: 'on ' + Score.short(tg), noFeet: true });
   X.after((X2, C0) => { const Body = require('./body.js'), bctx = Body.context(X.M, C0), out = [], res = [];
