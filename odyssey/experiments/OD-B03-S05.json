@@ -1,7 +1,7 @@
 {
  "scene": "OD-B03-S05",
  "title": "Athena Reveals Herself at Pylos",
- "take": 1,
+ "take": 2,
  "part": "The four books with no filmed scene (3, 7, 15, 20): Book 3's key scene, filmed for the first time",
  "hypothesis": "The goddess's change reads in LEGO without a morph: Mentor is there on one side of a cut and on the other a sea-eagle rises from where he stood and flies off over the sea, the two men's eyes and heads following it. Honest about it: the change itself is not shown (the poem tells it in one line: she flew away in the form of an eagle).",
  "variable": "First take: Mentor added to the cast as an actor (film-readymades/staging.py; the forage had Athena only as a still figure in a set piece, hidden); the take stops drawing him at a key (K1a absent) and a sea-eagle prop (tools/forage/keyprops.js seaEagle and seaEagleUp: the eagle body with its two wings, at 0.35 scale) is flown from where he stood (FLY), its wings level and raised on alternate pairs of drawings (the smear mechanism used as a wingbeat); the cut placed on the change; Nestor's prayer with an invoke gesture and the vow pointed at the heifers of the set.",
@@ -17,7 +17,43 @@
  "metrics_before": {
   "stage": "no film (the scene was never filmed)"
  },
- "metrics_after": "filled after the render",
- "result": "filled after the render",
- "keep": null
+ "metrics_after": {
+  "stage": "rendered and published as take 2 (films/odyssey/OD-B03-S05-performed.*, 65.25 s, 24 shots, all legal); take 1 kept in films/odyssey/takes/OD-B03-S05/",
+  "seconds": 65.25,
+  "shots": 24,
+  "median_shot_s": 2.7,
+  "longest_shot_s": 3.8,
+  "audit": {
+   "motion": 3.04,
+   "still": 0.03,
+   "still_tail_s": 0.0,
+   "opening": "a mid on Mentor speaking (motion 1.45, still 0.06)",
+   "ending": "a close on Telemachus looking to the sky (motion 4.65, still 0.00)",
+   "eagle": "24.7-24.9 s the eagle goes up beside Telemachus where Mentor stood (end of the two-shot); 24.9-26.6 s the wide holds its climb (motion 2.83); 26.6-28.6 s the two faces turned up after it (motion 5.30); it is seen again small in the sky behind Nestor at 33-36 s and 45-48 s"
+  },
+  "perform": {
+   "coverage": 1.0,
+   "dead": 0,
+   "unmotivated_freeze_s": 0,
+   "legality": "0/0/0/0",
+   "grip": "Nestor's hand on the boy's: mean 77 units off (does not meet; as in take 1)"
+  },
+  "captions": [
+   "Athena: Go with him, Telemachus ...",
+   "Nestor: Dear boy, no fear that you prove base or weak ..."
+  ],
+  "sheets": [
+   "scratchpad w/sheets/b03s05-r2-sheet.jpg, b03s05-r2-every.jpg (every 2 s), b03s05-r2-eagle.jpg (24-30 s at 3 fps)"
+  ]
+ },
+ "result": "Kept as take 2. The change reads: Mentor is there, then a brown sea-eagle as big as a man goes up from where he stood beside the boy, the wide holds it climbing over the two men and the heifers, and the next shot is the two faces turned up after it before Nestor turns to the boy. Mentor's closes are near eye level. Loose: in the look-up shot Nestor's hand is at his face (his speech's gesture has begun: he speaks 'Dear boy' while still watching the sky); in the wide the men are small (the frame is sized for the bird's climb); the hand Nestor takes does not meet the boy's; the change itself is still a cut (as the hypothesis said), not a transformation.",
+ "keep": true,
+ "take1": {
+  "stage": "rendered 2026-10-07 (films/odyssey/takes/OD-B03-S05/take1.*), held from publishing",
+  "faults": [
+   "Mentor gone on the cut at 24.6 s and the sea-eagle (0.22 scale) a speck at the frame's top edge for a few drawings: never seen rising, no shot following it",
+   "Mentor's closes at 4-8 s and 13-16 s from over his head (the solver's over-the-crowd elevation, chosen because the eye-level cameras on the line's side were blocked)"
+  ]
+ },
+ "variable_take2": "The eagle's scale 0.5 (odyssey/keyframes/OD-B03-S05.json), its path climbing first (P1 70 units over his head in 1.2 s, then away over the sea), its wingbeat drawings extended to the 4.4-s flight; Nestor and Telemachus hold their places 2.2 s longer (RETIME of their move into K2) and watch it go; the plan: a wide from the sea side that must hold three points of the rise (solve.js need), a low two-shot of the two faces turned up (26.6-28.6 s), and noHigh on every shot but the wide."
 }
