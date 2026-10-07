@@ -298,6 +298,8 @@ async function solve(plan, api) {
       if (s.carrier && (s === prim || sh.size !== 'WIDE')) { const b = s.carrier.box; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push(new V3(x, y, z)); } }
     /* R10 an offer: the giver's hands (what passes) in frame */
     if (sh.offer) { const g = S.find(s => s.id === sh.offer); if (g && g.hands) out.push(...g.hands); }
+    /* a hand plan's `need`: points of the world the frame must also hold (where a prop flies: the sea-eagle's rise at Pylos) */
+    if (sh.need) for (const p of sh.need) out.push(new V3(p[0], p[1], p[2]));
     return out.filter(Boolean);
   }
 
@@ -315,7 +317,7 @@ async function solve(plan, api) {
     const angle = prim.creature && prim.lying ? 'high' : sh.angle;   /* a giant found lying is filmed from above, whatever the plan said */
     const elevs = angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
       : angle === 'high' ? (prim.creature && prim.lying && prim.H < 1.5 * H0 ? [ground + 0.6 * H0, ground + 1.0 * H0, ground + 1.5 * H0] : [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0])   /* a beast no bigger than a man lying down (old Argos on the dung) is looked down on from a man's height, not from the rafters */
-      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, prim.head.y + 1.0 * ph];   /* the last over the heads of a crowd */
+      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, ...(sh.noHigh ? [] : [prim.head.y + 1.0 * ph])];   /* the last over the heads of a crowd (not when a hand plan says noHigh: Mentor's closes at Pylos had been from over his head) */
     /* distances from farther than the lens wants to much nearer: a nearer camera opens its lens to keep what the size needs (up to
        75 degrees), so a small room (a cave) still has cameras inside it */
     for (const k of sh.ks || [1.25, 1, 0.75, 0.55]) for (let a = 0; a < (sh.from ? 48 : 16); a++) for (const y of elevs) {   /* a hand plan's `ks`: the distances (of the size's own) to try; with `from`, bearings every 7.5 degrees */
