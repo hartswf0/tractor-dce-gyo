@@ -20,7 +20,8 @@ module.exports = function author(M, X) {
   const cA = clips.find(c => c.speaker === A) || clips[0], cN = clips.find(c => c.speaker === N) || clips[1];
   const VA = X.voiceOf(cA), VN = X.voiceOf(cN), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id), H = o => { if (o.t1 > o.t0 + 0.2) holds.push(o); };
-  const tGone = q(K('K1a').t), P0 = [62, 95, 138], P1 = [88, 92, 178], P2 = [170, 185, 330], P3 = [300, 320, 520], HEIFER = [0, 30, -20];
+  const tGone = q(K('K1a').t), P0 = [62, 95, 138], P1 = [72, 165, 160], P2 = [125, 255, 260], P3 = [300, 380, 520]   /* take 2: the eagle climbs first, straight up out of where he stood, then away over the sea */, HEIFER = [0, 30, -20];
+  const D = 2.2, W2 = [W('K2')[0] + D, W('K2')[1] + D];   /* take 2: the move into K2 held by D seconds */
   stimuli.push({ id: 'sEve', t0: 0.05, t1: 0.3, kind: 'SCENE', label: 'evening at Pylos: Nestor will not have his guests sleep on the ship', because: [{ id: 'v' + cA.gi, rel: 'realises' }] });
   /* ── Mentor's refusal ── */
   I({ id: 'aSay', actor: A, kind: 'DECLARE', target: N, utterance: cA.gi, t0: q(cA.at - 0.2), t1: q(cA.at + cA.dur), label: 'go with him, Telemachus; I go back to the ship, and at dawn to the Cauconians', params: { shapes: ['open', 'point', 'dismiss', 'chest'], side: 'R', maxBeats: 3, amp: 0.8 }, because: [{ id: 'sEve' }, { id: 'v' + cA.gi, rel: 'realises' }] });
@@ -30,21 +31,23 @@ module.exports = function author(M, X) {
   H({ id: 'hN0', actor: N, t0: 0.3, t1: q(tGone + 0.25), reason: 'the old king hears his guest refuse his house', params: { look: [[A, 3.0], [TE, 1.0], [A, 3.0]], weight: true }, because: [{ id: 'sEve' }] });
   H({ id: 'hT0', actor: TE, t0: 0.3, t1: q(tGone + 0.3), reason: 'Mentor sends him on without him', params: { look: [[A, 2.6], [N, 1.2], [A, 2.4]], weight: true }, because: [{ id: 'sEve' }] });
   /* ── the eagle ── */
-  I({ id: 'aEagle', actor: A, kind: 'FLY', t0: tGone, t1: q(tGone + 3.9), label: 'a sea-eagle rises from where Mentor stood and flies out over the sea',
-    params: { prop: 'seaEagle', from: P0, legs: [{ dt: 0.9, to: P1, arc: 6 }, { dt: 1.5, to: P2, arc: 22 }, { dt: 1.5, to: P3, arc: 18 }], until: K('K2a').t,
-      smear: { prop: 'seaEagleSmear', frames: [2, 3, 6, 7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 46, 47], span: 2 } }, because: [{ id: 'aSay' }] });
+  I({ id: 'aEagle', actor: A, kind: 'FLY', t0: tGone, t1: q(tGone + 4.4), label: 'a sea-eagle rises from where Mentor stood and flies out over the sea',
+    params: { prop: 'seaEagle', from: P0, legs: [{ dt: 1.2, to: P1, arc: 4 }, { dt: 1.4, to: P2, arc: 12 }, { dt: 1.8, to: P3, arc: 14 }], until: K('K2a').t,
+      smear: { prop: 'seaEagleSmear', frames: [...Array(14).keys()].flatMap(n => [4 * n + 2, 4 * n + 3]), span: 2 } }, because: [{ id: 'aSay' }] });
   stimuli.push({ id: 'sEagle', t0: q(tGone + 0.1), t1: q(tGone + 0.6), kind: 'SIGHT', label: 'Mentor is not there: an eagle goes up where he stood', actor: A, because: [{ id: 'aEagle' }] });
   I({ id: 'nStart', actor: N, kind: 'REACT', t0: q(tGone + 0.3), t1: q(tGone + 1.4), label: 'the old man starts back', params: { how: 'startle', lookAt: P1 }, because: [{ id: 'sEagle', latency: 0.3 }] });
   I({ id: 'tStart', actor: TE, kind: 'REACT', t0: q(tGone + 0.25), t1: q(tGone + 1.3), label: 'the boy starts', params: { how: 'startle', lookAt: P1 }, because: [{ id: 'sEagle', latency: 0.25 }] });
-  H({ id: 'hN1', actor: N, t0: q(tGone + 1.45), t1: q(W('K2')[0] - 0.85), reason: 'he follows the bird out over the sea', params: { look: [[P2, 1.2], [P3, 2.0]], weight: true }, because: [{ id: 'nStart' }] });
-  H({ id: 'hT1', actor: TE, t0: q(tGone + 1.35), t1: q(W('K2')[1] + 0.6), reason: 'his eyes on the bird until it is gone', params: { look: [[P2, 1.2], [P3, 3.0]], weight: true, still: true }, because: [{ id: 'tStart' }] });
+  H({ id: 'hN1', actor: N, t0: q(tGone + 1.45), t1: q(W2[0] - 0.1), reason: 'he follows the bird out over the sea', params: { look: [[P2, 1.2], [P3, 2.0]], weight: true }, because: [{ id: 'nStart' }] });
+  H({ id: 'hT1', actor: TE, t0: q(tGone + 1.35), t1: q(W2[1] + 0.6), reason: 'his eyes on the bird until it is gone', params: { look: [[P2, 1.2], [P3, 3.0]], weight: true, still: true }, because: [{ id: 'tStart' }] });
+  /* take 2: the two men watch the bird go before the old king turns to the boy (their move into K2 held by D seconds) */
+  [N, TE].forEach(x => I({ id: 'ret' + x.slice(0, 2), actor: x, kind: 'RETIME', t0: W('K2')[0], t1: W2[1], label: 'they stand and watch the bird out of sight first', params: { key: 'K2', delay: D }, because: [{ id: 'sEagle' }] }));
   /* ── Nestor ── */
-  I({ id: 'nKnow', actor: N, kind: 'DECIDE', t0: q(tGone + 0.45), t1: q(Math.max(tGone + 0.6, W('K2')[0])), label: 'he knows her: the daughter of Zeus', because: [{ id: 'sEagle' }, { id: 'v' + cN.gi, rel: 'realises' }] });
-  I({ id: 'nTurn', actor: N, kind: 'APPROACH', key: 'K2', t0: W('K2')[0], t1: W('K2')[1], target: TE, label: 'turns to the boy and takes his hand', because: [{ id: 'nKnow' }] });
-  I({ id: 'nHand', actor: N, kind: 'GRIP', target: TE, t0: q(W('K2')[1] + 0.1), t1: q(cN.at + 13.0), label: 'the boy\'s hand in the old king\'s', params: { point: 'hand', side: 'R', targetSide: 'R' }, because: [{ id: 'nTurn' }] });
-  I({ id: 'nSay', actor: N, kind: 'DECLARE', target: TE, utterance: cN.gi, t0: q(Math.max(cN.at - 0.2, W('K2')[1] + 0.05)), t1: q(K('K2a').t - 1.0), label: 'no fear you will prove base, when the gods walk with you so young: that was Zeus\'s daughter', params: { shapes: ['open', 'chest', 'point'], side: 'L', maxBeats: 3, amp: 0.8 }, because: [{ id: 'nTurn' }, { id: 'v' + cN.gi, rel: 'realises' }] });
+  I({ id: 'nKnow', actor: N, kind: 'DECIDE', t0: q(tGone + 0.45), t1: q(Math.max(tGone + 0.6, W2[0])), label: 'he knows her: the daughter of Zeus', because: [{ id: 'sEagle' }, { id: 'v' + cN.gi, rel: 'realises' }] });
+  I({ id: 'nTurn', actor: N, kind: 'APPROACH', key: 'K2', t0: W2[0], t1: W2[1], target: TE, label: 'turns to the boy and takes his hand', because: [{ id: 'nKnow' }] });
+  I({ id: 'nHand', actor: N, kind: 'GRIP', target: TE, t0: q(W2[1] + 0.1), t1: q(cN.at + 13.0), label: 'the boy\'s hand in the old king\'s', params: { point: 'hand', side: 'R', targetSide: 'R' }, because: [{ id: 'nTurn' }] });
+  I({ id: 'nSay', actor: N, kind: 'DECLARE', target: TE, utterance: cN.gi, t0: q(Math.max(cN.at - 0.2, W2[1] + 0.05)), t1: q(K('K2a').t - 1.0), label: 'no fear you will prove base, when the gods walk with you so young: that was Zeus\'s daughter', params: { shapes: ['open', 'chest', 'point'], side: 'L', maxBeats: 3, amp: 0.8 }, because: [{ id: 'nTurn' }, { id: 'v' + cN.gi, rel: 'realises' }] });
   const tZeus = q(w(VN, 'zeus', cN.at + 9.0));
-  H({ id: 'tTurn', actor: TE, t0: q(W('K2')[1] + 0.65), t1: q(W('K2a')[0] - 0.1), reason: 'the old king\'s hand on his: the goddess was with him all the way', params: { look: [[N, 2.6], [P3, 0.9], [N, 2.2], [HEIFER, 0.8], [N, 2.4]], weight: true }, because: [{ id: 'nTurn', latency: 0.6 }] });
+  H({ id: 'tTurn', actor: TE, t0: q(W2[1] + 0.65), t1: q(W('K2a')[0] - 0.1), reason: 'the old king\'s hand on his: the goddess was with him all the way', params: { look: [[N, 2.6], [P3, 0.9], [N, 2.2], [HEIFER, 0.8], [N, 2.4]], weight: true }, because: [{ id: 'nTurn', latency: 0.6 }] });
   [q(tZeus + 0.3), q(cN.at + 13.5)].forEach((t, k) => I({ id: 'tNod' + k, actor: TE, kind: 'REACT', t0: t, t1: q(t + 0.9), label: 'he nods: he knows it now', params: { how: 'nod', lookAt: N }, because: [{ id: 'nSay' }] }));
   I({ id: 'tSky', actor: TE, kind: 'REACT', t0: q(tZeus + 1.4), t1: q(tZeus + 2.4), label: '"the daughter of Zeus": he looks up where the bird went', params: { how: 'turn', lookAt: P3 }, because: [{ id: 'nSay' }] });
   const tGrac = q(w(VN, 'gracious', K('K2a').t + 0.4));

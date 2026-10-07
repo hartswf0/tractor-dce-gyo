@@ -245,6 +245,8 @@ async function solve(plan, api) {
     const hq = proj(sh.kind === 'INSERT' ? prim.eye : prim.head); info.headV = +hq[1].toFixed(3);
     /* the face in the upper half; in a wide (the figures small in the set) above the caption */
     if (!(prim.creature && sh.size === 'WIDE') && !(hq[1] <= (sh.size === 'WIDE' ? 0.68 : 0.5))) return { fail: ['L3 face of ' + prim.id + (sh.size === 'WIDE' ? ' under the caption' : ' below the middle')], info };
+    /* a hand plan's `above`: every point the size needs above that height of the frame (the kneel's shins over the caption) */
+    if (sh.above) for (const p of need) { const q = proj(p); if (q[2] < 1 && q[1] > sh.above) return { fail: ['L4 under the caption (above ' + sh.above + ')'], info }; }
     for (const p of need) { const q = proj(p); if (!(q[2] < 1 && q[0] > -0.01 && q[0] < 1.01 && q[1] > -0.01 && q[1] < 1.01)) { info.soft += sh.size === 'WIDE' ? 4 : 2;   /* a wide that cuts its figure is a near frame of his back, not a wide */ if (sh.size !== 'WIDE') return { fail: ['L4 the ' + (sh.size || '').toLowerCase() + ' needs more than the frame'], info }; break; } }
     const ins = inside(pos); if (ins.length) return { fail: ['L1 ' + ins[0]], info };
     { const nc = nearCreature(pos, S, sh.size); if (nc) return { fail: ['L1 ' + nc], info }; }
@@ -296,6 +298,8 @@ async function solve(plan, api) {
       if (s.carrier && (s === prim || sh.size !== 'WIDE')) { const b = s.carrier.box; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push(new V3(x, y, z)); } }
     /* R10 an offer: the giver's hands (what passes) in frame */
     if (sh.offer) { const g = S.find(s => s.id === sh.offer); if (g && g.hands) out.push(...g.hands); }
+    /* a hand plan's `need`: points of the world the frame must also hold (where a prop flies: the sea-eagle's rise at Pylos) */
+    if (sh.need) for (const p of sh.need) out.push(new V3(p[0], p[1], p[2]));
     return out.filter(Boolean);
   }
 
@@ -313,14 +317,14 @@ async function solve(plan, api) {
     const angle = prim.creature && prim.lying ? 'high' : sh.angle;   /* a giant found lying is filmed from above, whatever the plan said */
     const elevs = angle === 'low' ? [ground + 0.22 * H0, ground + 0.45 * H0, ground + 0.8 * H0]
       : angle === 'high' ? (prim.creature && prim.lying && prim.H < 1.5 * H0 ? [ground + 0.6 * H0, ground + 1.0 * H0, ground + 1.5 * H0] : [ground + 1.3 * H0, ground + 2.0 * H0, ground + 2.8 * H0])   /* a beast no bigger than a man lying down (old Argos on the dung) is looked down on from a man's height, not from the rafters */
-      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, prim.head.y + 1.0 * ph];   /* the last over the heads of a crowd */
+      : [prim.head.y + 0.05 * ph, prim.head.y + 0.3 * ph, prim.head.y - 0.12 * ph, ...(sh.noHigh ? [] : [prim.head.y + 1.0 * ph])];   /* the last over the heads of a crowd (not when a hand plan says noHigh: Mentor's closes at Pylos had been from over his head) */
     /* distances from farther than the lens wants to much nearer: a nearer camera opens its lens to keep what the size needs (up to
        75 degrees), so a small room (a cave) still has cameras inside it */
-    for (const k of [1.25, 1, 0.75, 0.55]) for (let a = 0; a < 16; a++) for (const y of elevs) {
+    for (const k of sh.ks || [1.25, 1, 0.75, 0.55]) for (let a = 0; a < (sh.from ? 48 : 16); a++) for (const y of elevs) {   /* a hand plan's `ks`: the distances (of the size's own) to try; with `from`, bearings every 7.5 degrees */
       const az = a / 16 * Math.PI * 2, d = base * k, horiz = Math.sqrt(Math.max(1, d * d - (y - c.y) * (y - c.y)));
       const pos = new V3(c.x + Math.sin(az) * horiz, y, c.z + Math.cos(az) * horiz);
       const half = Math.asin(Math.min(0.97, R * 1.08 / pos.distanceTo(c))), fv = Math.max(fov0, Math.min(75, THREE.MathUtils.radToDeg(2 * half)));
-      out.push({ pos, fov: Math.round(fv), az, k, y, u: 0.5, v });
+      out.push({ pos, fov: Math.round(fv), az, k, y, u: 0.5, v: sh.v || v });   /* a hand plan's `v`: the head that high in the frame */
     }
     /* R10 an offer: the ring about the pair's middle stands as far off as the giant's height asks, which in a cave is beyond its mouth
        or under its floor; so the lens is also tried where the rule puts it, just behind and beside the giver (one to two men back,
@@ -338,6 +342,10 @@ async function solve(plan, api) {
       if (sh.line) q.side = sideOf(q.pos, sh.line);
       if (sh.contact) q.contact = contactPoint(sh, S);
     }
+    /* a hand plan's `from: [x, z]` (and `spread`, degrees, default 50): only bearings from the subjects' middle toward that point (the
+       supplication's kneel from the open side of the thrones, not from behind the king's chair) */
+    if (sh.from) { const fd = new V3(sh.from[0] - c.x, 0, sh.from[1] - c.z).normalize(), lim = Math.cos(THREE.MathUtils.degToRad(sh.spread || 50));
+      return out.filter(q => q.pos.clone().sub(c).setY(0).normalize().dot(fd) >= lim); }
     return out;
   }
   const pointsCache = new Map();
@@ -408,6 +416,11 @@ async function solve(plan, api) {
       for (const c of alive) { const pos = moving ? c.pos.clone().add(Pt.feet.clone().sub(P0.feet)) : c.pos; const r = check({ ...c, pos, contact: sh.contact ? contactPoint(sh, St) : null }, St, sh, lineSide); c.res.push(r); if (!r.fail.length) next.push(c); else worst.push(c); }
       alive = next;
     }
+    /* a camera travelling with a walking man is checked for L1 at every sixth of a second across the shot, not only at its samples:
+       the supplication's two-shot had travelled with the king through a lord's head between its samples (0.4 s of solid yellow) */
+    if (moving && alive.length && P0 && P0.feet) { const lo = Math.min(...ts) - 0.05, hi = Math.max(...ts) + 0.1;
+      for (let t = lo; t <= hi + 1e-6 && alive.length; t += 1 / 6) { key = api.poseAt(t); world(key); const Pt = points(sh.primary, t); if (!Pt || !Pt.feet) continue;
+        alive = alive.filter(c => { const ins = inside(c.pos.clone().add(Pt.feet.clone().sub(P0.feet))); if (!ins.length) return true; c.res.push({ fail: ['L1 travelling: ' + ins[0] + ' at ' + t.toFixed(2) + ' s'], info: { soft: 0 } }); worst.push(c); return false; }); } }
     const kc = cands.find(c => c.key); const keyFate = kc ? (alive.includes(kc) ? 'legal' : (kc.res[kc.res.length - 1].fail[0] || '?')) : null;
     const hist = {}; for (const c of worst) { const f = c.res[c.res.length - 1].fail[0] || '?'; const k = f.replace(/ (of|by) .*/, '').replace(/\d+%/, 'n%'); hist[k] = (hist[k] || 0) + 1; }
     let relaxed = false;
