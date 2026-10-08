@@ -50,8 +50,8 @@
     "id": "K3",
     "t": 22.07,
     "win": [
-     19.05,
-     23.36
+     19.99,
+     22.96
     ]
    },
    {
@@ -66,8 +66,8 @@
     "id": "K5",
     "t": 41.53,
     "win": [
-     40.46,
-     41.99
+     40.55,
+     41.95
     ]
    }
   ],
@@ -76,17 +76,17 @@
    "telemachus"
   ],
   "shots": {
-   "HOT": 4,
-   "REACT": 2,
-   "WIDE": 4,
-   "INSERT": 1
+   "WIDE pinned": 4,
+   "HOT": 3,
+   "INSERT pinned": 3,
+   "REACT": 2
   },
   "cine": {
    "time": {
-    "grid": 3.9,
-    "inside": 0.5,
-    "seen": 13.2,
-    "clutter": 4.7,
+    "grid": 3.6,
+    "inside": 0.3,
+    "seen": 2.6,
+    "clutter": 1.3,
     "pose": 0
    },
    "scene": "OD-B21-S07",
@@ -109,84 +109,59 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 251.6,
+   "solvedIn": 159.5,
    "shots": [
     {
      "i": 0,
      "t0": 0,
      "t1": 5.17,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
-     "eased": null,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "pinned": true,
      "primary": "odysseus",
      "subjects": [
       "odysseus"
      ],
-     "why": {
-      "cut": "the scene opens on the act",
-      "rule": "take 2: the stringing seen from its first drawing (was the opening wide)",
-      "hot": "odysseus"
-     },
-     "line": null,
-     "side": 0,
-     "lineHeld": false,
+     "why": "establish the sill-to-axes line: the archer on the sill, the twelve axes down the spine, the suitors either side, the hearth beyond; the doors open behind the lens",
      "camera": {
       "pos": [
-       -80.5,
-       96.3,
-       130.5
+       -258.26,
+       57.39,
+       -14.35
       ],
-      "fov": 38,
-      "key": false,
-      "az": 3.93,
-      "travelling": false
+      "target": [
+       105.22,
+       26.78,
+       4.78
+      ],
+      "fov": 44,
+      "key": false
      },
      "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L3 the back": 91,
-      "L1 under the set": 8,
-      "L4 an empty frame (n% sky)": 2,
-      "L1 inside the staged prop axes": 15,
-      "L1 near plane in a set part": 1,
-      "L2 body": 4,
-      "L3 face": 32,
-      "L1 too near the face": 42
-     },
-     "candidates": 256,
-     "legalCandidates": 61,
-     "samples": [
-      2.58,
-      0.1,
-      5.07,
-      1.25,
-      3.75
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground"
-     ],
      "failed": [],
-     "facing": 0.8,
-     "headV": 0.339,
-     "clutterFar": 0.04,
      "luma": {
-      "mean": 0.68,
-      "sd": 0.155,
-      "dark": 0.01,
+      "mean": 0.186,
+      "sd": 0.196,
+      "dark": 0.34,
       "white": 0.01,
-      "one": 0.35
+      "one": 0.52
      },
-     "lumaRefused": 0
+     "inFrame": {
+      "odysseus": true,
+      "telemachus": true,
+      "six-suitors-1": true,
+      "six-suitors-2": true,
+      "six-suitors-3": true,
+      "six-suitors-4": true,
+      "six-suitors-5": true,
+      "six-suitors-6": true
+     }
     },
     {
      "i": 1,
      "t0": 5.17,
-     "t1": 10.45,
+     "t1": 9.6,
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
@@ -195,46 +170,43 @@
      "subjects": [
       "odysseus"
      ],
-     "why": {
-      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-      "rule": "R1 the hot spot odysseus (heat 0.98, contrast 0.72): MID by the direction's bias",
-      "heat": 0.98,
-      "contrast": 0.72,
-      "hot": "odysseus"
-     },
      "line": null,
      "side": 0,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -40.1,
-       121.3,
-       113
+       -146.3,
+       46.6,
+       -0.2
       ],
       "fov": 38,
       "key": false,
-      "az": 3.53,
+      "az": 1.57,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 90,
-      "L1 under the set": 8,
-      "L1 inside the staged prop axes": 14,
-      "L1 near plane in a set part": 2,
-      "L4 foreground covers n%": 2,
+      "L2 odysseus hidden": 37,
+      "L3 the back": 33,
+      "L2 body": 4,
+      "L1 near plane in a set part": 17,
+      "L4 foreground covers n%": 18,
+      "L1 near plane in Native glass": 1,
+      "L1 in part construction-frame": 31,
       "L3 face": 32,
-      "L1 too near the face": 42,
-      "L4 an empty frame (n% sky)": 1
+      "L1 too near the face": 26,
+      "L1 in odysseus": 4
      },
      "candidates": 256,
-     "legalCandidates": 65,
+     "legalCandidates": 53,
      "samples": [
-      7.81,
+      7.38,
       5.27,
-      10.35
+      9.5,
+      6.42,
+      8.92
      ],
      "checks": [
       "L1 not inside geometry",
@@ -243,21 +215,68 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.95,
+     "facing": 1,
      "headV": 0.339,
-     "clutterFar": 0.05,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.24,
-      "sd": 0.223,
-      "dark": 0.22,
-      "white": 0.02,
-      "one": 0.75
+      "mean": 0.167,
+      "sd": 0.181,
+      "dark": 0.49,
+      "white": 0,
+      "one": 0.31
      },
      "lumaRefused": 0
     },
     {
      "i": 2,
-     "t0": 10.45,
+     "t0": 9.6,
+     "t1": 13.4,
+     "kind": "INSERT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "pinned": true,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus"
+     ],
+     "why": "hold on the bowstring's sound: the pluck and \"Hear that. It still sings.\"",
+     "camera": {
+      "pos": [
+       -176.96,
+       33.48,
+       -22
+      ],
+      "target": [
+       -204.7,
+       31.57,
+       -0.96
+      ],
+      "fov": 36,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.18,
+      "sd": 0.193,
+      "dark": 0.44,
+      "white": 0,
+      "one": 0.33
+     },
+     "inFrame": {
+      "odysseus": false,
+      "telemachus": false,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": false,
+      "six-suitors-4": false,
+      "six-suitors-5": false,
+      "six-suitors-6": false
+     }
+    },
+    {
+     "i": 3,
+     "t0": 13.4,
      "t1": 15.42,
      "kind": "REACT",
      "size": "MID",
@@ -267,18 +286,8 @@
      "subjects": [
       "six-suitors-1",
       "six-suitors-2",
-      "six-suitors-3",
-      "six-suitors-4",
-      "six-suitors-5",
-      "six-suitors-6"
+      "six-suitors-4"
      ],
-     "why": {
-      "cut": "reaction REACT of six-suitors-1, six-suitors-2, six-suitors-3, six-suitors-4, six-suitors-5, six-suitors-6 to odysseus (sSing) in 0.15 s",
-      "rule": "R3/R7 reaction of six-suitors-1, six-suitors-2, six-suitors-3, six-suitors-4, six-suitors-5, six-suitors-6 to odysseus within 0.15 s, cut on the same side as its cause (the eyelines match)",
-      "heat": 0.73,
-      "contrast": 0.31,
-      "hot": "odysseus"
-     },
      "line": [
       "odysseus",
       "six-suitors-1"
@@ -287,35 +296,36 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -179.7,
-       93.9,
-       537.9
+       -198.4,
+       92.2,
+       -15.9
       ],
       "fov": 38,
       "key": false,
-      "az": 0,
+      "az": 5.11,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 under the set": 38,
-      "L2 six-suitors-1 hidden": 125,
-      "L4 foreground covers n%": 24,
-      "L2 body": 3,
-      "L3 face": 7,
-      "L1 near plane in a set part": 7,
-      "L3 the back": 20,
-      "L1 inside the staged prop axes": 3,
-      "L1 in part construction-frame": 1,
-      "L1 in six-suitors-4": 2
+      "L4 foreground covers n%": 30,
+      "L2 six-suitors-1 hidden": 45,
+      "L1 in six-suitors-6": 2,
+      "L3 the back": 41,
+      "L1 near plane in a set part": 28,
+      "L1 under the set": 51,
+      "L1 in six-suitors-5": 3,
+      "L1 near plane in Native glass": 1,
+      "L1 in odysseus": 2,
+      "L1 in six-suitors-4": 2,
+      "L3 face": 5
      },
      "candidates": 256,
-     "legalCandidates": 26,
+     "legalCandidates": 46,
      "samples": [
-      12.93,
-      10.55,
+      14.41,
+      13.5,
       15.32
      ],
      "checks": [
@@ -326,445 +336,116 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.73,
-     "headV": 0.344,
-     "clutterFar": 0,
+     "facing": 0.96,
+     "headV": 0.353,
+     "clutterFar": 0.01,
      "luma": {
-      "mean": 0.6,
-      "sd": 0.34,
-      "dark": 0.16,
-      "white": 0.21,
-      "one": 0.49
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 3,
-     "t0": 15.42,
-     "t1": 19.05,
-     "kind": "WIDE",
-     "size": "WIDE",
-     "planned": "WIDE",
-     "eased": null,
-     "primary": "telemachus",
-     "subjects": [
-      "telemachus",
-      "odysseus",
-      "six-suitors-6"
-     ],
-     "why": {
-      "cut": "heat moves: odysseus -> six-suitors-6",
-      "rule": "R4 cold: hold wide",
-      "heat": 0.38,
-      "contrast": 0.28,
-      "hot": "telemachus"
-     },
-     "line": null,
-     "side": 0,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       329.3,
-       185.9,
-       250.5
-      ],
-      "fov": 75,
-      "key": false,
-      "az": 0.79,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": "L2 telemachus hidden by a set part",
-     "rejected": {
-      "L2 telemachus hidden": 167,
-      "L4 an empty frame (n% sky)": 6,
-      "L1 under the set": 62,
-      "L2 body": 5,
-      "L4 foreground covers n%": 10
-     },
-     "candidates": 257,
-     "legalCandidates": 7,
-     "samples": [
-      17.23,
-      15.52,
-      18.95
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground"
-     ],
-     "failed": [],
-     "facing": -0.1,
-     "headV": 0.424,
-     "clutterFar": 0.15,
-     "luma": {
-      "mean": 0.332,
-      "sd": 0.314,
-      "dark": 0.22,
-      "white": 0.09,
-      "one": 0.59
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 4,
-     "t0": 19.05,
-     "t1": 23.27,
-     "kind": "REACT",
-     "size": "CLOSE",
-     "planned": "CLOSE",
-     "eased": null,
-     "primary": "six-suitors-1",
-     "subjects": [
-      "six-suitors-1"
-     ],
-     "why": {
-      "cut": "reaction ATTEND of six-suitors-1 to telemachus (tmGo) in 0 s",
-      "rule": "R3/R7 reaction of six-suitors-1 to telemachus within 0 s, cut on the same side as its cause (the eyelines match)",
-      "heat": 1.4,
-      "contrast": 1.08,
-      "hot": "telemachus"
-     },
-     "line": [
-      "telemachus",
-      "six-suitors-1"
-     ],
-     "side": -1,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       -29.6,
-       117.4,
-       78.5
-      ],
-      "fov": 32,
-      "key": false,
-      "az": 1.18,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L2 six-suitors-1 hidden": 14,
-      "L1 near plane in a set part": 16,
-      "L1 inside the staged prop axes": 6,
-      "L3 the back": 75,
-      "L4 foreground covers n%": 10,
-      "L1 too near the face": 85,
-      "L1 in six-suitors-2": 11,
-      "L3 head": 32,
-      "L3 face": 6
-     },
-     "candidates": 256,
-     "legalCandidates": 1,
-     "samples": [
-      21.16,
-      19.15,
-      23.17
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.35,
-     "headV": 0.35,
-     "clutterFar": 0.17,
-     "luma": {
-      "mean": 0.744,
-      "sd": 0.167,
-      "dark": 0,
-      "white": 0.09,
-      "one": 0.52
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 5,
-     "t0": 23.27,
-     "t1": 33.6,
-     "kind": "WIDE",
-     "size": "WIDE",
-     "planned": "WIDE",
-     "eased": null,
-     "primary": "telemachus",
-     "subjects": [
-      "telemachus",
-      "six-suitors-4",
-      "six-suitors-1"
-     ],
-     "why": {
-      "cut": "a line begins (v6)",
-      "rule": "R4 cold: hold wide",
-      "heat": 0.19,
-      "contrast": 0.13,
-      "hot": "telemachus"
-     },
-     "line": null,
-     "side": 0,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       291.2,
-       186.6,
-       -165.7
-      ],
-      "fov": 63,
-      "key": false,
-      "az": 2.36,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": "L3 head of telemachus cut",
-     "rejected": {
-      "L3 head": 1,
-      "L1 under the set": 64,
-      "L2 telemachus hidden": 97,
-      "L4 foreground covers n%": 22,
-      "L1 near plane in a set part": 18,
-      "L2 body": 3,
-      "L1 in six-suitors-6": 1,
-      "L1 inside the staged prop axes": 2,
-      "L1 in six-suitors-2": 3
-     },
-     "candidates": 257,
-     "legalCandidates": 46,
-     "samples": [
-      28.44,
-      23.37,
-      33.5
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground"
-     ],
-     "failed": [],
-     "facing": 0.52,
-     "headV": 0.403,
-     "clutterFar": 0.1,
-     "luma": {
-      "mean": 0.709,
-      "sd": 0.153,
-      "dark": 0.01,
-      "white": 0.04,
-      "one": 0.36
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 6,
-     "t0": 33.6,
-     "t1": 38.33,
-     "kind": "INSERT",
-     "size": "CLOSE",
-     "planned": "CLOSE",
-     "eased": null,
-     "primary": "odysseus",
-     "subjects": [
-      "odysseus"
-     ],
-     "why": {
-      "cut": "a line begins (v7)",
-      "rule": "R6 insert_object \"the arrow through the axes\" at its hottest (36.33 s)",
-      "heat": 1.48,
-      "contrast": 1.29,
-      "hot": "odysseus"
-     },
-     "line": [
-      "six-suitors-1",
-      "odysseus"
-     ],
-     "side": -1,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       0.1,
-       117.5,
-       124.8
-      ],
-      "fov": 32,
-      "key": false,
-      "az": 3.14,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L1 under the set": 26,
-      "L4 foreground covers n%": 22,
-      "L2 odysseus hidden": 8,
-      "L1 inside the staged prop axes": 14,
-      "L1 near plane in a set part": 2,
-      "L1 too near the face": 73,
-      "L3 head": 32,
-      "L1 in telemachus": 12,
-      "L1 in odysseus": 1,
-      "L4 an empty frame (n% sky)": 1
-     },
-     "candidates": 256,
-     "legalCandidates": 65,
-     "samples": [
-      35.97,
-      33.7,
-      38.23
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 1,
-     "headV": 0.429,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.648,
-      "sd": 0.185,
-      "dark": 0.02,
+      "mean": 0.295,
+      "sd": 0.223,
+      "dark": 0.25,
       "white": 0.01,
       "one": 0.39
      },
      "lumaRefused": 0
     },
     {
-     "i": 7,
-     "t0": 38.33,
-     "t1": 41.42,
+     "i": 4,
+     "t0": 15.42,
+     "t1": 19.4,
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "eased": null,
-     "primary": "six-suitors-3",
-     "subjects": [
-      "six-suitors-3",
-      "telemachus",
-      "odysseus"
-     ],
-     "why": {
-      "cut": "heat moves: odysseus -> six-suitors-1",
-      "rule": "R4 cold: hold wide",
-      "heat": 0.37,
-      "contrast": -0.04,
-      "hot": "six-suitors-3"
-     },
-     "line": null,
-     "side": 0,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       270.8,
-       186.6,
-       846.8
-      ],
-      "fov": 46,
-      "key": false,
-      "az": 0.39,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": "L1 under the set",
-     "rejected": {
-      "L1 under the set": 126,
-      "L2 six-suitors-3 hidden": 111,
-      "L4 an empty frame (n% sky)": 6,
-      "L2 body": 2,
-      "L1 in part construction-frame": 3,
-      "L4 foreground covers n%": 4,
-      "L3 face": 1
-     },
-     "candidates": 257,
-     "legalCandidates": 4,
-     "samples": [
-      39.88,
-      38.43,
-      41.32
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground"
-     ],
-     "failed": [],
-     "facing": 1,
-     "headV": 0.43,
-     "clutterFar": 0.01,
-     "luma": {
-      "mean": 0.706,
-      "sd": 0.141,
-      "dark": 0,
-      "white": 0.04,
-      "one": 0.44
-     },
-     "lumaRefused": 0
-    },
-    {
-     "i": 8,
-     "t0": 41.42,
-     "t1": 45,
-     "kind": "WIDE",
-     "size": "WIDE",
-     "planned": "WIDE",
-     "eased": null,
+     "pinned": true,
      "primary": "odysseus",
      "subjects": [
       "odysseus",
-      "telemachus",
-      "six-suitors-3"
+      "telemachus"
      ],
-     "why": {
-      "cut": "heat moves: six-suitors-1 -> odysseus",
-      "rule": "R1 the hot spot odysseus (heat 1.58, contrast 1.52): WIDE by the direction's bias",
-      "heat": 1.58,
-      "contrast": 1.52,
-      "hot": "odysseus"
+     "why": "the reverse on the doors: open on the night porch, then swung shut (17-19 s); the bare pegs on the back wall",
+     "camera": {
+      "pos": [
+       -71.74,
+       54.52,
+       33.48
+      ],
+      "target": [
+       -220,
+       32.52,
+       -4.78
+      ],
+      "fov": 50,
+      "key": false
      },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.386,
+      "sd": 0.283,
+      "dark": 0.23,
+      "white": 0.01,
+      "one": 0.47
+     },
+     "inFrame": {
+      "odysseus": true,
+      "telemachus": false,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": false,
+      "six-suitors-4": false,
+      "six-suitors-5": false,
+      "six-suitors-6": false
+     }
+    },
+    {
+     "i": 5,
+     "t0": 19.4,
+     "t1": 23.27,
+     "kind": "REACT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "six-suitors-2",
+     "subjects": [
+      "six-suitors-2"
+     ],
      "line": [
       "telemachus",
-      "odysseus"
+      "six-suitors-2"
      ],
      "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       218.5,
-       186.6,
-       186.3
+       -73.3,
+       46.3,
+       -26.7
       ],
-      "fov": 75,
+      "fov": 32,
       "key": false,
-      "az": 1.18,
+      "az": 5.5,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "legal",
+     "keyCamera": null,
      "rejected": {
-      "L4 an empty frame (n% sky)": 16,
-      "L2 odysseus hidden": 145,
-      "L4 foreground covers n%": 17,
-      "L1 near plane in a set part": 7
+      "L1 near plane in a set part": 29,
+      "L1 in six-suitors-4": 4,
+      "L3 the back": 37,
+      "L4 foreground covers n%": 4,
+      "L2 six-suitors-2 hidden": 7,
+      "L1 in six-suitors-1": 6,
+      "L1 too near the face": 106,
+      "L3 head": 32
      },
-     "candidates": 257,
-     "legalCandidates": 72,
+     "candidates": 256,
+     "legalCandidates": 31,
      "samples": [
-      43.21,
-      41.52,
-      44.9
+      21.34,
+      19.5,
+      23.17,
+      20.65,
+      21.9
      ],
      "checks": [
       "L1 not inside geometry",
@@ -774,22 +455,164 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": -0.55,
-     "headV": 0.514,
-     "clutterFar": 0.07,
+     "facing": 0.83,
+     "headV": 0.346,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.734,
-      "sd": 0.15,
-      "dark": 0.01,
-      "white": 0.12,
-      "one": 0.39
+      "mean": 0.148,
+      "sd": 0.13,
+      "dark": 0.42,
+      "white": 0,
+      "one": 0.35
      },
      "lumaRefused": 0
     },
     {
+     "i": 6,
+     "t0": 23.27,
+     "t1": 33.45,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "pinned": true,
+     "primary": "telemachus",
+     "subjects": [
+      "telemachus",
+      "odysseus"
+     ],
+     "why": "two men at the threshold, the doors shut behind them, the pegs bare on the wall beside them",
+     "camera": {
+      "pos": [
+       -110,
+       67.43,
+       -35.87
+      ],
+      "target": [
+       -191.3,
+       41.13,
+       52.61
+      ],
+      "fov": 54,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.41,
+      "sd": 0.262,
+      "dark": 0.15,
+      "white": 0,
+      "one": 0.57
+     },
+     "inFrame": {
+      "odysseus": true,
+      "telemachus": true,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": true,
+      "six-suitors-4": false,
+      "six-suitors-5": false,
+      "six-suitors-6": false
+     }
+    },
+    {
+     "i": 7,
+     "t0": 33.45,
+     "t1": 37.2,
+     "kind": "INSERT",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "pinned": true,
+     "primary": "six-suitors-4",
+     "subjects": [
+      "six-suitors-4"
+     ],
+     "why": "cut on the loose (33.42 s) to the line from above its side: the arrow carried through all twelve sockets in nine drawings and out past the last",
+     "camera": {
+      "pos": [
+       -23.91,
+       117.65,
+       -71.74
+      ],
+      "target": [
+       -23.91,
+       31.57,
+       4.78
+      ],
+      "fov": 62,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.246,
+      "sd": 0.198,
+      "dark": 0.28,
+      "white": 0,
+      "one": 0.41
+     },
+     "inFrame": {
+      "odysseus": false,
+      "telemachus": false,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": true,
+      "six-suitors-4": false,
+      "six-suitors-5": true,
+      "six-suitors-6": true
+     }
+    },
+    {
+     "i": 8,
+     "t0": 37.2,
+     "t1": 41.42,
+     "kind": "INSERT",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "pinned": true,
+     "primary": "six-suitors-4",
+     "subjects": [
+      "six-suitors-4"
+     ],
+     "why": "the arrow at rest: through the last socket and out, its bronze point past it",
+     "camera": {
+      "pos": [
+       119.57,
+       45.91,
+       -23.91
+      ],
+      "target": [
+       81.3,
+       33.48,
+       4.78
+      ],
+      "fov": 34,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.331,
+      "sd": 0.189,
+      "dark": 0.08,
+      "white": 0,
+      "one": 0.46
+     },
+     "inFrame": {
+      "odysseus": false,
+      "telemachus": false,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": true,
+      "six-suitors-4": false,
+      "six-suitors-5": true,
+      "six-suitors-6": true
+     }
+    },
+    {
      "i": 9,
-     "t0": 45,
-     "t1": 48.25,
+     "t0": 41.42,
+     "t1": 45,
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
@@ -798,13 +621,6 @@
      "subjects": [
       "odysseus"
      ],
-     "why": {
-      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-      "rule": "R1 the hot spot odysseus (heat 0.6, contrast 0.49): MID by the direction's bias",
-      "heat": 0.6,
-      "contrast": 0.49,
-      "hot": "odysseus"
-     },
      "line": [
       "telemachus",
       "odysseus"
@@ -813,37 +629,39 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -113.5,
-       97.6,
-       127.3
+       -208.8,
+       50.1,
+       56.8
       ],
-      "fov": 38,
+      "fov": 51,
       "key": false,
-      "az": 3.93,
+      "az": 5.89,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 79,
-      "L2 body": 1,
-      "L2 odysseus hidden": 4,
-      "L1 inside the staged prop axes": 17,
-      "L4 foreground covers n%": 7,
-      "L3 face": 27,
-      "L3 head": 15,
-      "L1 near plane in a set part": 1,
-      "L1 in telemachus": 5,
-      "L1 too near the face": 31,
-      "L1 in odysseus": 21
+      "L3 the back": 66,
+      "L2 odysseus hidden": 30,
+      "L2 body": 2,
+      "L4 foreground covers n%": 10,
+      "L1 in part construction-frame": 22,
+      "L1 near plane in a set part": 20,
+      "L3 face": 21,
+      "L1 in telemachus": 7,
+      "L3 head": 18,
+      "L1 too near the face": 36,
+      "L1 in odysseus": 14
      },
      "candidates": 256,
-     "legalCandidates": 48,
+     "legalCandidates": 10,
      "samples": [
-      46.63,
-      45.1,
-      48.15
+      43.21,
+      41.52,
+      44.9,
+      42.67,
+      43.92
      ],
      "checks": [
       "L1 not inside geometry",
@@ -853,22 +671,22 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 1,
-     "headV": 0.342,
+     "facing": 0.91,
+     "headV": 0.344,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.678,
-      "sd": 0.163,
-      "dark": 0.02,
-      "white": 0.03,
-      "one": 0.32
+      "mean": 0.31,
+      "sd": 0.211,
+      "dark": 0.11,
+      "white": 0,
+      "one": 0.46
      },
      "lumaRefused": 0
     },
     {
      "i": 10,
-     "t0": 48.25,
-     "t1": 51.45,
+     "t0": 45,
+     "t1": 48.25,
      "kind": "HOT",
      "size": "CLOSE",
      "planned": "CLOSE",
@@ -877,13 +695,6 @@
      "subjects": [
       "odysseus"
      ],
-     "why": {
-      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-      "rule": "R1 the hot spot odysseus (heat 0.95, contrast 0.89): CLOSE by the direction's bias",
-      "heat": 0.95,
-      "contrast": 0.89,
-      "hot": "odysseus"
-     },
      "line": [
       "telemachus",
       "odysseus"
@@ -892,34 +703,37 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       -156.5,
-       97.6,
-       204.7
+       -214,
+       95.8,
+       46.3
       ],
       "fov": 32,
       "key": false,
-      "az": 4.71,
+      "az": 5.5,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 24,
-      "L5 across the line": 128,
-      "L1 near plane in a set part": 4,
+      "L5 across the line": 112,
+      "L2 odysseus hidden": 27,
+      "L3 the back": 8,
+      "L1 near plane in a set part": 18,
       "L4 foreground covers n%": 3,
-      "L1 in telemachus": 4,
-      "L1 too near the face": 42,
-      "L3 head": 16,
-      "L1 in odysseus": 4
+      "L1 in telemachus": 8,
+      "L1 in part construction-frame": 21,
+      "L1 too near the face": 28,
+      "L3 head": 18,
+      "L1 in odysseus": 1
      },
      "candidates": 256,
-     "legalCandidates": 31,
+     "legalCandidates": 12,
      "samples": [
-      49.85,
-      48.35,
-      51.35
+      46.63,
+      45.1,
+      48.15,
+      47.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -929,20 +743,67 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.62,
-     "headV": 0.346,
-     "clutterFar": 0,
+     "facing": 0.99,
+     "headV": 0.39,
+     "clutterFar": 0.03,
      "luma": {
-      "mean": 0.667,
-      "sd": 0.22,
-      "dark": 0.03,
-      "white": 0.08,
-      "one": 0.34
+      "mean": 0.402,
+      "sd": 0.234,
+      "dark": 0.11,
+      "white": 0,
+      "one": 0.67
      },
      "lumaRefused": 0
+    },
+    {
+     "i": 11,
+     "t0": 48.25,
+     "t1": 51.45,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "pinned": true,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "telemachus"
+     ],
+     "why": "return to the same hall axis, now his: down the line from its far end, the arrow through all twelve, the archer and his son on the sill before the shut doors",
+     "camera": {
+      "pos": [
+       76.52,
+       65.04,
+       11.48
+      ],
+      "target": [
+       -200.87,
+       31.57,
+       0
+      ],
+      "fov": 26,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.351,
+      "sd": 0.268,
+      "dark": 0.23,
+      "white": 0,
+      "one": 0.51
+     },
+     "inFrame": {
+      "odysseus": true,
+      "telemachus": true,
+      "six-suitors-1": false,
+      "six-suitors-2": false,
+      "six-suitors-3": true,
+      "six-suitors-4": false,
+      "six-suitors-5": false,
+      "six-suitors-6": false
+     }
     }
-   ],
-   "carried": "shots 1,2,3,4,5,6,7,8,9,10 carried frame for frame from the take before; shots 0 solved and drawn for this take"
+   ]
   },
   "clips": [
    {
@@ -1004,8 +865,8 @@
  "shots": [
   {
    "t": 0,
-   "shot": "c0:HOT:MID",
-   "kind": "HOT",
+   "shot": "c0:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K1"
   },
   {
@@ -1015,57 +876,63 @@
    "key": "K1"
   },
   {
-   "t": 10.5,
-   "shot": "c2:REACT:MID",
+   "t": 9.667,
+   "shot": "c2:INSERT:CLOSE",
+   "kind": "INSERT",
+   "key": "K1"
+  },
+  {
+   "t": 13.417,
+   "shot": "c3:REACT:MID",
    "kind": "REACT",
    "key": "K2"
   },
   {
    "t": 15.5,
-   "shot": "c3:WIDE:WIDE",
+   "shot": "c4:WIDE:WIDE",
    "kind": "WIDE",
    "key": "K2"
   },
   {
-   "t": 19.083,
-   "shot": "c4:REACT:CLOSE",
+   "t": 19.417,
+   "shot": "c5:REACT:CLOSE",
    "kind": "REACT",
    "key": "K2"
   },
   {
    "t": 23.333,
-   "shot": "c5:WIDE:WIDE",
+   "shot": "c6:WIDE:WIDE",
    "kind": "WIDE",
    "key": "K3"
   },
   {
-   "t": 33.667,
-   "shot": "c6:INSERT:CLOSE",
+   "t": 33.5,
+   "shot": "c7:INSERT:WIDE",
    "kind": "INSERT",
    "key": "K4"
   },
   {
-   "t": 38.333,
-   "shot": "c7:WIDE:WIDE",
-   "kind": "WIDE",
+   "t": 37.25,
+   "shot": "c8:INSERT:CLOSE",
+   "kind": "INSERT",
    "key": "K4"
   },
   {
    "t": 41.5,
-   "shot": "c8:WIDE:WIDE",
-   "kind": "WIDE",
+   "shot": "c9:HOT:MID",
+   "kind": "HOT",
    "key": "K4"
   },
   {
    "t": 45,
-   "shot": "c9:HOT:MID",
+   "shot": "c10:HOT:CLOSE",
    "kind": "HOT",
    "key": "K5"
   },
   {
    "t": 48.25,
-   "shot": "c10:HOT:CLOSE",
-   "kind": "HOT",
+   "shot": "c11:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K5"
   }
  ],
