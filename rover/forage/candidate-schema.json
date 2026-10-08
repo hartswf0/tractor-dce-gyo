@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ROVER Forage Candidate",
+  "type": "object",
+  "required": ["target", "candidate", "source", "decision", "scores", "evidence"],
+  "properties": {
+    "target": {"type": "string"},
+    "candidate": {"type": "string"},
+    "source": {"enum": ["LDRAW_PART", "LDRAW_MODEL", "MOVIEATOR", "ROVER_CACHE", "CUSTOM"]},
+    "decision": {"enum": ["SHORTLIST", "REUSE", "ADAPT", "ASSEMBLE", "REJECT"]},
+    "scores": {
+      "type": "object",
+      "required": ["semantic", "affordance", "silhouette", "camera", "continuity", "reuse", "editCost"],
+      "properties": {
+        "semantic": {"type": "number", "minimum": 0, "maximum": 1},
+        "affordance": {"type": "number", "minimum": 0, "maximum": 1},
+        "silhouette": {"type": "number", "minimum": 0, "maximum": 1},
+        "camera": {"type": "number", "minimum": 0, "maximum": 1},
+        "continuity": {"type": "number", "minimum": 0, "maximum": 1},
+        "reuse": {"type": "number", "minimum": 0, "maximum": 1},
+        "editCost": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "keep": {"type": "array", "items": {"type": "string"}},
+    "mayChange": {"type": "array", "items": {"type": "string"}},
+    "notes": {"type": "string"}
+  }
+}
