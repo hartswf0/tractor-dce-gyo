@@ -410,10 +410,19 @@ function stage(ctx) {
     /* out of the raft's sail and mast: the lens is drawn back along its own axis until it is outside their boxes (with a margin) */
     const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(P.sailMargin ?? 22)); }
     for (let k = 0; k < 60 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
+    /* the sail filling the frame: the lens's own axis meets it near the lens; drawn back along the axis until the sail is far enough to be
+       seen as a sail (60 world units), at most 100 */
+    /* staged props that must not fill the lens either (P.clearProps: names, e.g. Ino's veil): their boxes join the sail's */
+    const extra = []; for (const nm of [].concat(P.clearProps || [])) { const o = ctx.prop && ctx.prop(nm); if (o && o.userData.seaStruck) { o.visible = true; delete o.userData.seaStruck; } if (o && o.visible !== false) extra.push({ o, b: new THREE.Box3().setFromObject(o) }); }
+    const rc = new THREE.Raycaster(), hit = new V3(), raw = boxes.map(b0 => b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3)).concat(extra.map(e => e.b));
+    const nearSail = () => { cam.updateMatrixWorld(); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { rc.setFromCamera({ x: i * 0.8, y: j * 0.8 }, cam); for (const b of raw) if (rc.ray.intersectBox(b, hit) && hit.distanceTo(p) < 60) return true; } return false; };
+    for (let k = 0; k < 20 && raw.length && nearSail(); k++) p.addScaledVector(dir, -5);
+    const strike_ = raw.length && nearSail(); for (const H of rides) if (H.parts && H.parts.sailPiv) H.parts.sailPiv.visible = !strike_;   /* still in the lens after the pull: the sail is struck for that drawing, as a wild wall is */
+    for (const e of extra) { const near = rc.ray.intersectBox(e.b, hit) && hit.distanceTo(p) < 60; if (near && strike_) { e.o.visible = false; e.o.userData.seaStruck = true; } }
     if (boxes.length) { cam.lookAt(aim); cam.updateMatrixWorld(); }
-    /* the sail between the lens and the scene's subject (P.subject, an actor id): the lens is craned over the sail's top and turned on
-       the subject's head, so the sail never stands in front of him */
-    const sj = P.subject || root.__seaSubject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
+    /* the sail between the lens and a named subject (P.subject, an actor id; off by default: a man at the mast has the sail beside him
+       in most set-ups, and this re-aims every shot on him): the lens is craned over the sail's top and turned on his head */
+    const sj = P.subject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
     if (sub && boxes.length) { sub.r.figure.updateMatrixWorld(true); const head = sub.r.headP ? sub.r.headP.getWorldPosition(new V3()) : sub.r.figure.position.clone().add(new V3(0, 40, 0));
       const to = head.clone().sub(p), dist = to.length(), ray = new THREE.Ray(p.clone(), to.clone().normalize()), hit = new V3();
       for (const b0 of boxes) { const b = b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3); if (ray.intersectBox(b, hit) && hit.distanceTo(p) < dist) { const back = to.clone().setY(0).normalize(); p.addScaledVector(back, -Math.max(0, 90 - dist)); p.y = Math.max(p.y, b.max.y + 28);
