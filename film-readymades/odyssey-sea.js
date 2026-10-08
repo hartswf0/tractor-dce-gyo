@@ -34,7 +34,7 @@
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
    sail {at:[x,z], y0, y1, width (studs), stripe} | null, ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
-   hide [labels], ease (s, the seam)} */
+   hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
 const THREE = root.THREE;
@@ -72,6 +72,7 @@ function geo(name) {
     case 'plate1x2': g = merge([[box(19.6, 8, 39.6), 1], [cyl(6, 4, 0, 8, -10, 10), 0.85], [cyl(6, 4, 0, 8, 10, 10), 0.85]]); break;                /* 3023 */
     case 'plate4x6': g = merge([[box(79.6, 8, 119.6), 1]]); break;                                                                                   /* the cloud's plates, seen from under */
     case 'plate2x8': g = merge([[box(39.6, 8, 159.6), 1]]); break;
+    case 'brick1x4': g = merge([[box(19.6, 24, 79.6), 1], [cyl(6, 1.6, 0, 24, -30, 10), 0.86], [cyl(6, 1.6, 0, 24, -10, 10), 0.86], [cyl(6, 1.6, 0, 24, 10, 10), 0.86], [cyl(6, 1.6, 0, 24, 30, 10), 0.86]]); break;
     case 'brick2x4': g = merge([[box(39.6, 24, 79.6), 1]]); break;
     case 'bar': g = merge([[cyl(2, 1, 0, 0, 0, 8), 1]]); break;                                                                                      /* 1 LDU of bar, stretched */
     case 'roundbrick1x1': g = merge([[cyl(9.8, 24, 0, 0, 0, 14), 1], [cyl(6, 4, 0, 24, 0, 12), 0.85]]); break;                                       /* 3062b */
@@ -194,6 +195,8 @@ function stage(ctx) {
         if ((e0 >= 0 && e1 >= 0 && e2 >= 0) || (e0 <= 0 && e1 <= 0 && e2 <= 0)) mark(x, z); } }
     for (let c = 0; c < N; c++) if (cells.k[c] === 0 && cellLand.has(Math.round((cells.x[c] - cx) / U.stud - 0.5) + ',' + Math.round((cells.z[c] - cz) / U.stud - 0.5))) cells.land[c] = 1;
   }
+  /* P.strip: more pieces whose baked water is taken out, their land kept (an island piece of its own, ringed by baked shallows) */
+  for (const pat of [].concat(SP.strip || [])) for (const pm of meshesOf(pat)) filterMesh(pm.mesh, c => !watery(c));
   for (const pat of hideList.concat(SP.hide || [])) for (const pm of meshesOf(pat)) { const m = pm.mesh, v = m.visible; hidden.push(m); restore.push(() => { m.visible = v; }); }
   }
 
@@ -289,6 +292,7 @@ function stage(ctx) {
   const flash = new THREE.HemisphereLight('#e8eeff', '#5a6a8c', 0); flash.userData.kf = true; flash.userData.sea = true; grp.add(flash);
   const lanterns = []; const lampL = new Layer(grp, geo('roundbrick1x1'), basic({ toneMapped: false }), 8), capL = new Layer(grp, geo('round1x1'), std({}), 8), postL = new Layer(grp, geo('bar'), std({ rough: 0.6 }), 8);
   const sailL = new Layer(grp, geo('tile1'), std({ rough: 0.5 }), 900);
+  const isleL = new Layer(grp, geo('brick1x4'), std({ rough: 0.55 }), 1600);
 
   let fog = new THREE.Fog(0x000000, 700, 2600), inited = false, last = null;
   const shipXf = { Q: new Q(), off: new V3(), on: false };
@@ -600,6 +604,22 @@ function stage(ctx) {
         const wp = p.applyQuaternion(X.Q).add(X.off); _Q.copy(X.Q).multiply(new Q().setFromAxisAngle(G.lat, Math.PI / 2));
         sailL.put(wp.x, wp.y, wp.z, s, s, s, _Q, (Math.floor(q / 2) % 2 === 0) ? st : wh); } }
     sailL.end();
+    /* ── an island's own rock (P.isle: {piece, cliff, wall: {color, courses}, skip: [labels]}): the piece's baseplate stood on a skirt of 1x4
+       bricks in running bond from the sea's floor to its underside, so it is land and not a mat on the water, and a wall of bricks along
+       its rim (Aeolia's unbroken bronze, Odyssey X.3-4) where no other piece stands on the edge ── */
+    isleL.begin();
+    for (const IS of [].concat(P.isle || [])) { const pc = pieceOf(IS.piece); if (!pc) continue; const [x0, y0, z0, x1, y1, z1] = pc.box, B = U.brick, L4 = 4 * U.stud;
+      const floorY = bot - 2 * U.plate, cC = col(IS.cliff || 'darkBluishGrey'), wC = IS.wall ? col(IS.wall.color || '#AA7F2E') : null, wN = IS.wall ? (IS.wall.courses ?? 1) : 0;
+      const busy = pieces.filter(q => q.box && q !== pc && !/^(the sea|sea|stage plate|swell.*|splash.*)$/i.test(q.label) && !(IS.skip || []).includes(q.label)).map(q => q.box);
+      const sides = IS.wall && IS.wall.sides ? IS.wall.sides : ['z0', 'z1', 'x0', 'x1'];
+      const edge = (ax, a0, a1, fixed, out, side) => { const n = Math.max(1, Math.round((a1 - a0) / L4)), len = (a1 - a0) / n;
+        let course = 0; for (let y = floorY; y < y0 - 3; y += B, course++) for (let i = 0; i < n + (course & 1); i++) { let u0 = a0 + (i - (course & 1) * 0.5) * len, u1 = u0 + len; u0 = Math.max(a0, u0); u1 = Math.min(a1, u1); if (u1 - u0 < U.stud * 0.9) continue; const m = (u0 + u1) / 2, k = (u1 - u0) / L4, hgt = Math.min(B, y0 - 2.5 - y) / 24;
+          cc.copy(cC).multiplyScalar(0.9 + 0.2 * rnd(i, course, 91)); if (ax === 'x') isleL.put(m, y, fixed - out * U.stud * 0.5, s, hgt, s * k, _Q.setFromAxisAngle(new V3(0, 1, 0), Math.PI / 2), cc); else isleL.put(fixed - out * U.stud * 0.5, y, m, s, hgt, s * k, null, cc); }
+        if (wC && sides.includes(side)) for (let c2 = 0; c2 < wN; c2++) for (let i = 0; i < n + (c2 & 1); i++) { let u0 = a0 + (i - (c2 & 1) * 0.5) * len, u1 = u0 + len; u0 = Math.max(a0, u0); u1 = Math.min(a1, u1); if (u1 - u0 < U.stud * 0.9) continue; const m = (u0 + u1) / 2, k = (u1 - u0) / L4, px = ax === 'x' ? m : fixed - out * U.stud * 0.5, pz = ax === 'x' ? fixed - out * U.stud * 0.5 : m;
+          if (busy.some(b => px > b[0] - U.stud && px < b[3] + U.stud && pz > b[2] - U.stud && pz < b[5] + U.stud && b[4] > y1 - 2)) continue;
+          cc.copy(wC).multiplyScalar(0.92 + 0.12 * rnd(i, c2, 92)); if (ax === 'x') isleL.put(px, y1 + c2 * B, pz, s, 1, s * k, _Q.setFromAxisAngle(new V3(0, 1, 0), Math.PI / 2), cc); else isleL.put(px, y1 + c2 * B, pz, s, 1, s * k, null, cc); } };
+      edge('x', x0, x1, z0, -1, 'z0'); edge('x', x0, x1, z1, 1, 'z1'); edge('z', z0, z1, x0, -1, 'x0'); edge('z', z0, z1, x1, 1, 'x1'); }
+    isleL.end();
     /* ── rain: trans-clear 1x2 tiles smeared along their fall, splashing on the sea ── */
     rainL.begin(); splashL.begin(); const rv = cl01(P.rain);
     if (rv > 0) { const n = Math.round(NR * rv), W_ = 900, fall = 70 * U.stud, wd = (P.dir || 0) * DEG, wx = Math.sin(wd) * (6 + 14 * wind) * U.stud, wz = Math.cos(wd) * (6 + 14 * wind) * U.stud;
