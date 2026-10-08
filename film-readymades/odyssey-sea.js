@@ -324,6 +324,8 @@ function stage(ctx) {
   const _b = new THREE.Box3();
   function ride(t) {
     hideNow(); const tq = onTwos(t);
+    /* staged spray thinned (P.spray: {match: a name pattern of props, scale: [x, y, z]}): the spouts stood as tall as towers of ice */
+    if (P.spray && P.spray.match) { const re = new RegExp('^prop:' + String(P.spray.match).replace(/\*/g, '.*') + '$'), k = P.spray.scale || [0.6, 0.7, 0.6]; ctx.scene.traverse(o => { if (!re.test(o.name || '')) return; const u = o.userData; if (!u.seaS0 || (u.seaSet && !o.scale.equals(u.seaSet))) u.seaS0 = o.scale.clone(); o.scale.set(u.seaS0.x * k[0], u.seaS0.y * k[1], u.seaS0.z * k[2]); u.seaSet = o.scale.clone(); }); }
     if (P.hideCast && ctx.cast) { const res = [].concat(P.hideCast).map(p => new RegExp('^' + String(p).replace(/\*/g, '.*') + '$', 'i')); for (const A of ctx.cast()) if (res.some(r => r.test(A.id))) A.r.figure.visible = false; }
     for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && !H.o.parent) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
       /* re-staged since the last drawing (a key's props): the staged place is the new rest */
@@ -385,19 +387,30 @@ function stage(ctx) {
     const tq = onTwos(t), wind = cl01(P.wind); let gk = 0; for (const g of [].concat(P.gust == null ? [] : P.gust)) { const d = tq - g; if (d >= 0 && d < 5) gk = Math.max(gk, Math.exp(-d * 0.9) * (d < 0.3 ? d / 0.3 : 1)); }
     /* the sail: swung off the wind and leaning, its shake on twos; the gust throws it hard over */
     S.sailPiv.rotation.set((0.04 + 0.08 * wind) * Math.sin(tq * 1.9) + 0.45 * gk, 0.08 * wind * Math.sin(tq * 0.7) + 0.4 * gk * Math.sin(tq * 9), 0, 'YXZ');   /* small off the gust: the cameras were solved round the sail where it hangs */
+    /* the mast's top breaks in the great wave (P.mastBreak: {at}; Homer V.315-318: the yard and the sail fall far off into the sea):
+       the sail and its yard go over, drop into the swell and are gone two seconds later */
+    S.sailPiv.position.y = S.sailY0 ?? (S.sailY0 = S.sailPiv.position.y); S.sailGone = false;
+    const mb = P.mastBreak && P.mastBreak.at != null ? tq - P.mastBreak.at : -1;
+    if (mb >= 0) { const a = Math.min(mb, 2.2); S.sailPiv.rotation.z = Math.min(1.5, a * 2.2); S.sailPiv.position.y = S.sailY0 + Math.min(220, a * a * 90); S.sailPiv.position.x = Math.min(90, a * 40); S.sailGone = mb > 2.0; }
+    S.sailPiv.visible = !S.sailGone;
     const br = P.break && P.break.at != null ? tq - P.break.at : -1;
     S.mesh.position.copy(S.m0.p); S.mesh.quaternion.copy(S.m0.q);
     for (const L of S.logs) { L.m.position.set(0, 0, 0); L.m.rotation.set(0, 0, 0); }
     if (br >= 0) { const a = Math.min(br, 6);
       /* the mast and the steering oar go over and down; the sail goes with the mast; the logs part, turning, riding the swell */
       const fall = new Q().setFromAxisAngle(new V3(0, 0, 1), Math.min(1.35, a * 0.9)); S.mesh.quaternion.copy(S.m0.q).multiply(fall); S.mesh.position.copy(S.m0.p).add(new V3(0, -Math.min(3, a) * 8 * s, 0));
-      S.sailPiv.rotation.z = Math.min(1.35, a * 0.9); S.sailPiv.position.y = Math.min(3, a) * -1;
+      if (mb < 0) { S.sailPiv.rotation.z = Math.min(1.35, a * 0.9); S.sailPiv.position.y = S.sailY0 - Math.min(3, a); }
       for (const L of S.logs) { const d = L.k - 3; L.m.position.set(d * 14 * a + (rnd(L.k, 81) - 0.5) * 20 * a, Math.sin(tq * 2.3 + L.k) * 4 + a * 2, (rnd(L.k, 82) - 0.5) * 30 * a); L.m.rotation.set((rnd(L.k, 83) - 0.5) * 0.3 * a, (rnd(L.k, 84) - 0.5) * 0.5 * a, (rnd(L.k, 85) - 0.5) * 0.25 * a); } }
   }
   /* the camera kept out of the water, and lowered in the named windows (P.lowCam: [{t0, t1}, ...]) to just over the swell, still on
      what it framed, so a breaking crest crosses the silhouette */
   function cameraAt(t) {
     if (root.__seaNoCam) return;   /* a dev switch: the take's own camera, untouched */
+    /* a camera path of the key's own (P.camPath: [{t, pos, target, fov}] on the take's clock, eased between its points): the shot the
+       scene asks for where the solved plan has none (the steering wide on the stars); the swell's floor still applies after */
+    const CP = [].concat(P.camPath || []).filter(k => k && typeof k === 'object' && k.pos); if (CP.length > 1 && onTwos(t) >= CP[0].t && onTwos(t) < CP[CP.length - 1].t) { const tt = onTwos(t); let i = 0; while (i < CP.length - 2 && tt >= CP[i + 1].t) i++;
+      const A = CP[i], B = CP[i + 1], u = sm((tt - A.t) / Math.max(1e-3, B.t - A.t)), L3 = (a, b) => new V3(lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u));
+      ctx.camera.position.copy(L3(A.pos, B.pos)); ctx.camera.up.set(0, 1, 0); ctx.camera.lookAt(L3(A.target, B.target)); const fv = lerp(A.fov || ctx.camera.fov, B.fov || A.fov || ctx.camera.fov, u); if (Math.abs(fv - ctx.camera.fov) > 1e-3) { ctx.camera.fov = fv; ctx.camera.updateProjectionMatrix(); } }
     const cam = ctx.camera, tq = onTwos(t); cam.updateMatrixWorld(); const p = cam.position, dir = cam.getWorldDirection(new V3());
     const X = hullXf(), focus = X && X.G ? X.G.c.clone().applyQuaternion(X.Q).add(X.off) : null, D = focus ? Math.max(40, p.distanceTo(focus)) : 200, aim = p.clone().addScaledVector(dir, D);
     let w = 0; for (const W_ of [].concat(P.lowCam || [])) { if (!W_ || typeof W_ !== 'object') continue; const a = W_.t0, b = W_.t1; w = Math.max(w, sm((tq - a) / 0.5) * (1 - sm((tq - (b - 0.5)) / 0.5))); }
@@ -408,12 +421,21 @@ function stage(ctx) {
     const floor = along(72) + (P.camMargin ?? 3) * U.plate; let y = p.y; if (w > 0) y = lerp(y, top(p.x, p.z) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? along(20) + 1.5 * U.plate : floor);
     if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
     /* out of the raft's sail and mast: the lens is drawn back along its own axis until it is outside their boxes (with a margin) */
-    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(P.sailMargin ?? 22)); }
+    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox && !H.parts.sailGone) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(P.sailMargin ?? 22)); }
     for (let k = 0; k < 60 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
+    /* the sail filling the frame: the lens's own axis meets it near the lens; drawn back along the axis until the sail is far enough to be
+       seen as a sail (60 world units), at most 100 */
+    /* staged props that must not fill the lens either (P.clearProps: names, e.g. Ino's veil): their boxes join the sail's */
+    const extra = []; for (const nm of [].concat(P.clearProps || [])) { const o = ctx.prop && ctx.prop(nm); if (o && o.userData.seaStruck) { o.visible = true; delete o.userData.seaStruck; } if (o && o.visible !== false) extra.push({ o, b: new THREE.Box3().setFromObject(o) }); }
+    const rc = new THREE.Raycaster(), hit = new V3(), raw = boxes.map(b0 => b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3)).concat(extra.map(e => e.b));
+    const nearSail = () => { cam.updateMatrixWorld(); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { rc.setFromCamera({ x: i * 0.8, y: j * 0.8 }, cam); for (const b of raw) if (rc.ray.intersectBox(b, hit) && hit.distanceTo(p) < 60) return true; } return false; };
+    for (let k = 0; k < 20 && raw.length && nearSail(); k++) p.addScaledVector(dir, -5);
+    const strike_ = raw.length && nearSail(); for (const H of rides) if (H.parts && H.parts.sailPiv) H.parts.sailPiv.visible = !strike_ && !H.parts.sailGone;   /* still in the lens after the pull: the sail is struck for that drawing, as a wild wall is */
+    for (const e of extra) { const near = rc.ray.intersectBox(e.b, hit) && hit.distanceTo(p) < 60; if (near && strike_) { e.o.visible = false; e.o.userData.seaStruck = true; } }
     if (boxes.length) { cam.lookAt(aim); cam.updateMatrixWorld(); }
-    /* the sail between the lens and the scene's subject (P.subject, an actor id): the lens is craned over the sail's top and turned on
-       the subject's head, so the sail never stands in front of him */
-    const sj = P.subject || root.__seaSubject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
+    /* the sail between the lens and a named subject (P.subject, an actor id; off by default: a man at the mast has the sail beside him
+       in most set-ups, and this re-aims every shot on him): the lens is craned over the sail's top and turned on his head */
+    const sj = P.subject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
     if (sub && boxes.length) { sub.r.figure.updateMatrixWorld(true); const head = sub.r.headP ? sub.r.headP.getWorldPosition(new V3()) : sub.r.figure.position.clone().add(new V3(0, 40, 0));
       const to = head.clone().sub(p), dist = to.length(), ray = new THREE.Ray(p.clone(), to.clone().normalize()), hit = new V3();
       for (const b0 of boxes) { const b = b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3); if (ray.intersectBox(b, hit) && hit.distanceTo(p) < dist) { const back = to.clone().setY(0).normalize(); p.addScaledVector(back, -Math.max(0, 90 - dist)); p.y = Math.max(p.y, b.max.y + 28);
@@ -469,7 +491,9 @@ function stage(ctx) {
     /* LDraw's edge lines are drawn unlit: at night they glow round every brick (the clear spray pieces read as white wireframes), so
        they are dimmed with the light (as odyssey-light.js does in the hall) */
     const ek = lerp(1, P.edges ?? 0.18, Math.max(night, storm));
-    if (Math.abs(ek - (last && last.edges != null ? last.edges : 1)) > 1e-3 || !(F % 12)) ctx.scene.traverse(o => { if (!(o.isLine || o.isLineSegments) || !o.material) return; for (const m of [].concat(o.material)) { if (!m.color) continue; if (!m.userData.seaC0) m.userData.seaC0 = m.color.clone(); m.color.copy(m.userData.seaC0).multiplyScalar(ek); } });
+    if (Math.abs(ek - (last && last.edges != null ? last.edges : 1)) > 1e-3 || !(F % 12)) ctx.scene.traverse(o => { if (!(o.isLine || o.isLineSegments) || !o.material) return;
+      /* on clear pieces (spray, spouts, glass) the edges go entirely at night: an outlined clear brick reads as a wireframe */
+      if (P.clearEdges !== false && ek < 0.99 && o.parent && o.parent.children.some(m => m.isMesh && [].concat(m.material).some(x => x && x.transparent))) { o.visible = false; o.userData.seaHid = true; return; } else if (o.userData.seaHid) { o.visible = true; delete o.userData.seaHid; } for (const m of [].concat(o.material)) { if (!m.color) continue; if (!m.userData.seaC0) m.userData.seaC0 = m.color.clone(); m.color.copy(m.userData.seaC0).multiplyScalar(ek); } });
     ctx.scene.traverse(o => { if (!o.isLight || o.userData.sea) return; const u = o.userData; if (u.seaSet == null || Math.abs(o.intensity - u.seaSet) > 1e-6) u.seaBase = o.intensity; u.seaSet = u.seaBase * dim; o.intensity = u.seaSet; });
     /* the moon: a dish far off, its light cool; the light whose path the sea throws back (the moon by night, the sun by day) */
     const mo = P.moon === false ? null : Object.assign({ az: 200, el: 18, size: 7 }, P.moon || {}), md = mo ? new V3(Math.sin(mo.az * DEG) * Math.cos(mo.el * DEG), Math.sin(mo.el * DEG), -Math.cos(mo.az * DEG) * Math.cos(mo.el * DEG)) : null;

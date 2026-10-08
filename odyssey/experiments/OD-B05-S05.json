@@ -1,0 +1,84 @@
+{
+ "scene": "OD-B05-S05",
+ "title": "Poseidon's Storm (Proof 01: the raft and the horizon)",
+ "take": 2,
+ "part": "The sea kit (film-readymades/odyssey-sea.js) applied to a real scene; the Metis fieldbook's Proof 01",
+ "hypothesis": "The storm reads as a sea that acts, and as LEGO, if the water is a stepped brick ocean to the horizon instead of a patterned floor, the raft rides it, the night is a sky the steersman reads (a fixed brick Plough on his left), the wind's arrival is one cue for deck, sail and body, and the raft breaks at one named moment.",
+ "variable": "look.sea on the keys (K1 calm night with the Plough, the Pleiades and a moon; K2 the storm on one clock with the gust at 17.3 s; K3-K4 storm: swell x3, rain of trans-clear 1x2 tiles smeared, one-drawing lightning, dark plate clouds, the mast's top breaking at 23.4 s, the lens lowered at the great wave; the break at 36.3 s; K5 dawn). The baked checkerboard sea, swells and stage plate taken out at the first drawing; the raft prop driven by the sheet's ship rig with the kit's channels; the figures set on the deck; hands held on the mast until the named releases; a steering wide as a key camera path (0-6 s); Ino's veil at half its size; the spouts thinned. Same performance sheet, voice, cut and shot plan.",
+ "held": [
+  "odyssey/score/OD-B05-S05.choreo.json and tools/cinematographer/plans/OD-B05-S05.json",
+  "the voice and the Regulars' Cut",
+  "the cast and props"
+ ],
+ "metrics_before": {
+  "void_sky_drawings": 0.483,
+  "sea_motion_mean_abs_diff": 8.65,
+  "sky_detail": 0.718,
+  "take": "take 1 (films/odyssey/takes/OD-B05-S05/take1.mp4)",
+  "frame_seconds": 3.74,
+  "frame_note": "mean of eight stills (3, 9, 14, 20, 26, 33, 40, 45 s) by tools/export-odyssey.js --stills with the sheet, before the kit"
+ },
+ "metrics_after": {
+  "void_sky_drawings": 0.379,
+  "sea_motion_mean_abs_diff": 9.55,
+  "sky_detail": 0.368,
+  "shots": 8,
+  "shots_legal": 5,
+  "seconds": 47.25,
+  "frame_seconds": 3.69,
+  "frame_seconds_render": 3.3,
+  "frame_note": "the same eight stills with the kit 3.69 s (apply 7-70 ms of it); the full render of take 2 ran 3.3 s a drawing (34 min for 567 drawings and 2.5 min of prepare)"
+ },
+ "metric_notes": "void_sky_drawings: the share of drawings whose top third is mostly darker than luma 14; a starry night sky counts as dark although it is drawn (stars, the Plough, the moon, clouds), so it falls only from 0.48 to 0.38. sea_motion: mean absolute difference of the frame's lower half between drawings (cuts and camera moves included), 8.65 to 9.55.",
+ "checks": [
+  {
+   "test": "calm stars: one named constellation (the Plough) readable as a fixed brick pattern, held before the clouds",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/plough-still.jpg, close-stars.jpg, close-plough.jpg",
+   "note": "the Plough's seven stars as large clear round plates and its bowl and handle laid in small ones, the field stars kept off it, at bearing -88 deg on his left; the steering wide (0-6 s) shows raft, man, horizon and the Plough; in the mid that follows his head covers part of the bowl; it is covered by the clouds from about 13 s"
+  },
+  {
+   "test": "wind arrival: sail, deck and body answer the same gust cue",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-gust.jpg",
+   "note": "sGust 17.3 s, in the wide: the raft heels and rights itself (a damped swing, 9 deg), the sail is thrown over and back, the rider tilts with the deck; the wind steps 0.35 to 1 with it (rain slant, wave speed)"
+  },
+  {
+   "test": "loss of the raft: logs come away only at the named break, the log construction kept",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-break.jpg",
+   "note": "the raft's own seven logs are cut from its mesh and held in place until sBreak 36.3 s, then part, turn and ride the swell while the mast and steering oar go over and down"
+  },
+  {
+   "test": "continuity: horizon and moon do not jump across cuts; the sky darkens and storms on one clock",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/cuts.jpg, contact.jpg",
+   "note": "the moon, stars and constellations are fixed bearings in the world, drawn about the lens; night, storm and dawn are eased tracks on the take's clock (storm 0 to 1 over 6 s from 11.65 s; dawn over 4 s from 37.33 s); no black void, no pale-blue frame (the lightning flash is a cold one-drawing blue-grey)"
+  },
+  {
+   "test": "contact: his hands stay on the raft's support until the named release",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/close-hold.jpg, plough-still.jpg",
+   "note": "a searched shoulder pitch and swing puts the hand on the mast; residual under 1 world unit from 4 to 13 s (5.6 at 2 s) in the dev harness; releases sGust/sThrown 23.5 s and sVeil 34.9 s; between 27.6 and 34.9 s the deck hold is reached only when he crouches near it (residuals 15-55 units in the dev check before the body step); the figures are set on the deck every drawing until the break"
+  },
+  {
+   "test": "camera lowered as a wave breaks the silhouette",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-wave.jpg",
+   "note": "lowCam 22.9-24.6 s: the lens drops to eight plates over the swell under it, the great wave's stepped crest crosses him"
+  },
+  {
+   "test": "camera never inside geometry (sea tiles, the sail, the veil)",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/contact.jpg",
+   "note": "the lens is kept 3 plates over the tile tops along its first 72 units, out of the sail's box by 22 units and pulled back (or the sail or veil struck for a drawing) when either fills the frame; the sail goes into the sea with the mast's top at 23.4 s. Still: some frames near 21-25 s show the sail large in a corner; one frame at about 37.9 s is empty water as the cut lands on the swimmer's place"
+  },
+  {
+   "test": "light: blue night fill with faces readable, no flattening to daylight",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-hold.jpg",
+   "note": "cool moon light and a blue hemisphere fill, the day's lights dimmed 90% at night, edge lines dimmed (off on clear pieces)"
+  }
+ ],
+ "result": "Published as take 2 (r6 of the render: r3 whole, then spans drawn again and seeded: r4 33-37.5 s, r5 0-6 s and 11.5-38.3 s, r6 32.5-38 s). The sea reads as stepped LEGO water to a horizon, the raft rides it with Odysseus on its deck, the night has stars, the Plough and a moon, the storm comes on one clock, the mast's top and sail go in the great wave, the raft's logs part at the break, dawn comes on the north wind. Loose: three of the eight solved shots fail their own legality now (the plan was solved before the kit lifted the raft and its rider by three plates: 'head cut', 'back of the head', 'face below the middle'); the Plough is partly behind his head in the mid after the wide; the deck hold from 27.6 s is not always reached; the sail is large in some frames before it breaks; one frame of empty water at the K5 seam (37.33 s), where the blocking moves him to the swim."
+}

@@ -1,0 +1,100 @@
+{
+ "scene": "OD-B05-S05",
+ "turns": [
+  "OD-B05-S05-T01 (0.6-11.6 s: seventeen days by the stars)",
+  "OD-B05-S05-T02 (11.65-21.6: Poseidon sees him, the storm)",
+  "OD-B05-S05-T03 (21.66-26.4: the raft rolls)",
+  "OD-B05-S05-T04 (26.43-32.8: swept away, regains it)",
+  "OD-B05-S05-T05 (32.84-37.3: abandon the raft and swim)",
+  "OD-B05-S05-T06 (37.33-47.05: Athena stills the winds but the north)"
+ ],
+ "assembly": "location.odyssey-od-b05-s05 (the forage set; its checkerboard sea, swells and stage plate taken out by the sea kit at the first drawing) + film-readymades/odyssey-sea.js @ 12118d79, keyed in odyssey/keyframes/OD-B05-S05.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "poseidon"
+  },
+  {
+   "id": "ino-leucothea"
+  }
+ ],
+ "cause": "Poseidon's trident (the sheet's iTrident, 13.75 s) gathers the storm; its wind reaches the raft as one gust (sGust, 17.3 s); the great wave (the sheet's impulse, 23.2 s) breaks the mast's top (23.4 s) and throws him off (sThrown, 23.5 s); he regains the raft and holds the deck until he lets go to take Ino's veil (sVeil, 34.9 s); the raft's logs part (sBreak, 36.3 s); Athena stills the winds but the north (K5, night to dawn over 4 s)",
+ "contacts": [
+  "hand-mast (R, 0-17.3 s; both, 17.3-23.5 s)",
+  "hand-deck (both, 27.6-34.9 s)",
+  "feet-deck (the figures on the raft set on its logs' top every drawing until the break)",
+  "raft-water (heave, pitch, roll from the swell under bow, stern, port and starboard)"
+ ],
+ "clock": "the Regulars' Cut on the recording's segments (cut clock, 47.25 s); cues on that clock: gust 17.3, mastBreak 23.4, lowCam 22.9-24.6, release sThrown 23.5, sVeil 34.9, break 36.3",
+ "world": {
+  "sea": "look:night-at-sea (odyssey/metis/looks/night-at-sea.json) then storm 0->1 over 6 s from 11.65 s, swell x3, then dawn",
+  "sky": "the Plough (the Bear) at bearing -88 deg, 15 deg up, on the steersman's left; the Pleiades at -125 deg; the moon at -152 deg, 9 deg up; fixed in the world across every cut",
+  "course": "east, the Bear on his left hand (Homer V.276-277)"
+ },
+ "camera": [
+  "the steering wide on the stars (raft, man, horizon, the Plough), then closer (camPath 0-6.08 s)",
+  "the solved plan's shots (tools/cinematographer/plans/OD-B05-S05.json)",
+  "the lens lowered to the swell as the great wave crosses him (22.9-24.6 s)",
+  "kept over the tile tops along its first 72 world units and out of the sail's and the veil's boxes"
+ ],
+ "look": "looks/night-at-sea.json; practicals: the kit's moon light and blue night fill, a cold one-drawing lightning flash",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "calm stars: one named constellation (the Plough) readable as a fixed brick pattern, held before the clouds",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/plough-still.jpg, close-stars.jpg, close-plough.jpg",
+   "note": "the Plough's seven stars as large clear round plates and its bowl and handle laid in small ones, the field stars kept off it, at bearing -88 deg on his left; the steering wide (0-6 s) shows raft, man, horizon and the Plough; in the mid that follows his head covers part of the bowl; it is covered by the clouds from about 13 s"
+  },
+  {
+   "test": "wind arrival: sail, deck and body answer the same gust cue",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-gust.jpg",
+   "note": "sGust 17.3 s, in the wide: the raft heels and rights itself (a damped swing, 9 deg), the sail is thrown over and back, the rider tilts with the deck; the wind steps 0.35 to 1 with it (rain slant, wave speed)"
+  },
+  {
+   "test": "loss of the raft: logs come away only at the named break, the log construction kept",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-break.jpg",
+   "note": "the raft's own seven logs are cut from its mesh and held in place until sBreak 36.3 s, then part, turn and ride the swell while the mast and steering oar go over and down"
+  },
+  {
+   "test": "continuity: horizon and moon do not jump across cuts; the sky darkens and storms on one clock",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/cuts.jpg, contact.jpg",
+   "note": "the moon, stars and constellations are fixed bearings in the world, drawn about the lens; night, storm and dawn are eased tracks on the take's clock (storm 0 to 1 over 6 s from 11.65 s; dawn over 4 s from 37.33 s); no black void, no pale-blue frame (the lightning flash is a cold one-drawing blue-grey)"
+  },
+  {
+   "test": "contact: his hands stay on the raft's support until the named release",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/close-hold.jpg, plough-still.jpg",
+   "note": "a searched shoulder pitch and swing puts the hand on the mast; residual under 1 world unit from 4 to 13 s (5.6 at 2 s) in the dev harness; releases sGust/sThrown 23.5 s and sVeil 34.9 s; between 27.6 and 34.9 s the deck hold is reached only when he crouches near it (residuals 15-55 units in the dev check before the body step); the figures are set on the deck every drawing until the break"
+  },
+  {
+   "test": "camera lowered as a wave breaks the silhouette",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-wave.jpg",
+   "note": "lowCam 22.9-24.6 s: the lens drops to eight plates over the swell under it, the great wave's stepped crest crosses him"
+  },
+  {
+   "test": "camera never inside geometry (sea tiles, the sail, the veil)",
+   "passed": "partly",
+   "evidence": "evidence/OD-B05-S05/contact.jpg",
+   "note": "the lens is kept 3 plates over the tile tops along its first 72 units, out of the sail's box by 22 units and pulled back (or the sail or veil struck for a drawing) when either fills the frame; the sail goes into the sea with the mast's top at 23.4 s. Still: some frames near 21-25 s show the sail large in a corner; one frame at about 37.9 s is empty water as the cut lands on the swimmer's place"
+  },
+  {
+   "test": "light: blue night fill with faces readable, no flattening to daylight",
+   "passed": true,
+   "evidence": "evidence/OD-B05-S05/close-hold.jpg",
+   "note": "cool moon light and a blue hemisphere fill, the day's lights dimmed 90% at night, edge lines dimmed (off on clear pieces)"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B05-S05-performed.mp4 (take 2, r5; take 1 kept in films/odyssey/takes/OD-B05-S05/)",
+  "renderer": "tools/export-odyssey.js @ 12118d79 (--mode cut --fps 12 --choreo odyssey/score/OD-B05-S05.choreo.json)",
+  "outcome": "take 2 published (films/odyssey/OD-B05-S05-performed.mp4, 47.25 s at 12 fps); passes: wind arrival, loss of the raft, continuity, the lowered camera, light; partly: the Plough (partly behind his head after the wide), the hands (the mast hold reached, the deck hold not always), the lens (the sail large in some frames before the mast breaks)"
+ }
+}
