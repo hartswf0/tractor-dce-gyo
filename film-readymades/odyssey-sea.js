@@ -33,7 +33,7 @@
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
-   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
+   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
@@ -292,6 +292,8 @@ function stage(ctx) {
   const flash = new THREE.HemisphereLight('#e8eeff', '#5a6a8c', 0); flash.userData.kf = true; flash.userData.sea = true; grp.add(flash);
   const lanterns = []; const lampL = new Layer(grp, geo('roundbrick1x1'), basic({ toneMapped: false }), 8), capL = new Layer(grp, geo('round1x1'), std({}), 8), postL = new Layer(grp, geo('bar'), std({ rough: 0.6 }), 8);
   const sailL = new Layer(grp, geo('tile1'), std({ rough: 0.5 }), 900);
+  const benchAt = new Map();   /* each bench in the first hull's frame, taken where its rower first sits */
+  const benchL = new Layer(grp, geo('brick1x4'), std({ rough: 0.6 }), 64);
   const whirlL = new Layer(grp, geo('tile1'), std({ rough: 0.25 }), 900);
   const isleL = new Layer(grp, geo('brick1x4'), std({ rough: 0.55 }), 1600);
 
@@ -624,6 +626,18 @@ function stage(ctx) {
     /* ── an island's own rock (P.isle: {piece, cliff, wall: {color, courses}, skip: [labels]}): the piece's baseplate stood on a skirt of 1x4
        bricks in running bond from the sea's floor to its underside, so it is land and not a mat on the water, and a wall of bricks along
        its rim (Aeolia's unbroken bronze, Odyssey X.3-4) where no other piece stands on the edge ── */
+    /* ── thwarts (P.benches: [{actor, len (studs), drop (world units from the hip pivot to the seat's top), back, color}]): a brick
+       under each seated rower's hips, set in the hull's frame, so a man sits on a bench and not on (or in) the deck ── */
+    benchL.begin();
+    if (X && ctx.cast) { const up = new V3(0, 1, 0).applyQuaternion(X.Q), list = [].concat(P.benches || []), cast = list.length ? ctx.cast() : [];
+      const qi = X.Q.clone().invert();
+      for (const b of list) { let L = benchAt.get(b.actor); const A = cast.find(a => a.id === b.actor);
+        if (!L && A && A.r.sat && A.r.legRP && A.r.figure.visible !== false && !A.r.absent) { const hip = A.r.legRP.getWorldPosition(new V3()), fq = A.r.figure.getWorldQuaternion(new Q()), fwd = new V3(0, 0, 1).applyQuaternion(fq).projectOnPlane(up).normalize();
+          const hgt = b.h ?? 40, top = hip.clone().addScaledVector(up, -(b.drop ?? 10)).addScaledVector(fwd, -(b.back ?? 3)), bot0 = top.clone().addScaledVector(up, -hgt);
+          const side = new V3().crossVectors(up, fwd).normalize(), xa = new V3().crossVectors(up, side).normalize(), qb = new Q().setFromRotationMatrix(new M4().makeBasis(xa, up, side));
+          L = { p: bot0.sub(X.off).applyQuaternion(qi), q: qi.clone().multiply(qb), hgt, len: b.len ?? 2, c: col(b.color || 'reddishBrown') }; benchAt.set(b.actor, L); }
+        if (!L) continue; const pw = L.p.clone().applyQuaternion(X.Q).add(X.off), qw = X.Q.clone().multiply(L.q); benchL.put(pw.x, pw.y, pw.z, s, L.hgt / 24, s * L.len / 4, qw, L.c); } }
+    benchL.end();
     whirlL.begin();
     if (WH) { const W_ = P.whirl, n = Math.max(2, Math.round(W_.rings || 6)), depth = W_.depth ?? 6, turn = W_.turn ?? 0.12, w = WH.R / n, cDeep = col('#0E2142'), cBlack = col('#05101f');
       const rim = mean + Math.round(swell(ws[0], WH.x + WH.R, WH.z, tq, amp).h) * U.plate;
