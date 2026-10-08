@@ -141,9 +141,9 @@ function make(api, opt) {
     /* hidden: a set part nearer the lens than the point by more than `margin` (the surface the part is sunk into lies within it, and
        is what shows the fault; a gunwale or a wall further out hides it). The baked set is one mesh, so nothing is skipped by mesh */
     const q = p.clone().project(camera), cp = camera.position, inFrame = q.z < 1 && q.z > -1 && Math.abs(q.x) <= 0.98 && Math.abs(q.y) <= 0.98;
-    let hidden = false; if (inFrame) { const d = p.clone().sub(cp), L = d.length(); d.normalize(); const far = L - Math.max(0.02 * H0, margin || 0);
-      if (far > 0) { const a = gridRay(W.G, cp, d, far, W.moved)[0], b = W.D ? gridRay(W.D, cp, d, far)[0] : null; hidden = !!(a || b); } }
-    return { inFrame, hidden, uv: [+((q.x + 1) / 2).toFixed(3), +((1 - q.y) / 2).toFixed(3)] };
+    let hidden = false, by = null; if (inFrame) { const d = p.clone().sub(cp), L = d.length(); d.normalize(); const far = L - Math.max(0.02 * H0, margin || 0);
+      if (far > 0) { const a = gridRay(W.G, cp, d, far, W.moved)[0], b = W.D ? gridRay(W.D, cp, d, far)[0] : null, h = a && b ? (a.distance < b.distance ? a : b) : a || b; hidden = !!h; if (h) by = labelAt(h.mesh, cp.clone().add(d.clone().multiplyScalar(h.distance + 0.01))) + ' ' + ((L - h.distance) / H0).toFixed(2) + ' H before'; } }
+    return { inFrame, hidden, by, uv: [+((q.x + 1) / 2).toFixed(3), +((1 - q.y) / 2).toFixed(3)] };
   }
   /* the contacts the score allows at t: [a, b] pairs (both ways), by intent kind */
   const CONTACT = new Set(opt.contactKinds);
@@ -187,7 +187,7 @@ function make(api, opt) {
       for (const k of ['legRP', 'legLP']) if (P[k]) { const B = P[k], cs = corners(B).sort((a, b) => a.y - b.y), sole = cs.slice(0, 4).reduce((s, p) => s.add(p), new V3()).multiplyScalar(0.25);
         pts.push([k, B.c.clone(), 'leg']); pts.push([k, sole, 'sole']); }
       for (const [k, p, what] of pts) {
-        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > (sat ? tol.seat : tol.sink) * H && u.y - p.y < 0.24 * H) { const v = view(p, (u.y - p.y) + 0.1 * H); rec({ kind: 'set', who: [id], parts: [NAME[k] + (sat ? ' (seated)' : ' (foot)')], cls: sat ? 'seat' : 'sink', against: labelAt(u.mesh, new V3(p.x, u.y - 0.01 * H, p.z)), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
+        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > (sat ? tol.seat : tol.sink) * H && u.y - p.y < 0.24 * H) { const v = view(new V3(p.x, u.y + 0.08 * H, p.z), 0.05 * H); rec({ kind: 'set', who: [id], parts: [NAME[k] + (sat ? ' (seated)' : ' (foot)')], cls: sat ? 'seat' : 'sink', against: labelAt(u.mesh, new V3(p.x, u.y - 0.01 * H, p.z)), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
         const r = inside(p); if (!r) continue; const lim = what === 'leg' ? tol.legSet : tol.set; if (r.depth <= lim * H) continue;
         const v = view(p, r.depth + 0.1 * H); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: labelAt(r.mesh, p), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
       }

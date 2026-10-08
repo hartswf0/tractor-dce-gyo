@@ -15,7 +15,8 @@
                              swimming, drowning, riding timbers or climbing out (SWIM, DROWN, RIDE, CLIMB intents)
      (d) a walk through      a (b) fault while the figure's feet are moving faster than a quarter of its height a second
    and whether the offending point is VISIBLE at that drawing: inside the frame of the shot the film cuts to at t, and not behind a set
-   part nearer the lens. Faults are merged into intervals (who, what, against what; gaps of one drawing bridged).
+   part nearer the lens (for a sunk foot or seat, the leg just above the surface it goes into (clear of the studs); for a body inside a part, its centre
+   with the part's own depth allowed). Faults are merged into intervals (who, what, against what; gaps of one drawing bridged).
 
    Allowed, not faults:
      - the score's contacts while they last (+-0.5/0.75 s): GRIP, EMBRACE, HOLD_ON, SEIZE, TEND, CARRY, TAKE,
@@ -174,7 +175,7 @@ async function one(page, sid) {
       if (!I) { I = { key: k, kind: r.kind, who: r.who, against: r.against || null, t0: s.t, last: s.t, n: 0, vis: 0, off: 0, hid: 0, depth: 0, cls: {}, parts: {}, shots: {}, shade: false, contact: false, walking: false, worst: null }; open.set(k, I); }
       I.last = s.t; I.cls[r.cls] = (I.cls[r.cls] || 0) + 1; I.parts[r.parts.join(' / ')] = (I.parts[r.parts.join(' / ')] || 0) + 1; I.shade = I.shade || r.shade; I.contact = I.contact || !!r.contact; I.walking = I.walking || !!r.walking;
       const seen = r.v.inFrame && !r.v.hidden, st = seen ? 2 : r.v.inFrame ? 1 : 0; seenNow.set(I, Math.max(seenNow.get(I) ?? -1, st));
-      const score = r.depth + (seen ? 1 : 0); if (!I.worst || score > I.worst.score) I.worst = { score, t: s.t, box: r.box, depth: r.depth, seen, uv: r.v.uv, shot: s.shot };
+      const score = r.depth + (seen ? 1 : 0); if (!I.worst || score > I.worst.score) I.worst = { score, t: s.t, box: r.box, depth: r.depth, seen, uv: r.v.uv, shot: s.shot, hiddenBy: r.v.by || null };
       I.depth = Math.max(I.depth, r.depth); }
     /* one drawing counts once for an interval, seen if any of its part pairs is seen */
     for (const [I, st] of seenNow) { I.n++; if (st === 2) { I.vis++; I.shots[s.shot] = (I.shots[s.shot] || 0) + 1; } else if (st === 1) I.hid++; else I.off++; } }
@@ -190,7 +191,7 @@ async function one(page, sid) {
     const vsec = +(I.vis * STEP).toFixed(2), deliberate = I.shade ? 'shade' : hid ? 'hidden under ' + I.against.slice(5) : null;
     return { key: I.key, t0: +I.t0.toFixed(2), t1: +(I.last + STEP).toFixed(2), dur: +((I.last - I.t0) + STEP).toFixed(2), who: I.who, kind: I.kind, what, cls, parts: top(I.parts).slice(0, 3), against: I.against,
       depthH: +I.depth.toFixed(3), visibleSec: vsec, hiddenSec: +(I.hid * STEP).toFixed(2), offscreenSec: +(I.off * STEP).toFixed(2), shots: top(I.shots), walking: I.walking, inContact: I.contact, deliberate,
-      fault: !deliberate && vsec >= MIN_VIS, worst: { t: +I.worst.t.toFixed(2), depthH: +I.worst.depth.toFixed(3), seen: I.worst.seen, at: I.worst.uv, shot: I.worst.shot, box: I.worst.box } }; });
+      fault: !deliberate && vsec >= MIN_VIS, worst: { t: +I.worst.t.toFixed(2), depthH: +I.worst.depth.toFixed(3), seen: I.worst.seen, at: I.worst.uv, shot: I.worst.shot, box: I.worst.box, ...(I.worst.hiddenBy ? { hiddenBy: I.worst.hiddenBy } : {}) } }; });
   const rank = (a, b) => (b.fault - a.fault) || (b.visibleSec * (0.5 + b.depthH) - a.visibleSec * (0.5 + a.depthH)) || (b.depthH - a.depthH);
   ivs.sort(rank);
   /* the visible seconds: the union over the clock of the drawings in which some unintended fault is seen */
