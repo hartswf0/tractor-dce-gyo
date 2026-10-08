@@ -18,8 +18,8 @@
    part nearer the lens. Faults are merged into intervals (who, what, against what; gaps of one drawing bridged).
 
    Allowed, not faults:
-     - the score's contacts while they last (+-0.5/0.75 s): GRIP, EMBRACE, HOLD_ON, SEIZE, TEND, CARRY (and its `with`), TAKE,
-       OFFER, STAB, PUNCH, THRUST, SWING, STRUGGLE, CARESS, FAWN, CLING, WEEP, LEAD, FOLLOW, ROPE, BIND, SEAL, CHANGE: their limbs on the
+     - the score's contacts while they last (+-0.5/0.75 s): GRIP, EMBRACE, HOLD_ON, SEIZE, TEND, CARRY, TAKE,
+       OFFER, STAB, PUNCH, THRUST, SWING, STRUGGLE, CARESS, FAWN, CLING, WEEP, LEAD, FOLLOW, ROPE, BIND, SEAL, CHANGE, between the actor and its target or anyone its params name (CARRY's `with`, SEAL's `ears`): their limbs on the
        other's body are not counted, their cores may meet up to 0.12 H, heads up to 0.07 H (cheek to cheek, never head through head)
      - a rider and its carrier (OdysseyCreatures.sample riders: a man under a ram, in a giant's fist)
      - shades (keyframes `shades` or a blocking entry's `shade: true`): reported apart, as deliberate, never counted
@@ -73,6 +73,8 @@ const MIN_VIS = 0.25;
 let capture = false;
 const t0w = Date.now(), say = (...a) => console.log(((Date.now() - t0w) / 1000).toFixed(0).padStart(5) + 's', ...a);
 const readAt = rel => AT ? execFileSync('git', ['-C', ROOT, 'show', AT + ':' + rel], { maxBuffer: 1 << 28 }).toString() : fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/* every name an intent's params give (with, ears, targets, cupOf...): the others it touches */
+const namesIn = p => { const out = []; for (const v of Object.values(p || {})) for (const x of [].concat(v)) { if (typeof x === 'string') out.push(x); else if (Array.isArray(x) && typeof x[0] === 'string') out.push(x[0]); } return out; };
 const jsonAt = rel => { try { return JSON.parse(readAt(rel)); } catch (e) { return null; } };
 
 /* the stand-in for tools/cinematographer/solve.js: hands the take's api to the checker and replays the take json's cameras */
@@ -122,7 +124,7 @@ async function one(page, sid) {
   const takeF = path.resolve(ROOT, opt('take', `films/odyssey/${sid}-performed.json`)), take = fs.existsSync(takeF) ? JSON.parse(fs.readFileSync(takeF, 'utf8')) : null;
   const cine = take && take.take && take.take.cine, shots = cine && cine.shots ? cine.shots : (take && take.time && take.shots ? take.shots : null);
   const sheetRel = opt('sheet', `odyssey/score/${sid}.choreo.json`), sheet = sheetRel === 'off' ? false : jsonAt(sheetRel);
-  const score = jsonAt(`odyssey/score/${sid}.json`), intents = ((score && score.authored && score.authored.intents) || []).map(i => ({ kind: i.kind, actor: i.actor, target: i.target, t0: i.t0, t1: i.t1, params: i.params && i.params.with ? { with: i.params.with } : null }));
+  const score = jsonAt(`odyssey/score/${sid}.json`), intents = ((score && score.authored && score.authored.intents) || []).map(i => ({ kind: i.kind, actor: i.actor, target: i.target, t0: i.t0, t1: i.t1, params: { with: namesIn(i.params) } }));
   const mode = (take && take.mode) || (sheet && sheet.clock) || 'cut';
   let solveMode = has('solve') ? 'solve' : shots ? 'replay' : 'grammar';
   await page.evaluate(() => { delete window.OdysseyCine; window.__clipApi = null; });
