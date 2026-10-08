@@ -68,8 +68,10 @@
                  (OD-B21-S07: 0.0 s visible); the rowers seated on their benches with their hands on the oars (OD-B12-S03: no bench,
                  oar or hull fault); Anticleia's three embraces through her son (OD-B11-S04: 7.0 s, all reported as shade); the men
                  under the rams, each on his own ram (OD-B09-S10: riders allowed); OD-B01-S01, OD-B01-S02, OD-B03-S05: 0.0 s.
+                 The replayed camera and --solve agree on OD-B14-S01 (9.3 s seen either way).
                  Tuning: the limb tolerance went 0.08 -> 0.12 H (an arm's box is loose: a raised arm by a neighbour's face flagged in
-                 OD-B06-S03 at 0.09 H), the sole 0.05 -> 0.10 H (a walking foot on a floor of tiles and plates flagged at one plate).
+                 OD-B06-S03 at 0.09 H), the sole 0.05 -> 0.10 H (a walking foot on a floor of tiles and plates flagged at one plate), a
+                 seated figure 0.15 H (rowers' legs on the Cyclops ship's benches at 0.11 H, behind the gunwale).
    Limits: boxes, not meshes (a hand on a hip is a box in a box, so limbs get the widest tolerance; a creature's node box is
    looser than its shape); hair and hats count as the head, while things held, capes, weapons and shields are not bodies;
    creature against creature and creature against the set are not checked; a set part that is not a closed solid (one sheet
