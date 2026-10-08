@@ -371,9 +371,10 @@ function stage(ctx) {
       /* the sail hangs from the yard: its pivot at the mast's top (LDraw y is down: the bricks' least y) */
       let yTop = 1e9; for (const { arr } of parts.sail) for (const a of arr) yTop = Math.min(yTop, P_.getY(a));
       const sailPiv = new THREE.Group(); sailPiv.position.set(0, yTop, 0); holder.add(sailPiv); if (parts.sail.length) { const sm_ = mk(parts.sail); sm_.position.set(0, -yTop, 0); sailPiv.add(sm_); }
+      let sailBox = null; if (parts.sail.length) { sailBox = new THREE.Box3(); const vv = new V3(); for (const { arr } of parts.sail) for (const q of arr) sailBox.expandByPoint(vv.fromBufferAttribute(P_, q)); }
       const logs = []; for (let k = 0; k < 7; k++) if (parts['log' + k].length) { const lm = mk(parts['log' + k]); holder.add(lm); logs.push({ m: lm, k }); }
       const lines = []; o.traverse(l => { if (l.isLineSegments && l.visible) { lines.push(l); l.visible = false; } });   /* the loader's edge lines would stay where the parts were */
-      S = H.parts = { o, mesh, holder, sailPiv, logs, m0, undo() { for (const l of lines) l.visible = true; mesh.geometry = old; mesh.position.copy(m0.p); mesh.quaternion.copy(m0.q); holder.parent && holder.parent.remove(holder); } };
+      S = H.parts = { o, mesh, holder, sailPiv, sailBox, logs, m0, undo() { for (const l of lines) l.visible = true; mesh.geometry = old; mesh.position.copy(m0.p); mesh.quaternion.copy(m0.q); holder.parent && holder.parent.remove(holder); } };
       restore.push(() => S.undo());
     }
     if (!S.holder) return;
@@ -396,10 +397,16 @@ function stage(ctx) {
     const cam = ctx.camera, tq = onTwos(t); cam.updateMatrixWorld(); const p = cam.position, dir = cam.getWorldDirection(new V3());
     const X = hullXf(), focus = X && X.G ? X.G.c.clone().applyQuaternion(X.Q).add(X.off) : null, D = focus ? Math.max(40, p.distanceTo(focus)) : 200, aim = p.clone().addScaledVector(dir, D);
     let w = 0; for (const W_ of [].concat(P.lowCam || [])) { if (!W_ || typeof W_ !== 'object') continue; const a = W_.t0, b = W_.t1; w = Math.max(w, sm((tq - a) / 0.5) * (1 - sm((tq - (b - 0.5)) / 0.5))); }
-    /* the floor: the swell under the lens and a little way toward what it frames, so a crest does not stand in the lens */
-    let fy = -1e9; for (const k of [0, 0.08, 0.16, 0.25, 0.35]) { const q = focus ? p.clone().lerp(focus, k) : p.clone().addScaledVector(dir, k * D); fy = Math.max(fy, surface(q.x, q.z, tq)); }
-    const floor = fy + 4.5 * U.plate; let y = p.y; if (w > 0) y = lerp(y, surface(p.x, p.z, tq) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? surface(p.x, p.z, tq) + 1.5 * U.plate : floor);
+    /* the floor: the tops of the tiles (a column's top is its quantized height and a plate) under the lens and along the first stretch
+       of what it looks at, so no block stands in the lens; in a lowered window only the nearest stretch counts */
+    const top = (x, z) => mean + (Math.round(swell(ws[0], x, z, tq, amp).h) + 1) * U.plate, fh = new V3(dir.x, 0, dir.z); if (fh.lengthSq() < 1e-6) fh.set(0, 0, 1); fh.normalize();
+    const along = r => { let m = -1e9; for (const d of [0, 6, 12, 20, 30, 42, 56, 72].filter(d => d <= r)) { const q = p.clone().addScaledVector(fh, d); m = Math.max(m, top(q.x, q.z)); for (const o of [-8, 8]) m = Math.max(m, top(q.x + fh.z * o, q.z - fh.x * o)); } return m; };
+    const floor = along(72) + (P.camMargin ?? 3) * U.plate; let y = p.y; if (w > 0) y = lerp(y, top(p.x, p.z) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? along(20) + 1.5 * U.plate : floor);
     if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
+    /* out of the raft's sail and mast: the lens is drawn back along its own axis until it is outside their boxes (with a margin) */
+    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(8)); }
+    for (let k = 0; k < 40 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
+    if (boxes.length) { cam.lookAt(aim); cam.updateMatrixWorld(); }
   }
   /* hands held on a hull's support until a named release (P.hold: [{actor, side: 'R'|'L'|'both', t0, t1, at: [x, y, z] in the staged
      prop's own LDU (the raft's mast: [0, -50, 0]), id}]): each arm turned at the shoulder (pitch, and a little out) so the hand goes to
@@ -446,6 +453,10 @@ function stage(ctx) {
     const fg = P.fog || (look && look.fog) || [700, 2600]; fog.color.copy(hor); fog.near = fg[0] * (1 - 0.35 * storm); fog.far = Math.max(fg[1], 2200) * (1 - 0.3 * storm); ctx.scene.fog = fog; ctx.scene.background = hor;
     /* the day's lights dimmed by night and storm (each light's base re-read when the take re-lights a key) */
     const dim = (1 - 0.9 * night) * (1 - 0.55 * storm);
+    /* LDraw's edge lines are drawn unlit: at night they glow round every brick (the clear spray pieces read as white wireframes), so
+       they are dimmed with the light (as odyssey-light.js does in the hall) */
+    const ek = lerp(1, P.edges ?? 0.18, Math.max(night, storm));
+    if (Math.abs(ek - (last && last.edges != null ? last.edges : 1)) > 1e-3 || !(F % 12)) ctx.scene.traverse(o => { if (!(o.isLine || o.isLineSegments) || !o.material) return; for (const m of [].concat(o.material)) { if (!m.color) continue; if (!m.userData.seaC0) m.userData.seaC0 = m.color.clone(); m.color.copy(m.userData.seaC0).multiplyScalar(ek); } });
     ctx.scene.traverse(o => { if (!o.isLight || o.userData.sea) return; const u = o.userData; if (u.seaSet == null || Math.abs(o.intensity - u.seaSet) > 1e-6) u.seaBase = o.intensity; u.seaSet = u.seaBase * dim; o.intensity = u.seaSet; });
     /* the moon: a dish far off, its light cool; the light whose path the sea throws back (the moon by night, the sun by day) */
     const mo = P.moon === false ? null : Object.assign({ az: 200, el: 18, size: 7 }, P.moon || {}), md = mo ? new V3(Math.sin(mo.az * DEG) * Math.cos(mo.el * DEG), Math.sin(mo.el * DEG), -Math.cos(mo.az * DEG) * Math.cos(mo.el * DEG)) : null;
@@ -571,7 +582,7 @@ function stage(ctx) {
       let p = cp.clone().addScaledVector(f2, d).addScaledVector(rt, side); const top = Math.min(mean + 520, Math.max(mean + 260, cp.y + 160)); p.y = top; const segs = 16, pts = [p.clone()]; for (let k = 1; k <= segs; k++) { p = p.clone(); p.y = lerp(top, mean, k / segs); p.addScaledVector(rt, (rnd(i, k, 73) - 0.5) * 70).addScaledVector(f2, (rnd(i, k, 74) - 0.5) * 50); pts.push(p); }
       const by = col('transYellow').lerp(col('#FFF8D8'), 0.5); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], dv = b.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, s * 2.2, s * 2.2, len / 40, _Q, by); } }
     boltL.end();
-    last = { t, F, strike: !!strike, cells: N, drawn: water.reduce((a, L) => a + L.n, 0), foam: foamL.n, glints: glintL.n, stars: starL.n, rain: rainL.n, clouds: cloudL.n + cloudB.n };
+    last = { t, F, edges: ek, strike: !!strike, cells: N, drawn: water.reduce((a, L) => a + L.n, 0), foam: foamL.n, glints: glintL.n, stars: starL.n, rain: rainL.n, clouds: cloudL.n + cloudB.n };
     return last;
   }
   function dispose() { ctx.scene.traverse(o => { if (o.isLight && o.userData.seaSet != null) { if (Math.abs(o.intensity - o.userData.seaSet) < 1e-6) o.intensity = o.userData.seaBase; delete o.userData.seaSet; delete o.userData.seaBase; } });
