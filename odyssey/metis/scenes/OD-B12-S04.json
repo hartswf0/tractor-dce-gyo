@@ -1,0 +1,70 @@
+{
+ "scene": "OD-B12-S04",
+ "turns": [
+  "OD-B12-S04 segments: Charybdis's roar, the order to row, the arming, the strike, the passing (53.52 s on the cut clock)"
+ ],
+ "assembly": "location.odyssey-od-b12-s04 (its checkerboard sea and the old whirlpool piece taken out; Scylla's cliff kept) + film-readymades/odyssey-sea.js (whirl, benches, offstage) + the scylla creature rig (strike delays, spread), keyed in odyssey/keyframes/OD-B12-S04.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "six-seized-sailors-1..6"
+  },
+  {
+   "id": "scylla",
+   "kind": "creature"
+  }
+ ],
+ "cause": "Charybdis's roar breaks the stroke; Odysseus keeps them to Scylla's side; Scylla takes six, one after another; the rest pass",
+ "contacts": [
+  "seat-thwart",
+  "oar-water",
+  "hull-water",
+  "jaw-man (the seizure)"
+ ],
+ "clock": "the cut clock (53.52 s): K1 0, K2 10.93, K3 25.74, K4 34.31, K5 42.6; the strikes 36.3-40.0 s",
+ "world": {
+  "sea": "grey day, swell 0.6-0.65, way 0.8-1.2; the whirl at (-112, -37), r 6 studs, 7 rings, depth 7 plates, 0.16 turns a second at the rim",
+  "sky": "the location's grey day",
+  "course": "through the strait, the cliff east, the whirlpool west"
+ },
+ "camera": [
+  "the kit's paths: the establishing wide (0-5 s), the galley under the cliff (18-23.5 s), the abductions (35.5-40.9 s)",
+  "the solved plan's 21 shots (21 legal)"
+ ],
+ "look": "the location's day look with the kit's water",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "both dangers established: the whirlpool and Scylla's cliff, separate, in one frame",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S04/close-dangers.jpg",
+   "note": "a high wide on the kit's camera path (0-5 s): Charybdis as seven stepped brick rings turning west of the ship (look.sea whirl at (-112, -37), r 6 studs, the old whirlpool piece hidden), Scylla's cliff east, the ship between them, the spray column over the whirlpool"
+  },
+  {
+   "test": "the galley kept near one danger while the other stays visible",
+   "passed": "partly",
+   "evidence": "evidence/OD-B12-S04/contact.jpg",
+   "note": "a path from the cliff side (18-23.5 s) has the galley under Scylla's rock with Charybdis beyond; the abduction wide (35.5-40.9 s) looks from the whirlpool's side at the ship and the cliff, but the rings are behind the lens there; the ship itself does not move toward the cliff (its rig has no translation)"
+  },
+  {
+   "test": "six distinct abductions",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S04/close-abductions.jpg",
+   "note": "the six heads strike one after another, 0.75 s apart from 36.3 to 40.0 s, nearest the cave first so no neck reaches across a seated man (STRIKE delays, a new parameter of the creature intent and creatures.js); each man is lifted from his thwart and carried out of sight 1.2 s after (look.sea offstage)"
+  },
+  {
+   "test": "no one runs through anything; the audit's packed sailors (44.0-53.7 s) gone",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S04/clip.json",
+   "note": "tools/metis/clip.js --gate 0.25 on the take: 0 visible intervals. The audit and the first checks found the six seized men packed into each other in the jaws at the cave mouth (9-10 s visible), the seated rowers' legs in the deck, Odysseus's arms through the rowers on his walks. The rowers now sit on thwarts in two columns with an aisle, facing Odysseus at the bow, who no longer walks the length of the ship; the marks were probed afresh (odyssey/choreo/marks) so the strike aims where the men now sit"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B12-S04-performed.mp4 (take 2; take 1 kept in films/odyssey/takes/OD-B12-S04/)",
+  "renderer": "tools/export-odyssey.js (--mode cut --fps 12 --choreo odyssey/score/OD-B12-S04.choreo.json)",
+  "outcome": "take 2 published; clip gate passed (0 s); 21 of 21 shots legal"
+ }
+}
