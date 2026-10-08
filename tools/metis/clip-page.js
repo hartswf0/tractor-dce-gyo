@@ -119,7 +119,7 @@ function make(api, opt) {
   }
   /* the set piece a point is in (the location's pieces by their boxes: the smallest that holds it), for a mesh that is the whole baked set */
   const pieceAt = p => { let best = null, bv = Infinity; for (const pc of (OdysseyFilm.pieces() || [])) { const b = pc.box; if (!b || p.x < b[0] - 1 || p.y < b[1] - 1 || p.z < b[2] - 1 || p.x > b[3] + 1 || p.y > b[4] + 1 || p.z > b[5] + 1) continue;
-      const v = (b[3] - b[0] + 1) * (b[4] - b[1] + 1) * (b[5] - b[2] + 1); if (v < bv) { bv = v; best = pc.label; } } return best; };
+      const v = (b[3] - b[0] + 1) * (b[4] - b[1] + 1) * (b[5] - b[2] + 1) * (/\b(sea|water|ocean|waves?)\b/i.test(pc.label) ? 1e6 : 1); if (v < bv) { bv = v; best = pc.label; } } return best; };   /* the sea's thin slab last: a bench in a hull is the hull's */
   const labelAt = (m, p) => { const l = label(m); return /^prop:/.test(l) || !p ? l : (pieceAt(p) || l); };
   const label = m => { for (let p = m; p; p = p.parent) { const n = String(p.name || ''); if (n.startsWith('prop:')) return n; } const pc = m.userData && m.userData.partId; const pg = pc != null ? (OdysseyFilm.pieces() || []).find(x => x.id === pc || x.partId === pc) : null; return pg ? pg.label : (m.name || (m.parent && m.parent.name) || 'set part'); };
   const AX = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(d => new V3(...d));
@@ -137,10 +137,12 @@ function make(api, opt) {
   function under(p, up) { const o = p.clone(); o.y += up; const h = first(o, new V3(0, -1, 0), up + 0.6 * H0); return h && !h.back ? { y: o.y - h.distance, mesh: h.mesh } : null; }
 
   /* ── the camera's view: in frame, and not behind a set part nearer the lens ── */
-  function view(p, skip) {
+  function view(p, margin) {
+    /* hidden: a set part nearer the lens than the point by more than `margin` (the surface the part is sunk into lies within it, and
+       is what shows the fault; a gunwale or a wall further out hides it). The baked set is one mesh, so nothing is skipped by mesh */
     const q = p.clone().project(camera), cp = camera.position, inFrame = q.z < 1 && q.z > -1 && Math.abs(q.x) <= 0.98 && Math.abs(q.y) <= 0.98;
-    let hidden = false; if (inFrame) { const d = p.clone().sub(cp), L = d.length(); d.normalize(); const sk = new Set(W.moved); if (skip) sk.add(skip);
-      const a = gridRay(W.G, cp, d, L * 0.97, sk)[0], b = W.D ? gridRay(W.D, cp, d, L * 0.97, skip ? new Set([skip]) : null)[0] : null; hidden = !!(a || b); }
+    let hidden = false; if (inFrame) { const d = p.clone().sub(cp), L = d.length(); d.normalize(); const far = L - Math.max(0.02 * H0, margin || 0);
+      if (far > 0) { const a = gridRay(W.G, cp, d, far, W.moved)[0], b = W.D ? gridRay(W.D, cp, d, far)[0] : null; hidden = !!(a || b); } }
     return { inFrame, hidden, uv: [+((q.x + 1) / 2).toFixed(3), +((1 - q.y) / 2).toFixed(3)] };
   }
   /* the contacts the score allows at t: [a, b] pairs (both ways), by intent kind */
@@ -173,7 +175,7 @@ function make(api, opt) {
           else if (ca || cb) { cls = 'limb'; lim = tol.limb; } else if (/leg/.test(pa) && /leg/.test(pb)) { cls = 'legs'; lim = tol.legs; } else continue; }
         if (contact) { if (cls === 'limb' || cls === 'legs' || cls === 'creature') continue; lim = cls === 'head-head' ? tol.headHeadContact : tol.coreContact; }
         const d = obbDepth(oa, ob); if (d <= lim * Hm) continue;
-        const pt = oa.c.clone().lerp(ob.c, 0.5), v = view(pt);
+        const pt = oa.c.clone().lerp(ob.c, 0.5), v = view(pt, 0.05 * Hm);
         rec({ kind: 'body', who: [ids[i], ids[j]], parts: [A.creature ? pa : NAME[pa], B.creature ? pb : NAME[pb]], cls, depth: d / Hm, contact, shade: A.shade || B.shade, v, box: [ids[i], pa] });
       }
     }
@@ -185,12 +187,12 @@ function make(api, opt) {
       for (const k of ['legRP', 'legLP']) if (P[k]) { const B = P[k], cs = corners(B).sort((a, b) => a.y - b.y), sole = cs.slice(0, 4).reduce((s, p) => s.add(p), new V3()).multiplyScalar(0.25);
         pts.push([k, B.c.clone(), 'leg']); pts.push([k, sole, 'sole']); }
       for (const [k, p, what] of pts) {
-        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > tol.sink * H && u.y - p.y < 0.24 * H) { const v = view(p, u.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k] + (sat ? ' (seated)' : ' (foot)')], cls: sat ? 'seat' : 'sink', against: labelAt(u.mesh, new V3(p.x, u.y - 0.01 * H, p.z)), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
+        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > (sat ? tol.seat : tol.sink) * H && u.y - p.y < 0.24 * H) { const v = view(p, (u.y - p.y) + 0.1 * H); rec({ kind: 'set', who: [id], parts: [NAME[k] + (sat ? ' (seated)' : ' (foot)')], cls: sat ? 'seat' : 'sink', against: labelAt(u.mesh, new V3(p.x, u.y - 0.01 * H, p.z)), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
         const r = inside(p); if (!r) continue; const lim = what === 'leg' ? tol.legSet : tol.set; if (r.depth <= lim * H) continue;
-        const v = view(p, r.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: labelAt(r.mesh, p), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
+        const v = view(p, r.depth + 0.1 * H); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: labelAt(r.mesh, p), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
       }
       if (T.sea && T.sea.surface && P.hipsP && !busy(id, t, WET)) { const c = P.torsoP ? P.torsoP.c : P.hipsP.c, s = T.sea.surface(c.x, c.z, t), d = s - P.hipsP.c.y;
-        if (d > tol.water * H) { const v = view(P.hipsP.c), hd = P.headP ? P.headP.c : null, under = hd && T.sea.surface(hd.x, hd.z, t) > hd.y + 0.12 * H;
+        if (d > tol.water * H) { const v = view(P.hipsP.c, 0.1 * H), hd = P.headP ? P.headP.c : null, under = hd && T.sea.surface(hd.x, hd.z, t) > hd.y + 0.12 * H;
           if (under) v.hidden = true;   /* gone under whole: nothing of him is drawn through the swell, so nothing is seen clipping */
           rec({ kind: 'water', who: [id], parts: [under ? 'whole body (under)' : 'hips'], cls: under ? 'under' : 'water', against: 'the sea', depth: d / H, shade: A.shade, v, box: [id, 'hipsP'] }); } }
     }

@@ -25,7 +25,8 @@
      - shades (keyframes `shades` or a blocking entry's `shade: true`): reported apart, as deliberate, never counted
      - a body under a prop the score's objects name as a hiding place (affords 'hide': the sealskins of OD-B04-S05), for a figure whose own intents say it is under or in it: deliberate
    Tolerances (fractions of the smaller figure's height H, a minifig about 100 world units): head-head 0.04, core 0.05, limb 0.12,
-   legs 0.10, creature 0.08; set 0.06 (head, torso, hips), legs 0.09; a sole 0.10 below the surface under it (a seated figure's legs: 'seated into' the seat); the hips 0.10 under the
+   legs 0.10, creature 0.08; set 0.06 (head, torso, hips), legs 0.09; a sole 0.10 below the surface under it, a seated figure's legs 0.15 into its seat ('seated into': a
+   minifig's thigh is about 0.13 H thick, and a bench top a plate high under it is not a fault); the hips 0.10 under the
    water (a figure wholly under the swell is not seen, so not counted). A fault is VISIBLE UNINTENDED CLIPPING when it is not a shade's and is in frame and unhidden for 0.25 s or more.
 
    Usage (the repository served on :8899, as for tools/export-odyssey.js; one Chromium; about 1-3 minutes a scene):
@@ -89,7 +90,7 @@ const args = process.argv.slice(2), sids = args.filter(a => /^OD-B\d\d-S\d\d$/.t
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; }, has = k => args.includes('--' + k);
 const STEP = +opt('step', 1 / 6), [W, H] = opt('size', '640x360').split('x').map(Number), NST = has('no-stills') ? 0 : +opt('stills', 3);
 const OUT = path.resolve(ROOT, opt('out', 'odyssey/metis/clip')), EVD = path.resolve(ROOT, opt('evidence', 'odyssey/metis/evidence')), AT = opt('at', null), GATE = opt('gate', null);
-const TOL = { headHead: 0.04, core: 0.05, limb: 0.12, legs: 0.10, creature: 0.08, headHeadContact: 0.07, coreContact: 0.12, set: 0.06, legSet: 0.09, sink: 0.10, water: 0.10 };
+const TOL = { headHead: 0.04, core: 0.05, limb: 0.12, legs: 0.10, creature: 0.08, headHeadContact: 0.07, coreContact: 0.12, set: 0.06, legSet: 0.09, sink: 0.10, seat: 0.15, water: 0.10 };
 const CONTACT = ['GRIP', 'EMBRACE', 'HOLD_ON', 'SEIZE', 'TEND', 'CARRY', 'TAKE', 'OFFER', 'STAB', 'PUNCH', 'THRUST', 'SWING', 'STRUGGLE', 'CARESS', 'FAWN', 'CLING', 'WEEP', 'LEAD', 'FOLLOW', 'ROPE', 'BIND', 'SEAL', 'CHANGE'];
 const WET = ['SWIM', 'DROWN', 'RIDE', 'CLIMB'];
 const MIN_VIS = 0.25;
