@@ -84,10 +84,10 @@
   },
   "cine": {
    "time": {
-    "grid": 3.1,
+    "grid": 3.5,
     "inside": 0.6,
-    "seen": 11.1,
-    "clutter": 3.1,
+    "seen": 15.4,
+    "clutter": 4.2,
     "pose": 0
    },
    "scene": "OD-B23-S04",
@@ -110,7 +110,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 379.9,
+   "solvedIn": 210.4,
    "shots": [
     {
      "i": 0,
@@ -138,8 +138,8 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -288.8,
-       95.7,
+       -288.9,
+       96.2,
        155.8
       ],
       "fov": 60,
@@ -151,23 +151,18 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L2 penelope hidden": 93,
       "L2 body": 1,
-      "L4 foreground covers n%": 15,
+      "L2 penelope hidden": 93,
+      "L4 foreground covers n%": 17,
       "L1 near plane in a set part": 11,
       "L3 face": 5
      },
      "candidates": 256,
-     "legalCandidates": 131,
+     "legalCandidates": 129,
      "samples": [
       4.67,
       0.1,
-      9.23,
-      1.25,
-      2.5,
-      3.75,
-      6.25,
-      7.5
+      9.23
      ],
      "checks": [
       "L1 not inside geometry",
@@ -181,7 +176,7 @@
      "clutterFar": 0,
      "luma": {
       "mean": 0.186,
-      "sd": 0.238,
+      "sd": 0.237,
       "dark": 0.59,
       "white": 0,
       "one": 0.54
@@ -216,7 +211,7 @@
       "pos": [
        -135.6,
        130.2,
-       247.2
+       247.4
       ],
       "fov": 75,
       "key": false,
@@ -227,24 +222,18 @@
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L2 odysseus hidden": 77,
+      "L2 odysseus hidden": 76,
       "L4 foreground covers n%": 21,
       "L1 near plane in a set part": 11,
       "L2 body": 1,
       "L3 head": 3
      },
      "candidates": 257,
-     "legalCandidates": 144,
+     "legalCandidates": 145,
      "samples": [
       14.38,
       9.43,
-      19.32,
-      10.58,
-      11.83,
-      13.08,
-      15.58,
-      16.83,
-      18.08
+      19.32
      ],
      "checks": [
       "L1 not inside geometry",
@@ -270,11 +259,12 @@
      "t0": 19.42,
      "t1": 26.13,
      "kind": "HOT",
-     "size": "CLOSE",
+     "size": "MID",
      "planned": "CLOSE",
-     "eased": null,
-     "primary": "penelope",
+     "eased": "penelope cannot be framed legally from anywhere: the shot goes to odysseus (penelope in frame if seen)",
+     "primary": "odysseus",
      "subjects": [
+      "odysseus",
       "penelope"
      ],
      "why": {
@@ -288,40 +278,35 @@
       "odysseus",
       "penelope"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -45.1,
-       136.2,
-       34.1
+       -103.3,
+       87.9,
+       372.5
       ],
-      "fov": 32,
+      "fov": 51,
       "key": false,
-      "az": 2.75,
-      "travelling": true
+      "az": 5.89,
+      "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 60,
-      "L1 in odysseus": 1,
-      "L4 an empty frame (n% sky)": 11,
-      "L1 too near the face": 101,
-      "L3 head": 32,
-      "L2 penelope hidden": 17,
-      "L4 foreground covers n%": 5
+      "L3 the back": 90,
+      "L2 odysseus hidden": 126,
+      "L4 foreground covers n%": 19,
+      "L2 body": 4,
+      "L1 near plane in a set part": 12
      },
      "candidates": 256,
-     "legalCandidates": 29,
+     "legalCandidates": 5,
      "samples": [
       22.77,
       19.52,
-      26.03,
-      20.67,
-      21.92,
-      24.42
+      26.03
      ],
      "checks": [
       "L1 not inside geometry",
@@ -331,17 +316,17 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.38,
-     "headV": 0.351,
+     "facing": 0.48,
+     "headV": 0.345,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.169,
-      "sd": 0.242,
-      "dark": 0.64,
-      "white": 0,
-      "one": 0.64
+      "mean": 0.322,
+      "sd": 0.247,
+      "dark": 0.32,
+      "white": 0.01,
+      "one": 0.54
      },
-     "lumaRefused": 5
+     "lumaRefused": 0
     },
     {
      "i": 3,
@@ -367,40 +352,37 @@
       "penelope",
       "odysseus"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": true,
      "camera": {
       "pos": [
-       113.3,
-       137.8,
-       155.3
+       144.3,
+       138.5,
+       -20
       ],
       "fov": 46,
       "key": false,
-      "az": 0.79,
+      "az": 1.96,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L2 the contact hidden by penelope",
+     "keyCamera": "L5 across the line",
      "rejected": {
-      "L2 the contact hidden": 34,
-      "L5 across the line": 108,
-      "L3 the back": 35,
-      "L1 too near the face": 6,
-      "L2 body": 1,
-      "L3 head": 8,
-      "L3 face": 14
+      "L5 across the line": 149,
+      "L1 near plane in a set part": 4,
+      "L4 foreground covers n%": 2,
+      "L1 in eurycleia": 2,
+      "L2 the contact hidden": 19,
+      "L1 too near the face": 2
      },
      "candidates": 257,
-     "legalCandidates": 51,
+     "legalCandidates": 79,
      "samples": [
       28.54,
       26.23,
       30.84,
-      26.33,
-      27.38,
-      29.88
+      26.33
      ],
      "checks": [
       "L1 not inside geometry",
@@ -410,15 +392,15 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.75,
-     "headV": 0.273,
+     "facing": 0.93,
+     "headV": 0.269,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.338,
-      "sd": 0.243,
-      "dark": 0.26,
+      "mean": 0.237,
+      "sd": 0.248,
+      "dark": 0.47,
       "white": 0,
-      "one": 0.55
+      "one": 0.37
      },
      "lumaRefused": 0
     },
@@ -450,39 +432,36 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -21.6,
-       130.3,
-       -28.5
+       85.8,
+       105.1,
+       -16.8
       ],
       "fov": 75,
       "key": false,
-      "az": 3.53,
+      "az": 2.36,
       "travelling": true
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "keyCamera": "legal",
      "rejected": {
-      "L3 the back": 100,
-      "L2 the contact hidden": 63,
-      "L1 near plane in a set part": 22,
-      "L2 body": 2,
+      "L2 the contact hidden": 69,
+      "L1 near plane in a set part": 27,
+      "L2 body": 1,
       "L3 face": 5,
       "L1 too near the face": 5,
       "L3 head": 11,
       "L4 an empty frame (n% sky)": 1,
-      "L2 odysseus hidden": 30,
-      "L4 foreground covers n%": 4
+      "L2 odysseus hidden": 29,
+      "L4 foreground covers n%": 8
      },
      "candidates": 257,
-     "legalCandidates": 14,
+     "legalCandidates": 101,
      "samples": [
       33.68,
       31.04,
       36.32,
-      31.14,
-      32.19,
-      34.69
+      31.14
      ],
      "checks": [
       "L1 not inside geometry",
@@ -492,15 +471,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.65,
-     "headV": 0.319,
+     "facing": 0.97,
+     "headV": 0.356,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.228,
-      "sd": 0.252,
-      "dark": 0.51,
+      "mean": 0.237,
+      "sd": 0.272,
+      "dark": 0.52,
       "white": 0,
-      "one": 0.49
+      "one": 0.48
      },
      "lumaRefused": 0
     },
@@ -530,9 +509,9 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       68.6,
-       118,
-       -9.2
+       68.9,
+       118.3,
+       -9
       ],
       "fov": 38,
       "key": false,
@@ -543,16 +522,16 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 51,
-      "L2 penelope hidden": 34,
+      "L3 the back": 54,
+      "L2 penelope hidden": 35,
       "L1 near plane in a set part": 6,
       "L4 foreground covers n%": 2,
-      "L3 face": 45,
+      "L3 face": 44,
       "L3 head": 15,
       "L1 too near the face": 57
      },
      "candidates": 256,
-     "legalCandidates": 46,
+     "legalCandidates": 43,
      "samples": [
       38.46,
       36.52,
@@ -569,10 +548,10 @@
      ],
      "failed": [],
      "facing": 0.76,
-     "headV": 0.43,
+     "headV": 0.429,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.292,
+      "mean": 0.293,
       "sd": 0.219,
       "dark": 0.28,
       "white": 0,
@@ -646,15 +625,16 @@
      "headV": 0.35,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.421,
-      "sd": 0.196,
+      "mean": 0.422,
+      "sd": 0.197,
       "dark": 0.06,
       "white": 0,
       "one": 0.65
      },
      "lumaRefused": 0
     }
-   ]
+   ],
+   "carried": "shots 0-4 carried frame for frame from take 3; shots 5-6 solved and drawn for take 4"
   },
   "clips": [
    {
@@ -728,7 +708,7 @@
   },
   {
    "t": 19.5,
-   "shot": "c2:HOT:CLOSE",
+   "shot": "c2:HOT:MID",
    "kind": "HOT",
    "key": "K3"
   },

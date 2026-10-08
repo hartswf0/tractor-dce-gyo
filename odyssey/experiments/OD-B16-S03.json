@@ -1,0 +1,70 @@
+{
+ "scene": "OD-B16-S03",
+ "title": "Father and Son",
+ "take": 3,
+ "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+ "hypothesis": "The recognition embrace, the scene's climax, reads only if both faces can be seen at eye level; take 2's solver put it overhead.",
+ "variable": "The camera plan only (tools/cinematographer/plans/OD-B16-S03.json): shot 5 noHigh; shot 6 split into a TWO MID from their side (from [-30,130]), a close on Odysseus over his son's shoulder (from [240,95]) and a close on Telemachus over his father's shoulder (from [0,-165]), all noHigh. Take 2's stage layers kept.",
+ "held": [
+  "the sheet (with take 2's stage layers)",
+  "the voice, the cut and the captions",
+  "shots 0-4 frame for frame"
+ ],
+ "metrics_before": {
+  "take": "take 2 (films/odyssey/takes/OD-B16-S03/take2.mp4)",
+  "clip": "take 2: CLIP 0.0 s visible, but the embrace filmed from straight above (the crowns of their heads); take 1: 7.2 s visible (head through head in the embrace)"
+ },
+ "metrics_after": {
+  "seconds": 42.58,
+  "fps": 12,
+  "shots": 9,
+  "shots_legal": 9,
+  "clip": "CLIP OD-B16-S03 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 0.0 s; gate 0.25 passed"
+ },
+ "checks": [
+  {
+   "test": "no one runs through anything",
+   "passed": true,
+   "evidence": "clip/OD-B16-S03.json, evidence/OD-B16-S03/contact.jpg, close-reblock.jpg",
+   "note": "tools/metis/clip.js on take 3: 0 visible intervals; all nine shots solved legal at eye level"
+  }
+ ],
+ "result": "Kept as take 3. The embrace is at eye level: Telemachus's face in the two-shot, Odysseus's face in the first close. Loose: in the two-shot Odysseus is mostly his back and cape; in the last close Telemachus's face is half behind his father's head.",
+ "keep": true,
+ "history": [
+  {
+   "scene": "OD-B16-S03",
+   "title": "Father and Son",
+   "take": 2,
+   "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+   "hypothesis": "The recognition embrace reads as two men holding each other, not one head inside the other, if they stand a hand further apart; and Telemachus walks onto the step rather than through it.",
+   "variable": "The sheet only (odyssey/score/OD-B16-S03.choreo.json): root.x@stage and root.z@stage of -6/+6 units for Odysseus and Telemachus from 33.9 s (eased in over 0.6 s, during the approach), root.y@stage +10 on Telemachus for 10.9-11.9 s. Frames 84-145 and 357-511 redrawn; 296 frames carried from the published take.",
+   "held": [
+    "the performance (the compiled sheet, the EMBRACE and the weeping holds) but for the stage layer",
+    "the voice, the cut and the captions",
+    "shots 0, 2, 3 and 4 frame for frame"
+   ],
+   "metrics_before": {
+    "take": "take 1 (films/odyssey/takes/OD-B16-S03/take1.mp4)",
+    "clip": "CLIP OD-B16-S03 visible 7.2 s in 3 intervals (worst: head through head 0.14 H, 34.5-40.7 s, in the embrace)"
+   },
+   "metrics_after": {
+    "seconds": 42.58,
+    "fps": 12,
+    "shots": 7,
+    "shots_legal": 7,
+    "clip": "CLIP OD-B16-S03 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 0.0 s; gate 0.25 passed"
+   },
+   "checks": [
+    {
+     "test": "no one runs through anything",
+     "passed": true,
+     "evidence": "clip/OD-B16-S03.json, evidence/OD-B16-S03/contact.jpg, close-reblock.jpg",
+     "note": "tools/metis/clip.js on the new take: 0 visible intervals; the stage layer is a sheet edit (a recompile from the score drops it, as the Bed's take 4)"
+    }
+   ],
+   "result": "Published. The embrace is cheek by jowl, not head through head. Loose: the cinematographer (whose rules have changed since the last take) now films the embrace from high above their heads, where the last take had a close side two-shot; the stage layer lives in the sheet, not the score.",
+   "keep": true
+  }
+ ]
+}

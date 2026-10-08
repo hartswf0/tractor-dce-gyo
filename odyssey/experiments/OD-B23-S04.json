@@ -1,57 +1,93 @@
 {
  "scene": "OD-B23-S04",
  "title": "The Bed: the long night",
- "take": 4,
- "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): the last shot a nine-second still wide",
- "hypothesis": "The ending ('Athena holds back dawn while husband and wife weep and reunite') reads as a reunion if the two faces can be seen in the embrace, close; take 3 could not frame them because on the bed the blocking seats them 20 units apart facing each other and the embrace leans them through each other (head in head), so every closer camera was refused (0 legal candidates: 'penelope hidden', 'odysseus hidden') and the plan fell back to a high wide of the back of her head.",
- "variable": "The ending: the couple seated a hand further apart on the bed (root.x +7 / -7 units from the cut at 36.42 s, a 'stage' layer over the published sheet), so the embrace is cheek to cheek instead of head through head, and the last 9.1 s cut as two closer shots: a MID over his shoulder on her face (36.42-40.5 s), then a CLOSE on his (40.5 s to the end).",
+ "take": 5,
+ "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+ "hypothesis": "The standing embrace and the sit-down read as an embrace, not two heads in one, if the couple stand and sit a hand further apart, as take 4 did for the seated ending; and Penelope steps up onto the bed rather than walking through its edge.",
+ "variable": "The sheet only (odyssey/score/OD-B23-S04.choreo.json): root.x@stage -7/+7 for Penelope and Odysseus over 25.4-29.8 s (the standing embrace), -13/+13 over 34.9-36.4 s (the sit-down), back to take 4's -7/+7 for the seated ending; root.y@stage +24 on Penelope over 34.0-36.05 s (she steps up onto the bed).",
  "held": [
-  "the voice cut and the captions",
-  "the performance (the published sheet odyssey/score/OD-B23-S04.choreo.json: the EMBRACE, the weeping holds), but for the stage offset after 36.42 s",
-  "shots 0-4: carried frame for frame from take 3 (frames 0-437); frames 438-545 drawn new"
- ],
- "true_to": [
-  "energy audit: shot 5 at 36.5 s, ACTION WIDE, 9.0 s, motion 0.52, still 0.77, the last shot; film still share 0.45 by drawing (42% by the audit's shot average)",
-  "the cinematographer's report for take 3's last shot: 0 legal candidates of 256 (the faces inside each other)"
+  "the performance (the EMBRACE and the weeping holds) but for the stage layers",
+  "the voice, the cut and the captions",
+  "shots 0-1 frame for frame (the first 234 frames)"
  ],
  "metrics_before": {
-  "stage": "take 3 as published (films/odyssey/OD-B23-S04-performed.mp4, 45.5 s, 6 shots)",
-  "shot5": {
-   "t0": 36.5,
-   "dur": 9.0,
-   "kind": "ACTION WIDE",
-   "motion": 0.52,
-   "still": 0.77
-  },
-  "film": {
-   "motion": 2.51,
-   "still": 0.45,
-   "still_tail_s": 0.0
-  }
+  "take": "take 4 (films/odyssey/takes/OD-B23-S04/take4.mp4)",
+  "clip": "CLIP OD-B23-S04 visible 5.7 s in 4 intervals (head through head 0.14 H in the standing embrace 26.0-29.5 s and 0.18 H in the sit-down 35.0-36.5 s; Penelope's feet in the bed's edge 34.3-35.0 s)"
  },
  "metrics_after": {
-  "stage": "take 4 as published (films/odyssey/OD-B23-S04-performed.mp4, 45.5 s, 7 shots; take 3 kept as films/odyssey/takes/OD-B23-S04/take3.*); 108 frames drawn, 438 carried",
-  "shot5": {
-   "t0": 36.5,
-   "dur": 4.0,
-   "kind": "HOT MID penelope (over his shoulder)",
-   "motion": 0.72,
-   "still": 0.13
-  },
-  "shot6": {
-   "t0": 40.5,
-   "dur": 5.0,
-   "kind": "HOT CLOSE odysseus",
-   "motion": 0.7,
-   "still": 0.29
-  },
-  "film": {
-   "motion": 2.67,
-   "still": 0.33,
-   "still_tail_s": 0.0
-  },
-  "solver": "the ending's cameras found 44 and 13 legal candidates (take 3: 0)"
+  "seconds": 45.5,
+  "fps": 12,
+  "shots": 7,
+  "shots_legal": 7,
+  "clip": "CLIP OD-B23-S04 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 0.2 s; gate 0.25 passed"
  },
- "result": "Kept. The ending is now an embrace you can see: the two sit cheek to cheek on the bed and the last nine seconds are a mid over his shoulder on her face and a close on his eyes over her shoulder, both at eye level in the warm K5 light, instead of a high wide of the back of her head. Still drawings in the last 9 s: 77% -> 13% and 29%; the film's still share 0.45 -> 0.33. Honest limits: the motion is gentle (0.7, the weeping holds' rocking), not large; in the mid her face is half behind his head; the couple shift 7 units apart across the cut at 36.42 s (a cheat on the cut, not seen in shot).",
- "keep": true
+ "checks": [
+  {
+   "test": "no one runs through anything",
+   "passed": true,
+   "evidence": "clip/OD-B23-S04.json, evidence/OD-B23-S04/contact.jpg, close-reblock.jpg",
+   "note": "tools/metis/clip.js on the new take: 0 visible intervals; the cameras stay at eye level (no overhead)"
+  }
+ ],
+ "result": "Published. Both embraces read cheek to cheek, she climbs onto the bed. Loose: the stage layers live in the sheet, not the score (a recompile drops them); in the standing embrace the camera is behind Odysseus, her face over his shoulder.",
+ "keep": true,
+ "history": [
+  {
+   "scene": "OD-B23-S04",
+   "title": "The Bed: the long night",
+   "take": 4,
+   "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): the last shot a nine-second still wide",
+   "hypothesis": "The ending ('Athena holds back dawn while husband and wife weep and reunite') reads as a reunion if the two faces can be seen in the embrace, close; take 3 could not frame them because on the bed the blocking seats them 20 units apart facing each other and the embrace leans them through each other (head in head), so every closer camera was refused (0 legal candidates: 'penelope hidden', 'odysseus hidden') and the plan fell back to a high wide of the back of her head.",
+   "variable": "The ending: the couple seated a hand further apart on the bed (root.x +7 / -7 units from the cut at 36.42 s, a 'stage' layer over the published sheet), so the embrace is cheek to cheek instead of head through head, and the last 9.1 s cut as two closer shots: a MID over his shoulder on her face (36.42-40.5 s), then a CLOSE on his (40.5 s to the end).",
+   "held": [
+    "the voice cut and the captions",
+    "the performance (the published sheet odyssey/score/OD-B23-S04.choreo.json: the EMBRACE, the weeping holds), but for the stage offset after 36.42 s",
+    "shots 0-4: carried frame for frame from take 3 (frames 0-437); frames 438-545 drawn new"
+   ],
+   "true_to": [
+    "energy audit: shot 5 at 36.5 s, ACTION WIDE, 9.0 s, motion 0.52, still 0.77, the last shot; film still share 0.45 by drawing (42% by the audit's shot average)",
+    "the cinematographer's report for take 3's last shot: 0 legal candidates of 256 (the faces inside each other)"
+   ],
+   "metrics_before": {
+    "stage": "take 3 as published (films/odyssey/OD-B23-S04-performed.mp4, 45.5 s, 6 shots)",
+    "shot5": {
+     "t0": 36.5,
+     "dur": 9.0,
+     "kind": "ACTION WIDE",
+     "motion": 0.52,
+     "still": 0.77
+    },
+    "film": {
+     "motion": 2.51,
+     "still": 0.45,
+     "still_tail_s": 0.0
+    }
+   },
+   "metrics_after": {
+    "stage": "take 4 as published (films/odyssey/OD-B23-S04-performed.mp4, 45.5 s, 7 shots; take 3 kept as films/odyssey/takes/OD-B23-S04/take3.*); 108 frames drawn, 438 carried",
+    "shot5": {
+     "t0": 36.5,
+     "dur": 4.0,
+     "kind": "HOT MID penelope (over his shoulder)",
+     "motion": 0.72,
+     "still": 0.13
+    },
+    "shot6": {
+     "t0": 40.5,
+     "dur": 5.0,
+     "kind": "HOT CLOSE odysseus",
+     "motion": 0.7,
+     "still": 0.29
+    },
+    "film": {
+     "motion": 2.67,
+     "still": 0.33,
+     "still_tail_s": 0.0
+    },
+    "solver": "the ending's cameras found 44 and 13 legal candidates (take 3: 0)"
+   },
+   "result": "Kept. The ending is now an embrace you can see: the two sit cheek to cheek on the bed and the last nine seconds are a mid over his shoulder on her face and a close on his eyes over her shoulder, both at eye level in the warm K5 light, instead of a high wide of the back of her head. Still drawings in the last 9 s: 77% -> 13% and 29%; the film's still share 0.45 -> 0.33. Honest limits: the motion is gentle (0.7, the weeping holds' rocking), not large; in the mid her face is half behind his head; the couple shift 7 units apart across the cut at 36.42 s (a cheat on the cut, not seen in shot).",
+   "keep": true
+  }
+ ]
 }
