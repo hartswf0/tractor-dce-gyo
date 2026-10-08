@@ -428,7 +428,7 @@ function stage(ctx) {
   function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
 
   /* ── one drawing ── */
-  const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFE2A8');
+  const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFF6E4');
   function frame(t, look) {
     if (!stripped) { stripped = true; stripSea(P); }
     hideNow();
@@ -441,7 +441,7 @@ function stage(ctx) {
     /* sky colours: the day's (the key's look, or the sea's sky) toward night, toward storm, flashed */
     const day = (P.sky || (look && look.sky) || SKY.day).map(col), nt = SKY.night.map(col), stc = SKY.storm.map(col), fc = SKY.flash.map(col);
     const top = day[0].clone().lerp(nt[0], night).lerp(stc[0], storm * 0.85).lerp(fc[0], fl * 0.7), hor = day[1].clone().lerp(nt[1], night).lerp(stc[1], storm * 0.85).lerp(fc[1], fl * 0.6);
-    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, 0.55); cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
+    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, 0.38); cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
     dome.position.copy(cp);
     const fg = P.fog || (look && look.fog) || [700, 2600]; fog.color.copy(hor); fog.near = fg[0] * (1 - 0.35 * storm); fog.far = Math.max(fg[1], 2200) * (1 - 0.3 * storm); ctx.scene.fog = fog; ctx.scene.background = hor;
     /* the day's lights dimmed by night and storm (each light's base re-read when the take re-lights a key) */
@@ -512,7 +512,7 @@ function stage(ctx) {
       /* the path of light: the tile's facet (the swell's slope, steepened) mirroring the light into the lens */
       let glint = false;
       if (pathDir && pathK > 0.05 && !clear && dist < fogFar) { V.set(x - cp.x, y + U.plate - cp.y, z - cp.z).normalize(); Nn.set(-H.gx * U.plate * 5, 1, -H.gz * U.plate * 5).normalize(); Rv.copy(V).addScaledVector(Nn, -2 * V.dot(Nn));
-        const dd = Rv.dot(pathDir), thr = 0.985 - 0.02 * Math.min(1, dist / 1500); if (dd > thr && rnd(cells.i[c], cells.j[c], F) < 0.75) { glint = true; cc.lerp(pathC, 0.55 * pathK); } }
+        const dd = Rv.dot(pathDir), thr = 0.985 - 0.02 * Math.min(1, dist / 1500); if (dd > thr && rnd(cells.i[c], cells.j[c], F) < 0.75) { glint = true; cc.lerp(pathC, (moonVis > 0.15 ? 0.55 : 0.3) * pathK); } }
       L.put(x, bot, z, s, (y + U.plate - bot) / 8, s, null, cc);
       const topY = y + U.plate;
       if (glint && k <= 3) { const n = k <= 1 ? 1 : k === 2 ? 3 : 5; for (let g = 0; g < n; g++) { const ox = k <= 1 ? 0 : (rnd(c, g, F) - 0.5) * T * 0.8, oz = k <= 1 ? 0 : (rnd(c, g, F + 7) - 0.5) * T * 0.8, sc2 = s * (k <= 1 ? sk * 0.9 : 1.6); cc.copy(pathC).multiplyScalar(0.55 + 0.45 * pathK); glintL.put(x + ox, topY - 6.5 * s, z + oz, sc2, s, sc2, null, cc); } }
