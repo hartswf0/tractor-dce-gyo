@@ -186,7 +186,9 @@ function make(api, opt) {
         const v = view(p, r.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: label(r.mesh), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
       }
       if (T.sea && T.sea.surface && P.hipsP && !busy(id, t, WET)) { const c = P.torsoP ? P.torsoP.c : P.hipsP.c, s = T.sea.surface(c.x, c.z, t), d = s - P.hipsP.c.y;
-        if (d > tol.water * H) { const v = view(P.hipsP.c); rec({ kind: 'water', who: [id], parts: ['hips'], cls: 'water', against: 'the sea', depth: d / H, shade: A.shade, v, box: [id, 'hipsP'] }); } }
+        if (d > tol.water * H) { const v = view(P.hipsP.c), hd = P.headP ? P.headP.c : null, under = hd && T.sea.surface(hd.x, hd.z, t) > hd.y + 0.12 * H;
+          if (under) v.hidden = true;   /* gone under whole: nothing of him is drawn through the swell, so nothing is seen clipping */
+          rec({ kind: 'water', who: [id], parts: [under ? 'whole body (under)' : 'hips'], cls: under ? 'under' : 'water', against: 'the sea', depth: d / H, shade: A.shade, v, box: [id, 'hipsP'] }); } }
     }
     return { t, shot: sh && sh.id, kind: sh && sh.kind, out, n: ids.length };
   }

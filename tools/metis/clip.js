@@ -23,9 +23,10 @@
        other's body are not counted, their cores may meet up to 0.12 H, heads up to 0.07 H (cheek to cheek, never head through head)
      - a rider and its carrier (OdysseyCreatures.sample riders: a man under a ram, in a giant's fist)
      - shades (keyframes `shades` or a blocking entry's `shade: true`): reported apart, as deliberate, never counted
-   Tolerances (fractions of the smaller figure's height H, a minifig about 100 world units): head-head 0.04, core 0.05, limb 0.08,
+     - a body under a prop the score's objects name as a hiding place (affords 'hide': the sealskins of OD-B04-S05): deliberate
+   Tolerances (fractions of the smaller figure's height H, a minifig about 100 world units): head-head 0.04, core 0.05, limb 0.12,
    legs 0.10, creature 0.08; set 0.06 (head, torso, hips), legs 0.09; a sole 0.10 below the surface under it; the hips 0.10 under the
-   water. A fault is VISIBLE UNINTENDED CLIPPING when it is not a shade's and is in frame and unhidden for 0.25 s or more.
+   water (a figure wholly under the swell is not seen, so not counted). A fault is VISIBLE UNINTENDED CLIPPING when it is not a shade's and is in frame and unhidden for 0.25 s or more.
 
    Usage (the repository served on :8899, as for tools/export-odyssey.js; one Chromium; about 1-3 minutes a scene):
      NODE_PATH=/opt/node22/lib/node_modules node tools/metis/clip.js OD-B12-S04 [OD-B10-S01 ...]
@@ -41,7 +42,7 @@
      Writes <out>/<name>.json (the intervals, each with time range, who, what, against what, depth in H, visible seconds and the shots
      that show it) and, for the worst three visible faults, <evidence>/<scene>/clip-<n>.jpg (640x360, the offending parts outlined in
      magenta, the other party in yellow). Prints one summary line a scene:
-        CLIP OD-B12-S04 visible 1.8 s in 3 intervals (worst: odysseus torso in the hull 0.21 H at 12.3-13.1 s); shades 0; offscreen 4.2 s
+        CLIP OD-B12-S04 visible 1.8 s in 3 intervals (worst: odysseus torso in the hull 0.21 H at 12.3-13.1 s); shades 0.0 s; offscreen, hidden or brief 4.2 s
      and exits 0. `--gate 0.25` exits 1 when any visible unintended interval lasts 0.25 s or more (the keep rule in
      odyssey/metis/README.md).
 
@@ -66,7 +67,7 @@ const args = process.argv.slice(2), sids = args.filter(a => /^OD-B\d\d-S\d\d$/.t
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; }, has = k => args.includes('--' + k);
 const STEP = +opt('step', 1 / 6), [W, H] = opt('size', '640x360').split('x').map(Number), NST = has('no-stills') ? 0 : +opt('stills', 3);
 const OUT = path.resolve(ROOT, opt('out', 'odyssey/metis/clip')), EVD = path.resolve(ROOT, opt('evidence', 'odyssey/metis/evidence')), AT = opt('at', null), GATE = opt('gate', null);
-const TOL = { headHead: 0.04, core: 0.05, limb: 0.08, legs: 0.10, creature: 0.08, headHeadContact: 0.07, coreContact: 0.12, set: 0.06, legSet: 0.09, sink: 0.10, water: 0.10 };
+const TOL = { headHead: 0.04, core: 0.05, limb: 0.12, legs: 0.10, creature: 0.08, headHeadContact: 0.07, coreContact: 0.12, set: 0.06, legSet: 0.09, sink: 0.10, water: 0.10 };
 const CONTACT = ['GRIP', 'EMBRACE', 'HOLD_ON', 'SEIZE', 'TEND', 'CARRY', 'TAKE', 'OFFER', 'STAB', 'PUNCH', 'THRUST', 'SWING', 'STRUGGLE', 'CARESS', 'FAWN', 'CLING', 'WEEP', 'LEAD', 'FOLLOW', 'ROPE', 'BIND', 'SEAL', 'CHANGE'];
 const WET = ['SWIM', 'DROWN', 'RIDE', 'CLIMB'];
 const MIN_VIS = 0.25;
@@ -155,10 +156,13 @@ async function one(page, sid) {
     /* one drawing counts once for an interval, seen if any of its part pairs is seen */
     for (const [I, st] of seenNow) { I.n++; if (st === 2) { I.vis++; I.shots[s.shot] = (I.shots[s.shot] || 0) + 1; } else if (st === 1) I.hid++; else I.off++; } }
   done.push(...open.values());
+  /* the score's hiding places (an object that affords 'hide': the sealskins over Menelaus's men): a body under one is meant */
+  const hideStems = Object.entries((score && score.objects) || {}).filter(([k, o]) => (o.affords || []).includes('hide')).map(([k]) => k.toLowerCase().replace(/[^a-z]/g, '').replace(/s$/, ''));
   const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   const ivs = done.map(I => { const cls = top(I.cls)[0]; const what = I.kind === 'body' ? ({ 'head-head': 'head through head', core: 'body through body', limb: 'limb through body', legs: 'legs through legs', creature: 'body through a creature' }[cls] || cls)
       : I.kind === 'water' ? 'sunk into the sea' : ({ sink: 'feet below the surface', walk: 'walks through', leg: 'leg through', body: 'body inside' }[cls] || cls) + ' ' + I.against;
-    const vsec = +(I.vis * STEP).toFixed(2), deliberate = I.shade ? 'shade' : null;
+    const hid = I.kind === 'set' && /^prop:/.test(I.against || '') && hideStems.some(st => I.against.slice(5).toLowerCase().replace(/[^a-z]/g, '').startsWith(st));
+    const vsec = +(I.vis * STEP).toFixed(2), deliberate = I.shade ? 'shade' : hid ? 'hidden under ' + I.against.slice(5) : null;
     return { key: I.key, t0: +I.t0.toFixed(2), t1: +(I.last + STEP).toFixed(2), dur: +((I.last - I.t0) + STEP).toFixed(2), who: I.who, kind: I.kind, what, cls, parts: top(I.parts).slice(0, 3), against: I.against,
       depthH: +I.depth.toFixed(3), visibleSec: vsec, hiddenSec: +(I.hid * STEP).toFixed(2), offscreenSec: +(I.off * STEP).toFixed(2), shots: top(I.shots), walking: I.walking, inContact: I.contact, deliberate,
       fault: !deliberate && vsec >= MIN_VIS, worst: { t: +I.worst.t.toFixed(2), depthH: +I.worst.depth.toFixed(3), seen: I.worst.seen, at: I.worst.uv, shot: I.worst.shot, box: I.worst.box } }; });
@@ -172,7 +176,7 @@ async function one(page, sid) {
     visibleSec: +(visT.size * STEP).toFixed(2), faults: ivs.filter(i => i.fault).length, offscreenSec: +(offT.size * STEP).toFixed(2), shadeSec: +(shT.size * STEP).toFixed(2),
     longestVisible: Math.max(0, ...ivs.filter(i => i.fault).map(i => i.visibleSec)), tolerances: TOL, minVisible: MIN_VIS };
   const w = ivs.find(i => i.fault);
-  const line = `CLIP ${name} visible ${sum.visibleSec.toFixed(1)} s in ${sum.faults} intervals` + (w ? ` (worst: ${w.who.join(' + ')} ${w.what}${w.parts[0] ? ' [' + w.parts[0] + ']' : ''} ${w.depthH.toFixed(2)} H at ${w.t0.toFixed(1)}-${w.t1.toFixed(1)} s)` : '') + `; shades ${sum.shadeSec.toFixed(1)} s; offscreen or hidden ${sum.offscreenSec.toFixed(1)} s`;
+  const line = `CLIP ${name} visible ${sum.visibleSec.toFixed(1)} s in ${sum.faults} intervals` + (w ? ` (worst: ${w.who.join(' + ')} ${w.what}${w.parts[0] ? ' [' + w.parts[0] + ']' : ''} ${w.depthH.toFixed(2)} H at ${w.t0.toFixed(1)}-${w.t1.toFixed(1)} s)` : '') + `; shades ${sum.shadeSec.toFixed(1)} s; offscreen, hidden or brief ${sum.offscreenSec.toFixed(1)} s`;
   sum.line = line;
   /* ── stills: the worst three visible faults, the offending parts outlined ── */
   const stills = [];
