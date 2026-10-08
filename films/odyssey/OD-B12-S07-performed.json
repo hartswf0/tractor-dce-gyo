@@ -58,16 +58,16 @@
     "id": "K4",
     "t": 41.56,
     "win": [
-     39.54,
-     42.43
+     40.16,
+     42.16
     ]
    },
    {
     "id": "K5",
     "t": 47.37,
     "win": [
-     46.39,
-     47.79
+     45.97,
+     47.97
     ]
    }
   ],
@@ -75,15 +75,16 @@
    "odysseus"
   ],
   "shots": {
-   "WIDE": 5,
-   "HOT": 3
+   "WIDE": 3,
+   "HOT": 2,
+   "WIDE!": 2
   },
   "cine": {
    "time": {
-    "grid": 4,
-    "inside": 0.3,
-    "seen": 8.5,
-    "clutter": 2.4,
+    "grid": 9.1,
+    "inside": 0.5,
+    "seen": 12.4,
+    "clutter": 3.2,
     "pose": 0
    },
    "scene": "OD-B12-S07",
@@ -106,7 +107,7 @@
     "tempo_conflict": true
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 137.1,
+   "solvedIn": 293,
    "shots": [
     {
      "i": 0,
@@ -147,18 +148,25 @@
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L1 under the set": 146,
-      "L2 odysseus hidden": 4,
+      "L1 under the set": 145,
+      "L2 odysseus hidden": 12,
       "L4 foreground covers n%": 2,
-      "L1 in part construction-frame": 3,
-      "L3 head": 3
+      "L3 head": 9,
+      "L2 body": 3,
+      "L3 face": 2
      },
      "candidates": 257,
-     "legalCandidates": 99,
+     "legalCandidates": 84,
      "samples": [
       4.5,
       0.1,
-      8.9
+      8.9,
+      1.25,
+      2.5,
+      3.75,
+      5,
+      6.25,
+      7.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -167,15 +175,15 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.06,
-     "headV": 0.43,
+     "facing": 0.03,
+     "headV": 0.376,
      "clutterFar": 0.01,
      "luma": {
-      "mean": 0.395,
-      "sd": 0.192,
-      "dark": 0.1,
+      "mean": 0.16,
+      "sd": 0.263,
+      "dark": 0.7,
       "white": 0,
-      "one": 0.25
+      "one": 0.65
      },
      "lumaRefused": 0
     },
@@ -206,37 +214,42 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -1,
-       130,
-       14.8
+       1.3,
+       134.2,
+       44.9
       ],
       "fov": 32,
       "key": false,
-      "az": 4.71,
+      "az": 5.11,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 74,
-      "L4 an empty frame (n% sky)": 13,
-      "L4 foreground covers n%": 5,
-      "L2 odysseus hidden": 1,
-      "L1 in drowning-crew-5": 5,
-      "L1 inside a set part": 4,
-      "L1 in part 1501": 3,
-      "L1 too near the face": 97,
-      "L1 near plane in a set part": 2,
-      "L3 head": 32,
-      "L1 in drowning-crew-4": 1
+      "L3 the back": 72,
+      "L4 an empty frame (n% sky)": 16,
+      "L4 foreground covers n%": 4,
+      "L1 in drowning-crew-5": 4,
+      "L1 inside a set part": 1,
+      "L1 in part 1626": 3,
+      "L1 in drowning-crew-4": 2,
+      "L1 near plane in a set part": 1,
+      "L1 too near the face": 100,
+      "L3 head": 32
      },
      "candidates": 256,
-     "legalCandidates": 19,
+     "legalCandidates": 21,
      "samples": [
       13.29,
       9.1,
-      17.48
+      17.48,
+      10.25,
+      11.5,
+      12.75,
+      14,
+      15.25,
+      16.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -246,17 +259,17 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 1,
+     "facing": 0.88,
      "headV": 0.351,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.379,
-      "sd": 0.157,
-      "dark": 0.02,
+      "mean": 0.126,
+      "sd": 0.215,
+      "dark": 0.66,
       "white": 0,
-      "one": 0.26
+      "one": 0.66
      },
-     "lumaRefused": 0
+     "lumaRefused": 1
     },
     {
      "i": 2,
@@ -284,36 +297,42 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -60,
-       90,
-       330
+       -93.5,
+       99.9,
+       -177.2
       ],
       "fov": 46,
-      "key": true,
-      "az": null,
+      "key": false,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L2 drowning-crew-2 hidden": 80,
+      "L2 drowning-crew-2 hidden": 84,
+      "L2 body": 2,
       "L1 under the set": 32,
+      "L4 foreground covers n%": 10,
       "L1 in odysseus": 2,
-      "L4 foreground covers n%": 11,
       "L1 in drowning-crew-5": 2,
-      "L3 head": 2,
-      "L1 inside a set part": 2,
-      "L2 body": 4,
+      "L3 head": 4,
       "L1 near plane in a set part": 1,
-      "L3 face": 2
+      "L3 face": 2,
+      "L1 too near the face": 5
      },
      "candidates": 257,
-     "legalCandidates": 119,
+     "legalCandidates": 113,
      "samples": [
       22.29,
       17.68,
-      26.9
+      26.9,
+      18.83,
+      20.08,
+      21.33,
+      23.83,
+      25.08,
+      26.33
      ],
      "checks": [
       "L1 not inside geometry",
@@ -322,149 +341,83 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": -0.94,
-     "headV": 0.425,
+     "facing": 0.96,
+     "headV": 0.408,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.684,
-      "sd": 0.209,
-      "dark": 0.02,
-      "white": 0.01,
-      "one": 0.52
+      "mean": 0.196,
+      "sd": 0.278,
+      "dark": 0.65,
+      "white": 0,
+      "one": 0.6
      },
      "lumaRefused": 0
     },
     {
      "i": 3,
      "t0": 27,
-     "t1": 32.83,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
-     "eased": "drowning-crew-5 cannot be framed legally from anywhere: the shot before is held (no cut); the planned frame was black from every legal camera: drowning-crew-2, mid",
-     "primary": "drowning-crew-2",
-     "subjects": [
-      "drowning-crew-2"
-     ],
-     "why": {
-      "cut": "heat moves: drowning-crew-1 -> odysseus",
-      "rule": "R1 the hot spot drowning-crew-5 (heat 0.67, contrast 0.36): MID by the direction's bias",
-      "heat": 0.67,
-      "contrast": 0.36,
-      "hot": "drowning-crew-5"
-     },
-     "line": [
-      "odysseus",
-      "drowning-crew-5"
-     ],
-     "side": 0,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       -1.2,
-       103.6,
-       122.2
-      ],
-      "fov": 38,
-      "key": false,
-      "az": 0.79,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L3 face": 70,
-      "L2 body": 2,
-      "L2 drowning-crew-2 hidden": 17,
-      "L1 near plane in a set part": 14,
-      "L4 foreground covers n%": 6,
-      "L1 in drowning-crew-3": 11,
-      "L1 in drowning-crew-1": 7,
-      "L1 in drowning-crew-5": 1,
-      "L1 too near the face": 51,
-      "L1 in drowning-crew-4": 5,
-      "L3 head": 18,
-      "L1 inside a set part": 6
-     },
-     "candidates": 256,
-     "legalCandidates": 48,
-     "samples": [
-      29.92,
-      27.1,
-      32.73
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.44,
-     "headV": 0.343,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.217,
-      "sd": 0.281,
-      "dark": 0.58,
-      "white": 0.01,
-      "one": 0.56
-     },
-     "lumaRefused": 1
-    },
-    {
-     "i": 4,
-     "t0": 32.83,
-     "t1": 38.67,
+     "t1": 35.71,
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "eased": null,
-     "primary": "drowning-crew-2",
+     "eased": "the wide had no legal camera: the primary alone, wide",
+     "primary": "drowning-crew-5",
      "subjects": [
-      "drowning-crew-2",
-      "drowning-crew-1",
       "drowning-crew-5"
      ],
      "why": {
-      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "cut": "heat moves: drowning-crew-1 -> odysseus",
       "rule": "R4 cold: hold wide",
-      "heat": 0.37,
-      "contrast": -0.08,
-      "hot": "drowning-crew-2"
+      "heat": 0.45,
+      "contrast": 0.24,
+      "hot": "drowning-crew-5"
      },
      "line": null,
      "side": 0,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -86.6,
-       103.6,
-       238.2
+       -66.5,
+       146.7,
+       1
       ],
-      "fov": 46,
+      "fov": 75,
       "key": false,
-      "az": 0,
+      "az": 4.71,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L4 foreground covers 20%",
+     "keyCamera": "L2 drowning-crew-5 hidden by a set part",
      "rejected": {
-      "L4 foreground covers n%": 3,
-      "L2 drowning-crew-2 hidden": 98,
-      "L1 near plane in a set part": 1,
-      "L1 in odysseus": 3,
-      "L2 body": 2
+      "L2 drowning-crew-5 hidden": 198,
+      "L2 body": 3,
+      "L4 foreground covers n%": 38,
+      "L1 in drowning-crew-1": 1,
+      "L1 near plane in a set part": 6,
+      "L1 inside a set part": 1,
+      "L1 in odysseus": 1,
+      "L1 in drowning-crew-3": 1,
+      "L1 in drowning-crew-2": 3
+     },
+     "rejectedPlanned": {
+      "L2 drowning-crew-5 hidden": 161,
+      "L1 under the set": 94,
+      "L4 foreground covers n%": 1,
+      "L2 body": 1
      },
      "candidates": 257,
-     "legalCandidates": 150,
+     "legalCandidates": 5,
      "samples": [
-      35.75,
-      32.93,
-      38.57
+      31.36,
+      27.1,
+      35.61,
+      28.25,
+      29.5,
+      30.75,
+      32,
+      33.25,
+      34.5
      ],
      "checks": [
       "L1 not inside geometry",
@@ -473,22 +426,99 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": -0.21,
-     "headV": 0.43,
+     "facing": 0.41,
+     "headV": 0.399,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.163,
-      "sd": 0.242,
-      "dark": 0.67,
+      "mean": 0.388,
+      "sd": 0.293,
+      "dark": 0.32,
+      "white": 0.01,
+      "one": 0.25
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 35.71,
+     "t1": 42.76,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus",
+      "drowning-crew-4",
+      "drowning-crew-5"
+     ],
+     "why": {
+      "cut": "a line begins (v5)",
+      "rule": "R1 the hot spot odysseus (heat 1.26, contrast 0.14): WIDE by the direction's bias",
+      "heat": 1.26,
+      "contrast": 0.14,
+      "hot": "odysseus"
+     },
+     "line": [
+      "drowning-crew-4",
+      "odysseus"
+     ],
+     "side": 1,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       138.5,
+       100.7,
+       84.6
+      ],
+      "fov": 75,
+      "key": false,
+      "az": 1.18,
+      "travelling": true
+     },
+     "legal": false,
+     "relaxed": false,
+     "keyCamera": "L2 body of odysseus hidden",
+     "rejected": {
+      "L2 body": 124,
+      "L1 under the set": 34,
+      "L2 odysseus hidden": 40,
+      "L1 in part construction-frame": 9,
+      "L1 near plane in a set part": 46,
+      "L3 face": 1,
+      "L3 head": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 0,
+     "samples": [
+      39.23,
+      35.81,
+      42.66,
+      36.96,
+      38.21,
+      40.71,
+      41.96
+     ],
+     "checks": [],
+     "failed": [
+      "L3 face of odysseus under the caption"
+     ],
+     "facing": 0,
+     "headV": 0.7,
+     "clutterFar": null,
+     "luma": {
+      "mean": 0.233,
+      "sd": 0.208,
+      "dark": 0.34,
       "white": 0,
-      "one": 0.64
+      "one": 0.37
      },
      "lumaRefused": 0
     },
     {
      "i": 5,
-     "t0": 38.67,
-     "t1": 48.57,
+     "t0": 42.76,
+     "t1": 51.5,
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
@@ -500,83 +530,10 @@
       "drowning-crew-4"
      ],
      "why": {
-      "cut": "heat moves: odysseus -> drowning-crew-5",
-      "rule": "R1 the hot spot odysseus (heat 1.17, contrast 0.61): WIDE by the direction's bias",
-      "heat": 1.17,
-      "contrast": 0.61,
-      "hot": "odysseus"
-     },
-     "line": [
-      "drowning-crew-5",
-      "odysseus"
-     ],
-     "side": 1,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       -248.6,
-       154.9,
-       252.7
-      ],
-      "fov": 63,
-      "key": false,
-      "az": 5.5,
-      "travelling": true
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": "L4 foreground covers 20%",
-     "rejected": {
-      "L4 foreground covers n%": 106,
-      "L4 an empty frame (n% sky)": 62,
-      "L1 in part construction-frame": 3,
-      "L1 under the set": 70,
-      "L2 odysseus hidden": 15
-     },
-     "candidates": 257,
-     "legalCandidates": 1,
-     "samples": [
-      43.62,
-      38.77,
-      48.47
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.99,
-     "headV": 0.362,
-     "clutterFar": 0.02,
-     "luma": {
-      "mean": 0.035,
-      "sd": 0.06,
-      "dark": 0.95,
-      "white": 0,
-      "one": 0.95
-     },
-     "lumaRefused": 1
-    },
-    {
-     "i": 6,
-     "t0": 48.57,
-     "t1": 54.67,
-     "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
-     "eased": null,
-     "primary": "odysseus",
-     "subjects": [
-      "odysseus"
-     ],
-     "why": {
-      "cut": "a line begins (v7)",
-      "rule": "R1 the hot spot odysseus (heat 0.93, contrast 0.93): MID by the direction's bias",
-      "heat": 0.93,
-      "contrast": 0.93,
+      "cut": "a line begins (v6)",
+      "rule": "R1 the hot spot odysseus (heat 1.15, contrast 1.08): WIDE by the direction's bias",
+      "heat": 1.15,
+      "contrast": 1.08,
       "hot": "odysseus"
      },
      "line": [
@@ -587,33 +544,114 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -41.2,
-       212.7,
-       9.3
+       -16.4,
+       261.2,
+       -138.6
+      ],
+      "fov": 46,
+      "key": false,
+      "az": 3.14,
+      "travelling": true
+     },
+     "legal": false,
+     "relaxed": false,
+     "keyCamera": "L4 an empty frame (89% sky)",
+     "rejected": {
+      "L4 an empty frame (n% sky)": 108,
+      "L3 the back": 44,
+      "L4 foreground covers n%": 5,
+      "L2 odysseus hidden": 1,
+      "L1 inside the staged prop fig": 32,
+      "L1 near plane in a set part": 6,
+      "L3 head": 61
+     },
+     "candidates": 257,
+     "legalCandidates": 0,
+     "samples": [
+      47.13,
+      42.86,
+      51.4,
+      44.01,
+      45.26,
+      46.51,
+      47.76,
+      49.01,
+      50.26
+     ],
+     "checks": [],
+     "failed": [
+      "L4 foreground covers 20%"
+     ],
+     "facing": 0,
+     "headV": 0.433,
+     "clutterFar": null,
+     "luma": {
+      "mean": 0.195,
+      "sd": 0.206,
+      "dark": 0.34,
+      "white": 0,
+      "one": 0.36
+     },
+     "lumaRefused": 10
+    },
+    {
+     "i": 6,
+     "t0": 51.5,
+     "t1": 60.73,
+     "kind": "HOT",
+     "size": "MID",
+     "planned": "MID",
+     "eased": null,
+     "primary": "odysseus",
+     "subjects": [
+      "odysseus"
+     ],
+     "why": {
+      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
+      "rule": "R1 the hot spot odysseus (heat 0.43, contrast 0.43): MID by the direction's bias",
+      "heat": 0.43,
+      "contrast": 0.43,
+      "hot": "odysseus"
+     },
+     "line": [
+      "drowning-crew-1",
+      "odysseus"
+     ],
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       5.6,
+       194.8,
+       -123
       ],
       "fov": 38,
       "key": false,
-      "az": 0,
+      "az": 2.75,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside the staged prop fig": 76,
-      "L4 an empty frame (n% sky)": 5,
-      "L3 the back": 41,
-      "L2 odysseus hidden": 14,
-      "L1 near plane in a set part": 28,
-      "L3 face": 43,
-      "L1 too near the face": 14
+      "L3 the back": 45,
+      "L4 an empty frame (n% sky)": 22,
+      "L1 inside the staged prop fig": 71,
+      "L1 near plane in a set part": 9,
+      "L3 face": 46,
+      "L1 too near the face": 29
      },
      "candidates": 256,
-     "legalCandidates": 35,
+     "legalCandidates": 34,
      "samples": [
-      51.62,
-      48.67,
-      54.57
+      56.11,
+      51.6,
+      60.63,
+      52.75,
+      54,
+      55.25,
+      57.75,
+      59
      ],
      "checks": [
       "L1 not inside geometry",
@@ -625,83 +663,15 @@
      "failed": [],
      "facing": 0.98,
      "headV": 0.342,
-     "clutterFar": 0.04,
-     "luma": {
-      "mean": 0.113,
-      "sd": 0.177,
-      "dark": 0.7,
-      "white": 0,
-      "one": 0.67
-     },
-     "lumaRefused": 2
-    },
-    {
-     "i": 7,
-     "t0": 54.67,
-     "t1": 60.73,
-     "kind": "WIDE",
-     "size": "MID",
-     "planned": "WIDE",
-     "eased": "the planned frame was black from every legal camera: odysseus, mid",
-     "primary": "odysseus",
-     "subjects": [
-      "drowning-crew-1"
-     ],
-     "why": {
-      "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
-      "rule": "R1 the hot spot odysseus (heat 0.35, contrast 0.35): WIDE by the direction's bias",
-      "heat": 0.35,
-      "contrast": 0.35,
-      "hot": "odysseus"
-     },
-     "line": [
-      "drowning-crew-1",
-      "odysseus"
-     ],
-     "side": 0,
-     "lineHeld": false,
-     "camera": {
-      "pos": [
-       9.4,
-       212.6,
-       -11.1
-      ],
-      "fov": 38,
-      "key": false,
-      "az": 0.79,
-      "travelling": false
-     },
-     "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L2 odysseus hidden": 14,
-      "L1 inside the staged prop fig": 73,
-      "L4 an empty frame (n% sky)": 5,
-      "L1 near plane in a set part": 30,
-      "L3 face": 43,
-      "L1 too near the face": 9
-     },
-     "candidates": 256,
-     "legalCandidates": 82,
-     "samples": [
-      57.7,
-      54.77,
-      60.63
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
-     "failed": [],
-     "facing": 0.49,
-     "headV": 0.342,
      "clutterFar": 0,
-     "luma": null,
-     "lumaRefused": 12
+     "luma": {
+      "mean": 0.142,
+      "sd": 0.232,
+      "dark": 0.6,
+      "white": 0,
+      "one": 0.6
+     },
+     "lumaRefused": 0
     }
    ]
   },
@@ -783,32 +753,26 @@
   },
   {
    "t": 27,
-   "shot": "c3:HOT:MID",
-   "kind": "HOT",
+   "shot": "c3:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K2"
   },
   {
-   "t": 32.833,
+   "t": 35.75,
    "shot": "c4:WIDE:WIDE",
    "kind": "WIDE",
    "key": "K3"
   },
   {
-   "t": 38.75,
+   "t": 42.833,
    "shot": "c5:WIDE:WIDE",
    "kind": "WIDE",
-   "key": "K3"
+   "key": "K4"
   },
   {
-   "t": 48.583,
+   "t": 51.5,
    "shot": "c6:HOT:MID",
    "kind": "HOT",
-   "key": "K5"
-  },
-  {
-   "t": 54.75,
-   "shot": "c7:WIDE:MID",
-   "kind": "WIDE",
    "key": "K5"
   }
  ],
@@ -863,7 +827,7 @@
   "format": "odyssey-choreo/1",
   "layer": "add",
   "actors": 6,
-  "cues": 317,
+  "cues": 319,
   "generated": {
    "by": "tools/perform/compile.js",
    "from": "odyssey/score/OD-B12-S07.json",

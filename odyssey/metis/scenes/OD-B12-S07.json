@@ -1,0 +1,68 @@
+{
+ "scene": "OD-B12-S07",
+ "turns": [
+  "OD-B12-S07 segments: the condemnation, the departure, the bolt, the wreck, the lashing, Charybdis (narrations), 60.73 s on the cut clock"
+ ],
+ "assembly": "location.odyssey-od-b12-s07 (its checkerboard sea taken out) + film-readymades/odyssey-sea.js (bolts, wreck, whirl, ride of the keel prop), keyed in odyssey/keyframes/OD-B12-S07.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "drowning-crew-1..5"
+  }
+ ],
+ "cause": "the crew ate the Sun's cattle; Zeus's bolt strikes the mast; the ship breaks up and the crew drown; Odysseus lashes keel and mast and is carried back to Charybdis, where the fig tree saves him",
+ "contacts": [
+  "feet-deck",
+  "hull-water",
+  "bolt-mast",
+  "seat-keel",
+  "hands-fig",
+  "timber-whirlpool"
+ ],
+ "clock": "the cut clock (60.73 s): K1 0, K2 18.09, K3 27.5, K4 41.56, K5 47.37",
+ "world": {
+  "sea": "dusk calm (swell 0.4), the fair wind (0.55), the storm (swell 1.1-1.25, storm 1, rain), the wreck at 36.9 s, the whirl at (50, -25) r 7.5 studs from 47.37 s; level -3.2 plates",
+  "sky": "dusk, day, the black storm, dawn at Charybdis",
+  "course": "out from Thrinacia; back to Charybdis"
+ },
+ "camera": [
+  "the solved plan's 7 shots (5 legal)",
+  "the kit's camera paths: the strike wide 24.2-28.2 s, the keel 41.6-47.3 s, Charybdis 47.37-60.8 s"
+ ],
+ "look": "the keys' looks (K5 given a dawn look) with the kit's water, rain, cloud and bolt",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "no one runs through anything: feet on the deck as she heaves; the thrown men in the water, not in the hull; Odysseus on the keel, not in it",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S07/clip.json, close-wreck.jpg, close-keel.jpg",
+   "note": "tools/metis/clip.js on the take: 0 visible intervals. Before the fixes the pre-render check found the crew thrown overboard through the hull's sides and standing in it as it rolled (37-41 s), two pairs of swimmers inside each other on their way to the K4 marks, and Odysseus seated 0.17 H into the keel. Now the hull is gone at the break (look.sea wreck, 36.9 s) and the men are let down into the water at their swimming times, the drowned sink 14 plates out of sight, the K4 crew drown where they fell, Odysseus swims (a SWIM added to the director's module) and sits astride the keel 17 units up"
+  },
+  {
+   "test": "the saving timber is visible before the strike; the bolt strikes the mast",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S07/close-bolt.jpg",
+   "note": "a wide on its own camera path (24.2-28.2 s) holds the whole hull and mast as the cloud comes; the bolt (look.sea bolts: trans-yellow plates from the cloud to the masthead, riding the hull) at 26.6 s with the cold flash; the masthead burns after"
+  },
+  {
+   "test": "Charybdis reads as a whirlpool that takes the timbers and gives them back",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S07/close-charybdis.jpg",
+   "note": "seven stepped rings of tiles turning faster toward a dark eye, a white spiral laid across them; the keel carried round and drawn under (depth 3 to 8 plates at 49.5-50.8 s) and thrown back up (to 2 at 59 s) while he hangs from the fig"
+  },
+  {
+   "test": "the solved plan's shots are legal",
+   "passed": "partly",
+   "evidence": "films/odyssey/OD-B12-S07-performed.json",
+   "note": "5 of 7 legal; the two wides of the wreck (35.7-51.5 s) fail the solver's own test; 41.6-51.5 s is covered by the kit's own camera paths; one drawing at 28.3 s is filled by the baked sail"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B12-S07-performed.mp4 (take 2; take 1 kept in films/odyssey/takes/OD-B12-S07/)",
+  "renderer": "tools/export-odyssey.js (--mode cut --fps 12 --choreo odyssey/score/OD-B12-S07.choreo.json)",
+  "outcome": "take 2 published; clip gate passed (0 s); 5 of 7 shots legal"
+ }
+}
