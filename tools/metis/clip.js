@@ -51,15 +51,35 @@
    paths and a take without a plan (the syncwatch grammar) are the take's own. The replayed aim is not the solver's thirds-line
    framing: a part on the very edge of the frame can be judged in or out wrongly. --solve makes it exact.
 
-   Validation (7-8 October 2026), see odyssey/metis/clip/AUDIT.md for the numbers:
-     known bad   OD-B23-S04 take 3 (--at 5d3681a0~1 --take films/odyssey/takes/OD-B23-S04/take3.json): the couple's embrace on the bed
-                 had them head through head (the record: "the embrace had them head through head, so no closer camera was legal");
-                 the checker finds it as head-head intervals between penelope and odysseus inside the embrace.
-     known good  OD-B23-S04 take 4 (the published film): the couple a hand apart, cheek to cheek: no head-head interval; the seated
-                 figures on the bed, hands on shoulders (HOLD_ON) and the embrace's arms are not flagged.
-   Limits: boxes, not meshes (a hand on a hip is a box in a box: the limb tolerance is wide); props in hand, capes and hair are not
-   bodies; creature against creature and creature against the set are not checked; a set part that is not a closed solid (a single
-   sheet of ground) holds no inside, so a body under it is found only by the sole test; the set is the current bundle's. */
+   Validation (8 October 2026):
+     known bad   OD-B23-S04 take 3 (--at 5d3681a0~1 --take films/odyssey/takes/OD-B23-S04/take3.json --name OD-B23-S04-take3): the
+                 record says "the embrace had them head through head, so no closer camera was legal". The checker finds penelope's and
+                 odysseus's heads 0.18 H into each other through the whole seated embrace, 35.0-45.7 s (10.7 s seen), and 0.14 H in the
+                 standing embrace, 26.0-29.5 s (3.5 s seen): 14.8 s visible, gate failed. Rendered from above and from the side at
+                 26.2 and 35.5 s, the faces are inside each other (her bun through his hair).
+     the fix     OD-B23-S04 take 4 (the published film, re-staged "a hand apart"): the seated ending 36.5-45.5 s is clean (cheek to cheek
+                 within 0.07 H, his HOLD_ON hand on her shoulder and her arms round him not counted). The checker still finds the
+                 standing embrace 26.0-29.5 s and the sit-down 35.0-36.5 s head through head: the re-staging fixed only the ending.
+     known good  tight legal contacts that must not flag, and do not: Odysseus's hands on the bow and the suitors at their tables
+                 (OD-B21-S07: 0.0 s visible); the rowers seated on their benches with their hands on the oars (OD-B12-S03: no bench,
+                 oar or hull fault); Anticleia's three embraces through her son (OD-B11-S04: 7.0 s, all reported as shade); the men
+                 under the rams, each on his own ram (OD-B09-S10: riders allowed); OD-B01-S01, OD-B01-S02, OD-B03-S05: 0.0 s.
+                 Tuning: the limb tolerance went 0.08 -> 0.12 H (an arm's box is loose: a raised arm by a neighbour's face flagged in
+                 OD-B06-S03 at 0.09 H), the sole 0.05 -> 0.10 H (a walking foot on a floor of tiles and plates flagged at one plate).
+   Limits: boxes, not meshes (a hand on a hip is a box in a box, so limbs get the widest tolerance; a creature's node box is
+   looser than its shape); hair and hats count as the head, while things held, capes, weapons and shields are not bodies;
+   creature against creature and creature against the set are not checked; a set part that is not a closed solid (one sheet
+   of ground) has no inside, so a body under it is found only by the sole test; the set is the current bundle's (an old take
+   replayed with --at keeps today's set); the replayed camera ignores the direction's push/pull and the solver's thirds-line aim.
+
+   For the sea re-shoots (OD-B09-S11, OD-B10-S01, OD-B10-S02, OD-B12-S04, OD-B12-S07, OD-B26-S04): after rendering a take with
+   tools/export-odyssey.js --suffix performed-r2, run
+     NODE_PATH=/opt/node22/lib/node_modules node tools/metis/clip.js OD-B12-S04 --take films/odyssey/OD-B12-S04-performed-r2.json --gate 0.25
+   (no Chromium may be rendering at the same time if it can be helped: the checker opens its own). The sea kit is fetched from the
+   working tree as the take fetches it. Water faults ('sunk into the sea') skip figures with SWIM, DROWN, RIDE or CLIMB intents
+   at that time; a figure that is wholly under the swell is reported but not counted (it is not seen). Hull faults name the hull
+   piece ('walks through black ship', 'feet below the surface black ship'). Keep the take only if the gate passes; else the
+   JSON's intervals say who, when and against what. */
 'use strict';
 const fs = require('fs'), path = require('path'), { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
