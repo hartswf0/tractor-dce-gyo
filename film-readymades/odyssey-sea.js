@@ -331,7 +331,7 @@ function stage(ctx) {
       if (H.kind === 'prop' && H.o.visible === false) continue;
       const G = H.G; let q, off;
       if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); if (!x) continue; q = x.Q.clone(); const pv = new V3(...H.rig.pivot), heave = x.off.clone().sub(pv.clone().sub(pv.clone().applyQuaternion(q)));
-        off = G.c.clone().sub(G.c.clone().applyQuaternion(q)).add(heave); }   /* turned about its own staged place (a key may stage it away from the rig's pivot), lifted as the rig lifts   /* the sheet's player turned the hidden piece and the riders with our channels: the prop follows */
+        const c0 = Math.hypot(G.c.x - pv.x, G.c.z - pv.z) < 60 ? pv : new V3(G.c.x, pv.y, G.c.z); off = c0.clone().sub(c0.clone().applyQuaternion(q)).add(heave); }   /* the sheet's player turned the hidden piece and the riders with our channels: the prop follows, about the rig's own pivot while it stands on it (the riders turn about it too), else about its own staged place (a key may stage it away), lifted as the rig lifts */
       else { const m = hullMotion(G, tq, G.c, null); m.roll += gustRoll(t); q = new Q().setFromEuler(new E(G.alongZ ? m.pitch : -m.roll, 0, G.alongZ ? m.roll : m.pitch, 'XYZ'));
         const piv = G.c.clone(); piv.y = mean; off = piv.clone().sub(piv.clone().applyQuaternion(q));
         /* a staged prop (staged on the baked sea's top) lifted a plate and a half, so its deck rides over the stepped crests */
@@ -339,6 +339,10 @@ function stage(ctx) {
       for (const B of H.base) { B.o.position.copy(B.p).applyQuaternion(q).add(off); B.o.quaternion.copy(B.q).premultiply(q); B.o.updateMatrixWorld(true); }
       H.set = { p: o0.position.clone(), q: o0.quaternion.clone() }; H.xf = { Q: q, off };
       if (H.kind === 'prop') propParts(H, t);
+      /* the figures standing on a staged raft are set on its deck (the logs' top under their feet), so feet and logs touch as it rolls */
+      if (H.kind === 'prop' && H.parts && H.parts.mesh && ctx.cast && !(P.break && P.break.at != null && tq >= P.break.at)) { const m = H.parts.mesh; m.updateMatrixWorld(true);
+        for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const lp = m.worldToLocal(f.position.clone()); if (Math.abs(lp.x) > 74 || Math.abs(lp.z) > 46) continue;
+          const deck = m.localToWorld(new V3(lp.x, 0, lp.z)); if (f.position.y < deck.y - 30 || f.position.y > deck.y + 8) continue; f.position.y = deck.y; if (A.r.pos) A.r.pos.copy(f.position); f.updateMatrixWorld(true); } }
       /* riders: the figures standing within the hull's footprint */
       if (ctx.cast && !H.rig) for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const d = f.position.clone().sub(G.c), a = d.dot(G.ax), l = d.dot(G.lat);
         if (Math.abs(a) > G.half + 4 || Math.abs(l) > G.beam + 4 || f.position.y < G.b.min.y - 6 || f.position.y > G.b.max.y + 20) continue;
@@ -380,7 +384,7 @@ function stage(ctx) {
     if (!S.holder) return;
     const tq = onTwos(t), wind = cl01(P.wind); let gk = 0; for (const g of [].concat(P.gust == null ? [] : P.gust)) { const d = tq - g; if (d >= 0 && d < 5) gk = Math.max(gk, Math.exp(-d * 0.9) * (d < 0.3 ? d / 0.3 : 1)); }
     /* the sail: swung off the wind and leaning, its shake on twos; the gust throws it hard over */
-    S.sailPiv.rotation.set((0.06 + 0.22 * wind) * Math.sin(tq * 1.9) * 0.4 + 0.5 * gk, (0.1 + 0.3 * wind) * Math.sin(tq * 0.7) + 0.7 * gk * Math.sin(tq * 9), 0, 'YXZ');
+    S.sailPiv.rotation.set((0.04 + 0.08 * wind) * Math.sin(tq * 1.9) + 0.45 * gk, 0.08 * wind * Math.sin(tq * 0.7) + 0.4 * gk * Math.sin(tq * 9), 0, 'YXZ');   /* small off the gust: the cameras were solved round the sail where it hangs */
     const br = P.break && P.break.at != null ? tq - P.break.at : -1;
     S.mesh.position.copy(S.m0.p); S.mesh.quaternion.copy(S.m0.q);
     for (const L of S.logs) { L.m.position.set(0, 0, 0); L.m.rotation.set(0, 0, 0); }
@@ -404,9 +408,18 @@ function stage(ctx) {
     const floor = along(72) + (P.camMargin ?? 3) * U.plate; let y = p.y; if (w > 0) y = lerp(y, top(p.x, p.z) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? along(20) + 1.5 * U.plate : floor);
     if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
     /* out of the raft's sail and mast: the lens is drawn back along its own axis until it is outside their boxes (with a margin) */
-    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(8)); }
-    for (let k = 0; k < 40 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
+    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(P.sailMargin ?? 22)); }
+    for (let k = 0; k < 60 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
     if (boxes.length) { cam.lookAt(aim); cam.updateMatrixWorld(); }
+    /* the sail between the lens and the scene's subject (P.subject, an actor id): the lens is craned over the sail's top and turned on
+       the subject's head, so the sail never stands in front of him */
+    const sj = P.subject || root.__seaSubject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
+    if (sub && boxes.length) { sub.r.figure.updateMatrixWorld(true); const head = sub.r.headP ? sub.r.headP.getWorldPosition(new V3()) : sub.r.figure.position.clone().add(new V3(0, 40, 0));
+      const to = head.clone().sub(p), dist = to.length(), ray = new THREE.Ray(p.clone(), to.clone().normalize()), hit = new V3();
+      for (const b0 of boxes) { const b = b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3); if (ray.intersectBox(b, hit) && hit.distanceTo(p) < dist) { const back = to.clone().setY(0).normalize(); p.addScaledVector(back, -Math.max(0, 90 - dist)); p.y = Math.max(p.y, b.max.y + 28);
+        /* still through it (seen from above, a sail is still a sail): round the subject a quarter turn until the line is clear */
+        for (let k = 0; k < 6; k++) { const r2 = new THREE.Ray(p.clone(), head.clone().sub(p).normalize()); if (!r2.intersectBox(b, hit) || hit.distanceTo(p) > head.distanceTo(p)) break; const v = p.clone().sub(head); v.applyAxisAngle(new V3(0, 1, 0), Math.PI / 6); p.copy(head).add(v); }
+        cam.lookAt(head); cam.updateMatrixWorld(); break; } } }
   }
   /* hands held on a hull's support until a named release (P.hold: [{actor, side: 'R'|'L'|'both', t0, t1, at: [x, y, z] in the staged
      prop's own LDU (the raft's mast: [0, -50, 0]), id}]): each arm turned at the shoulder (pitch, and a little out) so the hand goes to
@@ -463,7 +476,7 @@ function stage(ctx) {
     const moonVis = mo ? night * (1 - cl01(P.clouds * 1.6)) : 0;
     moonM.visible = moonVis > 0.02; if (mo) { moonM.position.copy(cp).addScaledVector(md, 4000); moonM.quaternion.setFromUnitVectors(new V3(0, 1, 0), md.clone().negate()); const k = mo.size * s; moonM.scale.set(k, k, k); moonM.material.color.copy(moonC).multiplyScalar(0.35 + 0.65 * moonVis); }
     moonLight.intensity = mo ? moonVis * 0.7 : 0; if (md) { moonLight.position.copy(md).multiplyScalar(900).add(new V3(cx, 0, cz)); moonLight.target.position.set(cx, 0, cz); moonLight.target.updateMatrixWorld(); }
-    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 0.9;   /* a cold flash, never a daylight
+    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 0.9;   /* a cold flash, never a daylight */
     if (rr) rr.toneMappingExposure *= (1 - 0.18 * night);
     const sunL = look && look.sun ? new V3(...look.sun.dir).normalize() : null;
     const pathDir = moonVis > 0.15 ? md : sunL && night < 0.6 && storm < 0.5 ? sunL : null, pathC = moonVis > 0.15 ? cGlint : cGlintSun, pathK = moonVis > 0.15 ? moonVis : (1 - night) * (1 - storm);
