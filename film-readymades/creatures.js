@@ -704,7 +704,7 @@ function herd(params) {
   };
 }
 /* Scylla's heads: each coils back, strikes at its target at t0 + delay, holds (the seizing), then lifts toward the cleft.
-   params {targets: [[x, y, z] (world) x6], t0, strike: 0.35, hold: 0.6, lift: 4, liftTo: [dx, dy, dz] (Scylla frame), delays, base (where
+   params {targets: [[x, y, z] (world) x6], t0, strike: 0.35, hold: 0.6, lift: 4, liftTo: [dx, dy, dz] (Scylla frame), spread, rise, delays, base (where
    Scylla is: root.x, root.y, root.z, root.h)} */
 function strike(rig, t, params = {}) {
   const v = Object.assign(rig.rest(), params.base || {}), W = rig.world(v), Wi = inv(W), n = 6, fx = { seized: [] };
@@ -719,7 +719,7 @@ function strike(rig, t, params = {}) {
     else if (t < t0) { const u = sm(cl01((t - (t0 - 1.2)) / 1.2)); p = coil.map((q, k) => q + sway(t)[k] + [0, -30, 40][k] * u); slack = 0.55 + 0.4 * u; hd = 0.4 * u; }   // drawn back, the S tightening
     else if (t < t0 + ts) { const u = cl01((t - t0) / ts), e = u * u; const c2 = coil.map((q, k) => q + [0, -30, 40][k]); p = c2.map((q, k) => lerp(q, aim[k], e)); slack = lerp(0.95, 0.1, u); hd = lerp(0.4, -0.5, u); }
     else if (t < t0 + ts + th) { p = aim.map((q, k) => q + sway(t)[k] * 0.2); slack = 0.1; hd = -0.5; fx.seized.push(N); }
-    else { const u = sm(cl01((t - t0 - ts - th) / tl)), l0 = params.liftTo || [0, -60, -40], lt = [l0[0] + r[0] * 0.9, l0[1] - 14 * hash(N + 3), l0[2]];   /* each head lifts to its own place over the cleft (not one point) */ p = aim.map((q, k) => lerp(q, lt[k] + [0, 30, 0][k], u) + sway(t)[k] * 0.3); slack = lerp(0.1, 0.5, u); hd = lerp(-0.5, 0.3, u); fx.seized.push(N); }
+    else { const u = sm(cl01((t - t0 - ts - th) / tl)), l0 = params.liftTo || [0, -60, -40], lt = [l0[0] + r[0] * 0.9, l0[1] - 14 * hash(N + 3) - (params.rise || 0) * (N % 2), l0[2] + (params.spread || 0) * (N - 3.5)];   /* spread: the heads fanned along the cliff (Scylla's z) so the men they hold hang apart; rise: every other one higher */   /* each head lifts to its own place over the cleft (not one point) */ p = aim.map((q, k) => lerp(q, lt[k] + [0, 30, 0][k], u) + sway(t)[k] * 0.3); slack = lerp(0.1, 0.5, u); hd = lerp(-0.5, 0.3, u); fx.seized.push(N); }
     v[`neck${N}.x`] = p[0]; v[`neck${N}.y`] = p[1]; v[`neck${N}.z`] = p[2]; v[`neck${N}.slack`] = slack; v[`neck${N}.head`] = hd;
   }
   v._fx = fx; return v;

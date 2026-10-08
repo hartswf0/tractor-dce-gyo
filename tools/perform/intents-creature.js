@@ -103,7 +103,7 @@ K.HERD = (X, I, e) => { const p = I.params; return X.cmove(I.actor, 'HERD', e, {
   ...['abreast', 'gap', 'spread', 'speed', 'separation', 'y'].filter(k => p[k] != null).map(k => ({ [k]: p[k] }))) }, { label: I.label || 'with the flock' }); };   /* a formation: rows abreast, gap, spread */
 K.STRIKE = (X, I, e) => { const p = I.params || {}, tg = (p.targets || []).map(id => figPoint(X, id, I.t0 + 0.3, X.H(id) * 0.6)).filter(Boolean);
   /* strike() starts from the pose sampled so far (creatures.js runProc passes it): the targets are read in Scylla's own frame */
-  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, delays: p.delays, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
+  const ev1 = X.cmove(I.actor, 'STRIKE', e, { proc: { type: 'strike', targets: tg, t0: I.t0, lift: p.lift || 4, delays: p.delays, spread: p.spread, rise: p.rise, from: I.t0 - 1, to: p.keep === false ? I.t1 : X.T, fade: 0.5 } }, { label: I.label || 'the six heads strike' });
   /* each head reaches its man at t0 + its stagger + the strike (0.35 s); he rides that jaw from then to the end: taken */
   const D = p.delays || [0, 0.08, 0.03, 0.12, 0.05, 0.1];   /* params.delays: each head's own moment (six abductions, one after another) */
   (p.targets || []).forEach((id, k) => { const tg = r3(I.t0 + D[k % 6] + 0.36); X.cmove(I.actor, 'SEIZED', ev1, { riders: [{ actor: id, at: 'jaw' + (k + 1), from: tg, to: r3(p.keep === false ? I.t1 : X.T) }], from: tg, to: I.t1 }, { label: id + ' in jaw ' + (k + 1) });
