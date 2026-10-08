@@ -25,7 +25,7 @@ module.exports = function author(M, X) {
   A.holds = A.holds.filter(h => !crew.includes(h.actor) || h.t1 < tS - 0.5);
   for (const m of [].concat(A.machinery || [])) {
     if (m.kind === 'ROWING') { m.clock.t1 = tS; m.busy = Object.fromEntries(crew.map(id => [id, c.lost.map(([a, b]) => [a, b])])); }
-    if (m.kind === 'SEA') { for (const h of m.hulls || []) h.riders = [[O, 0, T], ...crew.map((id, k) => [id, 0, q(tS + [0, 0.75, 1.5, 2.25, 3.0, 3.75][k % 6] + 0.36)])]; m.causes = (m.causes || []).concat([{ t: tS, id: 'sStrike' }]); } }
+    if (m.kind === 'SEA') { for (const h of m.hulls || []) h.riders = [[O, 0, T], ...crew.map((id, k) => [id, 0, q(tS + [2.25, 0, 3.0, 0.75, 3.75, 1.5][k % 6] + 0.36)])]; m.causes = (m.causes || []).concat([{ t: tS, id: 'sStrike' }]); } }
   const stim = A.stimuli, I = o => (A.intents.push(o), o.id), S_ = o => (stim.push(o), o.id);
   const needle = (id, t, unit, label, because) => S_({ id, t0: q(t), t1: q(t) + 0.3, kind: 'NEEDLE', label: unit + ': ' + label, because: because || [], params: { unit } });
   c.lost.forEach(([a], k) => needle('sLost' + k, a, 'CREW', 'over 0.55 while they row: a stroke lost', [{ id: a < 5 ? 'sC0' : 'sC1' }]));
@@ -35,7 +35,7 @@ module.exports = function author(M, X) {
   c.lost.filter(([a]) => a > 3.5 && a < tS).forEach(([a], k) => I({ id: 'iSteady' + k, actor: O, kind: 'SIGNAL', t0: q(a) + 0.3, t1: q(a) + 1.8, label: 'pull: together', params: { how: 'go', to: crew, lookAt: crew[0], side: 'L' }, because: [{ id: 'sLost' + c.lost.findIndex(x => x[0] === a) }] }));
   /* Scylla: coiled on her rock, the strike, the six lifted (riders on the jaws), held while the ship goes on */
   /* six abductions, one after another down the benches (the fieldbook: each seizure its own beat), not one blur of six */
-  const DL = [0, 0.75, 1.5, 2.25, 3.0, 3.75];
+  const DL = [2.25, 0, 3.0, 0.75, 3.75, 1.5];   /* the cliff-side bench first (2, 4, 6), then the far side (1, 3, 5): no man is lifted across a seated one */
   I({ id: 'iStrike', actor: S, kind: 'STRIKE', t0: tS, t1: T, label: 'six heads, one man after another off the benches', params: { targets: crew.slice(0, 6), lift: 5, delays: DL }, because: [{ id: 'sStrike' }] });
   crew.forEach((m, k) => { const tg = q(tS + DL[k % 6] + 0.36);
     I({ id: 'iTaken' + k, actor: m, kind: 'STRUGGLE', t0: tg + 0.1, t1: Math.min(T, tg + 10 + 0.4 * k), label: 'hands and feet in the air, calling his name', because: [{ id: 'iStrike' }] });
