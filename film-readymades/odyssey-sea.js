@@ -33,7 +33,7 @@
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
-   sail {at:[x,z], y0, y1, width (studs), stripe} | null, ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
+   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
@@ -245,7 +245,7 @@ function stage(ctx) {
       const piv = inner.clone(); piv.y = Math.max(piv.y, tip.y); const og = new THREE.BufferGeometry(); const arr = new Float32Array(pos); for (let i = 0; i < arr.length; i += 3) { arr[i] -= piv.x; arr[i + 1] -= piv.y; arr[i + 2] -= piv.z; }
       og.setAttribute('position', new THREE.BufferAttribute(arr, 3)); og.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colr), 3)); og.computeVertexNormals();
       const om = new THREE.Mesh(og, Array.isArray(mesh.material) ? mesh.material[0] : mesh.material); om.castShadow = true; om.receiveShadow = true; om.userData.axis = 'sea'; oarGroup.add(om);
-      oars.push({ m: om, piv, tip: tip.clone(), side: gq.side, at: gq.at, len: lt - li }); }
+      oars.push({ m: om, piv, tip: tip.clone(), side: gq.side, at: gq.at, len: lt - li, H }); }
     restore.push(() => { oarGroup.parent && oarGroup.parent.remove(oarGroup); });
   }
   /* rides: the sheet's ship (through the choreo hook) and the other hulls (props, pieces) turned here */
@@ -292,6 +292,7 @@ function stage(ctx) {
   const flash = new THREE.HemisphereLight('#e8eeff', '#5a6a8c', 0); flash.userData.kf = true; flash.userData.sea = true; grp.add(flash);
   const lanterns = []; const lampL = new Layer(grp, geo('roundbrick1x1'), basic({ toneMapped: false }), 8), capL = new Layer(grp, geo('round1x1'), std({}), 8), postL = new Layer(grp, geo('bar'), std({ rough: 0.6 }), 8);
   const sailL = new Layer(grp, geo('tile1'), std({ rough: 0.5 }), 900);
+  const whirlL = new Layer(grp, geo('tile1'), std({ rough: 0.25 }), 900);
   const isleL = new Layer(grp, geo('brick1x4'), std({ rough: 0.55 }), 1600);
 
   let fog = new THREE.Fog(0x000000, 700, 2600), inited = false, last = null;
@@ -471,6 +472,9 @@ function stage(ctx) {
       if (pass === 0 && nm) { miss.divideScalar(nm); const lim = hd.reach ?? 45; if (miss.length() > lim) miss.setLength(lim); r.figure.position.add(miss); if (r.pos) r.pos.copy(r.figure.position); r.figure.updateMatrixWorld(true); } } }
   }
   /* the transform of the first hull (the rig's from the sheet's player, else ours) */
+  /* the transform of any hull: the rig's from the sheet's player, else the one ride() gave it */
+  function xfOf(H) { if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
+  const shown = H => H && (H.kind !== 'piece' || H.ms.every(m => m.visible !== false));
   function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
 
   /* ── one drawing ── */
@@ -483,6 +487,10 @@ function stage(ctx) {
     /* the light: lightning this drawing? */
     let strike = null; for (const st of [].concat(P.strikes || [])) if (drawing(st) === F) strike = { t: st, i: 1000 + Math.round(st * 12) };
     if (!strike && storm > 0.55) for (let i = 0; i < strikes.length; i++) { if (drawing(strikes[i]) === F) { strike = { t: strikes[i], i }; break; } if (strikes[i] > t + 1) break; }
+    /* an aimed bolt (P.bolts: [{t, to: [x, y, z], hull: true (the point rides the first hull), dur (s)}]): Zeus's thunderbolt on the mast, held
+       for its drawings, the flash with it */
+    const aimed = [].concat(P.bolts || []).filter(b => b && b.to && tq >= b.t - 1e-6 && tq < b.t + (b.dur ?? 0.17));
+    if (aimed.length && !strike) strike = { t: aimed[0].t, i: 2000 + Math.round(aimed[0].t * 12), aimed: true };
     const fl = strike ? 1 : 0;
     /* sky colours: the day's (the key's look, or the sea's sky) toward night, toward storm, flashed */
     const day = (P.sky || (look && look.sky) || SKY.day).map(col), nt = SKY.night.map(col), stc = SKY.storm.map(col), fc = SKY.flash.map(col);
@@ -535,6 +543,13 @@ function stage(ctx) {
     /* the hull under way: its transform, footprint and wake */
     const X = hullXf(), G = X && X.G, way = P.way || 0;
     const bowA = G ? G.bowSign : -1;
+    /* the other hulls' footprints (a fleet: P.ride names more pieces), where the water steps down under the hull as under the first */
+    const more = rides.slice(1).filter(h => h.kind === 'piece' && shown(h)).map(h => ({ X: xfOf(h), G: h.G })).filter(o => o.X && o.G);
+    const firstShown = shown(rides[0]);
+    /* the whirlpool (P.whirl: {at: [x, z], r (studs), rings, depth (plates, may be a track: she sucks the sea down and throws it up),
+       turn (turns a second at the rim), foam}): Charybdis as concentric stepped rings of tiles, each ring a step lower toward the eye and
+       turning faster, a white streak laid across the rings as a spiral so the turning reads in a still */
+    const WH = P.whirl && P.whirl.at ? { x: P.whirl.at[0], z: P.whirl.at[1], R: (P.whirl.r || 7) * U.stud } : null;
     /* ── the ocean ── */
     for (const L of water) L.begin(); foamL.begin(); glintL.begin(); foamTile.begin();
     const faceL = (pathDir || sunL || md || new V3(0.5, 0.6, 0.4)).clone().setY(0).normalize();
@@ -542,15 +557,17 @@ function stage(ctx) {
     const fogFar = fog.far * 1.15;
     for (let c = 0; c < N; c++) {
       if (cells.land[c]) continue; const k = cells.k[c], x = cells.x[c], z = cells.z[c], sk = rings[k], T = sk * U.stud;
+      if (WH && Math.hypot(x - WH.x, z - WH.z) < WH.R - T * 0.25) continue;   /* the whirlpool's own rings stand here */
       const dx = x - cp.x, dz = z - cp.z, dist = Math.hypot(dx, dz); if (k >= 3 && dist - T > fogFar) continue;
       if (k >= 2 && (dx * fwd.x + dz * fwd.z) < -T * 1.5 && dist > T * 2) continue;   /* far tiles behind the lens */
       const att = k <= 1 ? 1 : k === 2 ? 0.9 : k === 3 ? 0.75 : 0.55, H = swell(ws[k], x, z, tq, amp * att);
       let h = H.h, q = Math.round(h), clear = false, wake = 0;
-      if (G && k <= 1) { const ox = X.off, solid = rides[0] && rides[0].kind === 'piece', d = new V3(x - G.c.x - ox.x, 0, z - G.c.z - ox.z), a = d.dot(G.ax), l = d.dot(G.lat), ah = a / (G.half * 0.98), lb = l / (G.beam * 1.02);
+      if (G && k <= 1) { const ox = X.off, solid = rides[0] && rides[0].kind === 'piece' && firstShown, d = new V3(x - G.c.x - ox.x, 0, z - G.c.z - ox.z), a = d.dot(G.ax), l = d.dot(G.lat), ah = a / (G.half * 0.98), lb = l / (G.beam * 1.02);
         if (ah * ah * ah * ah + lb * lb < 1) clear = solid;
         else if (way > 0 || P.foam > 0.6) { const ab = a * bowA, astern = -ab - G.half * 0.9, kel = Math.abs(l) - G.beam * 0.45 - Math.max(0, astern) * 0.22;
           if (astern > -G.half * 0.05 && kel < U.stud * 0.35 && astern < 26 * U.stud) { const along = Math.floor((astern / U.stud) - way * 1.6 * tq), side = Math.round(l / U.stud), fade = 1 - cl01(astern / (26 * U.stud)); wake = cl01(way / 2.5) * (rnd(side, along, 41) < 0.08 + 0.32 * fade ? 1 : 0.2); }
           if (ab > G.half * 0.62 && Math.abs(l) - G.beam < 0.6 * U.stud && Math.abs(l) > G.beam * 0.8) wake = Math.max(wake, cl01((way + P.swell * (1 + storm)) / 3) * (rnd(cells.i[c], cells.j[c], F >> 1) < 0.2 ? 0.8 : 0.2)); } }
+      if (!clear && k <= 1) for (const o of more) { const d = new V3(x - o.G.c.x - o.X.off.x, 0, z - o.G.c.z - o.X.off.z), ah = d.dot(o.G.ax) / (o.G.half * 0.98), lb = d.dot(o.G.lat) / (o.G.beam * 1.02); if (ah * ah * ah * ah + lb * lb < 1) { clear = true; break; } }
       if (clear) q = Math.min(q, -Math.ceil(amp * 1.2) - 1);
       const y = mean + q * U.plate, L = water[k];
       /* colour by height, slope (the face toward the wind lighter) and a tile-by-tile dither */
@@ -576,14 +593,14 @@ function stage(ctx) {
     for (const L of water) L.end(); foamL.end(); glintL.end(); foamTile.end();
     /* ── the oars: each turned about its gunwale so the blade is in the water under it, on a stroke if asked ── */
     if (X && oars.length) { const O = P.oars === false ? null : Object.assign({ sweep: 0, period: 2.4, dip: 0.5 }, P.oars || {});
-      for (const oa of oars) { const ph = O && O.sweep ? ((((tq - (O.origin || 0)) / O.period + (O.stagger || 0) * (oa.at / (G.half * 2))) % 1) + 1) % 1 : 0, drive = ph < 0.55;   /* one clock for every oar (the sheet's ROWING clock: period, origin), so the blades go in together */
+      for (const oa of oars) { const HX = oa.H && oa.H !== rides[0] ? xfOf(oa.H) : X, G = oa.H ? oa.H.G : X.G; oa.m.visible = shown(oa.H || rides[0]) && !!HX; if (!HX) continue; const X_ = HX; const ph = O && O.sweep ? ((((tq - (O.origin || 0)) / O.period + (O.stagger || 0) * (oa.at / (G.half * 2))) % 1) + 1) % 1 : 0, drive = ph < 0.55;   /* one clock for every oar (the sheet's ROWING clock: period, origin), so the blades go in together */
         const sw = O && O.sweep ? (drive ? lerp(-1, 1, sm(ph / 0.55)) : lerp(1, -1, sm((ph - 0.55) / 0.45))) * O.sweep * DEG : 0;
         const qs = new Q().setFromAxisAngle(new V3(0, 1, 0), sw * oa.side * (G.alongZ ? 1 : -1));
-        const pivW = oa.piv.clone().applyQuaternion(X.Q).add(X.off), tipR = oa.tip.clone().sub(oa.piv).applyQuaternion(qs), tipW = tipR.clone().applyQuaternion(X.Q).add(pivW);
+        const pivW = oa.piv.clone().applyQuaternion(X_.Q).add(X_.off), tipR = oa.tip.clone().sub(oa.piv).applyQuaternion(qs), tipW = tipR.clone().applyQuaternion(X_.Q).add(pivW);
         const want = surface(tipW.x, tipW.z, tq) - (O ? (drive || !O.sweep ? O.dip : -1.2) : 0.5) * U.plate, dy = want - tipW.y, lat = Math.max(1, Math.abs(tipR.dot(G.lat)));
         const dip = Math.max(-28 * DEG, Math.min(28 * DEG, Math.asin(Math.max(-1, Math.min(1, dy / lat)))));
         const qd = new Q().setFromAxisAngle(G.ax, dip * oa.side * (G.alongZ ? 1 : -1));
-        oa.m.quaternion.copy(X.Q).multiply(qd).multiply(qs); oa.m.position.copy(pivW); oa.m.updateMatrixWorld(true); } }
+        oa.m.quaternion.copy(X_.Q).multiply(qd).multiply(qs); oa.m.position.copy(pivW); oa.m.updateMatrixWorld(true); } }
     /* ── lanterns on posts at bow and stern, warm, flickering on twos ── */
     lampL.begin(); capL.begin(); postL.begin();
     const lanOn = P.lanterns !== false && X && G, lanK = cl01(night * 1.4);
@@ -607,6 +624,17 @@ function stage(ctx) {
     /* ── an island's own rock (P.isle: {piece, cliff, wall: {color, courses}, skip: [labels]}): the piece's baseplate stood on a skirt of 1x4
        bricks in running bond from the sea's floor to its underside, so it is land and not a mat on the water, and a wall of bricks along
        its rim (Aeolia's unbroken bronze, Odyssey X.3-4) where no other piece stands on the edge ── */
+    whirlL.begin();
+    if (WH) { const W_ = P.whirl, n = Math.max(2, Math.round(W_.rings || 6)), depth = W_.depth ?? 6, turn = W_.turn ?? 0.12, w = WH.R / n, cDeep = col('#0E2142'), cBlack = col('#05101f');
+      const rim = mean + Math.round(swell(ws[0], WH.x + WH.R, WH.z, tq, amp).h) * U.plate;
+      for (let i = 0; i < n; i++) { const r = WH.R - (i + 0.5) * w, u = (i + 1) / n, y = rim - Math.round(depth * Math.pow(u, 1.25)) * U.plate, circ = 2 * Math.PI * r, m = Math.max(6, Math.round(circ / (U.stud * (r > 3 * U.stud ? 2 : 1)))), len = circ / m;
+        const om = turn * 2 * Math.PI * Math.pow(WH.R / Math.max(r, U.stud), 0.8), a0 = om * tq, li = Math.max(0, Math.min(5, Math.round(4.2 - 4.4 * u)));
+        for (let j = 0; j < m; j++) { const a = a0 + j * 2 * Math.PI / m, x = WH.x + Math.cos(a) * r, z = WH.z + Math.sin(a) * r, streak = ((j + i * 2) % Math.max(5, Math.round(m / 3))) === 0;
+          cc.copy(ramp[li]).lerp(cDeep, 0.25 * u).multiplyScalar(0.92 + 0.12 * rnd(i, j, 95)); if (streak) cc.lerp(cWhite, 0.75 * (W_.foam ?? 1)); _Q.setFromAxisAngle(new V3(0, 1, 0), -a);
+          whirlL.put(x, bot, z, (w * 1.04) / (20 * s) * s, (y + U.plate - bot) / 8, (len * 1.06) / (20 * s) * s, _Q, cc);
+          if (streak && i < n - 1 && rnd(i, j, F >> 1) < 0.6) foamL.put(x, y + U.plate, z, s, s, s, null, cWhite); } }
+      const eye = rim - Math.round(depth * 1.2) * U.plate; cc.copy(cBlack); whirlL.put(WH.x, bot - 4 * U.plate, WH.z, (w * 2) / 20, Math.max(1, (eye + U.plate - (bot - 4 * U.plate)) / 8), (w * 2) / 20, null, cc); }
+    whirlL.end(); foamL.end();
     isleL.begin();
     for (const IS of [].concat(P.isle || [])) { const pc = pieceOf(IS.piece); if (!pc) continue; const [x0, y0, z0, x1, y1, z1] = pc.box, B = U.brick, L4 = 4 * U.stud;
       const floorY = bot - 2 * U.plate, cC = col(IS.cliff || 'darkBluishGrey'), wC = IS.wall ? col(IS.wall.color || '#AA7F2E') : null, wN = IS.wall ? (IS.wall.courses ?? 1) : 0;
@@ -635,7 +663,12 @@ function stage(ctx) {
     rainL.end(); splashL.end();
     /* ── lightning: one drawing, a bolt of trans-yellow plates from the cloud to the sea ahead of the lens ── */
     boltL.begin();
-    if (strike) { const i = strike.i, d = lerp(650, 1000, rnd(i, 71)), side = (rnd(i, 72) - 0.5) * 0.7 * d, rt = new V3(-fwd.z, 0, fwd.x).normalize(), f2 = new V3(fwd.x, 0, fwd.z).normalize();
+    for (const b of aimed) { const Xb = b.hull ? hullXf() : null, to = new V3(...b.to); if (Xb) to.applyQuaternion(Xb.Q).add(Xb.off);
+      const i = 3000 + Math.round(b.t * 12) + F, rt = new V3(-fwd.z, 0, fwd.x).normalize(), f2 = new V3(fwd.x, 0, fwd.z).normalize(), top = Math.max(mean + 560, to.y + 380), segs = 18;
+      let p = to.clone().addScaledVector(rt, (rnd(i, 75) - 0.5) * 140); p.y = top; const pts = [p.clone()];
+      for (let k = 1; k <= segs; k++) { const u = k / segs; p = new V3(lerp(pts[0].x, to.x, u), lerp(top, to.y, u), lerp(pts[0].z, to.z, u)); if (k < segs) p.addScaledVector(rt, (rnd(i, k, 76) - 0.5) * 60 * (1 - u * 0.7)).addScaledVector(f2, (rnd(i, k, 77) - 0.5) * 40 * (1 - u)); pts.push(p); }
+      const by = col('transYellow').lerp(col('#FFF8D8'), 0.6); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], c2 = pts[k + 1], dv = c2.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + c2.x) / 2, (a.y + c2.y) / 2, (a.z + c2.z) / 2, s * 2.6, s * 2.6, len / 40, _Q, by); } }
+    if (strike && !strike.aimed) { const i = strike.i, d = lerp(650, 1000, rnd(i, 71)), side = (rnd(i, 72) - 0.5) * 0.7 * d, rt = new V3(-fwd.z, 0, fwd.x).normalize(), f2 = new V3(fwd.x, 0, fwd.z).normalize();
       let p = cp.clone().addScaledVector(f2, d).addScaledVector(rt, side); const top = Math.min(mean + 520, Math.max(mean + 260, cp.y + 160)); p.y = top; const segs = 16, pts = [p.clone()]; for (let k = 1; k <= segs; k++) { p = p.clone(); p.y = lerp(top, mean, k / segs); p.addScaledVector(rt, (rnd(i, k, 73) - 0.5) * 70).addScaledVector(f2, (rnd(i, k, 74) - 0.5) * 50); pts.push(p); }
       const by = col('transYellow').lerp(col('#FFF8D8'), 0.5); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], dv = b.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, s * 2.2, s * 2.2, len / 40, _Q, by); } }
     boltL.end();
