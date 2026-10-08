@@ -107,28 +107,32 @@
  "checks": [
   {
    "test": "Antinous at his table on the line",
-   "passed": null,
-   "evidence": "evidence/OD-B22-S01/antinous-line-of-fire.jpg, antinous-at-his-table.jpg, axis-from-the-end.jpg"
+   "passed": true,
+   "evidence": "evidence/OD-B22-S01/antinous-line-of-fire.jpg, antinous-at-his-table.jpg, axis-from-the-end.jpg",
+   "note": "He stands before his table across the line beyond the last axe (x 80, z 70), on the line of fire from the sill (antinous-line-of-fire.jpg, axis-from-the-end.jpg); in the film's shot 4 over the archer's shoulder he is small at the line's end and partly hidden by the near figures."
   },
   {
    "test": "the cut on the released force lands on Antinous",
-   "passed": null,
-   "evidence": "the film's cut at 12.4 s"
+   "passed": true,
+   "evidence": "evidence/OD-B22-S01/take3-close-loose-to-antinous.jpg",
+   "note": "The loose is at 12.33 s; the cut at 12.4 s goes to Antinous with the cup at his lips (take3-close-loose-to-antinous.jpg). The impact itself comes at 15.17 s, as the held performance has it, so the cut lands on him before the arrow does."
   },
   {
    "test": "the empty pegs are the consequence the bow's scene set up",
-   "passed": null,
-   "evidence": "evidence/OD-B22-S01/pegs-bare-search.jpg"
+   "passed": true,
+   "evidence": "evidence/OD-B22-S01/pegs-bare-search.jpg",
+   "note": "Shot 12 (30.75-33.3 s) holds the suitors with their hands at the bare rails by the doors (take3-contact.jpg, pegs-bare-search.jpg); the bow's scene showed the same rails bare beside the two men."
   },
   {
    "test": "a viewer with captions off can explain the reversal",
    "passed": null,
-   "evidence": "evidence/OD-B22-S01/dev-sheet.jpg"
+   "evidence": "evidence/OD-B22-S01/dev-sheet.jpg",
+   "note": "Not tested on a viewer."
   }
  ],
  "capture": {
-  "take": "not yet re-shot on the kit (dev stills only)",
-  "renderer": "",
-  "outcome": "keys, plan and set ready (tools/metis/hall.py --b22); the performance unchanged"
+  "take": "films/odyssey/OD-B22-S01-performed.mp4 (take 3; take 2 kept as films/odyssey/takes/OD-B22-S01/take2.*)",
+  "renderer": "tools/export-odyssey.js OD-B22-S01 --mode cut --fps 12 --choreo odyssey/score/OD-B22-S01.choreo.json --suffix performed-r2, then tools/perform/keeptake.py",
+  "outcome": "52.25 s, 627 drawings, 22 shots all legal (5 pinned), 49.3 min (4.7 s a drawing)"
  }
 }

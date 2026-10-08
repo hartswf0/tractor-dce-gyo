@@ -42,32 +42,32 @@
     "id": "K2",
     "t": 12.05,
     "win": [
-     11.42,
-     12.32
+     10.84,
+     12.57
     ]
    },
    {
     "id": "K3",
     "t": 19.66,
     "win": [
-     19.03,
-     19.93
+     17.06,
+     20.77
     ]
    },
    {
     "id": "K4",
     "t": 29.27,
     "win": [
-     26.62,
-     30.41
+     26.13,
+     30.62
     ]
    },
    {
     "id": "K5",
     "t": 38.12,
     "win": [
-     37.49,
-     38.39
+     34.93,
+     39.49
     ]
    }
   ],
@@ -75,18 +75,16 @@
    "telemachus"
   ],
   "shots": {
-   "WIDE pinned": 3,
-   "HOT": 13,
-   "REACT": 3,
-   "HOT pinned": 2,
-   "WIDE": 1
+   "WIDE": 4,
+   "HOT": 15,
+   "REACT": 3
   },
   "cine": {
    "time": {
-    "grid": 8.6,
-    "inside": 1.5,
-    "seen": 14.7,
-    "clutter": 7,
+    "grid": 4.5,
+    "inside": 1.2,
+    "seen": 23.9,
+    "clutter": 9.9,
     "pose": 0
    },
    "scene": "OD-B22-S01",
@@ -109,7 +107,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 263.1,
+   "solvedIn": 344.8,
    "shots": [
     {
      "i": 0,
@@ -118,47 +116,60 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "pinned": true,
+     "eased": null,
      "primary": "odysseus-revealed",
      "subjects": [
       "odysseus-revealed",
       "telemachus",
       "suitors-2"
      ],
-     "why": "the hall's axis from the sill: the line the arrow of the contest took, the suitors at the tables, Antinous beyond the last axe",
+     "why": {
+      "cut": "the scene opens",
+      "rule": "R6 the opening wide (establishes the set and the line)",
+      "heat": 0.22,
+      "contrast": 0.21,
+      "hot": "odysseus-revealed"
+     },
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
-       150.65,
-       47.83,
-       19.13
+       -55.3,
+       118.5,
+       -51.8
       ],
-      "target": [
-       -200.87,
-       31.57,
-       0
-      ],
-      "fov": 42,
-      "key": false
+      "fov": 40,
+      "key": true,
+      "az": null,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.278,
-      "sd": 0.245,
-      "dark": 0.32,
-      "white": 0,
-      "one": 0.42
+     "relaxed": false,
+     "keyCamera": "legal",
+     "rejected": {
+      "L2 odysseus-revealed hidden": 169,
+      "L4 foreground covers n%": 20,
+      "L1 near plane in a set part": 11,
+      "L1 inside a set part": 2
      },
-     "inFrame": {
-      "odysseus-revealed": true,
-      "antinous": false,
-      "telemachus": true,
-      "suitors-1": true,
-      "suitors-2": true,
-      "suitors-3": true,
-      "suitors-4": true,
-      "suitors-5": true
-     }
+     "candidates": 257,
+     "legalCandidates": 55,
+     "samples": [
+      1.17,
+      0.1,
+      2.23
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
+     ],
+     "failed": [],
+     "facing": 0.98,
+     "headV": 0.248,
+     "clutterFar": 0.15
     },
     {
      "i": 1,
@@ -183,36 +194,33 @@
       "suitors-4",
       "odysseus-revealed"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -167.1,
-       58.6,
-       38.8
+       41.9,
+       94.4,
+       131.4
       ],
       "fov": 32,
       "key": false,
-      "az": 0.79,
+      "az": 2.75,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 10,
-      "L1 near plane in Native glass": 2,
-      "L2 odysseus-revealed hidden": 48,
-      "L4 foreground covers n%": 12,
-      "L1 too near the face": 73,
-      "L1 near plane in a set part": 22,
+      "L2 odysseus-revealed hidden": 20,
+      "L4 foreground covers n%": 21,
+      "L2 body": 1,
+      "L1 in telemachus": 23,
+      "L1 near plane in a set part": 13,
       "L3 head": 32,
-      "L1 in telemachus": 14,
-      "L1 in part construction-frame": 16,
-      "L1 in odysseus-revealed": 3
+      "L1 in odysseus-revealed": 7
      },
      "candidates": 256,
-     "legalCandidates": 24,
+     "legalCandidates": 139,
      "samples": [
       3.33,
       2.43,
@@ -226,17 +234,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.7,
-     "headV": 0.351,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.209,
-      "sd": 0.174,
-      "dark": 0.26,
-      "white": 0,
-      "one": 0.58
-     },
-     "lumaRefused": 0
+     "facing": 0.92,
+     "headV": 0.346,
+     "clutterFar": 0
     },
     {
      "i": 2,
@@ -266,33 +266,29 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       -22.2,
-       46.4,
-       -45.8
+       171.5,
+       93.9,
+       256.6
       ],
       "fov": 38,
       "key": false,
-      "az": 5.11,
+      "az": 0,
       "travelling": false
      },
      "legal": true,
-     "relaxed": true,
+     "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L5 across the line": 112,
-      "L2 suitors-4 hidden": 14,
-      "L3 the back": 41,
-      "L1 near plane in a set part": 23,
-      "L1 in suitors-2": 6,
+      "L2 suitors-4 hidden": 45,
+      "L4 foreground covers n%": 7,
+      "L5 across the line": 123,
+      "L1 near plane in a set part": 14,
       "L2 body": 2,
-      "L4 foreground covers n%": 5,
-      "L3 head": 24,
-      "L3 face": 8,
-      "L1 too near the face": 20,
-      "L1 in suitors-4": 1
+      "L1 in telemachus": 4,
+      "L3 face": 1
      },
      "candidates": 256,
-     "legalCandidates": 19,
+     "legalCandidates": 60,
      "samples": [
       5.58,
       4.42,
@@ -303,20 +299,12 @@
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
       "L4 framing and foreground",
-      "L5 crossed: no legal camera on the line's side"
+      "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.51,
-     "headV": 0.345,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.241,
-      "sd": 0.236,
-      "dark": 0.42,
-      "white": 0,
-      "one": 0.32
-     },
-     "lumaRefused": 0
+     "facing": 0.99,
+     "headV": 0.346,
+     "clutterFar": 0.01
     },
     {
      "i": 3,
@@ -341,42 +329,36 @@
       "telemachus",
       "odysseus-revealed"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -149.8,
-       38.1,
-       0
+       -0.1,
+       78,
+       123.6
       ],
       "fov": 32,
       "key": false,
-      "az": 1.57,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 10,
-      "L1 near plane in Native glass": 2,
-      "L2 odysseus-revealed hidden": 46,
-      "L4 foreground covers n%": 17,
-      "L1 near plane in a set part": 20,
-      "L1 in telemachus": 17,
-      "L1 too near the face": 63,
+      "L2 odysseus-revealed hidden": 23,
+      "L4 foreground covers n%": 21,
+      "L1 in telemachus": 22,
+      "L1 near plane in a set part": 13,
       "L3 head": 32,
-      "L1 in odysseus-revealed": 4,
-      "L1 in part construction-frame": 16
+      "L1 in odysseus-revealed": 6
      },
      "candidates": 256,
-     "legalCandidates": 29,
+     "legalCandidates": 139,
      "samples": [
       8.92,
       6.93,
-      10.9,
-      8.08,
-      9.33
+      10.9
      ],
      "checks": [
       "L1 not inside geometry",
@@ -388,109 +370,142 @@
      "failed": [],
      "facing": 1,
      "headV": 0.342,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.26,
-      "sd": 0.199,
-      "dark": 0.22,
-      "white": 0,
-      "one": 0.57
-     },
-     "lumaRefused": 0
+     "clutterFar": 0
     },
     {
      "i": 4,
      "t0": 11,
-     "t1": 12.4,
+     "t1": 12.75,
      "kind": "HOT",
-     "size": "MID",
-     "planned": "MID",
-     "pinned": true,
-     "primary": "odysseus-revealed",
+     "size": "CLOSE",
+     "planned": "CLOSE",
+     "eased": null,
+     "primary": "telemachus",
      "subjects": [
-      "odysseus-revealed"
+      "telemachus"
      ],
-     "why": "down the line of fire: the draw, Antinous small at his table at its end",
+     "why": {
+      "cut": "heat moves: odysseus-revealed -> telemachus",
+      "rule": "R1 the hot spot telemachus (heat 1.09, contrast 1.07): CLOSE by the direction's bias",
+      "heat": 1.09,
+      "contrast": 1.07,
+      "hot": "telemachus"
+     },
+     "line": [
+      "suitors-1",
+      "telemachus"
+     ],
+     "side": -1,
+     "lineHeld": false,
      "camera": {
       "pos": [
-       -216.17,
-       45.91,
-       16.26
+       -82.2,
+       81.9,
+       114.2
       ],
-      "target": [
-       86.09,
-       37.3,
-       -33.48
-      ],
-      "fov": 34,
-      "key": false
+      "fov": 32,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.326,
-      "sd": 0.264,
-      "dark": 0.32,
-      "white": 0,
-      "one": 0.47
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L2 telemachus hidden": 91,
+      "L1 near plane in a set part": 20,
+      "L2 body": 7,
+      "L4 foreground covers n%": 14,
+      "L3 head": 42,
+      "L1 in odysseus-revealed": 13,
+      "L1 in telemachus": 7,
+      "L3 face": 22
      },
-     "inFrame": {
-      "odysseus-revealed": false,
-      "antinous": true,
-      "telemachus": false,
-      "suitors-1": false,
-      "suitors-2": true,
-      "suitors-3": true,
-      "suitors-4": true,
-      "suitors-5": true
-     }
+     "candidates": 256,
+     "legalCandidates": 40,
+     "samples": [
+      11.88,
+      11.1,
+      12.65
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.38,
+     "headV": 0.342,
+     "clutterFar": 0
     },
     {
      "i": 5,
-     "t0": 12.4,
+     "t0": 12.75,
      "t1": 15.83,
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "pinned": true,
-     "primary": "antinous",
+     "eased": null,
+     "primary": "odysseus-revealed",
      "subjects": [
-      "antinous"
+      "odysseus-revealed"
      ],
-     "why": "cut on the released force: from the loose (12.33 s) to Antinous, the cup at his lips",
+     "why": {
+      "cut": "heat moves: telemachus -> odysseus-revealed",
+      "rule": "R1 the hot spot odysseus-revealed (heat 1.62, contrast 1.5): MID by the direction's bias",
+      "heat": 1.62,
+      "contrast": 1.5,
+      "hot": "odysseus-revealed"
+     },
+     "line": [
+      "antinous",
+      "odysseus-revealed"
+     ],
+     "side": 1,
+     "lineHeld": false,
      "camera": {
       "pos": [
-       4.78,
-       41.13,
-       -9.57
+       0.1,
+       81.6,
+       56.2
       ],
-      "target": [
-       86.09,
-       39.22,
-       -33.48
-      ],
-      "fov": 30,
-      "key": false
+      "fov": 38,
+      "key": false,
+      "az": 3.14,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.314,
-      "sd": 0.271,
-      "dark": 0.31,
-      "white": 0.01,
-      "one": 0.38
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L4 foreground covers n%": 3,
+      "L1 near plane in a set part": 16,
+      "L2 odysseus-revealed hidden": 2,
+      "L1 in telemachus": 14,
+      "L3 head": 28,
+      "L3 face": 4,
+      "L1 in odysseus-revealed": 8
      },
-     "inFrame": {
-      "odysseus-revealed": false,
-      "antinous": true,
-      "telemachus": false,
-      "suitors-1": false,
-      "suitors-2": false,
-      "suitors-3": false,
-      "suitors-4": false,
-      "suitors-5": false
-     }
+     "candidates": 256,
+     "legalCandidates": 181,
+     "samples": [
+      14.29,
+      12.85,
+      15.73
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 1,
+     "headV": 0.34,
+     "clutterFar": 0
     },
     {
      "i": 6,
@@ -519,40 +534,33 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       37.9,
-       56.6,
-       11.6
+       261.9,
+       115.9,
+       -70.6
       ],
-      "fov": 32,
+      "fov": 43,
       "key": false,
-      "az": 5.5,
+      "az": 0.79,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L2 antinous hidden": 18,
-      "L3 the back": 46,
-      "L4 foreground covers n%": 14,
-      "L2 body": 2,
-      "L1 inside the staged prop arrow": 11,
-      "L1 near plane in a set part": 9,
-      "L1 in suitors-4": 10,
-      "L1 in part 1745": 5,
-      "L1 near plane in Native glass": 1,
-      "L1 too near the face": 77,
+      "L2 antinous hidden": 170,
+      "L1 inside a set part": 1,
+      "L1 near plane in a set part": 18,
+      "L2 body": 6,
+      "L1 in part construction-frame": 9,
       "L3 head": 32,
-      "L1 in part construction-frame": 7,
-      "L3 face": 7
+      "L3 face": 2
      },
      "candidates": 256,
-     "legalCandidates": 17,
+     "legalCandidates": 18,
      "samples": [
       17.45,
       15.93,
-      18.96,
-      18.33
+      18.96
      ],
      "checks": [
       "L1 not inside geometry",
@@ -562,17 +570,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.89,
-     "headV": 0.35,
-     "clutterFar": 0.02,
-     "luma": {
-      "mean": 0.247,
-      "sd": 0.198,
-      "dark": 0.34,
-      "white": 0,
-      "one": 0.48
-     },
-     "lumaRefused": 0
+     "facing": 0.61,
+     "headV": 0.358,
+     "clutterFar": 0
     },
     {
      "i": 7,
@@ -595,39 +595,36 @@
       "odysseus-revealed",
       "antinous"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       33.2,
-       46.1,
-       -33.4
+       268.5,
+       118.9,
+       -29
       ],
       "fov": 38,
       "key": false,
-      "az": 4.71,
+      "az": 0.79,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
+      "L1 in suitors-5": 1,
+      "L1 near plane in a set part": 12,
+      "L3 the back": 67,
+      "L1 in part construction-frame": 4,
       "L4 foreground covers n%": 9,
-      "L2 body": 14,
-      "L3 the back": 74,
-      "L2 antinous hidden": 19,
-      "L1 near plane in Native glass": 1,
-      "L1 near plane in a set part": 7,
-      "L3 head": 42,
-      "L3 face": 6,
-      "L1 too near the face": 64,
-      "L1 in part construction-frame": 6,
-      "L1 in suitors-4": 3,
-      "L1 inside a set part": 1,
-      "L4 the mid needs more than the frame": 3
+      "L2 antinous hidden": 3,
+      "L3 face": 9,
+      "L3 head": 18,
+      "L4 an empty frame (n% sky)": 3,
+      "L1 too near the face": 72
      },
      "candidates": 256,
-     "legalCandidates": 7,
+     "legalCandidates": 58,
      "samples": [
       20.62,
       19.16,
@@ -642,15 +639,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.91,
-     "headV": 0.346,
+     "facing": 0.56,
+     "headV": 0.345,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.221,
-      "sd": 0.245,
-      "dark": 0.47,
-      "white": 0.01,
-      "one": 0.29
+      "mean": 0.708,
+      "sd": 0.24,
+      "dark": 0.01,
+      "white": 0.22,
+      "one": 0.49
      },
      "lumaRefused": 0
     },
@@ -675,34 +672,35 @@
       "antinous",
       "suitors-4"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       62.2,
-       46.4,
-       -50.2
+       -179.9,
+       117.3,
+       85.2
       ],
       "fov": 32,
       "key": false,
-      "az": 1.57,
+      "az": 1.18,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L2 suitors-4 hidden": 12,
-      "L3 the back": 51,
-      "L2 body": 1,
-      "L1 near plane in a set part": 16,
-      "L4 foreground covers n%": 7,
-      "L1 too near the face": 98,
+      "L3 the back": 39,
+      "L1 in suitors-3": 6,
+      "L2 suitors-4 hidden": 41,
+      "L4 foreground covers n%": 6,
+      "L1 near plane in a set part": 32,
+      "L1 too near the face": 74,
+      "L2 body": 2,
       "L3 head": 32,
-      "L1 in suitors-2": 7
+      "L1 in suitors-2": 10
      },
      "candidates": 256,
-     "legalCandidates": 32,
+     "legalCandidates": 14,
      "samples": [
       23.83,
       22.27,
@@ -718,15 +716,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 1,
-     "headV": 0.346,
+     "facing": 0.93,
+     "headV": 0.351,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.227,
-      "sd": 0.189,
-      "dark": 0.26,
-      "white": 0,
-      "one": 0.36
+      "mean": 0.689,
+      "sd": 0.174,
+      "dark": 0,
+      "white": 0.04,
+      "one": 0.46
      },
      "lumaRefused": 0
     },
@@ -735,12 +733,11 @@
      "t0": 25.5,
      "t1": 27.42,
      "kind": "HOT",
-     "size": "MID",
+     "size": "CLOSE",
      "planned": "CLOSE",
-     "eased": "suitors-5 cannot be framed legally from anywhere: the shot goes to suitors-4 (suitors-5 in frame if seen)",
-     "primary": "suitors-4",
+     "eased": null,
+     "primary": "suitors-5",
      "subjects": [
-      "suitors-4",
       "suitors-5"
      ],
      "why": {
@@ -758,41 +755,30 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       45.2,
-       46,
-       -5.9
+       161,
+       93.3,
+       -73.4
       ],
-      "fov": 38,
+      "fov": 32,
       "key": false,
-      "az": 0.39,
+      "az": 3.53,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 85,
-      "L1 near plane in a set part": 13,
-      "L4 foreground covers n%": 9,
-      "L1 in suitors-2": 6,
-      "L3 face": 20,
-      "L3 head": 29,
-      "L2 suitors-4 hidden": 2,
-      "L1 too near the face": 68
-     },
-     "rejectedPlanned": {
-      "L2 suitors-5 hidden": 10,
-      "L1 near plane in a set part": 26,
-      "L4 foreground covers n%": 4,
-      "L2 body": 3,
-      "L3 the back": 79,
-      "L1 in suitors-1": 2,
-      "L1 inside a set part": 1,
-      "L1 too near the face": 99,
-      "L3 head": 32
+      "L1 near plane in a set part": 15,
+      "L2 suitors-5 hidden": 9,
+      "L1 in antinous": 1,
+      "L1 in part 1687": 2,
+      "L3 head": 46,
+      "L1 inside a set part": 2,
+      "L3 face": 83,
+      "L4 foreground covers n%": 1
      },
      "candidates": 256,
-     "legalCandidates": 24,
+     "legalCandidates": 97,
      "samples": [
       26.46,
       25.6,
@@ -806,17 +792,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.28,
-     "headV": 0.345,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.209,
-      "sd": 0.193,
-      "dark": 0.38,
-      "white": 0,
-      "one": 0.27
-     },
-     "lumaRefused": 0
+     "facing": 0.97,
+     "headV": 0.346,
+     "clutterFar": 0
     },
     {
      "i": 10,
@@ -825,10 +803,9 @@
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "eased": "suitors-5 cannot be framed legally from anywhere: the shot goes to suitors-3 (suitors-5 in frame if seen)",
-     "primary": "suitors-3",
+     "eased": null,
+     "primary": "suitors-5",
      "subjects": [
-      "suitors-3",
       "suitors-5"
      ],
      "why": {
@@ -842,48 +819,35 @@
       "suitors-3",
       "suitors-5"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -141.8,
-       45.1,
-       -44.9
+       -35.9,
+       94.7,
+       93.5
       ],
-      "fov": 38,
+      "fov": 51,
       "key": false,
-      "az": 5.5,
+      "az": 5.89,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside a set part": 2,
-      "L3 the back": 31,
-      "L2 suitors-3 hidden": 12,
-      "L1 near plane in a set part": 23,
-      "L2 body": 15,
-      "L3 face": 27,
-      "L3 head": 21,
-      "L4 foreground covers n%": 2,
-      "L1 too near the face": 77
-     },
-     "rejectedPlanned": {
-      "L2 suitors-5 hidden": 15,
-      "L1 near plane in a set part": 28,
-      "L3 the back": 61,
-      "L1 in suitors-2": 7,
-      "L1 in suitors-1": 15,
-      "L4 foreground covers n%": 5,
-      "L3 head": 19,
-      "L3 face": 20,
-      "L1 too near the face": 73,
-      "L1 inside a set part": 1,
-      "L2 body": 12
+      "L1 in suitors-3": 6,
+      "L1 near plane in a set part": 4,
+      "L2 suitors-5 hidden": 66,
+      "L3 face": 18,
+      "L3 head": 44,
+      "L4 foreground covers n%": 3,
+      "L1 in suitors-4": 8,
+      "L4 the mid needs more than the frame": 6,
+      "L3 suitors-5 behind the lens": 1
      },
      "candidates": 256,
-     "legalCandidates": 46,
+     "legalCandidates": 100,
      "samples": [
       28.34,
       27.52,
@@ -897,26 +861,18 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.89,
-     "headV": 0.345,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.197,
-      "sd": 0.192,
-      "dark": 0.42,
-      "white": 0,
-      "one": 0.32
-     },
-     "lumaRefused": 0
+     "facing": 0.41,
+     "headV": 0.347,
+     "clutterFar": 0
     },
     {
      "i": 11,
      "t0": 29.27,
      "t1": 30.75,
      "kind": "HOT",
-     "size": "WIDE",
+     "size": "CLOSE",
      "planned": "CLOSE",
-     "eased": "no legal camera at the planned size: a wide on the primary",
+     "eased": null,
      "primary": "suitors-3",
      "subjects": [
       "suitors-3"
@@ -932,46 +888,32 @@
       "suitors-4",
       "suitors-3"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -155.4,
-       89,
-       -103.4
+       302.3,
+       97.3,
+       260.2
       ],
-      "fov": 63,
+      "fov": 32,
       "key": false,
-      "az": 4.32,
+      "az": 0.79,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L2 body of suitors-3 hidden",
+     "keyCamera": null,
      "rejected": {
-      "L2 body": 102,
-      "L3 the back": 23,
-      "L2 suitors-3 hidden": 37,
-      "L1 near plane in a set part": 49,
-      "L1 under the set": 34,
-      "L1 in odysseus-revealed": 2,
-      "L1 in telemachus": 8,
-      "L4 foreground covers n%": 1
+      "L2 suitors-3 hidden": 5,
+      "L1 near plane in a set part": 11,
+      "L1 in suitors-4": 9,
+      "L1 inside a set part": 1,
+      "L3 head": 48,
+      "L3 face": 89
      },
-     "rejectedPlanned": {
-      "L2 body": 49,
-      "L3 the back": 16,
-      "L2 suitors-3 hidden": 24,
-      "L1 near plane in a set part": 38,
-      "L4 foreground covers n%": 2,
-      "L1 under the set": 9,
-      "L1 in telemachus": 3,
-      "L1 too near the face": 82,
-      "L3 head": 32,
-      "L1 inside a set part": 1
-     },
-     "candidates": 257,
-     "legalCandidates": 1,
+     "candidates": 256,
+     "legalCandidates": 93,
      "samples": [
       30.01,
       29.37,
@@ -985,17 +927,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.82,
-     "headV": 0.456,
-     "clutterFar": 0.17,
-     "luma": {
-      "mean": 0.242,
-      "sd": 0.203,
-      "dark": 0.36,
-      "white": 0,
-      "one": 0.52
-     },
-     "lumaRefused": 0
+     "facing": 0.98,
+     "headV": 0.345,
+     "clutterFar": 0
     },
     {
      "i": 12,
@@ -1004,47 +938,63 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "pinned": true,
-     "primary": "suitors-1",
+     "eased": null,
+     "primary": "suitors-3",
      "subjects": [
-      "suitors-1",
-      "suitors-2",
-      "suitors-5"
+      "suitors-3",
+      "suitors-4",
+      "suitors-2"
      ],
-     "why": "the consequence: the pegs on the wall bare under their hands",
+     "why": {
+      "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
+      "rule": "R1 the hot spot suitors-3 (heat 0.57, contrast 0.11): WIDE by the direction's bias",
+      "heat": 0.57,
+      "contrast": 0.11,
+      "hot": "suitors-3"
+     },
+     "line": [
+      "suitors-4",
+      "suitors-3"
+     ],
+     "side": 1,
+     "lineHeld": true,
      "camera": {
       "pos": [
-       -95.65,
-       55.48,
-       -19.13
+       50.5,
+       97.6,
+       1114.7
       ],
-      "target": [
-       -176.96,
-       51.65,
-       110
-      ],
-      "fov": 50,
-      "key": false
+      "fov": 46,
+      "key": false,
+      "az": 0,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.401,
-      "sd": 0.271,
-      "dark": 0.18,
-      "white": 0.01,
-      "one": 0.53
+     "relaxed": true,
+     "keyCamera": "L5 across the line",
+     "rejected": {
+      "L5 across the line": 145,
+      "L2 suitors-3 hidden": 111,
+      "L2 body": 1
      },
-     "inFrame": {
-      "odysseus-revealed": false,
-      "antinous": false,
-      "telemachus": false,
-      "suitors-1": true,
-      "suitors-2": true,
-      "suitors-3": false,
-      "suitors-4": false,
-      "suitors-5": true
-     }
+     "candidates": 257,
+     "legalCandidates": 66,
+     "samples": [
+      32.04,
+      30.85,
+      33.23
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 crossed: no legal camera on the line's side"
+     ],
+     "failed": [],
+     "facing": 0.21,
+     "headV": 0.471,
+     "clutterFar": 0
     },
     {
      "i": 13,
@@ -1053,10 +1003,9 @@
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "eased": "suitors-2 cannot be framed legally from anywhere: the shot goes to odysseus-revealed (suitors-2 in frame if seen)",
-     "primary": "odysseus-revealed",
+     "eased": null,
+     "primary": "suitors-2",
      "subjects": [
-      "odysseus-revealed",
       "suitors-2"
      ],
      "why": {
@@ -1070,48 +1019,34 @@
       "odysseus-revealed",
       "suitors-2"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       29.8,
-       91.2,
-       26
+       -299.5,
+       93.9,
+       -77.4
       ],
       "fov": 38,
       "key": false,
-      "az": 1.57,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 under the set": 128,
-      "L2 odysseus-revealed hidden": 60,
-      "L1 near plane in a set part": 21,
-      "L2 body": 2,
-      "L4 foreground covers n%": 21,
-      "L1 inside a set part": 1,
-      "L3 the back": 16
-     },
-     "rejectedPlanned": {
-      "L1 under the set": 3,
-      "L1 near plane in a set part": 64,
-      "L2 suitors-2 hidden": 45,
-      "L4 foreground covers n%": 7,
-      "L3 the back": 39,
-      "L1 near plane in Native glass": 1,
-      "L3 face": 39,
-      "L1 in suitors-5": 11,
-      "L3 head": 8,
-      "L2 body": 1,
-      "L1 too near the face": 32,
-      "L1 in suitors-2": 2,
-      "L1 in suitors-1": 4
+      "L4 foreground covers n%": 13,
+      "L2 suitors-2 hidden": 82,
+      "L1 in suitors-1": 2,
+      "L3 face": 37,
+      "L1 near plane in a set part": 24,
+      "L1 in suitors-5": 12,
+      "L3 head": 10,
+      "L1 in suitors-2": 2
      },
      "candidates": 256,
-     "legalCandidates": 7,
+     "legalCandidates": 74,
      "samples": [
       34.29,
       33.43,
@@ -1125,26 +1060,18 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.9,
-     "headV": 0.344,
-     "clutterFar": 0.12,
-     "luma": {
-      "mean": 0.358,
-      "sd": 0.27,
-      "dark": 0.25,
-      "white": 0.01,
-      "one": 0.5
-     },
-     "lumaRefused": 0
+     "facing": 0.03,
+     "headV": 0.346,
+     "clutterFar": 0.07
     },
     {
      "i": 14,
      "t0": 35.25,
      "t1": 36.75,
      "kind": "HOT",
-     "size": "WIDE",
+     "size": "CLOSE",
      "planned": "CLOSE",
-     "eased": "no legal camera at the planned size: a wide on the primary",
+     "eased": null,
      "primary": "suitors-5",
      "subjects": [
       "suitors-5"
@@ -1160,50 +1087,32 @@
       "odysseus-revealed",
       "suitors-5"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       -110.2,
-       91.5,
-       103.5
+       -50.7,
+       91.7,
+       -52.5
       ],
-      "fov": 63,
+      "fov": 32,
       "key": false,
-      "az": 1.18,
+      "az": 2.36,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L4 foreground covers 27%",
+     "keyCamera": null,
      "rejected": {
+      "L2 suitors-5 hidden": 65,
+      "L1 in suitors-2": 6,
+      "L1 near plane in a set part": 9,
+      "L3 head": 42,
       "L4 foreground covers n%": 13,
-      "L1 under the set": 34,
-      "L1 near plane in a set part": 58,
-      "L2 suitors-5 hidden": 62,
-      "L3 the back": 78,
-      "L1 in odysseus-revealed": 3,
-      "L1 in part construction-frame": 3,
-      "L1 near plane in Native glass": 1,
-      "L2 body": 1,
-      "L1 in suitors-1": 2,
-      "L1 in suitors-2": 1
+      "L3 face": 63
      },
-     "rejectedPlanned": {
-      "L1 under the set": 9,
-      "L2 suitors-5 hidden": 41,
-      "L1 near plane in a set part": 58,
-      "L3 the back": 37,
-      "L4 foreground covers n%": 6,
-      "L1 too near the face": 56,
-      "L1 near plane in Native glass": 1,
-      "L1 in suitors-1": 6,
-      "L3 head": 32,
-      "L1 in suitors-2": 9,
-      "L1 inside a set part": 1
-     },
-     "candidates": 257,
-     "legalCandidates": 1,
+     "candidates": 256,
+     "legalCandidates": 58,
      "samples": [
       36,
       35.35,
@@ -1217,17 +1126,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.36,
-     "headV": 0.456,
-     "clutterFar": 0.21,
-     "luma": {
-      "mean": 0.344,
-      "sd": 0.25,
-      "dark": 0.31,
-      "white": 0,
-      "one": 0.54
-     },
-     "lumaRefused": 0
+     "facing": 0.58,
+     "headV": 0.345,
+     "clutterFar": 0
     },
     {
      "i": 15,
@@ -1236,10 +1137,9 @@
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "eased": "suitors-5 cannot be framed legally from anywhere: the shot goes to odysseus-revealed (suitors-5 in frame if seen)",
-     "primary": "odysseus-revealed",
+     "eased": null,
+     "primary": "suitors-5",
      "subjects": [
-      "odysseus-revealed",
       "suitors-5"
      ],
      "why": {
@@ -1253,47 +1153,32 @@
       "odysseus-revealed",
       "suitors-5"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": true,
      "camera": {
       "pos": [
-       139.7,
-       91.2,
-       26.7
+       124.7,
+       91.7,
+       145.1
       ],
       "fov": 38,
       "key": false,
-      "az": 1.57,
-      "travelling": false
+      "az": 0.79,
+      "travelling": true
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L5 across the line": 128,
-      "L1 under the set": 57,
-      "L2 odysseus-revealed hidden": 22,
-      "L2 body": 3,
-      "L4 foreground covers n%": 16,
-      "L1 in part construction-frame": 3,
       "L1 near plane in a set part": 11,
-      "L3 the back": 1,
-      "L1 in suitors-4": 1
-     },
-     "rejectedPlanned": {
-      "L5 across the line": 116,
-      "L1 near plane in a set part": 18,
-      "L3 the back": 48,
-      "L4 foreground covers n%": 3,
-      "L2 body": 2,
-      "L2 suitors-5 hidden": 15,
-      "L1 near plane in Native glass": 1,
-      "L3 face": 3,
-      "L3 head": 18,
-      "L1 too near the face": 32
+      "L2 suitors-5 hidden": 11,
+      "L1 in suitors-4": 12,
+      "L4 foreground covers n%": 14,
+      "L5 across the line": 162,
+      "L1 in odysseus-revealed": 2
      },
      "candidates": 256,
-     "legalCandidates": 14,
+     "legalCandidates": 44,
      "samples": [
       37.79,
       36.85,
@@ -1307,17 +1192,9 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.82,
-     "headV": 0.345,
-     "clutterFar": 0.19,
-     "luma": {
-      "mean": 0.325,
-      "sd": 0.257,
-      "dark": 0.26,
-      "white": 0.01,
-      "one": 0.46
-     },
-     "lumaRefused": 0
+     "facing": 0.81,
+     "headV": 0.346,
+     "clutterFar": 0.07
     },
     {
      "i": 16,
@@ -1346,35 +1223,30 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -148.5,
-       37.5,
-       -23.1
+       0.1,
+       76.7,
+       83
       ],
       "fov": 38,
       "key": false,
-      "az": 1.96,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 in suitors-1": 4,
-      "L1 in suitors-2": 3,
-      "L1 near plane in Native glass": 1,
-      "L4 foreground covers n%": 7,
-      "L2 odysseus-revealed hidden": 60,
-      "L1 near plane in a set part": 28,
-      "L2 body": 2,
-      "L3 the back": 14,
-      "L1 in telemachus": 22,
-      "L3 head": 14,
-      "L1 too near the face": 27,
-      "L1 in part construction-frame": 15,
-      "L3 face": 18
+      "L2 odysseus-revealed hidden": 38,
+      "L4 foreground covers n%": 20,
+      "L2 body": 1,
+      "L1 near plane in a set part": 15,
+      "L1 in telemachus": 26,
+      "L3 head": 18,
+      "L3 face": 14,
+      "L1 in odysseus-revealed": 1
      },
      "candidates": 256,
-     "legalCandidates": 41,
+     "legalCandidates": 123,
      "samples": [
       39.83,
       38.93,
@@ -1388,17 +1260,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.96,
-     "headV": 0.34,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.284,
-      "sd": 0.213,
-      "dark": 0.16,
-      "white": 0,
-      "one": 0.43
-     },
-     "lumaRefused": 0
+     "facing": 1,
+     "headV": 0.341,
+     "clutterFar": 0
     },
     {
      "i": 17,
@@ -1427,35 +1291,30 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       -153.1,
-       37.5,
-       21.4
+       76.9,
+       76.7,
+       153.6
       ],
       "fov": 32,
       "key": false,
-      "az": 1.18,
+      "az": 2.36,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 in suitors-1": 4,
-      "L1 in suitors-2": 5,
-      "L1 near plane in Native glass": 2,
-      "L2 odysseus-revealed hidden": 6,
-      "L4 foreground covers n%": 3,
-      "L2 body": 1,
-      "L5 across the line": 120,
-      "L1 near plane in a set part": 8,
-      "L3 the back": 2,
-      "L1 too near the face": 39,
-      "L1 in telemachus": 12,
-      "L3 head": 24,
-      "L1 in part construction-frame": 3
+      "L5 across the line": 122,
+      "L2 odysseus-revealed hidden": 22,
+      "L1 near plane in a set part": 7,
+      "L2 body": 2,
+      "L4 foreground covers n%": 8,
+      "L1 in telemachus": 22,
+      "L3 head": 22,
+      "L1 in odysseus-revealed": 3
      },
      "candidates": 256,
-     "legalCandidates": 27,
+     "legalCandidates": 48,
      "samples": [
       41.63,
       40.93,
@@ -1469,17 +1328,9 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.91,
+     "facing": 0.71,
      "headV": 0.342,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.287,
-      "sd": 0.228,
-      "dark": 0.22,
-      "white": 0,
-      "one": 0.38
-     },
-     "lumaRefused": 0
+     "clutterFar": 0
     },
     {
      "i": 18,
@@ -1507,26 +1358,25 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       14.4,
-       91.3,
-       -14.3
+       -269.3,
+       181.4,
+       106.2
       ],
       "fov": 75,
       "key": false,
-      "az": 1.57,
+      "az": 4.71,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L4 foreground covers 80%",
+     "keyCamera": "legal",
      "rejected": {
-      "L4 foreground covers n%": 31,
-      "L1 under the set": 177,
-      "L2 odysseus-revealed hidden": 39,
-      "L1 near plane in a set part": 4
+      "L2 odysseus-revealed hidden": 190,
+      "L4 foreground covers n%": 16,
+      "L1 in part construction-frame": 2
      },
      "candidates": 257,
-     "legalCandidates": 6,
+     "legalCandidates": 49,
      "samples": [
       43.42,
       42.52,
@@ -1539,31 +1389,21 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 1,
-     "headV": 0.418,
-     "clutterFar": 0.23,
-     "luma": {
-      "mean": 0.281,
-      "sd": 0.243,
-      "dark": 0.32,
-      "white": 0,
-      "one": 0.5
-     },
-     "lumaRefused": 0
+     "facing": 0.42,
+     "headV": 0.496,
+     "clutterFar": 0.07
     },
     {
      "i": 19,
      "t0": 44.43,
      "t1": 46.83,
      "kind": "REACT",
-     "size": "MID",
+     "size": "WIDE",
      "planned": "MID",
-     "eased": null,
+     "eased": "the mid had no legal camera: the primary alone, wide",
      "primary": "suitors-1",
      "subjects": [
-      "suitors-1",
-      "suitors-3",
-      "suitors-5"
+      "suitors-1"
      ],
      "why": {
       "cut": "reaction REACT of suitors-1, suitors-3, suitors-5 to odysseus-revealed (v6p3) in 0.15 s",
@@ -1580,29 +1420,28 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -118.5,
-       92.3,
-       -87.7
+       -221.4,
+       94.1,
+       -70.6
       ],
-      "fov": 51,
+      "fov": 75,
       "key": false,
-      "az": 2.75,
+      "az": 0,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L2 suitors-1 hidden by a set part",
      "rejected": {
-      "L1 under the set": 144,
-      "L2 suitors-1 hidden": 76,
-      "L4 foreground covers n%": 7,
-      "L3 the back": 10,
-      "L1 near plane in a set part": 12,
-      "L1 in telemachus": 2,
-      "L3 face": 2
+      "L2 suitors-1 hidden": 36,
+      "L1 in suitors-2": 5,
+      "L4 foreground covers n%": 12,
+      "L1 in suitors-3": 2,
+      "L1 near plane in a set part": 30,
+      "L3 head": 24
      },
-     "candidates": 256,
-     "legalCandidates": 3,
+     "candidates": 257,
+     "legalCandidates": 148,
      "samples": [
       45.63,
       44.53,
@@ -1616,17 +1455,9 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.48,
-     "headV": 0.463,
-     "clutterFar": 0.17,
-     "luma": {
-      "mean": 0.386,
-      "sd": 0.261,
-      "dark": 0.19,
-      "white": 0,
-      "one": 0.55
-     },
-     "lumaRefused": 0
+     "facing": 1,
+     "headV": 0.24,
+     "clutterFar": 0
     },
     {
      "i": 20,
@@ -1635,47 +1466,66 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "pinned": true,
+     "eased": null,
      "primary": "odysseus-revealed",
      "subjects": [
       "odysseus-revealed",
       "suitors-5",
       "suitors-4"
      ],
-     "why": "the same hall axis, now his: the archer on the sill, the suitors at the bare walls",
+     "why": {
+      "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
+      "rule": "R1 the hot spot odysseus-revealed (heat 0.71, contrast 0.71): WIDE by the direction's bias",
+      "heat": 0.71,
+      "contrast": 0.71,
+      "hot": "odysseus-revealed"
+     },
+     "line": [
+      "suitors-3",
+      "odysseus-revealed"
+     ],
+     "side": -1,
+     "lineHeld": true,
      "camera": {
       "pos": [
-       150.65,
-       47.83,
-       19.13
+       -73.6,
+       92.6,
+       -98.7
       ],
-      "target": [
-       -200.87,
-       31.57,
-       0
-      ],
-      "fov": 42,
-      "key": false
+      "fov": 75,
+      "key": false,
+      "az": 3.93,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.261,
-      "sd": 0.247,
-      "dark": 0.36,
-      "white": 0,
-      "one": 0.42
+     "relaxed": false,
+     "keyCamera": "L3 head of odysseus-revealed cut",
+     "rejected": {
+      "L3 head": 1,
+      "L5 across the line": 95,
+      "L2 odysseus-revealed hidden": 128,
+      "L4 foreground covers n%": 8,
+      "L1 near plane in a set part": 9,
+      "L1 in antinous": 2
      },
-     "inFrame": {
-      "odysseus-revealed": true,
-      "antinous": false,
-      "telemachus": true,
-      "suitors-1": true,
-      "suitors-2": true,
-      "suitors-3": true,
-      "suitors-4": false,
-      "suitors-5": true
-     }
+     "candidates": 257,
+     "legalCandidates": 14,
+     "samples": [
+      48.38,
+      46.93,
+      49.82
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 on the side the line took"
+     ],
+     "failed": [],
+     "facing": 0.98,
+     "headV": 0.457,
+     "clutterFar": 0.1
     },
     {
      "i": 21,
@@ -1704,36 +1554,29 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       -141.8,
-       57.7,
-       -26.8
+       -0.5,
+       76.7,
+       123.9
       ],
       "fov": 32,
       "key": false,
-      "az": 1.96,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 in suitors-1": 4,
-      "L3 the back": 3,
-      "L1 near plane in Native glass": 2,
-      "L1 in suitors-2": 5,
-      "L2 odysseus-revealed hidden": 5,
-      "L4 foreground covers n%": 4,
-      "L1 too near the face": 38,
-      "L2 body": 1,
-      "L5 across the line": 132,
-      "L1 near plane in a set part": 9,
-      "L1 in telemachus": 10,
-      "L3 head": 12,
-      "L1 in odysseus-revealed": 4,
-      "L1 in part construction-frame": 5
+      "L5 across the line": 136,
+      "L4 foreground covers n%": 15,
+      "L2 odysseus-revealed hidden": 18,
+      "L1 near plane in a set part": 6,
+      "L1 in telemachus": 21,
+      "L3 head": 8,
+      "L1 in odysseus-revealed": 6
      },
      "candidates": 256,
-     "legalCandidates": 22,
+     "legalCandidates": 46,
      "samples": [
       51.08,
       50.02,
@@ -1747,19 +1590,12 @@
       "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.94,
-     "headV": 0.35,
-     "clutterFar": 0,
-     "luma": {
-      "mean": 0.311,
-      "sd": 0.218,
-      "dark": 0.23,
-      "white": 0,
-      "one": 0.43
-     },
-     "lumaRefused": 0
+     "facing": 1,
+     "headV": 0.342,
+     "clutterFar": 0
     }
-   ]
+   ],
+   "carried": "shots 0-6 and 9-21 carried frame for frame from take 1 (their cameras as take 1 solved them); shots 7-8 solved and drawn for take 2"
   },
   "clips": [
    {
@@ -1836,12 +1672,12 @@
   },
   {
    "t": 11,
-   "shot": "c4:HOT:MID",
+   "shot": "c4:HOT:CLOSE",
    "kind": "HOT",
    "key": "K1"
   },
   {
-   "t": 12.417,
+   "t": 12.75,
    "shot": "c5:HOT:MID",
    "kind": "HOT",
    "key": "K2"
@@ -1866,7 +1702,7 @@
   },
   {
    "t": 25.5,
-   "shot": "c9:HOT:MID",
+   "shot": "c9:HOT:CLOSE",
    "kind": "HOT",
    "key": "K3"
   },
@@ -1878,7 +1714,7 @@
   },
   {
    "t": 29.333,
-   "shot": "c11:HOT:WIDE",
+   "shot": "c11:HOT:CLOSE",
    "kind": "HOT",
    "key": "K4"
   },
@@ -1896,7 +1732,7 @@
   },
   {
    "t": 35.25,
-   "shot": "c14:HOT:WIDE",
+   "shot": "c14:HOT:CLOSE",
    "kind": "HOT",
    "key": "K4"
   },
@@ -1926,7 +1762,7 @@
   },
   {
    "t": 44.5,
-   "shot": "c19:REACT:MID",
+   "shot": "c19:REACT:WIDE",
    "kind": "REACT",
    "key": "K5"
   },
