@@ -10,7 +10,7 @@ module.exports = async (page, dir) => {
   for (const s of spec.stills || []) {
     const r = await page.evaluate(async s => {
       const A = OdysseyFilm.asset(), c = A.center, k = A.scale, F = p => [(p[0] - c[0]) * k, (p[1] - c[1]) * k, (-p[2] - c[2]) * k];
-      const cam = { pos: F(s.pos), target: F(s.target), fov: s.fov || 40 };
+      const cam = s.pos ? { pos: F(s.pos), target: F(s.target), fov: s.fov || 40 } : null;   /* no pos: the take's own shot at t */
       /* the take draws the frame with the caller's camera; pieces hidden or shown for this drawing only, by label, through the hall's own hook */
       window.__hallOverride = { hide: s.hide || [], show: s.show || [], noLight: !!s.noLight };
       const t0 = performance.now(); const f = await OdysseyTake.frame(s.t, { quality: 0.88, cam, captions: s.captions !== false }); const ms = performance.now() - t0;

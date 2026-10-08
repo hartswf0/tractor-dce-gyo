@@ -408,13 +408,17 @@ function stage(ctx) {
   function holdAt(t) {
     const tq = onTwos(t), H = rides.find(h => h.kind === 'prop' && h.parts && h.parts.mesh); if (!H || !ctx.cast) return;
     for (const hd of [].concat(P.hold || [])) { if (!hd || typeof hd !== 'object' || tq < hd.t0 || tq >= hd.t1) continue; const A = ctx.cast().find(a => a.id === hd.actor); if (!A) continue;
-      const r = A.r; r.figure.updateMatrixWorld(true);
-      for (const side of hd.side === 'both' || !hd.side ? ['R', 'L'] : [hd.side]) { const arm = side === 'L' ? r.armLP : r.armRP; if (!arm || !arm.parent) continue;
+      const r = A.r; r.figure.updateMatrixWorld(true); const sides = hd.side === 'both' || !hd.side ? ['R', 'L'] : [hd.side];
+      /* twice: the arms aimed, then the body stepped along the deck toward the hold by what the arms could not reach (at most hd.reach) */
+      for (let pass = 0; pass < 2; pass++) { const miss = new V3(); let nm = 0;
+      for (const side of sides) { const arm = side === 'L' ? r.armLP : r.armRP; if (!arm || !arm.parent) continue;
         /* the point held: a point of the prop, or 'deck': the deck's top (the logs' upper face) nearest the shoulder, a stud in from its edge */
         let tgt; if (hd.at === 'deck') { const m = H.parts.mesh, sh = m.worldToLocal(arm.getWorldPosition(new V3())); tgt = m.localToWorld(new V3(Math.max(-60, Math.min(60, sh.x)), -2, Math.max(-30, Math.min(30, sh.z)))); } else tgt = H.parts.mesh.localToWorld(new V3(...(hd.at || [0, -50, 0])));
         const hl = handLocal(side), v = arm.parent.worldToLocal(tgt.clone()).sub(arm.position), rest = Math.atan2(hl.z, hl.y);
         arm.rotation.x = Math.atan2(v.z, v.y) - rest; const out = Math.atan2(v.x, Math.hypot(v.y, v.z)) - Math.atan2(hl.x, Math.hypot(hl.y, hl.z)); arm.rotation.z = Math.max(-0.7, Math.min(0.7, out)) * (hd.zSign ?? 1);
-        arm.updateMatrixWorld(true); const hw = arm.localToWorld(hl.clone()); holdLog.push({ t: +tq.toFixed(3), id: hd.id || hd.actor, side, res: +hw.distanceTo(tgt).toFixed(2) }); if (holdLog.length > 4000) holdLog.shift(); } }
+        arm.updateMatrixWorld(true); const hw = arm.localToWorld(hl.clone());
+        if (pass === 0) { miss.add(tgt.clone().sub(hw).setY(0)); nm++; } else { holdLog.push({ t: +tq.toFixed(3), id: hd.id || hd.actor, side, res: +hw.distanceTo(tgt).toFixed(2) }); if (holdLog.length > 4000) holdLog.shift(); } }
+      if (pass === 0 && nm) { miss.divideScalar(nm); const lim = hd.reach ?? 45; if (miss.length() > lim) miss.setLength(lim); r.figure.position.add(miss); if (r.pos) r.pos.copy(r.figure.position); r.figure.updateMatrixWorld(true); } } }
   }
   /* the transform of the first hull (the rig's from the sheet's player, else ours) */
   function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
