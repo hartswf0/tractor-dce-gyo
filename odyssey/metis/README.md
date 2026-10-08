@@ -64,3 +64,20 @@ the captions off where the test says so.
 
 The fieldbook's second proof, a minifig in the bed chamber compiled into Garry's Mod, needs a Windows machine with the game.
 It waits for that machine; its native counterpart is the Bed's take 4.
+
+## The clipping gate (bodies do not run through things)
+
+A take is kept only if `tools/metis/clip.js` reports **no visible unintended clipping lasting about 0.25 s or more**: no head
+through a head, no body through a body or a hull, no feet sunk into a floor or deck, no walk through a table or a column, no
+one on deck sunk into the sea, wherever the shot at that moment shows it. The scored contacts (a grip, an embrace, a hand on a
+shoulder, a man under a ram) are allowed within their tolerances; the shades passing through the living are deliberate and are
+reported apart. Run it on the take before it replaces the published film, and keep its JSON beside the scene record:
+
+```
+NODE_PATH=/opt/node22/lib/node_modules node tools/metis/clip.js OD-B12-S04 --take films/odyssey/OD-B12-S04-performed-r2.json --gate 0.25
+```
+
+It writes `odyssey/metis/clip/<id>.json` (the intervals: time range, who, what, against what, depth in figure heights, seconds
+seen and the shot) and stills of the worst three to `odyssey/metis/evidence/<id>/clip-<n>.jpg`; `--gate 0.25` exits 1 when the
+take fails. The rules, tolerances, validation and limits are in the tool's header; the audit of the published films is in
+`clip/AUDIT.md`.

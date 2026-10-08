@@ -1,0 +1,58 @@
+{
+ "scene": "OD-B10-S01",
+ "turns": [
+  "OD-B10-S01 segments gi 3 (the gift) and gi 6 (the curse) on the cut clock, 31.53 s"
+ ],
+ "assembly": "location.odyssey-od-b10-s01 (its checkerboard sea and the island piece's baked water taken out; the island's land kept) + film-readymades/odyssey-sea.js (isle, strip), keyed in odyssey/keyframes/OD-B10-S01.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "aeolus"
+  }
+ ],
+ "cause": "Aeolus gives the bag and the West Wind; the winds loosed drive the ship back; Aeolus drives out the man the gods hate",
+ "contacts": [
+  "feet-deck",
+  "hull-water",
+  "feet-island"
+ ],
+ "clock": "the cut clock (31.53 s): K2 0-16.73 s, K5 16.73-31.53 s",
+ "world": {
+  "sea": "look.sea day: swell 0.5, wind 0.35 (K2); swell 0.62, wind 0.65, clouds 0.7, storm 0.12, grey sky (K5); level -3 plates, the ship's lift -3",
+  "sky": "the location's day gradient, greyed for the curse",
+  "course": "the ship moored off the island's north shore, bow to the land"
+ },
+ "camera": [
+  "the solved plan's six shots (6 legal)"
+ ],
+ "look": "the location's day look with the kit's water; no night",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "no one runs through anything: Odysseus's feet on the bow's deck as she heaves and rolls; Aeolus on his land, the sea below his feet",
+   "passed": true,
+   "evidence": "evidence/OD-B10-S01/close-gift.jpg, close-curse.jpg, clip.json",
+   "note": "clip.js: 0 intervals; the ship's rig (the sheet's riders) carries Odysseus with the kit's heave, pitch and roll; the sea lowered 3 plates so the swell never reaches the island's top (in the first dev pass it stood to Aeolus's shins)"
+  },
+  {
+   "test": "the island reads as land in open water",
+   "passed": true,
+   "evidence": "evidence/OD-B10-S01/contact.jpg",
+   "note": "the stepped ocean to the horizon on every side; the island's baseplate on a grey brick skirt to the sea floor; a gold-brick wall on the two sides away from the ship (not between the lens and Aeolus)"
+  },
+  {
+   "test": "the weather turns between the gift and the curse",
+   "passed": "partly",
+   "evidence": "evidence/OD-B10-S01/contact.jpg",
+   "note": "the swell, wind and foam rise and grey plate clouds come over the cut at 16.7 s; the sky's grey is slight in the closes, which are mostly faces"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B10-S01-performed.mp4 (take 2; take 1 kept in films/odyssey/takes/OD-B10-S01/)",
+  "renderer": "tools/export-odyssey.js (--mode cut --fps 12 --choreo odyssey/score/OD-B10-S01.choreo.json)",
+  "outcome": "take 2 published; passes: no clipping, the island as land; partly: the weather's turn"
+ }
+}
