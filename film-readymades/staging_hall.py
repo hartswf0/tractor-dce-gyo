@@ -82,7 +82,7 @@ def axes_high():
     K = kit(); out = []
     for h in K.HEADS:
         out += [K.put(K.RB, h, 28, K.SPINE, '3062b'), K.put(K.RB, h, 52, K.SPINE, '3062b'), K.put(K.RB, h, 60, K.SPINE, '6141'),
-                K.put(K.PDG, h, SOCKET_TOP, K.SPINE, '6541', K.RY(math.pi / 2)), K.on(K.PDG, h, SOCKET_TOP, K.SPINE, '49307', math.pi / 2)]
+                K.put(K.PLG, h, SOCKET_TOP, K.SPINE, '6541', K.RY(math.pi / 2)), K.on(K.PLG, h, SOCKET_TOP, K.SPINE, '49307', math.pi / 2)]   # iron in pearl light grey: each head catches the firelight and is counted against the timber of its handle
     trench, occ = K.axe_line(with_arrow=False)
     out += [l for l in trench if l.split()[-1] not in ('6541.dat', '49307.dat')]
     return out, occ
@@ -154,6 +154,17 @@ def pegs_and_arms():
     for n in range(2):                                                                  # swords hung point down from the low rail
         arms.append(K.row(K.PLG, K.T(-520 + n * 120, -(116 - 30), face + 16), '3847'))
     return rail, arms
+
+
+BRAZIER = (-445, -80)   # a fire-bowl on a stand before the sill, off the line: the firelight on the archer's face
+
+
+def brazier():
+    """a fire-bowl on a stand: a round plate foot, three black round bricks, an inverted dish 2 x 2 for the bowl, coals; flames separate"""
+    K = kit(); x, z = BRAZIER
+    out = [K.put(K.BLK, x, 12, z, '4032a')] + [K.put(K.BLK, x, 36 + 24 * n, z, '3062b') for n in range(3)]
+    out += [K.row(K.BLK, K.mat_mul(K.T(x, -(84 + 8), z), K.RX(math.pi)), '4740'), K.put(K.TORANGE, x, 92, z, '98138')]
+    return out, (x, 92, z)
 
 
 def antinous_table():
@@ -247,6 +258,8 @@ def groups():
     for z, nz in ((-140, 1), (140, -1)):                                                  # either side of the doors, on the door wall
         t, at = cresset(-560, z, 1, 0); torches += t
         for v in (0, 1): tfl[v] += flames(at, v)
+    br, at = brazier(); torches += br
+    for v in (0, 1): tfl[v] += flames(at, v)
     rail, arms = pegs_and_arms()
     out = [('hall floor', floor), ('the sill', sill), ('axes', axes), ('the arrow', arrow())]
     out += list(walls.items()) + [('upper walls', upper), ('the roof', roof()), ('the clerestory', lantern_raised())]

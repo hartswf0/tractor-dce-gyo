@@ -37,7 +37,10 @@ look = {
     # light on the CPU renderer is paid on every pixel
     'lights': [dict(name='hearth', at=[300, 95, 0], color='#ff8c3a', intensity=1.7, distance=620, decay=1.7, flicker=0.32, sway=4)] +
               [dict(torch, name=n, at=[x, 195, z]) for n, x, z in (('torch c1', 140, -108), ('torch c2', 140, 108))] +
-              [dict(torch, name=n, at=[x, 190, z], intensity=1.9, distance=400) for n, x, z in (('torch d1', -525, -140), ('torch d2', -525, 140))],
+              [dict(torch, name=n, at=[x, 190, z], intensity=1.9, distance=400) for n, x, z in (('torch d1', -525, -140), ('torch d2', -525, 140))] +
+              # the fire-bowl before the sill (staging_hall.BRAZIER): the firelight that keys the archer's face, low and warm
+              [dict(name='brazier', at=[-445, 118, -80], color='#ffa04a', intensity=1.5, distance=300, decay=1.8, flicker=0.25, sway=2.5)],
+    'edges': 0.22,
     'night': dict(sky='#3a4c7a', ground='#2a1a10', intensity=0.14),
     'moon': dict(at=[300, 460, 0], to=[300, 0, 0], color='#8aa4ff', intensity=0.9, angle=26, penumbra=0.7, distance=900, decay=1),
     'door': dict(at=[-800, 150, 0], to=[-300, 0, 0], color='#7f9cff', intensity=1.1, angle=20, penumbra=0.6, distance=1000, decay=1),

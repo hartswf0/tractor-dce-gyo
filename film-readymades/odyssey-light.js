@@ -54,8 +54,17 @@ function stage(o) {
   function doorShut(t) { const d = H.doors; if (!d || !d.shut) return 1; const [t0, t1] = d.shut; if (t <= t0) return 0; if (t >= t1) return 1;
     /* the leaves swing on the drawing, eased in and out: a door pushed shut */
     const q = drawing(t) / fps; return sm((q - t0) / Math.max(1e-3, t1 - t0)); }
+  /* the edges: LDraw's edge lines are drawn unlit, so at night they glow round every figure and every brick (a suitor's hair, its
+     dense edges, reads pale and outlined, as a shade does). Each line material is set to its own colour times L.edges (0.22): done
+     on every drawing whose key may have brought new things in (props, a figure's held items), and idempotent */
+  const edgeK = L.edges ?? 0.22;
+  function edges() { if (edgeK >= 1) return; scene.traverse(o => { if (!(o.isLine || o.isLineSegments) || !o.material) return;
+    for (const m of [].concat(o.material)) { const c = m.color || (m.uniforms && m.uniforms.diffuse && m.uniforms.diffuse.value);
+      if (!c || !c.isColor) continue; if (!m.userData.c0) m.userData.c0 = c.clone(); c.copy(m.userData.c0).multiplyScalar(edgeK); } }); }
+  let edgedAt = -1;
   function frame(t) {
     const d = drawing(t);
+    if (edgedAt < 0 || Math.abs(d - edgedAt) >= 12) { edges(); edgedAt = d; }
     /* the flicker: each practical its own, the hearth slower and deeper; a flame's light also sways a little where it stands */
     let fire = 0;
     for (const x of lights) { const f = flick(x.seed, d), amp = x.l.flicker ?? 0.25; x.pl.intensity = x.i0 * (1 - amp + 2 * amp * f);
@@ -84,7 +93,7 @@ function stage(o) {
     if (ov) for (const [list, v] of [[ov.hide || [], false], [ov.show || [], true]]) for (const lb of list) { const g = get(lb); if (g) { restore.set(g, g.m.visible); g.m.visible = v; } }
     if (stats.shadows) renderer.shadowMap.enabled = true;
   }
-  function dispose() { for (const x of made) x.parent && x.parent.remove(x); for (const g of meshes.values()) if (g) { g.m.position.copy(g.p); g.m.quaternion.copy(g.q); g.m.visible = true; } }
+  function dispose() { for (const x of made) x.parent && x.parent.remove(x); scene.traverse(o => { if (o.material) for (const m of [].concat(o.material)) if (m.userData && m.userData.c0) { (m.color || m.uniforms.diffuse.value).copy(m.userData.c0); delete m.userData.c0; } }); for (const g of meshes.values()) if (g) { g.m.position.copy(g.p); g.m.quaternion.copy(g.q); g.m.visible = true; } }
   return { frame, dispose, stats: () => stats, P };
 }
 window.OdysseyLight = { stage, version: 1 };
