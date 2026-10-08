@@ -33,7 +33,7 @@
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
-   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), wreck {at, piece, debris, drop: [{actor, t, until, sink}]} (the hull broken up, its men in the water), offstage [{actor, t0, t1}] (not drawn between two marks), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
+   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), wreck {at, piece, debris, props, drop: [{actor, t, until, sink}]} (the hull broken up, its men in the water), offstage [{actor, t0, t1}] (not drawn between two marks), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
@@ -377,9 +377,9 @@ function stage(ctx) {
      the water, each let down over half a second to the surface at the time given (his swimming), his hips a plate or two under it ── */
   let wreckHid = null, wreckX = null, wreckMs = null; const wreckL = new Layer(grp, geo('brick1x4'), std({ rough: 0.6 }), 40);
   function wreckAt(t) {
-    const W_ = P.wreck, tq = onTwos(t); if (!W_ || W_.at == null) { wreckL.begin(); wreckL.end(); return; }
+    const W_ = P.wreck, tq = onTwos(t); if (!W_ || W_.at == null) { if (wreckHid) { for (const m of wreckHid) m.visible = true; wreckHid = null; } wreckL.begin(); wreckL.end(); return; }   /* a key before the break (drawn after a later one): the hull back */
     const on = tq >= W_.at, ms = wreckMs || (wreckMs = (rides.find(h => h.kind === 'piece' && (h.rd.piece || '') === (W_.piece || 'black ship')) || {}).ms || meshesOf(W_.piece || 'black ship').map(m => m.mesh));   /* the hull as found at staging (its box moves as it rolls) */
-    if (on) { for (const m of ms) m.visible = false; wreckHid = ms; } else if (wreckHid) { for (const m of wreckHid) m.visible = true; wreckHid = null; }
+    if (on) { for (const m of ms) m.visible = false; wreckHid = ms; for (const nm of [].concat(W_.props || [])) { const o = ctx.prop && ctx.prop(nm); if (o) o.visible = false; } }   /* props: what stood on her (the fire at the masthead) goes with her */ else if (wreckHid) { for (const m of wreckHid) m.visible = true; wreckHid = null; }
     if (!on) { wreckX = hullXf(); wreckL.begin(); wreckL.end(); } else {
       const X = wreckX || hullXf(), G = rides[0] && rides[0].G; wreckL.begin();
       if (X && G) { const n = W_.debris ?? 16, dt = tq - W_.at, cs = ['black', 'black', 'red', 'reddishBrown', 'reddishBrown'].map(col);
@@ -519,7 +519,7 @@ function stage(ctx) {
   function frame(t, look) {
     if (!stripped) { stripped = true; stripSea(P); }
     hideNow();
-    if (wreckHid) for (const m of wreckHid) m.visible = false;   /* the broken hull stays gone whatever the shot's wild walls put back */
+    if (wreckHid && P.wreck && P.wreck.at != null && onTwos(t) >= P.wreck.at) for (const m of wreckHid) m.visible = false;   /* the broken hull stays gone whatever the shot's wild walls put back */
     const tq = onTwos(t), F = drawing(t), cam = ctx.camera; cam.updateMatrixWorld(); const cp = cam.position, fwd = cam.getWorldDirection(new V3());
     const night = cl01(P.night), storm = cl01(P.storm), wind = cl01(P.wind), foamK = cl01(P.foam);
     /* the light: lightning this drawing? */
