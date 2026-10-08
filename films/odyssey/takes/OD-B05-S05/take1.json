@@ -75,18 +75,16 @@
    "odysseus"
   ],
   "shots": {
-   "WIDE!": 1,
-   "WIDE": 3,
-   "HOT": 2,
-   "HOT!": 1,
-   "REACT!": 1
+   "WIDE": 4,
+   "HOT": 3,
+   "REACT": 1
   },
   "cine": {
    "time": {
-    "grid": 6.2,
-    "inside": 0.6,
-    "seen": 2.7,
-    "clutter": 1.3,
+    "grid": 3.1,
+    "inside": 0.3,
+    "seen": 3,
+    "clutter": 1,
     "pose": 0
    },
    "scene": "OD-B05-S05",
@@ -109,7 +107,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 103.5,
+   "solvedIn": 80,
    "shots": [
     {
      "i": 0,
@@ -137,47 +135,50 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       11.9,
-       96.3,
-       125.6
+       16.2,
+       62.7,
+       174.1
       ],
-      "fov": 63,
+      "fov": 46,
       "key": false,
       "az": 0,
       "travelling": false
      },
-     "legal": false,
+     "legal": true,
      "relaxed": false,
-     "keyCamera": "L2 odysseus hidden by a set part",
+     "keyCamera": "legal",
      "rejected": {
-      "L2 odysseus hidden": 111,
+      "L1 in part construction-frame": 8,
+      "L2 odysseus hidden": 14,
       "L1 inside the staged prop raft": 102,
-      "L3 head": 44
+      "L1 inside a set part": 2,
+      "L1 too near the face": 9,
+      "L1 near plane in a set part": 1,
+      "L3 head": 1
      },
      "candidates": 257,
-     "legalCandidates": 0,
+     "legalCandidates": 120,
      "samples": [
       3.04,
       0.1,
-      5.98,
-      1.25,
-      2.5,
-      3.75,
-      5
+      5.98
      ],
-     "checks": [],
-     "failed": [
-      "L3 head of odysseus cut"
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground"
      ],
+     "failed": [],
      "facing": -0.97,
-     "headV": 0.285,
+     "headV": 0.283,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.362,
-      "sd": 0.26,
-      "dark": 0.21,
+      "mean": 0.314,
+      "sd": 0.276,
+      "dark": 0.34,
       "white": 0,
-      "one": 0.4
+      "one": 0.33
      },
      "lumaRefused": 0
     },
@@ -210,33 +211,34 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       135.8,
-       71.4,
-       62.3
+       90.7,
+       52.3,
+       142.8
       ],
       "fov": 46,
       "key": false,
-      "az": 1.57,
+      "az": 0.79,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "keyCamera": "legal",
      "rejected": {
-      "L3 the back": 55,
-      "L2 odysseus hidden": 34,
-      "L1 inside the staged prop raft": 105,
-      "L3 head": 54,
+      "L1 in part construction-frame": 8,
+      "L2 odysseus hidden": 13,
+      "L1 inside the staged prop raft": 99,
+      "L1 too near the face": 10,
+      "L1 near plane in a set part": 1,
+      "L3 head": 62,
+      "L1 inside the staged prop sp3": 1,
       "L3 odysseus behind the lens": 1
      },
      "candidates": 257,
-     "legalCandidates": 8,
+     "legalCandidates": 62,
      "samples": [
       8.79,
       6.18,
-      11.4,
-      7.33,
-      9.83
+      11.4
      ],
      "checks": [
       "L1 not inside geometry",
@@ -246,15 +248,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.28,
-     "headV": 0.297,
-     "clutterFar": 0.02,
+     "facing": -0.47,
+     "headV": 0.275,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.128,
-      "sd": 0.222,
-      "dark": 0.69,
+      "mean": 0.237,
+      "sd": 0.257,
+      "dark": 0.47,
       "white": 0,
-      "one": 0.68
+      "one": 0.45
      },
      "lumaRefused": 0
     },
@@ -298,24 +300,21 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside the staged prop raft": 51,
-      "L3 the back": 51,
-      "L4 foreground covers n%": 1,
-      "L2 poseidon hidden": 1,
-      "L1 too near the face": 45,
+      "L1 inside the staged prop raft": 36,
+      "L1 inside the staged prop sp2": 6,
+      "L3 the back": 47,
+      "L1 too near the face": 54,
       "L1 in part construction-frame": 10,
       "L1 in poseidon": 43,
-      "L3 head": 32,
-      "L3 face": 3
+      "L3 head": 34,
+      "L3 face": 4
      },
      "candidates": 256,
-     "legalCandidates": 19,
+     "legalCandidates": 22,
      "samples": [
       14.21,
       11.6,
-      16.82,
-      12.75,
-      15.25
+      16.82
      ],
      "checks": [
       "L1 not inside geometry",
@@ -329,8 +328,8 @@
      "headV": 0.342,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.23,
-      "sd": 0.296,
+      "mean": 0.243,
+      "sd": 0.287,
       "dark": 0.59,
       "white": 0,
       "one": 0.59
@@ -344,10 +343,12 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "eased": "the wide had no legal camera: the primary alone, wide",
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
-      "odysseus"
+      "odysseus",
+      "poseidon",
+      "ino-leucothea"
      ],
      "why": {
       "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
@@ -364,44 +365,38 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -94.8,
-       101.6,
-       10.9
+       -230,
+       55,
+       200
       ],
-      "fov": 46,
-      "key": false,
-      "az": 4.32,
+      "fov": 44,
+      "key": true,
+      "az": null,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "keyCamera": "legal",
      "rejected": {
-      "L3 the back": 63,
-      "L2 odysseus hidden": 10,
-      "L1 inside the staged prop raft": 150,
-      "L3 head": 32
-     },
-     "rejectedPlanned": {
-      "L2 odysseus hidden": 211,
-      "L4 foreground covers n%": 19,
-      "L3 the back": 9,
-      "L2 body": 5,
-      "L1 inside the staged prop sp1": 3,
-      "L1 inside the staged prop sp3": 3,
-      "L1 inside the staged prop sp2": 4,
-      "L3 head": 3
+      "L4 foreground covers n%": 20,
+      "L2 odysseus hidden": 68,
+      "L1 inside the staged prop sp1": 13,
+      "L1 in part construction-frame": 11,
+      "L1 inside the staged prop sp3": 7,
+      "L1 inside the staged prop sp2": 24,
+      "L1 near plane in a set part": 5,
+      "L2 body": 2,
+      "L3 head": 3,
+      "L1 inside the staged prop raft": 16,
+      "L1 in poseidon": 3,
+      "L1 under the set": 13
      },
      "candidates": 257,
-     "legalCandidates": 2,
+     "legalCandidates": 72,
      "samples": [
       19.89,
       17.02,
-      22.76,
-      18.17,
-      19.42,
-      20.67,
-      21.92
+      22.76
      ],
      "checks": [
       "L1 not inside geometry",
@@ -411,17 +406,17 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.91,
-     "headV": 0.29,
-     "clutterFar": 0.01,
+     "facing": 0.23,
+     "headV": 0.418,
+     "clutterFar": 0.05,
      "luma": {
-      "mean": 0.15,
-      "sd": 0.258,
-      "dark": 0.7,
+      "mean": 0.264,
+      "sd": 0.285,
+      "dark": 0.46,
       "white": 0,
-      "one": 0.68
+      "one": 0.46
      },
-     "lumaRefused": 1
+     "lumaRefused": 0
     },
     {
      "i": 4,
@@ -452,36 +447,34 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -109.3,
-       39.3,
-       -15.6
+       -47.9,
+       51.2,
+       260.4
       ],
       "fov": 46,
       "key": false,
-      "az": 3.53,
+      "az": 0,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "keyCamera": "legal",
      "rejected": {
-      "L3 the back": 98,
-      "L4 foreground covers n%": 16,
+      "L4 foreground covers n%": 6,
       "L1 in part construction-frame": 24,
-      "L1 inside the staged prop raft": 86,
-      "L1 inside the staged prop sp2": 3,
-      "L2 odysseus hidden": 11,
-      "L2 body": 7,
-      "L1 near plane in a set part": 2
+      "L1 inside the staged prop sp2": 6,
+      "L1 inside the staged prop raft": 89,
+      "L2 odysseus hidden": 19,
+      "L2 body": 2,
+      "L1 near plane in a set part": 7,
+      "L1 too near the face": 1
      },
      "candidates": 257,
-     "legalCandidates": 10,
+     "legalCandidates": 103,
      "samples": [
       25.51,
       22.96,
-      28.07,
-      24.11,
-      26.61
+      28.07
      ],
      "checks": [
       "L1 not inside geometry",
@@ -491,15 +484,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.99,
-     "headV": 0.418,
-     "clutterFar": 0.03,
+     "facing": -0.96,
+     "headV": 0.397,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.17,
-      "sd": 0.241,
-      "dark": 0.57,
-      "white": 0,
-      "one": 0.53
+      "mean": 0.3,
+      "sd": 0.31,
+      "dark": 0.48,
+      "white": 0.01,
+      "one": 0.48
      },
      "lumaRefused": 0
     },
@@ -508,9 +501,9 @@
      "t0": 28.17,
      "t1": 34.92,
      "kind": "HOT",
-     "size": "MID",
+     "size": "WIDE",
      "planned": "MID",
-     "eased": null,
+     "eased": "the mid had no legal camera: the primary alone, wide",
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -530,44 +523,53 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       94.2,
-       86.9,
-       37.1
+       -150,
+       45,
+       250
       ],
-      "fov": 38,
-      "key": false,
-      "az": 1.96,
+      "fov": 46,
+      "key": true,
+      "az": null,
       "travelling": false
      },
-     "legal": false,
+     "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "legal",
      "rejected": {
-      "L2 odysseus hidden": 9,
-      "L1 inside the staged prop raft": 161,
-      "L1 inside the staged prop sp2": 5,
-      "L1 near plane in a set part": 22,
-      "L3 the back": 11,
-      "L3 face": 48
+      "L2 odysseus hidden": 36,
+      "L1 in part construction-frame": 11,
+      "L1 inside the staged prop sp2": 6,
+      "L1 inside the staged prop raft": 141,
+      "L2 body": 2,
+      "L1 near plane in a set part": 14,
+      "L1 too near the face": 1,
+      "L4 foreground covers n%": 1
      },
-     "candidates": 256,
-     "legalCandidates": 0,
+     "candidates": 257,
+     "legalCandidates": 45,
      "samples": [
       31.54,
       28.27,
-      34.82,
-      29.42,
-      30.67,
-      33.17
+      34.82
      ],
-     "checks": [],
-     "failed": [
-      "L3 the back of odysseus's head"
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
      ],
-     "facing": 0.96,
-     "headV": 0.343,
-     "clutterFar": 0.12,
-     "luma": null,
+     "failed": [],
+     "facing": -0.97,
+     "headV": 0.421,
+     "clutterFar": 0.01,
+     "luma": {
+      "mean": 0.227,
+      "sd": 0.271,
+      "dark": 0.53,
+      "white": 0,
+      "one": 0.53
+     },
      "lumaRefused": 0
     },
     {
@@ -575,9 +577,9 @@
      "t0": 34.92,
      "t1": 39.92,
      "kind": "REACT",
-     "size": "CLOSE",
+     "size": "MID",
      "planned": "CLOSE",
-     "eased": null,
+     "eased": "the close had no legal camera: the primary alone, mid",
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -597,52 +599,53 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       76.4,
-       95.1,
-       -112.2
+       -51.5,
+       61.7,
+       -167.5
       ],
-      "fov": 32,
+      "fov": 38,
       "key": false,
-      "az": 1.57,
+      "az": 3.93,
       "travelling": true
      },
-     "legal": false,
+     "legal": true,
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside the staged prop raft": 126,
-      "L1 inside a set part": 1,
-      "L1 in part construction-frame": 26,
-      "L3 the back": 7,
-      "L2 odysseus hidden": 4,
+      "L1 inside the staged prop raft": 191,
+      "L1 near plane in a set part": 1,
+      "L1 in part construction-frame": 13,
+      "L3 the back": 6,
+      "L3 face": 32,
       "L2 body": 2,
-      "L3 face": 40,
-      "L1 too near the face": 50
+      "L4 foreground covers n%": 1
      },
      "candidates": 256,
-     "legalCandidates": 0,
+     "legalCandidates": 10,
      "samples": [
       37.42,
       35.02,
-      39.82,
-      36.17,
-      38.67
+      39.82
      ],
-     "checks": [],
-     "failed": [
-      "L3 the back of odysseus's head"
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
      ],
-     "facing": 0.06,
-     "headV": 0.343,
-     "clutterFar": 0,
+     "failed": [],
+     "facing": 0.68,
+     "headV": 0.341,
+     "clutterFar": 0.01,
      "luma": {
-      "mean": 0.174,
-      "sd": 0.24,
-      "dark": 0.58,
-      "white": 0,
-      "one": 0.56
+      "mean": 0.338,
+      "sd": 0.289,
+      "dark": 0.33,
+      "white": 0.01,
+      "one": 0.32
      },
-     "lumaRefused": 9
+     "lumaRefused": 0
     },
     {
      "i": 7,
@@ -672,7 +675,7 @@
      "camera": {
       "pos": [
        -75.6,
-       45,
+       45.1,
        -140.4
       ],
       "fov": 38,
@@ -684,23 +687,19 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside the staged prop raft": 7,
-      "L3 the back": 81,
+      "L1 inside the staged prop raft": 75,
       "L1 in part construction-frame": 8,
+      "L3 the back": 58,
       "L3 face": 48,
-      "L1 too near the face": 53,
-      "L4 the mid needs more than the frame": 11
+      "L1 too near the face": 35,
+      "L4 the mid needs more than the frame": 4
      },
      "candidates": 256,
-     "legalCandidates": 48,
+     "legalCandidates": 28,
      "samples": [
       43.58,
       40.02,
-      47.15,
-      41.17,
-      42.42,
-      44.92,
-      46.17
+      47.15
      ],
      "checks": [
       "L1 not inside geometry",
@@ -714,11 +713,11 @@
      "headV": 0.341,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.237,
-      "sd": 0.286,
-      "dark": 0.52,
+      "mean": 0.498,
+      "sd": 0.165,
+      "dark": 0.02,
       "white": 0,
-      "one": 0.51
+      "one": 0.57
      },
      "lumaRefused": 0
     }
@@ -814,13 +813,13 @@
   },
   {
    "t": 28.25,
-   "shot": "c5:HOT:MID",
+   "shot": "c5:HOT:WIDE",
    "kind": "HOT",
    "key": "K3"
   },
   {
    "t": 35,
-   "shot": "c6:REACT:CLOSE",
+   "shot": "c6:REACT:MID",
    "kind": "REACT",
    "key": "K4"
   },
