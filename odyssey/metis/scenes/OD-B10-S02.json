@@ -1,0 +1,65 @@
+{
+ "scene": "OD-B10-S02",
+ "turns": [
+  "OD-B10-S02 segments: the harbour, the mooring, the girl, Antiphates, the cut cable (narrations), 34.96 s on the cut clock"
+ ],
+ "assembly": "location.odyssey-od-b10-s02 (its checkerboard sea taken out, the cliffs kept) + film-readymades/odyssey-sea.js (a fleet of rigs, ride, offstage, benches), keyed in odyssey/keyframes/OD-B10-S02.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "three-scouts-1..3"
+  },
+  {
+   "id": "girl, antiphates, g1-g4",
+   "kind": "creature"
+  }
+ ],
+ "cause": "the fleet moors inside, Odysseus outside; the scouts are taken; the giants crush the trapped ships; Odysseus cuts his cable and rows out",
+ "contacts": [
+  "feet-deck",
+  "hull-water",
+  "seat-thwart",
+  "oar-water"
+ ],
+ "clock": "the cut clock (34.96 s): K1 0, K2 14.9, K3 18.43, K5 27.28",
+ "world": {
+  "sea": "day, swell 0.35 in the harbour, 0.7 under the rocks, 0.6 for the escape; the three hulls ridden",
+  "sky": "the keys' golden-to-sunset looks",
+  "course": "out of the harbour mouth to the south"
+ },
+ "camera": [
+  "the kit's overhead (0-7.4 s) and waterline (7.45-12 s) paths",
+  "the solved plan's 11 shots (11 legal)",
+  "the kit's reaction path on Odysseus (24.6-27.3 s) and the escape from outside the mouth (31.9-35 s)"
+ ],
+ "look": "the keys' looks with the kit's water",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "the geography is established once from above, then the waterline toward the mouth; the viewer can point to the exit",
+   "passed": "partly",
+   "evidence": "evidence/OD-B10-S02/close-geography.jpg",
+   "note": "0-7.4 s an overhead (the kit's camera path) shows the ring of cliffs, the two ships inside and Odysseus's ship in the gap at the bottom; 7.45-12 s a low view along his ship's bow to the mouth, cliffs either side and the open sea beyond. The waterline view is from just over his bow, not at the water: the mouth is narrow and his ship fills it, so the open sea is a band between the cliffs"
+  },
+  {
+   "test": "no one runs through anything: Odysseus on his own deck, not in the mast or the hull; the scouts not through the mast or each other; the eaten scout not inside the giant",
+   "passed": true,
+   "evidence": "evidence/OD-B10-S02/clip.json, close-scouts.jpg, close-escape.jpg",
+   "note": "tools/metis/clip.js on the take: 0 visible intervals. Before the fixes: 10.2 s in 9 intervals and earlier more (Odysseus standing in his ship's mast and sunk in its deck, the scouts walking through the mast and each other, the eaten scout inside the giant's head). The rig of the beached ship turned all three hulls (the player finds a rig's hull by a label containing its own, and 'black ship' is in all three), which sank men into decks; it is now ridden by the kit instead. The scouts re-blocked on the walkways off the mast's line; the swallowed scout off stage from 19.1 s; the two who escape off stage while they run (22.6-28.75 s) and seated on thwarts aboard after"
+  },
+  {
+   "test": "three hulls ride the sea, the oars cut from each",
+   "passed": true,
+   "evidence": "evidence/OD-B10-S02/contact.jpg",
+   "note": "each hull's turn kept as the sheet's player lays it (or the kit's for the beached one), its water stepped down under it and its own oars swept on the escape's clock"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B10-S02-performed.mp4 (take 3; takes 1 and 2 kept in films/odyssey/takes/OD-B10-S02/)",
+  "renderer": "tools/export-odyssey.js (--mode cut --fps 12 --choreo odyssey/score/OD-B10-S02.choreo.json)",
+  "outcome": "take 3 published; clip gate passed (0 s)"
+ }
+}
