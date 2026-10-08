@@ -3,24 +3,23 @@
  "location": "odyssey-od-b22-s01",
  "title": "Antinous Falls",
  "source": "Homer, Odyssey XXII, tr. Samuel Butler (public domain)",
- "note": "Hand-staged from the text in the megaron: Odysseus on the threshold at z 232, Antinous at the far table on the right at (200, -112), the suitors at the tables. The arrow is a prop aimed from Odysseus to Antinous's throat.",
+ "note": "Staged on the Bow and the Hall kit (film-readymades/staging_hall.py; tools/metis/hall.py): Odysseus on the sill inside the shut doors, the arrow of the contest at rest through the twelve axes, Antinous behind his table across the line beyond the last axe, the suitors at the tables either side; they run for the arms to the pegs on the back wall by the doors, and to the postern, and find them bare. Night: the hearth and six torches (odyssey/metis/looks/hearth-hall.json).",
  "look": {
-  "sun": {
-   "dir": [
-    0.3,
-    0.8,
-    0.55
-   ],
-   "color": "#fff0d6",
-   "intensity": 1.05,
-   "shadow": true
-  },
+  "sky": [
+   "#05070f",
+   "#18203a"
+  ],
+  "fog": [
+   1400,
+   3200
+  ],
+  "dim": 0.04,
   "fill": {
-   "sky": "#c9d4e6",
-   "ground": "#3a3026",
-   "intensity": 0.45
+   "sky": "#33405e",
+   "ground": "#1c130c",
+   "intensity": 0.04
   },
-  "exposure": 0.95
+  "exposure": 1.15
  },
  "spread": 0,
  "blocking": [],
@@ -30,18 +29,16 @@
    "beat": "Odysseus strips off his rags, leaps onto the threshold, and pours the remaining arrows before him.",
    "text": "Then Ulysses tore off his rags, and sprang on to the broad pavement with his bow and his quiver full of arrows. He shed the arrows on to the ground at his feet.",
    "hide": [
-    "antinous's cup and feast table",
-    "brazier",
-    "brazier 2"
+    "the arms"
    ],
    "props": [
     {
      "name": "arrows",
      "id": "arrows",
      "at": [
-      -8.7,
-      0.0,
-      207.46
+      -191.3,
+      -1.91,
+      0.0
      ],
      "floor": true,
      "scale": 1.4
@@ -50,12 +47,12 @@
    "blocking": [
     {
      "id": "odysseus-revealed",
-     "x": -8.7,
-     "z": 236,
+     "x": -205.65,
+     "z": 0.0,
      "y": "floor",
      "face": [
-      -8.7,
-      -299.58
+      95.65,
+      4.78
      ],
      "props": true,
      "pose": {
@@ -73,23 +70,23 @@
     },
     {
      "id": "telemachus",
-     "x": 71.41,
-     "z": 212.54,
+     "x": -191.3,
+     "z": -29.65,
      "y": "floor",
      "face": [
-      -8.7,
-      -299.58
+      95.65,
+      4.78
      ],
      "props": true
     },
     {
      "id": "antinous",
-     "x": 198.17,
-     "z": -120,
+     "x": 86.09,
+     "z": -33.48,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": false,
      "pose": {
@@ -102,80 +99,73 @@
     },
     {
      "id": "suitors-1",
-     "x": -207.46,
-     "z": -106.9,
+     "x": -105.22,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-2",
-     "x": -207.46,
-     "z": 45.21,
+     "x": -28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-3",
-     "x": -131.76,
-     "z": 116.2,
+     "x": -95.65,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-4",
-     "x": 147.46,
-     "z": 45.21,
+     "x": 28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-5",
-     "x": 228.59,
-     "z": 111.13,
+     "x": -33.48,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -55.3,
-     118.5,
-     -51.8
+     -216.17,
+     64.09,
+     -24.87
     ],
     "target": [
-     -8.7,
-     60.85,
-     239.92
+     66.96,
+     26.78,
+     4.78
     ],
-    "fov": 38.6,
-    "subject": "odysseus-revealed",
-    "eye": 0.4
+    "fov": 50
    },
    "subjects": [
     {
@@ -197,9 +187,7 @@
    "beat": "He shoots Antinous through the throat while the suitor lifts a cup.",
    "text": "Antinous was about to take up a two-handled gold cup to drink his wine... Ulysses aimed an arrow at him and struck him in the throat, and the point went clean through his neck.",
    "hide": [
-    "antinous's cup and feast table",
-    "brazier",
-    "brazier 2"
+    "the arms"
    ],
    "props": [
     {
@@ -223,12 +211,12 @@
    "blocking": [
     {
      "id": "odysseus-revealed",
-     "x": -8.7,
-     "z": 182.11,
+     "x": -198.48,
+     "z": -4.78,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": true,
      "pose": {
@@ -246,23 +234,23 @@
     },
     {
      "id": "telemachus",
-     "x": -116.2,
-     "z": 207.46,
+     "x": -191.3,
+     "z": -29.65,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": true
     },
     {
      "id": "antinous",
-     "x": 198.17,
-     "z": -120,
+     "x": 86.09,
+     "z": -33.48,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": true,
      "pose": {
@@ -280,78 +268,73 @@
     },
     {
      "id": "suitors-1",
-     "x": -207.46,
-     "z": -106.9,
+     "x": -105.22,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-2",
-     "x": -207.46,
-     "z": 45.21,
+     "x": -28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-3",
-     "x": -156.76,
-     "z": 116.2,
+     "x": -95.65,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-4",
-     "x": 147.46,
-     "z": 45.21,
+     "x": 28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-5",
-     "x": 248.87,
-     "z": 4.65,
+     "x": -33.48,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -116.2,
-     202.82,
-     280.48
+     -216.17,
+     45.91,
+     16.26
     ],
     "target": [
-     106.9,
-     70.99,
-     -35.92
+     86.09,
+     36.35,
+     -33.48
     ],
-    "fov": 46
+    "fov": 36
    },
    "subjects": [
     {
@@ -386,18 +369,16 @@
    "beat": "Antinous falls across the table, spilling food and wine as the room erupts.",
    "text": "He fell over and the cup dropped from his hand, while a thick stream of blood gushed from his nostrils. He kicked the table from him and upset the things on it, so that the bread and roasted meat were all soiled as they fell over on to the ground.",
    "hide": [
-    "antinous's cup and feast table",
-    "brazier",
-    "brazier 2"
+    "the arms"
    ],
    "props": [
     {
      "name": "blood",
      "id": "blood",
      "at": [
-      198.17,
-      0.0,
-      -86.62
+      114.78,
+      -1.91,
+      -19.13
      ],
      "floor": true
     },
@@ -405,9 +386,9 @@
      "name": "wine",
      "id": "wine",
      "at": [
-      177.89,
-      0.0,
-      -35.92
+      76.52,
+      -1.91,
+      -14.35
      ],
      "floor": true
     }
@@ -415,12 +396,12 @@
    "blocking": [
     {
      "id": "odysseus-revealed",
-     "x": -8.7,
-     "z": 239.92,
+     "x": -205.65,
+     "z": 0.0,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": true,
      "pose": {
@@ -438,12 +419,12 @@
     },
     {
      "id": "antinous",
-     "x": 198.17,
-     "z": -88.65,
+     "x": 88.0,
+     "z": -33.48,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "tilt": [
       -0.95,
@@ -465,12 +446,12 @@
     },
     {
      "id": "suitors-1",
-     "x": -207.46,
-     "z": -106.9,
+     "x": -105.22,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -484,17 +465,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-2",
-     "x": -207.46,
-     "z": 45.21,
+     "x": -28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -503,17 +483,16 @@
        0,
        0.3
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-3",
-     "x": -156.76,
-     "z": 116.2,
+     "x": -95.65,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -526,12 +505,12 @@
     },
     {
      "id": "suitors-4",
-     "x": -207.46,
-     "z": 65.49,
+     "x": 28.7,
+     "z": -64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -545,17 +524,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-5",
-     "x": 228.59,
-     "z": 111.13,
+     "x": -33.48,
+     "z": 64.57,
      "y": "floor",
      "face": [
-      198.17,
-      -108.93
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -564,21 +542,20 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     106.9,
-     212.96,
-     45.21
+     47.83,
+     55.48,
+     -81.3
     ],
     "target": [
-     198.17,
-     55.77,
-     -91.69
+     95.65,
+     24.39,
+     -33.48
     ],
     "fov": 44
    },
@@ -613,21 +590,17 @@
    "beat": "The suitors assume an accident and search for weapons that are no longer there.",
    "text": "The suitors were in an uproar when they saw that a man had been hit; they sprang in dismay one and all of them from their seats and looked everywhere towards the walls, but there was neither shield nor spear.",
    "hide": [
-    "brazier",
-    "the threshold wall",
-    "antinous's cup and feast table",
-    "brazier 2",
-    "column 2"
+    "the arms"
    ],
    "blocking": [
     {
      "id": "odysseus-revealed",
-     "x": -8.7,
-     "z": 239.92,
+     "x": -205.65,
+     "z": 0.0,
      "y": "floor",
      "face": [
-      -8.7,
-      -299.58
+      95.65,
+      4.78
      ],
      "props": true,
      "pose": {
@@ -645,12 +618,12 @@
     },
     {
      "id": "suitors-1",
-     "x": -298.87,
-     "z": -56.2,
+     "x": -193.7,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -511.69,
-      -56.2
+      -176.96,
+      133.91
      ],
      "props": false,
      "pose": {
@@ -664,17 +637,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-2",
-     "x": -308.87,
-     "z": 45.21,
+     "x": -169.78,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -511.69,
-      45.21
+      -176.96,
+      133.91
      ],
      "props": false,
      "pose": {
@@ -688,17 +660,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-3",
-     "x": 260,
-     "z": 165,
+     "x": -129.13,
+     "z": -93.26,
      "y": "floor",
      "face": [
-      -511.69,
-      -157.61
+      -129.13,
+      -143.48
      ],
      "props": false,
      "pose": {
@@ -716,12 +687,12 @@
     },
     {
      "id": "suitors-4",
-     "x": 198.17,
-     "z": 65.49,
+     "x": 76.52,
+     "z": -57.39,
      "y": "floor",
      "face": [
-      400.99,
-      35.07
+      86.09,
+      -33.48
      ],
      "props": false,
      "pose": {
@@ -735,17 +706,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-5",
-     "x": -308.87,
-     "z": 146.62,
+     "x": -145.87,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -511.69,
-      146.62
+      -176.96,
+      133.91
      ],
      "props": false,
      "pose": {
@@ -759,17 +729,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "antinous",
-     "x": 198.17,
-     "z": -88.65,
+     "x": 88.0,
+     "z": -33.48,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "tilt": [
       -0.95,
@@ -793,16 +762,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -24.93,
-     131.83,
-     -248.87
+     -95.65,
+     55.48,
+     -19.13
     ],
     "target": [
-     -298.73,
-     81.13,
-     45.21
+     -176.96,
+     50.7,
+     110.0
     ],
-    "fov": 44
+    "fov": 50
    },
    "subjects": [
     {
@@ -830,45 +799,24 @@
      "antinous"
     ]
    ],
-   "search": {
-    "around": "suitors-1",
-    "target": "suitors-1",
-    "r": [
-     180,
-     320
-    ],
-    "h": [
-     70,
-     160
-    ],
-    "fov": [
-     36,
-     50
-    ],
-    "size": 0.35,
-    "n": 120,
-    "seed": 11,
-    "place": "L"
-   }
+   "props": []
   },
   {
    "id": "K5",
    "beat": "Odysseus names himself and accuses them of consuming his house and violating his servants.",
    "text": "'Dogs, did you think that I should not come back from Troy? You have wasted my substance, have forced my women servants to lie with you, and have wooed my wife while I was still living.'",
    "hide": [
-    "antinous's cup and feast table",
-    "brazier",
-    "brazier 2"
+    "the arms"
    ],
    "blocking": [
     {
      "id": "odysseus-revealed",
-     "x": -8.7,
-     "z": 239.92,
+     "x": -205.65,
+     "z": 0.0,
      "y": "floor",
      "face": [
-      -8.7,
-      -299.58
+      95.65,
+      4.78
      ],
      "props": true,
      "pose": {
@@ -886,23 +834,23 @@
     },
     {
      "id": "telemachus",
-     "x": 71.41,
-     "z": 212.54,
+     "x": -191.3,
+     "z": -29.65,
      "y": "floor",
      "face": [
-      -8.7,
-      -299.58
+      95.65,
+      4.78
      ],
      "props": true
     },
     {
      "id": "antinous",
-     "x": 198.17,
-     "z": -88.65,
+     "x": 88.0,
+     "z": -33.48,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "tilt": [
       -0.95,
@@ -924,12 +872,12 @@
     },
     {
      "id": "suitors-1",
-     "x": -207.46,
-     "z": -106.9,
+     "x": -193.7,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": false,
      "pose": {
@@ -938,29 +886,27 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-2",
-     "x": -207.46,
-     "z": 45.21,
+     "x": -169.78,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "suitors-3",
-     "x": -95.92,
-     "z": 116.2,
+     "x": -129.13,
+     "z": -93.26,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": false,
      "pose": {
@@ -974,17 +920,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-4",
-     "x": 86.62,
-     "z": 116.2,
+     "x": 76.52,
+     "z": -57.39,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": false,
      "pose": {
@@ -998,17 +943,16 @@
        0,
        0
       ]
-     },
-     "on": "*"
+     }
     },
     {
      "id": "suitors-5",
-     "x": 228.59,
-     "z": 111.13,
+     "x": -145.87,
+     "z": 90.87,
      "y": "floor",
      "face": [
-      -8.7,
-      239.92
+      -205.65,
+      0.0
      ],
      "props": false
     }
@@ -1016,16 +960,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -4.65,
-     106.48,
-     -76.48
+     -110.0,
+     41.13,
+     14.35
     ],
     "target": [
-     -8.7,
-     70.99,
-     239.92
+     -205.65,
+     33.96,
+     0.0
     ],
-    "fov": 42
+    "fov": 38
    },
    "subjects": [
     {
@@ -1044,7 +988,35 @@
    "lensAllow": [
     "suitors-3",
     "suitors-4"
+   ],
+   "props": []
+  }
+ ],
+ "hall": {
+  "look": "odyssey/metis/looks/hearth-hall.json",
+  "doors": {
+   "leaves": [
+    {
+     "label": "door leaf",
+     "hinge": [
+      -565,
+      -72
+     ],
+     "open": -90
+    },
+    {
+     "label": "door leaf 2",
+     "hinge": [
+      -565,
+      72
+     ],
+     "open": 90
+    }
+   ],
+   "shut": [
+    -2,
+    -1
    ]
   }
- ]
+ }
 }

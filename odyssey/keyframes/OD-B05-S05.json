@@ -149,14 +149,85 @@
      "foam": 0.35,
      "night": 1,
      "moon": {
-      "az": 32,
-      "el": 16,
-      "size": 7
+      "az": -152,
+      "el": 9,
+      "size": 6
      },
      "storm": 0,
      "lanterns": false,
      "oars": false,
-     "ease": 0
+     "ease": 0,
+     "constellations": [
+      {
+       "name": "bear",
+       "az": -88,
+       "el": 15,
+       "size": 0.6,
+       "plate": 4.2
+      },
+      {
+       "name": "pleiades",
+       "az": -125,
+       "el": 12,
+       "size": 1.6,
+       "plate": 3.2
+      }
+     ],
+     "gust": 17.3,
+     "break": {
+      "at": 36.3
+     },
+     "lowCam": [
+      {
+       "t0": 22.9,
+       "t1": 24.6
+      }
+     ],
+     "hold": [
+      {
+       "id": "steady",
+       "release": "sGust: the wind arrives on the raft (17.3), the trident's stroke (13.75) carried across the sea",
+       "actor": "odysseus",
+       "side": "R",
+       "t0": 0,
+       "t1": 17.3,
+       "at": [
+        0,
+        -50,
+        0
+       ]
+      },
+      {
+       "id": "braced",
+       "release": "sThrown: the great wave throws him off (23.5, the sheet's RECOIL)",
+       "actor": "odysseus",
+       "side": "both",
+       "t0": 17.3,
+       "t1": 23.5,
+       "at": [
+        0,
+        -50,
+        0
+       ]
+      },
+      {
+       "id": "regained",
+       "release": "sVeil: he lets go to take Ino's veil (34.9, the sheet's REACT)",
+       "actor": "odysseus",
+       "side": "both",
+       "t0": 27.6,
+       "t1": 34.9,
+       "at": [
+        0,
+        -30,
+        0
+       ]
+      }
+     ],
+     "lift": 3,
+     "stars": 0.75,
+     "lowCamHeight": 8,
+     "subject": "odysseus"
     }
    },
    "camera": {
@@ -362,7 +433,11 @@
        0.3
       ],
       [
-       5,
+       5.55,
+       0.35
+      ],
+      [
+       5.9,
        1
       ]
      ],
@@ -707,14 +782,14 @@
      "name": "raft",
      "id": "raft",
      "at": [
-      60,
+      20,
       4.0,
-      -40
+      55
      ],
      "rot": [
-      0.25,
-      1.2,
-      0.3
+      0,
+      0.4,
+      0
      ]
     }
    ],

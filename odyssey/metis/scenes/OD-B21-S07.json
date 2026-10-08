@@ -1,0 +1,178 @@
+{
+ "scene": "OD-B21-S07",
+ "title": "The Bow Sings (proof 03, the hall's causal map: the stringing and the shot through the axes)",
+ "turns": [
+  "OD-B21-S07-T01",
+  "OD-B21-S07-T02",
+  "OD-B21-S07-T03",
+  "OD-B21-S07-T04",
+  "OD-B21-S07-T05",
+  "OD-B21-S07-T06"
+ ],
+ "was_the_kit_in_the_film": {
+  "answer": "No.",
+  "evidence": "Every performed take before this one (films/odyssey/takes/OD-B21-S07/take1-2, films/odyssey/OD-B21-S07-performed take 3) was played on the forage's scene card odyssey/cards/OD-B21-S07.mpd: the forage's megaron (location.megaron-hall, 726 pieces; pages 'floor', 'walls', 'column'..'column 4', 'throne', 'feast table'.., 'brazier'), roofless, in daylight (keyframe look: a sun with shadows, a pale sky), the twelve axes a keyframe prop (odyssey/keyframes/props.json 'axes', twin-bladed heads on handles) and the arrow a second prop. The Bow and the Hall kit (odyssey/kits/bow-and-hall, 2871 pieces) was named for the scene only in odyssey/kits/locations.json ('kit': 'bow-and-hall'); no part of it reached the player."
+ },
+ "assembly": "the Bow and the Hall kit (tools/forage/product/kits/bow-and-hall.py @ 4eec4ad7) taken apart by film-readymades/staging_hall.py into 31 pieces on the stage (2694 parts), with the cast of the forage's card; location odyssey-od-b21-s07 (scale 0.478, centre [-100, 4, 0]); keys and plan written by tools/metis/hall.py",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "the beggar, the bow"
+  },
+  {
+   "id": "telemachus",
+   "wardrobe": "sword and spear"
+  },
+  {
+   "id": "six-suitors-1..6",
+   "wardrobe": "the suitors at the tables"
+  }
+ ],
+ "cause": "the bow strung and the string tried; the doors shut as the son comes to his father; the arrow loosed from the sill goes through the twelve sockets on one line and out past the last; the hall's axis, which was the suitors' contest, is now the archer's",
+ "contacts": [
+  "hands-bow (STRING_BOW, PLUCK, draw and loose)",
+  "feet-sill",
+  "arrow-sockets (the axle slid through all twelve pin holes)",
+  "door leaves-frames (swung shut 17-19 s)"
+ ],
+ "clock": "the Regulars' Cut, 51.45 s: T01 0.6-9.64 (the stringing), T02 10.09-13.89 ('Hear that. It still sings.'), T03 14.34-21.62 (Zeus's sign), T04 22.07-31.95 (Telemachus to his father's side), T05 32.4-41.08 (the shot: loose at 33.42), T06 41.53-50.85 (the stranger has not disgraced you)",
+ "geography": {
+  "frame": "kit LDraw units: x down the hall (the great doors at -560, the throne at +520), z across (front wall +240), heights as yup",
+  "sill": [
+   -530,
+   0
+  ],
+  "doors": {
+   "hinges": [
+    [
+     -565,
+     -72
+    ],
+    [
+     -565,
+     72
+    ]
+   ],
+   "open": "until 17.0 s",
+   "shut": "by 19.0 s"
+  },
+  "axe line": {
+   "axis_z": -10,
+   "sockets_x": [
+    -370,
+    -330,
+    -290,
+    -250,
+    -210,
+    -170,
+    -130,
+    -90,
+    -50,
+    -10,
+    30,
+    70
+   ],
+   "socket_hole_yup": 74,
+   "pitch": 40
+  },
+  "arrow": {
+   "part": "Technic Axle 12 (3708), a gold cone (4589) for its point, two bushes for its fletching",
+   "rest_centre_x": 70,
+   "slid": "from -470 LDU, showFrom 33.0, loosed 33.42, home by 34.17 (nine drawings)"
+  },
+  "weapon pegs": {
+   "wall": "back (z -240), x -540..-380, rails at yup 116 and 196, eight Bar 3L pegs",
+   "arms": "piece 'the arms' (4 spears, 3 round shields, 2 swords): hidden in every key of this scene"
+  },
+  "postern": "front wall, x -380..-340 (the kit's storeroom passage)",
+  "tables": "back tables x -320, -140 (z -180); front tables x -300, -40, 260 (z 180); Antinous's table across the line beyond the last axe (x 110, z 20..120)",
+  "corridor": "sill to the last socket, z -50..30: no table, bench or figure in it"
+ },
+ "world": {
+  "sky": "night beyond the doors and the smoke hole",
+  "interior": "roofed (piece 'the roof'), the clerestory raised a brick above it"
+ },
+ "camera": [
+  "the line from the porch through the open doors (pinned)",
+  "HOT MID on the stringing",
+  "the pluck held close (pinned)",
+  "the suitors react",
+  "the reverse on the doors, open then shut (pinned)",
+  "a suitor's close",
+  "two men at the threshold, the bare pegs beside them (pinned)",
+  "cut on the loose to the line from above its side: the arrow through the twelve (pinned)",
+  "the arrow out at the last (pinned)",
+  "HOT MID and CLOSE on Odysseus",
+  "the same axis from its far end, now his (pinned)"
+ ],
+ "look": "looks/hearth-hall.json (five practicals: the hearth, two column torches, two door torches; a night hemisphere; a spot down the smoke hole; a spot in at the doors that closes with them), keyframe look: the day lights at 4%, exposure 1.15",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "the arrow passes the twelve openings",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/plan-axes-line.jpg, flight-33.6.jpg, flight-33.85.jpg, arrow-out-at-the-last.jpg, take4-close-arrow-flight.jpg",
+   "note": "The axle is slid through all twelve pin holes in nine drawings (33.42-34.17 s), seen from above the line's side in shot 7, and rests through the last with its point out past it (shot 8; plan-axes-line.jpg from above with the roof lifted). Flaw: from the sill's own axis the sockets hide the arrow, so its passage is shown from the side, and at film size it is a thin tan rod among grey heads."
+  },
+  {
+   "test": "all twelve axe openings measurable on one line",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/plan-axes-line.jpg, line-sockets.jpg",
+   "note": "plan-axes-line.jpg: twelve sockets at a 40 LDU pitch on z -10, holes at yup 74, from x -370 to 70; counted in line-sockets.jpg and the side view of shot 7."
+  },
+  {
+   "test": "the doors are visible before they close",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/doors-open.jpg, doors-open-16.0.jpg, doors-closing-18.0.jpg, doors-shut.jpg, take4-close-doors.jpg",
+   "note": "Shot 4 (15.4-19.4 s), the reverse on the doors: open on the night porch at 15.5-17, swinging at 18, shut at 19 (take4-close-doors.jpg); the opening wide is shot through the open doors from the porch. Flaw: no one is seen pushing them; they swing on the clock as Telemachus comes to the sill."
+  },
+  {
+   "test": "the empty weapon rack is shown before its consequence",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/pegs-full.jpg, pegs-empty.jpg (build); the film's shot 6 (23.27-33.45 s)",
+   "note": "The pegs are bare in every key; shot 6 (23.3-33.45 s) holds the two men at the threshold with the bare rails on the wall beside them before the shot (pegs-full.jpg and pegs-empty.jpg show the build both ways). The consequence (the suitors at the bare pegs) is OD-B22-S01's K4, keyed and dev-stilled on the kit (evidence/OD-B22-S01/pegs-bare-search.jpg) but not yet re-shot."
+  },
+  {
+   "test": "a viewer with captions off can explain the reversal",
+   "passed": null,
+   "evidence": "evidence/OD-B21-S07/captions-off-sheet.jpg",
+   "note": "Not tested on a viewer. Read from captions-off-sheet.jpg: the beggar strings the bow on the sill at the end of the axe line, the doors are shut behind him and his son, the arrow goes down the line through the twelve, and the closing shot holds the line from its far end with the two armed men on the sill: the room's geography reads; that the arrow was a contest the suitors failed is not in the pictures of this scene."
+  },
+  {
+   "test": "firelight from a real source; yellow faces and printed eyes readable; not daylight, not a black void",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/hearth.jpg, torch.jpg, face-suitor.jpg, face-odysseus.jpg, reverse-no-void.jpg",
+   "note": "Six practicals at their flames (hearth, two column torches, two door torches, a fire-bowl before the sill), flickering on the drawing, the flame bricks lit from inside; the day lights at 4%; face-odysseus.jpg, face-odysseus-stringing.jpg, face-suitor.jpg, suitors-solid.jpg. The edges of every part dimmed with the light (unlit, they had outlined the suitors white)."
+  },
+  {
+   "test": "a reverse angle with no void behind",
+   "passed": true,
+   "evidence": "evidence/OD-B21-S07/reverse-no-void.jpg, doors-shut.jpg",
+   "note": "reverse-no-void.jpg, axis-from-the-end-50.jpg: from beyond the last axe the door wall, the shut doors, torches and the sill fill the back of the frame; the porch beyond the open doors is lit blue by the night spot."
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B21-S07-performed.mp4 (take 4; take 3 kept as films/odyssey/takes/OD-B21-S07/take3.*)",
+  "renderer": "tools/export-odyssey.js OD-B21-S07 --mode cut --fps 12 --choreo odyssey/score/OD-B21-S07.choreo.json --suffix performed-r2, then tools/perform/keeptake.py",
+  "outcome": "51.42 s, 617 drawings at 1280x720, 12 shots all legal (7 pinned by hand), 48.9 min (4.8 s a drawing on average; 3.2-4.5 s in most shots, about 11 s in the opening wide through the doors while another render shared the 4 CPUs). Contact: evidence/OD-B21-S07/take4-contact.jpg."
+ },
+ "light_cost": {
+  "measured": "tools/metis/hall_dev.js, the same frame drawn with the hall's lights on and off, 640x360, SwiftShader on 4 CPUs (another render running)",
+  "lit_ms": [
+   2418,
+   2077,
+   1280
+  ],
+  "dark_ms": [
+   1141,
+   1209,
+   752
+  ],
+  "at_t": [
+   10,
+   33.5,
+   45
+  ],
+  "reading": "the six practicals and two spots roughly double a frame (+0.5 to +1.3 s at 640x360); no shadow maps (a point light's shadow is six renders of the scene a drawing); the far columns' torches burn without lights of their own"
+ }
+}

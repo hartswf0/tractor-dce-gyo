@@ -141,6 +141,10 @@ b15_s05 = add_cast('OD-B15-S05', 'OD-B15-S05 - telemachus-lands-in-secret.ldr', 
 
 OVERLAYS = {'OD-B09-S08': b09_s08, 'OD-B09-S10': b09_s10, 'OD-B20-S04': b20_s04, 'OD-B07-S03': b07_s03, 'OD-B03-S05': b03_s05, 'OD-B15-S05': b15_s05}
 
+# the hall's causal map (odyssey/metis, proof 03): the Bow and the Hall kit as the set of the bow and of Antinous's fall (staging_hall.py)
+import staging_hall
+OVERLAYS.update({'OD-B21-S07': staging_hall.b21_s07, 'OD-B22-S01': staging_hall.b22_s01})
+
 
 def card(sid, text, pv):
     f = OVERLAYS.get(sid)

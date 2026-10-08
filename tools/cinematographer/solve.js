@@ -438,6 +438,17 @@ async function solve(plan, api) {
   let prevCam = null, prevHold = null;
   for (const sh of plan.shots) {
     const t0 = sh.t0, t1 = sh.t1, mid = (t0 + t1) / 2;
+    /* a hand plan's `pin`: {pos, target, fov} in the location's frame, a camera set by hand (the axis of a hall, held from the sill);
+       it is not searched, only measured: the lens's place (L1) and the exposure at its middle, reported with the subjects it sees */
+    if (sh.pin) { const pos = new V3(...sh.pin.pos), tg = new V3(...sh.pin.target), fov = sh.pin.fov || 40, kp = api.poseAt(mid); world(kp);
+      place(pos, fov, tg); const ins = inside(pos.clone()), L = luma(); const seen = {};
+      for (const id of api.cast()) { const p = points(id, mid); if (!p) continue; const q = proj(p.head); seen[id] = q[2] < 1 && q[0] > 0 && q[0] < 1 && q[1] > 0 && q[1] < 1; }
+      const track = [[t0, pos.toArray(), tg.toArray()], [t1, pos.toArray(), tg.toArray()]];
+      solved.push({ id: 'c' + sh.i + ':' + sh.kind + ':' + sh.size, i: sh.i, kind: sh.kind, size: sh.size, t0, dur: t1 - t0, cine: true, fov, track, moving: false, primary: sh.primary });
+      report.push({ i: sh.i, t0: +t0.toFixed(2), t1: +t1.toFixed(2), kind: sh.kind, size: sh.size, planned: sh.size, pinned: true, primary: sh.primary, subjects: sh.subjects, why: sh.why,
+        camera: { pos: sh.pin.pos, target: sh.pin.target, fov, key: false }, legal: !ins.length && !lumaBad(L), failed: [...(ins.length ? ['L1 inside ' + ins[0]] : []), ...(lumaBad(L) ? ['exposure'] : [])], luma: L, inFrame: seen });
+      stats[sh.kind + ' pinned'] = (stats[sh.kind + ' pinned'] || 0) + 1;
+      prevCam = { pos, dir: tg.clone().sub(pos).normalize(), primary: sh.primary, before: prevCam ? { pos: prevCam.pos, primary: prevCam.primary } : null }; prevHold = null; continue; }
     /* nobody the shot is on is in the scene at its middle (a figure not yet entered): the shot before runs on instead of an empty frame */
     if (solved.length && (sh.subjects || []).length) { api.poseAt(mid); world(api.poseAt(mid)); let any = isCreature(sh.primary) ? !!points(sh.primary, mid) : !!points(sh.primary, mid) || [...(sh.subjects || [])].some(id => !isCreature(id) && points(id, mid));   /* the beasts standing by do not make the shot */
       /* someone else (a man) is in the scene at its middle: a wide on him rather than running the shot before on past what it was checked for (a giant's wide ran on three seconds into empty sky) */

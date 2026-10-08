@@ -32,7 +32,7 @@
    in seconds from the key's start): {swell (1 = about two plates), wind 0..1, dir (deg), foam 0..1, night 0..1, stars 0..1
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
-   look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), dip} | false,
+   look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
    sail {at:[x,z], y0, y1, width (studs), stripe} | null, ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], ease (s, the seam)} */
 (function (root) {
@@ -175,7 +175,9 @@ function stage(ctx) {
   const N = cells.x.length;
   /* the baked sea taken out: 'the sea' keeps its land; its land's top marks the cells the water leaves alone */
   const hideList = ['stage plate', 'swell*', 'splash*', 'four-wind storm'];
-  const hidden = []; const hideNow = () => { for (const m of hidden) m.visible = false; };
+  /* the baked sea is taken out at the first drawing, not at staging: the cinematographer solves its cameras (prepare) on the set as
+     built, its floor and its sea where the gate measured them */
+  let stripped = false; const hidden = []; const hideNow = () => { for (const m of hidden) m.visible = false; };
   const cellLand = new Map();
   /* done at the first parameters: P.land false takes the island out too, P.hide names more pieces to hide (a sea with nothing else in it) */
   function stripSea(SP) {
@@ -245,12 +247,13 @@ function stage(ctx) {
   }
   /* rides: the sheet's ship (through the choreo hook) and the other hulls (props, pieces) turned here */
   function initRides(P) {
-    stripSea(P);
     const list = P.ride ? [].concat(P.ride) : null;
     if (list) for (const rd of list) { const H = hullOf(rd); if (H) rides.push(H); }
     else { for (const nm of ['raft', 'ship', 'boat']) { const o = ctx.prop && ctx.prop(nm); if (o) { rides.push(hullOf({ prop: nm })); break; } }
       if (!rides.length) for (const p of pieces) if (p.box && /ship|raft|boat/i.test(p.label) && !/wreck/i.test(p.label)) { const H = hullOf({ piece: p.label }); if (H) { rides.push(H); break; } } }
-    if (shipRig) { const H = rides.find(h => h.kind === 'piece' && shipRig.piece && h.rd.piece === shipRig.piece) || (rides.length ? null : hullOf({ piece: shipRig.piece })); if (H) { H.rig = shipRig; if (!rides.includes(H)) rides.push(H); } }
+    /* the sheet's ship rig drives the hull it names: the piece, or a staged prop of that name standing in for a hidden piece (the raft),
+       so the sheet's own rider windows (thrown off, back aboard) carry the figures and the kit only gives the channels */
+    if (shipRig) { const nm = String(shipRig.piece || '').toLowerCase(); const H = rides.find(h => h.kind === 'piece' && h.rd.piece === shipRig.piece) || rides.find(h => h.kind === 'prop' && nm.includes(h.rd.prop)) || (rides.length ? null : hullOf({ piece: shipRig.piece })); if (H) { H.rig = shipRig; if (!rides.includes(H)) rides.push(H); } }
     for (const H of rides) { H.G = measure(H); if (H.kind === 'piece' && P.oars !== false) cutOars(H, H.G); H.G = Object.assign(measure(H), { beam: H.beam || H.G.beam }); }
   }
 
@@ -258,7 +261,14 @@ function stage(ctx) {
   const dome = new THREE.Mesh(new THREE.SphereGeometry(4600, 32, 18), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
   dome.renderOrder = -10; dome.userData.axis = 'sea'; grp.add(dome);
   { const g = dome.geometry; g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3), 3)); }
-  const NS = 1100, stars = [], starL = new Layer(grp, geo('round1x1'), basic({ toneMapped: false }), NS);
+  const cStar = col('#FFFFFF');
+  /* constellations in degrees (x to the right along the sky, y up) and a size per star: the Bear's seven (the Plough, its handle to
+     the left), the Pleiades' tight seven, Orion's belt and shoulders */
+  const CONST = { bear: [[0, 0, 1.1], [0.6, -5.4, 1], [-7.9, -6.9, 1], [-9.2, -1.5, 0.8], [-15.5, -1.0, 1.1], [-21, 0.2, 1], [-27.5, -3.5, 1]],
+    pleiades: [[0, 0, 1.1], [1.0, 0.6, 0.9], [1.8, -0.2, 0.9], [-0.9, 0.9, 0.8], [0.4, 1.6, 0.8], [-0.6, -0.8, 0.7], [1.4, 1.5, 0.7]],
+    orion: [[0, 0, 1], [1.4, 0.4, 1], [2.8, 0.8, 1], [-4.5, 8, 1.2], [6, 9.5, 1.1], [-3.5, -9, 1.1], [5.5, -8, 1]] };
+  const LINES = { bear: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]] }, cLine = col('#8FA7C8');
+  const NS = 1100, stars = [], starL = new Layer(grp, geo('round1x1'), basic({ toneMapped: false }), NS + 200);
   for (let i = 0; i < NS; i++) { const az = rnd(i, 1) * Math.PI * 2, se = 0.03 + 0.97 * Math.pow(rnd(i, 2), 1.15), el = Math.asin(se), big = Math.pow(rnd(i, 3), 4);
     const kind = rnd(i, 4), c = kind < 0.84 ? 'transClear' : kind < 0.95 ? 'transYellow' : kind < 0.99 ? 'transLightBlueStar' : 'transOrange';
     stars.push({ d: new V3(Math.sin(az) * Math.cos(el), se, -Math.cos(az) * Math.cos(el)), r: lerp(2500, 4300, rnd(i, 5)), sc: 0.75 + 2.1 * big, c: col(c), thr: cl01(0.04 + 0.92 * rnd(i, 6) * (1 - 0.6 * big)) }); }
@@ -307,34 +317,140 @@ function stage(ctx) {
   function shipV(Rg, v, t) {
     const tq = onTwos(t), G = (rides.find(h => h.rig) || {}).G; if (!G) return v;
     const m = hullMotion(G, tq, new V3(Rg.pivot[0], Rg.pivot[1], Rg.pivot[2]), Rg.yaw || 0), keep = P.keepSheet ?? 0.33;
-    return Object.assign({}, v, { heave: m.heave + (P.lift ?? 0) * U.plate, pitch: m.pitch + (v.pitch || 0) * keep, roll: m.roll + (v.roll || 0) * keep });
+    const H = rides.find(h => h.rig), lift = (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate;
+    return Object.assign({}, v, { heave: m.heave + lift, pitch: m.pitch + (v.pitch || 0) * keep, roll: m.roll + (v.roll || 0) * keep + gustRoll(t) });
   }
   /* the other hulls: turned about their waterline centre with the figures that stand on them */
   const _b = new THREE.Box3();
   function ride(t) {
     hideNow(); const tq = onTwos(t);
     if (P.hideCast && ctx.cast) { const res = [].concat(P.hideCast).map(p => new RegExp('^' + String(p).replace(/\*/g, '.*') + '$', 'i')); for (const A of ctx.cast()) if (res.some(r => r.test(A.id))) A.r.figure.visible = false; }
-    for (const H of rides) { if (H.rig) continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && !H.o.parent) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
+    for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && !H.o.parent) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
       /* re-staged since the last drawing (a key's props): the staged place is the new rest */
       const o0 = objs[0]; if (!H.set || !o0.position.equals(H.set.p) || !o0.quaternion.equals(H.set.q)) { H.base = objs.map(o => ({ o, p: o.position.clone(), q: o.quaternion.clone() })); H.G = Object.assign(measure(H), { beam: H.beam || measure(H).beam }); }
       if (H.kind === 'prop' && H.o.visible === false) continue;
-      const G = H.G, m = hullMotion(G, tq, G.c, null), q = new Q().setFromEuler(new E(G.alongZ ? m.pitch : -m.roll, 0, G.alongZ ? m.roll : m.pitch, 'XYZ'));
-      const piv = G.c.clone(); piv.y = mean; const off = piv.clone().sub(piv.clone().applyQuaternion(q));
-      /* a staged prop (staged on the baked sea's top) lifted a plate and a half, so its deck rides over the stepped crests */
-      off.y += m.heave + (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate;
+      const G = H.G; let q, off;
+      if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); if (!x) continue; q = x.Q.clone(); const pv = new V3(...H.rig.pivot), heave = x.off.clone().sub(pv.clone().sub(pv.clone().applyQuaternion(q)));
+        const c0 = Math.hypot(G.c.x - pv.x, G.c.z - pv.z) < 60 ? pv : new V3(G.c.x, pv.y, G.c.z); off = c0.clone().sub(c0.clone().applyQuaternion(q)).add(heave); }   /* the sheet's player turned the hidden piece and the riders with our channels: the prop follows, about the rig's own pivot while it stands on it (the riders turn about it too), else about its own staged place (a key may stage it away), lifted as the rig lifts */
+      else { const m = hullMotion(G, tq, G.c, null); m.roll += gustRoll(t); q = new Q().setFromEuler(new E(G.alongZ ? m.pitch : -m.roll, 0, G.alongZ ? m.roll : m.pitch, 'XYZ'));
+        const piv = G.c.clone(); piv.y = mean; off = piv.clone().sub(piv.clone().applyQuaternion(q));
+        /* a staged prop (staged on the baked sea's top) lifted a plate and a half, so its deck rides over the stepped crests */
+        off.y += m.heave + (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate; }
       for (const B of H.base) { B.o.position.copy(B.p).applyQuaternion(q).add(off); B.o.quaternion.copy(B.q).premultiply(q); B.o.updateMatrixWorld(true); }
       H.set = { p: o0.position.clone(), q: o0.quaternion.clone() }; H.xf = { Q: q, off };
+      if (H.kind === 'prop') propParts(H, t);
+      /* the figures standing on a staged raft are set on its deck (the logs' top under their feet), so feet and logs touch as it rolls */
+      if (H.kind === 'prop' && H.parts && H.parts.mesh && ctx.cast && !(P.break && P.break.at != null && tq >= P.break.at)) { const m = H.parts.mesh; m.updateMatrixWorld(true);
+        for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const lp = m.worldToLocal(f.position.clone()); if (Math.abs(lp.x) > 74 || Math.abs(lp.z) > 46) continue;
+          const deck = m.localToWorld(new V3(lp.x, 0, lp.z)); if (f.position.y < deck.y - 30 || f.position.y > deck.y + 8) continue; f.position.y = deck.y; if (A.r.pos) A.r.pos.copy(f.position); f.updateMatrixWorld(true); } }
       /* riders: the figures standing within the hull's footprint */
-      if (ctx.cast) for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const d = f.position.clone().sub(G.c), a = d.dot(G.ax), l = d.dot(G.lat);
+      if (ctx.cast && !H.rig) for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const d = f.position.clone().sub(G.c), a = d.dot(G.ax), l = d.dot(G.lat);
         if (Math.abs(a) > G.half + 4 || Math.abs(l) > G.beam + 4 || f.position.y < G.b.min.y - 6 || f.position.y > G.b.max.y + 20) continue;
         f.position.applyQuaternion(q).add(off); f.quaternion.premultiply(q); if (A.r.pos) A.r.pos.copy(f.position); f.updateMatrixWorld(true); } }
+    holdAt(t);
+  }
+  /* a gust (P.gust: one time, or [t...], on the take's clock): the hull heels and rights itself, a damped swing */
+  function gustRoll(t) { let r = 0; for (const g of [].concat(P.gust == null ? [] : P.gust)) { const d = t - g; if (d >= 0 && d < 5) r += (P.gustHeel ?? 9) * DEG * Math.exp(-d * 0.8) * Math.sin(Math.min(d, 0.35) / 0.35 * Math.PI / 2 + Math.max(0, d - 0.35) * 2 * Math.PI / 1.7); } return r; }
+  /* a staged raft's own parts, cut from its one mesh: the sail (its white bricks) swung about the mast by the wind and the gust, and its
+     logs, held in their places until the named break (P.break: {at}), then drifting apart on the swell while the mast and the
+     steering oar go over and down. Built once per staged prop object (a key that re-stages the prop gets them built again) */
+  function propParts(H, t) {
+    const o = H.o; let S = H.parts;
+    if (!S || S.o !== o) {
+      if (S) S.undo();
+      let mesh = null; o.traverse(m => { if (!mesh && m.isMesh && m.geometry && m.geometry.groups && m.geometry.groups.length) mesh = m; }); if (!mesh) { H.parts = { o, undo() {} }; return; }
+      const g = mesh.geometry, mats = [].concat(mesh.material), P_ = g.attributes.position, ix = g.index, white = mats.map(m => m.color && m.color.r > 0.6 && m.color.g > 0.6 && m.color.b > 0.6), brown = mats.map(m => m.color && m.color.r > m.color.b * 2 && m.color.r < 0.4);
+      const keep = [], parts = { sail: [] }, v = new V3(); for (let k = 0; k < 7; k++) parts['log' + k] = [];
+      const ofG = (gr, list) => list.push(gr);
+      for (const gr of g.groups) { const mi = gr.materialIndex, out = { keep: [], sail: [] }; for (let k = 0; k < 7; k++) out['log' + k] = [];
+        for (let q = gr.start; q < gr.start + gr.count; q += 3) { const a = ix ? ix.getX(q) : q, b = ix ? ix.getX(q + 1) : q + 1, c = ix ? ix.getX(q + 2) : q + 2;
+          v.set((P_.getX(a) + P_.getX(b) + P_.getX(c)) / 3, (P_.getY(a) + P_.getY(b) + P_.getY(c)) / 3, (P_.getZ(a) + P_.getZ(b) + P_.getZ(c)) / 3);
+          let key = 'keep'; if (white[mi]) key = 'sail'; else if (brown[mi] && v.y >= -1 && v.y <= 25 && Math.abs(v.z) < 44 && Math.abs(v.x) < 72) key = 'log' + Math.max(0, Math.min(6, Math.round(v.x / 20) + 3));
+          out[key].push(a, b, c); }
+        for (const [k, arr] of Object.entries(out)) if (arr.length) (k === 'keep' ? keep : parts[k]).push({ mi, arr }); }
+      const geomOf = list => { const ng = new THREE.BufferGeometry(); for (const [k, a] of Object.entries(g.attributes)) ng.setAttribute(k, a); const idx = []; for (const { mi, arr } of list) { ng.addGroup(idx.length, arr.length, mi); idx.push(...arr); } ng.setIndex(idx); ng.boundingBox = g.boundingBox; ng.boundingSphere = g.boundingSphere; return ng; };
+      const old = mesh.geometry; mesh.geometry = geomOf(keep); const m0 = { p: mesh.position.clone(), q: mesh.quaternion.clone() };
+      const holder = new THREE.Group(); holder.position.copy(mesh.position); holder.quaternion.copy(mesh.quaternion); holder.scale.copy(mesh.scale); mesh.parent.add(holder);
+      const mk = list => { const m = new THREE.Mesh(geomOf(list), mesh.material); m.castShadow = true; m.receiveShadow = true; return m; };
+      /* the sail hangs from the yard: its pivot at the mast's top (LDraw y is down: the bricks' least y) */
+      let yTop = 1e9; for (const { arr } of parts.sail) for (const a of arr) yTop = Math.min(yTop, P_.getY(a));
+      const sailPiv = new THREE.Group(); sailPiv.position.set(0, yTop, 0); holder.add(sailPiv); if (parts.sail.length) { const sm_ = mk(parts.sail); sm_.position.set(0, -yTop, 0); sailPiv.add(sm_); }
+      let sailBox = null; if (parts.sail.length) { sailBox = new THREE.Box3(); const vv = new V3(); for (const { arr } of parts.sail) for (const q of arr) sailBox.expandByPoint(vv.fromBufferAttribute(P_, q)); }
+      const logs = []; for (let k = 0; k < 7; k++) if (parts['log' + k].length) { const lm = mk(parts['log' + k]); holder.add(lm); logs.push({ m: lm, k }); }
+      const lines = []; o.traverse(l => { if (l.isLineSegments && l.visible) { lines.push(l); l.visible = false; } });   /* the loader's edge lines would stay where the parts were */
+      S = H.parts = { o, mesh, holder, sailPiv, sailBox, logs, m0, undo() { for (const l of lines) l.visible = true; mesh.geometry = old; mesh.position.copy(m0.p); mesh.quaternion.copy(m0.q); holder.parent && holder.parent.remove(holder); } };
+      restore.push(() => S.undo());
+    }
+    if (!S.holder) return;
+    const tq = onTwos(t), wind = cl01(P.wind); let gk = 0; for (const g of [].concat(P.gust == null ? [] : P.gust)) { const d = tq - g; if (d >= 0 && d < 5) gk = Math.max(gk, Math.exp(-d * 0.9) * (d < 0.3 ? d / 0.3 : 1)); }
+    /* the sail: swung off the wind and leaning, its shake on twos; the gust throws it hard over */
+    S.sailPiv.rotation.set((0.04 + 0.08 * wind) * Math.sin(tq * 1.9) + 0.45 * gk, 0.08 * wind * Math.sin(tq * 0.7) + 0.4 * gk * Math.sin(tq * 9), 0, 'YXZ');   /* small off the gust: the cameras were solved round the sail where it hangs */
+    const br = P.break && P.break.at != null ? tq - P.break.at : -1;
+    S.mesh.position.copy(S.m0.p); S.mesh.quaternion.copy(S.m0.q);
+    for (const L of S.logs) { L.m.position.set(0, 0, 0); L.m.rotation.set(0, 0, 0); }
+    if (br >= 0) { const a = Math.min(br, 6);
+      /* the mast and the steering oar go over and down; the sail goes with the mast; the logs part, turning, riding the swell */
+      const fall = new Q().setFromAxisAngle(new V3(0, 0, 1), Math.min(1.35, a * 0.9)); S.mesh.quaternion.copy(S.m0.q).multiply(fall); S.mesh.position.copy(S.m0.p).add(new V3(0, -Math.min(3, a) * 8 * s, 0));
+      S.sailPiv.rotation.z = Math.min(1.35, a * 0.9); S.sailPiv.position.y = Math.min(3, a) * -1;
+      for (const L of S.logs) { const d = L.k - 3; L.m.position.set(d * 14 * a + (rnd(L.k, 81) - 0.5) * 20 * a, Math.sin(tq * 2.3 + L.k) * 4 + a * 2, (rnd(L.k, 82) - 0.5) * 30 * a); L.m.rotation.set((rnd(L.k, 83) - 0.5) * 0.3 * a, (rnd(L.k, 84) - 0.5) * 0.5 * a, (rnd(L.k, 85) - 0.5) * 0.25 * a); } }
+  }
+  /* the camera kept out of the water, and lowered in the named windows (P.lowCam: [{t0, t1}, ...]) to just over the swell, still on
+     what it framed, so a breaking crest crosses the silhouette */
+  function cameraAt(t) {
+    if (root.__seaNoCam) return;   /* a dev switch: the take's own camera, untouched */
+    const cam = ctx.camera, tq = onTwos(t); cam.updateMatrixWorld(); const p = cam.position, dir = cam.getWorldDirection(new V3());
+    const X = hullXf(), focus = X && X.G ? X.G.c.clone().applyQuaternion(X.Q).add(X.off) : null, D = focus ? Math.max(40, p.distanceTo(focus)) : 200, aim = p.clone().addScaledVector(dir, D);
+    let w = 0; for (const W_ of [].concat(P.lowCam || [])) { if (!W_ || typeof W_ !== 'object') continue; const a = W_.t0, b = W_.t1; w = Math.max(w, sm((tq - a) / 0.5) * (1 - sm((tq - (b - 0.5)) / 0.5))); }
+    /* the floor: the tops of the tiles (a column's top is its quantized height and a plate) under the lens and along the first stretch
+       of what it looks at, so no block stands in the lens; in a lowered window only the nearest stretch counts */
+    const top = (x, z) => mean + (Math.round(swell(ws[0], x, z, tq, amp).h) + 1) * U.plate, fh = new V3(dir.x, 0, dir.z); if (fh.lengthSq() < 1e-6) fh.set(0, 0, 1); fh.normalize();
+    const along = r => { let m = -1e9; for (const d of [0, 6, 12, 20, 30, 42, 56, 72].filter(d => d <= r)) { const q = p.clone().addScaledVector(fh, d); m = Math.max(m, top(q.x, q.z)); for (const o of [-8, 8]) m = Math.max(m, top(q.x + fh.z * o, q.z - fh.x * o)); } return m; };
+    const floor = along(72) + (P.camMargin ?? 3) * U.plate; let y = p.y; if (w > 0) y = lerp(y, top(p.x, p.z) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? along(20) + 1.5 * U.plate : floor);
+    if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
+    /* out of the raft's sail and mast: the lens is drawn back along its own axis until it is outside their boxes (with a margin) */
+    const boxes = []; for (const H of rides) if (H.parts && H.parts.sailBox) { H.parts.holder.updateMatrixWorld(true); const b = H.parts.sailBox.clone().applyMatrix4(H.parts.sailPiv.children[0] ? H.parts.sailPiv.children[0].matrixWorld : H.parts.holder.matrixWorld); boxes.push(b.expandByScalar(P.sailMargin ?? 22)); }
+    for (let k = 0; k < 60 && boxes.some(b => b.containsPoint(p)); k++) p.addScaledVector(dir, -5);
+    if (boxes.length) { cam.lookAt(aim); cam.updateMatrixWorld(); }
+    /* the sail between the lens and the scene's subject (P.subject, an actor id): the lens is craned over the sail's top and turned on
+       the subject's head, so the sail never stands in front of him */
+    const sj = P.subject || root.__seaSubject, sub = sj && ctx.cast ? ctx.cast().find(a => a.id === sj) : null;
+    if (sub && boxes.length) { sub.r.figure.updateMatrixWorld(true); const head = sub.r.headP ? sub.r.headP.getWorldPosition(new V3()) : sub.r.figure.position.clone().add(new V3(0, 40, 0));
+      const to = head.clone().sub(p), dist = to.length(), ray = new THREE.Ray(p.clone(), to.clone().normalize()), hit = new V3();
+      for (const b0 of boxes) { const b = b0.clone().expandByScalar(-(P.sailMargin ?? 22) + 3); if (ray.intersectBox(b, hit) && hit.distanceTo(p) < dist) { const back = to.clone().setY(0).normalize(); p.addScaledVector(back, -Math.max(0, 90 - dist)); p.y = Math.max(p.y, b.max.y + 28);
+        /* still through it (seen from above, a sail is still a sail): round the subject a quarter turn until the line is clear */
+        for (let k = 0; k < 6; k++) { const r2 = new THREE.Ray(p.clone(), head.clone().sub(p).normalize()); if (!r2.intersectBox(b, hit) || hit.distanceTo(p) > head.distanceTo(p)) break; const v = p.clone().sub(head); v.applyAxisAngle(new V3(0, 1, 0), Math.PI / 6); p.copy(head).add(v); }
+        cam.lookAt(head); cam.updateMatrixWorld(); break; } } }
+  }
+  /* hands held on a hull's support until a named release (P.hold: [{actor, side: 'R'|'L'|'both', t0, t1, at: [x, y, z] in the staged
+     prop's own LDU (the raft's mast: [0, -50, 0]), id}]): each arm turned at the shoulder (pitch, and a little out) so the hand goes to
+     the point as the hull carries both; the residual (hand to point, world units) is kept for the checks */
+  const handLocal = side => { const MF = root.Minifig; if (MF && MF.HAND_R) { const h = side === 'L' ? MF.HAND_L : MF.HAND_R, sl = MF.SLOTS[side === 'L' ? 'armL' : 'armR']; return new V3(h[0] - sl[1], h[1] - sl[2] + 6, h[2] - sl[3] - 4); } return new V3(side === 'L' ? 8.3 : -8.3, 23.6, -14.3); };
+  const holdLog = [];
+  function holdAt(t) {
+    const tq = onTwos(t), H = rides.find(h => h.kind === 'prop' && h.parts && h.parts.mesh); if (!H || !ctx.cast) return;
+    for (const hd of [].concat(P.hold || [])) { if (!hd || typeof hd !== 'object' || tq < hd.t0 || tq >= hd.t1) continue; const A = ctx.cast().find(a => a.id === hd.actor); if (!A) continue;
+      const r = A.r; r.figure.updateMatrixWorld(true); const sides = hd.side === 'both' || !hd.side ? ['R', 'L'] : [hd.side];
+      /* twice: the arms aimed, then the body stepped along the deck toward the hold by what the arms could not reach (at most hd.reach) */
+      for (let pass = 0; pass < 2; pass++) { const miss = new V3(); let nm = 0;
+      for (const side of sides) { const arm = side === 'L' ? r.armLP : r.armRP; if (!arm || !arm.parent) continue;
+        /* the point held: a point of the prop, or 'deck': the deck's top (the logs' upper face) nearest the shoulder, a stud in from its edge */
+        let tgt; if (hd.at === 'deck') { const m = H.parts.mesh, sh = m.worldToLocal(arm.getWorldPosition(new V3())); tgt = m.localToWorld(new V3(Math.max(-60, Math.min(60, sh.x)), -2, Math.max(-30, Math.min(30, sh.z)))); } else tgt = H.parts.mesh.localToWorld(new V3(...(hd.at || [0, -50, 0])));
+        /* the shoulder's pitch and swing searched (a coarse grid, then a fine one about the best) for the hand nearest the point */
+        const hl = handLocal(side), hw = new V3(); let best = [arm.rotation.x, arm.rotation.z], bd = 1e9;
+        const tryAt = (x, z) => { arm.rotation.x = x; arm.rotation.z = z; arm.updateMatrixWorld(true); hw.copy(hl); arm.localToWorld(hw); const d = hw.distanceTo(tgt); if (d < bd) { bd = d; best = [x, z]; } };
+        for (let x = -3.3; x <= 1.2; x += 0.15) for (let z = -0.9; z <= 0.9; z += 0.3) tryAt(x, z);
+        const [bx, bz] = best; for (let x = bx - 0.15; x <= bx + 0.15; x += 0.05) for (let z = bz - 0.3; z <= bz + 0.3; z += 0.1) tryAt(x, z);
+        arm.rotation.x = best[0]; arm.rotation.z = best[1]; arm.updateMatrixWorld(true); hw.copy(hl); arm.localToWorld(hw);
+        if (pass === 0) { miss.add(tgt.clone().sub(hw).setY(0)); nm++; } else { holdLog.push({ t: +tq.toFixed(3), id: hd.id || hd.actor, side, res: +hw.distanceTo(tgt).toFixed(2) }); if (holdLog.length > 4000) holdLog.shift(); } }
+      if (pass === 0 && nm) { miss.divideScalar(nm); const lim = hd.reach ?? 45; if (miss.length() > lim) miss.setLength(lim); r.figure.position.add(miss); if (r.pos) r.pos.copy(r.figure.position); r.figure.updateMatrixWorld(true); } } }
   }
   /* the transform of the first hull (the rig's from the sheet's player, else ours) */
   function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
 
   /* ── one drawing ── */
-  const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFE2A8');
+  const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFF6E4');
   function frame(t, look) {
+    if (!stripped) { stripped = true; stripSea(P); }
     hideNow();
     const tq = onTwos(t), F = drawing(t), cam = ctx.camera; cam.updateMatrixWorld(); const cp = cam.position, fwd = cam.getWorldDirection(new V3());
     const night = cl01(P.night), storm = cl01(P.storm), wind = cl01(P.wind), foamK = cl01(P.foam);
@@ -344,26 +460,40 @@ function stage(ctx) {
     const fl = strike ? 1 : 0;
     /* sky colours: the day's (the key's look, or the sea's sky) toward night, toward storm, flashed */
     const day = (P.sky || (look && look.sky) || SKY.day).map(col), nt = SKY.night.map(col), stc = SKY.storm.map(col), fc = SKY.flash.map(col);
-    const top = day[0].clone().lerp(nt[0], night).lerp(stc[0], storm * 0.85).lerp(fc[0], fl * 0.7), hor = day[1].clone().lerp(nt[1], night).lerp(stc[1], storm * 0.85).lerp(fc[1], fl * 0.6);
-    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, 0.55); cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
+    const top = day[0].clone().lerp(nt[0], night).lerp(stc[0], storm * 0.85).lerp(fc[0], fl * 0.35), hor = day[1].clone().lerp(nt[1], night).lerp(stc[1], storm * 0.85).lerp(fc[1], fl * 0.3);
+    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, P.skyCurve ?? 0.55);   /* the colour's climb from the horizon (lower: the zenith's colour comes down sooner) */ cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
     dome.position.copy(cp);
     const fg = P.fog || (look && look.fog) || [700, 2600]; fog.color.copy(hor); fog.near = fg[0] * (1 - 0.35 * storm); fog.far = Math.max(fg[1], 2200) * (1 - 0.3 * storm); ctx.scene.fog = fog; ctx.scene.background = hor;
     /* the day's lights dimmed by night and storm (each light's base re-read when the take re-lights a key) */
     const dim = (1 - 0.9 * night) * (1 - 0.55 * storm);
+    /* LDraw's edge lines are drawn unlit: at night they glow round every brick (the clear spray pieces read as white wireframes), so
+       they are dimmed with the light (as odyssey-light.js does in the hall) */
+    const ek = lerp(1, P.edges ?? 0.18, Math.max(night, storm));
+    if (Math.abs(ek - (last && last.edges != null ? last.edges : 1)) > 1e-3 || !(F % 12)) ctx.scene.traverse(o => { if (!(o.isLine || o.isLineSegments) || !o.material) return; for (const m of [].concat(o.material)) { if (!m.color) continue; if (!m.userData.seaC0) m.userData.seaC0 = m.color.clone(); m.color.copy(m.userData.seaC0).multiplyScalar(ek); } });
     ctx.scene.traverse(o => { if (!o.isLight || o.userData.sea) return; const u = o.userData; if (u.seaSet == null || Math.abs(o.intensity - u.seaSet) > 1e-6) u.seaBase = o.intensity; u.seaSet = u.seaBase * dim; o.intensity = u.seaSet; });
     /* the moon: a dish far off, its light cool; the light whose path the sea throws back (the moon by night, the sun by day) */
     const mo = P.moon === false ? null : Object.assign({ az: 200, el: 18, size: 7 }, P.moon || {}), md = mo ? new V3(Math.sin(mo.az * DEG) * Math.cos(mo.el * DEG), Math.sin(mo.el * DEG), -Math.cos(mo.az * DEG) * Math.cos(mo.el * DEG)) : null;
     const moonVis = mo ? night * (1 - cl01(P.clouds * 1.6)) : 0;
     moonM.visible = moonVis > 0.02; if (mo) { moonM.position.copy(cp).addScaledVector(md, 4000); moonM.quaternion.setFromUnitVectors(new V3(0, 1, 0), md.clone().negate()); const k = mo.size * s; moonM.scale.set(k, k, k); moonM.material.color.copy(moonC).multiplyScalar(0.35 + 0.65 * moonVis); }
     moonLight.intensity = mo ? moonVis * 0.7 : 0; if (md) { moonLight.position.copy(md).multiplyScalar(900).add(new V3(cx, 0, cz)); moonLight.target.position.set(cx, 0, cz); moonLight.target.updateMatrixWorld(); }
-    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 2.4;
+    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 0.9;   /* a cold flash, never a daylight */
     if (rr) rr.toneMappingExposure *= (1 - 0.18 * night);
     const sunL = look && look.sun ? new V3(...look.sun.dir).normalize() : null;
     const pathDir = moonVis > 0.15 ? md : sunL && night < 0.6 && storm < 0.5 ? sunL : null, pathC = moonVis > 0.15 ? cGlint : cGlintSun, pathK = moonVis > 0.15 ? moonVis : (1 - night) * (1 - storm);
     /* the stars, the large first, behind the clouds */
-    starL.begin(); const sv = cl01(P.stars) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);
-    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
+    starL.begin(); const sv = cl01(P.stars) * cl01((night - 0.3) / 0.4) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);   /* no stars in a lit sky, whatever the key asked */
+    const near = []; for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (pat) for (const [dx, dy] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG; near.push(new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))); } }
+    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; if (near.length && near.some(n => n.dot(S_.d) > 0.9925)) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
       _Q.setFromUnitVectors(new V3(0, 1, 0), S_.d.clone().negate()); starL.put(cp.x + S_.d.x * S_.r, cp.y + S_.d.y * S_.r, cp.z + S_.d.z * S_.r, sz, sz, sz, _Q, S_.c); }
+    /* named constellations, fixed brick patterns (2x2-sized clear round plates) at their bearing and height: P.constellations
+       [{name: 'bear'|'pleiades'|'orion', az, el, size}], covered as the clouds come */
+    for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (!pat) continue; const kv = cl01(P.stars) * cl01((night - 0.3) / 0.4) * (1 - cl01((cl01(P.clouds) - 0.15) / 0.3)) * (1 - fl); if (kv <= 0.02) continue;
+      for (const [dx, dy, mag] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG, d = new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)), r = 3000, sz = s * (K.plate ?? 2.6) * (mag || 1) * (0.4 + 0.6 * kv) * (r / 2500);
+        _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cStar); }
+      /* the figure's lines: small clear round plates laid between its stars in order (the Plough's bowl and handle), so the pattern reads */
+      if (K.lines !== false && LINES[K.name]) for (const [i0, i1] of LINES[K.name]) { const a0 = pat[i0], a1 = pat[i1], n = Math.max(2, Math.round(Math.hypot(a1[0] - a0[0], a1[1] - a0[1]) * (K.size || 1) / 1.1));
+        for (let j = 1; j < n; j++) { const u = j / n, az = (K.az + lerp(a0[0], a1[0], u) * (K.size || 1)) * DEG, el = (K.el + lerp(a0[1], a1[1], u) * (K.size || 1)) * DEG, d = new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)), r = 3000, sz = s * 0.9 * kv * (r / 2500);
+          _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cLine); } } }
     starL.end();
     /* clouds: masses of dark plates drifting with the wind */
     cloudL.begin(); cloudB.begin(); const cv = cl01(P.clouds);
@@ -406,7 +536,7 @@ function stage(ctx) {
       /* the path of light: the tile's facet (the swell's slope, steepened) mirroring the light into the lens */
       let glint = false;
       if (pathDir && pathK > 0.05 && !clear && dist < fogFar) { V.set(x - cp.x, y + U.plate - cp.y, z - cp.z).normalize(); Nn.set(-H.gx * U.plate * 5, 1, -H.gz * U.plate * 5).normalize(); Rv.copy(V).addScaledVector(Nn, -2 * V.dot(Nn));
-        const dd = Rv.dot(pathDir), thr = 0.985 - 0.02 * Math.min(1, dist / 1500); if (dd > thr && rnd(cells.i[c], cells.j[c], F) < 0.75) { glint = true; cc.lerp(pathC, 0.55 * pathK); } }
+        const dd = Rv.dot(pathDir), thr = 0.985 - 0.02 * Math.min(1, dist / 1500); if (dd > thr && rnd(cells.i[c], cells.j[c], F) < 0.75) { glint = true; cc.lerp(pathC, (moonVis > 0.15 ? 0.55 : 0.3) * pathK); } }
       L.put(x, bot, z, s, (y + U.plate - bot) / 8, s, null, cc);
       const topY = y + U.plate;
       if (glint && k <= 3) { const n = k <= 1 ? 1 : k === 2 ? 3 : 5; for (let g = 0; g < n; g++) { const ox = k <= 1 ? 0 : (rnd(c, g, F) - 0.5) * T * 0.8, oz = k <= 1 ? 0 : (rnd(c, g, F + 7) - 0.5) * T * 0.8, sc2 = s * (k <= 1 ? sk * 0.9 : 1.6); cc.copy(pathC).multiplyScalar(0.55 + 0.45 * pathK); glintL.put(x + ox, topY - 6.5 * s, z + oz, sc2, s, sc2, null, cc); } }
@@ -418,7 +548,7 @@ function stage(ctx) {
     for (const L of water) L.end(); foamL.end(); glintL.end(); foamTile.end();
     /* ── the oars: each turned about its gunwale so the blade is in the water under it, on a stroke if asked ── */
     if (X && oars.length) { const O = P.oars === false ? null : Object.assign({ sweep: 0, period: 2.4, dip: 0.5 }, P.oars || {});
-      for (const oa of oars) { const ph = O && O.sweep ? (tq / O.period + (oa.at / (G.half * 2)) * 0.15) % 1 : 0, drive = ph < 0.55;
+      for (const oa of oars) { const ph = O && O.sweep ? ((((tq - (O.origin || 0)) / O.period + (O.stagger || 0) * (oa.at / (G.half * 2))) % 1) + 1) % 1 : 0, drive = ph < 0.55;   /* one clock for every oar (the sheet's ROWING clock: period, origin), so the blades go in together */
         const sw = O && O.sweep ? (drive ? lerp(-1, 1, sm(ph / 0.55)) : lerp(1, -1, sm((ph - 0.55) / 0.45))) * O.sweep * DEG : 0;
         const qs = new Q().setFromAxisAngle(new V3(0, 1, 0), sw * oa.side * (G.alongZ ? 1 : -1));
         const pivW = oa.piv.clone().applyQuaternion(X.Q).add(X.off), tipR = oa.tip.clone().sub(oa.piv).applyQuaternion(qs), tipW = tipR.clone().applyQuaternion(X.Q).add(pivW);
@@ -465,12 +595,12 @@ function stage(ctx) {
       let p = cp.clone().addScaledVector(f2, d).addScaledVector(rt, side); const top = Math.min(mean + 520, Math.max(mean + 260, cp.y + 160)); p.y = top; const segs = 16, pts = [p.clone()]; for (let k = 1; k <= segs; k++) { p = p.clone(); p.y = lerp(top, mean, k / segs); p.addScaledVector(rt, (rnd(i, k, 73) - 0.5) * 70).addScaledVector(f2, (rnd(i, k, 74) - 0.5) * 50); pts.push(p); }
       const by = col('transYellow').lerp(col('#FFF8D8'), 0.5); for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], dv = b.clone().sub(a), len = dv.length(); _Q.setFromUnitVectors(new V3(0, 0, 1), dv.normalize()); boltL.put((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, s * 2.2, s * 2.2, len / 40, _Q, by); } }
     boltL.end();
-    last = { t, F, strike: !!strike, cells: N, drawn: water.reduce((a, L) => a + L.n, 0), foam: foamL.n, glints: glintL.n, stars: starL.n, rain: rainL.n, clouds: cloudL.n + cloudB.n };
+    last = { t, F, edges: ek, strike: !!strike, cells: N, drawn: water.reduce((a, L) => a + L.n, 0), foam: foamL.n, glints: glintL.n, stars: starL.n, rain: rainL.n, clouds: cloudL.n + cloudB.n };
     return last;
   }
   function dispose() { ctx.scene.traverse(o => { if (o.isLight && o.userData.seaSet != null) { if (Math.abs(o.intensity - o.userData.seaSet) < 1e-6) o.intensity = o.userData.seaBase; delete o.userData.seaSet; delete o.userData.seaBase; } });
     for (const f of restore.splice(0).reverse()) try { f(); } catch (e) {} grp.parent && grp.parent.remove(grp); grp.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.dispose && m.dispose()); }); }
-  return { setParams, shipV, ride, frame, dispose, surface: (x, z, t) => surface(x, z, onTwos(t)), stats: () => Object.assign({ rings: R, rides: rides.map(h => ({ kind: h.kind, label: h.rd.piece || h.rd.prop, rig: !!h.rig, beam: h.G && +h.G.beam.toFixed(1), half: h.G && +h.G.half.toFixed(1) })), oars: oars.length, mean, amp }, last || {}), get params() { return P; } };
+  return { setParams, shipV, ride, frame, dispose, camera: cameraAt, holds: () => holdLog.slice(), surface: (x, z, t) => surface(x, z, onTwos(t)), stats: () => Object.assign({ rings: R, rides: rides.map(h => ({ kind: h.kind, label: h.rd.piece || h.rd.prop, rig: !!h.rig, beam: h.G && +h.G.beam.toFixed(1), half: h.G && +h.G.half.toFixed(1) })), oars: oars.length, mean, amp, hold: holdLog.length ? { n: holdLog.length, worst: Math.max(...holdLog.map(h => h.res)), last: holdLog.slice(-2) } : null }, last || {}), get params() { return P; } };
 }
 
 root.OdysseySea = { stage, resolve, hasSea, swell, waveSet, geo, version: 1 };
