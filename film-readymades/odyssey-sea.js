@@ -33,7 +33,7 @@
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
-   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
+   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), wreck {at, piece, debris, drop: [{actor, t, until, sink}]} (the hull broken up, its men in the water), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
@@ -361,7 +361,29 @@ function stage(ctx) {
       if (ctx.cast && !H.rig) for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const d = f.position.clone().sub(G.c), a = d.dot(G.ax), l = d.dot(G.lat);
         if (Math.abs(a) > G.half + 4 || Math.abs(l) > G.beam + 4 || f.position.y < G.b.min.y - 6 || f.position.y > G.b.max.y + 20) continue;
         f.position.applyQuaternion(q).add(off); f.quaternion.premultiply(q); if (A.r.pos) A.r.pos.copy(f.position); f.updateMatrixWorld(true); } }
+    wreckAt(t);
     holdAt(t);
+  }
+  /* the wreck (P.wreck: {at, piece, debris, drop: [{actor, t, until, sink}]}): at the named break the hull is gone, broken into its
+     timbers (black, red and brown plates and one long brown spar drifting apart on the swell where it was), and the men on her go into
+     the water, each let down over half a second to the surface at the time given (his swimming), his hips a plate or two under it ── */
+  let wreckHid = null, wreckX = null, wreckMs = null; const wreckL = new Layer(grp, geo('brick1x4'), std({ rough: 0.6 }), 40);
+  function wreckAt(t) {
+    const W_ = P.wreck, tq = onTwos(t); if (!W_ || W_.at == null) { wreckL.begin(); wreckL.end(); return; }
+    const on = tq >= W_.at, ms = wreckMs || (wreckMs = (rides.find(h => h.kind === 'piece' && (h.rd.piece || '') === (W_.piece || 'black ship')) || {}).ms || meshesOf(W_.piece || 'black ship').map(m => m.mesh));   /* the hull as found at staging (its box moves as it rolls) */
+    if (on) { for (const m of ms) m.visible = false; wreckHid = ms; } else if (wreckHid) { for (const m of wreckHid) m.visible = true; wreckHid = null; }
+    if (!on) { wreckX = hullXf(); wreckL.begin(); wreckL.end(); } else {
+      const X = wreckX || hullXf(), G = rides[0] && rides[0].G; wreckL.begin();
+      if (X && G) { const n = W_.debris ?? 16, dt = tq - W_.at, cs = ['black', 'black', 'red', 'reddishBrown', 'reddishBrown'].map(col);
+        for (let i = 0; i < n; i++) { const a = (rnd(i, 101) - 0.5) * 1.7 * G.half, l = (rnd(i, 102) - 0.5) * 1.6 * G.beam, p0 = G.c.clone().addScaledVector(G.ax, a).addScaledVector(G.lat, l).applyQuaternion(X.Q).add(X.off);
+          const dir = new V3(rnd(i, 103) - 0.5, 0, rnd(i, 104) - 0.5).normalize(), go = (1.5 + 3 * rnd(i, 105)) * U.stud * Math.pow(Math.max(0, dt), 0.6), x = p0.x + dir.x * go, z = p0.z + dir.z * go;
+          const spar = i === 0, y = surface(x, z, tq) + (spar ? 0.2 : -0.2) * U.plate, yaw = rnd(i, 106) * 6.28 + dt * (rnd(i, 107) - 0.5) * 0.6, H_ = swell(ws[0], x, z, tq, amp);
+          _Q.setFromEuler(new E(Math.max(-0.3, Math.min(0.3, H_.gz * U.plate * 3)), yaw, Math.max(-0.3, Math.min(0.3, -H_.gx * U.plate * 3)), 'YXZ'));
+          wreckL.put(x, y, z, s * (spar ? 1.2 : 1 + Math.floor(rnd(i, 108) * 2)), spar ? 0.9 : 1 / 3, s * (spar ? 3.2 : 0.5 + rnd(i, 109)), _Q, spar ? col('reddishBrown') : cs[i % cs.length]); } }
+      wreckL.end(); }
+    if (ctx.cast) { const cast = ctx.cast(); for (const d of [].concat(W_.drop || [])) { if (tq < Math.max(d.t ?? W_.at, W_.at) || (d.until != null && tq >= d.until)) continue; const A = cast.find(c => c.id === d.actor); if (!A || A.r.figure.visible === false || A.r.absent) continue;
+        const f = A.r.figure, hipOff = A.r.legRP ? A.r.legRP.getWorldPosition(new V3()).y - f.position.y : 19, want = surface(f.position.x, f.position.z, tq) - hipOff - trackAt(d.sink ?? 1.5, tq) * U.plate, u = sm((tq - Math.max(d.t ?? W_.at, W_.at)) / 0.5);   /* sink: plates, or a track on the take's clock (a drowning man goes under) */
+        f.position.y = lerp(f.position.y, want, u); if (A.r.pos) A.r.pos.copy(f.position); f.updateMatrixWorld(true); } }
   }
   /* a gust (P.gust: one time, or [t...], on the take's clock): the hull heels and rights itself, a damped swing */
   function gustRoll(t) { let r = 0; for (const g of [].concat(P.gust == null ? [] : P.gust)) { const d = t - g; if (d >= 0 && d < 5) r += (P.gustHeel ?? 9) * DEG * Math.exp(-d * 0.8) * Math.sin(Math.min(d, 0.35) / 0.35 * Math.PI / 2 + Math.max(0, d - 0.35) * 2 * Math.PI / 1.7); } return r; }
@@ -489,6 +511,7 @@ function stage(ctx) {
   function frame(t, look) {
     if (!stripped) { stripped = true; stripSea(P); }
     hideNow();
+    if (wreckHid) for (const m of wreckHid) m.visible = false;   /* the broken hull stays gone whatever the shot's wild walls put back */
     const tq = onTwos(t), F = drawing(t), cam = ctx.camera; cam.updateMatrixWorld(); const cp = cam.position, fwd = cam.getWorldDirection(new V3());
     const night = cl01(P.night), storm = cl01(P.storm), wind = cl01(P.wind), foamK = cl01(P.foam);
     /* the light: lightning this drawing? */
