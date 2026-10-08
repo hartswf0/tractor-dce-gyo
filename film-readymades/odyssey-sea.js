@@ -209,7 +209,7 @@ function stage(ctx) {
   /* ── the hulls ── */
   const rides = [];
   function hullOf(rd) {
-    if (rd.prop) { const o = ctx.prop ? ctx.prop(rd.prop) : null; if (!o) return null; return { kind: 'prop', o, rd, base: null, set: null }; }
+    if (rd.prop) { const o = ctx.prop ? ctx.prop(rd.prop) : null; if (!o) return rd.later ? { kind: 'prop', o: null, rd, base: null, set: null } : null; return { kind: 'prop', o, rd, base: null, set: null }; }
     const pm = meshesOf(rd.piece)[0]; if (!pm) return null; return { kind: 'piece', ms: [pm.mesh], box: pm.box, rd, base: null, set: null };
   }
   /* rest geometry of a hull: centre, long axis, half length, beam, deck height; recomputed when the hull is re-staged */
@@ -257,7 +257,7 @@ function stage(ctx) {
     /* the sheet's ship rig drives the hull it names: the piece, or a staged prop of that name standing in for a hidden piece (the raft),
        so the sheet's own rider windows (thrown off, back aboard) carry the figures and the kit only gives the channels */
     if (shipRig) { const nm = String(shipRig.piece || '').toLowerCase(); const H = rides.find(h => h.kind === 'piece' && h.rd.piece === shipRig.piece) || rides.find(h => h.kind === 'prop' && nm.includes(h.rd.prop)) || (rides.length ? null : hullOf({ piece: shipRig.piece })); if (H) { H.rig = shipRig; if (!rides.includes(H)) rides.push(H); } }
-    for (const H of rides) { H.G = measure(H); if (H.kind === 'piece' && P.oars !== false) cutOars(H, H.G); H.G = Object.assign(measure(H), { beam: H.beam || H.G.beam }); }
+    for (const H of rides) { if (H.kind === 'prop' && !H.o) continue; H.G = measure(H); if (H.kind === 'piece' && P.oars !== false) cutOars(H, H.G); H.G = Object.assign(measure(H), { beam: H.beam || H.G.beam }); }
   }
 
   /* ── the sky: a dome of colour behind everything, stars, the moon, clouds ── */
@@ -334,7 +334,7 @@ function stage(ctx) {
     /* staged spray thinned (P.spray: {match: a name pattern of props, scale: [x, y, z]}): the spouts stood as tall as towers of ice */
     if (P.spray && P.spray.match) { const re = new RegExp('^prop:' + String(P.spray.match).replace(/\*/g, '.*') + '$'), k = P.spray.scale || [0.6, 0.7, 0.6]; ctx.scene.traverse(o => { if (!re.test(o.name || '')) return; const u = o.userData; if (!u.seaS0 || (u.seaSet && !o.scale.equals(u.seaSet))) u.seaS0 = o.scale.clone(); o.scale.set(u.seaS0.x * k[0], u.seaS0.y * k[1], u.seaS0.z * k[2]); u.seaSet = o.scale.clone(); }); }
     if (P.hideCast && ctx.cast) { const res = [].concat(P.hideCast).map(p => new RegExp('^' + String(p).replace(/\*/g, '.*') + '$', 'i')); for (const A of ctx.cast()) if (res.some(r => r.test(A.id))) A.r.figure.visible = false; }
-    for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && !H.o.parent) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
+    for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && (!H.o || !H.o.parent)) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
       /* re-staged since the last drawing (a key's props): the staged place is the new rest */
       const o0 = objs[0]; if (!H.set || !o0.position.equals(H.set.p) || !o0.quaternion.equals(H.set.q)) { H.base = objs.map(o => ({ o, p: o.position.clone(), q: o.quaternion.clone() })); H.G = Object.assign(measure(H), { beam: H.beam || measure(H).beam }); }
       if (H.kind === 'prop' && H.o.visible === false) continue;
@@ -344,10 +344,15 @@ function stage(ctx) {
       else { const m = hullMotion(G, tq, G.c, null); m.roll += gustRoll(t); q = new Q().setFromEuler(new E(G.alongZ ? m.pitch : -m.roll, 0, G.alongZ ? m.roll : m.pitch, 'XYZ'));
         const piv = G.c.clone(); piv.y = mean; off = piv.clone().sub(piv.clone().applyQuaternion(q));
         /* a staged prop (staged on the baked sea's top) lifted a plate and a half, so its deck rides over the stepped crests */
-        off.y += m.heave + (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate; }
+        off.y += m.heave + (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate;
+        /* inside the whirlpool (P.whirl): the timber is carried round its eye and drawn down with its rings (sucked under as the depth
+           grows, thrown back up as it falls; P.whirl.from: the take's time it starts turning) */
+        if (P.whirl && P.whirl.at && H.rd.whirl !== false) { const W_ = P.whirl, wc = new V3(W_.at[0], 0, W_.at[1]), R_ = (W_.r || 7) * U.stud, d = Math.hypot(G.c.x - wc.x, G.c.z - wc.z);
+          if (d < R_ * 1.05) { const u = 1 - d / R_, om = (W_.turn ?? 0.12) * 2 * Math.PI * Math.pow(R_ / Math.max(d, U.stud), 0.8), a = om * Math.max(0, tq - (W_.from ?? 0)), qy = new Q().setFromAxisAngle(new V3(0, 1, 0), -a);
+            q = qy.clone().multiply(q); const c2 = new V3(wc.x, 0, wc.z); off = off.clone().sub(c2).applyQuaternion(qy).add(c2).add(c2.clone().applyQuaternion(qy).negate().add(c2).multiplyScalar(0)); off.y -= (W_.depth ?? 6) * U.plate * (0.35 + 1.1 * Math.sqrt(Math.max(0, u))) * (W_.sink ?? 1); } } }
       for (const B of H.base) { B.o.position.copy(B.p).applyQuaternion(q).add(off); B.o.quaternion.copy(B.q).premultiply(q); B.o.updateMatrixWorld(true); }
       H.set = { p: o0.position.clone(), q: o0.quaternion.clone() }; H.xf = { Q: q, off };
-      if (H.kind === 'prop') propParts(H, t);
+      if (H.kind === 'prop' && H.rd.parts !== false) propParts(H, t);   /* parts: false, a timber that is not a raft (no sail, no logs, no deck) */
       /* the figures standing on a staged raft are set on its deck (the logs' top under their feet), so feet and logs touch as it rolls */
       if (H.kind === 'prop' && H.parts && H.parts.mesh && ctx.cast && !(P.break && P.break.at != null && tq >= P.break.at)) { const m = H.parts.mesh; m.updateMatrixWorld(true);
         for (const A of ctx.cast()) { const f = A.r.figure; if (f.visible === false || A.r.absent) continue; const lp = m.worldToLocal(f.position.clone()); if (Math.abs(lp.x) > 74 || Math.abs(lp.z) > 46) continue;
