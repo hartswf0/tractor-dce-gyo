@@ -397,8 +397,8 @@ function stage(ctx) {
     const X = hullXf(), focus = X && X.G ? X.G.c.clone().applyQuaternion(X.Q).add(X.off) : null, D = focus ? Math.max(40, p.distanceTo(focus)) : 200, aim = p.clone().addScaledVector(dir, D);
     let w = 0; for (const W_ of [].concat(P.lowCam || [])) { if (!W_ || typeof W_ !== 'object') continue; const a = W_.t0, b = W_.t1; w = Math.max(w, sm((tq - a) / 0.5) * (1 - sm((tq - (b - 0.5)) / 0.5))); }
     /* the floor: the swell under the lens and a little way toward what it frames, so a crest does not stand in the lens */
-    let fy = -1e9; for (const k of [0, 0.08, 0.16]) { const q = focus ? p.clone().lerp(focus, k) : p.clone().addScaledVector(dir, k * D); fy = Math.max(fy, surface(q.x, q.z, tq)); }
-    const floor = fy + 3.5 * U.plate; let y = p.y; if (w > 0) y = lerp(y, surface(p.x, p.z, tq) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? surface(p.x, p.z, tq) + 1.5 * U.plate : floor);
+    let fy = -1e9; for (const k of [0, 0.08, 0.16, 0.25, 0.35]) { const q = focus ? p.clone().lerp(focus, k) : p.clone().addScaledVector(dir, k * D); fy = Math.max(fy, surface(q.x, q.z, tq)); }
+    const floor = fy + 4.5 * U.plate; let y = p.y; if (w > 0) y = lerp(y, surface(p.x, p.z, tq) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? surface(p.x, p.z, tq) + 1.5 * U.plate : floor);
     if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
   }
   /* hands held on a hull's support until a named release (P.hold: [{actor, side: 'R'|'L'|'both', t0, t1, at: [x, y, z] in the staged
@@ -440,8 +440,8 @@ function stage(ctx) {
     const fl = strike ? 1 : 0;
     /* sky colours: the day's (the key's look, or the sea's sky) toward night, toward storm, flashed */
     const day = (P.sky || (look && look.sky) || SKY.day).map(col), nt = SKY.night.map(col), stc = SKY.storm.map(col), fc = SKY.flash.map(col);
-    const top = day[0].clone().lerp(nt[0], night).lerp(stc[0], storm * 0.85).lerp(fc[0], fl * 0.7), hor = day[1].clone().lerp(nt[1], night).lerp(stc[1], storm * 0.85).lerp(fc[1], fl * 0.6);
-    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, 0.38); cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
+    const top = day[0].clone().lerp(nt[0], night).lerp(stc[0], storm * 0.85).lerp(fc[0], fl * 0.35), hor = day[1].clone().lerp(nt[1], night).lerp(stc[1], storm * 0.85).lerp(fc[1], fl * 0.3);
+    { const g = dome.geometry, Pp = g.attributes.position, K = g.attributes.color; for (let i = 0; i < Pp.count; i++) { const y = Pp.getY(i) / 4600, u = y < 0 ? 0 : Math.pow(y, P.skyCurve ?? 0.55);   /* the colour's climb from the horizon (lower: the zenith's colour comes down sooner) */ cc.copy(hor).lerp(top, u); K.setXYZ(i, cc.r, cc.g, cc.b); } K.needsUpdate = true; }
     dome.position.copy(cp);
     const fg = P.fog || (look && look.fog) || [700, 2600]; fog.color.copy(hor); fog.near = fg[0] * (1 - 0.35 * storm); fog.far = Math.max(fg[1], 2200) * (1 - 0.3 * storm); ctx.scene.fog = fog; ctx.scene.background = hor;
     /* the day's lights dimmed by night and storm (each light's base re-read when the take re-lights a key) */
@@ -452,18 +452,18 @@ function stage(ctx) {
     const moonVis = mo ? night * (1 - cl01(P.clouds * 1.6)) : 0;
     moonM.visible = moonVis > 0.02; if (mo) { moonM.position.copy(cp).addScaledVector(md, 4000); moonM.quaternion.setFromUnitVectors(new V3(0, 1, 0), md.clone().negate()); const k = mo.size * s; moonM.scale.set(k, k, k); moonM.material.color.copy(moonC).multiplyScalar(0.35 + 0.65 * moonVis); }
     moonLight.intensity = mo ? moonVis * 0.7 : 0; if (md) { moonLight.position.copy(md).multiplyScalar(900).add(new V3(cx, 0, cz)); moonLight.target.position.set(cx, 0, cz); moonLight.target.updateMatrixWorld(); }
-    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 2.4;
+    nightFill.intensity = night * (0.32 + 0.2 * storm); flash.intensity = fl * 0.9;   /* a cold flash, never a daylight
     if (rr) rr.toneMappingExposure *= (1 - 0.18 * night);
     const sunL = look && look.sun ? new V3(...look.sun.dir).normalize() : null;
     const pathDir = moonVis > 0.15 ? md : sunL && night < 0.6 && storm < 0.5 ? sunL : null, pathC = moonVis > 0.15 ? cGlint : cGlintSun, pathK = moonVis > 0.15 ? moonVis : (1 - night) * (1 - storm);
     /* the stars, the large first, behind the clouds */
-    starL.begin(); const sv = cl01(P.stars) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);
+    starL.begin(); const sv = cl01(P.stars) * cl01((night - 0.3) / 0.4) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);   /* no stars in a lit sky, whatever the key asked */
     const near = []; for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (pat) for (const [dx, dy] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG; near.push(new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))); } }
     if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; if (near.length && near.some(n => n.dot(S_.d) > 0.9925)) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
       _Q.setFromUnitVectors(new V3(0, 1, 0), S_.d.clone().negate()); starL.put(cp.x + S_.d.x * S_.r, cp.y + S_.d.y * S_.r, cp.z + S_.d.z * S_.r, sz, sz, sz, _Q, S_.c); }
     /* named constellations, fixed brick patterns (2x2-sized clear round plates) at their bearing and height: P.constellations
        [{name: 'bear'|'pleiades'|'orion', az, el, size}], covered as the clouds come */
-    for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (!pat) continue; const kv = cl01(P.stars) * (1 - cl01((cl01(P.clouds) - 0.15) / 0.3)) * (1 - fl); if (kv <= 0.02) continue;
+    for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (!pat) continue; const kv = cl01(P.stars) * cl01((night - 0.3) / 0.4) * (1 - cl01((cl01(P.clouds) - 0.15) / 0.3)) * (1 - fl); if (kv <= 0.02) continue;
       for (const [dx, dy, mag] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG, d = new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)), r = 3000, sz = s * (K.plate ?? 2.6) * (mag || 1) * (0.4 + 0.6 * kv) * (r / 2500);
         _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cStar); }
       /* the figure's lines: small clear round plates laid between its stars in order (the Plough's bowl and handle), so the pattern reads */
