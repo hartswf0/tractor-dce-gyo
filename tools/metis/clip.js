@@ -23,9 +23,9 @@
        other's body are not counted, their cores may meet up to 0.12 H, heads up to 0.07 H (cheek to cheek, never head through head)
      - a rider and its carrier (OdysseyCreatures.sample riders: a man under a ram, in a giant's fist)
      - shades (keyframes `shades` or a blocking entry's `shade: true`): reported apart, as deliberate, never counted
-     - a body under a prop the score's objects name as a hiding place (affords 'hide': the sealskins of OD-B04-S05): deliberate
+     - a body under a prop the score's objects name as a hiding place (affords 'hide': the sealskins of OD-B04-S05), for a figure whose own intents say it is under or in it: deliberate
    Tolerances (fractions of the smaller figure's height H, a minifig about 100 world units): head-head 0.04, core 0.05, limb 0.12,
-   legs 0.10, creature 0.08; set 0.06 (head, torso, hips), legs 0.09; a sole 0.10 below the surface under it; the hips 0.10 under the
+   legs 0.10, creature 0.08; set 0.06 (head, torso, hips), legs 0.09; a sole 0.10 below the surface under it (a seated figure's legs: 'seated into' the seat); the hips 0.10 under the
    water (a figure wholly under the swell is not seen, so not counted). A fault is VISIBLE UNINTENDED CLIPPING when it is not a shade's and is in frame and unhidden for 0.25 s or more.
 
    Usage (the repository served on :8899, as for tools/export-odyssey.js; one Chromium; about 1-3 minutes a scene):
@@ -158,10 +158,12 @@ async function one(page, sid) {
   done.push(...open.values());
   /* the score's hiding places (an object that affords 'hide': the sealskins over Menelaus's men): a body under one is meant */
   const hideStems = Object.entries((score && score.objects) || {}).filter(([k, o]) => (o.affords || []).includes('hide')).map(([k]) => k.toLowerCase().replace(/[^a-z]/g, '').replace(/s$/, ''));
+  /* ...for those whose own intents say they are under or in it ("springs out from under the skin"), not for one who walks round it */
+  const hiders = new Map(); for (const i of ((score && score.authored && score.authored.intents) || [])) for (const st of hideStems) if (new RegExp('\\b(under|in|inside|beneath|into)\\b[^,;:]{0,12}' + st).test(i.label || '')) { if (!hiders.has(i.actor)) hiders.set(i.actor, new Set()); hiders.get(i.actor).add(st); }
   const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   const ivs = done.map(I => { const cls = top(I.cls)[0]; const what = I.kind === 'body' ? ({ 'head-head': 'head through head', core: 'body through body', limb: 'limb through body', legs: 'legs through legs', creature: 'body through a creature' }[cls] || cls)
-      : I.kind === 'water' ? 'sunk into the sea' : ({ sink: 'feet below the surface', walk: 'walks through', leg: 'leg through', body: 'body inside' }[cls] || cls) + ' ' + I.against;
-    const hid = I.kind === 'set' && /^prop:/.test(I.against || '') && hideStems.some(st => I.against.slice(5).toLowerCase().replace(/[^a-z]/g, '').startsWith(st));
+      : I.kind === 'water' ? 'sunk into the sea' : ({ sink: 'feet below the surface', seat: 'seated into', walk: 'walks through', leg: 'leg through', body: 'body inside' }[cls] || cls) + ' ' + I.against;
+    const hid = I.kind === 'set' && /^prop:/.test(I.against || '') && [...(hiders.get(I.who[0]) || [])].some(st => I.against.slice(5).toLowerCase().replace(/[^a-z]/g, '').startsWith(st));
     const vsec = +(I.vis * STEP).toFixed(2), deliberate = I.shade ? 'shade' : hid ? 'hidden under ' + I.against.slice(5) : null;
     return { key: I.key, t0: +I.t0.toFixed(2), t1: +(I.last + STEP).toFixed(2), dur: +((I.last - I.t0) + STEP).toFixed(2), who: I.who, kind: I.kind, what, cls, parts: top(I.parts).slice(0, 3), against: I.against,
       depthH: +I.depth.toFixed(3), visibleSec: vsec, hiddenSec: +(I.hid * STEP).toFixed(2), offscreenSec: +(I.off * STEP).toFixed(2), shots: top(I.shots), walking: I.walking, inContact: I.contact, deliberate,

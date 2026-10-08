@@ -117,6 +117,10 @@ function make(api, opt) {
     W.moved = moved; W.D = dyn.length ? buildGrid(dyn, H0) : null; W.figs = figs;
     return W;
   }
+  /* the set piece a point is in (the location's pieces by their boxes: the smallest that holds it), for a mesh that is the whole baked set */
+  const pieceAt = p => { let best = null, bv = Infinity; for (const pc of (OdysseyFilm.pieces() || [])) { const b = pc.box; if (!b || p.x < b[0] - 1 || p.y < b[1] - 1 || p.z < b[2] - 1 || p.x > b[3] + 1 || p.y > b[4] + 1 || p.z > b[5] + 1) continue;
+      const v = (b[3] - b[0] + 1) * (b[4] - b[1] + 1) * (b[5] - b[2] + 1); if (v < bv) { bv = v; best = pc.label; } } return best; };
+  const labelAt = (m, p) => { const l = label(m); return /^prop:/.test(l) || !p ? l : (pieceAt(p) || l); };
   const label = m => { for (let p = m; p; p = p.parent) { const n = String(p.name || ''); if (n.startsWith('prop:')) return n; } const pc = m.userData && m.userData.partId; const pg = pc != null ? (OdysseyFilm.pieces() || []).find(x => x.id === pc || x.partId === pc) : null; return pg ? pg.label : (m.name || (m.parent && m.parent.name) || 'set part'); };
   const AX = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(d => new V3(...d));
   const first = (p, d, far) => { const a = gridRay(W.G, p, d, far, W.moved)[0], b = W.D ? gridRay(W.D, p, d, far)[0] : null; return !a ? b : !b ? a : a.distance < b.distance ? a : b; };
@@ -175,15 +179,15 @@ function make(api, opt) {
     }
     /* (b) the body in the set; (d) a walk through it; (c) the body under the sea's surface */
     for (const id of ids) { const A = bodies[id]; if (A.creature) continue; const H = A.H, P = A.P;
-      const feet = (api.kfActor(id).rig.pos || new V3()).clone(), prev = last.get(id); last.set(id, { feet, t });
+      const rg = api.kfActor(id).rig, sat = !!(rg.sat || rg.seated), feet = (rg.pos || new V3()).clone(), prev = last.get(id); last.set(id, { feet, t });
       const walking = prev && t - prev.t < 0.3 && Math.hypot(feet.x - prev.feet.x, feet.z - prev.feet.z) / Math.max(1e-3, t - prev.t) > 0.25 * H;
       const pts = []; for (const k of ['headP', 'torsoP', 'hipsP']) if (P[k]) pts.push([k, P[k].c.clone()]);
       for (const k of ['legRP', 'legLP']) if (P[k]) { const B = P[k], cs = corners(B).sort((a, b) => a.y - b.y), sole = cs.slice(0, 4).reduce((s, p) => s.add(p), new V3()).multiplyScalar(0.25);
         pts.push([k, B.c.clone(), 'leg']); pts.push([k, sole, 'sole']); }
       for (const [k, p, what] of pts) {
-        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > tol.sink * H && u.y - p.y < 0.24 * H) { const v = view(p, u.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k] + ' (foot)'], cls: 'sink', against: label(u.mesh), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
+        if (what === 'sole') { const u = under(p, 0.28 * H); if (u && u.y - p.y > tol.sink * H && u.y - p.y < 0.24 * H) { const v = view(p, u.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k] + (sat ? ' (seated)' : ' (foot)')], cls: sat ? 'seat' : 'sink', against: labelAt(u.mesh, new V3(p.x, u.y - 0.01 * H, p.z)), depth: (u.y - p.y) / H, walking, shade: A.shade, v, box: [id, k] }); } continue; }
         const r = inside(p); if (!r) continue; const lim = what === 'leg' ? tol.legSet : tol.set; if (r.depth <= lim * H) continue;
-        const v = view(p, r.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: label(r.mesh), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
+        const v = view(p, r.mesh); rec({ kind: 'set', who: [id], parts: [NAME[k]], cls: walking ? 'walk' : what === 'leg' ? 'leg' : 'body', against: labelAt(r.mesh, p), depth: r.depth / H, walking, shade: A.shade, v, box: [id, k] });
       }
       if (T.sea && T.sea.surface && P.hipsP && !busy(id, t, WET)) { const c = P.torsoP ? P.torsoP.c : P.hipsP.c, s = T.sea.surface(c.x, c.z, t), d = s - P.hipsP.c.y;
         if (d > tol.water * H) { const v = view(P.hipsP.c), hd = P.headP ? P.headP.c : null, under = hd && T.sea.surface(hd.x, hd.z, t) > hd.y + 0.12 * H;
