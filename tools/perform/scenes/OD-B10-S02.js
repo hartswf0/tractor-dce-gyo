@@ -54,6 +54,9 @@ module.exports = function author(M, X) {
        twice): the scouts on the beached ship from their landing until they run (the victim until the king takes him), nobody on the
        second, Odysseus on his own ship outside the mouth the whole scene and the two who escape back aboard it from the cut */
     const flee = K5.win ? K5.win[1] : 28.8, gone = K3.win ? (K3.win[0] + K3.win[1]) / 2 : 17.6, run = q(tSeize + 3.8);
+    /* the beached ship ('black ship') is not rigged: the player finds a rig's hull by a label that contains its own, and 'black ship' is in
+       all three labels, so its rig turned the other two hulls as well; the sea kit rides it instead (look.sea ride), with the men on it */
+    m.hulls = (m.hulls || []).filter(h => h.piece !== 'black ship');
     for (const h of m.hulls || []) h.riders = /3$/.test(h.piece) ? [[O, 0, T], ...sc.filter(x => x !== victim).map(x => [x, q(flee), T])]
       : /2$/.test(h.piece) ? [] : sc.map(x => [x, q(K2.win ? K2.win[0] : 14), x === victim ? q(gone) : run]); }
   const coupled = { frozen, units: run.units, hz: run.hz, x: run.x, drives: run.drives, W0: run.W0, W: run.W, steps: run.steps, events: c, model: 'tools/perform/machinery.js harbour' };

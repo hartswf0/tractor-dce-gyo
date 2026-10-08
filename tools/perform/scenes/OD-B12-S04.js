@@ -25,7 +25,7 @@ module.exports = function author(M, X) {
   A.holds = A.holds.filter(h => !crew.includes(h.actor) || h.t1 < tS - 0.5);
   for (const m of [].concat(A.machinery || [])) {
     if (m.kind === 'ROWING') { m.clock.t1 = tS; m.busy = Object.fromEntries(crew.map(id => [id, c.lost.map(([a, b]) => [a, b])])); }
-    if (m.kind === 'SEA') { for (const h of m.hulls || []) h.riders = [[O, 0, T], ...crew.map((id, k) => [id, 0, q(tS + [0, 0.08, 0.03, 0.12, 0.05, 0.1][k % 6] + 0.36)])]; m.causes = (m.causes || []).concat([{ t: tS, id: 'sStrike' }]); } }
+    if (m.kind === 'SEA') { for (const h of m.hulls || []) h.riders = [[O, 0, T], ...crew.map((id, k) => [id, 0, q(tS + [0, 0.75, 1.5, 2.25, 3.0, 3.75][k % 6] + 0.36)])]; m.causes = (m.causes || []).concat([{ t: tS, id: 'sStrike' }]); } }
   const stim = A.stimuli, I = o => (A.intents.push(o), o.id), S_ = o => (stim.push(o), o.id);
   const needle = (id, t, unit, label, because) => S_({ id, t0: q(t), t1: q(t) + 0.3, kind: 'NEEDLE', label: unit + ': ' + label, because: because || [], params: { unit } });
   c.lost.forEach(([a], k) => needle('sLost' + k, a, 'CREW', 'over 0.55 while they row: a stroke lost', [{ id: a < 5 ? 'sC0' : 'sC1' }]));
@@ -34,8 +34,10 @@ module.exports = function author(M, X) {
   /* the lost strokes answered: he steadies them */
   c.lost.filter(([a]) => a > 3.5 && a < tS).forEach(([a], k) => I({ id: 'iSteady' + k, actor: O, kind: 'SIGNAL', t0: q(a) + 0.3, t1: q(a) + 1.8, label: 'pull: together', params: { how: 'go', to: crew, lookAt: crew[0], side: 'L' }, because: [{ id: 'sLost' + c.lost.findIndex(x => x[0] === a) }] }));
   /* Scylla: coiled on her rock, the strike, the six lifted (riders on the jaws), held while the ship goes on */
-  I({ id: 'iStrike', actor: S, kind: 'STRIKE', t0: tS, t1: T, label: 'six heads at once, down onto the benches', params: { targets: crew.slice(0, 6), lift: 5 }, because: [{ id: 'sStrike' }] });
-  crew.forEach((m, k) => { const tg = q(tS + [0, 0.08, 0.03, 0.12, 0.05, 0.1][k % 6] + 0.36);
+  /* six abductions, one after another down the benches (the fieldbook: each seizure its own beat), not one blur of six */
+  const DL = [0, 0.75, 1.5, 2.25, 3.0, 3.75];
+  I({ id: 'iStrike', actor: S, kind: 'STRIKE', t0: tS, t1: T, label: 'six heads, one man after another off the benches', params: { targets: crew.slice(0, 6), lift: 5, delays: DL }, because: [{ id: 'sStrike' }] });
+  crew.forEach((m, k) => { const tg = q(tS + DL[k % 6] + 0.36);
     I({ id: 'iTaken' + k, actor: m, kind: 'STRUGGLE', t0: tg + 0.1, t1: Math.min(T, tg + 10 + 0.4 * k), label: 'hands and feet in the air, calling his name', because: [{ id: 'iStrike' }] });
     if (tg + 10.6 + 0.4 * k < T) A.holds.push({ id: 'hTaken' + k, actor: m, t0: tg + 10.6 + 0.4 * k, t1: T, reason: 'lifeless in the jaws at the cave mouth', params: { weight: false }, because: [{ id: 'iTaken' + k }] }); });
   I({ id: 'iSee', actor: O, kind: 'REACT', t0: tS + 0.2, t1: tS + 1.6, label: 'the heads come from above, not from the rock face', params: { how: 'startle', lookAt: S }, because: [{ id: 'sStrike' }] });
