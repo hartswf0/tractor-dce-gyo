@@ -45,6 +45,9 @@ module.exports = function author(M, X) {
     I({ id: 'iDrown' + k, actor: m, kind: 'DROWN', t0: Math.max(tf + 1.9, td + 0.1), t1: Math.min(T, Math.max(tf + 1.9, td + 0.1) + 2.6), label: 'the god took away their homecoming', because: [{ id: 'sGone' + k }] }); });
   /* Odysseus: the keel and the mast lashed, ridden; the fig tree over Charybdis; the drop when the timbers come up */
   const tL = cLash ? cLash.at : 41.6, tF = cFig ? cFig.at : 47.4;
+  /* thrown clear as she breaks up, he swims to the keel and the mast (XII.420-425; on the sea kit the hull is gone at the break and the men are in the water) */
+  const tT = c.thrown ? q(c.thrown) : tW + 0.6;
+  if (tL - 0.2 > tT + 0.6) I({ id: 'iSwimO', actor: O, kind: 'SWIM', t0: tT, t1: q(tL - 0.1), label: 'swims for the keel and the mast', params: { period: 1.4 }, because: [{ id: c.thrown ? 'sThrown' : 'sWreck' }] });
   I({ id: 'iLash', actor: O, kind: 'ROPE', t0: q(tL), t1: q(tL + 4.2), label: 'lashes keel and mast with the backstay', params: { how: 'bind' }, because: [{ id: 'sWreck' }] });
   I({ id: 'iRide', actor: O, kind: 'RIDE', t0: q(tL + 4.2), t1: q(tF + 2.4), label: 'rides the timbers before the wind', params: { period: 1.0 }, because: [{ id: 'iLash' }] });
   I({ id: 'iLeap', actor: O, kind: 'LEAP', t0: q(tF + 2.6), t1: q(tF + 3.6), label: 'up to the fig tree as the whirlpool sucks the timbers down', params: {}, because: [{ id: 'sC5' }] });
@@ -53,7 +56,7 @@ module.exports = function author(M, X) {
   for (const m of [].concat(A.machinery || [])) if (m.kind === 'SEA') { m.causes = (m.causes || []).filter(x => x.id !== 'sC2' && x.id !== 'sC3').concat([{ t: tB, id: 'sBolt' }, { t: tW, id: 'sWreck' }]);
     for (const h of m.hulls || []) { h.impulses = [{ t: tB + 0.1, roll: 0.35, pitch: 0.12, label: 'the bolt strikes the mast', id: 'sBolt' }, { t: tB + 1.5, roll: -0.35, pitch: 0.12, label: 'the mast comes down on the helmsman', id: 'iHelm' }, { t: tW, roll: 0.6, pitch: -0.3, label: 'she breaks up', id: 'sWreck' }];
       h.riders = [[O, 0, c.thrown ? q(c.thrown) : tW], ...crew.map((m, k) => [m, 0, q(tW + 0.1 * k)])]; }
-    m.swimmers = crew.map((m, k) => ({ actor: m, t0: q(tW + 0.1 * k + 1.2), t1: q((c.drowned[k] || tW + 4) + 2.6) })); }
+    m.swimmers = crew.map((m, k) => ({ actor: m, t0: q(tW + 0.1 * k + 1.2), t1: q((c.drowned[k] || tW + 4) + 2.6) })).concat(c.thrown ? [{ actor: O, t0: q(c.thrown), t1: q(tL - 0.1) }] : []); }
   const coupled = { frozen, units: run.units, hz: run.hz, x: run.x, drives: run.drives, W0: run.W0, W: run.W, steps: run.steps, events: c, model: 'tools/perform/machinery.js storm (Zeus)' };
   const causal = { tau: 0.7, actions: {
     [O]: [{ a: 'condemn them', base: 0.3, f: { 'speaking:odysseus': 1.5, 'after:sC1': -2 } }, { a: 'brace', base: -2, f: { 'after:sBolt': 3 } }, { a: 'lash the timbers', base: -3, f: { 'after:sWreck': 3.6 } }, { a: 'leap for the tree', base: -3, f: { 'after:sC5': 3.6 } }],

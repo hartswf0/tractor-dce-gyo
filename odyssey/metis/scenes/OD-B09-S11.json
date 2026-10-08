@@ -1,0 +1,64 @@
+{
+ "scene": "OD-B09-S11",
+ "turns": [
+  "OD-B09-S11 segments: the taunt, the peak (narration), the name, the curse, the second rock (narration), 100.52 s on the cut clock"
+ ],
+ "assembly": "location.odyssey-od-b09-s11 (its checkerboard sea taken out, the shore kept) + film-readymades/odyssey-sea.js (benches), keyed in odyssey/keyframes/OD-B09-S11.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "odysseus-s-crew-1..5"
+  },
+  {
+   "id": "polyphemus",
+   "kind": "creature"
+  }
+ ],
+ "cause": "the taunt draws the rock; its wave drives the ship back; the name draws the curse; the second rock's wave carries them out",
+ "contacts": [
+  "seat-thwart",
+  "feet-deck",
+  "hull-water",
+  "oar-water",
+  "hand-arm (the grab)"
+ ],
+ "clock": "the cut clock (100.52 s): K1 0, K2 17.73, K3 28.74, K4 47.35, K5 92.48",
+ "world": {
+  "sea": "look.sea day: swell 0.6, the rocks' waves to 1.15-1.2, the curse's cloud 0.6 and storm 0.25; level -7.6 plates, lift -1",
+  "sky": "the location's morning gradient; K4's dark sky under the curse",
+  "course": "off the Cyclops's shore, rowing out"
+ },
+ "camera": [
+  "the solved plan's 40 shots (40 legal)"
+ ],
+ "look": "the location's day look with the kit's water",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "no one runs through anything: the rowers sit on thwarts, not in the deck; no man inside another; feet on the deck as she heaves",
+   "passed": true,
+   "evidence": "evidence/OD-B09-S11/clip.json, close-grab.jpg, close-wave.jpg, benches.jpg",
+   "note": "tools/metis/clip.js on the take: 0 visible intervals (camera replay). Before the fix the same check found 80.8 s in 49 intervals: the five seated rowers' legs sunk 0.13 H into the deck (sat on it with the hips 1.5 units up) and two rowers seated one inside the other's back (both snapped to the same narrow place on the bow deck). Now each sits 30 units up on a brick thwart in the hull's frame (look.sea benches), and the two forward rowers have exact marks side by side (-88, 100) and (-48, 100)"
+  },
+  {
+   "test": "the ship rides the water and the rocks' waves reach her",
+   "passed": true,
+   "evidence": "evidence/OD-B09-S11/close-wave.jpg, close-rowout.jpg",
+   "note": "the sea lowered 7.6 plates to the baked water (the sea piece's top is the shore's); the swell rises from 0.6 to 1.15 as the peak lands (21.5 s) and to 1.2 at the second rock (97.7 s), the sheet's push toward the shore kept; the oars sweep on the rowing clocks (20-28 s, 95-100.5 s)"
+  },
+  {
+   "test": "the weather turns with the curse",
+   "passed": true,
+   "evidence": "evidence/OD-B09-S11/contact.jpg",
+   "note": "cloud plates, a darker sea and wind come up over K4 (47-55 s) under the key's dark sky while Polyphemus prays to Poseidon"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B09-S11-performed.mp4 (take 2; take 1 kept in films/odyssey/takes/OD-B09-S11/)",
+  "renderer": "tools/export-odyssey.js (--mode cut --fps 12 --choreo odyssey/score/OD-B09-S11.choreo.json)",
+  "outcome": "take 2 published; clip gate passed (0 s)"
+ }
+}
