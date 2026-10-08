@@ -16,7 +16,7 @@ module.exports = function author(M, X) {
   const V3 = X.voiceOf(c3), V4 = X.voiceOf(c4), w = (V, x, d) => { const f = V.words.find(y => y.w === x); return f ? f.t : d; };
   const intents = [], holds = [], stimuli = [], I = o => (intents.push(o), o.id);
   /* where the take stages the dogs: at home (K1), round the beggar (K2's image), scattered (K3) */
-  const home = [[80, 40, 2.8], [40, 80, 3.0], [120, 100, -2.8], [-40, 60, 2.4]], ring = [[50, 190], [-50, 180], [80, 230], [-70, 230]], off = [[150, 230], [-150, 210], [120, 170], [-110, 160]];
+  const home = [[80, 40, 2.8], [40, 80, 3.0], [120, 100, -2.8], [-40, 60, 2.4]], ring = [[50, 190], [-50, 180], [80, 230], [-125, 255]], off = [[150, 230], [-150, 210], [120, 170], [-170, 200]];
   const tSee = 1.3, tRush = 1.7, tStop = 4.2, tSit = q(tStop - 0.6), tRun = K3.win[0], tStone1 = q(w(V3, 'scatters', 9.4) - 0.4), tStone2 = q(w(V3, 'stones', 11.3) - 0.5), tSeat = q(w(V4, 'offers', 17.6)), tPigs = q(w(V4, 'prepares', 19.7));
   const creatures = Object.fromEntries(D.map((d, k) => [d, { kind: 'dog', scale: 0.75, place: { preset: 'stand', center: [home[k][0], home[k][1]], y: 8, h: home[k][2] }, present: [[0, 15.67]], colour: k === 1 ? 'black' : k === 3 ? 'white' : undefined }]));
   /* ── the stranger on the path; the dogs ── */
