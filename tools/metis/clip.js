@@ -36,7 +36,9 @@
           [--solve]                                          solve the shots afresh with tools/cinematographer/solve.js (exact, slow:
                                                              minutes) instead of replaying the take json's cameras
           [--at <git rev>]                                   serve the scene's keyframes, sheet and score as they were at that commit
-                                                             (an old take; the location's set is the bundle's current one)
+                                                             (an old take, or a published film whose keys or sheet have changed since
+                                                             it was rendered: --at <the commit of its json>; the location's set is the
+                                                             bundle's current one)
           [--step 0.1667] [--stills 3 | --no-stills] [--size 640x360] [--out odyssey/metis/clip] [--evidence odyssey/metis/evidence]
           [--name <id>]                                      the output's name (default the scene id; e.g. OD-B23-S04-take3)
      Writes <out>/<name>.json (the intervals, each with time range, who, what, against what, depth in H, visible seconds and the shots

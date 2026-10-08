@@ -33,7 +33,7 @@
    (default: night), moon {az, el, size} | false, storm 0..1, clouds 0..1, rain 0..1, strikes [t...] (take clock), level (plates
    over the sea piece's top), way (studs/s: a hull under way, its wake), sky [top, horizon] (the day's colours; default the
    look's), fog [near, far], lanterns (true | [[x,y,z]...] | false), oars {sweep (deg), period (s), origin (s), stagger, dip} | false,
-   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), wreck {at, piece, debris, drop: [{actor, t, until, sink}]} (the hull broken up, its men in the water), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
+   sail {at:[x,z], y0, y1, width (studs), stripe} | null, bolts [{t, to: [x,y,z], hull, dur}] (an aimed thunderbolt), whirl {at: [x, z], r, rings, depth, turn, foam} (a whirlpool), benches [{actor, len, drop, back, h, color}] (thwarts under seated rowers), wreck {at, piece, debris, drop: [{actor, t, until, sink}]} (the hull broken up, its men in the water), offstage [{actor, t0, t1}] (not drawn between two marks), ride [{piece|prop, bow: '-z'|'+z'|'-x'|'+x', lift (plates)}], bow,
    hide [labels], strip [labels] (pieces whose baked water goes, their land kept), isle {piece, cliff, wall: {color, courses, sides: ['z0'|'z1'|'x0'|'x1']}, skip} (an island's rock and wall), ease (s, the seam)} */
 (function (root) {
 'use strict';
@@ -325,16 +325,24 @@ function stage(ctx) {
     const tq = onTwos(t), G = (rides.find(h => h.rig) || {}).G; if (!G) return v;
     const m = hullMotion(G, tq, new V3(Rg.pivot[0], Rg.pivot[1], Rg.pivot[2]), Rg.yaw || 0), keep = P.keepSheet ?? 0.33;
     const H = rides.find(h => h.rig), lift = (H.rd.lift ?? P.lift ?? (H.kind === 'prop' ? 1.5 : 0)) * U.plate;
-    return Object.assign({}, v, { heave: m.heave + lift, pitch: m.pitch + (v.pitch || 0) * keep, roll: m.roll + (v.roll || 0) * keep + gustRoll(t) });
+    const r = Object.assign({}, v, { heave: m.heave + lift, pitch: m.pitch + (v.pitch || 0) * keep, roll: m.roll + (v.roll || 0) * keep + gustRoll(t) });
+    /* each rig's turn as the sheet's player will lay it (choreo.js applyShip), kept by piece: a fleet of rigs, each hull with its own */
+    const q = new Q().setFromEuler(new E(r.pitch || 0, Rg.yaw || 0, r.roll || 0, 'YXZ')), q0 = new Q().setFromEuler(new E(0, Rg.yaw || 0, 0, 'YXZ')), Qr = q.clone().multiply(q0.clone().invert()), piv = new V3(...Rg.pivot), off = piv.clone().sub(piv.clone().applyQuaternion(Qr));
+    off.y += r.heave || 0; off.x += r.dx || 0; off.z += r.dz || 0; rigXf.set(Rg.piece, { Q: Qr, off });
+    return r;
   }
+  const rigXf = new Map();
   /* the other hulls: turned about their waterline centre with the figures that stand on them */
   const _b = new THREE.Box3();
   function ride(t) {
     hideNow(); const tq = onTwos(t);
     /* staged spray thinned (P.spray: {match: a name pattern of props, scale: [x, y, z]}): the spouts stood as tall as towers of ice */
     if (P.spray && P.spray.match) { const re = new RegExp('^prop:' + String(P.spray.match).replace(/\*/g, '.*') + '$'), k = P.spray.scale || [0.6, 0.7, 0.6]; ctx.scene.traverse(o => { if (!re.test(o.name || '')) return; const u = o.userData; if (!u.seaS0 || (u.seaSet && !o.scale.equals(u.seaSet))) u.seaS0 = o.scale.clone(); o.scale.set(u.seaS0.x * k[0], u.seaS0.y * k[1], u.seaS0.z * k[2]); u.seaSet = o.scale.clone(); }); }
+    /* off stage (P.offstage: [{actor, t0, t1}] on the take's clock): a man who runs off and comes back aboard elsewhere is not drawn
+       between, rather than walked through cliffs, hulls and water from one mark to the other */
+    if (P.offstage && ctx.cast) { const cast = ctx.cast(); for (const o of [].concat(P.offstage)) if (tq >= o.t0 && tq < o.t1) { const A = cast.find(c => c.id === o.actor); if (A) A.r.figure.visible = false; } }
     if (P.hideCast && ctx.cast) { const res = [].concat(P.hideCast).map(p => new RegExp('^' + String(p).replace(/\*/g, '.*') + '$', 'i')); for (const A of ctx.cast()) if (res.some(r => r.test(A.id))) A.r.figure.visible = false; }
-    for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && (!H.o || !H.o.parent)) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
+    for (const H of rides) { if (H.rig && H.kind !== 'prop') continue; { const rx = H.kind === 'piece' && rigXf.get(H.rd.piece); if (rx) { H.xf = { Q: rx.Q, off: rx.off }; continue; } }   /* a hull the sheet rigs: the player turned it (and its riders) */ const objs = H.kind === 'prop' ? [H.o] : H.ms; if (H.kind === 'prop' && (!H.o || !H.o.parent)) { const o = ctx.prop(H.rd.prop); if (!o) continue; H.o = o; objs[0] = o; }
       /* re-staged since the last drawing (a key's props): the staged place is the new rest */
       const o0 = objs[0]; if (!H.set || !o0.position.equals(H.set.p) || !o0.quaternion.equals(H.set.q)) { H.base = objs.map(o => ({ o, p: o.position.clone(), q: o.quaternion.clone() })); H.G = Object.assign(measure(H), { beam: H.beam || measure(H).beam }); }
       if (H.kind === 'prop' && H.o.visible === false) continue;
@@ -502,9 +510,9 @@ function stage(ctx) {
   }
   /* the transform of the first hull (the rig's from the sheet's player, else ours) */
   /* the transform of any hull: the rig's from the sheet's player, else the one ride() gave it */
-  function xfOf(H) { if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
+  function xfOf(H) { if (!H) return null; const rx = H.kind === 'piece' && rigXf.get(H.rd.piece); if (rx) return { Q: rx.Q, off: rx.off, G: H.G }; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
   const shown = H => H && (H.kind !== 'piece' || H.ms.every(m => m.visible !== false));
-  function hullXf() { const H = rides[0]; if (!H) return null; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
+  function hullXf() { const H = rides[0]; if (!H) return null; const rx = H.kind === 'piece' && rigXf.get(H.rd.piece); if (rx) return { Q: rx.Q, off: rx.off, G: H.G }; if (H.rig) { const x = ctx.choreoShip && ctx.choreoShip(); return x ? { Q: x.Q, off: x.off, G: H.G } : { Q: new Q(), off: new V3(), G: H.G }; } return H.xf ? Object.assign({ G: H.G }, H.xf) : null; }
 
   /* ── one drawing ── */
   const cc = new C(), ramp = ['#0E2142', 'darkBlue', '#1A4A8C', 'blue', 'mediumBlue', 'brightLightBlue'].map(col), cWhite = col('white'), cFoamTile = col('#E4EEF4'), cGlint = col('#FFFFFF'), cGlintSun = col('#FFF6E4');
