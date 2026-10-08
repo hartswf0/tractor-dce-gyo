@@ -267,7 +267,8 @@ function stage(ctx) {
   const CONST = { bear: [[0, 0, 1.1], [0.6, -5.4, 1], [-7.9, -6.9, 1], [-9.2, -1.5, 0.8], [-15.5, -1.0, 1.1], [-21, 0.2, 1], [-27.5, -3.5, 1]],
     pleiades: [[0, 0, 1.1], [1.0, 0.6, 0.9], [1.8, -0.2, 0.9], [-0.9, 0.9, 0.8], [0.4, 1.6, 0.8], [-0.6, -0.8, 0.7], [1.4, 1.5, 0.7]],
     orion: [[0, 0, 1], [1.4, 0.4, 1], [2.8, 0.8, 1], [-4.5, 8, 1.2], [6, 9.5, 1.1], [-3.5, -9, 1.1], [5.5, -8, 1]] };
-  const NS = 1100, stars = [], starL = new Layer(grp, geo('round1x1'), basic({ toneMapped: false }), NS);
+  const LINES = { bear: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]] }, cLine = col('#8FA7C8');
+  const NS = 1100, stars = [], starL = new Layer(grp, geo('round1x1'), basic({ toneMapped: false }), NS + 200);
   for (let i = 0; i < NS; i++) { const az = rnd(i, 1) * Math.PI * 2, se = 0.03 + 0.97 * Math.pow(rnd(i, 2), 1.15), el = Math.asin(se), big = Math.pow(rnd(i, 3), 4);
     const kind = rnd(i, 4), c = kind < 0.84 ? 'transClear' : kind < 0.95 ? 'transYellow' : kind < 0.99 ? 'transLightBlueStar' : 'transOrange';
     stars.push({ d: new V3(Math.sin(az) * Math.cos(el), se, -Math.cos(az) * Math.cos(el)), r: lerp(2500, 4300, rnd(i, 5)), sc: 0.75 + 2.1 * big, c: col(c), thr: cl01(0.04 + 0.92 * rnd(i, 6) * (1 - 0.6 * big)) }); }
@@ -397,7 +398,7 @@ function stage(ctx) {
     let w = 0; for (const W_ of [].concat(P.lowCam || [])) { if (!W_ || typeof W_ !== 'object') continue; const a = W_.t0, b = W_.t1; w = Math.max(w, sm((tq - a) / 0.5) * (1 - sm((tq - (b - 0.5)) / 0.5))); }
     /* the floor: the swell under the lens and a little way toward what it frames, so a crest does not stand in the lens */
     let fy = -1e9; for (const k of [0, 0.08, 0.16]) { const q = focus ? p.clone().lerp(focus, k) : p.clone().addScaledVector(dir, k * D); fy = Math.max(fy, surface(q.x, q.z, tq)); }
-    const floor = fy + 1.5 * U.plate; let y = p.y; if (w > 0) y = lerp(y, surface(p.x, p.z, tq) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? surface(p.x, p.z, tq) + 1.5 * U.plate : floor);
+    const floor = fy + 3.5 * U.plate; let y = p.y; if (w > 0) y = lerp(y, surface(p.x, p.z, tq) + (P.lowCamHeight ?? 5) * U.plate, w); y = Math.max(y, w > 0 ? surface(p.x, p.z, tq) + 1.5 * U.plate : floor);
     if (Math.abs(y - p.y) > 1e-3) { p.y = y; cam.lookAt(aim); cam.updateMatrixWorld(); }
   }
   /* hands held on a hull's support until a named release (P.hold: [{actor, side: 'R'|'L'|'both', t0, t1, at: [x, y, z] in the staged
@@ -414,9 +415,12 @@ function stage(ctx) {
       for (const side of sides) { const arm = side === 'L' ? r.armLP : r.armRP; if (!arm || !arm.parent) continue;
         /* the point held: a point of the prop, or 'deck': the deck's top (the logs' upper face) nearest the shoulder, a stud in from its edge */
         let tgt; if (hd.at === 'deck') { const m = H.parts.mesh, sh = m.worldToLocal(arm.getWorldPosition(new V3())); tgt = m.localToWorld(new V3(Math.max(-60, Math.min(60, sh.x)), -2, Math.max(-30, Math.min(30, sh.z)))); } else tgt = H.parts.mesh.localToWorld(new V3(...(hd.at || [0, -50, 0])));
-        const hl = handLocal(side), v = arm.parent.worldToLocal(tgt.clone()).sub(arm.position), rest = Math.atan2(hl.z, hl.y);
-        arm.rotation.x = Math.atan2(v.z, v.y) - rest; const out = Math.atan2(v.x, Math.hypot(v.y, v.z)) - Math.atan2(hl.x, Math.hypot(hl.y, hl.z)); arm.rotation.z = Math.max(-0.7, Math.min(0.7, out)) * (hd.zSign ?? 1);
-        arm.updateMatrixWorld(true); const hw = arm.localToWorld(hl.clone());
+        /* the shoulder's pitch and swing searched (a coarse grid, then a fine one about the best) for the hand nearest the point */
+        const hl = handLocal(side), hw = new V3(); let best = [arm.rotation.x, arm.rotation.z], bd = 1e9;
+        const tryAt = (x, z) => { arm.rotation.x = x; arm.rotation.z = z; arm.updateMatrixWorld(true); hw.copy(hl); arm.localToWorld(hw); const d = hw.distanceTo(tgt); if (d < bd) { bd = d; best = [x, z]; } };
+        for (let x = -3.3; x <= 1.2; x += 0.15) for (let z = -0.9; z <= 0.9; z += 0.3) tryAt(x, z);
+        const [bx, bz] = best; for (let x = bx - 0.15; x <= bx + 0.15; x += 0.05) for (let z = bz - 0.3; z <= bz + 0.3; z += 0.1) tryAt(x, z);
+        arm.rotation.x = best[0]; arm.rotation.z = best[1]; arm.updateMatrixWorld(true); hw.copy(hl); arm.localToWorld(hw);
         if (pass === 0) { miss.add(tgt.clone().sub(hw).setY(0)); nm++; } else { holdLog.push({ t: +tq.toFixed(3), id: hd.id || hd.actor, side, res: +hw.distanceTo(tgt).toFixed(2) }); if (holdLog.length > 4000) holdLog.shift(); } }
       if (pass === 0 && nm) { miss.divideScalar(nm); const lim = hd.reach ?? 45; if (miss.length() > lim) miss.setLength(lim); r.figure.position.add(miss); if (r.pos) r.pos.copy(r.figure.position); r.figure.updateMatrixWorld(true); } } }
   }
@@ -455,13 +459,17 @@ function stage(ctx) {
     /* the stars, the large first, behind the clouds */
     starL.begin(); const sv = cl01(P.stars) * (1 - 0.95 * cl01(P.clouds)) * (1 - fl);
     const near = []; for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (pat) for (const [dx, dy] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG; near.push(new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))); } }
-    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; if (near.length && near.some(n => n.dot(S_.d) > 0.9975)) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
+    if (sv > 0) for (let i = 0; i < NS; i++) { const S_ = stars[i]; if (sv < S_.thr) continue; if (near.length && near.some(n => n.dot(S_.d) > 0.9925)) continue; const k = (0.35 + 0.65 * cl01((sv - S_.thr) / 0.12)) * (rnd(i, F, 7) < 0.05 ? 0.7 : 1), sz = s * S_.sc * (S_.r / 2500) * k;   /* a star comes out growing, never darker than the sky */
       _Q.setFromUnitVectors(new V3(0, 1, 0), S_.d.clone().negate()); starL.put(cp.x + S_.d.x * S_.r, cp.y + S_.d.y * S_.r, cp.z + S_.d.z * S_.r, sz, sz, sz, _Q, S_.c); }
     /* named constellations, fixed brick patterns (2x2-sized clear round plates) at their bearing and height: P.constellations
        [{name: 'bear'|'pleiades'|'orion', az, el, size}], covered as the clouds come */
     for (const K of [].concat(P.constellations || [])) { const pat = CONST[K.name]; if (!pat) continue; const kv = cl01(P.stars) * (1 - cl01((cl01(P.clouds) - 0.15) / 0.3)) * (1 - fl); if (kv <= 0.02) continue;
       for (const [dx, dy, mag] of pat) { const az = (K.az + dx * (K.size || 1)) * DEG, el = (K.el + dy * (K.size || 1)) * DEG, d = new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)), r = 3000, sz = s * (K.plate ?? 2.6) * (mag || 1) * (0.4 + 0.6 * kv) * (r / 2500);
-        _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cStar); } }
+        _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cStar); }
+      /* the figure's lines: small clear round plates laid between its stars in order (the Plough's bowl and handle), so the pattern reads */
+      if (K.lines !== false && LINES[K.name]) for (const [i0, i1] of LINES[K.name]) { const a0 = pat[i0], a1 = pat[i1], n = Math.max(2, Math.round(Math.hypot(a1[0] - a0[0], a1[1] - a0[1]) * (K.size || 1) / 1.1));
+        for (let j = 1; j < n; j++) { const u = j / n, az = (K.az + lerp(a0[0], a1[0], u) * (K.size || 1)) * DEG, el = (K.el + lerp(a0[1], a1[1], u) * (K.size || 1)) * DEG, d = new V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)), r = 3000, sz = s * 0.9 * kv * (r / 2500);
+          _Q.setFromUnitVectors(new V3(0, 1, 0), d.clone().negate()); starL.put(cp.x + d.x * r, cp.y + d.y * r, cp.z + d.z * r, sz, sz, sz, _Q, cLine); } } }
     starL.end();
     /* clouds: masses of dark plates drifting with the wind */
     cloudL.begin(); cloudB.begin(); const cv = cl01(P.clouds);
