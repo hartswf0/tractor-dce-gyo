@@ -64,12 +64,12 @@ module.exports = function author(M, X) {
     const pres = [[0, s2]]; if (K2pos[id]) pres.push([s2, s3]);
     creatures[id] = { kind: 'ram', scale: rs, colour: (idx % 5 === 2) ? 'black' : 'white', at: [laneX, fl, -10, 0], floor: fl, present: pres, procs: [] };
     ramIds.push(id);
-    intents.push({ id: 'rH' + idx, actor: id, kind: 'HERD', t0: s1, t1: s2, label: 'out past the hands, three abreast', params: { path: pathH, n: 18, index: idx, abreast: 3, gap, spacing, spread: 0.12, gait: [[0, 'walk'], [s1 + 2, 'trot']], seed: 5, separation: Math.round(gap * 0.85), speed: 90 }, because: [{ id: 'sDawn' }] });
+    intents.push({ id: 'rH' + idx, actor: id, kind: 'HERD', t0: s1, t1: s2, label: 'out past the hands, three abreast', params: { path: pathH, n: 18, index: idx, abreast: 3, gap, spacing, spread: 0.03, gait: [[0, 'walk'], [s1 + 2, 'trot']], seed: 5, separation: Math.round(gap * 0.85), speed: 90, fade: 0 }, because: [{ id: 'sDawn' }] });
     if (K2pos[id]) { const [x, z] = K2pos[id], y = Ground.at(M, x, z).y; creatures[id].channels = { 'root.x@span': [[s2, x, 'step'], [s3, x, 'step']], 'root.z@span': [[s2, z, 'step'], [s3, z, 'step']], 'root.y@span': [[s2, y, 'step'], [s3, y, 'step']], 'root.h@span': [[s2, 0, 'step'], [s3, 0, 'step']] };
       intents.push({ id: 'rG' + idx, actor: id, kind: 'GRAZE', t0: s2 + 0.5 + 0.3 * col, t1: s3 - 0.3, label: 'stands to be bound, the head down', because: [{ id: 'sBind' }] }); } }));
   /* the men under the middle rams: riders (belly, face up) from the start to the end of K1; crewman-1 again in K2 */
   teams.forEach((n, r) => { const ram = 'team' + n + '-b', man = men[r]; const win = [[s1, s2 - 0.05]]; if (n === 1) win.push([s2, s3 - 0.05]);
-    win.forEach(([a, b], j) => intents.push({ id: 'rC' + r + '_' + j, actor: ram, kind: 'CARRY', t0: a, t1: b, label: man + ' slung beneath, hands in the wool', params: { riders: [{ actor: man, at: 'belly', lie: 'under', offset: [0, 2, 0] }] }, because: [{ id: j ? 'sBind' : 'sDawn' }] }));
+    win.forEach(([a, b], j) => intents.push({ id: 'rC' + r + '_' + j, actor: ram, kind: 'CARRY', t0: a, t1: b, label: man + ' slung beneath, hands in the wool', params: { riders: [{ actor: man, at: 'belly', lie: 'under', offset: [0, 2, -56] }]   /* slid forward under his own ram: lying face up he is a ram long, and at the belly his head was in the next triad's ram */ }, because: [{ id: j ? 'sBind' : 'sDawn' }] }));
     I({ id: 'iCl' + r, actor: man, kind: 'CLING', t0: s1 + 0.3, t1: s2 - 0.1, label: 'hands in the fleece', because: [{ id: 'rC' + r + '_0' }] });
     holds.push({ id: 'hB' + r, actor: man, t0: s1 + 0.4, t1: s2 - 0.1, reason: 'the breath held under the ram: the giant\'s hands overhead', params: { weight: false, still: true }, because: [{ id: 'rC' + r + '_0' }] }); });
   c.stirs.forEach((s, k) => { const man = men[s.row]; I({ id: 'iStir' + k, actor: man, kind: 'REACT', t0: q(s.t), t1: q(s.t) + 0.9, label: 'shifts his grip: the fear over its limit', params: { how: 'flinch', lookAt: G }, because: [{ id: 'sStir' + k }] });
@@ -89,7 +89,7 @@ module.exports = function author(M, X) {
   holds.push({ id: 'hC1', actor: 'crewman-1', t0: s2 + 0.3, t1: s3 - 0.2, reason: 'slung under the middle ram, waiting to be bound fast', params: { weight: false, still: true }, because: [{ id: 'sBind' }] });
 
   /* ── K3: the lead ram last, Odysseus beneath; stopped; the hand on its back; the words; let go ── */
-  const leadFrom = [-40, -200], leadAt = [20, 40], leadOut = [110, 130], release = c.release || s4 - 2.5;
+  const leadFrom = [-40, -200], leadAt = [20, 40], leadOut = [110, 215], release = c.release || s4 - 2.5;
   const lfl = Ground.at(M, leadAt[0], leadAt[1]).y, ls = 2.6 * sc;
   creatures[lead] = { kind: 'ram', scale: ls, colour: 'white', at: [leadAt[0], lfl, leadAt[1], 0], floor: lfl, present: [[s2, T + 1]], procs: [] };
   S_({ id: 'sLead', t0: lW1t0, t1: lW1t0 + 0.4, kind: 'SCENE', label: 'last of all the great ram, slow under its weight: Odysseus beneath it', because: [{ id: 'sPass' + Math.max(0, c.passes.length - 1) }] });
@@ -125,7 +125,7 @@ module.exports = function author(M, X) {
     I({ id: 'iHerd' + k, actor: m, kind: 'HERD', t0: s4 + 1.4 + 0.2 * k, t1: s5 - 0.3, label: 'on, on: to the ship', params: {}, because: [{ id: 'iDrive' }] }); });
   /* the great ram lies on its side on the shore (K5): the sacrifice to Zeus */
   S_({ id: 'sDivide', t0: s5, t1: s5 + 0.4, kind: 'SCENE', label: 'the flock divided; the great ram to Zeus', because: [{ id: 'sOut' }] });
-  const l5 = [110, 200], ly5 = Ground.at(M, l5[0], l5[1]).y;
+  const l5 = [100, 270], ly5 = Ground.at(M, l5[0], l5[1]).y;
   /* the lead ram's places the take gives it: K2 inside by the pen, K4 outside, K5 on its side at the altar (span lanes: held only there) */
   const span = (c0, a, b, v) => [[a, v, 'step'], [b, v, 'step']], ly2 = Ground.at(M, leadFrom[0], leadFrom[1]).y, ly4 = Ground.at(M, leadOut[0], leadOut[1]).y;
   creatures[lead].channels = { 'root.x@k2': span(0, s2, lW1t0, leadFrom[0]), 'root.z@k2': span(0, s2, lW1t0, leadFrom[1]), 'root.y@k2': span(0, s2, lW1t0, ly2),
