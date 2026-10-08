@@ -49,7 +49,13 @@ module.exports = function author(M, X) {
   I({ id: 'iOrder', actor: O, kind: 'GESTURE', t0: tCut + 2.5, t1: tCut + 3.8, label: 'row, for your lives', params: { shape: 'chop', at: tCut + 2.7, side: 'R', amp: 1.3, hold: 0.8 }, because: [{ id: 'iCut' }] });
   sc.filter(m => m !== victim).forEach((m, k) => I({ id: 'iRow' + k, actor: m, kind: 'ROW', t0: q(tCut + 2.9), t1: T, label: 'row: the oars thrash the sea white', params: { clock: 'escape', period: 1.9, amp: 1.2 }, because: [{ id: 'iOrder' }] }));
   for (const m of [].concat(A.machinery || [])) if (m.kind === 'SEA') { m.causes = (m.causes || []).concat(c.lands.map((t, k) => ({ t, id: lands[k] })));
-    for (const h of m.hulls || []) h.impulses = c.lands.map((t, k) => ({ t, roll: 0.05, pitch: 0.04, id: lands[k], label: 'the swell from a smashed ship' })).concat(c.lateCut ? [{ t: tCut + 0.4, roll: 0.3, pitch: 0.2, id: 'sResolve', label: 'a rock close under the bow' }] : []); }
+    for (const h of m.hulls || []) h.impulses = c.lands.map((t, k) => ({ t, roll: 0.05, pitch: 0.04, id: lands[k], label: 'the swell from a smashed ship' })).concat(c.lateCut ? [{ t: tCut + 0.4, roll: 0.3, pitch: 0.2, id: 'sResolve', label: 'a rock close under the bow' }] : []);
+    /* who stands on which hull, one hull at a time (the three hulls' boxes overlap at their margins, and a man counted on two was turned
+       twice): the scouts on the beached ship from their landing until they run (the victim until the king takes him), nobody on the
+       second, Odysseus on his own ship outside the mouth the whole scene and the two who escape back aboard it from the cut */
+    const flee = K5.win ? K5.win[1] : 28.8, gone = K3.win ? (K3.win[0] + K3.win[1]) / 2 : 17.6, run = q(tSeize + 3.8);
+    for (const h of m.hulls || []) h.riders = /3$/.test(h.piece) ? [[O, 0, T], ...sc.filter(x => x !== victim).map(x => [x, q(flee), T])]
+      : /2$/.test(h.piece) ? [] : sc.map(x => [x, q(K2.win ? K2.win[0] : 14), x === victim ? q(gone) : run]); }
   const coupled = { frozen, units: run.units, hz: run.hz, x: run.x, drives: run.drives, W0: run.W0, W: run.W, steps: run.steps, events: c, model: 'tools/perform/machinery.js harbour' };
   const causal = { tau: 0.7, actions: {
     [O]: [{ a: 'moor outside', base: 0.8, f: { 'after:sC3': -1 } }, { a: 'watch the harbour', base: -1, f: { 'after:sRoused': 1.6 } }, { a: 'draw and cut', base: -3, f: { 'after:sResolve': 4 } }, { a: 'stand frozen', base: -2, f: c.frozenAt ? { 'after:sFrozen': 2.6, 'after:sResolve': -3 } : {} }],
