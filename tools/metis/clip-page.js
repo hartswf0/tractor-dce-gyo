@@ -118,7 +118,8 @@ function make(api, opt) {
     return W;
   }
   /* the set piece a point is in (the location's pieces by their boxes: the smallest that holds it), for a mesh that is the whole baked set */
-  const pieceAt = p => { let best = null, bv = Infinity; for (const pc of (OdysseyFilm.pieces() || [])) { const b = pc.box; if (!b || p.x < b[0] - 1 || p.y < b[1] - 1 || p.z < b[2] - 1 || p.x > b[3] + 1 || p.y > b[4] + 1 || p.z > b[5] + 1) continue;
+  let hiddenNow = new Set();   /* the key's hidden pieces (a baked giant taken out for its rig): never named */
+  const pieceAt = p => { let best = null, bv = Infinity; for (const pc of (OdysseyFilm.pieces() || [])) { const b = pc.box; if (!b || hiddenNow.has(pc.label) || p.x < b[0] - 1 || p.y < b[1] - 1 || p.z < b[2] - 1 || p.x > b[3] + 1 || p.y > b[4] + 1 || p.z > b[5] + 1) continue;
       const v = (b[3] - b[0] + 1) * (b[4] - b[1] + 1) * (b[5] - b[2] + 1) * (/\b(sea|water|ocean|waves?)\b/i.test(pc.label) ? 1e6 : 1); if (v < bv) { bv = v; best = pc.label; } } return best; };   /* the sea's thin slab last: a bench in a hull is the hull's */
   const labelAt = (m, p) => { const l = label(m); return /^prop:/.test(l) || !p ? l : (pieceAt(p) || l); };
   const label = m => { for (let p = m; p; p = p.parent) { const n = String(p.name || ''); if (n.startsWith('prop:')) return n; } const pc = m.userData && m.userData.partId; const pg = pc != null ? (OdysseyFilm.pieces() || []).find(x => x.id === pc || x.partId === pc) : null; return pg ? pg.label : (m.name || (m.parent && m.parent.name) || 'set part'); };
@@ -158,7 +159,7 @@ function make(api, opt) {
   /* ── one drawing ── */
   function sample(t) {
     const sh = OdysseyTake.apply(t); scene.updateMatrixWorld(true); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
-    const key = T.keyOf ? { id: T.keyOf(t).id } : { id: 'k' }; world(key);
+    const kk = T.keyOf ? T.keyOf(t) : null, key = kk ? { id: kk.id } : { id: 'k' }; world(key); hiddenNow = new Set((kk && kk.hide) || []);
     const shades = T.shades || new Map(), ok = allowed(t), out = [], bodies = {};
     for (const id of api.cast()) { const P = partsOf(id); if (P && Object.keys(P).length) bodies[id] = { P, H: Hof(id), shade: shades.has(id), creature: false }; }
     for (const id of Object.keys(rigs)) { const P = creatureParts(id); if (P && Object.keys(P).length) bodies[id] = { P, H: H0, shade: false, creature: true }; }
