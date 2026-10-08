@@ -1,0 +1,69 @@
+{
+ "scene": "OD-B12-S03",
+ "turns": [
+  "OD-B12-S03-T01..T07 (the recording's seven segments on the cut clock, 47.33 s)"
+ ],
+ "assembly": "location.odyssey-od-b12-s03 (its checkerboard sea and swells taken out; the island kept) + film-readymades/odyssey-sea.js @ b8621981, keyed in odyssey/keyframes/OD-B12-S03.json look.sea",
+ "actors": [
+  {
+   "id": "odysseus",
+   "wardrobe": "journey"
+  },
+  {
+   "id": "crew-at-the-oars-1..5"
+  },
+  {
+   "id": "the-sirens-1..5"
+  }
+ ],
+ "cause": "the song draws Odysseus; the binding (ROPE 16.9-22.5 s) stops him leaving; the hauled ropes (38.2-45.7 s) hold him while he strains; the crew row on one clock past the island",
+ "contacts": [
+  "torso-rope",
+  "rope-mast",
+  "oar-water",
+  "hull-water"
+ ],
+ "clock": "the cut clock (47.33 s); the ROWING clock period 2.6 s from 3.5 s",
+ "world": {
+  "sea": "look.sea day: swell 0.75->0.5 and wind 0.3->0.05 over 8 s (the wind dies), way 1.2",
+  "sky": "the look's day gradient",
+  "course": "past the island to the north of the ship (the island at z -170..-310)"
+ },
+ "camera": [
+  "the solved plan's shots",
+  "a key camera path 16.9-32.4 s from the port quarter, the island behind the mast"
+ ],
+ "look": "the location's day look (sun from the south-west, shadows) with the kit's water",
+ "adapter": "native",
+ "checks": [
+  {
+   "test": "the island stays where the viewer can find it without narration",
+   "passed": "partly",
+   "evidence": "evidence/OD-B12-S03/contact.jpg, close-island.jpg",
+   "note": "the island with the Sirens on it is in frame 10-32 s: the wax, the binding and the rowing past (a key camera path from the port quarter, 16.9-32.4 s, keeps it behind the mast); the opening insert (0-9.7 s) is on a rower and the closes from 32.4 s on Odysseus at the mast show open sea behind him"
+  },
+  {
+   "test": "the oars enter the water together",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-oars.jpg",
+   "note": "the eight baked oars cut from the hull piece and swept on the sheet's ROWING clock (period 2.6 s, origin 3.5 s), one phase for all; each blade turned at its gunwale to the water height sampled under it"
+  },
+  {
+   "test": "the rope stays anchored to the mast and the torso while he strains",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-rope.jpg",
+   "note": "the take's rope (odyssey-take.js ropeLive) winds round the man and the mast as the hull turns (the ship's transform is the sea kit's channels through the sheet's ship rig)"
+  },
+  {
+   "test": "the ship rides the water",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-oars.jpg",
+   "note": "heave, pitch and roll from the swell under bow, stern, port and starboard, a third of the sheet's own pitch and roll kept; the swell dies with the wind over the first 8 s (0.75 to 0.5)"
+  }
+ ],
+ "capture": {
+  "take": "films/odyssey/OD-B12-S03-performed.mp4 (take 2; take 1 kept in films/odyssey/takes/OD-B12-S03/)",
+  "renderer": "tools/export-odyssey.js @ b8621981 (--mode cut --fps 12 --choreo odyssey/score/OD-B12-S03.choreo.json)",
+  "outcome": "take 2 published; passes: oars together, rope anchored, the ship riding; partly: the island (in frame 10-32 s, not in the opening insert or the closing closes)"
+ }
+}

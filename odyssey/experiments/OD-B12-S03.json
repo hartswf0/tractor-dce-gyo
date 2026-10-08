@@ -1,0 +1,57 @@
+{
+ "scene": "OD-B12-S03",
+ "title": "The Sirens' Song (Proof 02: the Sirens on a working sea)",
+ "take": 2,
+ "part": "The sea kit on a ship scene; the Metis fieldbook's Proof 02",
+ "hypothesis": "The Sirens read as a place on a working sea if the water is a stepped brick ocean that moves, the ship rides it, the oars go into the water together on the crew's stroke, and the island stays where the viewer can find it while the men bind him and row past.",
+ "variable": "look.sea on K1 (swell 0.75 to 0.5 and wind 0.3 to 0.05 as the wind dies, way 1.2 for the wake, oars on the sheet's rowing clock, day); the baked checkerboard sea and swells taken out (the island's ground kept); a key camera path 16.9-32.4 s from the port quarter with the island behind the mast; rendered at 12 fps (take 1 was 24). Same performance sheet, voice, cut and solved shot plan elsewhere.",
+ "held": [
+  "odyssey/score/OD-B12-S03.choreo.json and tools/cinematographer/plans/OD-B12-S03.json (except 16.9-32.4 s)",
+  "the voice and the cut",
+  "the cast, the rope"
+ ],
+ "metrics_before": {
+  "take": "take 1 (films/odyssey/takes/OD-B12-S03/take1.mp4, 24 fps)",
+  "sea_motion_mean_abs_diff": 5.22,
+  "sky_detail": 0.406,
+  "void_sky_drawings": 0.0
+ },
+ "metrics_after": {
+  "seconds": 47.333333333333336,
+  "fps": 12,
+  "shots": 6,
+  "shots_legal": 6,
+  "sea_motion_mean_abs_diff": 8.56,
+  "sky_detail": 0.645,
+  "void_sky_drawings": 0.0,
+  "frame_seconds_render": 2.3,
+  "note": "render 24.6 min for 568 drawings (2.6 s a drawing with prepare); the 16.9-32.4 s span drawn again in 13.8 min; sea_motion is measured on 12 drawings a second for both takes"
+ },
+ "checks": [
+  {
+   "test": "the island stays where the viewer can find it without narration",
+   "passed": "partly",
+   "evidence": "evidence/OD-B12-S03/contact.jpg, close-island.jpg",
+   "note": "the island with the Sirens on it is in frame 10-32 s: the wax, the binding and the rowing past (a key camera path from the port quarter, 16.9-32.4 s, keeps it behind the mast); the opening insert (0-9.7 s) is on a rower and the closes from 32.4 s on Odysseus at the mast show open sea behind him"
+  },
+  {
+   "test": "the oars enter the water together",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-oars.jpg",
+   "note": "the eight baked oars cut from the hull piece and swept on the sheet's ROWING clock (period 2.6 s, origin 3.5 s), one phase for all; each blade turned at its gunwale to the water height sampled under it"
+  },
+  {
+   "test": "the rope stays anchored to the mast and the torso while he strains",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-rope.jpg",
+   "note": "the take's rope (odyssey-take.js ropeLive) winds round the man and the mast as the hull turns (the ship's transform is the sea kit's channels through the sheet's ship rig)"
+  },
+  {
+   "test": "the ship rides the water",
+   "passed": true,
+   "evidence": "evidence/OD-B12-S03/close-oars.jpg",
+   "note": "heave, pitch and roll from the swell under bow, stern, port and starboard, a third of the sheet's own pitch and roll kept; the swell dies with the wind over the first 8 s (0.75 to 0.5)"
+  }
+ ],
+ "result": "Published as take 2. The sea steps and moves to the horizon, the ship heaves and rolls on it, the oars sweep together and dip, the rope holds him to the mast as the hull turns, and the island and its Sirens are behind the mast while he is bound and rowed past. Loose: the island is out of frame in the opening insert and the closing closes; the sky is a pale gradient (the look's day colours) with no brick clouds."
+}

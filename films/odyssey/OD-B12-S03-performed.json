@@ -1,13 +1,13 @@
 {
  "scene": "OD-B12-S03",
  "mode": "cut",
- "fps": 24,
+ "fps": 12,
  "size": [
   1280,
   720
  ],
  "seconds": 47.333333333333336,
- "frames": 1136,
+ "frames": 568,
  "from": 0,
  "take": {
   "follow": [],
@@ -76,12 +76,18 @@
   ],
   "shots": {
    "INSERT": 1,
-   "ACTION": 2,
+   "ACTION": 3,
    "WIDE": 1,
-   "HOT": 1,
-   "ACTION!": 1
+   "HOT": 1
   },
   "cine": {
+   "time": {
+    "grid": 4,
+    "inside": 0.3,
+    "seen": 11.7,
+    "clutter": 3.2,
+    "pose": 0
+   },
    "scene": "OD-B12-S03",
    "media": "cool",
    "direction": {
@@ -102,25 +108,25 @@
     "tempo_conflict": true
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 353.8,
+   "solvedIn": 103.5,
    "shots": [
     {
      "i": 0,
      "t0": 0,
      "t1": 9.74,
      "kind": "INSERT",
-     "size": "CLOSE",
+     "size": "WIDE",
+     "planned": "CLOSE",
+     "eased": "the planned frame was black from every legal camera: crew-at-the-oars-5, wide",
      "primary": "crew-at-the-oars-5",
      "subjects": [
-      "crew-at-the-oars-5",
-      "odysseus",
-      "crew-at-the-oars-3"
+      "crew-at-the-oars-5"
      ],
      "why": {
       "cut": "the scene opens",
       "rule": "R6 insert_object \"the mast and ropes\" at its hottest (9.67 s)",
       "heat": 0.69,
-      "contrast": 0.44,
+      "contrast": 0.46,
       "hot": "crew-at-the-oars-5"
      },
      "line": null,
@@ -128,30 +134,49 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -167.1,
-       112.7,
-       -183.1
+       42.1,
+       168.3,
+       100.7
       ],
-      "fov": 43,
+      "fov": 32,
       "key": false,
-      "az": 3.53,
+      "az": 2.75,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
+     "keyCamera": null,
      "rejected": {
-      "L1 under the set": 137,
-      "L2 crew-at-the-oars-5 hidden": 18,
-      "L4 foreground covers n%": 1,
-      "L1 in part construction-frame": 1,
-      "L3 face": 6
+      "L4 an empty frame (n% sky)": 81,
+      "L2 crew-at-the-oars-5 hidden": 11,
+      "L4 foreground covers n%": 7,
+      "L1 in crew-at-the-oars-4": 2,
+      "L1 in odysseus": 2,
+      "L1 near plane in a set part": 1,
+      "L1 too near the face": 34,
+      "L1 in crew-at-the-oars-3": 1
      },
-     "candidates": 192,
-     "legalCandidates": 29,
+     "rejectedPlanned": {
+      "L4 an empty frame (n% sky)": 23,
+      "L2 crew-at-the-oars-5 hidden": 28,
+      "L2 body": 1,
+      "L4 foreground covers n%": 12,
+      "L3 face": 82,
+      "L3 head": 10,
+      "L1 too near the face": 3
+     },
+     "candidates": 256,
+     "legalCandidates": 117,
      "samples": [
       4.87,
       0.1,
-      9.64
+      9.64,
+      1.25,
+      2.5,
+      3.75,
+      6.25,
+      7.5,
+      8.75
      ],
      "checks": [
       "L1 not inside geometry",
@@ -160,8 +185,17 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.94,
-     "headV": 0.421
+     "facing": 0.93,
+     "headV": 0.285,
+     "clutterFar": 0.04,
+     "luma": {
+      "mean": 0.175,
+      "sd": 0.267,
+      "dark": 0.65,
+      "white": 0.01,
+      "one": 0.63
+     },
+     "lumaRefused": 12
     },
     {
      "i": 1,
@@ -169,54 +203,74 @@
      "t1": 16.91,
      "kind": "ACTION",
      "size": "WIDE",
+     "planned": "WIDE",
+     "eased": "the wide had no legal camera: the primary alone, wide",
      "primary": "odysseus",
      "subjects": [
-      "odysseus",
-      "crew-at-the-oars-3"
+      "odysseus"
      ],
      "why": {
       "cut": "cut on the action: TOUCH (c1048)",
       "rule": "R2 the contact c1048 (TOUCH: hands to the ears: the wax) with every figure it names",
-      "heat": 2.46,
-      "contrast": 2.12,
+      "heat": 2.47,
+      "contrast": 2.14,
       "hot": "odysseus"
      },
      "line": [
       "odysseus",
       "crew-at-the-oars-3"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       45.1,
-       126.5,
-       -104
+       -91.9,
+       131.7,
+       56.3
       ],
-      "fov": 46,
+      "fov": 63,
       "key": false,
-      "az": 2.75,
-      "travelling": true
+      "az": 5.11,
+      "travelling": false
      },
      "legal": true,
      "relaxed": false,
+     "keyCamera": "L3 the back of odysseus in a wide on his line",
      "rejected": {
-      "L1 inside a set part": 17,
-      "L2 crew-at-the-oars-3 hidden": 50,
-      "L2 odysseus hidden": 44,
-      "L2 body": 20,
-      "L1 near plane in a set part": 3,
-      "L1 in crew-at-the-oars-4": 16,
-      "L2 the contact hidden": 15,
-      "L3 head": 26
+      "L2 odysseus hidden": 61,
+      "L4 foreground covers n%": 13,
+      "L2 body": 12,
+      "L3 the back": 131,
+      "L1 near plane in a set part": 1,
+      "L1 in crew-at-the-oars-4": 6,
+      "L4 an empty frame (n% sky)": 2,
+      "L1 too near the face": 3,
+      "L3 head": 20,
+      "L3 odysseus behind the lens": 2
      },
-     "candidates": 193,
-     "legalCandidates": 2,
+     "rejectedPlanned": {
+      "L2 the contact hidden": 41,
+      "L4 foreground covers n%": 9,
+      "L2 odysseus hidden": 37,
+      "L2 body": 9,
+      "L3 the back": 106,
+      "L1 in crew-at-the-oars-4": 7,
+      "L1 too near the face": 15,
+      "L3 head": 27,
+      "L3 face": 1,
+      "L3 odysseus behind the lens": 5
+     },
+     "candidates": 257,
+     "legalCandidates": 6,
      "samples": [
       13.32,
       9.84,
       16.81,
-      9.94
+      9.94,
+      10.99,
+      12.24,
+      14.74,
+      15.99
      ],
      "checks": [
       "L1 not inside geometry",
@@ -226,8 +280,17 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": -0.45,
-     "headV": 0.35
+     "facing": 0.58,
+     "headV": 0.367,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.264,
+      "sd": 0.285,
+      "dark": 0.45,
+      "white": 0.01,
+      "one": 0.39
+     },
+     "lumaRefused": 0
     },
     {
      "i": 2,
@@ -235,6 +298,8 @@
      "t1": 26.71,
      "kind": "ACTION",
      "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
      "primary": "crew-at-the-oars-2",
      "subjects": [
       "crew-at-the-oars-2",
@@ -243,7 +308,7 @@
      "why": {
       "cut": "cut on the action: ROPE (c1087)",
       "rule": "R2 the contact c1087 (ROPE: binds odysseus) with every figure it names",
-      "heat": 5.3,
+      "heat": 5.31,
       "contrast": 5.08,
       "hot": "odysseus"
      },
@@ -255,31 +320,42 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -56.8,
-       84.3,
-       32.7
+       -199.2,
+       137,
+       18.4
       ],
-      "fov": 75,
+      "fov": 46,
       "key": false,
-      "az": 3.93,
+      "az": 4.32,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
+     "keyCamera": "L2 crew-at-the-oars-2 hidden by crew-at-the-oars-4",
      "rejected": {
-      "L2 crew-at-the-oars-2 hidden": 21,
-      "L1 under the set": 12,
-      "L3 face": 140,
-      "L2 odysseus hidden": 10,
-      "L2 the contact hidden": 5
+      "L2 crew-at-the-oars-2 hidden": 88,
+      "L1 under the set": 8,
+      "L3 the back": 57,
+      "L2 the contact hidden": 72,
+      "L4 foreground covers n%": 17,
+      "L2 body": 3,
+      "L3 face": 1,
+      "L1 near plane in a set part": 1,
+      "L1 in crew-at-the-oars-5": 2
      },
-     "candidates": 193,
-     "legalCandidates": 5,
+     "candidates": 257,
+     "legalCandidates": 8,
      "samples": [
       21.81,
       17.01,
       26.61,
-      17.11
+      17.11,
+      18.16,
+      19.41,
+      20.66,
+      23.16,
+      24.41,
+      25.66
      ],
      "checks": [
       "L1 not inside geometry",
@@ -289,8 +365,17 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.82,
-     "headV": 0.48
+     "facing": 0.95,
+     "headV": 0.452,
+     "clutterFar": 0.11,
+     "luma": {
+      "mean": 0.153,
+      "sd": 0.242,
+      "dark": 0.63,
+      "white": 0.01,
+      "one": 0.6
+     },
+     "lumaRefused": 0
     },
     {
      "i": 3,
@@ -298,6 +383,8 @@
      "t1": 32.39,
      "kind": "WIDE",
      "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
       "odysseus",
@@ -306,9 +393,9 @@
      ],
      "why": {
       "cut": "a line begins (v4)",
-      "rule": "R1 the hot spot odysseus (heat 2.72, contrast 2.27): WIDE by the direction's bias",
-      "heat": 2.72,
-      "contrast": 2.27,
+      "rule": "R1 the hot spot odysseus (heat 2.73, contrast 2.28): WIDE by the direction's bias",
+      "heat": 2.73,
+      "contrast": 2.28,
       "hot": "odysseus"
      },
      "line": null,
@@ -316,31 +403,35 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       90.1,
-       109.4,
-       -117.9
+       -210.1,
+       173.1,
+       18.3
       ],
       "fov": 46,
       "key": false,
-      "az": 2.75,
+      "az": 4.32,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
+     "keyCamera": "L3 head of odysseus cut",
      "rejected": {
-      "L1 under the set": 33,
-      "L2 odysseus hidden": 66,
+      "L2 odysseus hidden": 147,
       "L1 near plane in a set part": 1,
-      "L2 body": 14,
-      "L1 in crew-at-the-oars-5": 1,
-      "L3 head": 14
+      "L2 body": 11,
+      "L1 in crew-at-the-oars-5": 2,
+      "L3 head": 25,
+      "L4 foreground covers n%": 1
      },
-     "candidates": 193,
-     "legalCandidates": 64,
+     "candidates": 257,
+     "legalCandidates": 70,
      "samples": [
       29.55,
       26.81,
-      32.29
+      32.29,
+      27.96,
+      30.46,
+      31.71
      ],
      "checks": [
       "L1 not inside geometry",
@@ -349,8 +440,17 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": 0.9,
-     "headV": 0.345
+     "facing": 0.85,
+     "headV": 0.375,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.153,
+      "sd": 0.241,
+      "dark": 0.64,
+      "white": 0.01,
+      "one": 0.6
+     },
+     "lumaRefused": 0
     },
     {
      "i": 4,
@@ -358,15 +458,17 @@
      "t1": 38.08,
      "kind": "HOT",
      "size": "MID",
+     "planned": "MID",
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
       "odysseus"
      ],
      "why": {
       "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
-      "rule": "R1 the hot spot odysseus (heat 3.06, contrast 2.68): MID by the direction's bias",
-      "heat": 3.06,
-      "contrast": 2.68,
+      "rule": "R1 the hot spot odysseus (heat 3.08, contrast 2.69): MID by the direction's bias",
+      "heat": 3.08,
+      "contrast": 2.69,
       "hot": "odysseus"
      },
      "line": null,
@@ -374,32 +476,37 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -13.7,
-       127.8,
-       66
+       16.1,
+       95.1,
+       14.1
       ],
-      "fov": 73,
+      "fov": 38,
       "key": false,
-      "az": 3.14,
+      "az": 2.75,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
+     "keyCamera": null,
      "rejected": {
-      "L2 odysseus hidden": 58,
-      "L2 body": 16,
-      "L1 inside a set part": 19,
+      "L2 odysseus hidden": 32,
+      "L3 the back": 101,
+      "L1 near plane in a set part": 3,
+      "L4 foreground covers n%": 14,
+      "L2 body": 2,
+      "L3 face": 32,
       "L1 in crew-at-the-oars-4": 7,
-      "L4 foreground covers n%": 6,
-      "L1 in crew-at-the-oars-1": 7,
-      "L1 in crew-at-the-oars-2": 4
+      "L1 too near the face": 34
      },
-     "candidates": 192,
-     "legalCandidates": 75,
+     "candidates": 256,
+     "legalCandidates": 31,
      "samples": [
       35.24,
       32.49,
-      37.98
+      37.98,
+      33.64,
+      36.14,
+      37.39
      ],
      "checks": [
       "L1 not inside geometry",
@@ -409,7 +516,16 @@
      ],
      "failed": [],
      "facing": 1,
-     "headV": 0.341
+     "headV": 0.339,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.198,
+      "sd": 0.248,
+      "dark": 0.56,
+      "white": 0,
+      "one": 0.46
+     },
+     "lumaRefused": 0
     },
     {
      "i": 5,
@@ -417,10 +533,11 @@
      "t1": 47.33,
      "kind": "ACTION",
      "size": "WIDE",
+     "planned": "WIDE",
+     "eased": "the wide had no legal camera: the primary alone, wide",
      "primary": "crew-at-the-oars-1",
      "subjects": [
-      "crew-at-the-oars-1",
-      "odysseus"
+      "crew-at-the-oars-1"
      ],
      "why": {
       "cut": "cut on the action: ROPE (c1105)",
@@ -437,41 +554,72 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -201.7,
-       250,
-       100.9
+       -10.9,
+       133,
+       1.6
       ],
-      "fov": 44,
-      "key": true,
-      "az": null,
+      "fov": 46,
+      "key": false,
+      "az": 2.75,
       "travelling": false
      },
-     "legal": false,
+     "legal": true,
      "relaxed": false,
+     "keyCamera": "L3 the back of crew-at-the-oars-1 in a wide on his line",
      "rejected": {
-      "L2 the contact hidden": 70,
-      "L2 odysseus hidden": 79,
-      "L2 crew-at-the-oars-1 hidden": 30,
-      "L1 in crew-at-the-oars-5": 1,
-      "L1 inside a set part": 3,
-      "L2 body": 4,
+      "L3 the back": 151,
+      "L2 crew-at-the-oars-1 hidden": 37,
+      "L4 foreground covers n%": 12,
+      "L1 in crew-at-the-oars-5": 2,
+      "L1 near plane in a set part": 1,
       "L1 in crew-at-the-oars-2": 3,
-      "L1 in crew-at-the-oars-4": 3
+      "L1 in crew-at-the-oars-4": 2,
+      "L2 body": 1
      },
-     "candidates": 193,
-     "legalCandidates": 0,
+     "rejectedPlanned": {
+      "L2 the contact hidden": 162,
+      "L2 crew-at-the-oars-1 hidden": 49,
+      "L1 in crew-at-the-oars-5": 2,
+      "L2 body": 2,
+      "L1 near plane in a set part": 1,
+      "L1 in crew-at-the-oars-2": 3,
+      "L1 in crew-at-the-oars-4": 3,
+      "L1 too near the face": 12,
+      "L3 head": 3,
+      "L3 the back": 20
+     },
+     "candidates": 257,
+     "legalCandidates": 48,
      "samples": [
       42.7,
       38.18,
       47.23,
-      38.28
+      38.28,
+      39.33,
+      40.58,
+      41.83,
+      44.33,
+      45.58
      ],
-     "checks": [],
-     "failed": [
-      "L2 the contact hidden by crew-at-the-oars-1"
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
      ],
-     "facing": 0,
-     "headV": 0.499
+     "failed": [],
+     "facing": 0.96,
+     "headV": 0.39,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.138,
+      "sd": 0.233,
+      "dark": 0.7,
+      "white": 0,
+      "one": 0.61
+     },
+     "lumaRefused": 0
     }
    ]
   },
@@ -535,7 +683,7 @@
  "shots": [
   {
    "t": 0,
-   "shot": "c0:INSERT:CLOSE",
+   "shot": "c0:INSERT:WIDE",
    "kind": "INSERT",
    "key": "K1"
   },
