@@ -76,7 +76,7 @@ module.exports = function author(M, X) {
   const beasts = { wolf1: ['wolf', 'black', [-60, 112, 0.25]], wolf2: ['wolf', 'grey', [40, 112, -0.25]], lion1: ['lion', 'gold', [-10, 112, 0.25]], lion2: ['lion', 'gold', [90, 112, -0.25]], wolf3: ['wolf', 'black', [140, 112, -0.25]] };
   Object.entries(beasts).forEach(([id, [kind, col, [x, z, h]]], j) => { const y = fl(x, z), m = men[j % men.length], tp = vis(K1, m) ? pos(K1, m) : [x, 0, z + 60];
     creatures[id] = { kind, scale: 1.05 * sc, colour: col, at: [x, y, z, h], floor: y, present: [[0, s2]].concat(id === 'wolf1' || id === 'lion1' ? [[s5, T + 1]] : []), procs: [] };
-    const to = [tp[0] + (x - tp[0]) * 0.25, tp[2] + (z - tp[2]) * 0.25];
+    const dd = Math.hypot(x - tp[0], z - tp[2]) || 1, kk = Math.min(1, 58 / dd), to = [tp[0] + (x - tp[0]) * kk, tp[2] + (z - tp[2]) * kk];   /* it lies down a body's length from him, not in him */
     cr(id, { id: 'bF' + j, kind: 'FAWN', t0: q(1.2 + 0.3 * j), t1: q(6.5 + 0.4 * j), target: m, label: 'comes to ' + m + ', head low, the tail going', params: { path: [[q(1.2 + 0.3 * j), x, z], [q(4.2 + 0.3 * j), to[0], to[1]]], gait: 'walk' }, because: [{ id: 'sSong' }] });
     cr(id, { id: 'bL' + j, kind: 'POSE', t0: q(7.2 + 0.4 * j), t1: s2, label: 'lies down by them: tame, drugged', params: { preset: kind === 'lion' ? 'lie' : 'sit', fade: 0.8 }, because: [{ id: 'bF' + j }] }); });
   /* Eurylochus: at the gate, watching; the flight; the report */
