@@ -1,62 +1,89 @@
 {
  "scene": "OD-B22-S01",
- "title": "The Hall: Antinous falls across the table",
- "take": 2,
- "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): a caption that promises an action the picture does not show",
- "hypothesis": "The fall reads if it is one fall, on the narrator's word 'falls', seen from the side in a shot of its own, instead of the blocking's tip laid in linearly across a 3.7 s window and seen in a close of another man and then a still wide down the hall.",
- "variable": "The fall: the K3 key's tip (-0.95 rad, onto the table behind him) taken as one fall in 0.45 s accelerating, with a bounce where he lands (FALL params.topple in tools/perform/intents-action.js; the scene module's iFall), and its shot: shot 7 (19.06-22.17 s) a profile MID on Antinous on the line from Odysseus (was a REACT close of suitor 4), shot 8 (22.17-25.5 s) suitor 4's reaction close (was a cold wide down the hall, motion 0.17).",
+ "title": "Antinous Falls",
+ "take": 3,
+ "part": "The Metis mod line, proof 03: the hall's causal map",
+ "hypothesis": "Antinous's fall, which already reads, also makes the hall's map: on the kit at night the line of fire from the sill runs down the same axis as the axes, the cut on the loose lands on him at his table, and the suitors' search ends at the pegs the bow's scene showed bare.",
+ "variable": "the world and the light (the hall kit, odyssey-light.js, looks/hearth-hall.json) and five shots pinned on it (0, 4, 5, 12, 20)",
  "held": [
-  "the voice cut and the captions",
-  "every other body's sheet: the published sheet (odyssey/score/OD-B22-S01.choreo.json) with one channel added, antinous root.pitch@loco (the TOPPLE); nothing else recompiled (a full recompile with today's engine and homeostat changes every body)",
-  "the shot plan but for shots 7 and 8, and every cut time",
-  "the pictures of shots 0-6 and 9-21: carried frame for frame from take 1 (the solver has changed since 2026-09-30 and would move every camera); frames 229-305 (19.08-25.42 s) drawn new"
+  "the performance: odyssey/score/OD-B22-S01.choreo.json unchanged, the fall as take 2 played it",
+  "the voice cut and captions",
+  "every other shot's plan (re-solved by the solver on the new set)"
  ],
- "true_to": [
-  "energy audit (scratchpad audit/shots.json): shot 8 at 22.2 s, 'Antinous falls across the table', motion 0.17, still 1.00",
-  "the keyframe K3: 'He fell over and the cup dropped from his hand ... He kicked the table from him' (tilt -0.95, raised onto the table)"
- ],
- "metrics_before": {
-  "stage": "take 1 as published (films/odyssey/OD-B22-S01-performed.mp4, 52.2 s, 22 shots)",
-  "shot7": {
-   "t0": 19.1,
-   "kind": "REACT CLOSE suitors-4",
-   "motion": 18.89,
-   "still": 0.0
-  },
-  "shot8": {
-   "t0": 22.2,
-   "kind": "WIDE",
-   "motion": 0.17,
-   "still": 1.0
-  },
-  "film": {
-   "motion": 9.53,
-   "still": 0.21,
-   "still_tail_s": 0.0
-  },
-  "fall": "linear tip over 17.06-20.77 s, not in any shot that frames Antinous"
- },
  "metrics_after": {
-  "stage": "take 2 as published (films/odyssey/OD-B22-S01-performed.mp4, 52.25 s, 22 shots; take 1 kept as films/odyssey/takes/OD-B22-S01/take1.*); 77 frames drawn, 550 carried",
-  "shot7": {
-   "t0": 19.1,
-   "kind": "HOT MID antinous, profile",
-   "motion": 18.37,
-   "still": 0.0
+  "stage": "take 3 as published",
+  "shots": {
+   "n": 22,
+   "legal": 22,
+   "pinned": 5
   },
-  "shot8": {
-   "t0": 22.2,
-   "kind": "REACT CLOSE suitors-4",
-   "motion": 2.24,
-   "still": 0.26
-  },
-  "film": {
-   "motion": 9.62,
-   "still": 0.17,
-   "still_tail_s": 0.0
-  },
-  "fall": "upright with the arrow in him to 21.0 s, over backwards onto the table in 0.45 s (5 drawings), a bounce, at rest by 21.7 s, in shot 7"
+  "render": {
+   "drawings": 627,
+   "minutes": 49.3
+  }
  },
- "result": "Kept. The fall is now in the picture: Antinous stands with his arms up through the stagger, then goes over backwards across the table among the spilt wine in five drawings, seen from the side, on the narrator's 'falls'. The still wide (motion 0.17, every drawing still) is gone; suitor 4's close after it moves (2.24) but is a quarter still: he stares with his hands up, which is a reaction, not a dead frame. Loose: the profile MID is tight, so the table itself is mostly out of frame and the 'table goes over' is not shown; the overturned table is still not a prop of its own (the K3 'hide' list hides Antinous's feast table).",
- "keep": true
+ "result": "Kept. The fall is played in the hall at night; the cut on the loose goes to Antinous with the cup; the suitors' hands find the bare pegs. Loose: the over-the-shoulder line of fire keeps Antinous small and partly hidden; the arrow in his throat is a prop as before and is not clear at film size; the HOT closes are the solver's.",
+ "keep": true,
+ "previous": {
+  "scene": "OD-B22-S01",
+  "title": "The Hall: Antinous falls across the table",
+  "take": 2,
+  "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): a caption that promises an action the picture does not show",
+  "hypothesis": "The fall reads if it is one fall, on the narrator's word 'falls', seen from the side in a shot of its own, instead of the blocking's tip laid in linearly across a 3.7 s window and seen in a close of another man and then a still wide down the hall.",
+  "variable": "The fall: the K3 key's tip (-0.95 rad, onto the table behind him) taken as one fall in 0.45 s accelerating, with a bounce where he lands (FALL params.topple in tools/perform/intents-action.js; the scene module's iFall), and its shot: shot 7 (19.06-22.17 s) a profile MID on Antinous on the line from Odysseus (was a REACT close of suitor 4), shot 8 (22.17-25.5 s) suitor 4's reaction close (was a cold wide down the hall, motion 0.17).",
+  "held": [
+   "the voice cut and the captions",
+   "every other body's sheet: the published sheet (odyssey/score/OD-B22-S01.choreo.json) with one channel added, antinous root.pitch@loco (the TOPPLE); nothing else recompiled (a full recompile with today's engine and homeostat changes every body)",
+   "the shot plan but for shots 7 and 8, and every cut time",
+   "the pictures of shots 0-6 and 9-21: carried frame for frame from take 1 (the solver has changed since 2026-09-30 and would move every camera); frames 229-305 (19.08-25.42 s) drawn new"
+  ],
+  "true_to": [
+   "energy audit (scratchpad audit/shots.json): shot 8 at 22.2 s, 'Antinous falls across the table', motion 0.17, still 1.00",
+   "the keyframe K3: 'He fell over and the cup dropped from his hand ... He kicked the table from him' (tilt -0.95, raised onto the table)"
+  ],
+  "metrics_before": {
+   "stage": "take 1 as published (films/odyssey/OD-B22-S01-performed.mp4, 52.2 s, 22 shots)",
+   "shot7": {
+    "t0": 19.1,
+    "kind": "REACT CLOSE suitors-4",
+    "motion": 18.89,
+    "still": 0.0
+   },
+   "shot8": {
+    "t0": 22.2,
+    "kind": "WIDE",
+    "motion": 0.17,
+    "still": 1.0
+   },
+   "film": {
+    "motion": 9.53,
+    "still": 0.21,
+    "still_tail_s": 0.0
+   },
+   "fall": "linear tip over 17.06-20.77 s, not in any shot that frames Antinous"
+  },
+  "metrics_after": {
+   "stage": "take 2 as published (films/odyssey/OD-B22-S01-performed.mp4, 52.25 s, 22 shots; take 1 kept as films/odyssey/takes/OD-B22-S01/take1.*); 77 frames drawn, 550 carried",
+   "shot7": {
+    "t0": 19.1,
+    "kind": "HOT MID antinous, profile",
+    "motion": 18.37,
+    "still": 0.0
+   },
+   "shot8": {
+    "t0": 22.2,
+    "kind": "REACT CLOSE suitors-4",
+    "motion": 2.24,
+    "still": 0.26
+   },
+   "film": {
+    "motion": 9.62,
+    "still": 0.17,
+    "still_tail_s": 0.0
+   },
+   "fall": "upright with the arrow in him to 21.0 s, over backwards onto the table in 0.45 s (5 drawings), a bounce, at rest by 21.7 s, in shot 7"
+  },
+  "result": "Kept. The fall is now in the picture: Antinous stands with his arms up through the stagger, then goes over backwards across the table among the spilt wine in five drawings, seen from the side, on the narrator's 'falls'. The still wide (motion 0.17, every drawing still) is gone; suitor 4's close after it moves (2.24) but is a quarter still: he stares with his hands up, which is a reaction, not a dead frame. Loose: the profile MID is tight, so the table itself is mostly out of frame and the 'table goes over' is not shown; the overturned table is still not a prop of its own (the K3 'hide' list hides Antinous's feast table).",
+  "keep": true
+ }
 }
