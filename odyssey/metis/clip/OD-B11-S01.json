@@ -1,17 +1,17 @@
 {
  "scene": "OD-B11-S01",
  "name": "OD-B11-S01",
- "measured": "2026-10-08",
- "take": "films/odyssey/OD-B11-S01-performed.json",
+ "measured": "2026-10-09",
+ "take": "films/odyssey/OD-B11-S01-performed-r2.json",
  "at": null,
  "camera": "replay",
  "step": 0.1667,
  "total": 41.55,
- "visibleSec": 9.5,
- "faults": 2,
- "offscreenSec": 15.5,
+ "visibleSec": 2,
+ "faults": 6,
+ "offscreenSec": 7.5,
  "shadeSec": 0,
- "longestVisible": 9.33,
+ "longestVisible": 0.83,
  "tolerances": {
   "headHead": 0.04,
   "core": 0.05,
@@ -27,36 +27,81 @@
   "water": 0.1
  },
  "minVisible": 0.25,
- "line": "CLIP OD-B11-S01 visible 9.5 s in 2 intervals (worst: crew-ritual-assistants-3 + crew-ritual-assistants-5 body through body [right arm / head] 0.32 H at 32.3-41.7 s); shades 0.0 s; offscreen, hidden or brief 15.5 s",
+ "line": "CLIP OD-B11-S01 visible 2.0 s in 6 intervals (worst: odysseus + crew-ritual-assistants-2 body through body [torso / head] 0.33 H at 23.0-23.8 s); shades 0.0 s; offscreen, hidden or brief 7.5 s",
  "stills": [
   "odyssey/metis/evidence/OD-B11-S01/clip-1.jpg",
-  "odyssey/metis/evidence/OD-B11-S01/clip-2.jpg"
+  "odyssey/metis/evidence/OD-B11-S01/clip-2.jpg",
+  "odyssey/metis/evidence/OD-B11-S01/clip-3.jpg"
  ],
  "intervals": [
   {
-   "key": "body|crew-ritual-assistants-3+crew-ritual-assistants-5|",
-   "t0": 32.33,
-   "t1": 41.67,
-   "dur": 9.33,
+   "key": "body|odysseus+crew-ritual-assistants-2|",
+   "t0": 23,
+   "t1": 23.83,
+   "dur": 0.83,
    "who": [
-    "crew-ritual-assistants-3",
-    "crew-ritual-assistants-5"
+    "odysseus",
+    "crew-ritual-assistants-2"
    ],
    "kind": "body",
    "what": "body through body",
    "cls": "core",
    "parts": [
-    "right arm / head",
-    "right arm / torso",
-    "torso / head"
+    "torso / head",
+    "torso / torso",
+    "torso / left arm"
    ],
    "against": null,
-   "depthH": 0.315,
-   "visibleSec": 9.33,
+   "depthH": 0.327,
+   "visibleSec": 0.83,
    "hiddenSec": 0,
    "offscreenSec": 0,
    "shots": [
-    "c4:WIDE:WIDE",
+    "c2:WIDE:WIDE"
+   ],
+   "walking": false,
+   "inContact": false,
+   "deliberate": null,
+   "fault": true,
+   "worst": {
+    "t": 23.33,
+    "depthH": 0.327,
+    "seen": true,
+    "at": [
+     0.51,
+     0.412
+    ],
+    "shot": "c2:WIDE:WIDE",
+    "box": [
+     "odysseus",
+     "torsoP"
+    ]
+   },
+   "still": "odyssey/metis/evidence/OD-B11-S01/clip-1.jpg"
+  },
+  {
+   "key": "body|crew-ritual-assistants-3+crew-ritual-assistants-5|",
+   "t0": 32,
+   "t1": 32.83,
+   "dur": 0.83,
+   "who": [
+    "crew-ritual-assistants-3",
+    "crew-ritual-assistants-5"
+   ],
+   "kind": "body",
+   "what": "limb through body",
+   "cls": "limb",
+   "parts": [
+    "right arm / torso",
+    "head / right arm",
+    "right leg / right leg"
+   ],
+   "against": null,
+   "depthH": 0.321,
+   "visibleSec": 0.83,
+   "hiddenSec": 0,
+   "offscreenSec": 0,
+   "shots": [
     "c3:WIDE:WIDE"
    ],
    "walking": false,
@@ -64,12 +109,12 @@
    "deliberate": null,
    "fault": true,
    "worst": {
-    "t": 32.67,
-    "depthH": 0.315,
+    "t": 32.17,
+    "depthH": 0.321,
     "seen": true,
     "at": [
-     0.519,
-     0.408
+     0.496,
+     0.42
     ],
     "shot": "c3:WIDE:WIDE",
     "box": [
@@ -77,13 +122,56 @@
      "armRP"
     ]
    },
-   "still": "odyssey/metis/evidence/OD-B11-S01/clip-1.jpg"
+   "still": "odyssey/metis/evidence/OD-B11-S01/clip-2.jpg"
+  },
+  {
+   "key": "body|odysseus+crew-ritual-assistants-2|head",
+   "t0": 23,
+   "t1": 23.83,
+   "dur": 0.83,
+   "who": [
+    "odysseus",
+    "crew-ritual-assistants-2"
+   ],
+   "kind": "body",
+   "what": "head through head",
+   "cls": "head-head",
+   "parts": [
+    "head / head"
+   ],
+   "against": null,
+   "depthH": 0.271,
+   "visibleSec": 0.83,
+   "hiddenSec": 0,
+   "offscreenSec": 0,
+   "shots": [
+    "c2:WIDE:WIDE"
+   ],
+   "walking": false,
+   "inContact": false,
+   "deliberate": null,
+   "fault": true,
+   "worst": {
+    "t": 23.33,
+    "depthH": 0.271,
+    "seen": true,
+    "at": [
+     0.516,
+     0.248
+    ],
+    "shot": "c2:WIDE:WIDE",
+    "box": [
+     "odysseus",
+     "headP"
+    ]
+   },
+   "still": "odyssey/metis/evidence/OD-B11-S01/clip-3.jpg"
   },
   {
    "key": "body|crew-ritual-assistants-3+crew-ritual-assistants-5|head",
-   "t0": 32.33,
-   "t1": 41.67,
-   "dur": 9.33,
+   "t0": 32.17,
+   "t1": 32.67,
+   "dur": 0.5,
    "who": [
     "crew-ritual-assistants-3",
     "crew-ritual-assistants-5"
@@ -95,12 +183,11 @@
     "head / head"
    ],
    "against": null,
-   "depthH": 0.231,
-   "visibleSec": 9.33,
+   "depthH": 0.173,
+   "visibleSec": 0.5,
    "hiddenSec": 0,
    "offscreenSec": 0,
    "shots": [
-    "c4:WIDE:WIDE",
     "c3:WIDE:WIDE"
    ],
    "walking": false,
@@ -108,20 +195,19 @@
    "deliberate": null,
    "fault": true,
    "worst": {
-    "t": 33,
-    "depthH": 0.231,
+    "t": 32.33,
+    "depthH": 0.173,
     "seen": true,
     "at": [
-     0.535,
-     0.375
+     0.481,
+     0.277
     ],
     "shot": "c3:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-3",
      "headP"
     ]
-   },
-   "still": "odyssey/metis/evidence/OD-B11-S01/clip-2.jpg"
+   }
   },
   {
    "key": "body|crew-ritual-assistants-2+crew-ritual-assistants-5|",
@@ -140,8 +226,8 @@
    ],
    "against": null,
    "depthH": 0.156,
-   "visibleSec": 0.17,
-   "hiddenSec": 0.17,
+   "visibleSec": 0.33,
+   "hiddenSec": 0,
    "offscreenSec": 0,
    "shots": [
     "c2:WIDE:WIDE"
@@ -149,14 +235,14 @@
    "walking": false,
    "inContact": false,
    "deliberate": null,
-   "fault": false,
+   "fault": true,
    "worst": {
-    "t": 23,
-    "depthH": 0.147,
+    "t": 23.17,
+    "depthH": 0.156,
     "seen": true,
     "at": [
-     0.49,
-     0.481
+     0.62,
+     0.3
     ],
     "shot": "c2:WIDE:WIDE",
     "box": [
@@ -183,8 +269,8 @@
    ],
    "against": null,
    "depthH": 0.139,
-   "visibleSec": 0.17,
-   "hiddenSec": 0.17,
+   "visibleSec": 0.33,
+   "hiddenSec": 0,
    "offscreenSec": 0,
    "shots": [
     "c2:WIDE:WIDE"
@@ -192,146 +278,20 @@
    "walking": false,
    "inContact": false,
    "deliberate": null,
-   "fault": false,
+   "fault": true,
    "worst": {
-    "t": 24,
-    "depthH": 0.132,
+    "t": 23.83,
+    "depthH": 0.139,
     "seen": true,
     "at": [
-     0.455,
-     0.416
+     0.665,
+     0.173
     ],
     "shot": "c2:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-3",
-     "armRP"
-    ]
-   }
-  },
-  {
-   "key": "body|odysseus+crew-ritual-assistants-2|",
-   "t0": 23,
-   "t1": 23.83,
-   "dur": 0.83,
-   "who": [
-    "odysseus",
-    "crew-ritual-assistants-2"
-   ],
-   "kind": "body",
-   "what": "body through body",
-   "cls": "core",
-   "parts": [
-    "torso / head",
-    "torso / torso",
-    "left arm / head"
-   ],
-   "against": null,
-   "depthH": 0.326,
-   "visibleSec": 0,
-   "hiddenSec": 0.83,
-   "offscreenSec": 0,
-   "shots": [],
-   "walking": false,
-   "inContact": false,
-   "deliberate": null,
-   "fault": false,
-   "worst": {
-    "t": 23.33,
-    "depthH": 0.326,
-    "seen": false,
-    "at": [
-     0.456,
-     0.595
-    ],
-    "shot": "c2:WIDE:WIDE",
-    "box": [
-     "odysseus",
-     "torsoP"
-    ],
-    "hiddenBy": "the edge of ocean 2 2.17 H before"
-   }
-  },
-  {
-   "key": "body|odysseus+crew-ritual-assistants-2|head",
-   "t0": 23,
-   "t1": 23.83,
-   "dur": 0.83,
-   "who": [
-    "odysseus",
-    "crew-ritual-assistants-2"
-   ],
-   "kind": "body",
-   "what": "head through head",
-   "cls": "head-head",
-   "parts": [
-    "head / head"
-   ],
-   "against": null,
-   "depthH": 0.27,
-   "visibleSec": 0,
-   "hiddenSec": 0.83,
-   "offscreenSec": 0,
-   "shots": [],
-   "walking": false,
-   "inContact": false,
-   "deliberate": null,
-   "fault": false,
-   "worst": {
-    "t": 23.33,
-    "depthH": 0.27,
-    "seen": false,
-    "at": [
-     0.464,
-     0.486
-    ],
-    "shot": "c2:WIDE:WIDE",
-    "box": [
-     "odysseus",
      "headP"
-    ],
-    "hiddenBy": "the edge of ocean 2 2.03 H before"
-   }
-  },
-  {
-   "key": "set|crew-ritual-assistants-1|prop:pig",
-   "t0": 24.17,
-   "t1": 25.17,
-   "dur": 1,
-   "who": [
-    "crew-ritual-assistants-1"
-   ],
-   "kind": "set",
-   "what": "feet below the surface prop:pig",
-   "cls": "sink",
-   "parts": [
-    "torso",
-    "left leg (foot)",
-    "right leg (foot)"
-   ],
-   "against": "prop:pig",
-   "depthH": 0.228,
-   "visibleSec": 0,
-   "hiddenSec": 1,
-   "offscreenSec": 0,
-   "shots": [],
-   "walking": true,
-   "inContact": false,
-   "deliberate": null,
-   "fault": false,
-   "worst": {
-    "t": 24.83,
-    "depthH": 0.228,
-    "seen": false,
-    "at": [
-     0.531,
-     0.894
-    ],
-    "shot": "c2:WIDE:WIDE",
-    "box": [
-     "crew-ritual-assistants-1",
-     "legRP"
-    ],
-    "hiddenBy": "prop:pig 0.88 H before"
+    ]
    }
   },
   {
@@ -363,15 +323,15 @@
     "depthH": 0.213,
     "seen": false,
     "at": [
-     0.258,
-     0.827
+     0.834,
+     0.475
     ],
     "shot": "c3:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-2",
      "legLP"
     ],
-    "hiddenBy": "the edge of ocean 2 0.38 H before"
+    "hiddenBy": "the edge of ocean 2 0.10 H before"
    }
   },
   {
@@ -403,15 +363,15 @@
     "depthH": 0.208,
     "seen": false,
     "at": [
-     0.461,
-     0.377
+     0.382,
+     0.493
     ],
     "shot": "c0:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-4",
      "legRP"
     ],
-    "hiddenBy": "the edge of ocean 2 0.11 H before"
+    "hiddenBy": "the edge of ocean 2 0.10 H before"
    }
   },
   {
@@ -432,8 +392,8 @@
    "against": "the edge of ocean 2",
    "depthH": 0.207,
    "visibleSec": 0,
-   "hiddenSec": 0.17,
-   "offscreenSec": 0.33,
+   "hiddenSec": 0,
+   "offscreenSec": 0.5,
    "shots": [],
    "walking": true,
    "inContact": false,
@@ -444,49 +404,10 @@
     "depthH": 0.207,
     "seen": false,
     "at": [
-     -0.119,
-     0.693
+     -0.69,
+     1.361
     ],
     "shot": "c0:WIDE:WIDE",
-    "box": [
-     "crew-ritual-assistants-1",
-     "legRP"
-    ]
-   }
-  },
-  {
-   "key": "set|crew-ritual-assistants-1|the edge of ocean 2",
-   "t0": 32,
-   "t1": 32.17,
-   "dur": 0.17,
-   "who": [
-    "crew-ritual-assistants-1"
-   ],
-   "kind": "set",
-   "what": "feet below the surface the edge of ocean 2",
-   "cls": "sink",
-   "parts": [
-    "right leg (foot)"
-   ],
-   "against": "the edge of ocean 2",
-   "depthH": 0.195,
-   "visibleSec": 0,
-   "hiddenSec": 0,
-   "offscreenSec": 0.17,
-   "shots": [],
-   "walking": true,
-   "inContact": false,
-   "deliberate": null,
-   "fault": false,
-   "worst": {
-    "t": 32,
-    "depthH": 0.195,
-    "seen": false,
-    "at": [
-     0.081,
-     1.244
-    ],
-    "shot": "c3:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-1",
      "legRP"
@@ -522,22 +443,22 @@
     "depthH": 0.193,
     "seen": false,
     "at": [
-     0.521,
-     0.422
+     0.455,
+     0.483
     ],
     "shot": "c0:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-2",
      "legLP"
     ],
-    "hiddenBy": "the edge of ocean 2 0.67 H before"
+    "hiddenBy": "the edge of ocean 2 0.53 H before"
    }
   },
   {
    "key": "set|crew-ritual-assistants-1|the edge of ocean 2",
-   "t0": 27.83,
-   "t1": 31.67,
-   "dur": 3.83,
+   "t0": 25.17,
+   "t1": 31.5,
+   "dur": 6.33,
    "who": [
     "crew-ritual-assistants-1"
    ],
@@ -545,31 +466,32 @@
    "what": "feet below the surface the edge of ocean 2",
    "cls": "sink",
    "parts": [
-    "right leg (foot)"
+    "left leg (foot)"
    ],
    "against": "the edge of ocean 2",
-   "depthH": 0.133,
+   "depthH": 0.169,
    "visibleSec": 0,
-   "hiddenSec": 0,
-   "offscreenSec": 3.83,
+   "hiddenSec": 6.33,
+   "offscreenSec": 0,
    "shots": [],
    "walking": true,
    "inContact": false,
    "deliberate": null,
    "fault": false,
    "worst": {
-    "t": 28,
-    "depthH": 0.133,
+    "t": 25.17,
+    "depthH": 0.169,
     "seen": false,
     "at": [
-     0.166,
-     1.159
+     0.155,
+     0.486
     ],
-    "shot": "c3:WIDE:WIDE",
+    "shot": "c2:WIDE:WIDE",
     "box": [
      "crew-ritual-assistants-1",
-     "legRP"
-    ]
+     "legLP"
+    ],
+    "hiddenBy": "the edge of ocean 2 0.12 H before"
    }
   }
  ]
