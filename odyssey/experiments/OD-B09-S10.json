@@ -1,18 +1,18 @@
 {
  "scene": "OD-B09-S10",
  "title": "The Rams: the shore and the offering",
- "take": 4,
+ "take": 5,
  "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
- "hypothesis": "The audit's 23.3 s of visible clipping came from the riders sitting inside the rams, the flock passing through the men and the crew's walks crossing on the cliff path; moving the riders, spreading the herd and clearing the walk lines removes it without changing the performance's timing.",
- "variable": "The blocking only: tools/perform/scenes/OD-B09-S10.js (riders offset [0,2,-56]; HERD spread 0.03, fade 0; leadOut [110,215]; l5 [100,270]), the HERD proc's new fade parameter (tools/perform/intents-creature.js), odyssey/keyframes/OD-B09-S10.json (crewman-1 and crewman-2 absent at K4 and K5), and noHigh on the shots from 50.4 s.",
+ "hypothesis": "The energy audit's fix (take 3: the film ends on Odysseus offering the great ram, not on a still wide) holds on the re-blocked take if its last shot is planned as take 3 planned it.",
+ "variable": "The camera plan only (tools/cinematographer/plans/OD-B09-S10.json): shot 17 restored from take 3's plan (d28a85b0), shot 16 (a close on Odysseus) cut to 63.72 s (take 3's shot 16 was a close on crewman-2, who is no longer on the shore).",
  "held": [
-  "the voice, the captions and the coupled events (timing)",
-  "the scene's tuned parameters (restored after re-authoring)",
-  "the cut"
+  "take 4's blocking and sheet",
+  "shots 0-15 frame for frame from take 4",
+  "the voice, the cut and the captions"
  ],
  "metrics_before": {
-  "take": "take 3 (films/odyssey/takes/OD-B09-S10/take3.mp4)",
-  "clip": "take 3: 23.3 s visible (odyssey/metis/clip/AUDIT.md); first r2 render: 0.7 s (crewman-1 + crewman-2 at 53-55 s), refused at the gate"
+  "take": "take 4 (films/odyssey/takes/OD-B09-S10/take4.mp4)",
+  "clip": "take 4: 0.0 s visible, but ending on a still wide of the ship and island (take 3's offering shot lost in the re-plan); take 3: 23.3 s visible"
  },
  "metrics_after": {
   "seconds": 72.42,
@@ -26,10 +26,10 @@
    "test": "no one runs through anything",
    "passed": true,
    "evidence": "clip/OD-B09-S10.json, evidence/OD-B09-S10/contact.jpg, close-reblock.jpg",
-   "note": "tools/metis/clip.js on the take's own cameras: 0 visible intervals (2.5 s offscreen, hidden or brief)"
+   "note": "tools/metis/clip.js on take 5's own cameras: 0 visible intervals"
   }
  ],
- "result": "Kept as the new take. No one passes through a ram or another man on screen. Loose: two crewmen are missing from the shore at the end; a dark frame near 18 s inside the cave; the flock-to-the-ship shots (about 54-58 s) look down at a steep three-quarter angle on the flock (not overhead, but high), logged for the camera pass.",
+ "result": "Kept as take 5. The film ends on Odysseus at the fire with the great ram, at eye level, moving (the solver eased the MID to a near wide with the crew either side, as in take 3). Loose: a crewman's red shoulder is cut by the left edge of the frame in the last shot; two crewmen are still missing from the shore.",
  "keep": true,
  "history": [
   {
@@ -92,6 +92,40 @@
     }
    },
    "result": "Kept, for the ending only. The film now ends on the offering: Odysseus at the fire with his arms raised to Zeus, the crew either side, from 63.7 s to the end (motion 0.15 -> 3.75, still 0.96 -> 0.27); the last two seconds settle into his held pose (the SACRIFICE ends at 68.9 s), an ending held on a figure, not an empty shore. Not done: shot 14, 'drive the flock to the ship, and row away' (motion 0.32): planned as an ACTION wide on the men driving, the only legal camera was out on the water and the flock a few pixels, so it was left as take 2 has it; nobody rows in the scene's performance (that would be a performance variable).",
+   "keep": true
+  },
+  {
+   "scene": "OD-B09-S10",
+   "title": "The Rams: the shore and the offering",
+   "take": 4,
+   "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+   "hypothesis": "The audit's 23.3 s of visible clipping came from the riders sitting inside the rams, the flock passing through the men and the crew's walks crossing on the cliff path; moving the riders, spreading the herd and clearing the walk lines removes it without changing the performance's timing.",
+   "variable": "The blocking only: tools/perform/scenes/OD-B09-S10.js (riders offset [0,2,-56]; HERD spread 0.03, fade 0; leadOut [110,215]; l5 [100,270]), the HERD proc's new fade parameter (tools/perform/intents-creature.js), odyssey/keyframes/OD-B09-S10.json (crewman-1 and crewman-2 absent at K4 and K5), and noHigh on the shots from 50.4 s.",
+   "held": [
+    "the voice, the captions and the coupled events (timing)",
+    "the scene's tuned parameters (restored after re-authoring)",
+    "the cut"
+   ],
+   "metrics_before": {
+    "take": "take 3 (films/odyssey/takes/OD-B09-S10/take3.mp4)",
+    "clip": "take 3: 23.3 s visible (odyssey/metis/clip/AUDIT.md); first r2 render: 0.7 s (crewman-1 + crewman-2 at 53-55 s), refused at the gate"
+   },
+   "metrics_after": {
+    "seconds": 72.42,
+    "fps": 12,
+    "shots": 18,
+    "shots_legal": 18,
+    "clip": "CLIP OD-B09-S10 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 2.5 s; gate 0.25 passed"
+   },
+   "checks": [
+    {
+     "test": "no one runs through anything",
+     "passed": true,
+     "evidence": "clip/OD-B09-S10.json, evidence/OD-B09-S10/contact.jpg, close-reblock.jpg",
+     "note": "tools/metis/clip.js on the take's own cameras: 0 visible intervals (2.5 s offscreen, hidden or brief)"
+    }
+   ],
+   "result": "Kept as the new take. No one passes through a ram or another man on screen. Loose: two crewmen are missing from the shore at the end; a dark frame near 18 s inside the cave; the flock-to-the-ship shots (about 54-58 s) look down at a steep three-quarter angle on the flock (not overhead, but high), logged for the camera pass.",
    "keep": true
   }
  ]

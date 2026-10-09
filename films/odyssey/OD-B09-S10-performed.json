@@ -66,7 +66,7 @@
     "id": "K5",
     "t": 63.88,
     "win": [
-     61.37,
+     61.38,
      64.95
     ]
    }
@@ -75,18 +75,18 @@
    "odysseus"
   ],
   "shots": {
-   "WIDE": 2,
+   "WIDE": 1,
    "GIANT": 9,
    "ACTION": 3,
    "REACT": 1,
-   "HOT": 3
+   "HOT": 4
   },
   "cine": {
    "time": {
-    "grid": 5,
-    "inside": 0.2,
-    "seen": 14.7,
-    "clutter": 6,
+    "grid": 4,
+    "inside": 0.4,
+    "seen": 13.7,
+    "clutter": 6.4,
     "pose": 0
    },
    "scene": "OD-B09-S10",
@@ -109,7 +109,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 485.9,
+   "solvedIn": 466.9,
    "shots": [
     {
      "i": 0,
@@ -633,7 +633,7 @@
       "pos": [
        84,
        120,
-       146.4
+       146.5
       ],
       "fov": 46,
       "key": false,
@@ -645,10 +645,10 @@
      "keyCamera": "L4 foreground covers 33%",
      "rejected": {
       "L4 foreground covers n%": 44,
-      "L1 near plane in a set part": 68,
+      "L1 near plane in a set part": 69,
       "L2 lead hidden": 64,
       "L1 inside a set part": 5,
-      "L1 near polyphemus (inside its sphere)": 35,
+      "L1 near polyphemus (inside its sphere)": 34,
       "L1 in polyphemus": 3,
       "L1 in lead": 6,
       "L3 head": 12,
@@ -679,7 +679,7 @@
       "sd": 0.224,
       "dark": 0.04,
       "white": 0.03,
-      "one": 0.29
+      "one": 0.28
      },
      "lumaRefused": 0
     },
@@ -872,7 +872,7 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       22.1,
+       22,
        21.6,
        248
       ],
@@ -950,8 +950,8 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       537.7,
-       57.3,
+       537.8,
+       57.4,
        245.7
       ],
       "fov": 38,
@@ -1040,8 +1040,8 @@
      "keyCamera": null,
      "rejected": {
       "L4 foreground covers n%": 47,
-      "L2 polyphemus hidden": 82,
-      "L1 near plane in a set part": 18,
+      "L2 polyphemus hidden": 83,
+      "L1 near plane in a set part": 17,
       "L1 inside a set part": 13,
       "L3 the back": 3,
       "L4 the mid needs more than the frame": 17
@@ -1104,7 +1104,7 @@
      "lineHeld": true,
      "camera": {
       "pos": [
-       22.1,
+       22,
        21.6,
        248
       ],
@@ -1232,7 +1232,7 @@
       "sd": 0.189,
       "dark": 0.02,
       "white": 0.01,
-      "one": 0.42
+      "one": 0.43
      },
      "lumaRefused": 0
     },
@@ -1409,7 +1409,7 @@
      "clutterFar": 0.12,
      "luma": {
       "mean": 0.474,
-      "sd": 0.296,
+      "sd": 0.297,
       "dark": 0.22,
       "white": 0.01,
       "one": 0.56
@@ -1419,11 +1419,11 @@
     {
      "i": 16,
      "t0": 61.92,
-     "t1": 67,
+     "t1": 63.72,
      "kind": "HOT",
-     "size": "MID",
+     "size": "WIDE",
      "planned": "CLOSE",
-     "eased": "the close had no legal camera: the primary alone, mid",
+     "eased": "no legal camera at the planned size: a wide on the primary",
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -1439,56 +1439,62 @@
       "lead",
       "odysseus"
      ],
-     "side": -1,
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       231.5,
-       58.7,
-       65.8
+       218.7,
+       105,
+       112.6
       ],
-      "fov": 38,
+      "fov": 46,
       "key": false,
-      "az": 2.75,
-      "travelling": true
+      "az": 1.57,
+      "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": null,
+     "keyCamera": "L3 the back of odysseus in a wide on his line",
      "rejected": {
-      "L1 near lead (inside its sphere)": 47,
-      "L2 odysseus hidden": 18,
-      "L4 foreground covers n%": 7,
-      "L3 the back": 42,
-      "L1 in lead": 6,
-      "L1 in crewman-6": 19,
-      "L1 in crewman-4": 5,
-      "L1 too near the face": 35,
-      "L1 near f2 (inside its sphere)": 1,
-      "L4 an empty frame (n% sky)": 1,
-      "L1 near plane in a set part": 5
+      "L3 the back": 71,
+      "L1 near lead (inside its sphere)": 41,
+      "L1 in lead": 15,
+      "L1 in crewman-6": 4,
+      "L1 near plane in a set part": 5,
+      "L2 odysseus hidden": 1,
+      "L4 foreground covers n%": 2,
+      "L1 near f0 (inside its sphere)": 3,
+      "L1 in f0": 2,
+      "L1 near f1 (inside its sphere)": 5,
+      "L1 near f7 (inside its sphere)": 1,
+      "L1 in f4": 1,
+      "L1 near f2 (inside its sphere)": 5,
+      "L1 in f1": 1,
+      "L1 in f2": 2,
+      "L3 head": 9,
+      "L1 too near the face": 4,
+      "L3 odysseus behind the lens": 1
      },
      "rejectedPlanned": {
-      "L1 near lead (inside its sphere)": 43,
-      "L2 odysseus hidden": 9,
-      "L4 foreground covers n%": 20,
-      "L1 in crewman-3": 2,
-      "L1 near plane in a set part": 8,
-      "L3 the back": 20,
-      "L1 in lead": 11,
-      "L2 body": 1,
-      "L1 in crewman-4": 4,
-      "L1 too near the face": 62,
-      "L1 in crewman-6": 12
+      "L1 near lead (inside its sphere)": 50,
+      "L1 in lead": 10,
+      "L3 the back": 40,
+      "L4 an empty frame (n% sky)": 1,
+      "L1 near f0 (inside its sphere)": 2,
+      "L1 near f1 (inside its sphere)": 2,
+      "L1 near f2 (inside its sphere)": 9,
+      "L1 in f1": 1,
+      "L1 in f2": 2,
+      "L1 too near the face": 60,
+      "L3 head": 6,
+      "L3 face": 9
      },
-     "candidates": 192,
-     "legalCandidates": 6,
+     "candidates": 193,
+     "legalCandidates": 20,
      "samples": [
-      64.46,
+      62.82,
       62.02,
-      66.9,
-      63.17,
-      65.67
+      63.62
      ],
      "checks": [
       "L1 not inside geometry",
@@ -1498,88 +1504,109 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.45,
-     "headV": 0.341,
+     "facing": 0.99,
+     "headV": 0.397,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.651,
-      "sd": 0.225,
-      "dark": 0.01,
+      "mean": 0.661,
+      "sd": 0.216,
+      "dark": 0.03,
       "white": 0.05,
-      "one": 0.29
+      "one": 0.37
      },
      "lumaRefused": 0
     },
     {
      "i": 17,
-     "t0": 67,
+     "t0": 63.72,
      "t1": 72.44,
-     "kind": "WIDE",
+     "kind": "HOT",
      "size": "WIDE",
-     "planned": "WIDE",
-     "eased": null,
-     "primary": "lead",
+     "planned": "MID",
+     "eased": "the mid had no legal camera: the primary alone, wide",
+     "primary": "odysseus",
      "subjects": [
-      "lead",
-      "odysseus",
-      "f0"
+      "odysseus"
      ],
      "why": {
-      "cut": "the rhythm (mid, longest 6 s): cut where the heat changes most",
-      "rule": "R4 cold: hold wide",
-      "heat": 0.18,
-      "contrast": 0.18,
-      "hot": "lead"
+      "cut": "take 3 (restored after the re-block)",
+      "rule": "the sacrifice of the great ram, on him",
+      "hot": "odysseus"
      },
-     "line": null,
-     "side": 0,
+     "line": [
+      "odysseus",
+      "lead"
+     ],
+     "side": 1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       352.2,
-       65.8,
-       441
+       239,
+       55.9,
+       60.4
       ],
       "fov": 75,
       "key": false,
-      "az": 0.79,
-      "travelling": false
+      "az": 3.14,
+      "travelling": true
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L3 head of lead cut",
+     "keyCamera": "L3 the back of odysseus in a wide on his line",
      "rejected": {
-      "L3 head": 1,
-      "L4 an empty frame (n% sky)": 41,
-      "L2 lead hidden": 92,
-      "L4 foreground covers n%": 16,
-      "L1 near plane in a set part": 4
+      "L2 odysseus hidden": 41,
+      "L1 near plane in a set part": 20,
+      "L3 the back": 65,
+      "L1 inside a set part": 1,
+      "L1 near lead (inside its sphere)": 27,
+      "L1 in lead": 9,
+      "L4 foreground covers n%": 7,
+      "L1 in crewman-3": 5,
+      "L1 in crewman-6": 7,
+      "L1 travelling: near plane in a set part at 64.27 s": 1
+     },
+     "rejectedPlanned": {
+      "L2 odysseus hidden": 104,
+      "L3 the back": 29,
+      "L1 near plane in a set part": 22,
+      "L4 foreground covers n%": 27,
+      "L2 body": 3,
+      "L1 in f0": 2,
+      "L1 near f0 (inside its sphere)": 1,
+      "L1 inside a set part": 1,
+      "L1 in f1": 2,
+      "L1 near f1 (inside its sphere)": 1
      },
      "candidates": 193,
-     "legalCandidates": 39,
+     "legalCandidates": 10,
      "samples": [
-      69.72,
-      67.1,
+      68.08,
+      63.82,
       72.34,
-      68.25,
-      70.75
+      64.97,
+      66.22,
+      67.47,
+      68.72,
+      69.97,
+      71.22
      ],
      "checks": [
       "L1 not inside geometry",
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground"
+      "L4 framing and foreground",
+      "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.91,
-     "headV": 0.494,
+     "facing": 1,
+     "headV": 0.353,
      "clutterFar": 0.03,
      "luma": {
-      "mean": 0.698,
-      "sd": 0.121,
+      "mean": 0.669,
+      "sd": 0.153,
       "dark": 0,
-      "white": 0.03,
-      "one": 0.47
+      "white": 0.01,
+      "one": 0.39
      },
      "lumaRefused": 0
     }
@@ -1732,15 +1759,15 @@
   },
   {
    "t": 62,
-   "shot": "c16:HOT:MID",
+   "shot": "c16:HOT:WIDE",
    "kind": "HOT",
    "key": "K4"
   },
   {
-   "t": 67,
-   "shot": "c17:WIDE:WIDE",
-   "kind": "WIDE",
-   "key": "K5"
+   "t": 63.75,
+   "shot": "c17:HOT:WIDE",
+   "kind": "HOT",
+   "key": "K4"
   }
  ],
  "sound": {
