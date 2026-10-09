@@ -49,8 +49,8 @@
     "id": "K4",
     "t": 16.58,
     "win": [
-     13.45,
-     17.92
+     13.43,
+     17.93
     ]
    }
   ],
@@ -59,16 +59,15 @@
    "eumaeus"
   ],
   "shots": {
-   "WIDE": 1,
-   "GIANT": 1,
+   "WIDE": 2,
    "ACTION": 1
   },
   "cine": {
    "time": {
-    "grid": 1.1,
-    "inside": 0.1,
-    "seen": 2.4,
-    "clutter": 0.7,
+    "grid": 1.6,
+    "inside": 0.3,
+    "seen": 3.6,
+    "clutter": 1.4,
     "pose": 0
    },
    "scene": "OD-B14-S01",
@@ -90,7 +89,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 42.5,
+   "solvedIn": 47.8,
    "shots": [
     {
      "i": 0,
@@ -118,43 +117,50 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       132.7,
-       53.2,
-       178.3
+       174.5,
+       53.1,
+       161
       ],
-      "fov": 75,
+      "fov": 63,
       "key": false,
       "az": 1.96,
       "travelling": false
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "legal",
+     "keyCamera": "L2 dog2 hidden by odysseus-as-beggar",
      "rejected": {
-      "L2 dog2 hidden": 114,
+      "L2 dog2 hidden": 72,
       "L1 under the set": 13,
-      "L1 near plane in a set part": 20,
-      "L4 foreground covers n%": 30,
+      "L1 near plane in a set part": 19,
+      "L4 foreground covers n%": 22,
       "L1 in eumaeus": 1,
       "L1 inside the staged prop pig1": 3,
       "L1 inside the staged prop pig3": 3,
       "L1 inside the staged prop pig2": 6,
-      "L3 head": 18,
-      "L1 in part 1729": 2,
-      "L1 near dog2 (a wide inside its sphere: the fleece fills the frame)": 10,
+      "L1 in part 1820": 2,
+      "L1 near dog3 (inside its sphere)": 4,
+      "L1 in dog3": 1,
+      "L1 near dog2 (a wide inside its sphere: the fleece fills the frame)": 13,
       "L1 near dog1 (a wide inside its sphere: the fleece fills the frame)": 14,
-      "L1 near dog3 (inside its sphere)": 1,
+      "L3 head": 6,
       "L1 in dog2": 1,
       "L3 dog2 behind the lens": 1,
       "L1 near dog0 (a wide inside its sphere: the fleece fills the frame)": 1,
       "L1 in odysseus-as-beggar": 5
      },
-     "candidates": 257,
-     "legalCandidates": 14,
+     "candidates": 193,
+     "legalCandidates": 6,
      "samples": [
       5,
       0.1,
-      9.9
+      9.9,
+      1.25,
+      2.5,
+      3.75,
+      6.25,
+      7.5,
+      8.75
      ],
      "checks": [
       "L1 not inside geometry",
@@ -163,13 +169,13 @@
       "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": -0.83,
-     "headV": 0.531,
-     "clutterFar": 0,
+     "facing": -0.72,
+     "headV": 0.524,
+     "clutterFar": 0.02,
      "luma": {
-      "mean": 0.644,
-      "sd": 0.237,
-      "dark": 0.09,
+      "mean": 0.633,
+      "sd": 0.247,
+      "dark": 0.08,
       "white": 0.01,
       "one": 0.48
      },
@@ -179,75 +185,77 @@
      "i": 1,
      "t0": 10,
      "t1": 16.97,
-     "kind": "GIANT",
+     "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
      "eased": null,
-     "primary": "dog0",
+     "primary": "eumaeus",
      "subjects": [
-      "dog0",
       "eumaeus",
+      "dog0",
       "odysseus-as-beggar"
      ],
      "why": {
-      "cut": "the creature acts: WALK (dFlee0)",
-      "rule": "R8 the creature acts (WALK dFlee0): low and wide with eumaeus, odysseus-as-beggar in frame for size; the giant lies on the floor: the lens above him, the men beside him for size",
-      "heat": 1.14,
-      "contrast": 0.71,
+      "cut": "the dogs scattered (hand: eye level, not over the lying dog)",
+      "rule": "Eumaeus scatters the dogs with stones, a key action: an eye-level wide on him, the dogs and the stranger",
+      "heat": 1.21,
+      "contrast": 0.78,
       "hot": "eumaeus"
      },
-     "line": [
-      "eumaeus",
-      "dog0"
-     ],
-     "side": -1,
+     "line": null,
+     "side": 0,
      "lineHeld": false,
      "camera": {
       "pos": [
-       205.7,
-       302.3,
-       23.7
+       -268.4,
+       127.9,
+       188
       ],
-      "fov": 58,
+      "fov": 63,
       "key": false,
-      "az": 2.36,
-      "travelling": false
+      "az": 4.71,
+      "travelling": true
      },
      "legal": true,
      "relaxed": false,
-     "keyCamera": "L2 dog0 hidden by a set part",
+     "keyCamera": "legal",
      "rejected": {
-      "L2 dog0 hidden": 62,
-      "L3 head": 57,
-      "L4 foreground covers n%": 20,
-      "L1 near plane in a set part": 2,
-      "L3 face": 1,
-      "L1 too near the face": 1
+      "L4 an empty frame (n% sky)": 4,
+      "L2 eumaeus hidden": 57,
+      "L4 foreground covers n%": 87,
+      "L1 near plane in a set part": 8,
+      "L1 inside the staged prop pig0": 1,
+      "L1 inside the staged prop pig1": 2,
+      "L1 near dog3 (inside its sphere)": 1,
+      "L2 body": 1
      },
      "candidates": 193,
-     "legalCandidates": 50,
+     "legalCandidates": 32,
      "samples": [
       13.48,
       10.1,
-      16.87
+      16.87,
+      11.25,
+      12.5,
+      15,
+      16.25
      ],
      "checks": [
       "L1 not inside geometry",
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
+      "L4 framing and foreground"
      ],
      "failed": [],
-     "facing": -0.24,
-     "headV": 0.66,
-     "clutterFar": 0,
+     "facing": 0.74,
+     "headV": 0.377,
+     "clutterFar": 0.09,
      "luma": {
-      "mean": 0.712,
-      "sd": 0.21,
+      "mean": 0.703,
+      "sd": 0.151,
       "dark": 0,
-      "white": 0.15,
-      "one": 0.52
+      "white": 0.03,
+      "one": 0.54
      },
      "lumaRefused": 0
     },
@@ -288,20 +296,25 @@
      "relaxed": false,
      "keyCamera": "legal",
      "rejected": {
-      "L2 body": 3,
-      "L4 foreground covers n%": 19,
+      "L2 body": 2,
+      "L4 foreground covers n%": 20,
       "L1 near plane in a set part": 20,
-      "L2 eumaeus hidden": 14,
-      "L1 in odysseus-as-beggar": 1,
+      "L2 eumaeus hidden": 12,
+      "L1 in odysseus-as-beggar": 2,
       "L1 too near the face": 7
      },
-     "candidates": 257,
-     "legalCandidates": 193,
+     "candidates": 193,
+     "legalCandidates": 130,
      "samples": [
       21.07,
       17.07,
       25.08,
-      20.38
+      20.38,
+      18.22,
+      19.47,
+      21.97,
+      23.22,
+      24.47
      ],
      "checks": [
       "L1 not inside geometry",
@@ -314,11 +327,11 @@
      "headV": 0.374,
      "clutterFar": 0.02,
      "luma": {
-      "mean": 0.672,
-      "sd": 0.198,
+      "mean": 0.673,
+      "sd": 0.197,
       "dark": 0,
       "white": 0.04,
-      "one": 0.44
+      "one": 0.43
      },
      "lumaRefused": 0
     }
@@ -363,8 +376,8 @@
   },
   {
    "t": 10,
-   "shot": "c1:GIANT:WIDE",
-   "kind": "GIANT",
+   "shot": "c1:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K3"
   },
   {
