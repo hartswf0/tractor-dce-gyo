@@ -76,18 +76,17 @@
   ],
   "shots": {
    "WIDE!": 1,
-   "WIDE": 1,
-   "HOT": 1,
-   "WIDE pinned": 2,
-   "HOT pinned": 2,
+   "WIDE": 3,
+   "HOT": 2,
+   "HOT!": 1,
    "REACT!": 1
   },
   "cine": {
    "time": {
-    "grid": 4.5,
-    "inside": 0.4,
-    "seen": 1.3,
-    "clutter": 0.7,
+    "grid": 6.2,
+    "inside": 0.6,
+    "seen": 2.7,
+    "clutter": 1.3,
     "pose": 0
    },
    "scene": "OD-B05-S05",
@@ -110,7 +109,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 84.2,
+   "solvedIn": 103.5,
    "shots": [
     {
      "i": 0,
@@ -139,8 +138,8 @@
      "camera": {
       "pos": [
        11.9,
-       96.4,
-       125.8
+       96.3,
+       125.6
       ],
       "fov": 63,
       "key": false,
@@ -151,8 +150,8 @@
      "relaxed": false,
      "keyCamera": "L2 odysseus hidden by a set part",
      "rejected": {
-      "L2 odysseus hidden": 112,
-      "L1 inside the staged prop raft": 101,
+      "L2 odysseus hidden": 111,
+      "L1 inside the staged prop raft": 102,
       "L3 head": 44
      },
      "candidates": 257,
@@ -174,9 +173,9 @@
      "headV": 0.285,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.368,
+      "mean": 0.362,
       "sd": 0.26,
-      "dark": 0.2,
+      "dark": 0.21,
       "white": 0,
       "one": 0.4
      },
@@ -211,8 +210,8 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       136.1,
-       71.5,
+       135.8,
+       71.4,
        62.3
       ],
       "fov": 46,
@@ -252,8 +251,8 @@
      "clutterFar": 0.02,
      "luma": {
       "mean": 0.128,
-      "sd": 0.224,
-      "dark": 0.7,
+      "sd": 0.222,
+      "dark": 0.69,
       "white": 0,
       "one": 0.68
      },
@@ -345,12 +344,10 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "pinned": true,
+     "eased": "the wide had no legal camera: the primary alone, wide",
      "primary": "odysseus",
      "subjects": [
-      "odysseus",
-      "poseidon",
-      "ino-leucothea"
+      "odysseus"
      ],
      "why": {
       "cut": "the rhythm (slow, longest 10 s): cut where the heat changes most",
@@ -359,33 +356,72 @@
       "contrast": 1.16,
       "hot": "odysseus"
      },
+     "line": [
+      "poseidon",
+      "odysseus"
+     ],
+     "side": 1,
+     "lineHeld": false,
      "camera": {
       "pos": [
        -94.8,
        101.6,
        10.9
       ],
-      "target": [
-       0,
-       40,
-       85
-      ],
       "fov": 46,
-      "key": false
+      "key": false,
+      "az": 4.32,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.275,
-      "sd": 0.239,
-      "dark": 0.3,
-      "white": 0.01,
-      "one": 0.27
+     "relaxed": false,
+     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "rejected": {
+      "L3 the back": 63,
+      "L2 odysseus hidden": 10,
+      "L1 inside the staged prop raft": 150,
+      "L3 head": 32
      },
-     "inFrame": {
-      "odysseus": false,
-      "poseidon": false
-     }
+     "rejectedPlanned": {
+      "L2 odysseus hidden": 211,
+      "L4 foreground covers n%": 19,
+      "L3 the back": 9,
+      "L2 body": 5,
+      "L1 inside the staged prop sp1": 3,
+      "L1 inside the staged prop sp3": 3,
+      "L1 inside the staged prop sp2": 4,
+      "L3 head": 3
+     },
+     "candidates": 257,
+     "legalCandidates": 2,
+     "samples": [
+      19.89,
+      17.02,
+      22.76,
+      18.17,
+      19.42,
+      20.67,
+      21.92
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.91,
+     "headV": 0.29,
+     "clutterFar": 0.01,
+     "luma": {
+      "mean": 0.15,
+      "sd": 0.258,
+      "dark": 0.7,
+      "white": 0,
+      "one": 0.68
+     },
+     "lumaRefused": 1
     },
     {
      "i": 4,
@@ -394,7 +430,7 @@
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "pinned": true,
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
       "odysseus",
@@ -408,34 +444,64 @@
       "contrast": 1.27,
       "hot": "odysseus"
      },
+     "line": [
+      "poseidon",
+      "odysseus"
+     ],
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
        -109.3,
        39.3,
        -15.6
       ],
-      "target": [
-       -30,
-       20,
-       100
-      ],
       "fov": 46,
-      "key": false
+      "key": false,
+      "az": 3.53,
+      "travelling": false
      },
-     "legal": false,
-     "failed": [
-      "L1 inside inside the staged prop raft"
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": "L3 the back of odysseus in a wide on his line",
+     "rejected": {
+      "L3 the back": 98,
+      "L4 foreground covers n%": 16,
+      "L1 in part construction-frame": 24,
+      "L1 inside the staged prop raft": 86,
+      "L1 inside the staged prop sp2": 3,
+      "L2 odysseus hidden": 11,
+      "L2 body": 7,
+      "L1 near plane in a set part": 2
+     },
+     "candidates": 257,
+     "legalCandidates": 10,
+     "samples": [
+      25.51,
+      22.96,
+      28.07,
+      24.11,
+      26.61
      ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.99,
+     "headV": 0.418,
+     "clutterFar": 0.03,
      "luma": {
-      "mean": 0.325,
-      "sd": 0.286,
-      "dark": 0.34,
+      "mean": 0.17,
+      "sd": 0.241,
+      "dark": 0.57,
       "white": 0,
-      "one": 0.31
+      "one": 0.53
      },
-     "inFrame": {
-      "odysseus": true
-     }
+     "lumaRefused": 0
     },
     {
      "i": 5,
@@ -444,7 +510,7 @@
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "pinned": true,
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -456,34 +522,53 @@
       "contrast": 0.73,
       "hot": "odysseus"
      },
+     "line": [
+      "ino-leucothea",
+      "odysseus"
+     ],
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
        94.2,
        86.9,
        37.1
       ],
-      "target": [
-       -7,
-       60,
-       82
-      ],
       "fov": 38,
-      "key": false
+      "key": false,
+      "az": 1.96,
+      "travelling": false
      },
      "legal": false,
-     "failed": [
-      "L1 inside inside the staged prop raft"
-     ],
-     "luma": {
-      "mean": 0.223,
-      "sd": 0.26,
-      "dark": 0.48,
-      "white": 0,
-      "one": 0.47
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L2 odysseus hidden": 9,
+      "L1 inside the staged prop raft": 161,
+      "L1 inside the staged prop sp2": 5,
+      "L1 near plane in a set part": 22,
+      "L3 the back": 11,
+      "L3 face": 48
      },
-     "inFrame": {
-      "odysseus": true
-     }
+     "candidates": 256,
+     "legalCandidates": 0,
+     "samples": [
+      31.54,
+      28.27,
+      34.82,
+      29.42,
+      30.67,
+      33.17
+     ],
+     "checks": [],
+     "failed": [
+      "L3 the back of odysseus's head"
+     ],
+     "facing": 0.96,
+     "headV": 0.343,
+     "clutterFar": 0.12,
+     "luma": null,
+     "lumaRefused": 0
     },
     {
      "i": 6,
@@ -512,9 +597,9 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       76.6,
-       95.3,
-       -112.3
+       76.4,
+       95.1,
+       -112.2
       ],
       "fov": 32,
       "key": false,
@@ -551,8 +636,8 @@
      "headV": 0.343,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.173,
-      "sd": 0.235,
+      "mean": 0.174,
+      "sd": 0.24,
       "dark": 0.58,
       "white": 0,
       "one": 0.56
@@ -566,7 +651,7 @@
      "kind": "HOT",
      "size": "MID",
      "planned": "MID",
-     "pinned": true,
+     "eased": null,
      "primary": "odysseus",
      "subjects": [
       "odysseus"
@@ -578,32 +663,64 @@
       "contrast": 0.43,
       "hot": "odysseus"
      },
+     "line": [
+      "poseidon",
+      "odysseus"
+     ],
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
        -75.6,
        45,
        -140.4
       ],
-      "target": [
-       10,
-       38,
-       -170
-      ],
       "fov": 38,
-      "key": false
+      "key": false,
+      "az": 5.11,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.164,
-      "sd": 0.255,
-      "dark": 0.66,
-      "white": 0,
-      "one": 0.65
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 inside the staged prop raft": 7,
+      "L3 the back": 81,
+      "L1 in part construction-frame": 8,
+      "L3 face": 48,
+      "L1 too near the face": 53,
+      "L4 the mid needs more than the frame": 11
      },
-     "inFrame": {
-      "odysseus": true
-     }
+     "candidates": 256,
+     "legalCandidates": 48,
+     "samples": [
+      43.58,
+      40.02,
+      47.15,
+      41.17,
+      42.42,
+      44.92,
+      46.17
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.99,
+     "headV": 0.341,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.237,
+      "sd": 0.286,
+      "dark": 0.52,
+      "white": 0,
+      "one": 0.51
+     },
+     "lumaRefused": 0
     }
    ]
   },
