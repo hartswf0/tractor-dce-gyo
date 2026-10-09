@@ -20,7 +20,8 @@
 
    Allowed, not faults:
      - the score's contacts while they last (+-0.5/0.75 s): GRIP, EMBRACE, HOLD_ON, SEIZE, TEND, CARRY, TAKE,
-       OFFER, STAB, PUNCH, THRUST, SWING, STRUGGLE, CARESS, FAWN, CLING, WEEP, LEAD, FOLLOW, ROPE, BIND, SEAL, CHANGE, between the actor and its target or anyone its params name (CARRY's `with`, SEAL's `ears`): their limbs on the
+       OFFER, STAB, PUNCH, THRUST, SWING, STRUGGLE, CARESS, FAWN, CLING, WEEP, LEAD, FOLLOW, ROPE, BIND, SEAL, CHANGE, EAT (food to
+       the mouth: a giant's jaw on the man in his fist), between the actor and its target or anyone its params name (CARRY's `with`, SEAL's `ears`): their limbs on the
        other's body are not counted, their cores may meet up to 0.12 H, heads up to 0.07 H (cheek to cheek, never head through head)
      - a rider and its carrier (OdysseyCreatures.sample riders: a man under a ram, in a giant's fist)
      - shades (keyframes `shades` or a blocking entry's `shade: true`): reported apart, as deliberate, never counted
@@ -72,6 +73,8 @@
                  Tuning: the limb tolerance went 0.08 -> 0.12 H (an arm's box is loose: a raised arm by a neighbour's face flagged in
                  OD-B06-S03 at 0.09 H), the sole 0.05 -> 0.10 H (a walking foot on a floor of tiles and plates flagged at one plate), a
                  seated figure 0.15 H (rowers' legs on the Cyclops ship's benches at 0.11 H, behind the gunwale).
+     9 October: EAT added to the scored contacts (OD-B09-S08: the giant's EAT on crewman-1 and crewman-2 at dawn read as 'body
+                 through a creature', crewman-1's head in the jaw, 19.5-21.3 s; the eating is the scene's own action, a checker gap).
    Limits: boxes, not meshes (a hand on a hip is a box in a box, so limbs get the widest tolerance; a creature's node box is
    looser than its shape); hair and hats count as the head, while things held, capes, weapons and shields are not bodies;
    creature against creature and creature against the set are not checked; a set part that is not a closed solid (one sheet
@@ -94,7 +97,7 @@ const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i
 const STEP = +opt('step', 1 / 6), [W, H] = opt('size', '640x360').split('x').map(Number), NST = has('no-stills') ? 0 : +opt('stills', 3);
 const OUT = path.resolve(ROOT, opt('out', 'odyssey/metis/clip')), EVD = path.resolve(ROOT, opt('evidence', 'odyssey/metis/evidence')), AT = opt('at', null), GATE = opt('gate', null);
 const TOL = { headHead: 0.04, core: 0.05, limb: 0.12, legs: 0.10, creature: 0.08, headHeadContact: 0.07, coreContact: 0.12, set: 0.06, legSet: 0.09, sink: 0.10, seat: 0.15, water: 0.10 };
-const CONTACT = ['GRIP', 'EMBRACE', 'HOLD_ON', 'SEIZE', 'TEND', 'CARRY', 'TAKE', 'OFFER', 'STAB', 'PUNCH', 'THRUST', 'SWING', 'STRUGGLE', 'CARESS', 'FAWN', 'CLING', 'WEEP', 'LEAD', 'FOLLOW', 'ROPE', 'BIND', 'SEAL', 'CHANGE'];
+const CONTACT = ['GRIP', 'EMBRACE', 'HOLD_ON', 'SEIZE', 'TEND', 'CARRY', 'TAKE', 'OFFER', 'STAB', 'PUNCH', 'THRUST', 'SWING', 'STRUGGLE', 'CARESS', 'FAWN', 'CLING', 'WEEP', 'LEAD', 'FOLLOW', 'ROPE', 'BIND', 'SEAL', 'CHANGE', 'EAT'];
 const WET = ['SWIM', 'DROWN', 'RIDE', 'CLIMB'];
 const MIN_VIS = 0.25;
 let capture = false;
