@@ -64,7 +64,7 @@ module.exports = function author(M, X) {
   /* the flock out, the stone rolled aside and back */
   const tOut = c.out || s3 - 3.5;
   gi({ id: 'gStone', kind: 'MOVE_STONE', t0: q(tOut), t1: q(tOut) + 2.2, target: stone, label: 'rolls the stone aside, drives the flock out, seals it again', params: { to: [stone[0] + 70 * sc, stone[2]], object: 'door-stone' }, because: [{ id: 'sOut' }] });
-  const rams = ['ram1', 'ram2', 'ram3'], rK2 = { ram1: [-150, 30, Math.PI], ram2: [40, 130, Math.PI], ram3: [90, 160, 3] }, rK5 = { ram1: [120, 165, 0], ram2: [-150, 30, 1] };
+  const rams = ['ram1', 'ram2', 'ram3'], rK2 = { ram1: [-10, 15, Math.PI], ram2: [40, 130, Math.PI], ram3: [0, 70, 3] }, rK5 = { ram1: [120, 165, 0], ram2: [-150, 30, 1] };
   rams.forEach((r, j) => { const [x, z, h] = rK2[r], y = fl(x, z); creatures[r] = { kind: 'ram', scale: 1.5 * sc, colour: r === 'ram3' ? 'black' : 'white', at: [x, y, z, h], floor: y, present: rK5[r] ? [[s2, s3], [s5, T + 1]] : [[s2, s3]], procs: [], channels: {} };
     intents.push({ id: 'rOut' + j, actor: r, kind: 'WALK', t0: q(tOut) + 0.6 + 0.4 * j, t1: s3 - 0.2, label: 'out past the stone to pasture', params: { path: [[q(tOut) + 0.6 + 0.4 * j, x, z], [s3 - 0.2, stone[0] + 10 * j, stone[2] + 90]], gait: 'walk' }, because: [{ id: 'gStone' }] });
     if (rK5[r]) { const [x5, z5, h5] = rK5[r], y5 = fl(x5, z5); Object.assign(creatures[r].channels, rootSpan('k5', s5, T + 1, [x5, y5, z5, h5])); intents.push({ id: 'rG' + j, actor: r, kind: 'GRAZE', t0: s5 + 1, t1: T, label: 'back in the fold', because: [{ id: 'sEve' }] }); } });
