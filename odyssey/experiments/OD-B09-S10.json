@@ -1,62 +1,132 @@
 {
  "scene": "OD-B09-S10",
  "title": "The Rams: the shore and the offering",
- "take": 3,
- "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): a still ending",
- "hypothesis": "The film's last 5.7 s are a still wide of the shore (motion 0.15, still 0.96) under 'Odysseus divide the animals and sacrifice the great ram to Zeus', while the SACRIFICE (63.72-68.92 s) plays in a close of a crewman and then out of frame; the ending holds on motion if the last shot is on Odysseus at the offering from its first gesture.",
- "variable": "The last two shots: shot 16 (crewman 2) ends at 63.72 s where the sacrifice begins (was 66.67), and the last shot (63.72 s to the end) is on Odysseus at the fire (HOT; the solver eased it to a wide with the crew either side), not a wide of the lead ram.",
+ "take": 5,
+ "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+ "hypothesis": "The energy audit's fix (take 3: the film ends on Odysseus offering the great ram, not on a still wide) holds on the re-blocked take if its last shot is planned as take 3 planned it.",
+ "variable": "The camera plan only (tools/cinematographer/plans/OD-B09-S10.json): shot 17 restored from take 3's plan (d28a85b0), shot 16 (a close on Odysseus) cut to 63.72 s (take 3's shot 16 was a close on crewman-2, who is no longer on the shore).",
  "held": [
-  "the performance and the voice",
-  "shots 0-15 carried frame for frame from take 2 (frames 0-731); frames 732-868 drawn new",
-  "shot 14 ('drive the flock to the ship, and row away'): tried as an ACTION wide on the men driving and refused at the stills (the only legal camera was out on the water past the ship, the flock a few pixels); left as take 2 has it"
- ],
- "true_to": [
-  "energy audit: shot 17 at 66.8 s, WIDE, 5.7 s, motion 0.15, still 0.96, the ending; shot 14 at 54.2 s, motion 0.32, still 0.64"
+  "take 4's blocking and sheet",
+  "shots 0-15 frame for frame from take 4",
+  "the voice, the cut and the captions"
  ],
  "metrics_before": {
-  "stage": "take 2 as published (films/odyssey/OD-B09-S10-performed.mp4, 72.4 s, 18 shots)",
-  "shot16": {
-   "t0": 61.0,
-   "dur": 5.8,
-   "kind": "HOT MID crewman-2",
-   "motion": 13.82,
-   "still": 0.0
-  },
-  "shot17": {
-   "t0": 66.8,
-   "dur": 5.7,
-   "kind": "WIDE",
-   "motion": 0.15,
-   "still": 0.96
-  },
-  "film": {
-   "motion": 3.92,
-   "still": 0.33,
-   "still_tail_s": 0.1
-  }
+  "take": "take 4 (films/odyssey/takes/OD-B09-S10/take4.mp4)",
+  "clip": "take 4: 0.0 s visible, but ending on a still wide of the ship and island (take 3's offering shot lost in the re-plan); take 3: 23.3 s visible"
  },
  "metrics_after": {
-  "stage": "take 3 as published (films/odyssey/OD-B09-S10-performed.mp4, 72.4 s, 18 shots; take 2 kept as films/odyssey/takes/OD-B09-S10/take2.*); 137 frames drawn, 732 carried",
-  "shot16": {
-   "t0": 61.0,
-   "dur": 2.8,
-   "kind": "HOT MID crewman-2",
-   "motion": 17.41,
-   "still": 0.0
-  },
-  "shot17": {
-   "t0": 63.8,
-   "dur": 8.7,
-   "kind": "HOT (solved WIDE) odysseus at the fire",
-   "motion": 3.75,
-   "still": 0.27
-  },
-  "film": {
-   "motion": 3.9,
-   "still": 0.29,
-   "still_tail_s": 0.1
-  }
+  "seconds": 72.42,
+  "fps": 12,
+  "shots": 18,
+  "shots_legal": 18,
+  "clip": "CLIP OD-B09-S10 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 2.5 s; gate 0.25 passed"
  },
- "result": "Kept, for the ending only. The film now ends on the offering: Odysseus at the fire with his arms raised to Zeus, the crew either side, from 63.7 s to the end (motion 0.15 -> 3.75, still 0.96 -> 0.27); the last two seconds settle into his held pose (the SACRIFICE ends at 68.9 s), an ending held on a figure, not an empty shore. Not done: shot 14, 'drive the flock to the ship, and row away' (motion 0.32): planned as an ACTION wide on the men driving, the only legal camera was out on the water and the flock a few pixels, so it was left as take 2 has it; nobody rows in the scene's performance (that would be a performance variable).",
- "keep": true
+ "checks": [
+  {
+   "test": "no one runs through anything",
+   "passed": true,
+   "evidence": "clip/OD-B09-S10.json, evidence/OD-B09-S10/contact.jpg, close-reblock.jpg",
+   "note": "tools/metis/clip.js on take 5's own cameras: 0 visible intervals"
+  }
+ ],
+ "result": "Kept as take 5. The film ends on Odysseus at the fire with the great ram, at eye level, moving (the solver eased the MID to a near wide with the crew either side, as in take 3). Loose: a crewman's red shoulder is cut by the left edge of the frame in the last shot; two crewmen are still missing from the shore.",
+ "keep": true,
+ "history": [
+  {
+   "scene": "OD-B09-S10",
+   "title": "The Rams: the shore and the offering",
+   "take": 3,
+   "part": "Energy re-shoots (odyssey/writers-room/BIBLE.md section 6): a still ending",
+   "hypothesis": "The film's last 5.7 s are a still wide of the shore (motion 0.15, still 0.96) under 'Odysseus divide the animals and sacrifice the great ram to Zeus', while the SACRIFICE (63.72-68.92 s) plays in a close of a crewman and then out of frame; the ending holds on motion if the last shot is on Odysseus at the offering from its first gesture.",
+   "variable": "The last two shots: shot 16 (crewman 2) ends at 63.72 s where the sacrifice begins (was 66.67), and the last shot (63.72 s to the end) is on Odysseus at the fire (HOT; the solver eased it to a wide with the crew either side), not a wide of the lead ram.",
+   "held": [
+    "the performance and the voice",
+    "shots 0-15 carried frame for frame from take 2 (frames 0-731); frames 732-868 drawn new",
+    "shot 14 ('drive the flock to the ship, and row away'): tried as an ACTION wide on the men driving and refused at the stills (the only legal camera was out on the water past the ship, the flock a few pixels); left as take 2 has it"
+   ],
+   "true_to": [
+    "energy audit: shot 17 at 66.8 s, WIDE, 5.7 s, motion 0.15, still 0.96, the ending; shot 14 at 54.2 s, motion 0.32, still 0.64"
+   ],
+   "metrics_before": {
+    "stage": "take 2 as published (films/odyssey/OD-B09-S10-performed.mp4, 72.4 s, 18 shots)",
+    "shot16": {
+     "t0": 61.0,
+     "dur": 5.8,
+     "kind": "HOT MID crewman-2",
+     "motion": 13.82,
+     "still": 0.0
+    },
+    "shot17": {
+     "t0": 66.8,
+     "dur": 5.7,
+     "kind": "WIDE",
+     "motion": 0.15,
+     "still": 0.96
+    },
+    "film": {
+     "motion": 3.92,
+     "still": 0.33,
+     "still_tail_s": 0.1
+    }
+   },
+   "metrics_after": {
+    "stage": "take 3 as published (films/odyssey/OD-B09-S10-performed.mp4, 72.4 s, 18 shots; take 2 kept as films/odyssey/takes/OD-B09-S10/take2.*); 137 frames drawn, 732 carried",
+    "shot16": {
+     "t0": 61.0,
+     "dur": 2.8,
+     "kind": "HOT MID crewman-2",
+     "motion": 17.41,
+     "still": 0.0
+    },
+    "shot17": {
+     "t0": 63.8,
+     "dur": 8.7,
+     "kind": "HOT (solved WIDE) odysseus at the fire",
+     "motion": 3.75,
+     "still": 0.27
+    },
+    "film": {
+     "motion": 3.9,
+     "still": 0.29,
+     "still_tail_s": 0.1
+    }
+   },
+   "result": "Kept, for the ending only. The film now ends on the offering: Odysseus at the fire with his arms raised to Zeus, the crew either side, from 63.7 s to the end (motion 0.15 -> 3.75, still 0.96 -> 0.27); the last two seconds settle into his held pose (the SACRIFICE ends at 68.9 s), an ending held on a figure, not an empty shore. Not done: shot 14, 'drive the flock to the ship, and row away' (motion 0.32): planned as an ACTION wide on the men driving, the only legal camera was out on the water and the flock a few pixels, so it was left as take 2 has it; nobody rows in the scene's performance (that would be a performance variable).",
+   "keep": true
+  },
+  {
+   "scene": "OD-B09-S10",
+   "title": "The Rams: the shore and the offering",
+   "take": 4,
+   "part": "The clipping re-shoots (odyssey/metis/clip/AUDIT.md: worst first)",
+   "hypothesis": "The audit's 23.3 s of visible clipping came from the riders sitting inside the rams, the flock passing through the men and the crew's walks crossing on the cliff path; moving the riders, spreading the herd and clearing the walk lines removes it without changing the performance's timing.",
+   "variable": "The blocking only: tools/perform/scenes/OD-B09-S10.js (riders offset [0,2,-56]; HERD spread 0.03, fade 0; leadOut [110,215]; l5 [100,270]), the HERD proc's new fade parameter (tools/perform/intents-creature.js), odyssey/keyframes/OD-B09-S10.json (crewman-1 and crewman-2 absent at K4 and K5), and noHigh on the shots from 50.4 s.",
+   "held": [
+    "the voice, the captions and the coupled events (timing)",
+    "the scene's tuned parameters (restored after re-authoring)",
+    "the cut"
+   ],
+   "metrics_before": {
+    "take": "take 3 (films/odyssey/takes/OD-B09-S10/take3.mp4)",
+    "clip": "take 3: 23.3 s visible (odyssey/metis/clip/AUDIT.md); first r2 render: 0.7 s (crewman-1 + crewman-2 at 53-55 s), refused at the gate"
+   },
+   "metrics_after": {
+    "seconds": 72.42,
+    "fps": 12,
+    "shots": 18,
+    "shots_legal": 18,
+    "clip": "CLIP OD-B09-S10 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 2.5 s; gate 0.25 passed"
+   },
+   "checks": [
+    {
+     "test": "no one runs through anything",
+     "passed": true,
+     "evidence": "clip/OD-B09-S10.json, evidence/OD-B09-S10/contact.jpg, close-reblock.jpg",
+     "note": "tools/metis/clip.js on the take's own cameras: 0 visible intervals (2.5 s offscreen, hidden or brief)"
+    }
+   ],
+   "result": "Kept as the new take. No one passes through a ram or another man on screen. Loose: two crewmen are missing from the shore at the end; a dark frame near 18 s inside the cave; the flock-to-the-ship shots (about 54-58 s) look down at a steep three-quarter angle on the flock (not overhead, but high), logged for the camera pass.",
+   "keep": true
+  }
+ ]
 }

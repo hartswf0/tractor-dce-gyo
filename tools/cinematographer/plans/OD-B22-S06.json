@@ -6,8 +6,8 @@
  "total": 45.44,
  "generated": {
   "by": "tools/cinematographer/plan.js",
-  "at": "2026-10-08",
-  "hand": "every shot noHigh: no emotional beat or key action from over the heads"
+  "at": "2026-10-03",
+  "edited": "by hand after plan.js: every one of the four blows its own action shot (the planner dropped the stockman's), the goddess lowering the aegis, the priest at the knees as a two-shot, the bard's decision, the pleas and the son's word as two-shots (each why.rule \"hand:\")"
  },
  "sheet": {
   "from": "odyssey/score/OD-B22-S06.json",
@@ -44,7 +44,7 @@
   "leiodes"
  ],
  "creatures": [],
- "heatScale": 0.846,
+ "heatScale": 0.867,
  "anchors": [
   {
    "type": "reaction",
@@ -391,24 +391,26 @@
   {
    "i": 0,
    "t0": 0,
-   "t1": 2.147,
+   "t1": 2.1,
    "kind": "WIDE",
    "size": "WIDE",
    "subjects": [
     "athena",
+    "four-suitors-2",
     "four-suitors-4",
-    "four-suitors-2"
+    "odysseus"
    ],
    "primary": "athena",
    "aim": "head",
-   "line": null,
+   "line": [
+    "athena",
+    "odysseus"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the scene opens",
-    "rule": "R6 the opening wide (establishes the set and the line)",
-    "heat": 1.45,
-    "contrast": 1.11,
+    "cut": "hand",
+    "rule": "hand: the aegis held up before the high seat: the suitors break",
     "hot": "athena"
    },
    "beat": "K1",
@@ -416,8 +418,8 @@
   },
   {
    "i": 1,
-   "t0": 2.147,
-   "t1": 4.247,
+   "t0": 2.1,
+   "t1": 4.05,
    "kind": "ACTION",
    "size": "WIDE",
    "subjects": [
@@ -428,30 +430,28 @@
    "aim": "contact",
    "line": [
     "odysseus",
-    "four-suitors-1"
+    "four-suitors-2"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "wind-up of APPROACH (tAdv) before IMPACT",
-    "rule": "R2 the contact hit0 (IMPACT: the point lands) with every figure it names",
-    "heat": 1.43,
-    "contrast": 0.82,
-    "hot": "four-suitors-2"
+    "cut": "hand",
+    "rule": "hand: Odysseus strikes the first down",
+    "hot": "odysseus"
    },
+   "beat": "K1a",
    "contact": {
     "id": "hit0",
     "kind": "IMPACT",
     "t": 2.897,
     "meet": null
    },
-   "beat": "K1",
    "noHigh": true
   },
   {
    "i": 2,
-   "t0": 4.247,
-   "t1": 6.8,
+   "t0": 4.05,
+   "t1": 6.9,
    "kind": "ACTION",
    "size": "WIDE",
    "subjects": [
@@ -462,30 +462,28 @@
    "aim": "contact",
    "line": [
     "telemachus",
-    "four-suitors-3"
+    "four-suitors-1"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the effect REACT on four-suitors-1 (fl0_0)",
-    "rule": "R2 the contact hit1 (IMPACT: the point lands) with every figure it names",
-    "heat": 1.28,
-    "contrast": 0.98,
-    "hot": "four-suitors-1"
+    "cut": "hand",
+    "rule": "hand: Telemachus comes at the second and spears him",
+    "hot": "telemachus"
    },
+   "beat": "K1c",
    "contact": {
     "id": "hit1",
     "kind": "IMPACT",
     "t": 5.647,
     "meet": null
    },
-   "beat": "K1b",
    "noHigh": true
   },
   {
    "i": 3,
-   "t0": 6.8,
-   "t1": 9.75,
+   "t0": 6.9,
+   "t1": 8.95,
    "kind": "ACTION",
    "size": "WIDE",
    "subjects": [
@@ -496,104 +494,102 @@
    "aim": "contact",
    "line": [
     "eumaeus",
-    "four-suitors-4"
+    "four-suitors-3"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "wind-up of APPROACH (pCome) before IMPACT",
-    "rule": "R2 the contact hit2 (IMPACT: the point lands) with every figure it names",
-    "heat": 1.17,
-    "contrast": 0.86,
-    "hot": "four-suitors-3"
+    "cut": "hand",
+    "rule": "hand: the swineherd strikes the third down",
+    "hot": "eumaeus"
    },
+   "beat": "K1e",
    "contact": {
     "id": "hit2",
     "kind": "IMPACT",
     "t": 8.063,
     "meet": null
    },
-   "beat": "K1d",
    "noHigh": true
   },
   {
    "i": 4,
-   "t0": 9.75,
-   "t1": 11.81,
-   "kind": "REACT",
-   "size": "CLOSE",
+   "t0": 8.95,
+   "t1": 10.7,
+   "kind": "ACTION",
+   "size": "WIDE",
    "subjects": [
-    "leiodes"
+    "philoetius",
+    "four-suitors-4"
    ],
-   "primary": "leiodes",
-   "aim": "head",
+   "primary": "philoetius",
+   "aim": "contact",
    "line": [
     "philoetius",
-    "leiodes"
+    "four-suitors-4"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "reaction REACT of leiodes to philoetius (hit3) in 0.27 s",
-    "rule": "R3/R7 reaction of leiodes to philoetius within 0.27 s, cut on the same side as its cause (the eyelines match)",
-    "heat": 1.6,
-    "contrast": 1.27,
-    "hot": "four-suitors-4"
+    "cut": "hand",
+    "rule": "hand: the stockman corners the runner by the tables",
+    "hot": "philoetius"
    },
-   "beat": "K1f",
+   "beat": "K1g",
+   "contact": {
+    "id": "hit3",
+    "kind": "IMPACT",
+    "t": 9.48,
+    "meet": null
+   },
    "noHigh": true
   },
   {
    "i": 5,
-   "t0": 11.81,
-   "t1": 13.917,
+   "t0": 10.7,
+   "t1": 12.3,
    "kind": "HOT",
    "size": "MID",
    "subjects": [
-    "leiodes"
+    "athena"
    ],
-   "primary": "leiodes",
+   "primary": "athena",
    "aim": "head",
    "line": [
-    "odysseus",
-    "leiodes"
+    "athena",
+    "odysseus"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a line begins (v2)",
-    "rule": "R1 the hot spot leiodes (heat 1.52, contrast 1.08): CLOSE by the direction's bias; R9 not the same size as the shot before (CLOSE)",
-    "heat": 1.52,
-    "contrast": 1.08,
-    "hot": "leiodes"
+    "cut": "hand",
+    "rule": "hand: the last down: the goddess lowers the aegis",
+    "hot": "athena"
    },
-   "beat": "K2",
+   "beat": "K1g",
    "noHigh": true
   },
   {
    "i": 6,
-   "t0": 13.917,
-   "t1": 16.083,
-   "kind": "WIDE",
-   "size": "WIDE",
+   "t0": 12.3,
+   "t1": 15.2,
+   "kind": "TWO",
+   "size": "MID",
    "subjects": [
     "leiodes",
-    "telemachus",
     "odysseus"
    ],
    "primary": "leiodes",
    "aim": "head",
    "line": [
-    "odysseus",
-    "leiodes"
+    "leiodes",
+    "odysseus"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot leiodes (heat 1.37, contrast 1.32): WIDE by the direction's bias",
-    "heat": 1.37,
-    "contrast": 1.32,
+    "cut": "hand",
+    "rule": "hand: Leiodes at the king's knees: spare me",
     "hot": "leiodes"
    },
    "beat": "K2",
@@ -601,14 +597,14 @@
   },
   {
    "i": 7,
-   "t0": 16.083,
-   "t1": 18.567,
-   "kind": "HOT",
-   "size": "MID",
+   "t0": 15.2,
+   "t1": 17.9,
+   "kind": "REACT",
+   "size": "CLOSE",
    "subjects": [
-    "leiodes"
+    "odysseus"
    ],
-   "primary": "leiodes",
+   "primary": "odysseus",
    "aim": "head",
    "line": [
     "odysseus",
@@ -617,19 +613,17 @@
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot leiodes (heat 1.08, contrast 1.08): MID by the direction's bias",
-    "heat": 1.08,
-    "contrast": 1.08,
-    "hot": "leiodes"
+    "cut": "hand",
+    "rule": "hand: the king hears the priest out, the sword low",
+    "hot": "odysseus"
    },
    "beat": "K2",
    "noHigh": true
   },
   {
    "i": 8,
-   "t0": 18.567,
-   "t1": 20.067,
+   "t0": 17.9,
+   "t1": 20.15,
    "kind": "ACTION",
    "size": "WIDE",
    "subjects": [
@@ -640,257 +634,216 @@
    "aim": "contact",
    "line": [
     "odysseus",
-    "telemachus"
+    "leiodes"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "cut on the action: IMPACT (hitLe)",
-    "rule": "R2 the contact hitLe (IMPACT: the blade lands) with every figure it names",
-    "heat": 3.58,
-    "contrast": 3.25,
-    "hot": "leiodes"
+    "cut": "hand",
+    "rule": "hand: the sword through his neck while he is yet speaking",
+    "hot": "odysseus"
    },
+   "beat": "K2a",
    "contact": {
     "id": "hitLe",
     "kind": "IMPACT",
     "t": 18.717,
     "meet": null
    },
-   "beat": "K2",
    "noHigh": true
   },
   {
    "i": 9,
-   "t0": 20.067,
-   "t1": 21.583,
-   "kind": "REACT",
-   "size": "CLOSE",
+   "t0": 20.15,
+   "t1": 23.34,
+   "kind": "HOT",
+   "size": "MID",
    "subjects": [
-    "telemachus"
-   ],
-   "primary": "telemachus",
-   "aim": "head",
-   "line": [
-    "odysseus",
-    "telemachus"
-   ],
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "the effect REACT on telemachus (flLe0)",
-    "rule": "R3 the effect of IMPACT on telemachus",
-    "heat": 1.12,
-    "contrast": 0.94,
-    "hot": "phemius"
-   },
-   "beat": "K2a",
-   "noHigh": true
-  },
-  {
-   "i": 10,
-   "t0": 21.583,
-   "t1": 24.5,
-   "kind": "WIDE",
-   "size": "WIDE",
-   "subjects": [
-    "phemius",
-    "medon",
-    "telemachus"
+    "phemius"
    ],
    "primary": "phemius",
    "aim": "head",
    "line": [
+    "phemius",
+    "odysseus"
+   ],
+   "angle": "eye",
+   "lens": "normal",
+   "why": {
+    "cut": "hand",
+    "rule": "hand: the bard by the high seat sees the priest killed at the knees, and goes to the king himself",
+    "hot": "phemius"
+   },
+   "beat": "K3",
+   "noHigh": true
+  },
+  {
+   "i": 10,
+   "t0": 23.34,
+   "t1": 27.1,
+   "kind": "WIDE",
+   "size": "WIDE",
+   "subjects": [
+    "odysseus",
+    "phemius"
+   ],
+   "primary": "odysseus",
+   "aim": "head",
+   "line": [
     "odysseus",
     "phemius"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot phemius (heat 1.24, contrast 1.23): WIDE by the direction's bias",
-    "heat": 1.24,
-    "contrast": 1.23,
-    "hot": "phemius"
+    "cut": "hand",
+    "rule": "hand: the bard on his knees before the king, the lyre laid down (the herald, wedged at the son's knees by the door, has no camera)",
+    "hot": "odysseus"
    },
-   "beat": "K2a",
+   "beat": "K3",
    "noHigh": true
   },
   {
    "i": 11,
-   "t0": 24.5,
-   "t1": 27.667,
-   "kind": "WIDE",
-   "size": "WIDE",
+   "t0": 27.1,
+   "t1": 30.1,
+   "kind": "TWO",
+   "size": "MID",
    "subjects": [
-    "medon",
-    "telemachus",
-    "phemius"
+    "phemius",
+    "odysseus"
    ],
-   "primary": "medon",
+   "primary": "phemius",
    "aim": "head",
-   "line": null,
+   "line": [
+    "phemius",
+    "odysseus"
+   ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "heat moves: phemius -> medon",
-    "rule": "R4 cold: hold wide",
-    "heat": 0.15,
-    "contrast": 0.15,
-    "hot": "medon"
+    "cut": "hand",
+    "rule": "hand: Phemius: I sing to gods and men, spare me",
+    "hot": "phemius"
    },
    "beat": "K3",
    "noHigh": true
   },
   {
    "i": 12,
-   "t0": 27.667,
-   "t1": 29.167,
+   "t0": 30.1,
+   "t1": 33.1,
    "kind": "HOT",
-   "size": "CLOSE",
+   "size": "MID",
    "subjects": [
-    "phemius"
+    "telemachus"
    ],
-   "primary": "phemius",
+   "primary": "telemachus",
    "aim": "head",
    "line": [
-    "odysseus",
-    "phemius"
+    "telemachus",
+    "odysseus"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "heat moves: medon -> phemius",
-    "rule": "R1 the hot spot phemius (heat 0.65, contrast 0.64): CLOSE by the direction's bias",
-    "heat": 0.65,
-    "contrast": 0.64,
-    "hot": "phemius"
+    "cut": "hand",
+    "rule": "hand: Telemachus speaks to his father for them: the herald looked after me",
+    "hot": "telemachus"
    },
    "beat": "K3",
    "noHigh": true
   },
   {
    "i": 13,
-   "t0": 29.167,
-   "t1": 31.5,
-   "kind": "HOT",
-   "size": "MID",
+   "t0": 33.1,
+   "t1": 34.83,
+   "kind": "REACT",
+   "size": "CLOSE",
    "subjects": [
-    "medon"
+    "odysseus"
    ],
-   "primary": "medon",
+   "primary": "odysseus",
    "aim": "head",
    "line": [
-    "telemachus",
-    "medon"
+    "odysseus",
+    "phemius"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot medon (heat 0.67, contrast 0.67): MID by the direction's bias",
-    "heat": 0.67,
-    "contrast": 0.67,
-    "hot": "medon"
+    "cut": "hand",
+    "rule": "hand: the king weighs them",
+    "hot": "odysseus"
    },
    "beat": "K3",
    "noHigh": true
   },
   {
    "i": 14,
-   "t0": 31.5,
-   "t1": 34.83,
-   "kind": "INSERT",
-   "size": "CLOSE",
-   "subjects": [
-    "phemius"
-   ],
-   "primary": "odysseus",
-   "aim": "hands",
-   "line": [
-    "telemachus",
-    "odysseus"
-   ],
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "reaction NOTICE of odysseus to telemachus (sSon) in 0.25 s",
-    "rule": "R6 insert_object \"Phemius's lyre on the floor\" at its hottest (34.33 s)",
-    "heat": 0.86,
-    "contrast": 0.86,
-    "hot": "odysseus"
-   },
-   "object": "lyre",
-   "insert": "Phemius's lyre on the floor",
-   "beat": "K3",
-   "noHigh": true
-  },
-  {
-   "i": 15,
    "t0": 34.83,
-   "t1": 36.833,
+   "t1": 37.2,
    "kind": "HOT",
    "size": "MID",
    "subjects": [
-    "odysseus"
+    "odysseus",
+    "phemius"
    ],
    "primary": "odysseus",
    "aim": "head",
    "line": [
-    "phemius",
-    "odysseus"
+    "odysseus",
+    "phemius"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "a line begins (v5)",
-    "rule": "R1 the hot spot odysseus (heat 1.87, contrast 1.87): MID by the direction's bias",
-    "heat": 1.87,
-    "contrast": 1.87,
+    "cut": "hand",
+    "rule": "hand: live, both of you: out to the courtyard",
     "hot": "odysseus"
    },
    "beat": "K4",
    "noHigh": true
   },
   {
-   "i": 16,
-   "t0": 36.833,
-   "t1": 38.417,
-   "kind": "HOT",
-   "size": "CLOSE",
+   "i": 15,
+   "t0": 37.2,
+   "t1": 38.42,
+   "kind": "WIDE",
+   "size": "WIDE",
    "subjects": [
+    "phemius",
+    "medon",
     "odysseus"
    ],
    "primary": "odysseus",
    "aim": "head",
    "line": [
-    "phemius",
-    "odysseus"
+    "odysseus",
+    "phemius"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot odysseus (heat 1.67, contrast 1.31): MID by the direction's bias; R9 not the same size as the shot before (MID)",
-    "heat": 1.67,
-    "contrast": 1.31,
+    "cut": "hand",
+    "rule": "hand: the two go out of the door",
     "hot": "odysseus"
    },
    "beat": "K4a",
    "noHigh": true
   },
   {
-   "i": 17,
-   "t0": 38.417,
-   "t1": 41.5,
+   "i": 16,
+   "t0": 38.42,
+   "t1": 41.6,
    "kind": "WIDE",
    "size": "WIDE",
    "subjects": [
-    "philoetius",
     "odysseus",
-    "telemachus"
+    "philoetius",
+    "eumaeus"
    ],
-   "primary": "philoetius",
+   "primary": "odysseus",
    "aim": "head",
    "line": [
     "odysseus",
@@ -899,66 +852,35 @@
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "heat moves: odysseus -> philoetius",
-    "rule": "R1 the hot spot philoetius (heat 0.77, contrast 0.64): WIDE by the direction's bias",
-    "heat": 0.77,
-    "contrast": 0.64,
-    "hot": "philoetius"
+    "cut": "hand",
+    "rule": "hand: the living search the hall",
+    "hot": "odysseus"
    },
    "beat": "K5",
    "noHigh": true
   },
   {
-   "i": 18,
-   "t0": 41.5,
-   "t1": 43.583,
+   "i": 17,
+   "t0": 41.6,
+   "t1": 45.44,
    "kind": "WIDE",
    "size": "WIDE",
    "subjects": [
     "telemachus",
-    "philoetius",
-    "eumaeus"
+    "eumaeus",
+    "odysseus"
    ],
    "primary": "telemachus",
    "aim": "head",
    "line": [
-    "philoetius",
-    "telemachus"
+    "telemachus",
+    "odysseus"
    ],
    "angle": "eye",
    "lens": "normal",
    "why": {
-    "cut": "heat moves: philoetius -> telemachus",
-    "rule": "R1 the hot spot telemachus (heat 0.79, contrast 0.79): WIDE by the direction's bias",
-    "heat": 0.79,
-    "contrast": 0.79,
-    "hot": "telemachus"
-   },
-   "beat": "K5",
-   "noHigh": true
-  },
-  {
-   "i": 19,
-   "t0": 43.583,
-   "t1": 45.44,
-   "kind": "HOT",
-   "size": "CLOSE",
-   "subjects": [
-    "telemachus"
-   ],
-   "primary": "telemachus",
-   "aim": "head",
-   "line": [
-    "philoetius",
-    "telemachus"
-   ],
-   "angle": "eye",
-   "lens": "normal",
-   "why": {
-    "cut": "the rhythm (fast, longest 3.5 s): cut where the heat changes most",
-    "rule": "R1 the hot spot telemachus (heat 0.86, contrast 0.86): CLOSE by the direction's bias",
-    "heat": 0.86,
-    "contrast": 0.86,
+    "cut": "hand",
+    "rule": "hand: any man still hiding, still alive?",
     "hot": "telemachus"
    },
    "beat": "K5",
