@@ -69,7 +69,8 @@ module.exports = function author(M, X) {
   /* the pigs: from their change (or the key the take first stages them) to the end; they grunt at the ones still men, then are penned */
   const pigsK4 = { pig1: [-140, 92, -1.69], pig2: [-147, 122, -1.52], pig3: [-140, 152, -1.34] };
   for (const [id, [x, z]] of Object.entries(pigsK3)) { const y = fl(x, z); creatures[id] = { kind: 'pig', scale: 1.15 * sc, colour: 'pink', at: [x, y, z, id === 'pig1' ? 0.4 : id === 'pig2' ? -0.6 : -1.2], floor: y, present: [[s3, s5]], procs: [] };
-    const [x4, z4, h4] = pigsK4[id]; cr(id, { id: 'pW' + id, kind: 'WALK', t0: tDrive + 0.4, t1: q(s4 + 2.6), label: 'driven into the sty', params: { path: [[tDrive + 0.4, x, z], [q(s4 + 2.6), x4, z4]], gait: 'trot' }, because: [{ id: 'iDrive' }] });
+    const [x4, z4, h4] = pigsK4[id]; const dw = id === 'pig2' ? 1.0 : 0;   /* the second pig goes last, behind the man still standing in its way */
+    cr(id, { id: 'pW' + id, kind: 'WALK', t0: tDrive + 0.4 + dw, t1: q(s4 + 2.6), label: 'driven into the sty', params: { path: [[tDrive + 0.4 + dw, x, z], [q(s4 + 2.6), x4, z4]], gait: 'trot' }, because: [{ id: 'iDrive' }] });
     cr(id, { id: 'pG' + id, kind: 'GRAZE', t0: q(s4 + 4.8), t1: T, label: 'at the acorns: a man\'s mind in it', because: [{ id: 'sAcorns' }] });
     cr(id, { id: 'pA' + id, kind: 'ATTEND', t0: q(s3 + 1.2), t1: q(s4 - 2), target: C, label: 'the head up to her: grunts, and weeps', because: [{ id: 'sChange' }] }); }
   /* the beasts at the door: they come to the men and fawn, then lie by the house */
