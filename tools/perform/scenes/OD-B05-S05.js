@@ -48,7 +48,8 @@ module.exports = function author(M, X) {
     I({ id: 'iVeil', actor: INO, kind: 'GESTURE', t0: q(tIno + 1.3), t1: q(tIno + 2.8), label: 'the veil: tie it under your chest', params: { shape: 'offer', at: q(tIno + 1.5), side: 'R', hold: 0.9 }, because: [{ id: 'iIno' }] });
     I({ id: 'iTakeVeil', actor: O, kind: 'REACT', t0: q(tIno + 2.1), t1: q(tIno + 3.2), label: 'takes the veil', params: { how: 'lean', lookAt: INO }, because: [{ id: 'iVeil' }] });
     I({ id: 'iTie', actor: O, kind: 'ROPE', t0: q(tIno + 3.3), t1: q(tCalm - 0.2), label: 'ties it on', params: { how: 'bind' }, because: [{ id: 'iTakeVeil' }] });
-    I({ id: 'iSwim2', actor: O, kind: 'SWIM', t0: q(tCalm + 2.6), t1: T, label: 'swims for the land on the north wind', params: { period: 1.4 }, because: [{ id: 'sC5' }] }); }
+    I({ id: 'iSwim2', actor: O, kind: 'SWIM', t0: q(tCalm + 0.1), t1: T,   /* from the moment he is in the water off the raft, not 2.5 s after */
+      label: 'swims for the land on the north wind', params: { period: 1.4 }, because: [{ id: 'sC5' }] }); }
   for (const m of [].concat(A.machinery || [])) if (m.kind === 'SEA') { m.causes = (m.causes || []).filter(x => x.id !== 'sC1').concat([{ t: tS, id: 'sTrident' }]);
     for (const h of m.hulls || []) { h.impulses = [{ t: tT - 0.3, roll: 0.9, pitch: 0.12, label: 'the great wave rolls the raft', id: 'sTrident' }]; h.riders = [[O, 0, tT], ...(tR ? [[O, tR + 1.2, q(tCalm + 2.4)]] : [])]; }
     m.swimmers = [{ actor: O, t0: tT + 0.2, t1: tR ? tR : q(tIno + 4) }].concat(tR ? [{ actor: O, t0: q(tCalm + 2.6), t1: T }] : []); }
