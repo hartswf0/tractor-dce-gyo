@@ -7,11 +7,11 @@
  "camera": "replay",
  "step": 0.1667,
  "total": 30.14,
- "visibleSec": 0.5,
- "faults": 1,
- "offscreenSec": 11.17,
+ "visibleSec": 0,
+ "faults": 0,
+ "offscreenSec": 11.33,
  "shadeSec": 0,
- "longestVisible": 0.5,
+ "longestVisible": 0,
  "tolerances": {
   "headHead": 0.04,
   "core": 0.05,
@@ -27,53 +27,9 @@
   "water": 0.1
  },
  "minVisible": 0.25,
- "line": "CLIP OD-B04-S05 visible 0.5 s in 1 intervals (worst: three-men-3 feet below the surface the shore [left leg (foot)] 0.24 H at 19.8-20.3 s); shades 0.0 s; offscreen, hidden or brief 11.2 s",
- "stills": [
-  "odyssey/metis/evidence/OD-B04-S05/clip-1.jpg"
- ],
+ "line": "CLIP OD-B04-S05 visible 0.0 s in 0 intervals; shades 0.0 s; offscreen, hidden or brief 11.3 s",
+ "stills": [],
  "intervals": [
-  {
-   "key": "set|three-men-3|the shore",
-   "t0": 19.83,
-   "t1": 20.33,
-   "dur": 0.5,
-   "who": [
-    "three-men-3"
-   ],
-   "kind": "set",
-   "what": "feet below the surface the shore",
-   "cls": "sink",
-   "parts": [
-    "left leg (foot)"
-   ],
-   "against": "the shore",
-   "depthH": 0.239,
-   "visibleSec": 0.5,
-   "hiddenSec": 0,
-   "offscreenSec": 0,
-   "shots": [
-    "c4:WIDE:WIDE"
-   ],
-   "walking": true,
-   "inContact": false,
-   "deliberate": null,
-   "fault": true,
-   "worst": {
-    "t": 19.83,
-    "depthH": 0.239,
-    "seen": true,
-    "at": [
-     0.297,
-     0.882
-    ],
-    "shot": "c4:WIDE:WIDE",
-    "box": [
-     "three-men-3",
-     "legLP"
-    ]
-   },
-   "still": "odyssey/metis/evidence/OD-B04-S05/clip-1.jpg"
-  },
   {
    "key": "set|three-men-2|prop:skin2",
    "t0": 0,
@@ -91,28 +47,111 @@
    ],
    "against": "prop:skin2",
    "depthH": 0.299,
-   "visibleSec": 0.17,
-   "hiddenSec": 9.83,
+   "visibleSec": 0.33,
+   "hiddenSec": 9.67,
    "offscreenSec": 0,
    "shots": [
-    "c2:HOT:WIDE"
+    "c2:HOT:CLOSE"
    ],
    "walking": true,
    "inContact": false,
    "deliberate": "hidden under skin2",
    "fault": false,
    "worst": {
-    "t": 9.67,
-    "depthH": 0.18,
+    "t": 9.83,
+    "depthH": 0.299,
     "seen": true,
     "at": [
-     0.135,
-     0.451
+     0.557,
+     0.536
     ],
-    "shot": "c2:HOT:WIDE",
+    "shot": "c2:HOT:CLOSE",
     "box": [
      "three-men-2",
-     "legLP"
+     "legRP"
+    ]
+   }
+  },
+  {
+   "key": "set|menelaus|prop:lion",
+   "t0": 20.17,
+   "t1": 20.33,
+   "dur": 0.17,
+   "who": [
+    "menelaus"
+   ],
+   "kind": "set",
+   "what": "walks through prop:lion",
+   "cls": "walk",
+   "parts": [
+    "torso"
+   ],
+   "against": "prop:lion",
+   "depthH": 0.286,
+   "visibleSec": 0.17,
+   "hiddenSec": 0,
+   "offscreenSec": 0,
+   "shots": [
+    "c4:WIDE:WIDE"
+   ],
+   "walking": true,
+   "inContact": false,
+   "deliberate": null,
+   "fault": false,
+   "worst": {
+    "t": 20.17,
+    "depthH": 0.286,
+    "seen": true,
+    "at": [
+     0.285,
+     0.989
+    ],
+    "shot": "c4:WIDE:WIDE",
+    "box": [
+     "menelaus",
+     "torsoP"
+    ]
+   }
+  },
+  {
+   "key": "body|menelaus+three-men-3|",
+   "t0": 21.67,
+   "t1": 21.83,
+   "dur": 0.17,
+   "who": [
+    "menelaus",
+    "three-men-3"
+   ],
+   "kind": "body",
+   "what": "limb through body",
+   "cls": "limb",
+   "parts": [
+    "head / right arm"
+   ],
+   "against": null,
+   "depthH": 0.143,
+   "visibleSec": 0.17,
+   "hiddenSec": 0,
+   "offscreenSec": 0,
+   "shots": [
+    "c5:HOT:CLOSE"
+   ],
+   "walking": false,
+   "inContact": false,
+   "deliberate": null,
+   "fault": false,
+   "worst": {
+    "t": 21.67,
+    "depthH": 0.143,
+    "seen": true,
+    "at": [
+     0.341,
+     0.741
+    ],
+    "shot": "c5:HOT:CLOSE",
+    "box": [
+     "menelaus",
+     "headP"
     ]
    }
   },
@@ -148,8 +187,8 @@
     "depthH": 0.127,
     "seen": true,
     "at": [
-     0.015,
-     0.496
+     0.349,
+     0.744
     ],
     "shot": "c5:HOT:CLOSE",
     "box": [
@@ -159,85 +198,44 @@
    }
   },
   {
-   "key": "set|three-men-1|the shore",
-   "t0": 0,
-   "t1": 9.67,
-   "dur": 9.67,
+   "key": "set|three-men-1|prop:skin1",
+   "t0": 10.5,
+   "t1": 10.67,
+   "dur": 0.17,
    "who": [
     "three-men-1"
    ],
    "kind": "set",
-   "what": "feet below the surface the shore",
+   "what": "feet below the surface prop:skin1",
    "cls": "sink",
    "parts": [
-    "left leg (foot)",
-    "right leg (foot)"
+    "left leg (foot)"
    ],
-   "against": "the shore",
-   "depthH": 0.113,
+   "against": "prop:skin1",
+   "depthH": 0.104,
    "visibleSec": 0.17,
-   "hiddenSec": 9.5,
+   "hiddenSec": 0,
    "offscreenSec": 0,
    "shots": [
-    "c2:HOT:WIDE"
+    "c2:HOT:CLOSE"
    ],
    "walking": true,
    "inContact": false,
-   "deliberate": null,
+   "deliberate": "hidden under skin1",
    "fault": false,
    "worst": {
-    "t": 9.5,
-    "depthH": 0.113,
+    "t": 10.5,
+    "depthH": 0.104,
     "seen": true,
     "at": [
-     0.556,
-     0.465
+     0.54,
+     0.487
     ],
-    "shot": "c2:HOT:WIDE",
+    "shot": "c2:HOT:CLOSE",
     "box": [
      "three-men-1",
      "legLP"
     ]
-   }
-  },
-  {
-   "key": "set|menelaus|prop:lion",
-   "t0": 20.17,
-   "t1": 20.33,
-   "dur": 0.17,
-   "who": [
-    "menelaus"
-   ],
-   "kind": "set",
-   "what": "walks through prop:lion",
-   "cls": "walk",
-   "parts": [
-    "torso"
-   ],
-   "against": "prop:lion",
-   "depthH": 0.285,
-   "visibleSec": 0,
-   "hiddenSec": 0.17,
-   "offscreenSec": 0,
-   "shots": [],
-   "walking": true,
-   "inContact": false,
-   "deliberate": null,
-   "fault": false,
-   "worst": {
-    "t": 20.17,
-    "depthH": 0.285,
-    "seen": false,
-    "at": [
-     0.493,
-     0.51
-    ],
-    "shot": "c4:WIDE:WIDE",
-    "box": [
-     "menelaus",
-     "torsoP"
-    ],
-    "hiddenBy": "prop:lion 2.52 H before"
    }
   },
   {
@@ -258,8 +256,8 @@
    "against": "the shore",
    "depthH": 0.233,
    "visibleSec": 0,
-   "hiddenSec": 0,
-   "offscreenSec": 0.67,
+   "hiddenSec": 0.67,
+   "offscreenSec": 0,
    "shots": [],
    "walking": true,
    "inContact": false,
@@ -270,14 +268,15 @@
     "depthH": 0.233,
     "seen": false,
     "at": [
-     -0.115,
-     0.808
+     0.237,
+     0.737
     ],
-    "shot": "c2:HOT:WIDE",
+    "shot": "c2:HOT:CLOSE",
     "box": [
      "three-men-3",
      "legLP"
-    ]
+    ],
+    "hiddenBy": "the seal beach 3.54 H before"
    }
   },
   {
@@ -311,55 +310,95 @@
     "depthH": 0.231,
     "seen": false,
     "at": [
-     0.47,
-     0.429
+     0.562,
+     0.528
     ],
-    "shot": "c2:HOT:WIDE",
+    "shot": "c2:HOT:CLOSE",
     "box": [
      "three-men-1",
      "legRP"
     ],
-    "hiddenBy": "prop:skin1 0.39 H before"
+    "hiddenBy": "prop:skin2 3.65 H before"
    }
   },
   {
-   "key": "body|menelaus+three-men-3|",
-   "t0": 21.67,
-   "t1": 21.83,
+   "key": "set|three-men-3|the shore",
+   "t0": 19.67,
+   "t1": 19.83,
    "dur": 0.17,
    "who": [
-    "menelaus",
     "three-men-3"
    ],
-   "kind": "body",
-   "what": "limb through body",
-   "cls": "limb",
+   "kind": "set",
+   "what": "feet below the surface the shore",
+   "cls": "sink",
    "parts": [
-    "head / right arm"
+    "left leg (foot)"
    ],
-   "against": null,
-   "depthH": 0.143,
+   "against": "the shore",
+   "depthH": 0.157,
    "visibleSec": 0,
    "hiddenSec": 0,
    "offscreenSec": 0.17,
    "shots": [],
-   "walking": false,
+   "walking": true,
    "inContact": false,
    "deliberate": null,
    "fault": false,
    "worst": {
-    "t": 21.67,
-    "depthH": 0.143,
+    "t": 19.67,
+    "depthH": 0.157,
     "seen": false,
     "at": [
-     -0.007,
-     0.521
+     -0.2,
+     1.45
     ],
-    "shot": "c5:HOT:CLOSE",
+    "shot": "c4:WIDE:WIDE",
     "box": [
-     "menelaus",
-     "headP"
+     "three-men-3",
+     "legLP"
     ]
+   }
+  },
+  {
+   "key": "set|three-men-1|the shore",
+   "t0": 0,
+   "t1": 9.67,
+   "dur": 9.67,
+   "who": [
+    "three-men-1"
+   ],
+   "kind": "set",
+   "what": "feet below the surface the shore",
+   "cls": "sink",
+   "parts": [
+    "left leg (foot)",
+    "right leg (foot)"
+   ],
+   "against": "the shore",
+   "depthH": 0.113,
+   "visibleSec": 0,
+   "hiddenSec": 9.67,
+   "offscreenSec": 0,
+   "shots": [],
+   "walking": true,
+   "inContact": false,
+   "deliberate": null,
+   "fault": false,
+   "worst": {
+    "t": 0,
+    "depthH": 0.113,
+    "seen": false,
+    "at": [
+     0.379,
+     0.569
+    ],
+    "shot": "c0:WIDE:WIDE",
+    "box": [
+     "three-men-1",
+     "legLP"
+    ],
+    "hiddenBy": "prop:skin1 0.97 H before"
    }
   },
   {
@@ -404,46 +443,6 @@
    }
   },
   {
-   "key": "set|three-men-1|prop:skin1",
-   "t0": 10.5,
-   "t1": 10.67,
-   "dur": 0.17,
-   "who": [
-    "three-men-1"
-   ],
-   "kind": "set",
-   "what": "feet below the surface prop:skin1",
-   "cls": "sink",
-   "parts": [
-    "left leg (foot)"
-   ],
-   "against": "prop:skin1",
-   "depthH": 0.104,
-   "visibleSec": 0,
-   "hiddenSec": 0.17,
-   "offscreenSec": 0,
-   "shots": [],
-   "walking": true,
-   "inContact": false,
-   "deliberate": "hidden under skin1",
-   "fault": false,
-   "worst": {
-    "t": 10.5,
-    "depthH": 0.104,
-    "seen": false,
-    "at": [
-     0.531,
-     0.683
-    ],
-    "shot": "c2:HOT:WIDE",
-    "box": [
-     "three-men-1",
-     "legLP"
-    ],
-    "hiddenBy": "prop:skin1 0.81 H before"
-   }
-  },
-  {
    "key": "set|menelaus|prop:skin0",
    "t0": 9.67,
    "t1": 9.83,
@@ -472,15 +471,15 @@
     "depthH": 0.093,
     "seen": false,
     "at": [
-     0.214,
-     0.368
+     0.347,
+     0.555
     ],
-    "shot": "c2:HOT:WIDE",
+    "shot": "c2:HOT:CLOSE",
     "box": [
      "menelaus",
      "legLP"
     ],
-    "hiddenBy": "prop:skin2 4.35 H before"
+    "hiddenBy": "prop:skin0 0.28 H before"
    }
   }
  ]
