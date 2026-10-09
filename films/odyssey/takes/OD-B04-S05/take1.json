@@ -42,33 +42,31 @@
     "id": "K4",
     "t": 10.57,
     "win": [
-     9.59,
-     10.99
+     9.48,
+     11.04
     ]
    },
    {
     "id": "K5",
     "t": 20.38,
     "win": [
-     19.4,
-     20.8
+     19.07,
+     20.94
     ]
    }
   ],
   "faces": [],
   "shots": {
-   "WIDE": 2,
-   "HOT pinned": 2,
-   "REACT pinned": 1,
-   "WIDE pinned": 1,
-   "REACT": 1
+   "WIDE": 3,
+   "HOT": 2,
+   "REACT": 2
   },
   "cine": {
    "time": {
-    "grid": 0.4,
-    "inside": 0.2,
-    "seen": 5.4,
-    "clutter": 1.9,
+    "grid": 2.3,
+    "inside": 0.1,
+    "seen": 7.9,
+    "clutter": 2.7,
     "pose": 0
    },
    "scene": "OD-B04-S05",
@@ -91,7 +89,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 41.4,
+   "solvedIn": 65.5,
    "shots": [
     {
      "i": 0,
@@ -121,7 +119,7 @@
       "pos": [
        -234.8,
        138.3,
-       242.1
+       242
       ],
       "fov": 63,
       "key": false,
@@ -142,9 +140,7 @@
      "samples": [
       2.04,
       0.1,
-      3.98,
-      1.25,
-      2.5
+      3.98
      ],
      "checks": [
       "L1 not inside geometry",
@@ -190,17 +186,17 @@
       "three-men-1",
       "proteus"
      ],
-     "side": 1,
+     "side": -1,
      "lineHeld": false,
      "camera": {
       "pos": [
-       97.3,
+       -219.5,
        84.8,
-       -123.9
+       -255.1
       ],
       "fov": 75,
       "key": false,
-      "az": 1.96,
+      "az": 3.53,
       "travelling": false
      },
      "legal": true,
@@ -210,20 +206,17 @@
       "L2 proteus hidden": 65,
       "L1 under the set": 86,
       "L4 foreground covers n%": 31,
-      "L3 the back": 17,
       "L2 body": 3,
       "L4 an empty frame (n% sky)": 26,
       "L1 near plane in a set part": 20,
       "L3 head": 3
      },
      "candidates": 257,
-     "legalCandidates": 6,
+     "legalCandidates": 23,
      "samples": [
       5.92,
       4.18,
-      7.65,
-      5.33,
-      6.58
+      7.65
      ],
      "checks": [
       "L1 not inside geometry",
@@ -233,15 +226,15 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.29,
-     "headV": 0.647,
-     "clutterFar": 0.08,
+     "facing": -0.36,
+     "headV": 0.671,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.637,
-      "sd": 0.128,
+      "mean": 0.656,
+      "sd": 0.13,
       "dark": 0,
-      "white": 0.02,
-      "one": 0.48
+      "white": 0.01,
+      "one": 0.31
      },
      "lumaRefused": 0
     },
@@ -250,11 +243,12 @@
      "t0": 7.75,
      "t1": 11.75,
      "kind": "HOT",
-     "size": "CLOSE",
+     "size": "MID",
      "planned": "CLOSE",
-     "pinned": true,
-     "primary": "menelaus",
+     "eased": "menelaus cannot be framed legally from anywhere: the shot goes to proteus (menelaus in frame if seen)",
+     "primary": "proteus",
      "subjects": [
+      "proteus",
       "menelaus"
      ],
      "why": {
@@ -264,36 +258,61 @@
       "contrast": 0.41,
       "hot": "menelaus"
      },
+     "line": [
+      "proteus",
+      "menelaus"
+     ],
+     "side": -1,
+     "lineHeld": false,
      "camera": {
       "pos": [
        146.9,
        82.2,
        -105.4
       ],
-      "target": [
-       -95,
-       40,
-       -20
-      ],
       "fov": 51,
-      "key": false
+      "key": false,
+      "az": 1.57,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.64,
-      "sd": 0.134,
-      "dark": 0,
-      "white": 0.02,
-      "one": 0.47
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L4 foreground covers n%": 75,
+      "L2 proteus hidden": 32,
+      "L2 body": 2,
+      "L3 the back": 130,
+      "L1 near plane in a set part": 2,
+      "L1 under the set": 2,
+      "L2 menelaus hidden": 8
      },
-     "inFrame": {
-      "menelaus": true,
-      "proteus": true,
-      "three-men-1": true,
-      "three-men-2": true,
-      "three-men-3": true
-     }
+     "candidates": 256,
+     "legalCandidates": 5,
+     "samples": [
+      9.75,
+      7.85,
+      11.65
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.24,
+     "headV": 0.342,
+     "clutterFar": 0.06,
+     "luma": {
+      "mean": 0.664,
+      "sd": 0.122,
+      "dark": 0,
+      "white": 0.03,
+      "one": 0.32
+     },
+     "lumaRefused": 0
     },
     {
      "i": 3,
@@ -302,7 +321,7 @@
      "kind": "REACT",
      "size": "MID",
      "planned": "MID",
-     "pinned": true,
+     "eased": null,
      "primary": "menelaus",
      "subjects": [
       "menelaus"
@@ -314,51 +333,78 @@
       "contrast": 0.54,
       "hot": "menelaus"
      },
+     "line": [
+      "proteus",
+      "menelaus"
+     ],
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
-       -120,
-       80,
-       0
-      ],
-      "target": [
-       -84,
-       70,
-       -49
+       -17.5,
+       67.2,
+       -47.1
       ],
       "fov": 38,
-      "key": false
+      "key": false,
+      "az": 1.57,
+      "travelling": false
      },
-     "legal": false,
-     "failed": [
-      "L1 inside inside the staged prop lion"
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 inside the staged prop lion": 82,
+      "L1 inside a set part": 17,
+      "L4 foreground covers n%": 6,
+      "L1 inside the staged prop tree": 12,
+      "L1 inside the staged prop water": 7,
+      "L3 the back": 73,
+      "L2 body": 1,
+      "L1 in three-men-3": 15,
+      "L1 in three-men-1": 1,
+      "L1 near plane in a set part": 5,
+      "L1 in menelaus": 2
+     },
+     "candidates": 256,
+     "legalCandidates": 35,
+     "samples": [
+      13.71,
+      11.85,
+      15.57
      ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.91,
+     "headV": 0.341,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.669,
-      "sd": 0.184,
+      "mean": 0.706,
+      "sd": 0.164,
       "dark": 0,
-      "white": 0.05,
-      "one": 0.24
+      "white": 0.03,
+      "one": 0.41
      },
-     "inFrame": {
-      "menelaus": true,
-      "three-men-1": false,
-      "three-men-2": false,
-      "three-men-3": false
-     }
+     "lumaRefused": 0
     },
     {
      "i": 4,
      "t0": 15.67,
      "t1": 20.38,
      "kind": "WIDE",
-     "size": "WIDE",
+     "size": "MID",
      "planned": "WIDE",
-     "pinned": true,
-     "primary": "menelaus",
+     "eased": "menelaus cannot be framed legally from anywhere: the shot goes to proteus (menelaus in frame if seen)",
+     "primary": "proteus",
      "subjects": [
-      "menelaus",
-      "three-men-2",
-      "three-men-3"
+      "proteus",
+      "menelaus"
      ],
      "why": {
       "cut": "heat moves: menelaus -> three-men-3",
@@ -367,46 +413,79 @@
       "contrast": 0.11,
       "hot": "menelaus"
      },
+     "line": [
+      "proteus",
+      "menelaus"
+     ],
+     "side": 0,
+     "lineHeld": false,
      "camera": {
       "pos": [
-       -121.3,
+       -38.7,
        85.9,
-       7
-      ],
-      "target": [
-       -80,
-       69,
-       -40
+       -87
       ],
       "fov": 38,
-      "key": false
+      "key": false,
+      "az": 2.36,
+      "travelling": true
      },
-     "legal": false,
-     "failed": [
-      "L1 inside inside the staged prop lion"
+     "legal": true,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 inside the staged prop lion": 82,
+      "L1 inside a set part": 16,
+      "L4 foreground covers n%": 9,
+      "L1 inside the staged prop tree": 12,
+      "L1 inside the staged prop water": 7,
+      "L1 in three-men-3": 17,
+      "L1 in three-men-1": 4,
+      "L1 near plane in a set part": 6,
+      "L1 in menelaus": 3,
+      "L4 the mid needs more than the frame": 16,
+      "L3 face": 16,
+      "L2 proteus hidden": 2,
+      "L1 in three-men-2": 4,
+      "L1 too near the face": 30,
+      "L3 head": 6,
+      "L1 in proteus": 4
+     },
+     "candidates": 256,
+     "legalCandidates": 22,
+     "samples": [
+      18.02,
+      15.77,
+      20.28
      ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.38,
+     "headV": 0.349,
+     "clutterFar": 0,
      "luma": {
-      "mean": 0.691,
-      "sd": 0.177,
+      "mean": 0.714,
+      "sd": 0.158,
       "dark": 0,
-      "white": 0.06,
-      "one": 0.35
+      "white": 0.04,
+      "one": 0.65
      },
-     "inFrame": {
-      "menelaus": true,
-      "three-men-1": false,
-      "three-men-2": false,
-      "three-men-3": false
-     }
+     "lumaRefused": 0
     },
     {
      "i": 5,
      "t0": 20.38,
      "t1": 24.03,
      "kind": "HOT",
-     "size": "CLOSE",
+     "size": "MID",
      "planned": "CLOSE",
-     "pinned": true,
+     "eased": "the close had no legal camera: the primary alone, mid",
      "primary": "menelaus",
      "subjects": [
       "menelaus"
@@ -418,36 +497,64 @@
       "contrast": 0.29,
       "hot": "menelaus"
      },
+     "line": [
+      "proteus",
+      "menelaus"
+     ],
+     "side": -1,
+     "lineHeld": false,
      "camera": {
       "pos": [
        -7.1,
        73.3,
        -43.6
       ],
-      "target": [
-       -63,
-       80,
-       14
-      ],
       "fov": 38,
-      "key": false
+      "key": false,
+      "az": 2.36,
+      "travelling": false
      },
      "legal": true,
-     "failed": [],
-     "luma": {
-      "mean": 0.494,
-      "sd": 0.162,
-      "dark": 0,
-      "white": 0.01,
-      "one": 0.22
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L3 the back": 150,
+      "L2 menelaus hidden": 46,
+      "L1 in proteus": 11,
+      "L1 inside a set part": 1,
+      "L1 near plane in a set part": 6,
+      "L2 body": 2,
+      "L4 foreground covers n%": 8,
+      "L1 in three-men-3": 9,
+      "L1 in three-men-2": 5,
+      "L1 in menelaus": 2
      },
-     "inFrame": {
-      "menelaus": true,
-      "proteus": false,
-      "three-men-1": true,
-      "three-men-2": false,
-      "three-men-3": false
-     }
+     "candidates": 256,
+     "legalCandidates": 16,
+     "samples": [
+      22.21,
+      20.48,
+      23.93
+     ],
+     "checks": [
+      "L1 not inside geometry",
+      "L2 subjects and contact seen",
+      "L3 heads in frame, face in the upper half",
+      "L4 framing and foreground",
+      "L5 takes the line's side"
+     ],
+     "failed": [],
+     "facing": 0.99,
+     "headV": 0.343,
+     "clutterFar": 0,
+     "luma": {
+      "mean": 0.566,
+      "sd": 0.209,
+      "dark": 0,
+      "white": 0.03,
+      "one": 0.21
+     },
+     "lumaRefused": 0
     },
     {
      "i": 6,
@@ -473,11 +580,11 @@
       "menelaus"
      ],
      "side": -1,
-     "lineHeld": false,
+     "lineHeld": true,
      "camera": {
       "pos": [
-       -62.2,
-       73.5,
+       -62.3,
+       73.4,
        -66.1
       ],
       "fov": 38,
@@ -489,43 +596,40 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L3 the back": 112,
-      "L2 menelaus hidden": 22,
-      "L2 body": 2,
-      "L1 in proteus": 7,
-      "L1 near plane in a set part": 10,
-      "L4 foreground covers n%": 4,
-      "L1 in three-men-3": 15,
-      "L4 an empty frame (n% sky)": 1
+      "L5 across the line": 112,
+      "L2 menelaus hidden": 13,
+      "L1 in proteus": 8,
+      "L1 near plane in a set part": 6,
+      "L2 body": 1,
+      "L4 foreground covers n%": 10,
+      "L1 in three-men-3": 12,
+      "L3 the back": 8,
+      "L1 in three-men-2": 2
      },
      "candidates": 256,
-     "legalCandidates": 83,
+     "legalCandidates": 84,
      "samples": [
       27.09,
       24.13,
-      30.04,
-      25.28,
-      26.53,
-      27.78,
-      29.03
+      30.04
      ],
      "checks": [
       "L1 not inside geometry",
       "L2 subjects and contact seen",
       "L3 heads in frame, face in the upper half",
       "L4 framing and foreground",
-      "L5 takes the line's side"
+      "L5 on the side the line took"
      ],
      "failed": [],
-     "facing": 0.63,
+     "facing": 0.65,
      "headV": 0.346,
      "clutterFar": 0,
      "luma": {
-      "mean": 0.556,
-      "sd": 0.217,
+      "mean": 0.565,
+      "sd": 0.219,
       "dark": 0,
       "white": 0.03,
-      "one": 0.24
+      "one": 0.21
      },
      "lumaRefused": 0
     }
@@ -576,7 +680,7 @@
   },
   {
    "t": 7.75,
-   "shot": "c2:HOT:CLOSE",
+   "shot": "c2:HOT:MID",
    "kind": "HOT",
    "key": "K3"
   },
@@ -588,13 +692,13 @@
   },
   {
    "t": 15.75,
-   "shot": "c4:WIDE:WIDE",
+   "shot": "c4:WIDE:MID",
    "kind": "WIDE",
    "key": "K4"
   },
   {
    "t": 20.417,
-   "shot": "c5:HOT:CLOSE",
+   "shot": "c5:HOT:MID",
    "kind": "HOT",
    "key": "K5"
   },
@@ -654,7 +758,7 @@
   "format": "odyssey-choreo/1",
   "layer": "add",
   "actors": 5,
-  "cues": 77,
+  "cues": 98,
   "generated": {
    "by": "tools/perform/compile.js",
    "from": "odyssey/score/OD-B04-S05.json",
