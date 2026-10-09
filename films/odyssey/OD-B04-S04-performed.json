@@ -67,15 +67,18 @@
    "odysseus"
   ],
   "shots": {
-   "WIDE": 2,
-   "HOT": 3,
-   "ACTION": 1
+   "WIDE": 1,
+   "HOT": 2,
+   "WIDE!": 1,
+   "WIDE pinned": 2,
+   "HOT pinned": 1,
+   "ACTION pinned": 1
   },
   "cine": {
    "time": {
-    "grid": 38,
-    "inside": 0.4,
-    "seen": 2.9,
+    "grid": 15.2,
+    "inside": 0.5,
+    "seen": 3.1,
     "clutter": 0.9,
     "pose": 0
    },
@@ -99,7 +102,7 @@
     "tempo_conflict": false
    },
    "rules": "tools/cinematographer/plan.js R1-R9; solve.js L1-L5",
-   "solvedIn": 465.3,
+   "solvedIn": 429.9,
    "shots": [
     {
      "i": 0,
@@ -142,15 +145,21 @@
      "rejected": {
       "L1 inside the staged prop horse": 57,
       "L1 near plane in a set part": 2,
-      "L3 head": 108,
+      "L3 head": 112,
       "L3 helen-at-the-horse behind the lens": 2
      },
      "candidates": 256,
-     "legalCandidates": 87,
+     "legalCandidates": 83,
      "samples": [
       5,
       0.1,
-      9.9
+      9.9,
+      1.25,
+      2.5,
+      3.75,
+      6.25,
+      7.5,
+      8.75
      ],
      "checks": [
       "L1 not inside geometry",
@@ -211,17 +220,31 @@
      "relaxed": false,
      "keyCamera": null,
      "rejected": {
-      "L1 inside the staged prop horse": 120,
-      "L1 near plane in a set part": 4,
-      "L3 head": 74,
+      "L1 inside the staged prop horse": 48,
+      "L1 near plane in a set part": 3,
+      "L3 the back": 101,
+      "L3 head": 66,
       "L3 helen-at-the-horse behind the lens": 2
      },
+     "rejectedPlanned": {
+      "L3 the back": 86,
+      "L1 inside the staged prop horse": 44,
+      "L4 an empty frame (n% sky)": 1,
+      "L1 too near the face": 87,
+      "L3 face": 38
+     },
      "candidates": 256,
-     "legalCandidates": 56,
+     "legalCandidates": 36,
      "samples": [
       15.29,
       10.1,
-      20.47
+      20.47,
+      11.25,
+      12.5,
+      13.75,
+      16.25,
+      17.5,
+      18.75
      ],
      "checks": [
       "L1 not inside geometry",
@@ -270,13 +293,13 @@
      "lineHeld": false,
      "camera": {
       "pos": [
-       -3.4,
+       -63,
        37.3,
-       92.4
+       3.2
       ],
       "fov": 46,
       "key": false,
-      "az": 1.18,
+      "az": 3.14,
       "travelling": false
      },
      "legal": true,
@@ -284,17 +307,28 @@
      "keyCamera": null,
      "rejected": {
       "L1 inside the staged prop horse": 209,
-      "L4 foreground covers n%": 26,
+      "L4 foreground covers n%": 22,
+      "L3 the back": 10,
       "L1 near plane in a set part": 5,
-      "L3 head": 2,
-      "L2 helen-at-the-horse hidden": 2
+      "L3 head": 2
+     },
+     "rejectedPlanned": {
+      "L1 inside the staged prop horse": 210,
+      "L1 near plane in a set part": 7,
+      "L3 face": 39
      },
      "candidates": 256,
-     "legalCandidates": 12,
+     "legalCandidates": 8,
      "samples": [
       24.98,
       20.67,
-      29.28
+      29.28,
+      21.82,
+      23.07,
+      24.32,
+      25.57,
+      26.82,
+      28.07
      ],
      "checks": [
       "L1 not inside geometry",
@@ -304,29 +338,137 @@
       "L5 takes the line's side"
      ],
      "failed": [],
-     "facing": 0.62,
-     "headV": 0.411,
-     "clutterFar": 0.23,
+     "facing": 0.5,
+     "headV": 0.41,
+     "clutterFar": 0.19,
      "luma": {
-      "mean": 0.25,
-      "sd": 0.252,
-      "dark": 0.39,
+      "mean": 0.244,
+      "sd": 0.231,
+      "dark": 0.33,
       "white": 0.01,
-      "one": 0.45
+      "one": 0.46
      },
-     "lumaRefused": 2
+     "lumaRefused": 1
     },
     {
      "i": 3,
      "t0": 29.38,
+     "t1": 33.2,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "eased": null,
+     "primary": "helen-at-the-horse",
+     "subjects": [
+      "helen-at-the-horse"
+     ],
+     "why": "[object Object]; none of its figures in the scene at its middle: a wide on helen-at-the-horse",
+     "line": null,
+     "side": 0,
+     "lineHeld": false,
+     "camera": {
+      "pos": [
+       -118.5,
+       25.1,
+       54.6
+      ],
+      "fov": 63,
+      "key": false,
+      "az": 3.53,
+      "travelling": false
+     },
+     "legal": false,
+     "relaxed": false,
+     "keyCamera": null,
+     "rejected": {
+      "L1 inside the staged prop horse": 154,
+      "L1 near plane in a set part": 5,
+      "L4 foreground covers n%": 1,
+      "L2 helen-at-the-horse not in the scene at 33.10 s": 96
+     },
+     "candidates": 256,
+     "legalCandidates": 0,
+     "samples": [
+      31.29,
+      29.48,
+      33.1,
+      30.63,
+      31.88
+     ],
+     "checks": [],
+     "failed": [
+      "L4 foreground covers 20%"
+     ],
+     "facing": 0.92,
+     "headV": 0.393,
+     "clutterFar": 0.13,
+     "luma": {
+      "mean": 0.237,
+      "sd": 0.245,
+      "dark": 0.46,
+      "white": 0.01,
+      "one": 0.36
+     },
+     "lumaRefused": 0
+    },
+    {
+     "i": 4,
+     "t0": 33.2,
+     "t1": 35.5,
+     "kind": "WIDE",
+     "size": "WIDE",
+     "planned": "WIDE",
+     "pinned": true,
+     "primary": "helen-at-the-horse",
+     "subjects": [
+      "helen-at-the-horse"
+     ],
+     "why": {
+      "cut": "hand: the horse from the far flank while the men climb in on the other side, unseen behind the hull",
+      "rule": "cut away to Helen calling while the hidden men climb into the horse (their climb passes the hull)",
+      "hot": "helen-at-the-horse"
+     },
+     "camera": {
+      "pos": [
+       -59,
+       75,
+       340
+      ],
+      "target": [
+       -59,
+       70,
+       150
+      ],
+      "fov": 50,
+      "key": false
+     },
+     "legal": true,
+     "failed": [],
+     "luma": {
+      "mean": 0.233,
+      "sd": 0.287,
+      "dark": 0.6,
+      "white": 0,
+      "one": 0.53
+     },
+     "inFrame": {
+      "odysseus": true,
+      "hidden-greek-warriors-1": true,
+      "hidden-greek-warriors-3": true,
+      "hidden-greek-warriors-4": true
+     }
+    },
+    {
+     "i": 5,
+     "t0": 35.5,
      "t1": 37.02,
      "kind": "HOT",
-     "size": "WIDE",
+     "size": "CLOSE",
      "planned": "CLOSE",
-     "eased": "hidden-greek-warriors-1 has no legal camera at any size: a wide on hidden-greek-warriors-3",
-     "primary": "hidden-greek-warriors-3",
+     "pinned": true,
+     "primary": "hidden-greek-warriors-1",
      "subjects": [
-      "hidden-greek-warriors-3"
+      "hidden-greek-warriors-1"
      ],
      "why": {
       "cut": "a line begins (v4)",
@@ -335,68 +477,44 @@
       "contrast": 0.6,
       "hot": "hidden-greek-warriors-1"
      },
-     "line": [
-      "helen-at-the-horse",
-      "hidden-greek-warriors-1"
-     ],
-     "side": 0,
-     "lineHeld": false,
      "camera": {
       "pos": [
-       -9.5,
-       111.7,
-       40
+       -13.3,
+       141,
+       108.3
       ],
-      "fov": 46,
-      "key": false,
-      "az": 1.18,
-      "travelling": true
+      "target": [
+       -59,
+       140,
+       158
+      ],
+      "fov": 38,
+      "key": false
      },
      "legal": true,
-     "relaxed": false,
-     "keyCamera": null,
-     "rejected": {
-      "L1 inside the staged prop horse": 158,
-      "L4 foreground covers n%": 2,
-      "L4 an empty frame (n% sky)": 33,
-      "L3 head": 41,
-      "L1 near plane in a set part": 13
-     },
-     "candidates": 256,
-     "legalCandidates": 9,
-     "samples": [
-      33.2,
-      29.48,
-      36.92
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
      "failed": [],
-     "facing": 0.13,
-     "headV": 0.283,
-     "clutterFar": 0,
      "luma": {
-      "mean": 0.088,
-      "sd": 0.108,
-      "dark": 0.62,
+      "mean": 0.214,
+      "sd": 0.233,
+      "dark": 0.53,
       "white": 0,
-      "one": 0.5
+      "one": 0.36
      },
-     "lumaRefused": 9
+     "inFrame": {
+      "odysseus": true,
+      "hidden-greek-warriors-1": true,
+      "hidden-greek-warriors-3": true,
+      "hidden-greek-warriors-4": true
+     }
     },
     {
-     "i": 4,
+     "i": 6,
      "t0": 37.02,
      "t1": 42.37,
      "kind": "ACTION",
      "size": "WIDE",
      "planned": "WIDE",
-     "eased": null,
+     "pinned": true,
      "primary": "odysseus",
      "subjects": [
       "odysseus",
@@ -409,68 +527,44 @@
       "contrast": 2.25,
       "hot": "odysseus"
      },
-     "line": [
-      "odysseus",
-      "hidden-greek-warriors-1"
-     ],
-     "side": -1,
-     "lineHeld": false,
      "camera": {
       "pos": [
        -13.3,
        141,
        108.3
       ],
+      "target": [
+       -59,
+       138,
+       155
+      ],
       "fov": 46,
-      "key": false,
-      "az": 2.36,
-      "travelling": false
+      "key": false
      },
      "legal": true,
-     "relaxed": false,
-     "keyCamera": "legal",
-     "rejected": {
-      "L1 near plane in a set part": 93,
-      "L1 inside the staged prop horse": 133,
-      "L4 foreground covers n%": 3,
-      "L2 odysseus hidden": 3
-     },
-     "candidates": 257,
-     "legalCandidates": 25,
-     "samples": [
-      39.69,
-      37.12,
-      42.27,
-      37.22
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
      "failed": [],
-     "facing": 0.53,
-     "headV": 0.399,
-     "clutterFar": 0,
      "luma": {
-      "mean": 0.145,
+      "mean": 0.147,
       "sd": 0.182,
       "dark": 0.65,
       "white": 0,
       "one": 0.49
      },
-     "lumaRefused": 0
+     "inFrame": {
+      "odysseus": true,
+      "hidden-greek-warriors-1": true,
+      "hidden-greek-warriors-3": true,
+      "hidden-greek-warriors-4": true
+     }
     },
     {
-     "i": 5,
+     "i": 7,
      "t0": 42.37,
      "t1": 47.72,
      "kind": "WIDE",
      "size": "WIDE",
      "planned": "WIDE",
-     "eased": null,
+     "pinned": true,
      "primary": "odysseus",
      "subjects": [
       "odysseus",
@@ -484,57 +578,35 @@
       "contrast": 0.34,
       "hot": "odysseus"
      },
-     "line": [
-      "hidden-greek-warriors-1",
-      "odysseus"
-     ],
-     "side": 1,
-     "lineHeld": false,
      "camera": {
       "pos": [
        28.3,
        137.7,
        156.4
       ],
+      "target": [
+       -59,
+       138,
+       160
+      ],
       "fov": 44,
-      "key": true,
-      "az": null,
-      "travelling": false
+      "key": false
      },
      "legal": true,
-     "relaxed": false,
-     "keyCamera": "legal",
-     "rejected": {
-      "L1 near plane in a set part": 74,
-      "L1 inside the staged prop horse": 120,
-      "L2 odysseus hidden": 15
-     },
-     "candidates": 257,
-     "legalCandidates": 48,
-     "samples": [
-      45.04,
-      42.47,
-      47.62
-     ],
-     "checks": [
-      "L1 not inside geometry",
-      "L2 subjects and contact seen",
-      "L3 heads in frame, face in the upper half",
-      "L4 framing and foreground",
-      "L5 takes the line's side"
-     ],
      "failed": [],
-     "facing": 0.34,
-     "headV": 0.416,
-     "clutterFar": 0,
      "luma": {
-      "mean": 0.175,
-      "sd": 0.176,
-      "dark": 0.54,
+      "mean": 0.14,
+      "sd": 0.151,
+      "dark": 0.65,
       "white": 0,
       "one": 0.4
      },
-     "lumaRefused": 0
+     "inFrame": {
+      "odysseus": true,
+      "hidden-greek-warriors-1": true,
+      "hidden-greek-warriors-3": true,
+      "hidden-greek-warriors-4": true
+     }
     }
    ]
   },
@@ -607,19 +679,31 @@
   },
   {
    "t": 29.417,
-   "shot": "c3:HOT:WIDE",
-   "kind": "HOT",
+   "shot": "c3:WIDE:WIDE",
+   "kind": "WIDE",
    "key": "K2"
   },
   {
+   "t": 33.25,
+   "shot": "c4:WIDE:WIDE",
+   "kind": "WIDE",
+   "key": "K2"
+  },
+  {
+   "t": 35.5,
+   "shot": "c5:HOT:CLOSE",
+   "kind": "HOT",
+   "key": "K3"
+  },
+  {
    "t": 37.083,
-   "shot": "c4:ACTION:WIDE",
+   "shot": "c6:ACTION:WIDE",
    "kind": "ACTION",
    "key": "K3"
   },
   {
    "t": 42.417,
-   "shot": "c5:WIDE:WIDE",
+   "shot": "c7:WIDE:WIDE",
    "kind": "WIDE",
    "key": "K4"
   }
