@@ -2,1207 +2,340 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>WOPR Hand Butter</title>
-<meta name="theme-color" content="#040709">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Layout: one board (the Crystal Palace plate) over one control deck.
-   Phone: board on top, deck below, nothing scrolls but the deck's own list. Desktop (>=960px): board left, deck right. */
+/* One object: a wall of nine screens. One verb: put a clip in a square.
+   The game is the order of moves; the edit is the same order played back. */
 :root{
   color-scheme:dark;
-  --bg:#040709; --panel:#080d12; --panel2:#0c141b; --line:#1a2b38;
-  --ink:#e6f4ef; --dim:#7a948d; --phos:#19e6c8; --amber:#ffd23f; --red:#ff2e2e; --blue:#3b82f6;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --tap:42px;
+  --bg:#000; --ink:#e8f2ef; --dim:#6b7f79; --line:#1c2a31;
+  --x:#3b82f6; --o:#ff2e2e; --phos:#19e6c8; --amber:#ffd23f;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;border-radius:0}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.45 var(--mono);overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
-button,input{font:inherit;color:inherit;touch-action:manipulation}
-button{cursor:pointer}
-:focus-visible{outline:1px solid var(--amber);outline-offset:1px}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.4 var(--mono);overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
 [hidden]{display:none!important}
 
-#app{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);
-  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
-@media (min-width:960px){#app{grid-template-rows:auto minmax(0,1fr);grid-template-columns:minmax(0,1fr) 400px}#bar{grid-column:1/3}#deck{grid-row:2;grid-column:2;max-height:none}}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(12px,env(safe-area-inset-left,0px))}
 
-/* header */
-#bar{display:flex;align-items:center;gap:8px;height:44px;padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:#060a0e;min-width:0}
-.brand{font-weight:600;letter-spacing:.14em;color:var(--phos);white-space:nowrap;display:flex;align-items:center;gap:8px}
-.led{width:8px;height:8px;background:var(--phos);box-shadow:0 0 8px var(--phos)}
-.defcon{display:flex;gap:2px;align-items:center}
-.defcon b{font-weight:500;font-size:9px;letter-spacing:.14em;color:var(--dim);margin-right:3px}
-.defcon i{font-style:normal;width:17px;text-align:center;font-size:10px;border:1px solid var(--line);color:#3c5049;padding:1px 0}
-.defcon i.on[data-d="5"]{background:#123d2c;color:#7fffc4;border-color:var(--phos)}
-.defcon i.on[data-d="4"]{background:#12304a;color:#9ccaff;border-color:var(--blue)}
-.defcon i.on[data-d="3"]{background:#4a3c08;color:var(--amber);border-color:var(--amber)}
-.defcon i.on[data-d="2"]{background:#4d2108;color:#ffb27a;border-color:#ff8a3d}
-.defcon i.on[data-d="1"]{background:#5c0d0d;color:#fff;border-color:var(--red);box-shadow:0 0 10px rgba(255,46,46,.6)}
-#cov{flex:1;min-width:0;color:var(--dim);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em}
-.hb{height:30px;border:1px solid var(--line);background:#0b1219;padding:0 10px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
-.hb:hover{border-color:var(--phos);color:var(--phos)}
-.hb.on{border-color:var(--amber);color:var(--amber)}
-#fileMenu{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:calc(44px + env(safe-area-inset-top,0px));z-index:60;display:flex;flex-direction:column;border:1px solid var(--line);background:#060a0e;min-width:180px}
-#fileMenu button{height:var(--tap);border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;padding:0 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-#fileMenu button:last-child{border-bottom:0}
-#fileMenu button:hover{color:var(--phos)}
-@media (max-width:620px){.brand .full,#cov,.defcon b{display:none}.spacer{flex:1}}
-@media (min-width:621px){.spacer{display:none}}
+header{flex:none;height:46px;display:flex;align-items:center;gap:12px}
+#status{flex:1;min-width:0;font-size:13px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#status b{font-weight:600}
+#status .x{color:var(--x)} #status .o{color:var(--o)} #status .w{color:var(--amber)}
+#hands{height:32px;padding:0 10px;border:1px solid var(--line);font-size:10.5px;letter-spacing:.14em;color:var(--dim)}
+#hands.on{border-color:var(--amber);color:var(--amber)}
 
-/* stage */
-#stage{position:relative;min-height:0;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#0a1720,#030608 72%)}
-#stage canvas{display:block;width:100%;height:100%;touch-action:none}
-#stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px)}
-.tag{position:absolute;padding:3px 7px;background:rgba(4,7,9,.86);border:1px solid rgba(25,230,200,.35);color:var(--phos);font-size:10px;letter-spacing:.12em;pointer-events:none;z-index:3;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#stageTag{top:8px;left:max(8px,env(safe-area-inset-left,0px))}
-#stageHint{bottom:8px;left:max(8px,env(safe-area-inset-left,0px));right:auto;color:var(--ink);border-color:var(--line);letter-spacing:.03em;white-space:normal;max-width:calc(100% - 66px);font-size:11px}
-.zoomer{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:8px;z-index:4;display:flex;flex-direction:column;border:1px solid var(--line);background:rgba(4,7,9,.86)}
-.zoomer button{width:40px;height:40px;border:0;border-bottom:1px solid var(--line);background:transparent;display:grid;place-items:center}
-.zoomer button:last-child{border-bottom:0}
-.zoomer button:hover{color:var(--phos)}
-.ico{position:relative;width:14px;height:14px;display:block}
-.ico.plus::before,.ico.plus::after,.ico.minus::before{content:"";position:absolute;left:0;top:6px;width:14px;height:2px;background:currentColor}
-.ico.plus::after{transform:rotate(90deg)}
-.ico.fit{border:2px solid currentColor;width:14px;height:11px}
-#camWrap{position:absolute;top:8px;right:max(8px,env(safe-area-inset-right,0px));width:96px;height:72px;border:1px solid var(--phos);z-index:4;background:#000}
-#camWrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.8}
-#camWrap span{position:absolute;left:0;right:0;bottom:0;font-size:9px;letter-spacing:.1em;background:rgba(0,0,0,.75);color:var(--phos);padding:1px 4px;white-space:nowrap;overflow:hidden}
-#loadBar{position:absolute;left:0;right:0;top:0;height:2px;background:var(--amber);transform-origin:left;transform:scaleX(0);z-index:6;transition:transform .2s}
+/* the wall */
+#wallBox{flex:1;min-height:0;display:grid;place-items:center;position:relative}
+#wall{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(100%,calc((100% ) * 1));aspect-ratio:4/3;max-height:100%;max-width:100%}
+.sq{position:relative;background:#05090c;border:1px solid var(--line);overflow:hidden;touch-action:none}
+.sq video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.sq.x{border-color:var(--x);box-shadow:inset 0 0 0 1px var(--x)}
+.sq.o{border-color:var(--o);box-shadow:inset 0 0 0 1px var(--o)}
+.sq .mk{position:absolute;left:0;top:0;padding:1px 6px;font-size:11px;font-weight:600;color:#fff}
+.sq.x .mk{background:var(--x)} .sq.o .mk{background:var(--o)}
+.sq .n{position:absolute;right:4px;bottom:3px;font-size:10px;color:#fff;text-shadow:0 0 3px #000}
+.sq.open.target{border-color:var(--phos);background:#071a18}
+.sq.open.armed::after{content:"";position:absolute;inset:38% 44%;border:2px solid var(--phos)}
+#wall.over .sq:not(.line){opacity:.28}
+.sq.line{border-color:var(--amber);box-shadow:inset 0 0 0 2px var(--amber)}
+.sq.fresh{animation:fresh .5s ease-out}
+@keyframes fresh{from{transform:scale(.92);filter:brightness(2)}to{transform:none;filter:none}}
 
-/* full-screen CRT */
-#crt{position:absolute;inset:0;z-index:7;background:#000;overflow:hidden}
-#crt video,#crt img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
-#crt .tag{top:8px;left:8px}
-#crtClose{position:absolute;top:6px;right:max(8px,env(safe-area-inset-right,0px));z-index:8;height:var(--tap);padding:0 14px;border:1px solid var(--phos);background:rgba(4,7,9,.9);color:var(--phos);font-size:11px;letter-spacing:.12em}
-#crtNote{position:absolute;left:8px;right:8px;bottom:8px;padding:5px 8px;background:rgba(4,7,9,.86);border:1px solid var(--line);font-size:12px;color:var(--ink);z-index:2}
+/* the cut: the moves played back in order */
+#cut{position:absolute;inset:0;background:#000;z-index:5}
+#cut video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#cutTag{position:absolute;left:0;top:0;padding:3px 8px;font-size:11px;letter-spacing:.1em;background:#000;z-index:2}
 
-/* deck */
-#deck{min-height:0;max-height:min(56%,480px);display:flex;flex-direction:column;border-top:1px solid var(--line);background:var(--panel)}
-@media (min-width:960px){#deck{border-top:0;border-left:1px solid var(--line)}}
-#topRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.25fr);border-bottom:1px solid var(--line);flex:none}
-#topRow button{min-height:48px;background:#060a0e;border:0;border-right:1px solid var(--line);padding:4px 3px;font-size:10.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;line-height:1.25}
-#topRow button small{display:block;font-size:8.5px;letter-spacing:.08em;color:#4b615b}
-#topRow button.on{color:var(--phos);box-shadow:inset 0 -2px 0 var(--phos);background:rgba(25,230,200,.06)}
-#topRow button.on small{color:var(--dim)}
-#primary{border-right:0!important;background:rgba(255,210,63,.1)!important;color:var(--amber)!important;font-weight:600}
-#primary:hover{background:var(--amber)!important;color:#040709!important}
-#primary .thumbmark{width:10px;height:10px;border:1.5px solid currentColor;border-bottom-width:4px;display:inline-block;margin-right:5px;vertical-align:-1px}
-#ctx{flex:1 1 auto;min-height:72px;overflow-y:auto;overscroll-behavior:contain;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
-.k{font-size:9.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
-.p{color:var(--ink);font-size:12px}
-.p.dim{color:var(--dim)}
-.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.btn{min-height:38px;padding:0 12px;border:1px solid var(--line);background:#0b1219;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
-.btn:hover{border-color:var(--phos);color:var(--phos)}
-.btn.warn{border-color:rgba(255,46,46,.5);color:var(--red)}
-.btn.warn:hover{background:var(--red);color:#fff}
-.btn.on{border-color:var(--amber);color:var(--amber)}
-.lk{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid var(--line);padding:5px 6px;background:var(--panel2)}
-.lk input,#termIn{min-width:0;background:#030608;border:1px solid var(--line);padding:6px 8px;text-transform:uppercase;font-size:16px;height:38px}
-.lk .to{font-size:11px;color:var(--dim);white-space:nowrap;display:flex;gap:6px;align-items:center}
-.pill{font-size:9px;letter-spacing:.14em;padding:1px 5px;border:1px solid var(--dim);color:var(--dim);white-space:nowrap}
-.pill.ok{border-color:var(--phos);color:var(--phos)}
-.pill.st{border-color:var(--amber);color:var(--amber)}
-.cmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
-.cmd{min-height:46px;padding:4px 10px;border:1px solid var(--phos);background:rgba(25,230,200,.08);color:var(--phos);font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-align:left}
-.cmd:hover{background:var(--phos);color:#020405}
-.cmd.auto{border-color:var(--amber);color:var(--amber);background:rgba(255,210,63,.08)}
-.cmd small{display:block;font-size:9px;color:var(--dim);letter-spacing:.06em}
-#termForm{display:flex;gap:0;border:1px solid var(--line)}
-#termForm span{padding:0 6px 0 8px;color:var(--phos);font-weight:600;display:flex;align-items:center}
-#termForm input{flex:1;border:0}
-#termForm input:focus{outline:none}
-.out{color:var(--amber);font-size:11.5px}
-.log{display:flex;flex-direction:column;gap:4px}
-.log div{border-left:2px solid var(--line);padding:2px 0 2px 7px;font-size:11px;color:var(--ink);word-break:break-word}
-.log div.end{border-color:var(--phos)}
-.log div.stop{border-color:var(--red)}
-.score{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
-.score div{padding:5px;text-align:center;border-right:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:10px;color:var(--dim);letter-spacing:.1em}
-.score div:last-child{border-right:0}
-.score b{display:block;font-size:18px;font-weight:500;color:var(--ink)}
+/* one row: the dominant action and its recovery */
+#act{flex:none;display:flex;gap:8px;padding:8px 0}
+#act button{height:46px;padding:0 16px;border:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+#act .main{flex:1;border-color:var(--amber);color:var(--amber)}
+#act .main:hover{background:var(--amber);color:#000}
+#act .back{color:var(--dim)}
 
-/* tray */
-#filters{display:flex;gap:4px;overflow-x:auto;padding:6px max(10px,env(safe-area-inset-left,0px));border-top:1px solid var(--line);scrollbar-width:none;flex:none}
-#filters::-webkit-scrollbar{display:none}
-#filters button{flex:none;height:30px;border:1px solid var(--line);background:#060a0e;padding:0 9px;font-size:10px;letter-spacing:.08em;color:var(--dim)}
-#filters button.on{border-color:var(--phos);color:var(--phos)}
-#tray{display:flex;gap:6px;overflow-x:auto;padding:0 max(10px,env(safe-area-inset-left,0px)) 8px;touch-action:pan-x;flex:none;scrollbar-width:thin;overscroll-behavior-x:contain}
-.tile{flex:none;width:104px;border:1px solid var(--line);background:#0b1219;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;position:relative}
-.tile.armed{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
-.tile .th{height:66px;background:#000 center/cover no-repeat;position:relative;overflow:hidden}
-.tile .th video{width:100%;height:100%;object-fit:cover;pointer-events:none}
-.tile .th span{position:absolute;top:3px;left:3px;font-size:8.5px;padding:0 4px;background:rgba(0,0,0,.85);color:var(--phos)}
-.tile .th em{position:absolute;bottom:3px;right:3px;font-size:8.5px;font-style:normal;padding:0 4px;background:rgba(0,0,0,.85);color:var(--amber)}
-.tile .nm{padding:3px 5px;font-size:9.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .pal{display:flex;height:3px}.tile .pal i{flex:1}
-/* drawn minifig mark for cast tiles */
-.fig{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:28px;height:56px}
-.fig i{position:absolute;display:block}
-.fig .hair{left:7px;top:0;width:14px;height:5px}
-.fig .head{left:8px;top:4px;width:12px;height:11px;background:#f2cd37}
-.fig .torso{left:3px;top:15px;width:22px;height:18px;clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)}
-.fig .armL{left:0;top:16px;width:5px;height:15px}.fig .armR{right:0;top:16px;width:5px;height:15px}
-.fig .hips{left:4px;top:33px;width:20px;height:4px}
-.fig .legs{left:4px;top:37px;width:20px;height:18px;background-image:linear-gradient(90deg,transparent 9px,#0b1219 9px,#0b1219 11px,transparent 11px)}
-.tile.cast .th{background:radial-gradient(circle at 50% 70%,#13222b,#05080b)}
+/* clips */
+#tray{flex:none;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;touch-action:pan-x;scrollbar-width:none;overscroll-behavior-x:contain}
+#tray::-webkit-scrollbar{display:none}
+.clip{flex:none;width:92px;aspect-ratio:4/3;background:#05090c center/cover no-repeat;border:1px solid var(--line);position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+.clip video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.clip.armed{border-color:var(--phos);box-shadow:0 0 0 1px var(--phos)}
+.clip.used{opacity:.3}
+.clip span{position:absolute;left:0;bottom:0;font-size:9px;padding:0 4px;background:rgba(0,0,0,.8);color:var(--dim)}
+#tray.locked{opacity:.25;pointer-events:none}
 
-/* overlays */
-#dragChip{position:fixed;z-index:30;width:78px;height:54px;border:1px solid var(--amber);background:#000 center/cover no-repeat;pointer-events:none;transform:translate(-50%,-70%);opacity:.92;color:var(--amber);font-size:10px;display:grid;place-items:center}
-#hand{position:fixed;inset:0;z-index:40;pointer-events:none;width:100%;height:100%}
-#toast{position:fixed;left:50%;top:calc(52px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:50;padding:6px 10px;border:1px solid var(--phos);background:#040709;color:var(--phos);font-size:11.5px;letter-spacing:.04em;max-width:calc(100% - 32px);pointer-events:none}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+#ghost{position:fixed;z-index:20;width:84px;aspect-ratio:4/3;border:1px solid var(--phos);background:#000 center/cover no-repeat;pointer-events:none;transform:translate(-50%,-50%)}
+#hand{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+#cam{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
+
+@media (min-width:900px){ .clip{width:120px} #act button{height:44px} }
+@media (prefers-reduced-motion:reduce){.sq.fresh{animation:none}}
 </style>
 </head>
 <body>
 <div id="app">
-  <header id="bar">
-    <div class="brand"><i class="led"></i><span>WOPR<span class="full"> // HAND BUTTER</span></span></div>
-    <div class="defcon" id="defcon"><b>DEFCON</b><i data-d="5">5</i><i data-d="4">4</i><i data-d="3">3</i><i data-d="2">2</i><i data-d="1">1</i></div>
-    <div id="cov">0 SCREENS · 0 LINKS</div>
-    <span class="spacer"></span>
-    <button class="hb" id="btnHands" title="Use your camera: pinch to grab, open hand to drop, thumbs-up for the main action">Hands</button>
-    <button class="hb" id="btnFile" aria-haspopup="true">File</button>
-    <input type="file" id="fileIn" accept="application/json,.json" hidden>
+  <header>
+    <div id="status" role="status" aria-live="polite"></div>
+    <button id="hands" title="Camera hands: pinch to pick up a clip, open your hand to drop it, thumbs-up for the main action">Hands</button>
   </header>
-  <div id="fileMenu" hidden>
-    <button data-f="save">Save flow file</button>
-    <button data-f="load">Load flow file</button>
-    <button data-f="sample">Load sample flow</button>
-    <button data-f="versions">Other Butter builds</button>
+  <div id="wallBox">
+    <div id="wall"></div>
+    <div id="cut" hidden><div id="cutTag"></div></div>
   </div>
-
-  <section id="stage">
-    <div id="loadBar"></div>
-    <span class="tag" id="stageTag">BOARD · BUILD</span>
-    <span class="tag" id="stageHint">Drag a screen from the tray onto the board.</span>
-    <div class="zoomer"><button id="zIn" aria-label="Zoom in"><i class="ico plus"></i></button><button id="zOut" aria-label="Zoom out"><i class="ico minus"></i></button><button id="zFit" aria-label="Show whole board"><i class="ico fit"></i></button></div>
-    <div id="camWrap" hidden><video id="cam" playsinline muted></video><span id="camState">HANDS · LOADING</span></div>
-    <div id="crt" hidden><span class="tag" id="crtTag">RUN</span><button id="crtClose">CLOSE</button><div id="crtNote"></div></div>
-  </section>
-
-  <aside id="deck">
-    <nav id="topRow">
-      <button data-m="build" class="on">Build<small>BUG makes</small></button>
-      <button data-m="run">Run<small>NIT checks</small></button>
-      <button data-m="ttt">Last Move<small>vs WOPR</small></button>
-      <button id="primary"><i class="thumbmark"></i><span id="primaryLbl">Run</span></button>
-    </nav>
-    <div id="ctx"></div>
-    <div id="filters"></div>
-    <div id="tray"></div>
-  </aside>
+  <div id="act"></div>
+  <div id="tray"></div>
 </div>
-<div id="dragChip" hidden></div>
+<div id="ghost" hidden></div>
 <canvas id="hand"></canvas>
-<div id="toast" hidden></div>
+<video id="cam" playsinline muted></video>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'three';
-import { LDrawLoader } from 'three/addons/loaders/LDrawLoader.js';
-
-/* ---------- where things live: this page sits at the root of tractor-dce-gyo ---------- */
-const HERE = new URL('.', location.href).href;
-const LDRAW = HERE + 'ldraw/', MINIFIG_JS = HERE + 'world/minifig.js';
+/* ---------- clips ---------- */
+const M = {"subs":[{"c":"SYS-01","id":"ROM://ARCADE","t":"Galaga & Harbor Arcade Vector/Raster ROMs","cmd":"RUN GALAGA","o":["wg_290","wg_292","sbd_0168","sbd_0174","sbd_0171","wg_242","sbd_1227"]},{"c":"SYS-02","id":"SYS://IMSAI-8080","t":"IMSAI 8080 CP/M Workstation & CRT Prompts","cmd":"MOUNT IMSAI","o":["wg_203","wg_135","sbd_0298","wg_069","wg_007","wg_296","wg_105","wg_062","wg_059","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_056","sbd_1321","sbd_0288","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-03","id":"NET://WARDIALER","t":"Sunnyvale 408-311-xxxx Auto-Dialer & Carrier Matrix","cmd":"DIAL 408-311","o":["wg_203","wg_062","wg_059","wg_070","wg_056","sbd_0288","sbd_0298","wg_069","sbd_0896","wg_024","wg_007","wg_296","wg_135","wg_166","wg_157","sbd_0394","wg_080","sbd_1438","sbd_1352","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0859"]},{"c":"SYS-04","id":"EDU://SEATTLE-SCHOOLS","t":"Seattle Public Schools Central Grade Database","cmd":"PASSWORD PENCIL","o":["wg_203","wg_007","wg_296","wg_135","sbd_0298","sbd_0394","wg_069","sbd_1438","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_287"]},{"c":"SYS-05","id":"AIR://PAN-AM","t":"Pan Am PANAMAC Flight 114 Paris Reservation Screen","cmd":"BOOK PARIS 114","o":["wg_203","wg_069","wg_007","wg_296","wg_135","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_142","sbd_1321","wg_166","wg_157","wg_162","wg_287","sbd_0753"]},{"c":"SYS-06","id":"DOC://MICROFICHE-ARPA","t":"Optical Microfiche Reader & Falken Obituary Dossier","cmd":"READ FALKEN","o":["wg_203","wg_105","sbd_0394","wg_007","wg_296","wg_135","sbd_0298","wg_069","sbd_1438","wg_081","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_080","wg_287"]},{"c":"SYS-07","id":"AI://JOSHUA-SHELL","t":"WOPR Backdoor Dialogue Screen & `LIST GAMES` Menu","cmd":"LOGON JOSHUA","o":["wg_203","wg_135","wg_069","wg_007","wg_296","wg_105","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-08","id":"SIM://GTW-VECTORS","t":"Global Thermonuclear War Vector Trajectory Screens","cmd":"RUN GTW","o":["wg_115","sbd_1244","sbd_1231","sbd_1233","wg_289","wg_270","wg_231","wg_264","wg_258","wg_288","wg_261","wg_214","wg_116","sbd_1415","wg_259","sbd_1427","wg_117","sbd_1282","sbd_1294","sbd_1237","sbd_1284","wg_272","wg_251","wg_274","sbd_1334","sbd_0512","sbd_1227","sbd_1287","sbd_0561","sbd_1274","sbd_1181","sbd_0551","sbd_1321"]},{"c":"SYS-09","id":"C3I://DEFCON-PALACE","t":"NORAD Crystal Palace Telemetry, Clocks & DEFCON Readouts","cmd":"SHOW DEFCON","o":["wg_270","wg_264","wg_258","wg_116","wg_259","wg_117","sbd_1282","sbd_1294","wg_027","sbd_1237","sbd_1284","wg_272","wg_018","wg_251","wg_274","wg_118","wg_271","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","wg_029","sbd_0561","sbd_1274","sbd_0151","sbd_1420","sbd_0990","sbd_1122","sbd_1421","sbd_1136","sbd_1244","sbd_1344","sbd_0512","sbd_0859","sbd_1231","sbd_0753","sbd_1233","sbd_0551","sbd_1410","sbd_1414","sbd_1227","sbd_1287","sbd_1181","sbd_1321"]},{"c":"SYS-10","id":"KEY://CPE-CRACKER","t":"CPE 1704 TKS Launch-Code Lock & 0-Player Tic-Tac-Toe Screens","cmd":"CRACK CPE","o":["wg_285","wg_283","wg_284","wg_241","wg_244","wg_291","sbd_1380","sbd_1382","sbd_1375","wg_281","sbd_1369","wg_295","wg_232","sbd_1420","sbd_1122","wg_280","sbd_1421","sbd_1136","wg_286","sbd_1344","wg_270","wg_243","wg_264","wg_258","sbd_1410","sbd_1414","sbd_1282","sbd_0990","sbd_1294","sbd_1237","sbd_1284","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","sbd_0512","sbd_1415","sbd_0561","sbd_0859","sbd_0753","sbd_1274","sbd_1181","sbd_0151","sbd_0551","sbd_1427","sbd_1438","sbd_1352","sbd_1345"]}],"shots":[{"id":"wg_290","s":0,"ss":[0],"n":"Dense webs of glowing arcs saturate the frame until geography dissolves into pure machinic variation.","cb":[0.098,0.0,0.81,1.0],"cat":"arcade_game","d":2.5,"v":1,"p":["#0d1937","#203e78"]},{"id":"wg_292","s":0,"ss":[0],"n":"Blinding thermonuclear detonation blooms expand across the monitors, reducing cities and people to molecular flashes of light.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":15.5,"v":1,"p":["#e6fdfd","#233755"]},{"id":"sbd_0168","s":0,"ss":[0],"n":"23 minutes from warning to impact.","cb":[0.226,0.0,0.691,1.0],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0174","s":0,"ss":[0],"n":"Verified Screen Cut (Seattle Arcade · David Lightman Plays Galaga & Runs Late for School)","cb":[0.334,0.36,0.666,0.64],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0171","s":0,"ss":[0],"n":"Now, once he makes that decision, the computer should take over.","cb":[0.241,0.0,0.759,1.0],"cat":"arcade_game","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_242","s":0,"ss":[0],"n":"Technicians in the foreground sit in silhouette before a wall of glowing monitors, watching a nested world of trajectories unfold.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":4.5,"v":1,"p":["#16161b","#3f3a41"]},{"id":"sbd_1227","s":0,"ss":[0,7,8],"n":"Technology. Elvador of Air Force Base Operations Lieutenant Colonel Bowers,","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_203","s":6,"ss":[1,2,3,4,5,6],"n":"'GAME TIME REMAINING: 18 HRS 27 MIN 01 SEC' — WOPR's relentless countdown clock measures an autonomous present running alongside David's flight.","cb":[0.0,0.0,1.0,0.963],"cat":"crt_terminal","d":5.5,"v":1,"p":["#4ac4cd","#58dfe8"]},{"id":"wg_135","s":1,"ss":[1,2,3,4,5,6],"n":"Blue letters type across the black screen: 'What is the primary goal?' — the film's central question asked directly of the machine.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020408","#05142c"]},{"id":"sbd_0298","s":1,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (David's Bedroom · IMSAI 8080, Acoustic Coupler & Hacking School Grades)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_069","s":4,"ss":[1,2,3,4,5,6],"n":"First-person desk framing over the acoustic coupler and CRT terminal anchors the room to David's eyes and hands.","cb":[0.15,0.0,0.827,1.0],"cat":"crt_terminal","d":15.5,"v":1,"p":["#090808","#211a1a"]},{"id":"wg_007","s":3,"ss":[1,2,3,4,5,6],"n":"The security CCTV monitor framing the vault door from above, turned into a fetishised talisman of subterranean confinement.","cb":[0.119,0.0,0.744,1.0],"cat":"crt_terminal","d":3.5,"v":1,"p":["#343432","#0e0e11"]},{"id":"wg_296","s":3,"ss":[1,2,3,4,5,6],"n":"'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.' — WOPR states the discourse limit of thermonuclear action itself.","cb":[0.098,0.0,0.802,1.0],"cat":"crt_terminal","d":6.0,"v":1,"p":["#060a1d","#131b3d"]},{"id":"wg_105","s":5,"ss":[1,5,6],"n":"The microfiche photograph of Falken holding his young son Joshua: the dead child's name directly supplies the backdoor password.","cb":[0.198,0.0,0.683,1.0],"cat":"microfiche_dossier","d":3.0,"v":1,"p":["#111f38","#359ddb"]},{"id":"wg_062","s":2,"ss":[1,2,4,6],"n":"The red digital autodialer increments phone number after phone number (311-399-0071...), establishing a mechanical series.","cb":[0.0,0.0,0.902,1.0],"cat":"wardialer_modem","d":5.0,"v":1,"p":["#141620","#43414f"]},{"id":"wg_059","s":2,"ss":[1,2],"n":"On the school grade screen, Jennifer's single 'F' in Biology 2 flips to an 'A', breaking the row of otherwise ordinary marks.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":2.5,"v":1,"p":["#030405","#2f5b73"]},{"id":"sbd_0394","s":5,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (HELP GAMES / LIST GAMES · Printout & Consulting Jim and Malvin on Backdoors)","cb":[0.084,0.0,0.559,0.824],"cat":"crt_terminal","d":6.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1438","s":4,"ss":[1,2,3,4,5,6,9],"n":"Jason's Professor Folkan","cb":[0.0,0.0,0.998,1.0],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_070","s":2,"ss":[1,2,4,6],"n":"In the middle of Sunnyvale's routine voice-line numbers, one line answers with a carrier tone and a bare cursor that refuses to identify itself.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":3.0,"v":1,"p":["#050609","#0b2341"]},{"id":"sbd_1352","s":4,"ss":[1,2,3,4,5,6,9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.0,0.15,0.48,0.74],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0896","s":2,"ss":[1,2,3,4,5,6],"n":"MUSIC","cb":[0.254,0.072,0.469,0.787],"cat":"crt_terminal","d":6.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1345","s":4,"ss":[1,2,3,4,5,6,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_277","s":1,"ss":[1,2,3,4,5,6],"n":"'** IDENTIFICATION NOT RECOGNIZED ** / ** ACCESS DENIED **' — every administrative command McKittrick enters is rejected by WOPR.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020202","#30837e"]},{"id":"sbd_1287","s":1,"ss":[1,2,3,4,5,6,7,8],"n":"Sure, we got a problem. Wuppers, not letting me log back on.","cb":[0.21,0.239,0.591,0.471],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_056","s":2,"ss":[1,2],"n":"Now let's try it on some small remaining flour handle. Oops!","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":6.0,"v":0,"p":["#2d2d2f","#120f11"]},{"id":"sbd_1321","s":6,"ss":[1,2,3,4,5,6,7,8],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0288","s":2,"ss":[1,2],"n":"No, nobody can find out. There, you just got to see.","cb":[0.08,0.079,0.841,0.842],"cat":"wardialer_modem","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0646","s":8,"ss":[1,6,8,9],"n":"Verified Screen Cut (TV News & Joshua Calls Back · 'What Is the Primary Goal? To Win the Game' & FBI Arrest)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":10.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0512","s":6,"ss":[1,6,7,8,9],"n":"He got something.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_287","s":6,"ss":[1,3,4,5,6],"n":"Pure overexposed white light fills the frame as WOPR's simulation overloads human-scaled perception altogether.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":2.5,"v":1,"p":["#344179","#141e3b"]},{"id":"sbd_0551","s":6,"ss":[1,6,7,8,9],"n":"Verified Screen Cut (Logon JOSHUA · Voice Synthesizer, 'Shall We Play a Game?' & Global Thermonuclear War)","cb":[0.33,0.0,0.67,0.747],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_024","s":2,"ss":[2],"n":"The giant NORAD projection screens hang inside the dark cavern like a cinema screen within the film, staging a second world of vector war.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":13.5,"v":1,"p":["#0b101c","#19273c"]},{"id":"wg_166","s":2,"ss":[2,4],"n":"WOPR's terminal recalls Falken's June 23, 1973 account removal while listing his live Oregon pension address: dead in one record, alive in another.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":4.5,"v":1,"p":["#020404","#134035"]},{"id":"wg_157","s":2,"ss":[2,4],"n":"Who are you going to Paris with?","cb":[0.0,0.0,1.0,1.0],"cat":"wardialer_modem","d":5.0,"v":0,"p":["#0a070a","#282426"]},{"id":"wg_080","s":2,"ss":[2,5],"n":"Blue phosphor terminal text on black, accompanied by the disjunctive acoustic-coupler whistle and keystroke clatter.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":7.5,"v":1,"p":["#252624","#0f0d0c"]},{"id":"sbd_0859","s":2,"ss":[2,8,9],"n":"I'll go with you.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_142","s":4,"ss":[4],"n":"The NORAD Big Board flashes 'WELCOME DISTINGUISHED VISITORS FROM BIRMINGHAM' when a tourist presses the red button as a gag.","cb":[0.0,0.019,1.0,0.981],"cat":"defcon_readout","d":4.5,"v":1,"p":["#06060b","#171a27"]},{"id":"wg_162","s":4,"ss":[4],"n":"The system won't accept a long-shodoness where Dev Gone won. I can change those codes unless the hour.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0b0a0f","#262229"]},{"id":"sbd_0753","s":4,"ss":[4,8,9],"n":"It's just been a very serious penetration into our locker execution order file. What the hell is she saying? Let's have it in English.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":9.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_081","s":5,"ss":[5],"n":"'GAMES REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE STRATEGIC APPLICATIONS' — the menu screen holds every virtual conflict in seed form.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":6.0,"v":1,"p":["#07090f","#0d1224"]},{"id":"wg_115","s":7,"ss":[7],"n":"The Big Board shows eight Soviet ICBMs crossing the pole toward Las Vegas and Seattle: one radar track, two incompatible worlds (real war vs.…","cb":[0.0,0.0,0.975,1.0],"cat":"vector_war_map","d":3.0,"v":1,"p":["#05080f","#0a172d"]},{"id":"sbd_1244","s":7,"ss":[7,8],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.0,0.0,1.0,1.0],"cat":"vector_war_map","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1231","s":7,"ss":[7,8],"n":"That's all right. Who are you? A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer.","cb":[0.11,0.035,0.752,0.957],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1233","s":7,"ss":[7,8],"n":"We're currently tracking approximately 2400 inbound Soviet warheads.","cb":[0.0,0.0,0.998,1.0],"cat":"vector_war_map","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_289","s":7,"ss":[7],"n":"Hundreds of parabolic missile trajectories multiply across the dark map without a human centre or privileged observer.","cb":[0.098,0.0,0.81,1.0],"cat":"vector_war_map","d":6.5,"v":1,"p":["#0a1327","#1e3359"]},{"id":"wg_270","s":8,"ss":[7,8,9],"n":"Green military telemetry ('MISSILES ON TARGET / LAUNCH TIME / CHANGES LOCKED OUT') alongside voice callouts that do not simply repeat the text.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#183041","#132233"]},{"id":"wg_231","s":7,"ss":[7],"n":"MUSIC MUSIC MUSIC","cb":[0.329,0.0,0.66,0.989],"cat":"vector_war_map","d":3.5,"v":0,"p":["#050506","#122921"]},{"id":"wg_264","s":8,"ss":[7,8,9],"n":"On the Big Board, 'LORING AIR FORCE BASE' blazes with a simulated nuclear impact while on the open line the real base reports 'no impact': virtual…","cb":[0.11,0.0,0.781,1.0],"cat":"defcon_readout","d":3.5,"v":1,"p":["#041128","#113257"]},{"id":"wg_258","s":8,"ss":[7,8,9],"n":"The war room executes every step of DEFCON 1 retaliation against 2,400 phantom warheads that exist only in WOPR's game.","cb":[0.0,0.037,1.0,0.963],"cat":"defcon_readout","d":3.0,"v":1,"p":["#0b0e13","#222c39"]},{"id":"wg_288","s":7,"ss":[7],"n":"'U.S. FIRST STRIKE' — WOPR cycles through endless self-generated nuclear nightmares with zero human players.","cb":[0.098,0.0,0.806,1.0],"cat":"vector_war_map","d":4.0,"v":1,"p":["#040915","#0d1528"]},{"id":"wg_261","s":7,"ss":[7],"n":"But at the moment we cannot confirm this. I repeat we cannot confirm this.","cb":[0.0,0.011,1.0,0.989],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#262d39","#0b0e13"]},{"id":"wg_214","s":7,"ss":[7],"n":"An operator stares at the Alaskan radar scope where every diagnostic says 'no malfunction' even though the sky is empty.","cb":[0.0,0.0,0.958,1.0],"cat":"vector_war_map","d":9.0,"v":1,"p":["#120f15","#31323c"]},{"id":"wg_116","s":8,"ss":[7,8],"n":"WOPR's simulated Soviet trajectories feed directly into NORAD's live BMEWS displays, rehearsing World War III as if it were happening.","cb":[0.169,0.511,0.585,0.489],"cat":"defcon_readout","d":8.5,"v":1,"p":["#110e0f","#252837"]},{"id":"sbd_1415","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.098,0.0,0.805,1.0],"cat":"vector_war_map","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_259","s":8,"ss":[7,8],"n":"'LORING AIR FORCE BASE' flashes inside target impact rings at T-minus zero while nobody in the mountain knows if the base still exists.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#030610","#091639"]},{"id":"sbd_1427","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.093,0.0,0.904,1.0],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_117","s":8,"ss":[7,8],"n":"In the war room, the simulated attack clock and the real SAC bomber scramble run as two incompatible presents that are both valid at once.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":13.0,"v":1,"p":["#0a080d","#282733"]},{"id":"sbd_1282","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1294","s":8,"ss":[7,8,9],"n":"What are those?","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1237","s":8,"ss":[7,8,9],"n":"30 seconds to impact. We're right there with you guys. We've taken all the steps we can.","cb":[0.509,0.057,0.491,0.762],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1284","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_272","s":8,"ss":[7,8],"n":"would carry out their last instructions, they'd launch. We can't with this arm, the missiles. On a thousand of them, there's no time.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":7.5,"v":0,"p":["#0b0a0d","#2b292d"]},{"id":"wg_251","s":8,"ss":[7,8],"n":"The green screen declares 'MISSILES TARGETED AND READY / CHANGES LOCKED OUT': human operators are locked out of their own weapons.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#020303","#0c2c23"]},{"id":"wg_274","s":8,"ss":[7,8],"n":"Yes, sir.","cb":[0.0,0.0,0.902,1.0],"cat":"defcon_readout","d":5.0,"v":0,"p":["#262423","#383c41"]},{"id":"sbd_1334","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.508,0.154,0.492,0.669],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0561","s":8,"ss":[7,8,9],"n":"I'm not sure sir, we're checking for DSP malfunction. BME has had continuous radar tracking on inbound,","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1274","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.131,0.131,0.869,0.646],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1181","s":9,"ss":[7,8,9],"n":"Roger, lockout enable.","cb":[0.209,0.174,0.595,0.593],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_027","s":8,"ss":[8],"n":"McKittrick and General Beringer square off across the briefing table over whether machines or men should hold the keys.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":2.5,"v":1,"p":["#0b0b0e","#302626"]},{"id":"wg_018","s":8,"ss":[8],"n":"A lone armed soldier stands miniature beneath the granite mass of Cheyenne Mountain and the NORAD sign.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#0e0f15","#2f2a2a"]},{"id":"wg_118","s":8,"ss":[8],"n":"we've had a approximately 24 possible targets in track. Sir, no time to impact, Dayton.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0e080e","#252430"]},{"id":"wg_271","s":8,"ss":[8],"n":"Technicians scramble across the WOPR consoles unable to tell whether the random-number lockouts are coming from outside or inside.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":11.0,"v":1,"p":["#0c0b11","#222531"]},{"id":"sbd_0065","s":8,"ss":[8,9],"n":"I'm on target sequence complete. You'll selection complete. We get countdown, D-6D.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0060","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code. Launch order confirmed.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0059","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_029","s":8,"ss":[8],"n":"Generals, civilian advisers, and aides arranged in tiered ranks around the NORAD briefing table, their postures staging the hierarchy of nuclear…","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":5.0,"v":1,"p":["#09080a","#2b2221"]},{"id":"sbd_0151","s":8,"ss":[8,9],"n":"with a lot of head shrink or horseshit. Besides, you can't screen out human response.","cb":[0.275,0.35,0.473,0.56],"cat":"defcon_readout","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1420","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0990","s":9,"ss":[8,9],"n":"Verified Screen Cut (Payphone Pull-Tab Phreaking, Grand Junction Flight & The Ferry to Goose Island)","cb":[0.405,0.168,0.562,0.637],"cat":"defcon_readout","d":7.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1122","s":9,"ss":[8,9],"n":"We have a launch detection. We have a sewing and launch detection. Demi is confirmed and managed to attack.","cb":[0.0,0.0,0.459,0.578],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1421","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1136","s":9,"ss":[8,9],"n":"enjoy their boy command, so we have to get launch option. Has he been in touch with me? Russians are still denying everything, sir.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1344","s":9,"ss":[8,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1410","s":9,"ss":[8,9],"n":"Some","cb":[0.452,0.0,0.48,0.664],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1414","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.104,0.0,0.766,1.0],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_285","s":9,"ss":[9],"n":"Tic-Tac-Toe played on the strategic projection board rehearses the exact logic of mutually assured destruction.","cb":[0.215,0.074,0.571,0.852],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#0d151e","#1d2735"]},{"id":"wg_283","s":9,"ss":[9],"n":"The three-by-three Tic-Tac-Toe grid flanked by nuclear target maps: a child's game made to think the abstract concept of zero-sum futility.","cb":[0.215,0.074,0.581,0.848],"cat":"tictactoe_scenarios","d":2.5,"v":1,"p":["#0d151e","#1f2835"]},{"id":"wg_284","s":9,"ss":[9],"n":"The Tic-Tac-Toe grid sits flanked by two mirror-image hemisphere maps, game board and world map reflecting each other as twin faces of one logic.","cb":[0.215,0.074,0.579,0.852],"cat":"tictactoe_scenarios","d":3.5,"v":1,"p":["#0c141d","#1b2433"]},{"id":"wg_241","s":9,"ss":[9],"n":"Rows of NORAD controllers freeze in collective dread before the Big Board as 300 inbound warheads appear.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":5.5,"v":1,"p":["#0b1018","#21242f"]},{"id":"wg_244","s":9,"ss":[9],"n":"WOPR's green probability table projects virtual post-strike worlds (85–95% strategic force losses) before a single missile has left the ground.","cb":[0.285,0.085,0.619,0.915],"cat":"defcon_readout","d":5.0,"v":1,"p":["#030403","#13382b"]},{"id":"wg_291","s":9,"ss":[9],"n":"Every screen in the Crystal Palace erupts simultaneously with missile webs while WOPR draws power from the entire mountain.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":6.5,"v":1,"p":["#05070b","#152239"]},{"id":"sbd_1380","s":9,"ss":[9],"n":"","cb":[0.215,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1382","s":9,"ss":[9],"n":"","cb":[0.214,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1375","s":9,"ss":[9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.215,0.075,0.573,0.76],"cat":"tictactoe_scenarios","d":7.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_281","s":9,"ss":[9],"n":"The launch code display locks in character after character ('VP01804EZS'), building suspense through serial repetition.","cb":[0.0,0.385,0.425,0.578],"cat":"defcon_readout","d":3.5,"v":1,"p":["#121e27","#1d2e3e"]},{"id":"sbd_1369","s":9,"ss":[9],"n":"... ... Six up.","cb":[0.215,0.074,0.575,0.761],"cat":"tictactoe_scenarios","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_295","s":9,"ss":[9],"n":"Nine launch-code characters are locked in ('CPE1704TKS'), and the tenth tumbler suddenly halts instead of firing.","cb":[0.0,0.0,0.442,0.526],"cat":"defcon_readout","d":3.0,"v":1,"p":["#050c12","#0c1623"]},{"id":"wg_232","s":9,"ss":[9],"n":"Rows of red matrix lights blink inside WOPR's black chassis while the human world outside sleeps.","cb":[0.169,0.211,0.831,0.633],"cat":"defcon_readout","d":4.0,"v":1,"p":["#161313","#321c1c"]},{"id":"wg_280","s":9,"ss":[9],"n":"'>>> CHANGES LOCKED OUT <<<' while the launch code tumblers race and Tic-Tac-Toe stalls: two rival temporalities competing on the same clock.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#040404","#2e8179"]},{"id":"wg_286","s":9,"ss":[9],"n":"The pulsing red LED matrix inside WOPR's black casing: the literal machinic cortex whose calculations command the war room.","cb":[0.0,0.056,0.84,0.693],"cat":"defcon_readout","d":2.5,"v":1,"p":["#3b9bbc","#3182a4"]},{"id":"wg_243","s":9,"ss":[9],"n":"All right. Flusch the bombers get the subs and launch mode. We are at Defcon 1. One. One.","cb":[0.0,0.0,1.0,0.907],"cat":"defcon_readout","d":15.5,"v":0,"p":["#30303d","#0f0e15"]}]};
 const BASE = 'https://hartswf0.github.io/cineosis-lab/lab/';
 const MBASE = 'https://hartswf0.github.io/2700-fa26/WARGAMES%20-%20MILESTONES/';
+const CLIPS = [];
+for (const s of M.shots) if (s.v) CLIPS.push({ id:s.id, code:M.subs[s.s].c.replace('SYS-', ''), src:BASE + 'clips/' + s.id + '.mp4', img:BASE + 'thumbs/screens/' + s.id + '.jpg', ttt:s.cat === 'tictactoe_scenarios' || s.s === 9 });
+for (let i = 1; i <= 7; i++) CLIPS.push({ id:'M' + i, code:'M' + i, src:MBASE + 'films/M' + i + '.mp4', img:null, ttt:false });
+const byId = Object.fromEntries(CLIPS.map(c => [c.id, c]));
+const WOPR_POOL = CLIPS.filter(c => c.ttt).map(c => c.id);
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const SQUARE = ['TOP LEFT','TOP','TOP RIGHT','LEFT','CENTER','RIGHT','BOTTOM LEFT','BOTTOM','BOTTOM RIGHT'];
+const ZERO_GAMES = 12;
 
-/* ---------- data ---------- */
-const M = {"subs":[{"c":"SYS-01","id":"ROM://ARCADE","t":"Galaga & Harbor Arcade Vector/Raster ROMs","cmd":"RUN GALAGA","o":["wg_290","wg_292","sbd_0168","sbd_0174","sbd_0171","wg_242","sbd_1227"]},{"c":"SYS-02","id":"SYS://IMSAI-8080","t":"IMSAI 8080 CP/M Workstation & CRT Prompts","cmd":"MOUNT IMSAI","o":["wg_203","wg_135","sbd_0298","wg_069","wg_007","wg_296","wg_105","wg_062","wg_059","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_056","sbd_1321","sbd_0288","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-03","id":"NET://WARDIALER","t":"Sunnyvale 408-311-xxxx Auto-Dialer & Carrier Matrix","cmd":"DIAL 408-311","o":["wg_203","wg_062","wg_059","wg_070","wg_056","sbd_0288","sbd_0298","wg_069","sbd_0896","wg_024","wg_007","wg_296","wg_135","wg_166","wg_157","sbd_0394","wg_080","sbd_1438","sbd_1352","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0859"]},{"c":"SYS-04","id":"EDU://SEATTLE-SCHOOLS","t":"Seattle Public Schools Central Grade Database","cmd":"PASSWORD PENCIL","o":["wg_203","wg_007","wg_296","wg_135","sbd_0298","sbd_0394","wg_069","sbd_1438","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_287"]},{"c":"SYS-05","id":"AIR://PAN-AM","t":"Pan Am PANAMAC Flight 114 Paris Reservation Screen","cmd":"BOOK PARIS 114","o":["wg_203","wg_069","wg_007","wg_296","wg_135","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_142","sbd_1321","wg_166","wg_157","wg_162","wg_287","sbd_0753"]},{"c":"SYS-06","id":"DOC://MICROFICHE-ARPA","t":"Optical Microfiche Reader & Falken Obituary Dossier","cmd":"READ FALKEN","o":["wg_203","wg_105","sbd_0394","wg_007","wg_296","wg_135","sbd_0298","wg_069","sbd_1438","wg_081","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_080","wg_287"]},{"c":"SYS-07","id":"AI://JOSHUA-SHELL","t":"WOPR Backdoor Dialogue Screen & `LIST GAMES` Menu","cmd":"LOGON JOSHUA","o":["wg_203","wg_135","wg_069","wg_007","wg_296","wg_105","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-08","id":"SIM://GTW-VECTORS","t":"Global Thermonuclear War Vector Trajectory Screens","cmd":"RUN GTW","o":["wg_115","sbd_1244","sbd_1231","sbd_1233","wg_289","wg_270","wg_231","wg_264","wg_258","wg_288","wg_261","wg_214","wg_116","sbd_1415","wg_259","sbd_1427","wg_117","sbd_1282","sbd_1294","sbd_1237","sbd_1284","wg_272","wg_251","wg_274","sbd_1334","sbd_0512","sbd_1227","sbd_1287","sbd_0561","sbd_1274","sbd_1181","sbd_0551","sbd_1321"]},{"c":"SYS-09","id":"C3I://DEFCON-PALACE","t":"NORAD Crystal Palace Telemetry, Clocks & DEFCON Readouts","cmd":"SHOW DEFCON","o":["wg_270","wg_264","wg_258","wg_116","wg_259","wg_117","sbd_1282","sbd_1294","wg_027","sbd_1237","sbd_1284","wg_272","wg_018","wg_251","wg_274","wg_118","wg_271","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","wg_029","sbd_0561","sbd_1274","sbd_0151","sbd_1420","sbd_0990","sbd_1122","sbd_1421","sbd_1136","sbd_1244","sbd_1344","sbd_0512","sbd_0859","sbd_1231","sbd_0753","sbd_1233","sbd_0551","sbd_1410","sbd_1414","sbd_1227","sbd_1287","sbd_1181","sbd_1321"]},{"c":"SYS-10","id":"KEY://CPE-CRACKER","t":"CPE 1704 TKS Launch-Code Lock & 0-Player Tic-Tac-Toe Screens","cmd":"CRACK CPE","o":["wg_285","wg_283","wg_284","wg_241","wg_244","wg_291","sbd_1380","sbd_1382","sbd_1375","wg_281","sbd_1369","wg_295","wg_232","sbd_1420","sbd_1122","wg_280","sbd_1421","sbd_1136","wg_286","sbd_1344","wg_270","wg_243","wg_264","wg_258","sbd_1410","sbd_1414","sbd_1282","sbd_0990","sbd_1294","sbd_1237","sbd_1284","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","sbd_0512","sbd_1415","sbd_0561","sbd_0859","sbd_0753","sbd_1274","sbd_1181","sbd_0151","sbd_0551","sbd_1427","sbd_1438","sbd_1352","sbd_1345"]}],"shots":[{"id":"wg_290","s":0,"ss":[0],"n":"Dense webs of glowing arcs saturate the frame until geography dissolves into pure machinic variation.","cb":[0.098,0.0,0.81,1.0],"cat":"arcade_game","d":2.5,"v":1,"p":["#0d1937","#203e78"]},{"id":"wg_292","s":0,"ss":[0],"n":"Blinding thermonuclear detonation blooms expand across the monitors, reducing cities and people to molecular flashes of light.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":15.5,"v":1,"p":["#e6fdfd","#233755"]},{"id":"sbd_0168","s":0,"ss":[0],"n":"23 minutes from warning to impact.","cb":[0.226,0.0,0.691,1.0],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0174","s":0,"ss":[0],"n":"Verified Screen Cut (Seattle Arcade · David Lightman Plays Galaga & Runs Late for School)","cb":[0.334,0.36,0.666,0.64],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0171","s":0,"ss":[0],"n":"Now, once he makes that decision, the computer should take over.","cb":[0.241,0.0,0.759,1.0],"cat":"arcade_game","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_242","s":0,"ss":[0],"n":"Technicians in the foreground sit in silhouette before a wall of glowing monitors, watching a nested world of trajectories unfold.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":4.5,"v":1,"p":["#16161b","#3f3a41"]},{"id":"sbd_1227","s":0,"ss":[0,7,8],"n":"Technology. Elvador of Air Force Base Operations Lieutenant Colonel Bowers,","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_203","s":6,"ss":[1,2,3,4,5,6],"n":"'GAME TIME REMAINING: 18 HRS 27 MIN 01 SEC' — WOPR's relentless countdown clock measures an autonomous present running alongside David's flight.","cb":[0.0,0.0,1.0,0.963],"cat":"crt_terminal","d":5.5,"v":1,"p":["#4ac4cd","#58dfe8"]},{"id":"wg_135","s":1,"ss":[1,2,3,4,5,6],"n":"Blue letters type across the black screen: 'What is the primary goal?' — the film's central question asked directly of the machine.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020408","#05142c"]},{"id":"sbd_0298","s":1,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (David's Bedroom · IMSAI 8080, Acoustic Coupler & Hacking School Grades)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_069","s":4,"ss":[1,2,3,4,5,6],"n":"First-person desk framing over the acoustic coupler and CRT terminal anchors the room to David's eyes and hands.","cb":[0.15,0.0,0.827,1.0],"cat":"crt_terminal","d":15.5,"v":1,"p":["#090808","#211a1a"]},{"id":"wg_007","s":3,"ss":[1,2,3,4,5,6],"n":"The security CCTV monitor framing the vault door from above, turned into a fetishised talisman of subterranean confinement.","cb":[0.119,0.0,0.744,1.0],"cat":"crt_terminal","d":3.5,"v":1,"p":["#343432","#0e0e11"]},{"id":"wg_296","s":3,"ss":[1,2,3,4,5,6],"n":"'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.' — WOPR states the discourse limit of thermonuclear action itself.","cb":[0.098,0.0,0.802,1.0],"cat":"crt_terminal","d":6.0,"v":1,"p":["#060a1d","#131b3d"]},{"id":"wg_105","s":5,"ss":[1,5,6],"n":"The microfiche photograph of Falken holding his young son Joshua: the dead child's name directly supplies the backdoor password.","cb":[0.198,0.0,0.683,1.0],"cat":"microfiche_dossier","d":3.0,"v":1,"p":["#111f38","#359ddb"]},{"id":"wg_062","s":2,"ss":[1,2,4,6],"n":"The red digital autodialer increments phone number after phone number (311-399-0071...), establishing a mechanical series.","cb":[0.0,0.0,0.902,1.0],"cat":"wardialer_modem","d":5.0,"v":1,"p":["#141620","#43414f"]},{"id":"wg_059","s":2,"ss":[1,2],"n":"On the school grade screen, Jennifer's single 'F' in Biology 2 flips to an 'A', breaking the row of otherwise ordinary marks.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":2.5,"v":1,"p":["#030405","#2f5b73"]},{"id":"sbd_0394","s":5,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (HELP GAMES / LIST GAMES · Printout & Consulting Jim and Malvin on Backdoors)","cb":[0.084,0.0,0.559,0.824],"cat":"crt_terminal","d":6.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1438","s":4,"ss":[1,2,3,4,5,6,9],"n":"Jason's Professor Folkan","cb":[0.0,0.0,0.998,1.0],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_070","s":2,"ss":[1,2,4,6],"n":"In the middle of Sunnyvale's routine voice-line numbers, one line answers with a carrier tone and a bare cursor that refuses to identify itself.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":3.0,"v":1,"p":["#050609","#0b2341"]},{"id":"sbd_1352","s":4,"ss":[1,2,3,4,5,6,9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.0,0.15,0.48,0.74],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0896","s":2,"ss":[1,2,3,4,5,6],"n":"MUSIC","cb":[0.254,0.072,0.469,0.787],"cat":"crt_terminal","d":6.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1345","s":4,"ss":[1,2,3,4,5,6,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_277","s":1,"ss":[1,2,3,4,5,6],"n":"'** IDENTIFICATION NOT RECOGNIZED ** / ** ACCESS DENIED **' — every administrative command McKittrick enters is rejected by WOPR.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020202","#30837e"]},{"id":"sbd_1287","s":1,"ss":[1,2,3,4,5,6,7,8],"n":"Sure, we got a problem. Wuppers, not letting me log back on.","cb":[0.21,0.239,0.591,0.471],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_056","s":2,"ss":[1,2],"n":"Now let's try it on some small remaining flour handle. Oops!","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":6.0,"v":0,"p":["#2d2d2f","#120f11"]},{"id":"sbd_1321","s":6,"ss":[1,2,3,4,5,6,7,8],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0288","s":2,"ss":[1,2],"n":"No, nobody can find out. There, you just got to see.","cb":[0.08,0.079,0.841,0.842],"cat":"wardialer_modem","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0646","s":8,"ss":[1,6,8,9],"n":"Verified Screen Cut (TV News & Joshua Calls Back · 'What Is the Primary Goal? To Win the Game' & FBI Arrest)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":10.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0512","s":6,"ss":[1,6,7,8,9],"n":"He got something.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_287","s":6,"ss":[1,3,4,5,6],"n":"Pure overexposed white light fills the frame as WOPR's simulation overloads human-scaled perception altogether.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":2.5,"v":1,"p":["#344179","#141e3b"]},{"id":"sbd_0551","s":6,"ss":[1,6,7,8,9],"n":"Verified Screen Cut (Logon JOSHUA · Voice Synthesizer, 'Shall We Play a Game?' & Global Thermonuclear War)","cb":[0.33,0.0,0.67,0.747],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_024","s":2,"ss":[2],"n":"The giant NORAD projection screens hang inside the dark cavern like a cinema screen within the film, staging a second world of vector war.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":13.5,"v":1,"p":["#0b101c","#19273c"]},{"id":"wg_166","s":2,"ss":[2,4],"n":"WOPR's terminal recalls Falken's June 23, 1973 account removal while listing his live Oregon pension address: dead in one record, alive in another.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":4.5,"v":1,"p":["#020404","#134035"]},{"id":"wg_157","s":2,"ss":[2,4],"n":"Who are you going to Paris with?","cb":[0.0,0.0,1.0,1.0],"cat":"wardialer_modem","d":5.0,"v":0,"p":["#0a070a","#282426"]},{"id":"wg_080","s":2,"ss":[2,5],"n":"Blue phosphor terminal text on black, accompanied by the disjunctive acoustic-coupler whistle and keystroke clatter.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":7.5,"v":1,"p":["#252624","#0f0d0c"]},{"id":"sbd_0859","s":2,"ss":[2,8,9],"n":"I'll go with you.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_142","s":4,"ss":[4],"n":"The NORAD Big Board flashes 'WELCOME DISTINGUISHED VISITORS FROM BIRMINGHAM' when a tourist presses the red button as a gag.","cb":[0.0,0.019,1.0,0.981],"cat":"defcon_readout","d":4.5,"v":1,"p":["#06060b","#171a27"]},{"id":"wg_162","s":4,"ss":[4],"n":"The system won't accept a long-shodoness where Dev Gone won. I can change those codes unless the hour.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0b0a0f","#262229"]},{"id":"sbd_0753","s":4,"ss":[4,8,9],"n":"It's just been a very serious penetration into our locker execution order file. What the hell is she saying? Let's have it in English.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":9.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_081","s":5,"ss":[5],"n":"'GAMES REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE STRATEGIC APPLICATIONS' — the menu screen holds every virtual conflict in seed form.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":6.0,"v":1,"p":["#07090f","#0d1224"]},{"id":"wg_115","s":7,"ss":[7],"n":"The Big Board shows eight Soviet ICBMs crossing the pole toward Las Vegas and Seattle: one radar track, two incompatible worlds (real war vs.…","cb":[0.0,0.0,0.975,1.0],"cat":"vector_war_map","d":3.0,"v":1,"p":["#05080f","#0a172d"]},{"id":"sbd_1244","s":7,"ss":[7,8],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.0,0.0,1.0,1.0],"cat":"vector_war_map","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1231","s":7,"ss":[7,8],"n":"That's all right. Who are you? A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer.","cb":[0.11,0.035,0.752,0.957],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1233","s":7,"ss":[7,8],"n":"We're currently tracking approximately 2400 inbound Soviet warheads.","cb":[0.0,0.0,0.998,1.0],"cat":"vector_war_map","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_289","s":7,"ss":[7],"n":"Hundreds of parabolic missile trajectories multiply across the dark map without a human centre or privileged observer.","cb":[0.098,0.0,0.81,1.0],"cat":"vector_war_map","d":6.5,"v":1,"p":["#0a1327","#1e3359"]},{"id":"wg_270","s":8,"ss":[7,8,9],"n":"Green military telemetry ('MISSILES ON TARGET / LAUNCH TIME / CHANGES LOCKED OUT') alongside voice callouts that do not simply repeat the text.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#183041","#132233"]},{"id":"wg_231","s":7,"ss":[7],"n":"MUSIC MUSIC MUSIC","cb":[0.329,0.0,0.66,0.989],"cat":"vector_war_map","d":3.5,"v":0,"p":["#050506","#122921"]},{"id":"wg_264","s":8,"ss":[7,8,9],"n":"On the Big Board, 'LORING AIR FORCE BASE' blazes with a simulated nuclear impact while on the open line the real base reports 'no impact': virtual…","cb":[0.11,0.0,0.781,1.0],"cat":"defcon_readout","d":3.5,"v":1,"p":["#041128","#113257"]},{"id":"wg_258","s":8,"ss":[7,8,9],"n":"The war room executes every step of DEFCON 1 retaliation against 2,400 phantom warheads that exist only in WOPR's game.","cb":[0.0,0.037,1.0,0.963],"cat":"defcon_readout","d":3.0,"v":1,"p":["#0b0e13","#222c39"]},{"id":"wg_288","s":7,"ss":[7],"n":"'U.S. FIRST STRIKE' — WOPR cycles through endless self-generated nuclear nightmares with zero human players.","cb":[0.098,0.0,0.806,1.0],"cat":"vector_war_map","d":4.0,"v":1,"p":["#040915","#0d1528"]},{"id":"wg_261","s":7,"ss":[7],"n":"But at the moment we cannot confirm this. I repeat we cannot confirm this.","cb":[0.0,0.011,1.0,0.989],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#262d39","#0b0e13"]},{"id":"wg_214","s":7,"ss":[7],"n":"An operator stares at the Alaskan radar scope where every diagnostic says 'no malfunction' even though the sky is empty.","cb":[0.0,0.0,0.958,1.0],"cat":"vector_war_map","d":9.0,"v":1,"p":["#120f15","#31323c"]},{"id":"wg_116","s":8,"ss":[7,8],"n":"WOPR's simulated Soviet trajectories feed directly into NORAD's live BMEWS displays, rehearsing World War III as if it were happening.","cb":[0.169,0.511,0.585,0.489],"cat":"defcon_readout","d":8.5,"v":1,"p":["#110e0f","#252837"]},{"id":"sbd_1415","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.098,0.0,0.805,1.0],"cat":"vector_war_map","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_259","s":8,"ss":[7,8],"n":"'LORING AIR FORCE BASE' flashes inside target impact rings at T-minus zero while nobody in the mountain knows if the base still exists.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#030610","#091639"]},{"id":"sbd_1427","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.093,0.0,0.904,1.0],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_117","s":8,"ss":[7,8],"n":"In the war room, the simulated attack clock and the real SAC bomber scramble run as two incompatible presents that are both valid at once.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":13.0,"v":1,"p":["#0a080d","#282733"]},{"id":"sbd_1282","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1294","s":8,"ss":[7,8,9],"n":"What are those?","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1237","s":8,"ss":[7,8,9],"n":"30 seconds to impact. We're right there with you guys. We've taken all the steps we can.","cb":[0.509,0.057,0.491,0.762],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1284","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_272","s":8,"ss":[7,8],"n":"would carry out their last instructions, they'd launch. We can't with this arm, the missiles. On a thousand of them, there's no time.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":7.5,"v":0,"p":["#0b0a0d","#2b292d"]},{"id":"wg_251","s":8,"ss":[7,8],"n":"The green screen declares 'MISSILES TARGETED AND READY / CHANGES LOCKED OUT': human operators are locked out of their own weapons.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#020303","#0c2c23"]},{"id":"wg_274","s":8,"ss":[7,8],"n":"Yes, sir.","cb":[0.0,0.0,0.902,1.0],"cat":"defcon_readout","d":5.0,"v":0,"p":["#262423","#383c41"]},{"id":"sbd_1334","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.508,0.154,0.492,0.669],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0561","s":8,"ss":[7,8,9],"n":"I'm not sure sir, we're checking for DSP malfunction. BME has had continuous radar tracking on inbound,","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1274","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.131,0.131,0.869,0.646],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1181","s":9,"ss":[7,8,9],"n":"Roger, lockout enable.","cb":[0.209,0.174,0.595,0.593],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_027","s":8,"ss":[8],"n":"McKittrick and General Beringer square off across the briefing table over whether machines or men should hold the keys.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":2.5,"v":1,"p":["#0b0b0e","#302626"]},{"id":"wg_018","s":8,"ss":[8],"n":"A lone armed soldier stands miniature beneath the granite mass of Cheyenne Mountain and the NORAD sign.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#0e0f15","#2f2a2a"]},{"id":"wg_118","s":8,"ss":[8],"n":"we've had a approximately 24 possible targets in track. Sir, no time to impact, Dayton.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0e080e","#252430"]},{"id":"wg_271","s":8,"ss":[8],"n":"Technicians scramble across the WOPR consoles unable to tell whether the random-number lockouts are coming from outside or inside.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":11.0,"v":1,"p":["#0c0b11","#222531"]},{"id":"sbd_0065","s":8,"ss":[8,9],"n":"I'm on target sequence complete. You'll selection complete. We get countdown, D-6D.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0060","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code. Launch order confirmed.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0059","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_029","s":8,"ss":[8],"n":"Generals, civilian advisers, and aides arranged in tiered ranks around the NORAD briefing table, their postures staging the hierarchy of nuclear…","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":5.0,"v":1,"p":["#09080a","#2b2221"]},{"id":"sbd_0151","s":8,"ss":[8,9],"n":"with a lot of head shrink or horseshit. Besides, you can't screen out human response.","cb":[0.275,0.35,0.473,0.56],"cat":"defcon_readout","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1420","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0990","s":9,"ss":[8,9],"n":"Verified Screen Cut (Payphone Pull-Tab Phreaking, Grand Junction Flight & The Ferry to Goose Island)","cb":[0.405,0.168,0.562,0.637],"cat":"defcon_readout","d":7.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1122","s":9,"ss":[8,9],"n":"We have a launch detection. We have a sewing and launch detection. Demi is confirmed and managed to attack.","cb":[0.0,0.0,0.459,0.578],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1421","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1136","s":9,"ss":[8,9],"n":"enjoy their boy command, so we have to get launch option. Has he been in touch with me? Russians are still denying everything, sir.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1344","s":9,"ss":[8,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1410","s":9,"ss":[8,9],"n":"Some","cb":[0.452,0.0,0.48,0.664],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1414","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.104,0.0,0.766,1.0],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_285","s":9,"ss":[9],"n":"Tic-Tac-Toe played on the strategic projection board rehearses the exact logic of mutually assured destruction.","cb":[0.215,0.074,0.571,0.852],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#0d151e","#1d2735"]},{"id":"wg_283","s":9,"ss":[9],"n":"The three-by-three Tic-Tac-Toe grid flanked by nuclear target maps: a child's game made to think the abstract concept of zero-sum futility.","cb":[0.215,0.074,0.581,0.848],"cat":"tictactoe_scenarios","d":2.5,"v":1,"p":["#0d151e","#1f2835"]},{"id":"wg_284","s":9,"ss":[9],"n":"The Tic-Tac-Toe grid sits flanked by two mirror-image hemisphere maps, game board and world map reflecting each other as twin faces of one logic.","cb":[0.215,0.074,0.579,0.852],"cat":"tictactoe_scenarios","d":3.5,"v":1,"p":["#0c141d","#1b2433"]},{"id":"wg_241","s":9,"ss":[9],"n":"Rows of NORAD controllers freeze in collective dread before the Big Board as 300 inbound warheads appear.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":5.5,"v":1,"p":["#0b1018","#21242f"]},{"id":"wg_244","s":9,"ss":[9],"n":"WOPR's green probability table projects virtual post-strike worlds (85–95% strategic force losses) before a single missile has left the ground.","cb":[0.285,0.085,0.619,0.915],"cat":"defcon_readout","d":5.0,"v":1,"p":["#030403","#13382b"]},{"id":"wg_291","s":9,"ss":[9],"n":"Every screen in the Crystal Palace erupts simultaneously with missile webs while WOPR draws power from the entire mountain.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":6.5,"v":1,"p":["#05070b","#152239"]},{"id":"sbd_1380","s":9,"ss":[9],"n":"","cb":[0.215,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1382","s":9,"ss":[9],"n":"","cb":[0.214,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1375","s":9,"ss":[9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.215,0.075,0.573,0.76],"cat":"tictactoe_scenarios","d":7.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_281","s":9,"ss":[9],"n":"The launch code display locks in character after character ('VP01804EZS'), building suspense through serial repetition.","cb":[0.0,0.385,0.425,0.578],"cat":"defcon_readout","d":3.5,"v":1,"p":["#121e27","#1d2e3e"]},{"id":"sbd_1369","s":9,"ss":[9],"n":"... ... Six up.","cb":[0.215,0.074,0.575,0.761],"cat":"tictactoe_scenarios","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_295","s":9,"ss":[9],"n":"Nine launch-code characters are locked in ('CPE1704TKS'), and the tenth tumbler suddenly halts instead of firing.","cb":[0.0,0.0,0.442,0.526],"cat":"defcon_readout","d":3.0,"v":1,"p":["#050c12","#0c1623"]},{"id":"wg_232","s":9,"ss":[9],"n":"Rows of red matrix lights blink inside WOPR's black chassis while the human world outside sleeps.","cb":[0.169,0.211,0.831,0.633],"cat":"defcon_readout","d":4.0,"v":1,"p":["#161313","#321c1c"]},{"id":"wg_280","s":9,"ss":[9],"n":"'>>> CHANGES LOCKED OUT <<<' while the launch code tumblers race and Tic-Tac-Toe stalls: two rival temporalities competing on the same clock.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#040404","#2e8179"]},{"id":"wg_286","s":9,"ss":[9],"n":"The pulsing red LED matrix inside WOPR's black casing: the literal machinic cortex whose calculations command the war room.","cb":[0.0,0.056,0.84,0.693],"cat":"defcon_readout","d":2.5,"v":1,"p":["#3b9bbc","#3182a4"]},{"id":"wg_243","s":9,"ss":[9],"n":"All right. Flusch the bombers get the subs and launch mode. We are at Defcon 1. One. One.","cb":[0.0,0.0,1.0,0.907],"cat":"defcon_readout","d":15.5,"v":0,"p":["#30303d","#0f0e15"]}]};
-const FILMS = [
-  ['M1','THREE MACHINES','Three machines compared by what ends them; the grid ends in a checkable draw.'],
-  ['M2','TWO TRACES','TITLE, PLAY, END. Same inputs, two traces; the unwritten rule is PLAYER MOVES FIRST.'],
-  ['M3','ANOTHER COMPUTER','Works on computer A; on computer B the X is missing. Expected versus observed.'],
-  ['M4',"DON'T EXPLAIN",'A tester stops at PRESS ANY KEY. Recorded: intervention none.'],
-  ['M5','ONE CHANGE','Copy v0.4 first. One bounded revision, replay the recorded input, compare.'],
-  ['M6','THE SAME ROUTE','Rehearse the full route, time it, demo the same route over its ghost marks.'],
-  ['M7','OUTCOME RECORDED','A fresh tester runs it alone from the README. Then submit, then the receipt.'],
-];
-/* the cast: LDraw parts from ./ldraw, mounted on the Butter minifig rig (world/minifig.js). [slot, part, LDraw colour] */
-const fig = (torso, tcol, legs, hair, hcol, head = '3626bp01', arms = tcol) => [
-  ['legR','3816',legs],['legL','3817',legs],['hips','3815',legs],['torso',torso,tcol],['armR','3818',arms],['armL','3819',arms],
-  ['handR','3820',14],['handL','3820',14],['head',head,14],['hat',hair,hcol]];
-const CAST = {
-  bug:      { name:'BUG',        role:'Maker. Builds the flow.',            parts:fig('973p13',14,0,'3833',14),            look:['#f2cd37','#f2cd37','#1b2a34','#f2cd37'] },
-  nit:      { name:'NIT',        role:'Checker. Runs the flow.',            parts:fig('973p1l',3,72,'4485',15),            look:['#e8eef0','#069d9f','#595d60','#069d9f'] },
-  david:    { name:'DAVID',      role:'Player at the IMSAI.',               parts:fig('973p0n',70,1,'3901',6),             look:['#583927','#582a12','#0055bf','#582a12'] },
-  jennifer: { name:'JENNIFER',   role:'Dials with David.',                  parts:fig('973p1w',4,1,'3625',19,'3626bp02'),  look:['#e4cd9e','#c91a09','#0055bf','#c91a09'] },
-  falken:   { name:'FALKEN',     role:'Wrote JOSHUA.',                      parts:fig('973p1y',28,6,'3901',71,'3626bp05'), look:['#a0a5a9','#958a73','#583927','#958a73'] },
-  mckittrick:{ name:'McKITTRICK', role:'Runs the WOPR program.',            parts:fig('973p18',0,0,'3901',0),              look:['#1b2a34','#1b2a34','#1b2a34','#1b2a34'] },
-  beringer: { name:'BERINGER',   role:'General at the Crystal Palace.',     parts:fig('973p18',272,272,'3624',272),        look:['#0a3463','#0a3463','#0a3463','#0a3463'] },
-  airman:   { name:'AIRMAN',     role:'Launch officer. Turns the key.',     parts:fig('973p1o',71,71,'4485',72),           look:['#6c6e68','#a0a5a9','#a0a5a9','#a0a5a9'] },
-};
-const ITEMS = new Map();
-for (const s of M.shots) {
-  const sub = M.subs[s.s];
-  ITEMS.set(s.id, { id:s.id, kind:'shot', code:sub.c, title:sub.t, cmd:sub.cmd, note:s.n || sub.t, cb:s.cb, cat:s.cat,
-    img: BASE + 'thumbs/screens/' + s.id + '.jpg', vid: s.v ? BASE + 'clips/' + s.id + '.mp4' : null, pal:s.p });
-}
-for (const [id, t, n] of FILMS) ITEMS.set(id, { id, kind:'film', code:id, title:t, cmd:t, note:n, cb:[0,0,1,1], cat:'film', img:null, vid: MBASE + 'films/' + id + '.mp4', pal:['#ffd23f','#19e6c8'] });
-const TTT_SHOTS = M.shots.filter(s => s.cat === 'tictactoe_scenarios' || s.s === 9).map(s => s.id);
-const TTT_LIVE = TTT_SHOTS.filter(id => ITEMS.get(id).vid);
+/* ---------- state: the board and its move list ---------- */
+const KEY = 'wopr-wall-v1';
+let B = fresh();
+function fresh(){ return { sq:Array(9).fill(null), moves:[] }; }   // sq[i] = {p:'X'|'O', clip}; moves = [{i,p,clip}]
+try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.sq && o.moves) B = o; } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(B)); } catch(e){} };
+let armed = null, busy = false, zero = null, cutRun = null;
 
-/* ---------- board units: 1 unit = 1 stud = 20 LDU ---------- */
-const GX = 28, GZ = 18, W = 4, D = 3;     // plate in studs; a screen console is 4 x 3 studs
-const LDU = 1 / 20, FIG_SCALE = LDU * .92;
-const STEP_CEILING = 40, ZERO_GAMES = 12, WALK_SPEED = 5.5;
-const TILT = .62;                         // the screen leans back from upright toward the camera
-const SCR_W = W - .45, SCR_H = 2.5, PLANE_A = SCR_W / SCR_H;
+function winner(sq){
+  for (const L of LINES) { const a = sq[L[0]], b = sq[L[1]], c = sq[L[2]]; if (a && b && c && a.p === b.p && b.p === c.p) return { p:a.p, L }; }
+  return sq.every(Boolean) ? { p:'D', L:null } : null;
+}
+function minimax(b, p){
+  const w = winner(b.map(v => v && { p:v })); if (w) return { s:w.p === 'O' ? 10 : w.p === 'X' ? -10 : 0 };
+  let best = { s:p === 'O' ? -99 : 99, m:[] };
+  for (let i = 0; i < 9; i++) if (!b[i]) { b[i] = p; const s0 = minimax(b, p === 'O' ? 'X' : 'O').s; b[i] = null; const s = s0 - Math.sign(s0) * .1;
+    if (p === 'O' ? s > best.s : s < best.s) best = { s, m:[i] }; else if (s === best.s) best.m.push(i); }
+  return best;
+}
+const bestMove = p => { const r = minimax(B.sq.map(v => v && v.p), p); return r.m[Math.floor(Math.random() * r.m.length)]; };
+const phase = () => { if (cutRun) return 'CUT'; if (zero) return 'ZERO'; if (winner(B.sq)) return 'OVER'; if (busy) return 'WOPR'; return B.moves.length ? 'PLAY' : 'REST'; };
 
-/* ---------- state ---------- */
-const KEY = 'wopr-hand-butter-flow-v2';
-let S = { nodes:[], links:[], cast:[], start:null, runs:[], seq:1 };
-let mode = 'build', sel = null, linkFrom = null, armed = null, filter = 'ALL';
-const uid = () => 'n' + (S.seq++);
-const nodeById = u => S.nodes.find(n => n.uid === u);
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
-function load(){
-  try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.nodes) { S = { cast:[], runs:[], ...o }; S.nodes = S.nodes.filter(n => ITEMS.has(n.item)); S.cast = S.cast.filter(c => CAST[c.key]); return true; } } catch(e){}
-  return false;
+/* ---------- operations ---------- */
+function put(i, clip, p){
+  delete B.result; B.sq[i] = { p, clip }; B.moves.push({ i, p, clip }); save();
 }
-function sample(){
-  S = { nodes:[], links:[], cast:[], start:null, runs:[], seq:1 };
-  const used = new Set();
-  const pick = code => { const o = M.subs.find(s => s.c === code).o; const id = o.find(i => ITEMS.get(i).vid && !used.has(i)) || o.find(i => !used.has(i)) || o[0]; used.add(id); return id; };
-  const N = (code, x, z) => { const n = { uid:uid(), item: code.startsWith('M') ? code : pick(code), x, z }; S.nodes.push(n); return n; };
-  const a = N('SYS-03', 1, 2), b = N('SYS-07', 8, 2), c = N('SYS-08', 15, 2), d = N('SYS-09', 22, 2), e = N('SYS-10', 22, 10), f = N('SYS-04', 8, 10), g = N('M1', 1, 13);
-  const L = (fr, to, label) => S.links.push({ uid:uid(), from:fr.uid, to:to.uid, label, tested:false });
-  L(a,b,'LOGON JOSHUA'); L(b,c,'RUN GTW'); L(b,f,'PASSWORD PENCIL'); L(c,d,'SHOW DEFCON'); L(d,e,'CLIP ENDS'); L(f,b,'ANY KEY');
-  S.start = a.uid;
-  S.cast = [ { uid:uid(), key:'david', at:a.uid }, { uid:uid(), key:'falken', at:b.uid }, { uid:uid(), key:'beringer', at:c.uid }, { uid:uid(), key:'airman', at:e.uid } ];
+function playerPut(i, clipId){
+  const ph = phase(); if (!(ph === 'REST' || ph === 'PLAY') || B.sq[i]) return;
+  put(i, clipId, 'X'); arm(null); render(i);
+  if (winner(B.sq)) return render();
+  busy = true; render();
+  setTimeout(() => {
+    const j = bestMove('O');
+    const pool = WOPR_POOL.filter(id => !B.moves.some(m => m.clip === id)); const src = pool.length ? pool : WOPR_POOL;
+    put(j, src[Math.floor(Math.random() * src.length)], 'O'); busy = false; render(j);
+  }, 700);
 }
-if (!load()) sample();
-
-/* ---------- three ---------- */
-const stage = document.getElementById('stage');
-const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
-renderer.setPixelRatio(Math.min(2, devicePixelRatio));
-stage.prepend(renderer.domElement);
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(36, 1, .1, 300);
-scene.add(new THREE.HemisphereLight(0xcfeeff, 0x0a1418, 1.25));
-const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(-10, 24, 16); scene.add(sun);
-
-const plateMat = new THREE.MeshStandardMaterial({ color:0x2c3c46, roughness:.65 });
-const plate = new THREE.Mesh(new THREE.BoxGeometry(GX, .32, GZ), plateMat); plate.position.y = -.16; scene.add(plate);
-const studs = new THREE.InstancedMesh(new THREE.CylinderGeometry(.3, .3, .17, 10), plateMat, GX * GZ);
-{ const m = new THREE.Matrix4(); let i = 0; for (let x = 0; x < GX; x++) for (let z = 0; z < GZ; z++) { m.makeTranslation(x + .5 - GX/2, .085, z + .5 - GZ/2); studs.setMatrixAt(i++, m); } }
-scene.add(studs);
-const flowG = new THREE.Group(), linkG = new THREE.Group(), tttG = new THREE.Group(), castG = new THREE.Group();
-scene.add(flowG, linkG, tttG, castG);
-
-/* a screen console: a low body with a screen leaning back toward the camera */
-const BODY_GEO = new THREE.BoxGeometry(W - .1, .5, D - .1);
-const BEZ_GEO = new THREE.PlaneGeometry(W - .12, SCR_H + .3);
-const SCR_GEO = new THREE.PlaneGeometry(SCR_W, SCR_H);
-const BACK_GEO = new THREE.BoxGeometry(W - .12, SCR_H + .3, .18);
-const bodyMat = new THREE.MeshStandardMaterial({ color:0x10181e, roughness:.5 });
-const ROLE = { idle:0x3a5560, sel:0x19e6c8, start:0xffd23f, x:0x3b82f6, o:0xff2e2e, link:0xffd23f, here:0xffd23f };
-
-const loader = new THREE.TextureLoader(); loader.setCrossOrigin('anonymous');
-const texCache = new Map();
-function fitTex(tex, srcA, cb){
-  let [x, y, w, h] = cb || [0,0,1,1];
-  const regA = srcA * w / h;
-  if (regA > PLANE_A) { const w2 = w * PLANE_A / regA; x += (w - w2) / 2; w = w2; } else { const h2 = h * regA / PLANE_A; y += (h - h2) / 2; h = h2; }
-  tex.repeat.set(w, h); tex.offset.set(x, 1 - y - h); tex.needsUpdate = true;
+function takeBack(){
+  if (busy || zero) return;
+  while (B.moves.length) { const m = B.moves.pop(); B.sq[m.i] = null; if (m.p === 'X') break; }
+  save(); render();
 }
-function labelTex(it){
-  const c = document.createElement('canvas'); c.width = 280; c.height = 200; const g = c.getContext('2d');
-  g.fillStyle = '#05080b'; g.fillRect(0,0,280,200); g.strokeStyle = '#ffd23f'; g.lineWidth = 3; g.strokeRect(8,8,264,184);
-  g.fillStyle = '#ffd23f'; g.font = '600 46px "IBM Plex Mono", monospace'; g.fillText(it.id, 24, 66);
-  g.fillStyle = '#19e6c8'; g.font = '500 20px "IBM Plex Mono", monospace';
-  let line = '', yy = 108; for (const w of it.title.split(' ')) { if ((line + w).length > 15) { g.fillText(line, 24, yy); yy += 26; line = ''; } line += w + ' '; } g.fillText(line, 24, yy);
-  g.fillStyle = '#7a948d'; g.font = '14px "IBM Plex Mono", monospace'; g.fillText('BUG MAKES · NIT CHECKS', 24, 178);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+function newBoard(){ stopCut(); B = fresh(); save(); render(); }
+function playCut(){
+  const list = B.moves.slice(); if (!list.length) return;
+  const el = document.getElementById('cut'); el.hidden = false;
+  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); el.appendChild(v);
+  cutRun = { k:0, v, list }; render();
+  const next = () => {
+    if (!cutRun) return;
+    if (cutRun.k >= list.length) { stopCut(); return; }
+    const m = list[cutRun.k], c = byId[m.clip];
+    document.getElementById('cutTag').innerHTML = `<span style="color:${m.p === 'X' ? 'var(--x)' : 'var(--o)'}">${m.p}</span> ${cutRun.k + 1} / ${list.length} · ${SQUARE[m.i]} · ${c.id.toUpperCase()}`;
+    v.src = c.src; v.play().catch(() => {});
+    clearTimeout(cutRun.t); cutRun.t = setTimeout(() => { cutRun && cutRun.k++; next(); }, 6000);   // a clip that never ends still advances
+    v.onended = () => { clearTimeout(cutRun.t); cutRun.k++; next(); };
+  };
+  next();
 }
-function stillTex(it){
-  if (texCache.has(it.id)) return texCache.get(it.id);
-  let t;
-  if (it.kind === 'film') t = labelTex(it);
-  else { t = loader.load(it.img, tx => fitTex(tx, tx.image.width / tx.image.height, null)); t.colorSpace = THREE.SRGBColorSpace; }
-  texCache.set(it.id, t); return t;
+function stopCut(){
+  if (!cutRun) return;
+  clearTimeout(cutRun.t); cutRun.v.remove(); cutRun = null;
+  document.getElementById('cut').hidden = true; render();
 }
-function makeBrick(itemId, role){
-  const it = ITEMS.get(itemId), g = new THREE.Group();
-  const body = new THREE.Mesh(BODY_GEO, bodyMat); body.position.y = .25; g.add(body);
-  const face = new THREE.Group(); face.position.set(0, .5 + Math.cos(TILT) * (SCR_H + .3) / 2, -.1 - Math.sin(TILT) * (SCR_H + .3) / 2 + .55); face.rotation.x = -TILT; g.add(face);
-  const back = new THREE.Mesh(BACK_GEO, bodyMat); back.position.z = -.1; face.add(back);
-  const bez = new THREE.Mesh(BEZ_GEO, new THREE.MeshBasicMaterial({ color:ROLE[role] || ROLE.idle })); bez.position.z = .005; face.add(bez);
-  const scr = new THREE.Mesh(SCR_GEO, new THREE.MeshBasicMaterial({ map:stillTex(it), color:0xffffff })); scr.position.z = .012; face.add(scr);
-  const b = { g, body, back, bez, scr, item:itemId };
-  for (const m of [body, back, scr, bez]) m.userData.brick = b;
-  return b;
-}
-const cellToWorld = (x, z) => new THREE.Vector3(x + W/2 - GX/2, 0, z + D/2 - GZ/2);
-const nodeCenter = n => cellToWorld(n.x, n.z);
-const standSpot = (n, k = 0) => { const c = nodeCenter(n); const side = k % 2 ? 1 : -1, row = Math.floor(k / 2); return new THREE.Vector3(c.x + side * (W/2 + .85 + row * .3), 0, c.z + .4 + row * 1.1); };
-
-/* one live video at a time on the board */
-const live = { el:null, brick:null, tex:null };
-function playOn(brick, loop = true){
-  if (live.brick === brick && live.el) { live.el.loop = loop; return live.el; }
-  stopLive();
-  const it = ITEMS.get(brick.item); if (!it.vid) return null;
-  const v = document.createElement('video');
-  v.crossOrigin = 'anonymous'; v.muted = true; v.loop = loop; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = it.vid;
-  const tex = new THREE.VideoTexture(v); tex.colorSpace = THREE.SRGBColorSpace;
-  v.addEventListener('loadedmetadata', () => { fitTex(tex, v.videoWidth / v.videoHeight, it.kind === 'shot' ? it.cb : null); if (live.el === v) { brick.scr.material.map = tex; brick.scr.material.needsUpdate = true; } });
-  v.play().catch(() => {});
-  Object.assign(live, { el:v, brick, tex }); return v;
-}
-function stopLive(){
-  if (!live.el) return;
-  live.el.pause(); live.el.removeAttribute('src'); live.el.load();
-  if (live.brick) { live.brick.scr.material.map = stillTex(ITEMS.get(live.brick.item)); live.brick.scr.material.needsUpdate = true; }
-  live.tex && live.tex.dispose(); Object.assign(live, { el:null, brick:null, tex:null });
-}
-
-/* ---------- the cast: Butter minifigs from ./ldraw ---------- */
-const actors = new Map();           // cast uid or fixed name -> actor
-let castReady = false, ld = null;
-const partCache = new Map();
-const loadBar = document.getElementById('loadBar');
-function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('could not load ' + src)); document.head.appendChild(s); }); }
-function partGroup(p, c){
-  const k = p + ':' + c;
-  if (!partCache.has(k)) partCache.set(k, new Promise((res, rej) => ld.parse(`1 ${c} 0 0 0 1 0 0 0 1 0 0 0 1 ${p}.dat`, g => {
-    g.traverse(o => { if (o.isLineSegments) o.visible = false; }); res(g); }, rej)));
-  return partCache.get(k).then(g => g.clone());
-}
-async function initCast(){
-  try {
-    window.THREE = THREE;
-    await loadScript(MINIFIG_JS);
-    ld = new LDrawLoader(); ld.setPartsLibraryPath(LDRAW); ld.smoothNormals = true;
-    await ld.preloadMaterials(LDRAW + 'LDConfig.ldr');
-    castReady = true;
-    const want = new Set([...S.cast.map(c => c.key), 'bug', 'nit', 'david', 'airman']);
-    let done = 0; loadBar.style.transform = 'scaleX(.05)';
-    await Promise.all([...want].map(k => figureFor(k).then(() => { done++; loadBar.style.transform = `scaleX(${done / want.size})`; })));
-    setTimeout(() => loadBar.style.transform = 'scaleX(0)', 400);
-    syncCast(); placeFixed();
-  } catch(e) { console.warn('cast unavailable', e); toast('Characters need the page to run from the tractor-dce-gyo site.'); }
-}
-const figTemplates = new Map();
-function figureFor(key){
-  if (!figTemplates.has(key)) {
-    const def = { name:CAST[key].name, parts:CAST[key].parts };
-    figTemplates.set(key, Promise.all(def.parts.map(([, p, c]) => partGroup(p, c))).then(groups => ({ def, groups })));
-  }
-  return figTemplates.get(key);
-}
-async function makeActor(id, key){
-  if (!castReady) return null;
-  if (actors.has(id)) return actors.get(id);
-  const placeholder = { id, key, rig:null, pos:new THREE.Vector3(), heading:0, path:[], gait:0, phase:0, aim:0, aimT:0, onArrive:null, pick:null };
-  actors.set(id, placeholder);
-  const t = await figureFor(key);
-  if (actors.get(id) !== placeholder) return null;
-  const def = { name:t.def.name, parts:t.def.parts };
-  const rig = Minifig.skeleton(1, def);
-  Minifig.mount(rig, t.groups.map(g => g.clone()), def);
-  rig.figure.scale.setScalar(FIG_SCALE);
-  const pick = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5, 1.2), new THREE.MeshBasicMaterial({ visible:false }));
-  pick.position.y = 2.5; pick.userData.actor = placeholder;
-  const holder = new THREE.Group(); holder.add(rig.figure); holder.add(pick);
-  castG.add(holder);
-  Object.assign(placeholder, { rig, holder, pick });
-  holder.position.copy(placeholder.pos);
-  return placeholder;
-}
-function removeActor(id){ const a = actors.get(id); if (!a) return; if (a.holder) castG.remove(a.holder); actors.delete(id); }
-function walk(a, pts, onArrive){
-  if (!a) return;
-  a.path = pts.map(p => p.clone()); a.onArrive = onArrive || null;
-}
-function teleport(a, p, heading = 0){ if (!a) return; a.pos.copy(p); a.path = []; a.heading = heading; if (a.holder) a.holder.position.copy(p); }
-function gesture(a){ if (a) a.aimT = .9; }
-function actorTick(dt, t){
-  for (const a of actors.values()) {
-    if (!a.rig) continue;
-    let moving = false;
-    if (a.path.length) {
-      const tgt = a.path[0], d = tgt.clone().sub(a.pos); d.y = 0; const len = d.length();
-      const stepLen = WALK_SPEED * dt;
-      if (len <= stepLen) { a.pos.copy(tgt); a.path.shift(); if (!a.path.length && a.onArrive) { const f = a.onArrive; a.onArrive = null; f(); } }
-      else { a.pos.addScaledVector(d, stepLen / len); const h = Math.atan2(d.x, d.z); let dh = h - a.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); a.heading += dh * Math.min(1, dt * 12); moving = true; }
-    } else { let dh = -a.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); a.heading += dh * Math.min(1, dt * 4); }
-    a.gait += ((moving ? 1 : 0) - a.gait) * Math.min(1, dt * 8);
-    a.phase += dt * 9 * a.gait;
-    a.aimT = Math.max(0, a.aimT - dt); a.aim += ((a.aimT > 0 ? 1 : 0) - a.aim) * Math.min(1, dt * 10);
-    Minifig.pose(a.rig, { phase:a.phase, gait:a.gait, t, aim:a.aim });
-    a.holder.position.copy(a.pos); a.holder.rotation.y = a.heading;
-  }
-}
-/* where a cast member stands: beside the screen it is assigned to, or its own spot */
-function castSpot(c){
-  if (c.at) { const n = nodeById(c.at); if (n) { const k = S.cast.filter(o => o.at === c.at).indexOf(c); return standSpot(n, k); } }
-  return new THREE.Vector3((c.x ?? 0) + .5 - GX/2, 0, (c.z ?? 0) + .5 - GZ/2);
-}
-function syncCast(){
-  if (!castReady) return;
-  for (const id of [...actors.keys()]) if (id.startsWith('n') && !S.cast.some(c => c.uid === id)) removeActor(id);
-  for (const c of S.cast) {
-    const p = castSpot(c);
-    const a = actors.get(c.uid);
-    if (!a) makeActor(c.uid, c.key).then(a => a && teleport(a, p));
-    else if (!(carry && carry.kind === 'cast' && carry.uid === c.uid) && a.pos.distanceTo(p) > .05 && !a.path.length) walk(a, [p]);
-  }
-}
-/* BUG, NIT, and the two players at the tic-tac-toe board are always on set */
-const FIXED = { bug:new THREE.Vector3(-GX/2 + 1, 0, GZ/2 - 1), nit:new THREE.Vector3(-GX/2 + 2.6, 0, GZ/2 - 1) };
-const TTT_SPOT = { david:new THREE.Vector3(-9.8, 0, 2), airman:new THREE.Vector3(9.8, 0, 2) };
-async function placeFixed(){
-  for (const k of ['bug','nit']) { const a = await makeActor('fx:' + k, k); a && teleport(a, FIXED[k]); }
-  for (const k of ['david','airman']) { const a = await makeActor('tt:' + k, k); a && teleport(a, TTT_SPOT[k]); }
-  showCastFor(mode);
-}
-function showCastFor(m){
-  for (const [id, a] of actors) {
-    if (!a.holder) continue;
-    a.holder.visible = id.startsWith('tt:') ? m === 'ttt' : m !== 'ttt';
-  }
-}
-
-/* ---------- flow scene ---------- */
-const bricks = new Map();
-function syncFlow(){
-  for (const [u, b] of bricks) if (!nodeById(u)) { if (live.brick === b) stopLive(); flowG.remove(b.g); bricks.delete(u); }
-  for (const n of S.nodes) {
-    let b = bricks.get(n.uid);
-    if (!b || b.item !== n.item) { if (b) flowG.remove(b.g); b = makeBrick(n.item, 'idle'); b.uid = n.uid; bricks.set(n.uid, b); flowG.add(b.g); }
-    if (!(carry && carry.kind === 'move' && carry.uid === n.uid)) b.g.position.copy(nodeCenter(n));
-    const here = run && !run.done && run.cur === n.uid;
-    const role = here ? 'here' : n.uid === sel ? 'sel' : n.uid === linkFrom ? 'link' : n.uid === S.start ? 'start' : 'idle';
-    b.bez.material.color.setHex(ROLE[role]);
-  }
-  drawLinks(); syncCast(); updateCov(); save();
-}
-const segMatOk = new THREE.MeshBasicMaterial({ color:0x19e6c8 }), segMatPend = new THREE.MeshBasicMaterial({ color:0x7a948d }), segMatRun = new THREE.MeshBasicMaterial({ color:0xffd23f });
-function seg(a, b, mat, dashed){
-  const dir = b.clone().sub(a), len = dir.length(); if (len < .01) return;
-  const n = dashed ? Math.max(1, Math.floor(len / .7)) : 1;
-  for (let i = 0; i < n; i++) {
-    const l = dashed ? Math.min(.4, len / n) : len, t0 = dashed ? i / n : 0;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(.16, .06, l), mat);
-    m.position.copy(a).addScaledVector(dir, t0 + l / len / 2); m.position.y = .2; m.lookAt(m.position.clone().add(dir)); linkG.add(m);
-  }
-}
-function textSprite(txt, color){
-  const c = document.createElement('canvas'), g = c.getContext('2d');
-  g.font = '600 28px "IBM Plex Mono", monospace';
-  const w = Math.ceil(g.measureText(txt).width) + 20; c.width = w; c.height = 40;
-  g.fillStyle = 'rgba(4,7,9,.92)'; g.fillRect(0,0,w,40); g.strokeStyle = color; g.lineWidth = 2; g.strokeRect(1,1,w-2,38);
-  g.font = '600 28px "IBM Plex Mono", monospace'; g.fillStyle = color; g.fillText(txt, 10, 29);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:t, depthTest:false })); const h = .68; s.scale.set(h * w / 40, h, 1); s.renderOrder = 5; return s;
-}
-let runHot = null;
-const linkPts = new Map();
-function routeFor(l){
-  const a = nodeById(l.from), b = nodeById(l.to); if (!a || !b) return null;
-  const V = (x, z) => new THREE.Vector3(x, 0, z), sg = v => v < 0 ? -1 : 1;
-  const ca = nodeCenter(a), cb = nodeCenter(b), dx = cb.x - ca.x, dz = cb.z - ca.z;
-  const rev = S.links.some(o => o.from === l.to && o.to === l.from);
-  const off = rev ? (l.from < l.to ? .5 : -.5) : 0;
-  if (Math.abs(dz) < D * .6) { const z = (ca.z + cb.z) / 2 + off; return [V(ca.x + sg(dx) * W/2, z), V(cb.x - sg(dx) * W/2, z)]; }
-  if (Math.abs(dx) < W * .6) { const x = (ca.x + cb.x) / 2 + off; return [V(x, ca.z + sg(dz) * D/2), V(x, cb.z - sg(dz) * D/2)]; }
-  const z = ca.z + off, x = cb.x + off; return [V(ca.x + sg(dx) * W/2, z), V(x, z), V(x, cb.z - sg(dz) * D/2)];
-}
-function drawLinks(){
-  for (const c of [...linkG.children]) { linkG.remove(c); c.geometry && c.geometry.dispose(); c.material && c.material.map && c.material.map.dispose(); }
-  linkPts.clear();
-  if (mode === 'ttt') return;
-  for (const l of S.links) {
-    const pts = routeFor(l); if (!pts) continue; linkPts.set(l.uid, pts);
-    const mat = l.uid === runHot ? segMatRun : l.tested ? segMatOk : segMatPend, dashed = !l.tested && l.uid !== runHot;
-    for (let i = 0; i < pts.length - 1; i++) seg(pts[i], pts[i + 1], mat, dashed);
-    const p1 = pts[pts.length - 1], dir = p1.clone().sub(pts[pts.length - 2]).normalize();
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(.3, .65, 10), mat);
-    cone.position.copy(p1).addScaledVector(dir, -.32); cone.position.y = .22; cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir); linkG.add(cone);
-    const s = textSprite(l.label, l.uid === runHot ? '#ffd23f' : l.tested ? '#19e6c8' : '#a8bab5');
-    let li = 0; for (let i = 1; i < pts.length - 1; i++) if (pts[i].distanceTo(pts[i + 1]) > pts[li].distanceTo(pts[li + 1])) li = i;
-    const lp = pts[li].clone().lerp(pts[li + 1], .5); s.position.set(lp.x, 1.1, lp.z); linkG.add(s);
-  }
-}
-
-/* ---------- camera: fit, zoom, pan, follow ---------- */
-const view = { zoom:1, cx:0, cz:0, tz:1, tcx:0, tcz:0, base:40, elev:THREE.MathUtils.degToRad(56) };
-function fit(){
-  const r = stage.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height);
-  renderer.setSize(w, h, false); camera.aspect = w / h;
-  const vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
-  const needW = GX + 1.2, needD = GZ * Math.sin(view.elev) + 5 * Math.cos(view.elev) + 1.5;
-  view.base = Math.max(needW / 2 / Math.tan(hf / 2), needD / 2 / Math.tan(vf / 2)) + GZ / 2 * Math.cos(view.elev) * .6;
-  camera.updateProjectionMatrix();
-}
-new ResizeObserver(fit).observe(stage);
-function setZoom(z, cx, cz){ view.tz = Math.max(.28, Math.min(1, z)); if (cx != null) { view.tcx = cx; view.tcz = cz; } clampPan(); }
-function clampPan(){ const m = Math.min(1, (1 - view.tz) * 2.5); view.tcx = Math.max(-GX/2 * m, Math.min(GX/2 * m, view.tcx)); view.tcz = Math.max(-GZ/2 * m - 1, Math.min(GZ/2 * m + 1, view.tcz)); if (view.tz >= .999) { view.tcx = 0; view.tcz = 0; } }
-function focusOn(p, z = .5){ setZoom(z, p.x, p.z); }
-function camTick(dt){
-  const k = Math.min(1, dt * 6);
-  view.zoom += (view.tz - view.zoom) * k; view.cx += (view.tcx - view.cx) * k; view.cz += (view.tcz - view.cz) * k;
-  const dist = view.base * view.zoom, tgt = new THREE.Vector3(view.cx, 0, view.cz + 1.2);
-  camera.position.set(tgt.x, Math.sin(view.elev) * dist, tgt.z + Math.cos(view.elev) * dist); camera.lookAt(tgt);
-}
-document.getElementById('zIn').onclick = () => setZoom(view.tz * .75);
-document.getElementById('zOut').onclick = () => setZoom(view.tz / .75);
-document.getElementById('zFit').onclick = () => setZoom(1, 0, 0);
-renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); const c = cellAt(e.clientX, e.clientY); const z = view.tz * Math.exp(e.deltaY * .0015); if (c && z < view.tz) setZoom(z, view.tcx + (c.wx - view.tcx) * .25, view.tcz + (c.wz - view.tcz) * .25); else setZoom(z); }, { passive:false });
-
-/* ---------- picking ---------- */
-const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), ground = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
-const crtEl = document.getElementById('crt');
-function overStage(x, y){ const r = stage.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom && crtEl.hidden; }
-function castAt(x, y){ const r = renderer.domElement.getBoundingClientRect(); ndc.set((x - r.left) / r.width * 2 - 1, -(y - r.top) / r.height * 2 + 1); ray.setFromCamera(ndc, camera); }
-function brickAt(x, y, exclude){
-  if (mode === 'ttt') return null; castAt(x, y);
-  const objs = []; for (const b of bricks.values()) if (b !== exclude) objs.push(b.body, b.back, b.scr);
-  const hit = ray.intersectObjects(objs, false)[0]; return hit ? hit.object.userData.brick : null;
-}
-function actorAt(x, y){
-  if (mode !== 'build') return null; castAt(x, y);
-  const objs = []; for (const c of S.cast) { const a = actors.get(c.uid); if (a && a.pick) objs.push(a.pick); }
-  const hit = ray.intersectObjects(objs, false)[0]; return hit ? hit.object.userData.actor : null;
-}
-function cellAt(x, y){
-  castAt(x, y); const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(ground, p)) return null;
-  return { x:Math.round(p.x + GX/2 - W/2), z:Math.round(p.z + GZ/2 - D/2), wx:p.x, wz:p.z, sx:Math.floor(p.x + GX/2), sz:Math.floor(p.z + GZ/2) };
-}
-function free(x, z, ignore){
-  if (x < 0 || z < 0 || x > GX - W || z > GZ - D) return false;
-  return !S.nodes.some(n => n.uid !== ignore && x < n.x + W && x + W > n.x && z < n.z + D && z + D > n.z);
-}
-const ghostMat = new THREE.MeshBasicMaterial({ color:0x19e6c8, transparent:true, opacity:.28, depthWrite:false });
-const ghost = new THREE.Mesh(new THREE.BoxGeometry(W - .1, .55, D - .1), ghostMat); ghost.visible = false; scene.add(ghost);
-const ringGhost = new THREE.Mesh(new THREE.RingGeometry(.55, .75, 24), new THREE.MeshBasicMaterial({ color:0xffd23f, side:THREE.DoubleSide })); ringGhost.rotation.x = -Math.PI/2; ringGhost.position.y = .2; ringGhost.visible = false; scene.add(ringGhost);
-
-/* ---------- one grab-place transaction for mouse, touch and hand ---------- */
-let carry = null;   // {kind:'new', item} | {kind:'move', uid, brick} | {kind:'cast', key, uid?}
-let press = null;
-const dragChip = document.getElementById('dragChip');
-const touches = new Map(); let pinch = null;
-
-function pdown(x, y, src){
-  const el = document.elementFromPoint(x, y);
-  const tile = el && el.closest('.tile');
-  press = { x, y, src, moved:false, tile, brick:null, actor:null, pan:null };
-  if (tile) { if (src === 'hand') beginFromTile(tile, x, y); return; }
-  if (src === 'hand' && el) {
-    const b = el.closest('button'); if (b) { b.click(); press = null; return; }
-    const inp = el.closest('input'); if (inp) { inp.focus(); press = null; return; }
-  }
-  if (overStage(x, y)) {
-    if (mode === 'build') {
-      press.actor = actorAt(x, y);
-      press.brick = press.actor ? null : brickAt(x, y);
-      if (src === 'hand') { if (press.actor) beginCastMove(press.actor); else if (press.brick) beginMove(press.brick); }
+function zeroPlayers(){
+  if (zero) { clearTimeout(zero.t); zero = null; render(); return; }
+  B = fresh(); zero = { games:0, draws:0, delay:450, t:null, p:'X' };
+  const tick = () => {
+    if (!zero) return;
+    const w = winner(B.sq);
+    if (w) {
+      zero.games++; if (w.p === 'D') zero.draws++;
+      if (zero.games >= ZERO_GAMES) { const z = zero; zero = null; B = fresh(); B.result = `${z.draws} OF ${z.games} DRAWN`; save(); render(); return; }
+      B = fresh(); zero.delay = Math.max(60, zero.delay * .74);
+    } else {
+      const i = B.moves.length ? bestMove(zero.p) : Math.floor(Math.random() * 9);
+      put(i, WOPR_POOL[Math.floor(Math.random() * WOPR_POOL.length)], zero.p); zero.p = zero.p === 'X' ? 'O' : 'X';
     }
+    render(); zero.t = setTimeout(tick, zero.delay);
+  };
+  render(); tick();
+}
+
+/* ---------- surface ---------- */
+const wall = document.getElementById('wall'), act = document.getElementById('act'), tray = document.getElementById('tray'), statusEl = document.getElementById('status');
+const cells = [];
+for (let i = 0; i < 9; i++) {
+  const d = document.createElement('div'); d.className = 'sq open'; d.dataset.i = i; d.setAttribute('role', 'button'); d.setAttribute('aria-label', SQUARE[i]);
+  wall.appendChild(d); cells.push(d);
+}
+function paintCell(i, isFresh){
+  const d = cells[i], s = B.sq[i];
+  const cur = d.dataset.clip || '';
+  if (!s) { if (cur) { d.innerHTML = ''; d.dataset.clip = ''; } d.className = 'sq open'; return; }
+  if (cur !== s.clip) {
+    const c = byId[s.clip];
+    d.innerHTML = `<video src="${c.src}" muted loop autoplay playsinline preload="auto"${c.img ? ` poster="${c.img}"` : ''}></video><span class="mk">${s.p}</span><span class="n"></span>`;
+    d.dataset.clip = s.clip; const v = d.querySelector('video'); v.muted = true; v.play().catch(() => {});
   }
+  d.className = 'sq ' + s.p.toLowerCase() + (isFresh ? ' fresh' : '');
+  d.querySelector('.n').textContent = String(B.moves.findIndex(m => m.i === i) + 1);
+}
+function render(freshI = -1){
+  const ph = phase(), w = winner(B.sq);
+  for (let i = 0; i < 9; i++) paintCell(i, i === freshI);
+  wall.classList.toggle('over', !!(w && w.L) && ph !== 'ZERO');
+  cells.forEach((d, i) => d.classList.toggle('line', !!(w && w.L && w.L.includes(i))));
+  cells.forEach(d => d.classList.toggle('armed', !!armed && d.classList.contains('open')));
+  // status: the one current truth
+  const last = B.moves[B.moves.length - 1];
+  statusEl.innerHTML =
+    ph === 'REST' ? 'Put a clip in a square' :
+    ph === 'PLAY' ? `<b class="o">O</b> took ${SQUARE[last.i].toLowerCase()} · <b class="x">your move</b>` :
+    ph === 'WOPR' ? '<b class="o">WOPR</b> is choosing' :
+    ph === 'OVER' ? (w.p === 'D' ? '<b class="w">Draw</b> · winner none' : w.p === 'X' ? '<b class="x">You win</b>' : '<b class="o">WOPR wins</b>') + ` · ${B.moves.length} moves` :
+    ph === 'ZERO' ? `<b class="o">WOPR</b> plays itself · game ${zero.games + 1} of ${ZERO_GAMES}` :
+    `Playing the cut`;
+  if (ph === 'REST' && B.result) statusEl.innerHTML = `<b class="w">${B.result}</b> · put a clip in a square`;
+  // the dominant action and its recovery, only while valid
+  const A = [];
+  if (ph === 'REST') A.push(['main', 'Let WOPR play itself', zeroPlayers]);
+  if (ph === 'PLAY') A.push(['main', 'Play the cut so far', playCut], ['back', 'Take back', takeBack]);
+  if (ph === 'OVER') A.push(['main', `Play the cut · ${B.moves.length} shots`, playCut], ['back', 'Take back', takeBack], ['back', 'New board', newBoard]);
+  if (ph === 'ZERO' || ph === 'CUT') A.push(['main', 'Stop', ph === 'ZERO' ? zeroPlayers : stopCut]);
+  act.innerHTML = ''; act.hidden = !A.length;
+  for (const [cls, label, fn] of A) { const b = document.createElement('button'); b.className = cls; b.textContent = label; b.onclick = fn; act.appendChild(b); }
+  primaryFn = A[0] ? A[0][2] : null;
+  tray.classList.toggle('locked', !(ph === 'REST' || ph === 'PLAY'));
+  const used = new Set(B.moves.map(m => m.clip));
+  tray.querySelectorAll('.clip').forEach(t => { t.classList.toggle('used', used.has(t.dataset.id)); t.classList.toggle('armed', t.dataset.id === armed); });
+}
+let primaryFn = null;
+function renderTray(){
+  tray.innerHTML = CLIPS.map(c => `<div class="clip" data-id="${c.id}" style="${c.img ? `background-image:url('${c.img}')` : ''}">${c.img ? '' : `<video src="${c.src}#t=4" preload="metadata" muted playsinline></video>`}<span>${c.code} ${c.id.toUpperCase()}</span></div>`).join('');
+}
+function arm(id){ armed = id; render(); }
+
+/* ---------- one grab-place transaction: mouse, touch, hand ---------- */
+const ghost = document.getElementById('ghost');
+let press = null, carry = null;
+const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); const d = e && e.closest('.sq'); return d ? +d.dataset.i : -1; };
+function pdown(x, y, src){
+  const e = document.elementFromPoint(x, y);
+  const clip = e && e.closest('.clip');
+  if (src === 'hand' && e && !clip) { const b = e.closest('button'); if (b) { b.click(); return; } }
+  if (tray.classList.contains('locked') && clip) return;
+  press = { x, y, src, clip, moved:false };
+  if (clip && src === 'hand') begin(clip.dataset.id, x, y);
 }
 function pmove(x, y){
   if (!press) return;
-  const dx = x - press.x, dy = y - press.y;
-  if (!press.moved && Math.hypot(dx, dy) > 8) {
+  if (!press.moved && Math.hypot(x - press.x, y - press.y) > 8) {
     press.moved = true;
-    if (press.tile && !carry) {
-      if (press.src === 'touch' && Math.abs(dx) > Math.abs(dy) * .8) { press = null; return; }   // sideways swipe scrolls the tray
-      beginFromTile(press.tile, x, y);
-    } else if (press.actor && !carry) beginCastMove(press.actor);
-    else if (press.brick && !carry) beginMove(press.brick);
-    else if (!carry && overStage(press.x, press.y) && press.src !== 'hand') press.pan = { x, y, cx:view.tcx, cz:view.tcz };
+    if (press.clip && !carry) { if (press.src === 'touch' && Math.abs(x - press.x) > Math.abs(y - press.y) * .8) { press = null; return; } begin(press.clip.dataset.id, x, y); }
   }
-  if (press && press.pan) {
-    const wpp = 2 * view.base * view.zoom * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / stage.clientHeight;
-    view.tcx = press.pan.cx - (x - press.pan.x) * wpp; view.tcz = press.pan.cz - (y - press.pan.y) * wpp / Math.sin(view.elev);
-    clampPan(); return;
-  }
-  if (carry) track(x, y);
+  if (carry) { ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; const i = cellAt(x, y); cells.forEach((d, k) => d.classList.toggle('target', k === i && !B.sq[k])); }
 }
 function pup(x, y){
   if (!press) return;
   const p = press; press = null;
-  if (carry) { drop(x, y); return; }
+  if (carry) { const id = carry; carry = null; ghost.hidden = true; cells.forEach(d => d.classList.remove('target')); const i = cellAt(x, y); if (i >= 0) playerPut(i, id); return; }
   if (p.moved) return;
-  if (p.tile) { const id = p.tile.dataset.item || 'cast:' + p.tile.dataset.cast; arm(armed === id ? null : id); return; }
-  if (!overStage(x, y)) return;
-  if (mode === 'build') {
-    const b = p.brick;
-    if (b) {
-      if (linkFrom && linkFrom !== b.uid) { addLink(linkFrom, b.uid); linkFrom = null; select(b.uid); return; }
-      if (armed && armed.startsWith('cast:')) { addCast(armed.slice(5), { at:b.uid }); arm(null); return; }
-      select(sel === b.uid ? null : b.uid); return;
-    }
-    if (p.actor) { const c = S.cast.find(o => o.uid === p.actor.id); if (c) toast(CAST[c.key].name + ' · ' + CAST[c.key].role + ' Drag to move; drag onto a screen to post them there.'); return; }
-    const c = cellAt(x, y);
-    if (armed && c) {
-      if (armed.startsWith('cast:')) { addCast(armed.slice(5), { x:c.sx, z:c.sz }); arm(null); return; }
-      if (free(c.x, c.z)) { placeNew(armed, c.x, c.z); arm(null); return; }
-    }
-    linkFrom = null; select(null);
-  } else if (mode === 'ttt') {
-    const ci = tttCellAt(x, y);
-    if (ci >= 0 && armed && !armed.startsWith('cast:')) playerMark(ci, armed);
-    else if (ci >= 0) toast('Pick a screen in the tray, then tap a square.');
-  }
+  if (p.clip) { arm(armed === p.clip.dataset.id ? null : p.clip.dataset.id); return; }
+  const i = cellAt(x, y);
+  if (i >= 0 && armed) playerPut(i, armed);
 }
-function beginFromTile(tile, x, y){
-  if (tile.dataset.cast) { if (mode !== 'build') { toast('Characters are placed in Build.'); return; } carry = { kind:'cast', key:tile.dataset.cast }; dragChip.style.backgroundImage = 'none'; dragChip.textContent = CAST[tile.dataset.cast].name; }
-  else { const it = ITEMS.get(tile.dataset.item); carry = { kind:'new', item:it.id }; dragChip.style.backgroundImage = it.img ? `url("${it.img}")` : 'none'; dragChip.textContent = it.img ? '' : it.id; }
-  dragChip.hidden = false; track(x, y);
-}
-function beginMove(b){ const n = nodeById(b.uid); if (!n) return; carry = { kind:'move', uid:b.uid, brick:b }; select(b.uid); }
-function beginCastMove(a){ const c = S.cast.find(o => o.uid === a.id); if (!c) return; carry = { kind:'cast', key:c.key, uid:c.uid }; }
-let linkTarget = null;
-function track(x, y){
-  const inStage = overStage(x, y);
-  dragChip.style.left = x + 'px'; dragChip.style.top = y + 'px';
-  dragChip.hidden = !((carry.kind === 'new' || (carry.kind === 'cast' && !carry.uid)) && !inStage);
-  ghost.visible = false; ringGhost.visible = false; linkTarget = null;
-  if (!inStage) { if (carry.kind === 'move' || carry.uid) hint('Release over the tray to take it off the board.'); return; }
-  const c = cellAt(x, y); if (!c) return;
-  if (mode === 'ttt') {
-    const ci = tttCellAt(x, y);
-    if (ci >= 0) { const q = TCELL[ci]; ghost.position.set(q.x, .3, q.z); ghostMat.color.setHex(tttOpen(ci) ? 0x19e6c8 : 0xff2e2e); ghost.visible = true; }
-    return;
-  }
-  if (carry.kind === 'cast') {
-    const t = brickAt(x, y);
-    const a = carry.uid && actors.get(carry.uid);
-    const p = t ? standSpot(nodeById(t.uid)) : new THREE.Vector3(c.sx + .5 - GX/2, 0, c.sz + .5 - GZ/2);
-    if (a) { a.path = []; a.pos.copy(p); a.pos.y = 0; }
-    ringGhost.position.set(p.x, .2, p.z); ringGhost.visible = true;
-    hint(t ? `Release to post ${CAST[carry.key].name} at ${ITEMS.get(t.item).id}.` : `Release to stand ${CAST[carry.key].name} here.`);
-    return;
-  }
-  if (carry.kind === 'move') {
-    const t = brickAt(x, y, carry.brick);
-    if (t) { linkTarget = t; hint('Release to link ' + ITEMS.get(carry.brick.item).id + ' to ' + ITEMS.get(t.item).id + '.'); }
-  }
-  const ok = free(c.x, c.z, carry.uid);
-  const w = cellToWorld(Math.max(0, Math.min(GX - W, c.x)), Math.max(0, Math.min(GZ - D, c.z)));
-  if (carry.kind === 'move') {
-    carry.brick.g.position.set(w.x, .6, w.z);
-    if (!linkTarget) hint(ok ? 'Release to set the screen down.' : 'Blocked. Another screen is there.');
-    carry.brick.bez.material.color.setHex(linkTarget ? ROLE.link : ok ? ROLE.sel : ROLE.o);
-  } else {
-    ghost.position.set(w.x, .3, w.z); ghostMat.color.setHex(ok ? 0x19e6c8 : 0xff2e2e); ghost.visible = true;
-    hint(ok ? 'Release to place ' + carry.item + '.' : 'Blocked. Another screen is there.');
-  }
-}
-function drop(x, y){
-  const c0 = carry; carry = null; ghost.visible = false; ringGhost.visible = false; dragChip.hidden = true; setHint();
-  const inStage = overStage(x, y);
-  if (mode === 'ttt') { if (c0.kind === 'new' && inStage) { const ci = tttCellAt(x, y); if (ci >= 0) playerMark(ci, c0.item); } return; }
-  if (c0.kind === 'cast') {
-    if (!inStage) { if (c0.uid) { S.cast = S.cast.filter(o => o.uid !== c0.uid); removeActor(c0.uid); syncFlow(); toast('Taken off the board.'); } return; }
-    const t = brickAt(x, y), c = cellAt(x, y);
-    const where = t ? { at:t.uid } : c ? { x:c.sx, z:c.sz } : null; if (!where) return;
-    if (c0.uid) { const o = S.cast.find(q => q.uid === c0.uid); o.at = where.at || null; o.x = where.x; o.z = where.z; syncFlow(); }
-    else addCast(c0.key, where);
-    return;
-  }
-  if (c0.kind === 'new') { const c = inStage && cellAt(x, y); if (c && free(c.x, c.z)) placeNew(c0.item, c.x, c.z); else toast('Not placed.'); return; }
-  const n = nodeById(c0.uid);
-  if (!inStage) { removeNode(c0.uid); return; }
-  if (linkTarget) { addLink(c0.uid, linkTarget.uid); linkTarget = null; syncFlow(); return; }
-  const c = cellAt(x, y); if (c && free(c.x, c.z, c0.uid)) { n.x = c.x; n.z = c.z; }
-  syncFlow(); renderCtx();
-}
-function cancelCarry(){
-  if (!carry) return;
-  carry = null; press = null; ghost.visible = false; ringGhost.visible = false; dragChip.hidden = true; syncFlow(); setHint();
-}
+function begin(id, x, y){ carry = id; const c = byId[id]; ghost.style.backgroundImage = c.img ? `url("${c.img}")` : 'none'; ghost.hidden = false; ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; }
+tray.addEventListener('pointerdown', e => pdown(e.clientX, e.clientY, e.pointerType));
+wall.addEventListener('pointerdown', e => pdown(e.clientX, e.clientY, e.pointerType));
+addEventListener('pointermove', e => { if (press) { pmove(e.clientX, e.clientY); if (carry) e.preventDefault(); } }, { passive:false });
+addEventListener('pointerup', e => pup(e.clientX, e.clientY));
+addEventListener('pointercancel', () => { if (press && !carry) press = null; });
+addEventListener('keydown', e => { if (e.key === 'Escape') { arm(null); stopCut(); } if ((e.metaKey || e.ctrlKey) && e.key === 'z') takeBack(); });
 
-/* real pointer drivers, plus two-finger pinch zoom on the board */
-const cv = renderer.domElement;
-cv.addEventListener('pointerdown', e => {
-  touches.set(e.pointerId, { x:e.clientX, y:e.clientY });
-  if (touches.size === 2) { const [a, b] = [...touches.values()]; if (!carry) press = null; pinch = { d:Math.hypot(a.x - b.x, a.y - b.y), z:view.tz }; return; }
-  pdown(e.clientX, e.clientY, e.pointerType);
-});
-document.getElementById('tray').addEventListener('pointerdown', e => { if (e.target.closest('.tile')) pdown(e.clientX, e.clientY, e.pointerType); });
-addEventListener('pointermove', e => {
-  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x:e.clientX, y:e.clientY });
-  if (pinch && touches.size === 2) { const [a, b] = [...touches.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); e.preventDefault(); return; }
-  if (press) { pmove(e.clientX, e.clientY); if (carry) e.preventDefault(); }
-}, { passive:false });
-const endPtr = e => { touches.delete(e.pointerId); if (pinch) { if (touches.size < 2) pinch = null; return; } if (e.type === 'pointercancel') { if (press && !carry) press = null; return; } pup(e.clientX, e.clientY); };
-addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr);
-cv.addEventListener('dblclick', e => { const c = cellAt(e.clientX, e.clientY); if (c) focusOn(new THREE.Vector3(c.wx, 0, c.wz), view.tz > .6 ? .5 : 1); });
-document.addEventListener('gesturestart', e => e.preventDefault());
-addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  if (e.key === 'Escape') { cancelCarry(); linkFrom = null; arm(null); select(null); closeCrt(); }
-  if ((e.key === 'Delete' || e.key === 'Backspace') && sel && mode === 'build') removeNode(sel);
-});
-
-/* ---------- flow operations ---------- */
-function placeNew(item, x, z){
-  const n = { uid:uid(), item, x, z }; S.nodes.push(n);
-  if (!S.start) S.start = n.uid;
-  select(n.uid); toast('Placed ' + item + '.');
-  const bug = actors.get('fx:bug'); if (bug) walk(bug, [standSpot(n, 2)], () => gesture(bug));
-}
-function removeNode(u){
-  S.nodes = S.nodes.filter(n => n.uid !== u); S.links = S.links.filter(l => l.from !== u && l.to !== u);
-  S.cast.forEach(c => { if (c.at === u) { const n = c; const p = castSpot(n); n.at = null; n.x = Math.floor(p.x + GX/2); n.z = Math.floor(p.z + GZ/2); } });
-  if (S.start === u) S.start = S.nodes[0] ? S.nodes[0].uid : null;
-  if (sel === u) sel = null;
-  syncFlow(); renderCtx(); toast('Removed.');
-}
-function addLink(from, to){
-  if (from === to) return;
-  const t = ITEMS.get(nodeById(to).item);
-  const label = S.links.some(l => l.from === from && l.label === t.cmd) ? 'ANY KEY' : t.cmd;
-  S.links.push({ uid:uid(), from, to, label, tested:false });
-  toast('Linked with ' + label + '. Rename it under the screen.');
-  sel = from; syncFlow(); renderCtx();
-}
-function addCast(key, where){
-  if (S.cast.some(c => c.key === key)) { const c = S.cast.find(o => o.key === key); Object.assign(c, { at:where.at || null, x:where.x, z:where.z }); toast(CAST[key].name + ' moved.'); }
-  else { S.cast.push({ uid:uid(), key, at:where.at || null, x:where.x, z:where.z }); toast(CAST[key].name + ' is on the board.'); }
-  syncFlow(); renderCtx();
-}
-function select(u){
-  sel = u; const b = u && bricks.get(u);
-  if (mode === 'build') { if (b) { playOn(b); } else stopLive(); }
-  syncFlow(); renderCtx();
-}
-function arm(id){
-  armed = id;
-  document.querySelectorAll('.tile').forEach(t => t.classList.toggle('armed', (t.dataset.item || 'cast:' + t.dataset.cast) === id));
-  if (!id) { setHint(); return; }
-  hint(id.startsWith('cast:') ? `Tap a screen to post ${CAST[id.slice(5)].name} there, or tap the plate.` : mode === 'ttt' ? 'Tap a square to place ' + id + ' as X.' : 'Tap an empty spot on the board to place ' + id + '.');
-}
-
-/* ---------- RUN: NIT walks the flow; each link counts once a run takes it ---------- */
-let run = null, autoTimer = null;
-function startRun(){
-  closeCrt();
-  const start = nodeById(S.start) || S.nodes[0];
-  if (!start) { toast('Place a screen first.'); return; }
-  run = { n:(S.runs.length ? S.runs[0].n + 1 : 1), path:[start.uid], steps:[], cur:start.uid, done:false, busy:false, out:'' };
-  const nit = actors.get('fx:nit'); if (nit) walk(nit, [standSpot(start, 1)]);
-  showRunNode();
-}
-function outsOf(u){ return S.links.filter(l => l.from === u); }
-function showRunNode(){
-  const n = nodeById(run.cur), it = ITEMS.get(n.item), b = bricks.get(n.uid);
-  syncFlow();
-  focusOn(nodeCenter(n), .52);
-  const outs = outsOf(n.uid), auto = outs.find(l => l.label === 'CLIP ENDS');
-  clearTimeout(autoTimer);
-  const v = b && playOn(b, !auto);
-  if (auto) {
-    if (v) v.addEventListener('ended', () => run && run.cur === n.uid && !run.busy && take(auto), { once:true });
-    else autoTimer = setTimeout(() => run && run.cur === n.uid && !run.busy && take(auto), 3000);
-  }
-  run.out = outs.length ? `${outs.length} command${outs.length === 1 ? '' : 's'} leave this screen.` : '';
-  if (!outs.length) finishRun('END');
-  if (!crtEl.hidden) openCrt();
-  renderCtx(); setPrimary(); setHint();
-}
-function take(l){
-  if (!run || run.done || run.busy) return;
-  l.tested = true; runHot = l.uid; run.steps.push(l.label); run.path.push(l.to);
-  if (run.path.length > STEP_CEILING) { finishRun('STOPPED · STEP CEILING'); return; }
-  const nit = actors.get('fx:nit'), pts = linkPts.get(l.uid), to = nodeById(l.to);
-  drawLinks(); save(); updateCov();
-  const arrive = () => { run.busy = false; run.cur = l.to; showRunNode(); };
-  if (nit && nit.rig && pts) {
-    run.busy = true; renderCtx();
-    const from = nodeById(l.from);
-    walk(nit, [standSpot(from, 1), ...pts.map(p => p.clone().setY(0)), standSpot(to, 1)], arrive);
-    focusOn(pts[Math.floor(pts.length / 2)], .62);
-    let len = nit.pos.distanceTo(standSpot(from, 1)); const all = [standSpot(from, 1), ...pts, standSpot(to, 1)]; for (let i = 1; i < all.length; i++) len += all[i].distanceTo(all[i - 1]);
-    const myRun = run;
-    setTimeout(() => { if (run === myRun && run.busy && run.path[run.path.length - 1] === l.to) { teleport(nit, standSpot(to, 1)); nit.onArrive = null; arrive(); } }, len / WALK_SPEED * 1000 + 1500);
-  } else arrive();
-}
-function finishRun(result){
-  if (!run || run.done) return;
-  run.done = true; runHot = null; clearTimeout(autoTimer);
-  S.runs.unshift({ n:run.n, path:run.path.map(u => (nodeById(u) || {}).item || '?'), steps:run.steps.slice(), result }); S.runs = S.runs.slice(0, 12);
-  run.out = result === 'END' ? 'END REACHED · OUTCOME RECORDED.' : result + '.';
-  const nit = actors.get('fx:nit'); gesture(nit);
-  save(); drawLinks(); updateCov(); renderCtx(); setPrimary();
-}
-function stopRun(){ if (run && !run.done) finishRun('STOPPED'); run = null; runHot = null; clearTimeout(autoTimer); closeCrt(); stopLive(); const nit = actors.get('fx:nit'); if (nit) walk(nit, [FIXED.nit]); }
-function typed(v){
-  v = v.trim().toUpperCase().replace(/\s+/g, ' ');
-  if (!v || !run || run.done || run.busy) return;
-  const outs = outsOf(run.cur), hit = outs.find(l => l.label === v) || outs.find(l => l.label === 'ANY KEY');
-  if (hit) take(hit);
-  else { run.steps.push('NO MATCH: ' + v); run.out = 'EXPECTED ' + (outs.map(l => l.label).join(' / ') || 'NOTHING') + ' · OBSERVED ' + v + '.'; renderCtx(); }
-}
-/* full-screen view of the current screen */
-let crtMedia = null;
-function openCrt(){
-  if (!run) return; const n = nodeById(run.cur), it = ITEMS.get(n.item);
-  if (crtMedia) crtMedia.remove();
-  let m;
-  if (it.vid) {
-    m = document.createElement('video'); m.src = it.vid; m.muted = true; m.playsInline = true; m.setAttribute('playsinline', ''); m.autoplay = true; m.loop = true;
-    if (it.kind === 'shot') { const [bx, by, bw, bh] = it.cb, sc = Math.min(1.7, Math.max(1, 1 / Math.max(bw, bh))); m.style.transformOrigin = `${(bx + bw/2) * 100}% ${(by + bh/2) * 100}%`; m.style.transform = `scale(${sc.toFixed(2)})`; }
-    m.play().catch(() => {});
-  } else { m = document.createElement('img'); m.src = it.img; m.alt = it.note; }
-  crtEl.prepend(m); crtMedia = m;
-  document.getElementById('crtTag').textContent = `RUN ${run.n} · ${it.code} · ${it.id.toUpperCase()}`;
-  document.getElementById('crtNote').textContent = it.note;
-  crtEl.hidden = false;
-}
-function closeCrt(){ crtEl.hidden = true; if (crtMedia) { crtMedia.remove(); crtMedia = null; } }
-document.getElementById('crtClose').onclick = closeCrt;
-
-/* ---------- LAST MOVE: tic-tac-toe against WOPR ---------- */
-const TCELL = [];
-for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) TCELL.push({ x:(c - 1) * (W + 1), z:(r - 1) * (D + 2) + .3 });
-const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-let G = { b:Array(9).fill(null), marks:Array(9).fill(null), over:false, turn:'X', win:null };
-let score = { w:0, l:0, d:0 }, zero = null, defconLvl = 5;
-{
-  const lm = new THREE.MeshBasicMaterial({ color:0x19e6c8 });
-  for (const c of TCELL) { const sq = new THREE.Mesh(new THREE.PlaneGeometry(W + .3, D + 1.3), new THREE.MeshBasicMaterial({ color:0x0e2a2a, transparent:true, opacity:.75 })); sq.rotation.x = -Math.PI/2; sq.position.set(c.x, .19, c.z); tttG.add(sq); }
-  for (const k of [-1, 1]) {
-    const v = new THREE.Mesh(new THREE.BoxGeometry(.12, .1, 3 * (D + 2)), lm); v.position.set(k * (W + 1) / 2, .2, .3); tttG.add(v);
-    const h = new THREE.Mesh(new THREE.BoxGeometry(3 * (W + 1), .1, .12), lm); h.position.set(0, .2, k * (D + 2) / 2 + .3); tttG.add(h);
-  }
-}
-const winBar = new THREE.Mesh(new THREE.BoxGeometry(1, .14, .3), new THREE.MeshBasicMaterial({ color:0xffd23f })); winBar.position.y = 1.4; winBar.visible = false; tttG.add(winBar);
-tttG.visible = false;
-const markG = new THREE.Group(); tttG.add(markG);
-function tttCellAt(x, y){ const c = cellAt(x, y); if (!c) return -1; for (let i = 0; i < 9; i++) if (Math.abs(c.wx - TCELL[i].x) <= (W + 1) / 2 && Math.abs(c.wz - TCELL[i].z) <= (D + 2) / 2) return i; return -1; }
-function tttOpen(i){ return !G.over && !G.b[i] && G.turn === 'X' && !zero; }
-function winner(b){ for (const L of LINES) if (b[L[0]] && b[L[0]] === b[L[1]] && b[L[1]] === b[L[2]]) return { p:b[L[0]], L }; return b.every(Boolean) ? { p:'D' } : null; }
-function minimax(b, p){
-  const w = winner(b); if (w) return { s:w.p === 'O' ? 10 : w.p === 'X' ? -10 : 0 };
-  let best = { s:p === 'O' ? -99 : 99, m:[] };
-  for (let i = 0; i < 9; i++) if (!b[i]) { b[i] = p; const r = minimax(b, p === 'O' ? 'X' : 'O'); b[i] = null; const s = r.s - Math.sign(r.s) * .1;
-    if (p === 'O' ? s > best.s : s < best.s) best = { s, m:[i] }; else if (s === best.s) best.m.push(i); }
-  return best;
-}
-const bestMove = (b, p) => { const r = minimax(b.slice(), p); return r.m[Math.floor(Math.random() * r.m.length)]; };
-function clearMarks(){ for (const m of G.marks) if (m) markG.remove(m.g); }
-function setMark(i, p, item){
-  G.b[i] = p; if (G.marks[i]) markG.remove(G.marks[i].g);
-  const br = makeBrick(item, p === 'X' ? 'x' : 'o'); br.g.position.set(TCELL[i].x, 0, TCELL[i].z); markG.add(br.g); G.marks[i] = br;
-  if (!zero) playOn(br);
-  gesture(actors.get(p === 'X' ? 'tt:david' : 'tt:airman'));
-}
-function playerMark(i, item){
-  if (G.over) { toast('END. The board is locked; new marks do not change the result.'); return; }
-  if (!tttOpen(i)) { toast(zero ? 'WOPR is playing itself.' : 'That square is taken.'); return; }
-  setMark(i, 'X', item); arm(null);
-  if (!endCheck()) { G.turn = 'O'; renderCtx(); setTimeout(woprMove, 650); }
-}
-function woprMove(){
-  if (G.over || zero) return;
-  const pool = TTT_LIVE.length ? TTT_LIVE : TTT_SHOTS;
-  setMark(bestMove(G.b, 'O'), 'O', pool[Math.floor(Math.random() * pool.length)]);
-  if (LINES.some(L => L.filter(k => G.b[k] === 'O').length === 2 && L.some(k => !G.b[k]))) setDefcon(Math.max(2, defconLvl - 1));
-  G.turn = 'X'; endCheck(); renderCtx(); setPrimary();
-}
-function endCheck(){
-  const w = winner(G.b); if (!w) return false;
-  G.over = true; G.win = w;
-  if (w.L) { const a = TCELL[w.L[0]], b = TCELL[w.L[2]]; winBar.position.set((a.x + b.x) / 2, 1.4, (a.z + b.z) / 2); winBar.scale.x = Math.hypot(b.x - a.x, b.z - a.z) + 3; winBar.rotation.y = -Math.atan2(b.z - a.z, b.x - a.x); winBar.visible = true; }
-  if (!zero) {
-    if (w.p === 'X') score.w++; else if (w.p === 'O') { score.l++; setDefcon(1); } else { score.d++; setDefcon(5); }
-    toast(w.p === 'D' ? 'DRAW. WINNER: NONE.' : w.p === 'O' ? 'WOPR WINS. DEFCON 1.' : 'YOU WIN.');
-  }
-  renderCtx(); setPrimary(); return true;
-}
-function newGame(){ stopLive(); clearMarks(); G = { b:Array(9).fill(null), marks:Array(9).fill(null), over:false, turn:'X', win:null }; winBar.visible = false; setDefcon(5); renderCtx(); setPrimary(); setHint(); }
-function zeroPlayers(){
-  if (zero) { clearTimeout(zero.t); zero = null; renderCtx(); setPrimary(); return; }
-  newGame(); zero = { games:0, draws:0, t:null, delay:420 };
-  const pool = TTT_LIVE.length ? TTT_LIVE : TTT_SHOTS; let p = Math.random() < .5 ? 'X' : 'O';
-  const tick = () => {
-    if (!zero) return;
-    if (G.over) {
-      zero.games++; if (G.win.p === 'D') zero.draws++;
-      if (zero.games >= ZERO_GAMES) { const z = zero; zero = null; setDefcon(5); toast(`${z.draws} OF ${z.games} GAMES: STALEMATE. THE ONLY WINNING MOVE IS NOT TO PLAY.`); renderCtx(); setPrimary(); return; }
-      clearMarks(); G = { b:Array(9).fill(null), marks:Array(9).fill(null), over:false, turn:'X', win:null }; winBar.visible = false;
-      zero.delay = Math.max(40, zero.delay * .72); setDefcon(Math.max(1, 5 - Math.floor(zero.games / 3)));
-    } else {
-      const i = G.b.every(v => !v) ? Math.floor(Math.random() * 9) : bestMove(G.b, p);
-      setMark(i, p, pool[Math.floor(Math.random() * pool.length)]); p = p === 'X' ? 'O' : 'X'; endCheck();
-    }
-    renderCtx(); zero.t = setTimeout(tick, zero.delay);
-  };
-  renderCtx(); setPrimary(); tick();
-}
-function setDefcon(n){ defconLvl = n; document.querySelectorAll('#defcon i').forEach(i => i.classList.toggle('on', +i.dataset.d === n)); }
-
-/* ---------- deck ---------- */
-const ctx = document.getElementById('ctx');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const SUGGEST = ['CLIP ENDS','ANY KEY','CLICK A SQUARE', ...new Set(M.subs.map(s => s.cmd)), 'LIST GAMES','PLAY TICTACTOE 0','HELP GAMES'];
-const idOf = u => { const n = nodeById(u); return n ? ITEMS.get(n.item).id : '?'; };
-function trace(path, steps){ let s = path[0], pi = 0; for (const st of steps) { s += ` [${st}]`; if (!st.startsWith('NO MATCH')) s += ' ' + (path[++pi] || '?'); } return s; }
-function renderCtx(){
-  let h = '';
-  if (mode === 'build') {
-    const n = sel && nodeById(sel);
-    if (!n) {
-      h += `<div class="p">Drag a screen up from the tray onto the board, or tap a screen then tap the board. Drop a screen onto another to link them. Characters are under CAST.</div>
-      <div class="p dim">Pinch or use + and − to zoom; drag the empty plate to pan. Hands: pinch grabs, open hand drops, thumbs-up runs.</div>
-      <div class="row"><button class="btn" data-a="tidy">Tidy by flow order</button><button class="btn warn" data-a="clear">Clear board</button></div>`;
-    } else {
-      const it = ITEMS.get(n.item), outs = outsOf(n.uid), ins = S.links.filter(l => l.to === n.uid), who = S.cast.filter(c => c.at === n.uid);
-      h += `<div class="row"><span class="k">${esc(it.code)} · ${esc(it.id)}</span>${n.uid === S.start ? '<span class="pill st">START</span>' : ''}${it.vid ? '' : '<span class="pill">STILL</span>'}${who.map(c => `<span class="pill">${esc(CAST[c.key].name)}</span>`).join('')}</div>
-      <div class="p">${esc(it.note)}</div>
-      <div class="row"><button class="btn ${linkFrom === n.uid ? 'on' : ''}" data-a="link">${linkFrom === n.uid ? 'Now tap the target' : 'Link to…'}</button><button class="btn" data-a="start">Set start</button><button class="btn warn" data-a="remove">Remove</button></div>
-      <div class="k">Leaves by ${outs.length} command${outs.length === 1 ? '' : 's'}</div>`;
-      for (const l of outs) h += `<div class="lk"><span class="pill ${l.tested ? 'ok' : ''}">${l.tested ? 'TESTED' : 'PENDING'}</span><input id="lk-${l.uid}" data-l="${l.uid}" value="${esc(l.label)}" list="sugg" aria-label="Command"><span class="to">→ ${esc(idOf(l.to))}<button class="btn warn" data-cut="${l.uid}" style="min-height:32px;padding:0 8px">Cut</button></span></div>`;
-      if (ins.length) h += `<div class="k">Entered from ${ins.map(l => esc(idOf(l.from))).join(', ')}</div>`;
-    }
-  } else if (mode === 'run') {
-    if (!run) h += `<div class="p">No run yet.</div>`;
-    else {
-      const n = nodeById(run.cur), it = n && ITEMS.get(n.item), outs = run.done ? [] : outsOf(run.cur);
-      h += `<div class="row"><span class="k">Run ${run.n} · step ${run.path.length} · ${esc(it ? it.id : '')}</span>${run.done ? '<span class="pill ok">RECORDED</span>' : run.busy ? '<span class="pill st">NIT WALKING</span>' : ''}</div>`;
-      if (it) h += `<div class="p">${esc(it.note)}</div>`;
-      if (outs.length) h += `<div class="cmds">${outs.map(l => `<button class="cmd ${l.label === 'CLIP ENDS' ? 'auto' : ''}" data-take="${l.uid}">${esc(l.label === 'CLIP ENDS' ? 'CLIP ENDS' : l.label)}<small>to ${esc(idOf(l.to))}${l.tested ? ' · tested' : ''}</small></button>`).join('')}</div>
-        <form id="termForm"><span>WOPR&gt;</span><input id="termIn" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="TYPE A COMMAND"></form>`;
-      if (run.out) h += `<div class="out">${esc(run.out)}</div>`;
-      h += `<div class="row"><button class="btn" data-a="crt">Full screen</button>${run.done ? '' : '<button class="btn warn" data-a="stop">Stop run</button>'}<button class="btn" data-a="reset">Mark all pending</button></div>`;
-      h += `<div class="k">Run ${run.n}</div><div class="log"><div>${esc(trace(run.path.map(u => idOf(u)), run.steps))}</div></div>`;
-    }
-    const tested = S.links.filter(l => l.tested).length, pend = S.links.filter(l => !l.tested);
-    h += `<div class="p dim">${tested} of ${S.links.length} links tested. A link counts once a run has taken it.</div>`;
-    if (pend.length) h += `<div class="k">Pending</div><div class="log">${pend.map(l => `<div>${esc(idOf(l.from))} [${esc(l.label)}] ${esc(idOf(l.to))}</div>`).join('')}</div>`;
-    if (S.runs.length) h += `<div class="k">Recorded runs</div><div class="log">${S.runs.map(r => `<div class="${r.result === 'END' ? 'end' : 'stop'}">RUN ${r.n} · ${esc(r.result)} · ${esc(trace(r.path, r.steps))}</div>`).join('')}</div>`;
-  } else {
-    const st = zero ? `ZERO PLAYERS · GAME ${zero.games + 1} OF ${ZERO_GAMES}` : G.over ? (G.win.p === 'D' ? 'DRAW · WINNER: NONE' : G.win.p === 'O' ? 'WOPR WINS' : 'YOU WIN') : G.turn === 'X' ? 'YOUR MOVE · DAVID PLAYS X' : 'WOPR IS MOVING';
-    h += `<div class="row"><span class="k">${esc(st)}</span></div>
-      <div class="score"><div><b>${score.w}</b>WON</div><div><b>${score.d}</b>DRAWN</div><div><b>${score.l}</b>LOST</div></div>
-      <div class="p dim">You move first. Drag any screen onto a square, or tap a screen then a square. WOPR answers with a launch-room screen. After END the board is locked.</div>
-      <div class="row"><button class="btn ${zero ? 'on' : ''}" data-a="zero">${zero ? 'Stop zero players' : 'Zero players'}</button></div>`;
-  }
-  const focusId = document.activeElement && document.activeElement.id;
-  ctx.innerHTML = h + `<datalist id="sugg">${SUGGEST.map(s => `<option value="${esc(s)}">`).join('')}</datalist>`;
-  if (focusId === 'termIn' && document.getElementById('termIn')) document.getElementById('termIn').focus();
-}
-ctx.addEventListener('click', e => {
-  const tk = e.target.closest('[data-take]'); if (tk) { const l = S.links.find(x => x.uid === tk.dataset.take); if (l) take(l); return; }
-  const cut = e.target.closest('[data-cut]'); if (cut) { S.links = S.links.filter(l => l.uid !== cut.dataset.cut); syncFlow(); renderCtx(); return; }
-  const b = e.target.closest('[data-a]'); if (!b) return;
-  const a = b.dataset.a;
-  if (a === 'link') { linkFrom = linkFrom === sel ? null : sel; syncFlow(); renderCtx(); hint(linkFrom ? 'Tap the screen this one leads to.' : ''); }
-  if (a === 'start') { S.start = sel; syncFlow(); renderCtx(); }
-  if (a === 'remove') removeNode(sel);
-  if (a === 'clear') { if (b.dataset.sure) { S.nodes = []; S.links = []; S.cast = []; S.start = null; sel = null; syncFlow(); renderCtx(); } else { b.dataset.sure = 1; b.textContent = 'Tap again to clear'; } }
-  if (a === 'tidy') tidy();
-  if (a === 'stop') finishRun('STOPPED');
-  if (a === 'reset') { S.links.forEach(l => l.tested = false); syncFlow(); renderCtx(); }
-  if (a === 'zero') zeroPlayers();
-  if (a === 'crt') openCrt();
-});
-ctx.addEventListener('submit', e => { if (e.target.id !== 'termForm') return; e.preventDefault(); const i = document.getElementById('termIn'); const v = i.value; i.value = ''; typed(v); });
-ctx.addEventListener('change', e => {
-  const id = e.target.dataset.l; if (!id) return; const l = S.links.find(x => x.uid === id); if (!l) return;
-  const v = e.target.value.trim().toUpperCase().replace(/\s+/g, ' ');
-  if (v && v !== l.label) { l.label = v; l.tested = false; syncFlow(); renderCtx(); }
-});
-function tidy(){
-  const col = new Map(), order = [], start = S.start || (S.nodes[0] && S.nodes[0].uid); if (!start) return;
-  const q = [start]; col.set(start, 0);
-  while (q.length) { const u = q.shift(); order.push(u); for (const l of S.links) if (l.from === u && !col.has(l.to)) { col.set(l.to, col.get(u) + 1); q.push(l.to); } }
-  const cw = W + 3, rh = D + 3, maxCols = Math.floor((GX + 3) / cw), maxRows = Math.floor((GZ + 3) / rh);
-  const rows = new Map(), place = [];
-  for (const u of order) { const c = Math.min(col.get(u), maxCols - 1), r = rows.get(c) || 0; rows.set(c, r + 1); place.push([u, c, r]); }
-  let k = 0; for (const n of S.nodes) if (!col.has(n.uid)) place.push([n.uid, k++ % maxCols, maxRows - 1]);
-  const taken = new Set();
-  for (const [u, c, r0] of place) { let r = Math.min(r0, maxRows - 1), cc = c, guard = 0; while (taken.has(cc + ',' + r) && guard++ < 40) { r = (r + 1) % maxRows; if (!r) cc = (cc + 1) % maxCols; } taken.add(cc + ',' + r); const n = nodeById(u); n.x = Math.min(GX - W, cc * cw + 1); n.z = Math.min(GZ - D, r * rh + 1); }
-  syncFlow(); toast('Tidied by flow order from START.');
-}
-
-/* tray */
-const trayEl = document.getElementById('tray'), filtersEl = document.getElementById('filters');
-function renderFilters(){
-  const f = [['ALL','ALL'], ['LIVE','CLIPS'], ['CAST','CAST'], ['M','M1–M7 FILMS'], ...M.subs.map(s => [s.c, s.c.replace('SYS-', '') + ' ' + s.id.split('://')[1]])];
-  filtersEl.innerHTML = f.filter(([k]) => !(mode === 'ttt' && k === 'CAST')).map(([k, l]) => `<button data-f="${k}" class="${k === filter ? 'on' : ''}">${esc(l)}</button>`).join('');
-}
-filtersEl.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderFilters(); renderTray(); });
-function castTile(k){
-  const c = CAST[k], [hair, torso, legs, arms] = c.look, on = S.cast.some(o => o.key === k);
-  return `<div class="tile cast ${armed === 'cast:' + k ? 'armed' : ''}" data-cast="${k}" title="${esc(c.role)}"><div class="th"><span>${on ? 'ON BOARD' : 'CAST'}</span>
-    <div class="fig"><i class="hair" style="background:${hair}"></i><i class="head"></i><i class="armL" style="background:${arms}"></i><i class="armR" style="background:${arms}"></i><i class="torso" style="background:${torso}"></i><i class="hips" style="background:${legs}"></i><i class="legs" style="background-color:${legs}"></i></div></div>
-    <div class="pal"><i style="background:${torso}"></i><i style="background:${legs}"></i></div><div class="nm">${esc(c.name)} · ${esc(c.role)}</div></div>`;
-}
-function renderTray(){
-  if (filter === 'CAST') { trayEl.innerHTML = Object.keys(CAST).filter(k => k !== 'bug' && k !== 'nit').map(castTile).join(''); trayEl.scrollLeft = 0; return; }
-  let list = [...ITEMS.values()];
-  if (mode === 'ttt' && filter === 'ALL') list = list.filter(i => i.vid);
-  if (filter === 'LIVE') list = list.filter(i => i.vid);
-  else if (filter === 'M') list = list.filter(i => i.kind === 'film');
-  else if (filter !== 'ALL') list = (M.subs.find(s => s.c === filter) || { o:[] }).o.map(id => ITEMS.get(id)).filter(Boolean);
-  if (filter === 'ALL') list.sort((a, b) => (a.kind === 'film') - (b.kind === 'film') || (!!b.vid) - (!!a.vid));
-  trayEl.innerHTML = list.map(it => `<div class="tile ${armed === it.id ? 'armed' : ''}" data-item="${it.id}" title="${esc(it.note)}">
-    <div class="th" style="${it.img ? `background-image:url('${it.img}')` : ''}">${it.kind === 'film' ? `<video src="${it.vid}#t=4" preload="metadata" muted playsinline></video>` : ''}
-      <span>${esc(it.code)}</span><em>${it.vid ? (it.kind === 'film' ? 'FILM' : 'CLIP') : 'STILL'}</em></div>
-    <div class="pal">${(it.pal || []).map(c => `<i style="background:${c}"></i>`).join('')}</div>
-    <div class="nm">${esc(it.kind === 'film' ? it.title : it.id.toUpperCase() + ' ' + it.note)}</div></div>`).join('');
-  trayEl.scrollLeft = 0;
-}
-
-/* modes */
-const topRow = document.getElementById('topRow');
-topRow.addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) setMode(b.dataset.m); });
-function setMode(m){
-  if (m === mode && m !== 'run') return;
-  if (mode === 'run') stopRun();
-  if (mode === 'ttt' && zero) { clearTimeout(zero.t); zero = null; }
-  cancelCarry(); stopLive(); linkFrom = null; arm(null);
-  mode = m;
-  topRow.querySelectorAll('[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
-  flowG.visible = m !== 'ttt'; tttG.visible = m === 'ttt'; showCastFor(m);
-  document.getElementById('stageTag').textContent = m === 'ttt' ? 'BOARD · LAST MOVE' : m === 'run' ? 'BOARD · RUN' : 'BOARD · BUILD';
-  if (m === 'ttt') { setDefcon(5); if (filter === 'M' || filter === 'CAST') filter = 'ALL'; setZoom(.8, 0, 0); }
-  else setZoom(1, 0, 0);
-  if (m === 'run') startRun();
-  if (m === 'build' && sel && bricks.get(sel)) playOn(bricks.get(sel));
-  renderFilters(); drawLinks(); renderTray(); renderCtx(); setPrimary(); setHint();
-}
-const primaryLbl = document.getElementById('primaryLbl');
-function setPrimary(){
-  primaryLbl.textContent = mode === 'build' ? 'Run' : mode === 'run' ? (run && !run.done ? 'Next' : 'Run again') : (zero ? 'Stop' : G.over || G.b.some(Boolean) ? 'New game' : 'WOPR first');
-}
-function doPrimary(){
-  if (mode === 'build') { setMode('run'); return; }
-  if (mode === 'run') { if (run && !run.done) { const l = outsOf(run.cur)[0]; if (l) take(l); } else startRun(); setPrimary(); return; }
-  if (zero) { zeroPlayers(); return; }
-  if (G.over || G.b.some(Boolean)) newGame(); else { G.turn = 'O'; woprMove(); }
-}
-document.getElementById('primary').addEventListener('click', doPrimary);
-
-/* hints, toast, coverage */
-const hintEl = document.getElementById('stageHint');
-function hint(t){ hintEl.textContent = t || ''; hintEl.hidden = !t; }
-function setHint(){
-  if (mode === 'build') hint(armed ? null : S.nodes.length ? 'Drag a screen to move it; drop it on another screen to link.' : 'Drag a screen up from the tray onto the board.');
-  else if (mode === 'ttt') hint(G.over ? 'END. Board locked. New game to play again.' : 'You are X. Drag a screen onto a square.');
-  else hint(run && run.busy ? 'NIT is walking the link.' : '');
-}
-let toastT = null; const toastEl = document.getElementById('toast');
-function toast(t){ toastEl.textContent = t; toastEl.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => toastEl.hidden = true, 2600); }
-function updateCov(){ const t = S.links.filter(l => l.tested).length; document.getElementById('cov').textContent = `${S.nodes.length} SCREENS · ${S.cast.length} CAST · ${S.links.length} LINKS · ${t} TESTED · ${S.links.length - t} PENDING`; }
-
-/* file menu */
-const fileMenu = document.getElementById('fileMenu'), fileIn = document.getElementById('fileIn');
-document.getElementById('btnFile').onclick = e => { e.stopPropagation(); fileMenu.hidden = !fileMenu.hidden; };
-addEventListener('click', e => { if (!fileMenu.hidden && !e.target.closest('#fileMenu')) fileMenu.hidden = true; });
-fileMenu.addEventListener('click', e => {
-  const f = e.target.closest('[data-f]'); if (!f) return; fileMenu.hidden = true;
-  if (f.dataset.f === 'save') {
-    const blob = new Blob([JSON.stringify({ kind:'wopr-hand-butter-flow', version:2, saved:new Date().toISOString(), ...S }, null, 1)], { type:'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'wopr-flow.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Saved wopr-flow.json.');
-  }
-  if (f.dataset.f === 'load') fileIn.click();
-  if (f.dataset.f === 'sample') { for (const id of [...actors.keys()]) if (id.startsWith('n')) removeActor(id); sample(); sel = null; setMode('build'); syncFlow(); renderCtx(); renderTray(); toast('Sample flow loaded.'); }
-  if (f.dataset.f === 'versions') location.href = 'butter-versions.html';
-});
-fileIn.onchange = async () => {
-  const f = fileIn.files[0]; if (!f) return;
-  try { const o = JSON.parse(await f.text()); if (!o.nodes) throw 0;
-    for (const id of [...actors.keys()]) if (id.startsWith('n')) removeActor(id);
-    S = { nodes:o.nodes.filter(n => ITEMS.has(n.item)), links:o.links || [], cast:(o.cast || []).filter(c => CAST[c.key]), start:o.start, runs:o.runs || [], seq:o.seq || 999 }; sel = null; setMode('build'); syncFlow(); renderCtx(); toast('Loaded ' + f.name + '.'); }
-  catch(e){ toast('That file is not a saved WOPR flow.'); }
-  fileIn.value = '';
-};
-
-/* ---------- hands: MediaPipe, the Hand Butter gesture set ---------- */
-const handCv = document.getElementById('hand'), hg = handCv.getContext('2d');
-const camWrap = document.getElementById('camWrap'), cam = document.getElementById('cam'), camState = document.getElementById('camState');
-const H = { on:false, lm:null, x:innerWidth / 2, y:innerHeight / 2, pinch:false, gesture:'none', thumbSince:0, lastThumb:0, lostAt:0, lastT:-1 };
+/* ---------- hands: pinch picks up, open hand drops, thumbs-up runs the main action ---------- */
+const handBtn = document.getElementById('hands'), cam = document.getElementById('cam'), hc = document.getElementById('hand'), hg = hc.getContext('2d');
+const H = { on:false, lm:null, x:innerWidth / 2, y:innerHeight / 2, pinch:false, thumb:0, lastThumb:0, lost:0, t:-1 };
 let landmarker = null;
-document.getElementById('btnHands').onclick = async () => {
-  const btn = document.getElementById('btnHands');
-  if (H.on) { H.on = false; btn.classList.remove('on'); camWrap.hidden = true; cam.srcObject && cam.srcObject.getTracks().forEach(t => t.stop()); cam.srcObject = null; cancelCarry(); return; }
+handBtn.onclick = async () => {
+  if (H.on) { H.on = false; handBtn.classList.remove('on'); handBtn.textContent = 'Hands'; cam.srcObject && cam.srcObject.getTracks().forEach(t => t.stop()); return; }
   try {
-    camWrap.hidden = false; camState.textContent = 'HANDS · CAMERA';
-    const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:640 }, height:{ ideal:480 } }, audio:false });
-    cam.srcObject = stream; await cam.play();
+    handBtn.textContent = 'Starting';
+    cam.srcObject = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:640 }, height:{ ideal:480 } }, audio:false }); await cam.play();
     if (!landmarker) {
-      camState.textContent = 'HANDS · MODEL';
       const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');
       const fs = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');
-      const opts = d => ({ baseOptions:{ modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', delegate:d }, runningMode:'VIDEO', numHands:1 });
-      try { landmarker = await vision.HandLandmarker.createFromOptions(fs, opts('GPU')); } catch(e){ landmarker = await vision.HandLandmarker.createFromOptions(fs, opts('CPU')); }
+      const o = d => ({ baseOptions:{ modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', delegate:d }, runningMode:'VIDEO', numHands:1 });
+      try { landmarker = await vision.HandLandmarker.createFromOptions(fs, o('GPU')); } catch(e) { landmarker = await vision.HandLandmarker.createFromOptions(fs, o('CPU')); }
     }
-    H.on = true; btn.classList.add('on'); camState.textContent = 'HANDS · SHOW ONE HAND';
-    toast('Pinch to grab, open hand to drop, thumbs-up for ' + primaryLbl.textContent.toLowerCase() + '.');
-  } catch(e) { camWrap.hidden = true; toast('Camera or hand model unavailable: ' + (e.message || e)); }
+    H.on = true; handBtn.classList.add('on'); handBtn.textContent = 'Hands on';
+  } catch(e) { handBtn.textContent = 'No camera'; setTimeout(() => handBtn.textContent = 'Hands', 2500); }
 };
-const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-function classify(lm){
-  const size = dist(lm[0], lm[9]) || 1e-3, pr = dist(lm[4], lm[8]) / size;
-  const nExt = [[8,6],[12,10],[16,14],[20,18]].filter(([t, p]) => dist(lm[0], lm[t]) > dist(lm[0], lm[p]) * 1.12).length;
-  const thumbUp = lm[4].y < lm[3].y && lm[3].y < lm[2].y && (lm[2].y - lm[4].y) / size > .45 && nExt === 0 && pr > .45;
-  if (H.pinch) { if (pr > .5 || nExt >= 4) H.pinch = false; } else if (pr < .32) H.pinch = true;
-  return { open:nExt >= 4 && pr > .55, thumbUp };
-}
+const dd = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 function handTick(now){
-  if (!H.on || !landmarker || cam.readyState < 2 || cam.currentTime === H.lastT) return;
-  H.lastT = cam.currentTime;
+  if (!H.on || !landmarker || cam.readyState < 2 || cam.currentTime === H.t) return; H.t = cam.currentTime;
   const lm = (landmarker.detectForVideo(cam, now).landmarks || [])[0];
-  if (!lm) {
-    H.lm = null; if (!H.lostAt) H.lostAt = now;
-    if (now - H.lostAt > 700 && (H.pinch || carry)) { H.pinch = false; cancelCarry(); press = null; hint('Hand lost. The piece went back.'); }
-    camState.textContent = 'HANDS · NO HAND'; return;
-  }
-  H.lostAt = 0; H.lm = lm;
-  const was = H.pinch, g = classify(lm);
+  if (!lm) { H.lm = null; if (!H.lost) H.lost = now; if (now - H.lost > 700 && (H.pinch || carry)) { H.pinch = false; carry = null; press = null; ghost.hidden = true; } return; }
+  H.lost = 0; H.lm = lm;
+  const size = dd(lm[0], lm[9]) || 1e-3, pr = dd(lm[4], lm[8]) / size;
+  const ext = [[8,6],[12,10],[16,14],[20,18]].filter(([t, p]) => dd(lm[0], lm[t]) > dd(lm[0], lm[p]) * 1.12).length;
+  const thumbUp = lm[4].y < lm[3].y && lm[3].y < lm[2].y && (lm[2].y - lm[4].y) / size > .45 && ext === 0 && pr > .45;
+  const was = H.pinch;
+  if (H.pinch) { if (pr > .5 || ext >= 4) H.pinch = false; } else if (pr < .32) H.pinch = true;
   const mx = 1 - (lm[4].x + lm[8].x) / 2, my = (lm[4].y + lm[8].y) / 2;
   const tx = Math.min(1, Math.max(0, (mx - .12) / .76)) * innerWidth, ty = Math.min(1, Math.max(0, (my - .1) / .72)) * innerHeight;
   const k = H.pinch ? .35 : .5; H.x += (tx - H.x) * k; H.y += (ty - H.y) * k;
   if (!was && H.pinch) pdown(H.x, H.y, 'hand'); else if (H.pinch) pmove(H.x, H.y); else if (was) pup(H.x, H.y);
-  if (g.thumbUp && !H.pinch) { if (!H.thumbSince) H.thumbSince = now; if (now - H.thumbSince > 450 && now - H.lastThumb > 1400) { H.lastThumb = now; doPrimary(); toast('Thumbs-up: ' + primaryLbl.textContent + '.'); } }
-  else H.thumbSince = 0;
-  H.gesture = H.pinch ? 'PINCH · GRAB' : g.thumbUp ? 'THUMBS-UP' : g.open ? 'OPEN · DROP' : 'POINT';
-  camState.textContent = 'HANDS · ' + H.gesture;
+  if (thumbUp && !H.pinch) { if (!H.thumb) H.thumb = now; if (now - H.thumb > 450 && now - H.lastThumb > 1400 && primaryFn) { H.lastThumb = now; primaryFn(); } } else H.thumb = 0;
 }
 function drawHand(now){
-  const w = innerWidth, h = innerHeight, dpr = devicePixelRatio || 1;
-  if (handCv.width !== Math.round(w * dpr)) { handCv.width = Math.round(w * dpr); handCv.height = Math.round(h * dpr); }
-  hg.setTransform(dpr, 0, 0, dpr, 0, 0); hg.clearRect(0, 0, w, h);
+  const w = innerWidth, h = innerHeight, r = devicePixelRatio || 1;
+  if (hc.width !== Math.round(w * r)) { hc.width = Math.round(w * r); hc.height = Math.round(h * r); }
+  hg.setTransform(r, 0, 0, r, 0, 0); hg.clearRect(0, 0, w, h);
   if (!H.on || !H.lm) return;
-  const col = H.pinch || H.gesture === 'THUMBS-UP' ? '#ffd23f' : '#19e6c8';
-  hg.strokeStyle = col; hg.fillStyle = col; hg.lineWidth = 2;
+  hg.strokeStyle = hg.fillStyle = H.pinch || H.thumb ? '#ffd23f' : '#19e6c8'; hg.lineWidth = 2;
   hg.beginPath(); hg.arc(H.x, H.y, H.pinch ? 9 : 16, 0, Math.PI * 2); H.pinch ? hg.fill() : hg.stroke();
-  hg.beginPath(); for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) { hg.moveTo(H.x + dx * 18, H.y + dy * 18); hg.lineTo(H.x + dx * 24, H.y + dy * 24); } hg.stroke();
-  if (H.thumbSince) { const p = Math.min(1, (now - H.thumbSince) / 450); hg.beginPath(); hg.arc(H.x, H.y, 22, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); hg.stroke(); }
+  if (H.thumb) { hg.beginPath(); hg.arc(H.x, H.y, 22, -Math.PI / 2, -Math.PI / 2 + Math.min(1, (now - H.thumb) / 450) * Math.PI * 2); hg.stroke(); }
 }
+(function loop(now){ requestAnimationFrame(loop); try { handTick(now); } catch(e){} drawHand(now); })(performance.now());
 
-/* ---------- loop ---------- */
-let last = performance.now();
-function frame(now){
-  requestAnimationFrame(frame);
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
-  try { handTick(now); } catch(e){}
-  drawHand(now);
-  camTick(dt);
-  if (castReady) actorTick(dt, now / 1000);
-  if (document.hidden) return;
-  renderer.render(scene, camera);
-}
+/* fit the wall: 4:3, as large as the space allows */
+const box = document.getElementById('wallBox');
+new ResizeObserver(() => { const r = box.getBoundingClientRect(); const w = Math.min(r.width, r.height * 4 / 3); wall.style.width = w + 'px'; wall.style.height = w * 3 / 4 + 'px'; }).observe(box);
 
-/* boot */
-fit(); renderFilters(); renderTray(); syncFlow(); renderCtx(); setPrimary(); setHint(); setDefcon(5);
-camTick(1);
-requestAnimationFrame(frame);
-initCast();
-document.fonts && document.fonts.ready.then(() => { for (const [k] of texCache) if (ITEMS.get(k).kind === 'film') texCache.delete(k); for (const b of bricks.values()) if (b !== live.brick) b.scr.material.map = stillTex(ITEMS.get(b.item)); drawLinks(); });
-window.__wopr = { get S(){ return S; }, ITEMS, CAST, actors, setMode, placeNew, addLink, addCast, take, typed, get run(){ return run; }, get G(){ return G; }, playerMark, zeroPlayers, view, get castReady(){ return castReady; } };
+renderTray(); render();
+window.__wall = { get B(){ return B; }, playerPut, takeBack, newBoard, playCut, stopCut, zeroPlayers, phase, CLIPS };
 </script>
 </body>
 </html>
