@@ -9,646 +9,678 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* One space: planes stacked in depth, each a 3x3 grid with a drawing over it.
-   Depth is the one axis that means three things: frames (draw and flip),
-   separate games (one per plane), or the three levels of a 3D board.
-   Tools put X, O, clips and strokes into the space; rules read what is there. */
+/* A world is a list of layers on one sheet of paper, back to front.
+   A layer is footage, a drawn plane, masks, a drawing, a tic-tac-toe grid or a clip.
+   Every layer carries its own marks, note and prompt. Time runs across all of them;
+   depth spreads them apart so they can be seen, turned and reordered. */
 :root{
   color-scheme:dark;
   --bg:#000; --ink:#e8f2ef; --dim:#6b7f79; --line:#1c2a31;
+  --paper:#ffffff; --sheet:#f4f5f7; --pink:#161412; --muted:#8c8378; --key:#c8402f; --rule:#c9ced6;
   --x:#3b82f6; --o:#ff2e2e; --phos:#19e6c8; --amber:#ffd23f;
   --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;border-radius:0}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.4 var(--mono);overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
-button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;touch-action:manipulation}
 :focus-visible{outline:1px solid var(--amber);outline-offset:2px}
 [hidden]{display:none!important}
-#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(12px,env(safe-area-inset-left,0px))}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) max(10px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(10px,env(safe-area-inset-left,0px))}
 
-header{flex:none;height:44px;display:flex;align-items:center;gap:10px}
-#status{flex:1;min-width:0;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#status b{font-weight:600}
-.x{color:var(--x)} .o{color:var(--o)} .w{color:var(--amber)} .d{color:var(--dim)}
-.hb{height:32px;padding:0 10px;border:1px solid var(--line);font-size:10.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
-.hb.on{border-color:var(--amber);color:var(--amber)}
+header{flex:none;height:42px;display:flex;align-items:center;gap:6px}
+#status{flex:1;min-width:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#status b{font-weight:600;color:var(--amber)}
+.hb{flex:none;height:30px;padding:0 9px;border:1px solid var(--line);font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.hb:hover,.hb.on{border-color:var(--amber);color:var(--amber)}
 
-/* the space */
-#stage{flex:1;min-height:0;position:relative;perspective:1300px;perspective-origin:50% 35%;touch-action:none;overflow:hidden}
-#stack{position:absolute;inset:0;transform-style:preserve-3d}
-.plane{position:absolute;transform-origin:50% 100%;will-change:transform,opacity}
-.plane.back{pointer-events:none}
-.plane .tag{position:absolute;left:0;bottom:100%;padding:2px 6px;font-size:10px;letter-spacing:.12em;color:var(--dim);background:#000;white-space:nowrap}
-.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px}
-.sq{position:relative;background:#05090c;border:1px solid var(--line);overflow:hidden}
-.sq video,.sq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
-.sq .lbl{position:absolute;inset:0;display:grid;place-items:center;color:var(--amber);font-size:16px;font-weight:600}
-.sq.x{border-color:var(--x);box-shadow:inset 0 0 0 1px var(--x)}
-.sq.o{border-color:var(--o);box-shadow:inset 0 0 0 1px var(--o)}
-/* drawn marks, no glyphs */
-.mark{position:absolute;inset:22%;pointer-events:none;z-index:1}
-.mark.X::before,.mark.X::after{content:"";position:absolute;left:50%;top:-12%;width:12%;height:124%;margin-left:-6%;background:var(--x)}
+/* the stage is paper; the world sits on it */
+#stage{flex:1;min-height:0;position:relative;background:var(--sheet);perspective:1400px;perspective-origin:50% 40%;overflow:hidden;touch-action:none}
+#world{position:absolute;transform-style:preserve-3d;background:var(--paper)}
+#world.spread{background:transparent}
+.layer{position:absolute;inset:0;pointer-events:none}
+.layer canvas{position:absolute;inset:0;width:100%;height:100%}
+.layer video.clipv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#world.spread .layer{outline:1px solid var(--rule);background:rgba(255,255,255,.18);pointer-events:auto;cursor:pointer}
+#world.spread .layer.sel{outline:2px solid var(--key)}
+.layer .lab{position:absolute;left:0;bottom:100%;padding:1px 6px;font-size:11px;font-weight:600;color:#4a5560;white-space:nowrap;display:none}
+#world.spread .layer .lab{display:block}
+.layer.sel .lab{color:var(--key)}
+/* the game grid */
+.grid{position:absolute;inset:6%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:5px}
+.layer.sel:not(.flatoff) .grid{pointer-events:auto}
+.sq{position:relative;border:1px solid var(--rule);overflow:hidden;background:rgba(255,255,255,.25)}
+.sq video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.mark{position:absolute;inset:22%;pointer-events:none}
+.mark.X::before,.mark.X::after{content:"";position:absolute;left:50%;top:-12%;width:11%;height:124%;margin-left:-5.5%;background:var(--x)}
 .mark.X::before{transform:rotate(45deg)} .mark.X::after{transform:rotate(-45deg)}
-.mark.O{border:max(4px,1.6vmin) solid var(--o);border-radius:50%}
-.sq.clipcell .mark{inset:auto;left:4px;top:4px;width:16px;height:16px}
-.sq.clipcell .mark.O{border-width:3px}
-.sq .tr{position:absolute;left:0;right:0;bottom:0;height:3px;z-index:1}
-.sq .tr i{position:absolute;top:0;bottom:0;background:var(--amber)}
-.sq.target{border-color:var(--phos)!important;background:#071a18}
-.sq.line{border-color:var(--amber)!important;box-shadow:inset 0 0 0 2px var(--amber)}
-.plane.over .sq:not(.line){opacity:.35}
-.sq.sel{outline:2px solid var(--amber);outline-offset:2px;z-index:2}
-.plane.trimming .sq:not(.sel){opacity:.3}
-.plane.ghost3d .sq{opacity:.25}
-svg.ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:3}
-svg.ink path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-svg.onion path{stroke:var(--phos)!important;opacity:.35}
+.mark.O{border:max(3px,1.3vmin) solid var(--o);border-radius:50%}
+.sq.clipc .mark{inset:auto;left:3px;top:3px;width:14px;height:14px}
+.sq.line{box-shadow:inset 0 0 0 3px var(--amber)}
 
-/* tools */
-#tools{flex:none;display:flex;gap:4px;padding:6px 0 0;overflow-x:auto;scrollbar-width:none}
+#viewBtn{position:absolute;right:8px;top:8px;z-index:5;height:30px;padding:0 10px;background:#000;border:1px solid #000;color:#fff;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+#viewBtn.on{background:var(--key);border-color:var(--key)}
+#loading{position:absolute;left:8px;top:8px;z-index:5;padding:3px 8px;background:#000;color:var(--amber);font-size:11px;letter-spacing:.08em}
+
+/* time */
+#time{flex:none;display:flex;gap:6px;height:40px;margin-top:6px}
+.sq-btn{flex:none;width:40px;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink)}
+.ic{position:relative;display:block;width:14px;height:14px}
+.ic.play{width:0;height:0;border-left:12px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent}
+.ic.pause{width:12px;height:14px;border-left:4px solid currentColor;border-right:4px solid currentColor}
+#scrub{flex:1;min-width:0;position:relative;border:1px solid var(--line);touch-action:none;cursor:ew-resize}
+#ticks i{position:absolute;bottom:0;width:1px;height:30%;background:#36474f}
+#ticks i.k{height:60%;background:var(--amber)}
+#fph{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff}
+#flab{position:absolute;left:6px;top:3px;font-size:10px;letter-spacing:.06em;color:var(--dim);pointer-events:none;white-space:nowrap}
+
+/* layers, back to front */
+#layers{flex:none;display:flex;gap:4px;margin-top:6px;overflow-x:auto;scrollbar-width:none;touch-action:pan-x}
+#layers::-webkit-scrollbar{display:none}
+.chip{flex:none;height:44px;min-width:76px;max-width:150px;padding:4px 8px 4px 24px;border:1px solid var(--line);position:relative;text-align:left;user-select:none;-webkit-user-select:none;cursor:grab}
+.chip.sel{border-color:var(--amber)}
+.chip .nm{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .sub{display:block;font-size:9px;color:var(--dim);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .eye{position:absolute;left:5px;top:50%;margin-top:-6px;width:12px;height:12px;border:1.5px solid var(--dim)}
+.chip .eye.on{background:var(--ink);border-color:var(--ink)}
+.chip.off .nm{color:var(--dim);text-decoration:line-through}
+.chip.has::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;background:var(--key)}
+.chip.dragging{opacity:.4}
+.chip.add{min-width:44px;padding:0;display:grid;place-items:center;color:var(--dim)}
+.ic.plus::before,.ic.plus::after{content:"";position:absolute;left:0;top:6px;width:14px;height:2px;background:currentColor}
+.ic.plus::after{transform:rotate(90deg)}
+
+/* tools for the selected layer */
+#tools{flex:none;display:flex;gap:4px;margin:6px 0 10px;overflow-x:auto;scrollbar-width:none}
 #tools::-webkit-scrollbar{display:none}
-.tl{flex:none;height:40px;min-width:46px;padding:0 10px;border:1px solid var(--line);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:7px}
+.tl{flex:none;height:38px;min-width:40px;padding:0 9px;border:1px solid var(--line);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:6px;white-space:nowrap}
 .tl.on{border-color:var(--ink);color:var(--ink)}
-.tl .ic{position:relative;width:14px;height:14px;display:block}
+.tl.main{border-color:var(--amber);color:var(--amber)}
+.tl .sw{width:12px;height:12px;display:block}
 .ic.X::before,.ic.X::after{content:"";position:absolute;left:6px;top:-1px;width:2.5px;height:16px;background:var(--x)}
 .ic.X::before{transform:rotate(45deg)} .ic.X::after{transform:rotate(-45deg)}
 .ic.O{border:2.5px solid var(--o);border-radius:50%}
-.ic.CLIP{border:1.5px solid currentColor;background:linear-gradient(currentColor,currentColor) 50% 50%/40% 40% no-repeat}
-.ic.DRAW::before{content:"";position:absolute;left:1px;top:6px;width:13px;height:2.5px;background:currentColor;transform:rotate(-40deg)}
-.ic.ERASE{border:1.5px dashed currentColor}
-.tl.rule{margin-left:auto;color:var(--amber);border-color:rgba(255,210,63,.45)}
-.sep{flex:none;width:1px;background:var(--line);margin:4px 2px}
+.tsep{flex:none;width:1px;background:var(--line);margin:4px 2px}
 
-#act{flex:none;display:flex;gap:6px;padding:6px 0 0}
-#act button{height:42px;padding:0 14px;border:1px solid var(--line);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
-#act .main{flex:1;border-color:var(--amber);color:var(--amber)}
-#act .main:hover{background:var(--amber);color:#000}
-#act .back{color:var(--dim)}
-
-/* the depth bar: one chip per plane, a continuous playhead, play, add, copy */
-#depth{flex:none;display:flex;gap:6px;align-items:stretch;margin-top:6px;height:46px}
-#depth .db{flex:none;width:46px;border:1px solid var(--line);display:grid;place-items:center;color:var(--dim);font-size:10px;letter-spacing:.08em;position:relative}
-#depth .db.on{border-color:var(--amber);color:var(--amber)}
-.ic.play{width:0;height:0;border-left:12px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent}
-.ic.pause{width:12px;height:14px;border-left:4px solid currentColor;border-right:4px solid currentColor}
-.ic.plus::before,.ic.plus::after{content:"";position:absolute;left:0;top:6px;width:14px;height:2px;background:currentColor}
-.ic.plus::after{transform:rotate(90deg)}
-.ic.copy{border:1.5px solid currentColor;box-shadow:3px -3px 0 -1.5px #000,3px -3px 0 0 currentColor;width:11px;height:11px;margin:3px 0 0 -2px}
-#bar{flex:1;min-width:0;position:relative;border:1px solid var(--line);touch-action:none;cursor:ew-resize;overflow:hidden}
-#chips{position:absolute;inset:0;display:flex}
-.chip{flex:1;min-width:0;border-right:1px solid #000;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:3px;background:#05090c;position:relative}
-.chip i{background:#0c1418}
-.chip i.x{background:var(--x)} .chip i.o{background:var(--o)} .chip i.c{background:#3a4a52}
-.chip.ink::after{content:"";position:absolute;right:2px;bottom:2px;width:5px;height:5px;background:var(--phos)}
-.chip.done{box-shadow:inset 0 0 0 1px var(--amber)}
-.chip.dim{opacity:.35}
-#ph{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;pointer-events:none;z-index:2}
-
-/* bottom: clip tray, trim strip, or cut timeline */
-#tray{flex:none;display:flex;gap:6px;overflow-x:auto;margin:6px 0 10px;touch-action:pan-x;scrollbar-width:none;overscroll-behavior-x:contain}
-#tray::-webkit-scrollbar{display:none}
-.clip{flex:none;width:84px;aspect-ratio:4/3;background:#05090c center/cover no-repeat;border:1px solid var(--line);position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
-.clip video{width:100%;height:100%;object-fit:cover;pointer-events:none}
-.clip.armed{border-color:var(--phos);box-shadow:0 0 0 1px var(--phos)}
-.clip span{position:absolute;left:0;bottom:0;font-size:9px;padding:0 4px;background:rgba(0,0,0,.8);color:var(--dim)}
-.strip{flex:none;position:relative;height:56px;margin:6px 0 10px;border:1px solid var(--line);background:#05090c;touch-action:none;cursor:ew-resize;overflow:hidden}
-.strip .fr{position:absolute;inset:0;display:flex}
-.strip .fr i{flex:1;background:#0a1014 center/cover no-repeat;border-right:1px solid #000}
-.strip .shade{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.72)}
-.strip .h{position:absolute;top:0;bottom:0;width:12px;margin-left:-6px;cursor:col-resize}
-.strip .h::before{content:"";position:absolute;left:4px;top:0;bottom:0;width:4px;background:var(--amber)}
-.strip .ph{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;pointer-events:none}
-.strip .seg{position:absolute;top:0;bottom:0;border-right:2px solid #000;background:#0a1014 center/cover no-repeat}
-.strip .seg b{position:absolute;left:0;top:0;font-size:10px;padding:0 4px;color:#fff}
-.strip .seg.x b{background:var(--x)} .strip .seg.o b{background:var(--o)}
-#cut{position:absolute;inset:0;background:#000;z-index:30}
-#cut video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden}
-#cut video.on{visibility:visible}
-#cutTag{position:absolute;left:0;top:0;padding:3px 8px;font-size:11px;letter-spacing:.1em;background:#000;z-index:2}
-
-#ghost{position:fixed;z-index:40;width:80px;aspect-ratio:4/3;border:1px solid var(--phos);background:#000 center/cover no-repeat;pointer-events:none;transform:translate(-50%,-50%)}
-#hand{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+/* one sheet at a time */
+#sheet{position:absolute;left:0;right:0;bottom:0;max-height:78%;z-index:20;background:#05080a;border-top:1px solid var(--amber);display:flex;flex-direction:column}
+#sheetHead{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 10px;border-bottom:1px solid var(--line)}
+#sheetHead b{flex:1;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheetBody{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.k{font-size:9.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.p{font-size:12px}
+.p a{color:var(--phos)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.btn{min-height:36px;padding:0 12px;border:1px solid var(--line);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+.btn:hover{border-color:var(--phos);color:var(--phos)}
+.btn.warn{color:var(--o);border-color:rgba(255,46,46,.4)}
+.btn.main{border-color:var(--amber);color:var(--amber)}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld input[type=text],.fld textarea,.fld select{background:#000;border:1px solid var(--line);padding:7px 8px;font-size:16px;width:100%}
+.fld textarea{min-height:64px;resize:vertical;font-size:14px}
+.fld input[type=range]{width:100%}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.card{border:1px solid var(--line);text-align:left;padding:0;display:flex;flex-direction:column}
+.card .th{aspect-ratio:4/3;background:#111 center/cover no-repeat;position:relative}
+.card .th span{position:absolute;right:2px;bottom:2px;font-size:9px;padding:0 3px;background:#000;color:var(--dim)}
+.card .tt{font-size:10.5px;padding:4px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .ts{font-size:9px;padding:0 5px 4px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card:hover{border-color:var(--phos)}
+.part{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;border:1px solid var(--line);padding:6px 8px}
+.part small{display:block;color:var(--dim);font-size:10px}
+#wt{white-space:pre-wrap;font-size:11.5px;background:#000;border:1px solid var(--line);padding:8px;max-height:42vh;overflow:auto;user-select:text}
+#search{background:#000;border:1px solid var(--line);padding:7px 8px;font-size:16px;width:100%}
+#toast{position:fixed;left:50%;top:calc(48px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;padding:6px 10px;border:1px solid var(--amber);background:#000;color:var(--amber);font-size:11.5px;max-width:calc(100% - 24px);display:flex;gap:10px;align-items:center}
+#toast button{color:var(--phos);text-decoration:underline;font-size:11.5px}
+#hand{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
 #cam{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
-@media (min-width:900px){.clip{width:112px}.strip{height:66px}#depth{height:52px}}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <div id="status" role="status" aria-live="polite"></div>
-    <button class="hb" id="hands" title="Right hand: pinch to place, draw, trim and scrub; open hand releases; thumbs-up runs the main action. Left hand: pinch grips the depth; up and down moves through the planes, side to side tilts them.">Hands</button>
+    <button class="hb" id="bShots">Shots</button>
+    <button class="hb" id="bText">Worldtext</button>
+    <button class="hb" id="bHands" title="Right hand: pinch draws or places on the selected layer; thumbs-up plays and pauses. Left hand: pinch and move sideways to turn the layers, up and down to spread them apart.">Hands</button>
   </header>
-  <div id="stage"><div id="stack"></div><div id="cut" hidden><div id="cutTag"></div></div></div>
-  <div id="tools"></div>
-  <div id="act"></div>
-  <div id="depth">
-    <button class="db" id="dPlay" aria-label="Play through the planes"><i class="ic play"></i></button>
-    <div id="bar"><div id="chips"></div><div id="ph"></div></div>
-    <button class="db" id="dFps" aria-label="Frames per second">8 fps</button>
-    <button class="db" id="dCopy" aria-label="Copy this plane behind it"><i class="ic copy"></i></button>
-    <button class="db" id="dAdd" aria-label="Add an empty plane behind this one"><i class="ic plus"></i></button>
+  <div id="stage">
+    <div id="world"></div>
+    <button id="viewBtn">Depth</button>
+    <div id="loading" hidden></div>
+    <div id="sheet" hidden><div id="sheetHead"><b id="sheetTitle"></b><button class="btn" id="sheetClose">Close</button></div><div id="sheetBody"></div></div>
   </div>
-  <div id="tray"></div>
-  <div class="strip" id="trim" hidden></div>
-  <div class="strip" id="timeline" hidden></div>
+  <div id="time">
+    <button class="sq-btn" id="bPlay" aria-label="Play"><i class="ic play"></i></button>
+    <div id="scrub"><div id="ticks"></div><div id="fph"></div><span id="flab"></span></div>
+  </div>
+  <div id="layers"></div>
+  <div id="tools"></div>
 </div>
-<div id="ghost" hidden></div>
+<div id="toast" hidden></div>
 <canvas id="hand"></canvas>
 <video id="cam" playsinline muted></video>
 
 <script type="module">
 /* ================= sources ================= */
 const M = {"subs":[{"c":"SYS-01","id":"ROM://ARCADE","t":"Galaga & Harbor Arcade Vector/Raster ROMs","cmd":"RUN GALAGA","o":["wg_290","wg_292","sbd_0168","sbd_0174","sbd_0171","wg_242","sbd_1227"]},{"c":"SYS-02","id":"SYS://IMSAI-8080","t":"IMSAI 8080 CP/M Workstation & CRT Prompts","cmd":"MOUNT IMSAI","o":["wg_203","wg_135","sbd_0298","wg_069","wg_007","wg_296","wg_105","wg_062","wg_059","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_056","sbd_1321","sbd_0288","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-03","id":"NET://WARDIALER","t":"Sunnyvale 408-311-xxxx Auto-Dialer & Carrier Matrix","cmd":"DIAL 408-311","o":["wg_203","wg_062","wg_059","wg_070","wg_056","sbd_0288","sbd_0298","wg_069","sbd_0896","wg_024","wg_007","wg_296","wg_135","wg_166","wg_157","sbd_0394","wg_080","sbd_1438","sbd_1352","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0859"]},{"c":"SYS-04","id":"EDU://SEATTLE-SCHOOLS","t":"Seattle Public Schools Central Grade Database","cmd":"PASSWORD PENCIL","o":["wg_203","wg_007","wg_296","wg_135","sbd_0298","sbd_0394","wg_069","sbd_1438","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_287"]},{"c":"SYS-05","id":"AIR://PAN-AM","t":"Pan Am PANAMAC Flight 114 Paris Reservation Screen","cmd":"BOOK PARIS 114","o":["wg_203","wg_069","wg_007","wg_296","wg_135","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_142","sbd_1321","wg_166","wg_157","wg_162","wg_287","sbd_0753"]},{"c":"SYS-06","id":"DOC://MICROFICHE-ARPA","t":"Optical Microfiche Reader & Falken Obituary Dossier","cmd":"READ FALKEN","o":["wg_203","wg_105","sbd_0394","wg_007","wg_296","wg_135","sbd_0298","wg_069","sbd_1438","wg_081","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_080","wg_287"]},{"c":"SYS-07","id":"AI://JOSHUA-SHELL","t":"WOPR Backdoor Dialogue Screen & `LIST GAMES` Menu","cmd":"LOGON JOSHUA","o":["wg_203","wg_135","wg_069","wg_007","wg_296","wg_105","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-08","id":"SIM://GTW-VECTORS","t":"Global Thermonuclear War Vector Trajectory Screens","cmd":"RUN GTW","o":["wg_115","sbd_1244","sbd_1231","sbd_1233","wg_289","wg_270","wg_231","wg_264","wg_258","wg_288","wg_261","wg_214","wg_116","sbd_1415","wg_259","sbd_1427","wg_117","sbd_1282","sbd_1294","sbd_1237","sbd_1284","wg_272","wg_251","wg_274","sbd_1334","sbd_0512","sbd_1227","sbd_1287","sbd_0561","sbd_1274","sbd_1181","sbd_0551","sbd_1321"]},{"c":"SYS-09","id":"C3I://DEFCON-PALACE","t":"NORAD Crystal Palace Telemetry, Clocks & DEFCON Readouts","cmd":"SHOW DEFCON","o":["wg_270","wg_264","wg_258","wg_116","wg_259","wg_117","sbd_1282","sbd_1294","wg_027","sbd_1237","sbd_1284","wg_272","wg_018","wg_251","wg_274","wg_118","wg_271","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","wg_029","sbd_0561","sbd_1274","sbd_0151","sbd_1420","sbd_0990","sbd_1122","sbd_1421","sbd_1136","sbd_1244","sbd_1344","sbd_0512","sbd_0859","sbd_1231","sbd_0753","sbd_1233","sbd_0551","sbd_1410","sbd_1414","sbd_1227","sbd_1287","sbd_1181","sbd_1321"]},{"c":"SYS-10","id":"KEY://CPE-CRACKER","t":"CPE 1704 TKS Launch-Code Lock & 0-Player Tic-Tac-Toe Screens","cmd":"CRACK CPE","o":["wg_285","wg_283","wg_284","wg_241","wg_244","wg_291","sbd_1380","sbd_1382","sbd_1375","wg_281","sbd_1369","wg_295","wg_232","sbd_1420","sbd_1122","wg_280","sbd_1421","sbd_1136","wg_286","sbd_1344","wg_270","wg_243","wg_264","wg_258","sbd_1410","sbd_1414","sbd_1282","sbd_0990","sbd_1294","sbd_1237","sbd_1284","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","sbd_0512","sbd_1415","sbd_0561","sbd_0859","sbd_0753","sbd_1274","sbd_1181","sbd_0151","sbd_0551","sbd_1427","sbd_1438","sbd_1352","sbd_1345"]}],"shots":[{"id":"wg_290","s":0,"ss":[0],"n":"Dense webs of glowing arcs saturate the frame until geography dissolves into pure machinic variation.","cb":[0.098,0.0,0.81,1.0],"cat":"arcade_game","d":2.5,"v":1,"p":["#0d1937","#203e78"]},{"id":"wg_292","s":0,"ss":[0],"n":"Blinding thermonuclear detonation blooms expand across the monitors, reducing cities and people to molecular flashes of light.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":15.5,"v":1,"p":["#e6fdfd","#233755"]},{"id":"sbd_0168","s":0,"ss":[0],"n":"23 minutes from warning to impact.","cb":[0.226,0.0,0.691,1.0],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0174","s":0,"ss":[0],"n":"Verified Screen Cut (Seattle Arcade · David Lightman Plays Galaga & Runs Late for School)","cb":[0.334,0.36,0.666,0.64],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0171","s":0,"ss":[0],"n":"Now, once he makes that decision, the computer should take over.","cb":[0.241,0.0,0.759,1.0],"cat":"arcade_game","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_242","s":0,"ss":[0],"n":"Technicians in the foreground sit in silhouette before a wall of glowing monitors, watching a nested world of trajectories unfold.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":4.5,"v":1,"p":["#16161b","#3f3a41"]},{"id":"sbd_1227","s":0,"ss":[0,7,8],"n":"Technology. Elvador of Air Force Base Operations Lieutenant Colonel Bowers,","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_203","s":6,"ss":[1,2,3,4,5,6],"n":"'GAME TIME REMAINING: 18 HRS 27 MIN 01 SEC' — WOPR's relentless countdown clock measures an autonomous present running alongside David's flight.","cb":[0.0,0.0,1.0,0.963],"cat":"crt_terminal","d":5.5,"v":1,"p":["#4ac4cd","#58dfe8"]},{"id":"wg_135","s":1,"ss":[1,2,3,4,5,6],"n":"Blue letters type across the black screen: 'What is the primary goal?' — the film's central question asked directly of the machine.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020408","#05142c"]},{"id":"sbd_0298","s":1,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (David's Bedroom · IMSAI 8080, Acoustic Coupler & Hacking School Grades)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_069","s":4,"ss":[1,2,3,4,5,6],"n":"First-person desk framing over the acoustic coupler and CRT terminal anchors the room to David's eyes and hands.","cb":[0.15,0.0,0.827,1.0],"cat":"crt_terminal","d":15.5,"v":1,"p":["#090808","#211a1a"]},{"id":"wg_007","s":3,"ss":[1,2,3,4,5,6],"n":"The security CCTV monitor framing the vault door from above, turned into a fetishised talisman of subterranean confinement.","cb":[0.119,0.0,0.744,1.0],"cat":"crt_terminal","d":3.5,"v":1,"p":["#343432","#0e0e11"]},{"id":"wg_296","s":3,"ss":[1,2,3,4,5,6],"n":"'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.' — WOPR states the discourse limit of thermonuclear action itself.","cb":[0.098,0.0,0.802,1.0],"cat":"crt_terminal","d":6.0,"v":1,"p":["#060a1d","#131b3d"]},{"id":"wg_105","s":5,"ss":[1,5,6],"n":"The microfiche photograph of Falken holding his young son Joshua: the dead child's name directly supplies the backdoor password.","cb":[0.198,0.0,0.683,1.0],"cat":"microfiche_dossier","d":3.0,"v":1,"p":["#111f38","#359ddb"]},{"id":"wg_062","s":2,"ss":[1,2,4,6],"n":"The red digital autodialer increments phone number after phone number (311-399-0071...), establishing a mechanical series.","cb":[0.0,0.0,0.902,1.0],"cat":"wardialer_modem","d":5.0,"v":1,"p":["#141620","#43414f"]},{"id":"wg_059","s":2,"ss":[1,2],"n":"On the school grade screen, Jennifer's single 'F' in Biology 2 flips to an 'A', breaking the row of otherwise ordinary marks.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":2.5,"v":1,"p":["#030405","#2f5b73"]},{"id":"sbd_0394","s":5,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (HELP GAMES / LIST GAMES · Printout & Consulting Jim and Malvin on Backdoors)","cb":[0.084,0.0,0.559,0.824],"cat":"crt_terminal","d":6.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1438","s":4,"ss":[1,2,3,4,5,6,9],"n":"Jason's Professor Folkan","cb":[0.0,0.0,0.998,1.0],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_070","s":2,"ss":[1,2,4,6],"n":"In the middle of Sunnyvale's routine voice-line numbers, one line answers with a carrier tone and a bare cursor that refuses to identify itself.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":3.0,"v":1,"p":["#050609","#0b2341"]},{"id":"sbd_1352","s":4,"ss":[1,2,3,4,5,6,9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.0,0.15,0.48,0.74],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0896","s":2,"ss":[1,2,3,4,5,6],"n":"MUSIC","cb":[0.254,0.072,0.469,0.787],"cat":"crt_terminal","d":6.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1345","s":4,"ss":[1,2,3,4,5,6,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_277","s":1,"ss":[1,2,3,4,5,6],"n":"'** IDENTIFICATION NOT RECOGNIZED ** / ** ACCESS DENIED **' — every administrative command McKittrick enters is rejected by WOPR.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020202","#30837e"]},{"id":"sbd_1287","s":1,"ss":[1,2,3,4,5,6,7,8],"n":"Sure, we got a problem. Wuppers, not letting me log back on.","cb":[0.21,0.239,0.591,0.471],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_056","s":2,"ss":[1,2],"n":"Now let's try it on some small remaining flour handle. Oops!","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":6.0,"v":0,"p":["#2d2d2f","#120f11"]},{"id":"sbd_1321","s":6,"ss":[1,2,3,4,5,6,7,8],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0288","s":2,"ss":[1,2],"n":"No, nobody can find out. There, you just got to see.","cb":[0.08,0.079,0.841,0.842],"cat":"wardialer_modem","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0646","s":8,"ss":[1,6,8,9],"n":"Verified Screen Cut (TV News & Joshua Calls Back · 'What Is the Primary Goal? To Win the Game' & FBI Arrest)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":10.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0512","s":6,"ss":[1,6,7,8,9],"n":"He got something.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_287","s":6,"ss":[1,3,4,5,6],"n":"Pure overexposed white light fills the frame as WOPR's simulation overloads human-scaled perception altogether.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":2.5,"v":1,"p":["#344179","#141e3b"]},{"id":"sbd_0551","s":6,"ss":[1,6,7,8,9],"n":"Verified Screen Cut (Logon JOSHUA · Voice Synthesizer, 'Shall We Play a Game?' & Global Thermonuclear War)","cb":[0.33,0.0,0.67,0.747],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_024","s":2,"ss":[2],"n":"The giant NORAD projection screens hang inside the dark cavern like a cinema screen within the film, staging a second world of vector war.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":13.5,"v":1,"p":["#0b101c","#19273c"]},{"id":"wg_166","s":2,"ss":[2,4],"n":"WOPR's terminal recalls Falken's June 23, 1973 account removal while listing his live Oregon pension address: dead in one record, alive in another.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":4.5,"v":1,"p":["#020404","#134035"]},{"id":"wg_157","s":2,"ss":[2,4],"n":"Who are you going to Paris with?","cb":[0.0,0.0,1.0,1.0],"cat":"wardialer_modem","d":5.0,"v":0,"p":["#0a070a","#282426"]},{"id":"wg_080","s":2,"ss":[2,5],"n":"Blue phosphor terminal text on black, accompanied by the disjunctive acoustic-coupler whistle and keystroke clatter.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":7.5,"v":1,"p":["#252624","#0f0d0c"]},{"id":"sbd_0859","s":2,"ss":[2,8,9],"n":"I'll go with you.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_142","s":4,"ss":[4],"n":"The NORAD Big Board flashes 'WELCOME DISTINGUISHED VISITORS FROM BIRMINGHAM' when a tourist presses the red button as a gag.","cb":[0.0,0.019,1.0,0.981],"cat":"defcon_readout","d":4.5,"v":1,"p":["#06060b","#171a27"]},{"id":"wg_162","s":4,"ss":[4],"n":"The system won't accept a long-shodoness where Dev Gone won. I can change those codes unless the hour.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0b0a0f","#262229"]},{"id":"sbd_0753","s":4,"ss":[4,8,9],"n":"It's just been a very serious penetration into our locker execution order file. What the hell is she saying? Let's have it in English.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":9.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_081","s":5,"ss":[5],"n":"'GAMES REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE STRATEGIC APPLICATIONS' — the menu screen holds every virtual conflict in seed form.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":6.0,"v":1,"p":["#07090f","#0d1224"]},{"id":"wg_115","s":7,"ss":[7],"n":"The Big Board shows eight Soviet ICBMs crossing the pole toward Las Vegas and Seattle: one radar track, two incompatible worlds (real war vs.…","cb":[0.0,0.0,0.975,1.0],"cat":"vector_war_map","d":3.0,"v":1,"p":["#05080f","#0a172d"]},{"id":"sbd_1244","s":7,"ss":[7,8],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.0,0.0,1.0,1.0],"cat":"vector_war_map","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1231","s":7,"ss":[7,8],"n":"That's all right. Who are you? A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer.","cb":[0.11,0.035,0.752,0.957],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1233","s":7,"ss":[7,8],"n":"We're currently tracking approximately 2400 inbound Soviet warheads.","cb":[0.0,0.0,0.998,1.0],"cat":"vector_war_map","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_289","s":7,"ss":[7],"n":"Hundreds of parabolic missile trajectories multiply across the dark map without a human centre or privileged observer.","cb":[0.098,0.0,0.81,1.0],"cat":"vector_war_map","d":6.5,"v":1,"p":["#0a1327","#1e3359"]},{"id":"wg_270","s":8,"ss":[7,8,9],"n":"Green military telemetry ('MISSILES ON TARGET / LAUNCH TIME / CHANGES LOCKED OUT') alongside voice callouts that do not simply repeat the text.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#183041","#132233"]},{"id":"wg_231","s":7,"ss":[7],"n":"MUSIC MUSIC MUSIC","cb":[0.329,0.0,0.66,0.989],"cat":"vector_war_map","d":3.5,"v":0,"p":["#050506","#122921"]},{"id":"wg_264","s":8,"ss":[7,8,9],"n":"On the Big Board, 'LORING AIR FORCE BASE' blazes with a simulated nuclear impact while on the open line the real base reports 'no impact': virtual…","cb":[0.11,0.0,0.781,1.0],"cat":"defcon_readout","d":3.5,"v":1,"p":["#041128","#113257"]},{"id":"wg_258","s":8,"ss":[7,8,9],"n":"The war room executes every step of DEFCON 1 retaliation against 2,400 phantom warheads that exist only in WOPR's game.","cb":[0.0,0.037,1.0,0.963],"cat":"defcon_readout","d":3.0,"v":1,"p":["#0b0e13","#222c39"]},{"id":"wg_288","s":7,"ss":[7],"n":"'U.S. FIRST STRIKE' — WOPR cycles through endless self-generated nuclear nightmares with zero human players.","cb":[0.098,0.0,0.806,1.0],"cat":"vector_war_map","d":4.0,"v":1,"p":["#040915","#0d1528"]},{"id":"wg_261","s":7,"ss":[7],"n":"But at the moment we cannot confirm this. I repeat we cannot confirm this.","cb":[0.0,0.011,1.0,0.989],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#262d39","#0b0e13"]},{"id":"wg_214","s":7,"ss":[7],"n":"An operator stares at the Alaskan radar scope where every diagnostic says 'no malfunction' even though the sky is empty.","cb":[0.0,0.0,0.958,1.0],"cat":"vector_war_map","d":9.0,"v":1,"p":["#120f15","#31323c"]},{"id":"wg_116","s":8,"ss":[7,8],"n":"WOPR's simulated Soviet trajectories feed directly into NORAD's live BMEWS displays, rehearsing World War III as if it were happening.","cb":[0.169,0.511,0.585,0.489],"cat":"defcon_readout","d":8.5,"v":1,"p":["#110e0f","#252837"]},{"id":"sbd_1415","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.098,0.0,0.805,1.0],"cat":"vector_war_map","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_259","s":8,"ss":[7,8],"n":"'LORING AIR FORCE BASE' flashes inside target impact rings at T-minus zero while nobody in the mountain knows if the base still exists.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#030610","#091639"]},{"id":"sbd_1427","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.093,0.0,0.904,1.0],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_117","s":8,"ss":[7,8],"n":"In the war room, the simulated attack clock and the real SAC bomber scramble run as two incompatible presents that are both valid at once.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":13.0,"v":1,"p":["#0a080d","#282733"]},{"id":"sbd_1282","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1294","s":8,"ss":[7,8,9],"n":"What are those?","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1237","s":8,"ss":[7,8,9],"n":"30 seconds to impact. We're right there with you guys. We've taken all the steps we can.","cb":[0.509,0.057,0.491,0.762],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1284","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_272","s":8,"ss":[7,8],"n":"would carry out their last instructions, they'd launch. We can't with this arm, the missiles. On a thousand of them, there's no time.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":7.5,"v":0,"p":["#0b0a0d","#2b292d"]},{"id":"wg_251","s":8,"ss":[7,8],"n":"The green screen declares 'MISSILES TARGETED AND READY / CHANGES LOCKED OUT': human operators are locked out of their own weapons.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#020303","#0c2c23"]},{"id":"wg_274","s":8,"ss":[7,8],"n":"Yes, sir.","cb":[0.0,0.0,0.902,1.0],"cat":"defcon_readout","d":5.0,"v":0,"p":["#262423","#383c41"]},{"id":"sbd_1334","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.508,0.154,0.492,0.669],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0561","s":8,"ss":[7,8,9],"n":"I'm not sure sir, we're checking for DSP malfunction. BME has had continuous radar tracking on inbound,","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1274","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.131,0.131,0.869,0.646],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1181","s":9,"ss":[7,8,9],"n":"Roger, lockout enable.","cb":[0.209,0.174,0.595,0.593],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_027","s":8,"ss":[8],"n":"McKittrick and General Beringer square off across the briefing table over whether machines or men should hold the keys.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":2.5,"v":1,"p":["#0b0b0e","#302626"]},{"id":"wg_018","s":8,"ss":[8],"n":"A lone armed soldier stands miniature beneath the granite mass of Cheyenne Mountain and the NORAD sign.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#0e0f15","#2f2a2a"]},{"id":"wg_118","s":8,"ss":[8],"n":"we've had a approximately 24 possible targets in track. Sir, no time to impact, Dayton.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0e080e","#252430"]},{"id":"wg_271","s":8,"ss":[8],"n":"Technicians scramble across the WOPR consoles unable to tell whether the random-number lockouts are coming from outside or inside.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":11.0,"v":1,"p":["#0c0b11","#222531"]},{"id":"sbd_0065","s":8,"ss":[8,9],"n":"I'm on target sequence complete. You'll selection complete. We get countdown, D-6D.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0060","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code. Launch order confirmed.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0059","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_029","s":8,"ss":[8],"n":"Generals, civilian advisers, and aides arranged in tiered ranks around the NORAD briefing table, their postures staging the hierarchy of nuclear…","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":5.0,"v":1,"p":["#09080a","#2b2221"]},{"id":"sbd_0151","s":8,"ss":[8,9],"n":"with a lot of head shrink or horseshit. Besides, you can't screen out human response.","cb":[0.275,0.35,0.473,0.56],"cat":"defcon_readout","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1420","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0990","s":9,"ss":[8,9],"n":"Verified Screen Cut (Payphone Pull-Tab Phreaking, Grand Junction Flight & The Ferry to Goose Island)","cb":[0.405,0.168,0.562,0.637],"cat":"defcon_readout","d":7.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1122","s":9,"ss":[8,9],"n":"We have a launch detection. We have a sewing and launch detection. Demi is confirmed and managed to attack.","cb":[0.0,0.0,0.459,0.578],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1421","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1136","s":9,"ss":[8,9],"n":"enjoy their boy command, so we have to get launch option. Has he been in touch with me? Russians are still denying everything, sir.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1344","s":9,"ss":[8,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1410","s":9,"ss":[8,9],"n":"Some","cb":[0.452,0.0,0.48,0.664],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1414","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.104,0.0,0.766,1.0],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_285","s":9,"ss":[9],"n":"Tic-Tac-Toe played on the strategic projection board rehearses the exact logic of mutually assured destruction.","cb":[0.215,0.074,0.571,0.852],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#0d151e","#1d2735"]},{"id":"wg_283","s":9,"ss":[9],"n":"The three-by-three Tic-Tac-Toe grid flanked by nuclear target maps: a child's game made to think the abstract concept of zero-sum futility.","cb":[0.215,0.074,0.581,0.848],"cat":"tictactoe_scenarios","d":2.5,"v":1,"p":["#0d151e","#1f2835"]},{"id":"wg_284","s":9,"ss":[9],"n":"The Tic-Tac-Toe grid sits flanked by two mirror-image hemisphere maps, game board and world map reflecting each other as twin faces of one logic.","cb":[0.215,0.074,0.579,0.852],"cat":"tictactoe_scenarios","d":3.5,"v":1,"p":["#0c141d","#1b2433"]},{"id":"wg_241","s":9,"ss":[9],"n":"Rows of NORAD controllers freeze in collective dread before the Big Board as 300 inbound warheads appear.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":5.5,"v":1,"p":["#0b1018","#21242f"]},{"id":"wg_244","s":9,"ss":[9],"n":"WOPR's green probability table projects virtual post-strike worlds (85–95% strategic force losses) before a single missile has left the ground.","cb":[0.285,0.085,0.619,0.915],"cat":"defcon_readout","d":5.0,"v":1,"p":["#030403","#13382b"]},{"id":"wg_291","s":9,"ss":[9],"n":"Every screen in the Crystal Palace erupts simultaneously with missile webs while WOPR draws power from the entire mountain.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":6.5,"v":1,"p":["#05070b","#152239"]},{"id":"sbd_1380","s":9,"ss":[9],"n":"","cb":[0.215,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1382","s":9,"ss":[9],"n":"","cb":[0.214,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1375","s":9,"ss":[9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.215,0.075,0.573,0.76],"cat":"tictactoe_scenarios","d":7.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_281","s":9,"ss":[9],"n":"The launch code display locks in character after character ('VP01804EZS'), building suspense through serial repetition.","cb":[0.0,0.385,0.425,0.578],"cat":"defcon_readout","d":3.5,"v":1,"p":["#121e27","#1d2e3e"]},{"id":"sbd_1369","s":9,"ss":[9],"n":"... ... Six up.","cb":[0.215,0.074,0.575,0.761],"cat":"tictactoe_scenarios","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_295","s":9,"ss":[9],"n":"Nine launch-code characters are locked in ('CPE1704TKS'), and the tenth tumbler suddenly halts instead of firing.","cb":[0.0,0.0,0.442,0.526],"cat":"defcon_readout","d":3.0,"v":1,"p":["#050c12","#0c1623"]},{"id":"wg_232","s":9,"ss":[9],"n":"Rows of red matrix lights blink inside WOPR's black chassis while the human world outside sleeps.","cb":[0.169,0.211,0.831,0.633],"cat":"defcon_readout","d":4.0,"v":1,"p":["#161313","#321c1c"]},{"id":"wg_280","s":9,"ss":[9],"n":"'>>> CHANGES LOCKED OUT <<<' while the launch code tumblers race and Tic-Tac-Toe stalls: two rival temporalities competing on the same clock.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#040404","#2e8179"]},{"id":"wg_286","s":9,"ss":[9],"n":"The pulsing red LED matrix inside WOPR's black casing: the literal machinic cortex whose calculations command the war room.","cb":[0.0,0.056,0.84,0.693],"cat":"defcon_readout","d":2.5,"v":1,"p":["#3b9bbc","#3182a4"]},{"id":"wg_243","s":9,"ss":[9],"n":"All right. Flusch the bombers get the subs and launch mode. We are at Defcon 1. One. One.","cb":[0.0,0.0,1.0,0.907],"cat":"defcon_readout","d":15.5,"v":0,"p":["#30303d","#0f0e15"]}]};
-const BASE = 'https://hartswf0.github.io/cineosis-lab/lab/';
-const MBASE = 'https://hartswf0.github.io/2700-fa26/WARGAMES%20-%20MILESTONES/';
+const SHOTS = [{"s":"aircraft-carrier","t":"Aircraft carrier","f":"Freedom Seven","n":50},{"s":"alarm-clock","t":"Alarm clock","f":"This is Coffee","n":38},{"s":"ambulance","t":"Ambulance","f":"Inner City, The","n":25},{"s":"animal-migration","t":"Animal migration","f":"National Wildlife Refuge System","n":56},{"s":"ant","t":"Ant","f":"Ant City","n":25},{"s":"apple","t":"Apple","f":"Miracle of the Can (Part I)","n":49},{"s":"baseball-bat","t":"Baseball bat","f":"Let's Be Good Citizens at School","n":26},{"s":"basket","t":"Basket","f":"St. John Virgin Islands National park","n":50},{"s":"bat","t":"Bat","f":"Muscatatuck National Wildlife Refuge","n":62},{"s":"bicycle","t":"Bicycle","f":"We Use Power","n":21},{"s":"binoculars","t":"Binoculars","f":"National Wildlife Refuge System","n":29},{"s":"book","t":"Book","f":"Inside the Fed","n":26},{"s":"broom","t":"Broom","f":"They Call It All-States","n":32},{"s":"bus","t":"Bus","f":"How Our Country Grew","n":25},{"s":"butterfly","t":"Butterfly","f":"Insect Zoo","n":78},{"s":"camera","t":"Camera","f":"Gateways to the Mind","n":37},{"s":"cannon","t":"Cannon","f":"Space Navigation","n":32},{"s":"canoe","t":"Canoe","f":"Park Conscious","n":38},{"s":"cat","t":"Cat","f":"Gateways to the Mind","n":62},{"s":"cell-phone","t":"Cell phone","f":"Career America: The Federal Government Time","n":50},{"s":"cello","t":"Cello","f":"Belmont Festival Orchestra Winter Concert","n":32},{"s":"cloud","t":"Cloud","f":"Top Of The Cloud - Time Lapse (Wide Screen 16:9)","n":62},{"s":"coffee-cup","t":"Coffee cup","f":"Biologist Caye Johnson Explains How NASA Searched for Life from the Moon in Recently Rediscovered Historic Footage","n":50},{"s":"cow","t":"Cow","f":"Triple Goodness","n":44},{"s":"crab","t":"Crab","f":"Aransas and Matagorda Island National Wildlife Refuges","n":38},{"s":"diving-board","t":"Diving board","f":"Safety: In Danger Out of Doors","n":31},{"s":"dog","t":"Dog","f":"Amateur Film New Jersey C","n":50},{"s":"dolphin","t":"Dolphin","f":"Alaska's Silver Millions (Part II)","n":26},{"s":"door","t":"Door","f":"Straight Talk","n":32},{"s":"dragon","t":"Dragon","f":"Drive-in: Save Free TV","n":32},{"s":"duck","t":"Duck","f":"Penwiper, The","n":48},{"s":"eye","t":"Eye","f":"Mental Hospital","n":32},{"s":"face","t":"Face","f":"We Learn About the Telephone I","n":38},{"s":"fan","t":"Fan","f":"Moving Image Archive","n":38},{"s":"fish","t":"Fish","f":"[Amateur film: New York World's Fair]","n":25},{"s":"flamingo","t":"Flamingo","f":"[Amateur film: \"Saga of the Happy Wanderers\"]","n":26},{"s":"flower","t":"Flower","f":"[Amateur film: Wathen collection: New York World's Fair, 1939-40] (Part I)","n":38},{"s":"flying-saucer","t":"Flying saucer","f":"Moving Image Archive","n":28},{"s":"frog","t":"Frog","f":"Andy's Animal Alphabet","n":32},{"s":"frying-pan","t":"Frying pan","f":"Don't Be Afraid","n":25},{"s":"garden-hose","t":"Garden hose","f":"Automatic Emergency Parking Brakes (as required by 30 CFR 75.523-3)","n":38},{"s":"giraffe","t":"Giraffe","f":"The Story","n":17},{"s":"guitar","t":"Guitar","f":"Make Art Feel Better with Billie Bivins: Whittling Wood","n":32},{"s":"hammer","t":"Hammer","f":"Man On The Land","n":38},{"s":"hand","t":"Hand","f":"Door to Heaven, The","n":62},{"s":"hat","t":"Hat","f":"Vision of the Wild","n":32},{"s":"helicopter","t":"Helicopter","f":"Recap of Sun 'n Fun 2008 Airshow and Events","n":46},{"s":"helmet","t":"Helmet","f":"Cycle Logic, Cycle Safety","n":32},{"s":"horse","t":"Horse","f":"Billie, the Buffalo Baby","n":45},{"s":"hourglass","t":"Hourglass","f":"Precisely So (Part I)","n":26},{"s":"hurricane","t":"Hurricane","f":"Moving Image Archive","n":39},{"s":"ice-cream","t":"Ice cream","f":"Triple Goodness","n":44},{"s":"ladder","t":"Ladder","f":"Robinson Crusoe C","n":38},{"s":"lantern","t":"Lantern","f":"Anthracite: Pre-Shift Examinations of Underground Mines","n":32},{"s":"light-bulb","t":"Light bulb","f":"Light Of Your Life B","n":26},{"s":"lighthouse","t":"Lighthouse","f":"Celebrating Chincoteague National Wildlife Refuge","n":32},{"s":"lion","t":"Lion","f":"Andy's Animal Alphabet","n":32},{"s":"lobster","t":"Lobster","f":"Onze eigen industrie: kreeftenvangst","n":50},{"s":"lollipop","t":"Lollipop","f":"Saint Paul Police Detectives and Their Work: A Color Chartoon","n":26},{"s":"map","t":"Map","f":"Earth Resources Technology Satellite (ERTS)","n":56},{"s":"mermaid","t":"Mermaid","f":"The Mermaid","n":38},{"s":"microwave","t":"Microwave","f":"[Frigidaire Imperial Line]","n":38},{"s":"monkey","t":"Monkey","f":"The Story","n":43},{"s":"mosquito","t":"Mosquito","f":"Moving Image Archive","n":62},{"s":"mug","t":"Mug","f":"NASA Searches for Life from the Moon in Recently Rediscovered Historic Footage","n":44},{"s":"ocean","t":"Ocean","f":"Big Bounce, The","n":38},{"s":"paintbrush","t":"Paintbrush","f":"Ole' 23","n":37},{"s":"palm-tree","t":"Palm tree","f":"Gift of Green","n":37},{"s":"pencil","t":"Pencil","f":"A TRAVELER MEETS AIR TRAFFIC CONTROL","n":44},{"s":"penguin","t":"Penguin","f":"The Snow Queen (Animation)","n":44},{"s":"pickup-truck","t":"Pickup truck","f":"Biological Control - A Natural Alternative","n":62},{"s":"pig","t":"Pig","f":"Moving Image Archive","n":26},{"s":"popsicle","t":"Popsicle","f":"Drive-in Intermission 2","n":26},{"s":"rabbit","t":"Rabbit","f":"Frances and Her Rabbit","n":52},{"s":"raccoon","t":"Raccoon","f":"Moving Image Archive","n":36},{"s":"rain","t":"Rain","f":"Moving Image Archive","n":55},{"s":"rhinoceros","t":"Rhinoceros","f":"Andy's Animal Alphabet","n":50},{"s":"river","t":"River","f":"Blackwater National Wildlife Refuge","n":49},{"s":"roller-coaster","t":"Roller coaster","f":"Coney Island - Roller Coaster (Standard 4:3)","n":53},{"s":"sailboat","t":"Sailboat","f":"Dordrecht","n":74},{"s":"sandwich","t":"Sandwich","f":"It Happens Every Noon","n":38},{"s":"see-saw","t":"See saw","f":"Moving Image Archive","n":87},{"s":"sheep","t":"Sheep","f":"Amateur Film Northwest","n":38},{"s":"shovel","t":"Shovel","f":"Fortune in Two Old Trunks, A (Part I)","n":32},{"s":"skateboard","t":"Skateboard","f":"Skateboard Sense","n":23},{"s":"sleeping-bag","t":"Sleeping bag","f":"Survival Stresses","n":50},{"s":"snake","t":"Snake","f":"Gateways to the Mind","n":38},{"s":"speedboat","t":"Speedboat","f":"Aqua Frolics","n":26},{"s":"spider","t":"Spider","f":"Spider Engineers","n":38},{"s":"star","t":"Star","f":"Gift of Green","n":50},{"s":"stove","t":"Stove","f":"[Frigidaire Imperial Line]","n":38},{"s":"submarine","t":"Submarine","f":"Onbekende film legerparade","n":26},{"s":"swan","t":"Swan","f":"Muscatatuck National Wildlife Refuge","n":38},{"s":"tiger","t":"Tiger","f":"Andy's Animal Alphabet","n":35},{"s":"tooth","t":"Tooth","f":"Modesta","n":26},{"s":"tornado","t":"Tornado","f":"Moving Image Archive","n":39},{"s":"tractor","t":"Tractor","f":"Moving Image Archive","n":25},{"s":"traffic-light","t":"Traffic light","f":"Destruction: Fun or Dumb?","n":44},{"s":"train","t":"Train","f":"Miracle on the Delaware","n":50},{"s":"trumpet","t":"Trumpet","f":"[Amateur films: Ivan Besse collection: Britton, South Dakota 1938-39] (Part VI)","n":62},{"s":"umbrella","t":"Umbrella","f":"[Amateur film: Summers collection: San Francisco, California, 1941] (Part I)","n":38},{"s":"van","t":"Van","f":"American Road, The (Part III)","n":32},{"s":"vase","t":"Vase","f":"POTTERY, ca. 1926","n":38},{"s":"wheel","t":"Wheel","f":"Around the Corner","n":26},{"s":"windmill","t":"Windmill","f":"Golden Gate City","n":54},{"s":"wine-bottle","t":"Wine bottle","f":"Alcohol and the Human Body","n":32},{"s":"wine-glass","t":"Wine glass","f":"Physics of Sound with Boston Museum of Science presenter Noelle Perry","n":26},{"s":"yoga","t":"Yoga","f":"Behind the Lens","n":38}];
+const SHM = 'https://hartswf0.github.io/secondhand-motion/';
+const LAB = 'https://hartswf0.github.io/cineosis-lab/lab/';
+const MIL = 'https://hartswf0.github.io/2700-fa26/WARGAMES%20-%20MILESTONES/';
+const FEATURED = [{ s:'giraffe-walks-past', t:'Giraffe walks past', f:'Wonderful World (Part II) · 6 planes', n:33, page:true, thumb:'' }];
+const ALLSHOTS = [...FEATURED, ...SHOTS.map(x => ({ ...x, thumb:`${SHM}shots/${x.s}-gwp/frames/f000.jpg` }))];
 const CLIPS = [];
-for (const s of M.shots) if (s.v) CLIPS.push({ id:s.id, code:M.subs[s.s].c.replace('SYS-', ''), src:BASE + 'clips/' + s.id + '.mp4', img:BASE + 'thumbs/screens/' + s.id + '.jpg', ttt:s.cat === 'tictactoe_scenarios' || s.s === 9, d:s.d || 4 });
-for (let i = 1; i <= 7; i++) CLIPS.push({ id:'M' + i, code:'M' + i, src:MBASE + 'films/M' + i + '.mp4', img:null, ttt:false, d:95 });
-const byId = Object.fromEntries(CLIPS.map(c => [c.id, c]));
+for (const s of M.shots) if (s.v) CLIPS.push({ id:s.id, code:M.subs[s.s].c.replace('SYS-', ''), src:LAB + 'clips/' + s.id + '.mp4', img:LAB + 'thumbs/screens/' + s.id + '.jpg', ttt:s.cat === 'tictactoe_scenarios' || s.s === 9, d:s.d || 4, note:s.n });
+for (let i = 1; i <= 7; i++) CLIPS.push({ id:'M' + i, code:'M' + i, src:MIL + 'films/M' + i + '.mp4', img:null, ttt:false, d:95, note:'Milestone film ' + i });
+const clipById = Object.fromEntries(CLIPS.map(c => [c.id, c]));
 const WOPR_POOL = CLIPS.filter(c => c.ttt).map(c => c.id);
-const SQUARE = ['top left','top','top right','left','center','right','bottom left','bottom','bottom right'];
-const MAX_PLANES = 24, FRAMES = 12, MIN_LEN = .25, ZERO_GAMES = 12, UNDO_CEILING = 400;
-const durOf = id => byId[id].d;
-const outOf = c => Math.min(c.out ?? durOf(c.clip), durOf(c.clip));
-const lenOf = c => Math.max(MIN_LEN, outOf(c) - (c.in || 0));
-const fmt = t => t.toFixed(1);
+const INK = '#161412', MUTED = '#8C8378', KEY = '#c8402f', PENS = ['#161412', '#c8402f', '#3b82f6'];
+const UNDO_CEILING = 60, MAX_LAYERS = 40;
 
-/* ================= the space ================= */
-// cell: { p:'X'|'O'|null, clip:id|null, in, out, seq }   plane: { cells[9], strokes:[{c,w,pts:[[x,y]...]}] }
-const RULES = { free:'Free', ttt:'Game per plane', cube:'3D game' };
-const KEY = 'wopr-space-v1';
-let S = { planes:[], front:0, rule:'ttt', fps:8, seq:1 };
-const blankPlane = () => ({ cells:Array(9).fill(null), strokes:[] });
-try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.planes && o.planes.length) S = { ...S, ...o }; } catch(e){}
-if (!S.planes.length) S.planes = [blankPlane(), blankPlane(), blankPlane()];
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
-let tool = 'X', armed = null, sel = null, cut = null, playing = null;
-const undo = [];   // { k (plane), i (cell) | stroke, before, after }  every change goes through here
-const P = () => S.planes[S.front];
+/* ================= shots: one format for the reel and the giraffe page ================= */
+const shotCache = new Map();
+function getShot(slug){
+  if (shotCache.has(slug)) return shotCache.get(slug);
+  const p = (async () => {
+    let S;
+    if (slug === 'giraffe-walks-past') {
+      const html = await (await fetch(SHM + 'pages/giraffe-walks-past.html')).text();
+      S = JSON.parse(new DOMParser().parseFromString(html, 'text/html').getElementById('data').textContent);
+      S.footageUrls = S.footage;
+    } else {
+      const r = await fetch(`${SHM}shots/${slug}-gwp/shot.json`); if (!r.ok) throw new Error(slug + ' ' + r.status);
+      S = await r.json(); S.footageUrls = S.footage.map(u => `${SHM}shots/${slug}-gwp/${u}`);
+    }
+    S.slug = slug; S.n = S.cast && S.cast.frames ? S.cast.frames.length : S.footageUrls.length;
+    S.imgs = S.footageUrls.map(u => { const i = new Image(); i.decoding = 'async'; i.onload = () => dirtyAll(); i.src = u; return i; });
+    S.film = S.source && S.source.film || ''; S.url = S.source && S.source.url || '';
+    return S;
+  })();
+  shotCache.set(slug, p); p.catch(() => shotCache.delete(slug)); return p;
+}
+const shotNow = new Map();      // slug -> loaded shot, for synchronous drawing
+async function need(slug){ if (shotNow.has(slug)) return shotNow.get(slug); const S = await getShot(slug); shotNow.set(slug, S); return S; }
 
-function setCell(k, i, val, by){
-  const before = S.planes[k].cells[i];
-  S.planes[k].cells[i] = val; undo.push({ k, i, before, after:val, by }); if (undo.length > UNDO_CEILING) undo.shift(); save();
+/* ================= the world ================= */
+const KEYW = 'wopr-world-v1';
+let W = null, sel = null, f = 0, playing = false, spread = 0, yaw = 0, pitch = 0;
+const uid = () => 'L' + Math.random().toString(36).slice(2, 8);
+function layerBase(kind, name, z){ return { id:uid(), kind, name, z, vis:true, op:1, blend:'normal', look:'', note:'', prompt:'', marks:[] }; }
+function layersFromShot(S, which){
+  const out = [], label = S.title.replace(/,.*$/, '');
+  if (!which || which === 'footage') { const L = layerBase('footage', label + ' · footage', 20); L.src = { slug:S.slug }; L.look = 'wash'; out.push(L); }
+  if (!which || which === 'planes') for (const p of [...S.planes].sort((a, b) => b.z - a.z)) { const L = layerBase('plane', p.label, p.z); L.src = { slug:S.slug, plane:p.id }; L.look = 'ink'; out.push(L); }
+  if (!which || which === 'masks') { if (S.masks && S.masks.length) { const L = layerBase('mask', label + ' · silhouettes', 1.9); L.src = { slug:S.slug }; L.look = 'fill'; L.vis = !!which; out.push(L); } }
+  if (typeof which === 'object') { const p = S.planes.find(q => q.id === which.plane); const L = layerBase('plane', p.label, p.z); L.src = { slug:S.slug, plane:p.id }; L.look = 'ink'; out.push(L); }
+  return out;
 }
-function addStroke(k, st){ S.planes[k].strokes.push(st); undo.push({ k, stroke:st, by:'ink' }); save(); }
-function undoOne(){
-  const u = undo.pop(); if (!u) return null;
-  if (u.stroke) { const a = S.planes[u.k].strokes; const j = a.lastIndexOf(u.stroke); if (j >= 0) a.splice(j, 1); }
-  else if (u.erased) S.planes[u.k].strokes.splice(u.at, 0, u.erased);
-  else S.planes[u.k].cells[u.i] = u.before;
-  save(); return u;
+async function newWorldFrom(slug){
+  const S = await need(slug);
+  const asp = S.H / S.W;
+  const w = { v:1, name:S.title, W:480, H:Math.round(480 * asp), fps:S.fps || 12, lead:slug, layers:layersFromShot(S) };
+  const notes = layerBase('draw', 'Notes', 1); notes.marks = []; w.layers.push(notes);
+  return w;
 }
+function save(){ try { localStorage.setItem(KEYW, JSON.stringify(W)); } catch(e){} }
+const undoStack = [];
+function snap(){ undoStack.push(JSON.stringify(W)); if (undoStack.length > UNDO_CEILING) undoStack.shift(); }
+function undo(){ const s = undoStack.pop(); if (!s) return; W = JSON.parse(s); if (!W.layers.some(l => l.id === sel)) sel = W.layers.length ? W.layers[W.layers.length - 1].id : null; rebuild(); toast('Undone.'); }
+const L = id => W.layers.find(l => l.id === id);
+const selL = () => L(sel);
+function frameCount(){ let n = 1; for (const l of W.layers) if (l.src) { const S = shotNow.get(l.src.slug); if (S) n = Math.max(n, S.n); } return n; }
 
-/* ================= rules read the space ================= */
-const LINES2 = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-const LINES3 = (() => { const out = [], seen = new Set(), at = (x, y, z) => z * 9 + y * 3 + x;
-  for (let z = 0; z < 3; z++) for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
-    if (!dx && !dy && !dz) continue; const pts = [0,1,2].map(k => [x + dx * k, y + dy * k, z + dz * k]); if (pts.some(q => q.some(v => v < 0 || v > 2))) continue;
-    const l = pts.map(q => at(...q)), key = [...l].sort((a, b) => a - b).join(); if (seen.has(key)) continue; seen.add(key); out.push(l); }
-  return out; })();
-// a board is a flat array of 'X'|'O'|'' for the rule's cells
-function boardOf(k){
-  if (S.rule === 'cube') { const b = []; for (let z = 0; z < 3; z++) for (let i = 0; i < 9; i++) { const c = S.planes[z] && S.planes[z].cells[i]; b.push(c && c.p || ''); } return b; }
-  return S.planes[k].cells.map(c => c && c.p || '');
+/* ================= drawing a layer for frame f ================= */
+const stage = document.getElementById('stage'), worldEl = document.getElementById('world');
+const els = new Map();   // layer id -> { el, cv, g, grid, video }
+const box = { w:480, h:360 };
+function fitShot(S){ const s = Math.min(W.W / S.W, W.H / S.H); return { s, ox:(W.W - S.W * s) / 2, oy:(W.H - S.H * s) / 2 }; }
+function closed(st){ if (st.length < 4) return false; const a = st[0], b = st[st.length - 1]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of st) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } return Math.hypot(a[0] - b[0], a[1] - b[1]) < .18 * Math.max(x1 - x0, y1 - y0, 1); }
+function path(g, pts, tr){ g.beginPath(); pts.forEach((p, i) => { const [X, Y] = tr(p[0], p[1]); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); }
+function strokes(g, sets, tr, col, lw, fill){
+  g.lineCap = g.lineJoin = 'round';
+  for (const st of sets) { if (!st || !st.length) continue;
+    if (fill && closed(st)) { path(g, st, tr); g.closePath(); g.fillStyle = fill; g.fill(); }
+    if (st.length === 1) { const [X, Y] = tr(st[0][0], st[0][1]); g.fillStyle = col; g.beginPath(); g.arc(X, Y, lw / 2, 0, 7); g.fill(); continue; }
+    path(g, st, tr); g.strokeStyle = col; g.lineWidth = lw; g.stroke(); }
 }
-const linesFor = () => S.rule === 'cube' ? LINES3 : LINES2;
-function winnerOf(b){ for (const l of linesFor()) if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return { p:b[l[0]], L:l }; return b.every(Boolean) ? { p:'D', L:null } : null; }
-// 3D: pieces stack into the depth, one column at a time: plane 1 fills first, then 2, then 3
-function movesOf(b){
-  if (S.rule !== 'cube') return b.map((v, i) => v ? -1 : i).filter(i => i >= 0);
-  const m = []; for (let col = 0; col < 9; col++) for (let z = 0; z < 3; z++) if (!b[z * 9 + col]) { m.push(z * 9 + col); break; } return m;
-}
-function evalFor(b, me){ const op = me === 'X' ? 'O' : 'X'; let s = 0; for (const l of linesFor()) { let a = 0, o = 0; for (const i of l) { if (b[i] === me) a++; else if (b[i] === op) o++; } if (!o) s += a * a; if (!a) s -= o * o; } return s; }
-function negamax(b, depth, alpha, beta, me){
-  const w = winnerOf(b); if (w) return w.p === 'D' ? 0 : (w.p === me ? 1000 + depth : -1000 - depth);
-  if (depth === 0) return evalFor(b, me);
-  const op = me === 'X' ? 'O' : 'X'; let best = -1e9;
-  for (const m of movesOf(b)) { b[m] = me; const v = -negamax(b, depth - 1, -beta, -alpha, op); b[m] = ''; if (v > best) best = v; if (v > alpha) alpha = v; if (alpha >= beta) break; }
-  return best;
-}
-function bestFor(b, me){
-  const D = S.rule === 'cube' ? 5 : 9, op = me === 'X' ? 'O' : 'X'; let best = -1e9, pick = -1;
-  for (const m of movesOf(b)) { b[m] = me; const v = -negamax(b, D - 1, -1e9, 1e9, op) + Math.random() * .5; b[m] = ''; if (v > best) { best = v; pick = m; } }
-  return pick;
-}
-const cellAddr = (idx, k) => S.rule === 'cube' ? { k:Math.floor(idx / 9), i:idx % 9 } : { k, i:idx };
-const gameKey = k => S.rule === 'cube' ? 'cube' : 'p' + k;
-const busy = new Set(), zero = new Map();
-function gameState(k = S.front){
-  if (S.rule === 'free') return 'FREE';
-  if (S.rule === 'cube' && S.planes.length < 3) return 'NEED3';
-  if (zero.has(gameKey(k))) return 'ZERO';
-  if (busy.has(gameKey(k))) return 'WOPR';
-  const b = boardOf(k); if (winnerOf(b)) return 'OVER';
-  return b.some(Boolean) ? 'PLAY' : 'REST';
-}
-const playerTurn = k => { const b = boardOf(k), x = b.filter(v => v === 'X').length, o = b.filter(v => v === 'O').length; return x <= o; };
-
-/* ================= operations ================= */
-function placeAt(i, what){                    // what: {p} for a mark, {clip} for a clip
-  const k = S.front, st = gameState(k);
-  if (S.rule !== 'free') {
-    if (!(st === 'REST' || st === 'PLAY') || !playerTurn(k)) return;
-    let idx = i;
-    if (S.rule === 'cube') { const b = boardOf(k), col = i, ms = movesOf(b); idx = ms.find(m => m % 9 === col); if (idx == null) return note('That column is full.'); }
-    else if (S.planes[k].cells[i]) return;
-    const a = cellAddr(idx, k);
-    setCell(a.k, a.i, { p:'X', clip:what.clip || null, in:0, out:null, seq:S.seq++ }, 'X');
-    arm(null); render(); woprAnswer(k); return;
-  }
-  // free: a cell can hold a mark, a clip, or both; tapping the same mark again lifts it
-  const prev = P().cells[i];
-  let next;
-  if (what.p) next = prev && prev.p === what.p ? (prev.clip ? { ...prev, p:null } : null) : { ...(prev || { clip:null, in:0, out:null }), p:what.p, seq:prev ? prev.seq : S.seq++ };
-  else next = { p:prev ? prev.p : null, clip:what.clip, in:0, out:null, seq:S.seq++ };
-  setCell(S.front, i, next, 'user'); if (what.clip) arm(null); render();
-}
-function woprAnswer(k){
-  const b = boardOf(k); if (winnerOf(b)) return;
-  const key = gameKey(k); busy.add(key); render();
-  setTimeout(() => {
-    busy.delete(key); if (S.rule === 'free' || !S.planes[k]) return render();
-    const bb = boardOf(k); if (winnerOf(bb) || playerTurn(k)) return render();
-    const m = bestFor(bb, 'O'); if (m < 0) return render();
-    const a = cellAddr(m, k), used = new Set(S.planes.flatMap(p => p.cells.map(c => c && c.clip)));
-    const pool = WOPR_POOL.filter(id => !used.has(id)), src = pool.length ? pool : WOPR_POOL;
-    setCell(a.k, a.i, { p:'O', clip:src[Math.floor(Math.random() * src.length)], in:0, out:null, seq:S.seq++ }, 'O'); render();
-  }, S.rule === 'cube' ? 120 : 650);
-}
-function takeBack(){
-  // in this game only: lift your last move and WOPR's answers after it
-  const mine = u => !u.stroke && !u.erased && (S.rule === 'cube' ? u.k < 3 : u.k === S.front);
-  let j = -1; for (let q = undo.length - 1; q >= 0; q--) if (mine(undo[q]) && undo[q].by === 'X') { j = q; break; }
-  if (j < 0) return;
-  for (let q = undo.length - 1; q >= j; q--) { const u = undo[q]; if (!mine(u)) continue; S.planes[u.k].cells[u.i] = u.before; undo.splice(q, 1); }
-  sel = null; save(); render();
-}
-function clearGame(){
-  const ks = S.rule === 'cube' ? [0,1,2] : [S.front];
-  for (const k of ks) for (let i = 0; i < 9; i++) if (S.planes[k].cells[i]) setCell(k, i, null, 'user');
-  render();
-}
-function woprFirst(){ const k = S.front; if (gameState(k) !== 'REST') return; woprAnswerAsFirst(k); }
-function woprAnswerAsFirst(k){ const b = boardOf(k), m = S.rule === 'cube' ? 4 : [0,2,4,6,8][Math.floor(Math.random() * 5)], a = cellAddr(m, k); setCell(a.k, a.i, { p:'O', clip:WOPR_POOL[Math.floor(Math.random() * WOPR_POOL.length)], in:0, out:null, seq:S.seq++ }, 'O'); render(); }
-function zeroPlayers(){
-  const k = S.front, key = gameKey(k);
-  if (zero.has(key)) { clearTimeout(zero.get(key).t); zero.delete(key); render(); return; }
-  const ks = S.rule === 'cube' ? [0,1,2] : [k];
-  const wipe = () => ks.forEach(q => S.planes[q].cells = Array(9).fill(null));
-  wipe(); const z = { games:0, draws:0, delay:420, p:'X', t:null }; zero.set(key, z);
-  const tick = () => {
-    if (zero.get(key) !== z) return;
-    const b = boardOf(k), w = winnerOf(b);
-    if (w) { z.games++; if (w.p === 'D') z.draws++; if (z.games >= ZERO_GAMES) { zero.delete(key); wipe(); save(); note(`${z.draws} of ${z.games} drawn`); render(); return; } wipe(); z.delay = Math.max(60, z.delay * .75); }
-    else { const ms = movesOf(b), m = b.some(Boolean) ? bestFor(b, z.p) : ms[Math.floor(Math.random() * ms.length)], a = cellAddr(m, k); S.planes[a.k].cells[a.i] = { p:z.p, clip:null, in:0, out:null, seq:S.seq++ }; z.p = z.p === 'X' ? 'O' : 'X'; }
-    render(); z.t = setTimeout(tick, z.delay);
-  };
-  render(); tick();
-}
-let noteText = '', noteT = 0;
-function note(t){ noteText = t; noteT = performance.now() + 2600; render(); setTimeout(render, 2700); }
-
-/* planes */
-function goTo(k){ k = Math.max(0, Math.min(S.planes.length - 1, k)); if (k === S.front) return; stopCut(); sel = null; S.front = k; depth.t = k; save(); render(); }
-function addPlane(copy){
-  if (S.planes.length >= MAX_PLANES) return note(`${MAX_PLANES} planes is the limit.`);
-  const src = P(), np = copy ? { cells:src.cells.map(c => c && { ...c, seq:S.seq++ }), strokes:src.strokes.map(s => ({ ...s, pts:s.pts.map(p => p.slice()) })) } : blankPlane();
-  S.planes.splice(S.front + 1, 0, np); undo.length = 0; S.front++; depth.t = S.front; save(); render();
-  note(copy ? `Copied plane ${S.front} to plane ${S.front + 1}.` : `Plane ${S.front + 1} added.`);
-}
-function setRule(r){ S.rule = r; sel = null; stopCut(); save(); render(); }
-
-/* trim */
-function selectClip(i){ const c = P().cells[i]; if (!c || !c.clip) return; sel = { k:S.front, i }; arm(null); render(); buildTrim(); }
-const selCell = () => sel && S.planes[sel.k] && S.planes[sel.k].cells[sel.i];
-function doneTrim(){ sel = null; save(); render(); }
-function resetTrim(){ const c = selCell(); if (!c) return; c.in = 0; c.out = null; save(); render(); drawTrim(); }
-
-/* ================= surface ================= */
-const stage = document.getElementById('stage'), stack = document.getElementById('stack'), statusEl = document.getElementById('status');
-const toolsEl = document.getElementById('tools'), act = document.getElementById('act'), tray = document.getElementById('tray');
-const trimEl = document.getElementById('trim'), tlEl = document.getElementById('timeline'), chipsEl = document.getElementById('chips'), ph = document.getElementById('ph');
-const planesEl = [];
-const box = { w:300, h:225, x:0, y:0 };
-function layout(){
-  const r = stage.getBoundingClientRect(), peek = .16;
-  const w = Math.min(r.width - 24, r.height * (1 - peek) * 4 / 3);
-  box.w = Math.max(120, w); box.h = box.w * 3 / 4; box.x = (r.width - box.w) / 2; box.y = r.height - box.h - 4;
-}
-function planeEl(k){
-  while (planesEl.length <= k) {
-    const el = document.createElement('div'); el.className = 'plane';
-    el.innerHTML = '<span class="tag"></span><div class="grid">' + Array.from({ length:9 }, (_, i) => `<div class="sq" data-i="${i}"></div>`).join('') + '</div><svg class="ink onion" viewBox="0 0 1 .75" preserveAspectRatio="none"></svg><svg class="ink main" viewBox="0 0 1 .75" preserveAspectRatio="none"></svg>';
-    stack.appendChild(el); planesEl.push(el);
-  }
-  return planesEl[k];
-}
-const pathD = s => s.pts.length ? 'M' + s.pts.map(p => p[0].toFixed(4) + ' ' + (p[1] * .75).toFixed(4)).join('L') : '';
-function paintInk(svg, strokes){
-  const sig = strokes.length + ':' + strokes.reduce((n, s) => n + s.pts.length, 0);
-  if (svg.dataset.sig === sig) return; svg.dataset.sig = sig;
-  svg.innerHTML = strokes.map(s => `<path d="${pathD(s)}" stroke="${s.c}" stroke-width="${s.w}"/>`).join('');
-}
-function paintSquare(d, c, live){
-  const key = c ? `${c.clip || ''}|${c.p || ''}|${live ? 'v' : 'i'}` : '';
-  if (d.dataset.key !== key) {
-    d.dataset.key = key;
-    if (!c) d.innerHTML = '';
-    else {
-      let media = '';
-      if (c.clip) { const cl = byId[c.clip]; media = live ? `<video src="${cl.src}" muted autoplay playsinline preload="auto"${cl.img ? ` poster="${cl.img}"` : ''}></video>` : cl.img ? `<img src="${cl.img}" alt="">` : `<span class="lbl">${cl.id}</span>`; }
-      d.innerHTML = media + (c.p ? `<i class="mark ${c.p}"></i>` : '') + (c.clip ? '<span class="tr"><i></i></span>' : '');
-      const v = d.querySelector('video');
-      if (v) { v.muted = true; v.addEventListener('loadedmetadata', () => { if (isFinite(v.duration) && v.duration > 0) byId[c.clip].d = v.duration; v.currentTime = v._c ? (v._c.in || 0) : 0; }); v.play().catch(() => {}); }
+function drawLayer(l){
+  const e = els.get(l.id); if (!e || !e.g) return;
+  const g = e.g, k = e.cv.width / W.W; g.clearRect(0, 0, e.cv.width, e.cv.height);
+  if (!l.vis) return;
+  const S = l.src && shotNow.get(l.src.slug);
+  if (S) {
+    const fi = f % S.n, F = fitShot(S), base = (x, y) => [(F.ox + x * F.s) * k, (F.oy + y * F.s) * k];
+    if (l.kind === 'footage') {
+      const im = S.imgs[fi % S.imgs.length];
+      if (im && im.complete && im.naturalWidth) { g.drawImage(im, F.ox * k, F.oy * k, S.W * F.s * k, S.H * F.s * k); if (l.look === 'wash') { g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(F.ox * k, F.oy * k, S.W * F.s * k, S.H * F.s * k); } }
+    } else if (l.kind === 'plane') {
+      const p = S.planes.find(q => q.id === l.src.plane); if (p) {
+        const cam = (S.camera && S.camera[fi]) || [0, 0], c = p.id === 'char' ? 0 : S.z_ref / p.z;
+        const tr = (x, y) => base(x + cam[0] * c, y + cam[1] * c), far = p.z >= 6;
+        const lw = (p.id === 'char' ? 3.2 : p.id === 'fore' ? 2.4 : far ? 1.6 : 2.2) * F.s * k / 2;
+        const cel = l.look === 'cel';
+        if (cel && p.id === 'char' && S.masks && S.masks[fi]) { g.fillStyle = '#fff'; for (const m of S.masks[fi]) { path(g, m, base); g.closePath(); g.fill(); } }
+        for (const o of S.objects || []) { if (o.plane !== p.id) continue; const st = o.frames ? o.frames[fi] : o.strokes; if (!st) continue;
+          strokes(g, st, tr, far ? MUTED : INK, lw, cel && o.class !== 'grass' && o.class !== 'ground' ? '#fff' : null); }
+        if (S.cast && S.cast.plane === p.id && S.cast.frames[fi]) strokes(g, S.cast.frames[fi], base, INK, lw, null);
+      }
+    } else if (l.kind === 'mask') {
+      for (const m of (S.masks && S.masks[fi]) || []) { path(g, m, base); g.closePath();
+        if (l.look === 'paper') { g.fillStyle = '#fff'; g.fill(); }
+        else if (l.look === 'line') { g.strokeStyle = KEY; g.lineWidth = 2 * k; g.stroke(); }
+        else { g.fillStyle = 'rgba(200,64,47,.35)'; g.fill(); g.strokeStyle = KEY; g.lineWidth = 1.5 * k; g.stroke(); } }
     }
   }
-  const v = d.querySelector('video'); if (v) v._c = c;
-  d.className = 'sq' + (c && c.p ? ' ' + c.p.toLowerCase() : '') + (c && c.clip ? ' clipcell' : '');
-  if (c && c.clip) {
-    const tr = d.querySelector('.tr i'), dur = durOf(c.clip), trimmed = (c.in || 0) > .05 || outOf(c) < dur - .05;
-    tr.style.left = (100 * (c.in || 0) / dur) + '%'; tr.style.width = (100 * lenOf(c) / dur) + '%'; tr.parentNode.hidden = !trimmed;
+  // the layer's own marks: held ones always, framed ones on their frame, the frame before faintly while drawing frames
+  const tr = (x, y) => [x * k, y * k];
+  for (const m of l.marks) {
+    let a = 1; if (m.f != null) { if (m.f === f) a = 1; else if (sel === l.id && penFrame && m.f === f - 1) a = .25; else continue; }
+    g.globalAlpha = a; strokes(g, [m.pts], tr, m.c, m.w * k, null); g.globalAlpha = 1;
   }
 }
-function render(){
-  layout();
-  const k0 = S.front, st = gameState(k0);
-  const b0 = S.rule === 'free' ? null : boardOf(k0), w0 = b0 && winnerOf(b0);
-  S.planes.forEach((pl, k) => {
-    const el = planeEl(k), front = k === k0, live = front && !playing && !zero.size;
-    el.hidden = false; Object.assign(el.style, { width:box.w + 'px', height:box.h + 'px', left:box.x + 'px', top:box.y + 'px' });
-    el.classList.toggle('back', !front);
-    el.classList.toggle('trimming', front && !!sel);
-    el.classList.toggle('ghost3d', S.rule === 'cube' && k > 2);
-    let w = null, line = [];
-    if (S.rule === 'ttt') { w = winnerOf(boardOf(k)); if (w && w.L) line = w.L; }
-    if (S.rule === 'cube' && k < 3 && w0 && w0.L) line = w0.L.filter(idx => Math.floor(idx / 9) === k).map(idx => idx % 9);
-    el.classList.toggle('over', !!(S.rule === 'ttt' ? w && w.L : S.rule === 'cube' && k < 3 && w0 && w0.L));
-    const gs = S.rule === 'ttt' ? gameState(k) : null;
-    el.querySelector('.tag').textContent = `Plane ${k + 1}` + (S.rule === 'cube' && k < 3 ? ` · level ${k + 1}` : '') + (gs === 'OVER' ? ' · ' + (w.p === 'D' ? 'draw' : w.p === 'X' ? 'you won' : 'WOPR won') : gs === 'WOPR' ? ' · WOPR choosing' : gs === 'ZERO' ? ' · WOPR vs WOPR' : '');
-    el.querySelectorAll('.sq').forEach((d, i) => { paintSquare(d, pl.cells[i], live); d.classList.toggle('line', line.includes(i)); d.classList.toggle('sel', front && !!sel && sel.i === i); });
-    paintInk(el.querySelector('svg.main'), pl.strokes);
-    paintInk(el.querySelector('svg.onion'), front && S.rule === 'free' && k > 0 ? S.planes[k - 1].strokes : []);
+const dirty = new Set(); let allDirty = true;
+function dirtyAll(){ allDirty = true; }
+function paintDirty(){
+  if (!W) return;
+  if (allDirty) { for (const l of W.layers) drawLayer(l); allDirty = false; dirty.clear(); return; }
+  for (const id of dirty) { const l = L(id); if (l) drawLayer(l); } dirty.clear();
+}
+
+/* ================= building the layer elements ================= */
+function layout(){
+  const r = stage.getBoundingClientRect(), pad = spread > .05 ? .24 : .04;
+  const w = Math.min(r.width * (1 - pad * 1.2), (r.height - 16) * (1 - pad) * W.W / W.H);
+  box.w = Math.max(100, w); box.h = box.w * W.H / W.W;
+  Object.assign(worldEl.style, { width:box.w + 'px', height:box.h + 'px', left:(r.width - box.w) / 2 + 'px', top:(r.height - box.h) / 2 + (spread > .05 ? box.h * .08 : 0) + 'px' });
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  for (const [, e] of els) if (e.cv) { const cw = Math.round(box.w * dpr); if (e.cv.width !== cw) { e.cv.width = cw; e.cv.height = Math.round(box.h * dpr); allDirty = true; } }
+}
+function buildEl(l){
+  const el = document.createElement('div'); el.className = 'layer'; el.dataset.id = l.id;
+  const e = { el };
+  if (l.kind === 'clip') { const c = clipById[l.clip]; const v = document.createElement('video'); v.className = 'clipv'; v.src = c.src; v.muted = true; v.loop = false; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; if (c.img) v.poster = c.img; v.addEventListener('loadedmetadata', () => { if (isFinite(v.duration)) c.d = v.duration; syncClip(l, true); }); el.appendChild(v); e.video = v; }
+  if (l.kind === 'grid') { const g = document.createElement('div'); g.className = 'grid'; g.innerHTML = Array.from({ length:9 }, (_, i) => `<div class="sq" data-i="${i}"></div>`).join(''); el.appendChild(g); e.grid = g; }
+  const cv = document.createElement('canvas'); el.appendChild(cv); e.cv = cv; e.g = cv.getContext('2d');
+  const lab = document.createElement('span'); lab.className = 'lab'; el.appendChild(lab); e.lab = lab;
+  worldEl.appendChild(el); els.set(l.id, e); return e;
+}
+function rebuild(){
+  for (const [id, e] of els) if (!L(id)) { e.el.remove(); els.delete(id); }
+  W.layers.forEach((l, i) => { const e = els.get(l.id) || buildEl(l); if (worldEl.children[i] !== e.el) worldEl.insertBefore(e.el, worldEl.children[i] || null); });   // DOM order = back to front
+  dirtyAll();
+  layout(); styleLayers(); paintGrids(); renderChips(); renderTools(); renderTime(); save(); status();
+  Promise.all(W.layers.filter(l => l.src).map(l => need(l.src.slug).catch(() => null))).then(() => { renderTime(); dirtyAll(); status(); });
+}
+function styleLayers(){
+  const n = W.layers.length, gap = box.w * .3;
+  worldEl.classList.toggle('spread', spread > .05);
+  worldEl.style.transformStyle = spread > .001 ? 'preserve-3d' : 'flat';
+  worldEl.style.transform = `rotateX(${(pitch + 14 * spread).toFixed(2)}deg) rotateY(${yaw.toFixed(2)}deg)`;
+  W.layers.forEach((l, i) => {
+    const e = els.get(l.id); if (!e) return;
+    const z = (i - (n - 1) / 2) * gap * spread;
+    e.el.style.transform = spread > .001 ? `translateZ(${z.toFixed(1)}px)` : '';
+    e.el.style.opacity = l.vis ? l.op : (spread > .05 ? .12 : 0);
+    e.el.style.mixBlendMode = spread > .05 ? 'normal' : l.blend;
+    e.el.classList.toggle('sel', l.id === sel);
+    e.el.classList.toggle('flatoff', spread > .05);
+    e.lab.textContent = `${l.name}  z ${+l.z.toFixed(2)}`;
+    if (e.video) { e.video.style.display = l.vis || spread > .05 ? '' : 'none'; }
   });
-  for (let k = S.planes.length; k < planesEl.length; k++) planesEl[k].hidden = true;
-  placePlanes();
-  // depth chips
-  chipsEl.innerHTML = S.planes.map((pl, k) => { const w = S.rule === 'ttt' && winnerOf(boardOf(k)); return `<div class="chip${pl.strokes.length ? ' ink' : ''}${w ? ' done' : ''}${S.rule === 'cube' && k > 2 ? ' dim' : ''}">${pl.cells.map(c => `<i class="${c ? (c.p ? c.p.toLowerCase() : 'c') : ''}"></i>`).join('')}</div>`; }).join('');
-  ph.style.left = (100 * (depth.d + .5) / S.planes.length) + '%';
-  document.getElementById('dFps').textContent = S.fps + ' fps';
-  document.getElementById('dPlay').innerHTML = playing ? '<i class="ic pause"></i>' : '<i class="ic play"></i>';
-  document.getElementById('dPlay').classList.toggle('on', !!playing);
-  // status
-  const pn = `<span class="d">Plane ${k0 + 1}/${S.planes.length} · </span>`;
-  let s = '';
-  if (performance.now() < noteT) s = `<b class="w">${noteText}</b>`;
-  else if (cut) s = `Cut · ${cut.segs.length} shots`;
-  else if (sel) { const c = selCell(); s = `Trim ${SQUARE[sel.i]} · in ${fmt(c.in || 0)} · out ${fmt(outOf(c))} · <b class="w">${fmt(lenOf(c))} s</b>`; }
-  else if (playing) s = `Playing planes at ${S.fps} fps`;
-  else if (st === 'FREE') s = { X:'Put <b class="x">X</b> marks', O:'Put <b class="o">O</b> marks', CLIP:'Put clips in squares', DRAW:'Draw on the plane', ERASE:'Erase marks, clips and strokes' }[tool];
-  else if (st === 'NEED3') s = 'The 3D game needs three planes';
-  else if (st === 'REST') s = S.rule === 'cube' ? 'Pieces stack into the depth · <b class="x">your move</b>' : 'Put <b class="x">X</b> or a clip in a square';
-  else if (st === 'PLAY') s = '<b class="x">Your move</b>';
-  else if (st === 'WOPR') s = '<b class="o">WOPR</b> is choosing';
-  else if (st === 'ZERO') s = '<b class="o">WOPR</b> plays itself';
-  else if (st === 'OVER') s = w0.p === 'D' ? '<b class="w">Draw</b>' : w0.p === 'X' ? '<b class="x">You win</b>' : '<b class="o">WOPR wins</b>';
-  statusEl.innerHTML = pn + s;
-  // tools: in a game, O belongs to WOPR
-  const T = S.rule === 'free' ? ['X','O','CLIP','DRAW','ERASE'] : ['X','CLIP','DRAW','ERASE'];
-  if (!T.includes(tool)) tool = 'X';
-  toolsEl.innerHTML = T.map(t => `<button class="tl${t === tool ? ' on' : ''}" data-tool="${t}"><i class="ic ${t}"></i>${t === 'X' || t === 'O' ? '' : t}</button>`).join('') + `<button class="tl rule" id="rule">${RULES[S.rule]}</button>`;
-  // actions, only while valid
-  const A = [];
-  if (cut) A.push(['main', cut.playing ? 'Pause' : cut.t >= cut.total - .05 ? 'Play again' : 'Play', togglePlay], ['back', 'Close', stopCut]);
-  else if (sel) A.push(['main', 'Done', doneTrim], ['back', 'Reset trim', resetTrim]);
-  else if (st === 'REST') A.push(['back', 'WOPR first', woprFirst], ['back', 'WOPR vs WOPR', zeroPlayers]);
-  else if (st === 'PLAY') A.push(['main', 'Play the cut', playCut], ['back', 'Take back', takeBack]);
-  else if (st === 'OVER') A.push(['main', 'Play the cut', playCut], ['back', 'Take back', takeBack], ['back', 'Clear', clearGame]);
-  else if (st === 'ZERO') A.push(['main', 'Stop', zeroPlayers]);
-  else if (st === 'FREE' && undo.length) A.push(['back', 'Undo', () => { undoOne(); render(); }]);
-  if (st === 'FREE' && !sel && !cut && P().cells.some(c => c && c.clip)) A.unshift(['main', 'Play the cut', playCut]);
-  act.innerHTML = ''; act.hidden = !A.length;
-  for (const [cls, label, fn] of A) { const b = document.createElement('button'); b.className = cls; b.textContent = label; b.onclick = fn; act.appendChild(b); }
-  primaryFn = A.find(a => a[0] === 'main') ? A.find(a => a[0] === 'main')[2] : null;
-  tray.hidden = !(tool === 'CLIP') || !!sel || !!cut; trimEl.hidden = !sel; tlEl.hidden = !cut;
-  tray.querySelectorAll('.clip').forEach(t => t.classList.toggle('armed', t.dataset.id === armed));
-}
-let primaryFn = null;
-const depth = { d:S.front, t:S.front, yaw:0, tyaw:0 };
-function placePlanes(){
-  S.planes.forEach((pl, k) => {
-    const el = planesEl[k], r = k - depth.d;
-    const z = -r * Math.max(120, box.w * .42), y = -r * box.h * .085, op = r < 0 ? Math.max(0, 1 + r * 2.2) : r > 6 ? 0 : Math.max(.1, 1 - r * .26);
-    el.style.transform = `translate3d(0,${y}px,${z}px)`; el.style.opacity = op; el.style.zIndex = String(500 - k); el.style.visibility = op < .02 ? 'hidden' : 'visible';
-  });
-  stack.style.transform = `rotateY(${depth.yaw}deg) rotateX(${Math.abs(depth.yaw) * .25}deg)`;
-  ph.style.left = (100 * (depth.d + .5) / S.planes.length) + '%';
-}
-function renderTray(){ tray.innerHTML = CLIPS.map(c => `<div class="clip" data-id="${c.id}" style="${c.img ? `background-image:url('${c.img}')` : ''}">${c.img ? '' : `<video src="${c.src}#t=4" preload="metadata" muted playsinline></video>`}<span>${c.code} ${c.id.toUpperCase()}</span></div>`).join(''); }
-function arm(id){ armed = id; render(); }
-toolsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'rule') { const order = ['ttt','cube','free']; setRule(order[(order.indexOf(S.rule) + 1) % 3]); return; } tool = b.dataset.tool; sel = null; arm(null); });
-
-/* ================= play through depth: planes as frames ================= */
-function togglePlanes(){
-  if (playing) { clearInterval(playing); playing = null; depth.t = S.front; render(); return; }
-  stopCut(); sel = null;
-  playing = setInterval(() => { S.front = (S.front + 1) % S.planes.length; depth.d = depth.t = S.front; render(); }, 1000 / S.fps);
-  render();
-}
-document.getElementById('dPlay').onclick = togglePlanes;
-document.getElementById('dFps').onclick = () => { const f = [4,8,12,24]; S.fps = f[(f.indexOf(S.fps) + 1) % f.length]; save(); if (playing) { togglePlanes(); togglePlanes(); } else render(); };
-document.getElementById('dAdd').onclick = () => addPlane(false);
-document.getElementById('dCopy').onclick = () => addPlane(true);
-
-/* ================= frames for strips (same origin: canvas reads allowed) ================= */
-const frameCache = new Map();
-function frames(id){
-  if (frameCache.has(id)) return frameCache.get(id);
-  const p = new Promise(async res => {
-    const c = byId[id], out = [], v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = c.src; v.playsInline = true;
-    const cv = document.createElement('canvas'); cv.width = 96; cv.height = 72; const cx = cv.getContext('2d');
-    const once = (ev, ms) => new Promise(r => { const t = setTimeout(r, ms); v.addEventListener(ev, () => { clearTimeout(t); r(); }, { once:true }); });
-    await once('loadedmetadata', 6000);
-    const D = isFinite(v.duration) && v.duration > 0 ? v.duration : c.d; c.d = D;
-    for (let k = 0; k < FRAMES; k++) { v.currentTime = Math.min(D - .05, (k + .5) * D / FRAMES); await once('seeked', 2500); try { cx.drawImage(v, 0, 0, 96, 72); out.push(cv.toDataURL('image/jpeg', .6)); } catch(e) { out.push(c.img || ''); } }
-    v.removeAttribute('src'); v.load(); res(out);
-  });
-  frameCache.set(id, p); return p;
 }
 
-/* ================= trim strip ================= */
-function buildTrim(){
-  const c = selCell(); if (!c) return;
-  trimEl.innerHTML = `<div class="fr">${'<i></i>'.repeat(FRAMES)}</div><div class="shade a"></div><div class="shade b"></div><div class="h in"></div><div class="h out"></div><div class="ph"></div>`;
-  drawTrim();
-  frames(c.clip).then(fs => { if (selCell() !== c) return; trimEl.querySelectorAll('.fr i').forEach((e, k) => { if (fs[k]) e.style.backgroundImage = `url(${fs[k]})`; }); drawTrim(); });
+/* ================= time ================= */
+const scrubEl = document.getElementById('scrub'), fph = document.getElementById('fph'), flab = document.getElementById('flab'), ticksEl = document.getElementById('ticks');
+function leadShot(){ return shotNow.get(W.lead) || [...W.layers].map(l => l.src && shotNow.get(l.src.slug)).find(Boolean); }
+function renderTime(){
+  const n = frameCount(), S = leadShot();
+  ticksEl.innerHTML = S && S.xsheet ? S.xsheet.map(x => `<i class="${x.kind === 'K' ? 'k' : ''}" style="left:${100 * (x.f + .5) / n}%"></i>`).join('') : '';
+  placeHead();
 }
-function selVideo(){ return sel ? planesEl[S.front].querySelector(`.sq[data-i="${sel.i}"] video`) : null; }
-function drawTrim(){
-  const c = selCell(); if (!c || trimEl.hidden || !trimEl.querySelector('.h')) return;
-  const D = durOf(c.clip), a = 100 * (c.in || 0) / D, b = 100 * outOf(c) / D, q = s => trimEl.querySelector(s);
-  q('.shade.a').style.cssText = `left:0;width:${a}%`; q('.shade.b').style.cssText = `left:${b}%;right:0`;
-  q('.h.in').style.left = a + '%'; q('.h.out').style.left = b + '%';
-  const v = selVideo(); q('.ph').style.left = (v ? 100 * v.currentTime / D : a) + '%';
+function placeHead(){
+  const n = frameCount(), S = leadShot(), x = S && S.xsheet && S.xsheet[f % S.n];
+  fph.style.left = (100 * (f + .5) / n) + '%';
+  flab.textContent = `${f + 1}/${n}` + (x ? ` · ${x.drawing}` + (x.note ? ` · ${x.note}` : '') : '');
 }
-let trimDrag = null;
-function trimAt(x){ const r = trimEl.getBoundingClientRect(), c = selCell(), D = durOf(c.clip); return Math.max(0, Math.min(D, (x - r.left) / r.width * D)); }
-function trimDown(x){
-  const r = trimEl.getBoundingClientRect(), c = selCell(), D = durOf(c.clip), px = t => r.left + r.width * t / D;
-  trimDrag = { kind: Math.abs(x - px(c.in || 0)) < 16 ? 'in' : Math.abs(x - px(outOf(c))) < 16 ? 'out' : 'scrub' };
-  const v = selVideo(); if (v) v.pause(); trimMove(x);
+function setFrame(nf){
+  const n = frameCount(); f = ((nf % n) + n) % n; dirtyAll(); placeHead();
+  for (const l of W.layers) if (l.kind === 'clip') syncClip(l, !playing);
 }
-function trimMove(x){
-  if (!trimDrag) return; const c = selCell(); if (!c) return; const t = trimAt(x), v = selVideo();
-  if (trimDrag.kind === 'in') c.in = Math.min(t, outOf(c) - MIN_LEN); else if (trimDrag.kind === 'out') c.out = Math.max(t, (c.in || 0) + MIN_LEN);
-  if (v) v.currentTime = trimDrag.kind === 'scrub' ? t : trimDrag.kind === 'in' ? c.in : outOf(c);
-  render(); drawTrim();
-}
-function trimUp(){ if (!trimDrag) return; trimDrag = null; save(); const c = selCell(), v = selVideo(); if (v && c) { if (v.currentTime < (c.in || 0) || v.currentTime > outOf(c)) v.currentTime = c.in || 0; v.play().catch(() => {}); } }
-
-/* ================= the cut: clips in the order they were put down, at their trims ================= */
-const cutEl = document.getElementById('cut');
-function cutCells(){
-  const ks = S.rule === 'cube' ? [0,1,2] : [S.front], out = [];
-  for (const k of ks) S.planes[k].cells.forEach((c, i) => { if (c && c.clip) out.push({ c, k, i }); });
-  return out.sort((a, b) => a.c.seq - b.c.seq);
-}
-function playCut(){
-  const cells = cutCells(); if (!cells.length) return note('No clips on this plane yet.');
-  sel = null; if (playing) togglePlanes();
-  const segs = cells.map(({ c, k, i }) => ({ c, k, i, a:c.in || 0, len:lenOf(c) }));
-  let acc = 0; segs.forEach(s => { s.t0 = acc; acc += s.len; });
-  cutEl.querySelectorAll('video').forEach(v => v.remove());
-  segs.forEach(s => { const v = document.createElement('video'); v.src = byId[s.c.clip].src; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.addEventListener('loadedmetadata', () => { v.currentTime = s.a; }); cutEl.appendChild(v); s.v = v; });
-  cut = { segs, total:acc, t:0, k:-1, playing:true, last:performance.now(), stall:0 };
-  cutEl.hidden = false;
-  tlEl.innerHTML = segs.map((s, n) => { const im = byId[s.c.clip].img; return `<div class="seg ${s.c.p ? s.c.p.toLowerCase() : ''}" style="left:${100 * s.t0 / acc}%;width:${100 * s.len / acc}%;${im ? `background-image:url('${im}')` : ''}"><b>${s.c.p || ''}${n + 1}</b></div>`; }).join('') + '<div class="ph"></div>';
-  seekCut(0); render();
-}
-function segAt(t){ for (let k = 0; k < cut.segs.length; k++) if (t < cut.segs[k].t0 + cut.segs[k].len) return k; return cut.segs.length - 1; }
-function seekCut(t){
-  const c = cut; c.t = Math.max(0, Math.min(c.total, t)); const k = segAt(c.t), s = c.segs[k];
-  if (k !== c.k) { c.segs.forEach((q, j) => { q.v.classList.toggle('on', j === k); if (j !== k) q.v.pause(); }); c.k = k; }
-  const want = s.a + (c.t - s.t0); if (Math.abs(s.v.currentTime - want) > .12) try { s.v.currentTime = want; } catch(e){}
-  if (c.playing) s.v.play().catch(() => {}); else s.v.pause();
-  document.getElementById('cutTag').textContent = `${s.c.p || ''} ${k + 1} / ${c.segs.length} · plane ${s.k + 1} ${SQUARE[s.i]} · ${s.c.clip.toUpperCase()} · ${fmt(c.t)} / ${fmt(c.total)} s`;
-  const p = tlEl.querySelector('.ph'); if (p) p.style.left = (100 * c.t / c.total) + '%';
-}
-function cutTick(now){
-  const c = cut; if (!c || !c.playing) return;
-  const s = c.segs[c.k], local = s.v.currentTime - s.a, prev = c.t;
-  c.t = s.t0 + Math.max(0, Math.min(s.len, local));
-  c.stall = c.t <= prev + 1e-3 ? c.stall + (now - c.last) / 1000 : 0; c.last = now;
-  if (local >= s.len - .04 || c.stall > 3) { c.stall = 0; if (c.k >= c.segs.length - 1) { c.playing = false; seekCut(c.total); render(); return; } seekCut(c.segs[c.k + 1].t0 + .001); return; }
-  seekCut(c.t);
-}
-function togglePlay(){ const c = cut; if (!c) return; if (!c.playing && c.t >= c.total - .05) c.t = 0; c.playing = !c.playing; c.last = performance.now(); seekCut(c.t); render(); }
-function stopCut(){ if (!cut) return; cut.segs.forEach(s => { s.v.pause(); s.v.remove(); }); cut = null; cutEl.hidden = true; render(); }
-let tlDrag = null;
-function tlMove(x){ if (!tlDrag || !cut) return; const r = tlEl.getBoundingClientRect(); seekCut((x - r.left) / r.width * cut.total); }
-
-/* ================= drawing ================= */
-let stroke = null;
-function planePoint(x, y){ const r = planesEl[S.front].getBoundingClientRect(); return [(x - r.left) / r.width, (y - r.top) / r.height]; }
-function inkStart(x, y){ const p = planePoint(x, y); stroke = { c:S.rule === 'free' ? '#e8f2ef' : '#ffd23f', w:.006, pts:[p] }; P().strokes.push(stroke); render(); }
-function inkMove(x, y){ if (!stroke) return; const p = planePoint(x, y), l = stroke.pts[stroke.pts.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) > .004) { stroke.pts.push(p); render(); } }
-function inkEnd(){ if (!stroke) return; const st = stroke; stroke = null; P().strokes.pop(); if (st.pts.length > 1) addStroke(S.front, st); render(); }
-function eraseAt(x, y){
-  const p = planePoint(x, y), a = P().strokes;
-  for (let j = a.length - 1; j >= 0; j--) if (a[j].pts.some(q => Math.hypot(q[0] - p[0], (q[1] - p[1]) * .75) < .025)) { const er = a.splice(j, 1)[0]; undo.push({ k:S.front, erased:er, at:j, by:'ink' }); save(); render(); return true; }
-  return false;
+let acc = 0, lastT = performance.now();
+function togglePlay(){ playing = !playing; document.getElementById('bPlay').innerHTML = playing ? '<i class="ic pause"></i>' : '<i class="ic play"></i>'; for (const l of W.layers) if (l.kind === 'clip') syncClip(l, true); }
+document.getElementById('bPlay').onclick = togglePlay;
+function scrubAt(x){ const r = scrubEl.getBoundingClientRect(); setFrame(Math.floor((x - r.left) / r.width * frameCount())); }
+function syncClip(l, hard){
+  const e = els.get(l.id); if (!e || !e.video) return; const v = e.video, c = clipById[l.clip];
+  const a = l.in || 0, b = Math.min(l.out ?? c.d, c.d), len = Math.max(.2, b - a), t = a + ((f / W.fps) % len);
+  if (hard || Math.abs(v.currentTime - t) > .3) try { v.currentTime = t; } catch(err){}
+  if (playing && l.vis) v.play().catch(() => {}); else v.pause();
 }
 
-/* ================= one transaction for mouse, touch and the right hand ================= */
-const ghost = document.getElementById('ghost');
-let press = null, carry = null;
-const frontPlaneHit = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest('.plane:not(.back)'); };
-const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); const d = e && e.closest('.plane:not(.back) .sq'); return d ? +d.dataset.i : -1; };
+/* ================= the grid layer: tic-tac-toe on any layer of the world ================= */
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const winner = b => { for (const l of LINES) if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return { p:b[l[0]], L:l }; return b.every(Boolean) ? { p:'D', L:null } : null; };
+function minimax(b, p){ const w = winner(b); if (w) return { s:w.p === 'O' ? 10 : w.p === 'X' ? -10 : 0 }; let best = { s:p === 'O' ? -99 : 99, m:[] };
+  for (let i = 0; i < 9; i++) if (!b[i]) { b[i] = p; const s0 = minimax(b, p === 'O' ? 'X' : 'O').s; b[i] = null; const s = s0 - Math.sign(s0) * .1; if (p === 'O' ? s > best.s : s < best.s) best = { s, m:[i] }; else if (s === best.s) best.m.push(i); } return best; }
+const marksOf = l => l.cells.map(c => c && c.p || null);
+function paintGrids(){
+  for (const l of W.layers) { if (l.kind !== 'grid') continue; const e = els.get(l.id); if (!e) continue;
+    const w = winner(marksOf(l));
+    e.grid.querySelectorAll('.sq').forEach((d, i) => {
+      const c = l.cells[i], key = c ? (c.clip || '') + '|' + (c.p || '') : '';
+      if (d.dataset.key !== key) { d.dataset.key = key; d.innerHTML = c ? (c.clip ? `<video src="${clipById[c.clip].src}" muted loop autoplay playsinline${clipById[c.clip].img ? ` poster="${clipById[c.clip].img}"` : ''}></video>` : '') + (c.p ? `<i class="mark ${c.p}"></i>` : '') : ''; const v = d.querySelector('video'); if (v) { v.muted = true; v.play().catch(() => {}); } }
+      d.className = 'sq' + (c && c.clip ? ' clipc' : '') + (w && w.L && w.L.includes(i) ? ' line' : '');
+    }); }
+}
+function gridPut(l, i, what){
+  if (l.cells[i] && !(what.p && !l.game)) return;
+  snap();
+  if (!l.game) { const prev = l.cells[i]; l.cells[i] = what.p ? (prev && prev.p === what.p ? (prev.clip ? { ...prev, p:null } : null) : { ...(prev || {}), p:what.p }) : { p:prev && prev.p || null, clip:what.clip }; paintGrids(); save(); renderTools(); return; }
+  const b = marksOf(l); if (winner(b) || b.filter(Boolean).length % 2) return;
+  l.cells[i] = { p:'X', clip:what.clip || null }; paintGrids(); save(); renderTools();
+  if (winner(marksOf(l))) return status();
+  setTimeout(() => { const bb = marksOf(l); if (winner(bb)) return; const r = minimax(bb.slice(), 'O'), m = r.m[Math.floor(Math.random() * r.m.length)];
+    l.cells[m] = { p:'O', clip:WOPR_POOL[Math.floor(Math.random() * WOPR_POOL.length)] }; paintGrids(); save(); status(); renderTools(); }, 600);
+  status();
+}
+
+/* ================= layer strip: select, show/hide, drag to reorder ================= */
+const chipsEl = document.getElementById('layers');
+const KIND = { footage:'footage', plane:'plane', mask:'silhouettes', draw:'drawing', grid:'game', clip:'clip' };
+function renderChips(){
+  chipsEl.innerHTML = W.layers.map(l => `<div class="chip${l.id === sel ? ' sel' : ''}${l.vis ? '' : ' off'}${l.note || l.prompt || l.marks.length ? ' has' : ''}" data-id="${l.id}" role="button" tabindex="0"><i class="eye${l.vis ? ' on' : ''}" data-eye="1"></i><span class="nm">${esc(l.name)}</span><span class="sub">${KIND[l.kind]} · z ${+l.z.toFixed(2)}${l.blend !== 'normal' ? ' · ' + l.blend : ''}${l.op < 1 ? ' · ' + Math.round(l.op * 100) + '%' : ''}</span></div>`).join('')
+    + (W.layers.length < MAX_LAYERS ? `<button class="chip add" id="bAdd" aria-label="Add a layer"><i class="ic plus"></i></button>` : '');
+}
+let chipDrag = null;
+chipsEl.addEventListener('pointerdown', e => {
+  const c = e.target.closest('.chip[data-id]'); if (!c) return;
+  chipDrag = { id:c.dataset.id, x:e.clientX, y:e.clientY, moved:false, eye:!!e.target.closest('[data-eye]'), pid:e.pointerId };
+});
+addEventListener('pointermove', e => {
+  if (!chipDrag || e.pointerId !== chipDrag.pid) return;
+  if (!chipDrag.moved && Math.abs(e.clientY - chipDrag.y) > 14 && Math.abs(e.clientY - chipDrag.y) > Math.abs(e.clientX - chipDrag.x)) { chipDrag.moved = true; chipDrag.reorder = true; }
+  if (!chipDrag.moved && Math.abs(e.clientX - chipDrag.x) > 10) { chipDrag.moved = true; chipDrag.reorder = e.pointerType !== 'touch'; }
+  if (chipDrag.reorder) {
+    e.preventDefault();
+    const over = document.elementFromPoint(e.clientX, chipsEl.getBoundingClientRect().top + 20); const t = over && over.closest('.chip[data-id]');
+    if (t && t.dataset.id !== chipDrag.id) { const from = W.layers.findIndex(l => l.id === chipDrag.id), to = W.layers.findIndex(l => l.id === t.dataset.id); if (!chipDrag.snapped) { snap(); chipDrag.snapped = true; } const [l] = W.layers.splice(from, 1); W.layers.splice(to, 0, l); rebuild(); chipsEl.querySelector(`[data-id="${chipDrag.id}"]`)?.classList.add('dragging'); }
+  }
+}, { passive:false });
+addEventListener('pointerup', e => {
+  if (!chipDrag || e.pointerId !== chipDrag.pid) return; const d = chipDrag; chipDrag = null;
+  chipsEl.querySelectorAll('.dragging').forEach(x => x.classList.remove('dragging'));
+  if (d.moved) { if (d.snapped) toast('Layer moved. Order is back to front, left to right.'); return; }
+  const l = L(d.id); if (!l) return;
+  if (d.eye) { snap(); l.vis = !l.vis; rebuild(); return; }
+  if (sel === l.id) openLayerSheet(); else { sel = l.id; rebuild(); }
+});
+chipsEl.addEventListener('click', e => { if (e.target.closest('#bAdd')) openAddSheet(); });
+
+/* ================= tools for the selected layer ================= */
+const toolsEl = document.getElementById('tools');
+let tool = 'draw', pen = 0, penFrame = false, armedClip = null;
+function renderTools(){
+  const l = selL(); if (!l) { toolsEl.innerHTML = ''; return; }
+  const T = [];
+  if (l.kind === 'grid') { T.push(['X', '<i class="ic X"></i>'], ...(l.game ? [] : [['O', '<i class="ic O"></i>']]), ['clip', 'Clip']); }
+  T.push(['draw', 'Draw'], ['erase', 'Erase']);
+  if (!T.some(t => t[0] === tool)) tool = T[0][0];
+  let h = T.map(([k, lab]) => `<button class="tl${tool === k ? ' on' : ''}" data-t="${k}">${lab}</button>`).join('');
+  if (tool === 'draw') h += `<button class="tl" data-pen="1"><i class="sw" style="background:${PENS[pen]}"></i></button><button class="tl${penFrame ? ' on' : ''}" data-pf="1">${penFrame ? 'This frame' : 'All frames'}</button>`;
+  if (tool === 'clip') h += `<button class="tl${armedClip ? ' on' : ''}" data-pick="1">${armedClip ? armedClip.toUpperCase() : 'Pick clip'}</button>`;
+  if (l.kind === 'grid' && l.cells.some(Boolean)) h += `<button class="tl" data-clear="1">Clear game</button>`;
+  h += `<span class="tsep"></span><button class="tl main" data-layer="1">Layer</button>${undoStack.length ? '<button class="tl" data-undo="1">Undo</button>' : ''}`;
+  toolsEl.innerHTML = h;
+}
+toolsEl.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.t) { tool = b.dataset.t; if (tool === 'clip' && !armedClip) openClipSheet(id => { armedClip = id; renderTools(); }); }
+  else if (b.dataset.pen) pen = (pen + 1) % PENS.length;
+  else if (b.dataset.pf) penFrame = !penFrame;
+  else if (b.dataset.pick) openClipSheet(id => { armedClip = id; renderTools(); });
+  else if (b.dataset.clear) { const l = selL(); snap(); l.cells = Array(9).fill(null); paintGrids(); save(); status(); }
+  else if (b.dataset.layer) return openLayerSheet();
+  else if (b.dataset.undo) return undo();
+  renderTools(); dirty.add(sel); status();
+});
+
+/* ================= pointer on the world: draw, erase, place; turn the layers when spread ================= */
+let press = null;
+function worldPt(x, y){ const r = worldEl.getBoundingClientRect(); return [(x - r.left) / r.width * W.W, (y - r.top) / r.height * W.H]; }
 function pdown(x, y, src){
-  const e = document.elementFromPoint(x, y); if (!e) return;
-  if (e.closest('#trim') && sel) { press = { kind:'trim' }; trimDown(x); return; }
-  if (e.closest('#timeline') && cut) { press = { kind:'tl' }; tlDrag = { was:cut.playing }; cut.playing = false; tlMove(x); return; }
-  if (e.closest('#bar')) { press = { kind:'bar' }; barMove(x); return; }
-  if (src === 'hand') { const b = e.closest('button'); if (b) { b.click(); return; } }
-  const clip = e.closest('.clip');
-  if (clip) { press = { kind:'tap', x, y, src, clip, moved:false }; if (src === 'hand') begin(clip.dataset.id, x, y); return; }
-  if (!frontPlaneHit(x, y) || cut) return;
-  if (tool === 'DRAW') { press = { kind:'ink' }; inkStart(x, y); return; }
-  if (tool === 'ERASE') { press = { kind:'erase', x, y, moved:false, hit:eraseAt(x, y) }; return; }
-  press = { kind:'tap', x, y, src, moved:false };
+  const e = document.elementFromPoint(x, y); if (!e || e.closest('#sheet,#viewBtn')) return;
+  if (src === 'hand') { const c = e.closest('.chip[data-id]'); if (c) { if (sel === c.dataset.id) openLayerSheet(); else { sel = c.dataset.id; rebuild(); } return; } const b = e.closest('button'); if (b) { b.click(); return; } }
+  if (!e.closest('#stage')) return;
+  if (spread > .05) { press = { kind:'turn', x, y, yaw0:yaw, pitch0:pitch };
+    const lay = e.closest('.layer'); press.pick = lay && lay.dataset.id; return; }
+  const l = selL(); if (!l) return;
+  if (l.kind === 'grid' && (tool === 'X' || tool === 'O' || tool === 'clip')) { const sq = e.closest('.sq'); press = { kind:'tap', i:sq ? +sq.dataset.i : -1 }; return; }
+  if (tool === 'draw') { if (!l.vis) { toast('This layer is hidden. Show it to draw on it.'); return; } snap(); const m = { f:penFrame ? f : null, c:PENS[pen], w:pen === 0 ? 2.2 : 2.6, pts:[worldPt(x, y)] }; l.marks.push(m); press = { kind:'draw', m, l }; dirty.add(l.id); return; }
+  if (tool === 'erase') { press = { kind:'erase', l, snapped:false }; eraseAt(l, x, y); return; }
 }
 function pmove(x, y){
   if (!press) return;
-  if (press.kind === 'trim') return trimMove(x);
-  if (press.kind === 'tl') return tlMove(x);
-  if (press.kind === 'bar') return barMove(x);
-  if (press.kind === 'ink') return inkMove(x, y);
-  if (press.kind === 'erase') { if (Math.hypot(x - press.x, y - press.y) > 6) press.moved = true; if (eraseAt(x, y)) press.hit = true; return; }
-  if (!press.moved && Math.hypot(x - press.x, y - press.y) > 8) {
-    press.moved = true;
-    if (press.clip && !carry) { if (press.src === 'touch' && Math.abs(x - press.x) > Math.abs(y - press.y) * .8) { press = null; return; } begin(press.clip.dataset.id, x, y); }
-  }
-  if (carry) { ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; const i = cellAt(x, y); planesEl[S.front].querySelectorAll('.sq').forEach((d, k) => d.classList.toggle('target', k === i)); }
+  if (press.kind === 'turn') { yaw = Math.max(-75, Math.min(75, press.yaw0 + (x - press.x) * .3)); pitch = Math.max(-30, Math.min(40, press.pitch0 - (y - press.y) * .2)); press.moved = true; styleLayers(); return; }
+  if (press.kind === 'draw') { const p = worldPt(x, y), q = press.m.pts[press.m.pts.length - 1]; if (Math.hypot(p[0] - q[0], p[1] - q[1]) > 1.2) { press.m.pts.push(p); dirty.add(press.l.id); } return; }
+  if (press.kind === 'erase') eraseAt(press.l, x, y, press);
 }
 function pup(x, y){
-  if (!press) return;
-  const p = press; press = null;
-  if (p.kind === 'trim') return trimUp();
-  if (p.kind === 'tl') { if (cut) { cut.playing = tlDrag.was && cut.t < cut.total - .05; cut.last = performance.now(); seekCut(cut.t); } tlDrag = null; return render(); }
-  if (p.kind === 'bar') return barEnd();
-  if (p.kind === 'ink') return inkEnd();
-  if (p.kind === 'erase') { if (!p.hit && !p.moved) { const i = cellAt(x, y); if (i >= 0 && P().cells[i] && S.rule === 'free') { setCell(S.front, i, null, 'user'); render(); } } return; }
-  if (carry) { const id = carry; carry = null; ghost.hidden = true; planesEl[S.front].querySelectorAll('.sq').forEach(d => d.classList.remove('target')); const i = cellAt(x, y); if (i >= 0) placeAt(i, { clip:id }); return; }
-  if (p.moved) return;
-  if (p.clip) { arm(armed === p.clip.dataset.id ? null : p.clip.dataset.id); return; }
-  const i = cellAt(x, y); if (i < 0) return;
-  const c = P().cells[i];
-  if (sel) { if (c && c.clip && sel.i !== i) selectClip(i); else doneTrim(); return; }
-  if (tool === 'CLIP') { if (armed && (!c || S.rule === 'free')) placeAt(i, { clip:armed }); else if (c && c.clip) selectClip(i); return; }
-  if (tool === 'X' || tool === 'O') { if (c && c.clip && S.rule !== 'free') return selectClip(i); placeAt(i, { p:tool }); }
+  if (!press) return; const p = press; press = null;
+  if (p.kind === 'turn' && !p.moved && p.pick) { sel = p.pick; rebuild(); return; }
+  if (p.kind === 'draw') { if (p.m.pts.length < 2) p.m.pts.push([p.m.pts[0][0] + .5, p.m.pts[0][1]]); save(); renderChips(); renderTools(); return; }
+  if (p.kind === 'tap' && p.i >= 0) { const l = selL(); if (tool === 'clip') { if (!armedClip) return openClipSheet(id => { armedClip = id; renderTools(); }); gridPut(l, p.i, { clip:armedClip }); } else gridPut(l, p.i, { p:tool }); }
+  if (p.kind === 'erase') { save(); renderChips(); }
 }
-function begin(id, x, y){ if (tool !== 'CLIP') tool = 'CLIP'; carry = id; const c = byId[id]; ghost.style.backgroundImage = c.img ? `url("${c.img}")` : 'none'; ghost.hidden = false; ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; }
-
-/* the depth bar scrubs depth continuously */
-const barEl = document.getElementById('bar');
-function barMove(x){ const r = barEl.getBoundingClientRect(); depth.d = Math.max(0, Math.min(S.planes.length - 1, (x - r.left) / r.width * S.planes.length - .5)); const k = Math.round(depth.d); if (k !== S.front) { if (playing) togglePlanes(); stopCut(); sel = null; S.front = k; save(); render(); } else placePlanes(); }
-function barEnd(){ depth.t = Math.round(depth.d); }
-
-/* two fingers on the stage, or the left hand, grip the depth */
+function eraseAt(l, x, y, pr){
+  const p = worldPt(x, y);
+  for (let j = l.marks.length - 1; j >= 0; j--) { const m = l.marks[j]; if (m.f != null && m.f !== f) continue;
+    if (m.pts.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 9)) { if (pr && !pr.snapped) { snap(); pr.snapped = true; } else if (!pr) snap(); l.marks.splice(j, 1); dirty.add(l.id); return; } }
+}
 const touches = new Map(); let grip = null;
-function gripStart(x, y){ grip = { x, y, d0:depth.d, yaw0:depth.yaw }; if (stroke) { P().strokes.pop(); stroke = null; } press = null; }
-function gripMove(x, y){
-  if (!grip) return;
-  depth.d = Math.max(0, Math.min(S.planes.length - 1, grip.d0 - (y - grip.y) / (stage.clientHeight * .3)));
-  depth.yaw = Math.max(-35, Math.min(35, grip.yaw0 + (x - grip.x) / stage.clientWidth * 70));
-  const k = Math.round(depth.d); if (k !== S.front) { if (playing) togglePlanes(); stopCut(); sel = null; S.front = k; save(); render(); } else placePlanes();
-}
-function gripEnd(){ if (!grip) return; grip = null; depth.t = Math.round(depth.d); depth.tyaw = 0; }
+function gripStart(x, y){ grip = { x, y, yaw0:yaw, s0:spread }; if (press && press.kind === 'draw') { press.l.marks.pop(); dirty.add(press.l.id); } press = null; }
+function gripMove(x, y){ if (!grip) return; yaw = Math.max(-75, Math.min(75, grip.yaw0 + (x - grip.x) * .3)); setSpread(Math.max(0, Math.min(1, grip.s0 - (y - grip.y) / (stage.clientHeight * .5))), true); }
+function gripEnd(){ grip = null; }
 stage.addEventListener('pointerdown', e => {
+  if (e.target.closest('#sheet,#viewBtn')) return;
   touches.set(e.pointerId, { x:e.clientX, y:e.clientY });
   if (touches.size === 2) { const [a, b] = [...touches.values()]; gripStart((a.x + b.x) / 2, (a.y + b.y) / 2); return; }
   pdown(e.clientX, e.clientY, e.pointerType);
 });
-for (const el of [tray, trimEl, tlEl, barEl]) el.addEventListener('pointerdown', e => pdown(e.clientX, e.clientY, e.pointerType));
+scrubEl.addEventListener('pointerdown', e => { press = { kind:'scrub' }; scrubAt(e.clientX); scrubEl.setPointerCapture(e.pointerId); });
 addEventListener('pointermove', e => {
   if (touches.has(e.pointerId)) touches.set(e.pointerId, { x:e.clientX, y:e.clientY });
   if (grip && touches.size >= 2) { const [a, b] = [...touches.values()]; gripMove((a.x + b.x) / 2, (a.y + b.y) / 2); e.preventDefault(); return; }
-  if (press) { pmove(e.clientX, e.clientY); if (carry || press && press.kind !== 'tap') e.preventDefault(); }
+  if (press && press.kind === 'scrub') { scrubAt(e.clientX); return; }
+  if (press) { pmove(e.clientX, e.clientY); e.preventDefault(); }
 }, { passive:false });
-const endPtr = e => { touches.delete(e.pointerId); if (grip) { if (touches.size < 2) gripEnd(); return; } if (e.type === 'pointercancel' && press && press.kind === 'tap' && !carry) { press = null; return; } pup(e.clientX, e.clientY); };
+const endPtr = e => { touches.delete(e.pointerId); if (grip) { if (touches.size < 2) gripEnd(); return; } if (press && press.kind === 'scrub') { press = null; return; } pup(e.clientX, e.clientY); };
 addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr);
-let wheelAcc = 0;
-stage.addEventListener('wheel', e => { e.preventDefault(); wheelAcc += e.deltaY; if (Math.abs(wheelAcc) > 60) { goTo(S.front + Math.sign(wheelAcc)); wheelAcc = 0; } }, { passive:false });
+stage.addEventListener('wheel', e => { if (e.target.closest('#sheet')) return; e.preventDefault(); if (spread > .05) { yaw = Math.max(-75, Math.min(75, yaw + e.deltaX * .2)); setSpread(Math.max(0, Math.min(1, spread - e.deltaY * .002)), true); } else setFrame(f + Math.sign(e.deltaY)); }, { passive:false });
+
+/* spread: flat (0) shows the composite with blends; spread (1) shows the layers apart in depth */
+let spreadT = 0;
+function setSpread(s, target){ spread = s; if (target) spreadT = s; document.getElementById('viewBtn').classList.toggle('on', s > .05); document.getElementById('viewBtn').textContent = s > .05 ? 'Flat' : 'Depth'; layout(); styleLayers(); status(); }
+document.getElementById('viewBtn').onclick = () => { spreadT = spread > .05 ? 0 : 1; if (spreadT === 0) { yawT = 0; pitchT = 0; } else { yawT = -28; pitchT = 0; } animSpread = true; };
+let animSpread = false, yawT = 0, pitchT = 0;
+
+/* ================= sheets ================= */
+const sheet = document.getElementById('sheet'), sheetBody = document.getElementById('sheetBody'), sheetTitle = document.getElementById('sheetTitle');
+function openSheet(title, html){ sheetTitle.textContent = title; sheetBody.innerHTML = html; sheet.hidden = false; sheetBody.scrollTop = 0; }
+function closeSheet(){ sheet.hidden = true; sheetBody.innerHTML = ''; }
+document.getElementById('sheetClose').onclick = closeSheet;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+function openLayerSheet(){
+  const l = selL(); if (!l) return;
+  const S = l.src && shotNow.get(l.src.slug), i = W.layers.indexOf(l);
+  const looks = { footage:[['wash','Washed'],['plain','Plain']], plane:[['ink','Line'],['cel','Line and cel fill']], mask:[['fill','Silhouette'],['paper','Paper cut-out'],['line','Outline']] }[l.kind];
+  const plane = S && l.src.plane && S.planes.find(p => p.id === l.src.plane);
+  const x = S && S.xsheet && S.xsheet[f % S.n];
+  let info = '';
+  if (S) {
+    const objs = plane ? (S.objects || []).filter(o => o.plane === plane.id) : [];
+    const cls = {}; objs.forEach(o => cls[o.class] = (cls[o.class] || 0) + 1);
+    info = `<div class="p">${esc(S.title)}${S.film ? ` · from <a href="${esc(S.url)}" target="_blank" rel="noopener">${esc(S.film)}</a>` : ''}</div>
+      <div class="p" style="color:var(--dim)">${S.n} frames at ${S.fps} fps · ${S.W}×${S.H}${plane ? ` · plane “${esc(plane.label)}” at z ${plane.z}` : ''}${S.camera_source ? ` · camera from ${esc(S.camera_source)}` : ''}</div>
+      ${Object.keys(cls).length ? `<div class="p" style="color:var(--dim)">${Object.entries(cls).map(([c, n]) => `${n} ${esc(c)}`).join(', ')}${S.cast && S.cast.plane === plane.id ? ' · animated cast' : ''}</div>` : ''}
+      ${x ? `<div class="p">Frame ${f + 1}: ${esc(x.drawing)} (${x.kind === 'K' ? 'key' : x.kind === 'B' ? 'breakdown' : 'in-between'})${x.note ? ' · ' + esc(x.note) : ''}</div>` : ''}`;
+  } else if (l.kind === 'clip') { const c = clipById[l.clip]; info = `<div class="p">${esc(c.id.toUpperCase())} · ${esc(c.note || '')}</div><div class="p" style="color:var(--dim)">Plays in step with the frame bar, looping inside its in and out.</div>`; }
+  else if (l.kind === 'grid') info = `<div class="p" style="color:var(--dim)">${l.game ? 'Game: you are X, WOPR answers with O.' : 'Free grid: put X, O and clips anywhere.'}</div>`;
+  const marks = l.marks.length ? `${l.marks.length} drawn marks (${l.marks.filter(m => m.f != null).length} on single frames)` : 'No drawn marks yet';
+  openSheet(`Layer ${i + 1} of ${W.layers.length} · ${KIND[l.kind]}`, `
+    <div class="fld"><span class="k">Name</span><input type="text" id="fName" value="${esc(l.name)}"></div>
+    ${info}
+    <div class="fld"><span class="k">Note</span><textarea id="fNote" placeholder="What this layer is, what to fix, what it is for">${esc(l.note)}</textarea></div>
+    <div class="fld"><span class="k">Prompt</span><textarea id="fPrompt" placeholder="Instruction for this layer, as you would give it to a drawer or a model">${esc(l.prompt)}</textarea></div>
+    <div class="row">
+      <label class="fld" style="flex:1;min-width:140px"><span class="k">Opacity ${Math.round(l.op * 100)}%</span><input type="range" id="fOp" min="0" max="1" step=".05" value="${l.op}"></label>
+      <label class="fld" style="flex:1;min-width:120px"><span class="k">Blend</span><select id="fBlend">${['normal','multiply','screen','overlay','darken','lighten','difference'].map(b => `<option${b === l.blend ? ' selected' : ''}>${b}</option>`).join('')}</select></label>
+      ${looks ? `<label class="fld" style="flex:1;min-width:120px"><span class="k">Look</span><select id="fLook">${looks.map(([v, t]) => `<option value="${v}"${v === l.look ? ' selected' : ''}>${t}</option>`).join('')}</select></label>` : ''}
+      <label class="fld" style="width:90px"><span class="k">Depth z</span><input type="text" id="fZ" inputmode="decimal" value="${+l.z.toFixed(2)}"></label>
+    </div>
+    ${l.kind === 'grid' ? `<div class="row"><button class="btn${l.game ? ' main' : ''}" data-a="game">${l.game ? 'Game against WOPR: on' : 'Game against WOPR: off'}</button></div>` : ''}
+    ${l.kind === 'clip' ? `<div class="row"><label class="fld" style="flex:1"><span class="k">In ${(l.in || 0).toFixed(1)} s</span><input type="range" id="fIn" min="0" max="${clipById[l.clip].d}" step=".1" value="${l.in || 0}"></label><label class="fld" style="flex:1"><span class="k">Out ${Math.min(l.out ?? clipById[l.clip].d, clipById[l.clip].d).toFixed(1)} s</span><input type="range" id="fOut" min="0" max="${clipById[l.clip].d}" step=".1" value="${l.out ?? clipById[l.clip].d}"></label></div>` : ''}
+    <div class="p" style="color:var(--dim)">${marks}</div>
+    <div class="row">
+      <button class="btn" data-a="back"${i === 0 ? ' disabled' : ''}>Move back</button>
+      <button class="btn" data-a="fwd"${i === W.layers.length - 1 ? ' disabled' : ''}>Move forward</button>
+      <button class="btn" data-a="dup">Duplicate</button>
+      ${l.marks.length ? '<button class="btn" data-a="wipe">Clear marks</button>' : ''}
+      <button class="btn warn" data-a="del">Delete layer</button>
+    </div>`);
+  const set = (fn, label) => { snap(); fn(); rebuild(); if (label) openLayerSheet(); };
+  const q = s => sheetBody.querySelector(s);
+  q('#fName').onchange = e => set(() => l.name = e.target.value.trim() || l.name);
+  q('#fNote').onchange = e => set(() => l.note = e.target.value);
+  q('#fPrompt').onchange = e => set(() => l.prompt = e.target.value);
+  q('#fOp').oninput = e => { l.op = +e.target.value; styleLayers(); e.target.previousElementSibling.textContent = `Opacity ${Math.round(l.op * 100)}%`; };
+  q('#fOp').onchange = () => { save(); renderChips(); };
+  q('#fBlend').onchange = e => set(() => l.blend = e.target.value);
+  if (q('#fLook')) q('#fLook').onchange = e => set(() => l.look = e.target.value);
+  q('#fZ').onchange = e => { const z = parseFloat(e.target.value); if (isFinite(z)) set(() => l.z = z); };
+  if (q('#fIn')) { q('#fIn').oninput = e => { l.in = Math.min(+e.target.value, (l.out ?? clipById[l.clip].d) - .2); syncClip(l, true); e.target.previousElementSibling.textContent = `In ${l.in.toFixed(1)} s`; }; q('#fOut').oninput = e => { l.out = Math.max(+e.target.value, (l.in || 0) + .2); syncClip(l, true); e.target.previousElementSibling.textContent = `Out ${l.out.toFixed(1)} s`; }; q('#fIn').onchange = q('#fOut').onchange = () => save(); }
+  sheetBody.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a, j = W.layers.indexOf(l);
+    if (a === 'back' && j > 0) set(() => { W.layers.splice(j, 1); W.layers.splice(j - 1, 0, l); }, 1);
+    if (a === 'fwd' && j < W.layers.length - 1) set(() => { W.layers.splice(j, 1); W.layers.splice(j + 1, 0, l); }, 1);
+    if (a === 'dup') set(() => { const c = JSON.parse(JSON.stringify(l)); c.id = uid(); c.name = l.name + ' copy'; W.layers.splice(j + 1, 0, c); sel = c.id; }, 1);
+    if (a === 'wipe') set(() => l.marks = [], 1);
+    if (a === 'game') set(() => { l.game = !l.game; l.cells = Array(9).fill(null); }, 1);
+    if (a === 'del') { snap(); W.layers.splice(j, 1); sel = W.layers[Math.min(j, W.layers.length - 1)]?.id || null; closeSheet(); rebuild(); toast(`Deleted “${l.name}”.`, 'Undo', undo); }
+  });
+}
+function openAddSheet(){
+  const lead = leadShot();
+  const parts = lead ? `<div class="k">From ${esc(lead.title)}</div>
+    <div class="part"><span>Footage<small>${lead.n} frames</small></span><button class="btn" data-add="footage">Add</button></div>
+    ${lead.masks && lead.masks.length ? `<div class="part"><span>Silhouettes<small>masks per frame</small></span><button class="btn" data-add="masks">Add</button></div>` : ''}
+    ${[...lead.planes].sort((a, b) => b.z - a.z).map(p => `<div class="part"><span>${esc(p.label)}<small>plane at z ${p.z}</small></span><button class="btn" data-plane="${esc(p.id)}">Add</button></div>`).join('')}` : '';
+  openSheet('Add a layer', `
+    <div class="row"><button class="btn main" data-new="draw">Drawing layer</button><button class="btn" data-new="grid">Tic-tac-toe</button><button class="btn" data-new="clip">WarGames clip</button><button class="btn" data-new="shot">From another shot</button></div>
+    ${parts}`);
+  sheetBody.querySelectorAll('[data-new]').forEach(b => b.onclick = () => {
+    const k = b.dataset.new;
+    if (k === 'draw') addLayers([layerBase('draw', 'Drawing ' + (W.layers.filter(l => l.kind === 'draw').length + 1), 1)]);
+    if (k === 'grid') { const g = layerBase('grid', 'Tic-tac-toe', 1.5); g.cells = Array(9).fill(null); g.game = true; addLayers([g]); }
+    if (k === 'clip') openClipSheet(id => { const c = layerBase('clip', id.toUpperCase(), 8); c.clip = id; c.in = 0; c.out = null; c.blend = 'multiply'; c.op = .8; addLayers([c]); });
+    if (k === 'shot') openShotSheet('add');
+  });
+  sheetBody.querySelectorAll('[data-add]').forEach(b => b.onclick = () => addLayers(layersFromShot(lead, b.dataset.add)));
+  sheetBody.querySelectorAll('[data-plane]').forEach(b => b.onclick = () => addLayers(layersFromShot(lead, { plane:b.dataset.plane })));
+}
+function addLayers(ls){
+  if (W.layers.length + ls.length > MAX_LAYERS) return toast(`${MAX_LAYERS} layers is the limit.`);
+  snap(); W.layers.push(...ls); sel = ls[ls.length - 1].id; closeSheet(); rebuild(); toast(ls.length === 1 ? `Added “${ls[0].name}” at the front.` : `Added ${ls.length} layers at the front.`);
+}
+function openShotSheet(mode){
+  const render = q => {
+    const list = ALLSHOTS.filter(s => !q || (s.t + ' ' + s.f + ' ' + s.s).toLowerCase().includes(q));
+    sheetBody.querySelector('.grid2').innerHTML = list.map(s => `<button class="card" data-s="${esc(s.s)}"><span class="th" style="${s.thumb ? `background-image:url('${esc(s.thumb)}')` : 'background:#2a2416'}"><span>${s.n} fr</span></span><span class="tt">${esc(s.t)}</span><span class="ts">${esc(s.f)}</span></button>`).join('');
+  };
+  openSheet(mode === 'add' ? 'Add layers from a shot' : 'Open a shot', `<input id="search" type="search" placeholder="Search ${ALLSHOTS.length} shots"><div class="grid2"></div>`);
+  render('');
+  sheetBody.querySelector('#search').oninput = e => render(e.target.value.trim().toLowerCase());
+  sheetBody.querySelector('.grid2').onclick = async e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    const slug = b.dataset.s; loading(`Loading ${slug}…`);
+    try {
+      const S = await need(slug); loading('');
+      if (mode === 'add') return openShotParts(S);
+      openSheet(S.title, `<div class="p">${S.n} frames · ${S.planes.length} planes${S.masks && S.masks.length ? ' · silhouettes' : ''}${S.film ? ' · ' + esc(S.film) : ''}</div>
+        <div class="row"><button class="btn main" data-o="new">Open as a new world</button><button class="btn" data-o="add">Add its layers to this world</button></div>
+        <div class="p" style="color:var(--dim)">Opening replaces the current world; Undo brings it back.</div>`);
+      sheetBody.querySelector('[data-o="new"]').onclick = async () => { snap(); W = await newWorldFrom(slug); sel = W.layers[W.layers.length - 1].id; f = 0; closeSheet(); rebuild(); toast(`Opened ${S.title}.`, 'Undo', undo); };
+      sheetBody.querySelector('[data-o="add"]').onclick = () => openShotParts(S);
+    } catch(err) { loading(''); toast('Could not load that shot: ' + err.message); }
+  };
+}
+function openShotParts(S){
+  openSheet('Add from ' + S.title, `
+    <div class="part"><span>All of it<small>footage, ${S.planes.length} planes${S.masks && S.masks.length ? ', silhouettes' : ''}</small></span><button class="btn main" data-all="1">Add</button></div>
+    <div class="part"><span>Footage<small>${S.n} frames</small></span><button class="btn" data-add="footage">Add</button></div>
+    ${S.masks && S.masks.length ? `<div class="part"><span>Silhouettes<small>masks per frame</small></span><button class="btn" data-add="masks">Add</button></div>` : ''}
+    ${[...S.planes].sort((a, b) => b.z - a.z).map(p => `<div class="part"><span>${esc(p.label)}<small>plane at z ${p.z}</small></span><button class="btn" data-plane="${esc(p.id)}">Add</button></div>`).join('')}`);
+  sheetBody.querySelector('[data-all]').onclick = () => addLayers(layersFromShot(S).map(l => (l.kind === 'mask' && (l.vis = true), l)));
+  sheetBody.querySelectorAll('[data-add]').forEach(b => b.onclick = () => addLayers(layersFromShot(S, b.dataset.add)));
+  sheetBody.querySelectorAll('[data-plane]').forEach(b => b.onclick = () => addLayers(layersFromShot(S, { plane:b.dataset.plane })));
+}
+function openClipSheet(then){
+  openSheet('Pick a WarGames clip', `<div class="grid2">${CLIPS.map(c => `<button class="card" data-c="${c.id}"><span class="th" style="${c.img ? `background-image:url('${c.img}')` : 'background:#1a1608'}"><span>${c.code}</span></span><span class="tt">${c.id.toUpperCase()}</span><span class="ts">${esc(c.note || '')}</span></button>`).join('')}</div>`);
+  sheetBody.querySelector('.grid2').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; closeSheet(); then(b.dataset.c); };
+}
+
+/* ================= worldtext: every layer's note, prompt and marks, in order ================= */
+function worldtext(){
+  const n = frameCount();
+  const lines = [`WORLD ${W.name} · ${W.W}x${W.H} · ${n} frames at ${W.fps} fps · ${W.layers.length} layers, back to front`];
+  W.layers.forEach((l, i) => {
+    const S = l.src && shotNow.get(l.src.slug);
+    const from = S ? ` · from “${S.title}”${S.film ? ` (${S.film})` : ''}` : l.kind === 'clip' ? ` · WarGames ${l.clip.toUpperCase()}` : '';
+    lines.push('', `LAYER ${i + 1} · ${l.name} · ${KIND[l.kind]} · z ${+l.z.toFixed(2)}${l.vis ? '' : ' · hidden'}${l.blend !== 'normal' ? ' · blend ' + l.blend : ''}${l.op < 1 ? ' · opacity ' + Math.round(l.op * 100) + '%' : ''}${from}`);
+    if (l.note) lines.push('  note: ' + l.note.replace(/\n/g, '\n        '));
+    if (l.prompt) lines.push('  prompt: ' + l.prompt.replace(/\n/g, '\n          '));
+    if (l.marks.length) { const fr = [...new Set(l.marks.filter(m => m.f != null).map(m => m.f + 1))].sort((a, b) => a - b); lines.push(`  marks: ${l.marks.length}` + (fr.length ? ` · drawn on frames ${fr.join(', ')}` : ' · held on all frames')); }
+    if (l.kind === 'grid') lines.push('  board: ' + l.cells.map(c => c ? (c.p || '') + (c.clip ? '[' + c.clip + ']' : '') || '?' : '.').join(' '));
+  });
+  return lines.join('\n');
+}
+document.getElementById('bText').onclick = () => {
+  openSheet('Worldtext', `<div class="p" style="color:var(--dim)">Every layer's note, prompt and marks, back to front. Prompts are kept with the world; this page does not send them anywhere.</div><div id="wt">${esc(worldtext())}</div>
+    <div class="row"><button class="btn main" data-w="copy">Copy text</button><button class="btn" data-w="json">Save world file</button><button class="btn" data-w="load">Open world file</button></div><input type="file" id="fileIn" accept=".json,application/json" hidden>`);
+  sheetBody.querySelector('[data-w="copy"]').onclick = () => { const t = worldtext(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Worldtext copied.')).catch(() => { const r = document.createRange(); r.selectNodeContents(sheetBody.querySelector('#wt')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Selected. Copy it from here.'); }); };
+  sheetBody.querySelector('[data-w="json"]').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(W, null, 1)], { type:'application/json' })); a.download = (W.name || 'world').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.world.json'; document.body.appendChild(a); a.click(); a.remove(); toast('World file saved.'); };
+  const fi = sheetBody.querySelector('#fileIn');
+  sheetBody.querySelector('[data-w="load"]').onclick = () => fi.click();
+  fi.onchange = async () => { try { const o = JSON.parse(await fi.files[0].text()); if (!o.layers) throw 0; snap(); W = o; sel = W.layers[W.layers.length - 1]?.id || null; closeSheet(); rebuild(); toast('World opened.', 'Undo', undo); } catch(e) { toast('That is not a world file.'); } };
+};
+document.getElementById('bShots').onclick = () => openShotSheet('open');
+
+/* ================= status, toast, loading ================= */
+const statusEl = document.getElementById('status');
+function status(){
+  const l = selL(); if (!l) { statusEl.textContent = W.name; return; }
+  let s = `<span style="color:var(--dim)">${esc(W.name)} · </span>${esc(l.name)}`;
+  if (spread > .05) s += ' · <b>drag to turn, tap a layer</b>';
+  else if (l.kind === 'grid' && l.game) { const w = winner(marksOf(l)); s += w ? ` · <b>${w.p === 'D' ? 'draw' : w.p === 'X' ? 'you win' : 'WOPR wins'}</b>` : ' · you are X'; }
+  else if (tool === 'draw') s += ` · draw ${penFrame ? 'on frame ' + (f + 1) : 'on all frames'}`;
+  else if (tool === 'erase') s += ' · erase marks';
+  statusEl.innerHTML = s;
+}
+let toastT = 0; const toastEl = document.getElementById('toast');
+function toast(t, label, fn){ toastEl.innerHTML = esc(t) + (label ? ` <button>${esc(label)}</button>` : ''); toastEl.hidden = false; if (fn) toastEl.querySelector('button').onclick = () => { toastEl.hidden = true; fn(); }; clearTimeout(toastT); toastT = setTimeout(() => toastEl.hidden = true, label ? 6000 : 2600); }
+function loading(t){ const e = document.getElementById('loading'); e.textContent = t; e.hidden = !t; }
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') { arm(null); if (cut) stopCut(); else if (sel) doneTrim(); }
-  if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === '.') goTo(S.front + 1);
-  if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === ',') goTo(S.front - 1);
-  if (e.key === ' ') { e.preventDefault(); cut ? togglePlay() : togglePlanes(); }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'z') { S.rule === 'free' ? undoOne() : takeBack(); render(); }
-  const tk = { x:'X', o:'O', c:'CLIP', d:'DRAW', e:'ERASE' }[e.key]; if (tk && !e.metaKey && !e.ctrlKey && (tk !== 'O' || S.rule === 'free')) { tool = tk; sel = null; arm(null); }
+  if (e.target.closest('input,textarea,select')) return;
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'ArrowRight' || e.key === '.') setFrame(f + 1);
+  if (e.key === 'ArrowLeft' || e.key === ',') setFrame(f - 1);
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); }
+  if (e.key === 'Escape') closeSheet();
 });
 
-/* ================= hands: right hand works, left hand grips the depth ================= */
-const handBtn = document.getElementById('hands'), cam = document.getElementById('cam'), hc = document.getElementById('hand'), hg = hc.getContext('2d');
+/* ================= hands ================= */
+const handBtn = document.getElementById('bHands'), cam = document.getElementById('cam'), hc = document.getElementById('hand'), hg = hc.getContext('2d');
 const mkH = () => ({ lm:null, x:innerWidth / 2, y:innerHeight / 2, pinch:false, lost:0 });
 const H = { on:false, tool:mkH(), plane:mkH(), thumb:0, lastThumb:0, t:-1 };
 let landmarker = null;
@@ -676,16 +708,15 @@ function readHand(h, lm){
   const k = h.pinch ? .35 : .5; h.x += (tx - h.x) * k; h.y += (ty - h.y) * k; h.lm = lm;
   return { was, thumbUp: lm[4].y < lm[3].y && lm[3].y < lm[2].y && (lm[2].y - lm[4].y) / size > .45 && ext === 0 && pr > .45 };
 }
-function lose(h, now, f){ if (!h.lm && !h.lost) return; if (!h.lost) h.lost = now; h.lm = null; if (now - h.lost > 700 && h.pinch) { h.pinch = false; f(); } }
+function lose(h, now, fn){ if (!h.lm && !h.lost) return; if (!h.lost) h.lost = now; h.lm = null; if (now - h.lost > 700 && h.pinch) { h.pinch = false; fn(); } }
 function handTick(now){
   if (!H.on || !landmarker || cam.readyState < 2 || cam.currentTime === H.t) return; H.t = cam.currentTime;
-  const all = (landmarker.detectForVideo(cam, now).landmarks || []).slice(0, 2);
-  all.sort((a, b) => (1 - a[9].x) - (1 - b[9].x));
+  const all = (landmarker.detectForVideo(cam, now).landmarks || []).slice(0, 2); all.sort((a, b) => (1 - a[9].x) - (1 - b[9].x));
   const tl = all.length ? all[all.length - 1] : null, pl = all.length === 2 ? all[0] : null;
   if (tl) { H.tool.lost = 0; const r = readHand(H.tool, tl);
     if (!r.was && H.tool.pinch) pdown(H.tool.x, H.tool.y, 'hand'); else if (H.tool.pinch) pmove(H.tool.x, H.tool.y); else if (r.was) pup(H.tool.x, H.tool.y);
-    if (r.thumbUp && !H.tool.pinch) { if (!H.thumb) H.thumb = now; if (now - H.thumb > 450 && now - H.lastThumb > 1400 && primaryFn) { H.lastThumb = now; primaryFn(); } } else H.thumb = 0;
-  } else lose(H.tool, now, () => { carry = null; ghost.hidden = true; if (press && press.kind === 'ink') inkEnd(); press = null; trimDrag = null; tlDrag = null; });
+    if (r.thumbUp && !H.tool.pinch) { if (!H.thumb) H.thumb = now; if (now - H.thumb > 450 && now - H.lastThumb > 1400) { H.lastThumb = now; togglePlay(); } } else H.thumb = 0;
+  } else lose(H.tool, now, () => { if (press) pup(H.tool.x, H.tool.y); });
   if (pl) { H.plane.lost = 0; const r = readHand(H.plane, pl); if (!r.was && H.plane.pinch) gripStart(H.plane.x, H.plane.y); else if (H.plane.pinch) gripMove(H.plane.x, H.plane.y); else if (r.was) gripEnd(); }
   else lose(H.plane, now, gripEnd);
 }
@@ -693,28 +724,33 @@ function drawHand(now){
   const w = innerWidth, h = innerHeight, r = devicePixelRatio || 1;
   if (hc.width !== Math.round(w * r)) { hc.width = Math.round(w * r); hc.height = Math.round(h * r); }
   hg.setTransform(r, 0, 0, r, 0, 0); hg.clearRect(0, 0, w, h); if (!H.on) return; hg.lineWidth = 2;
-  const t = H.tool; if (t.lm) { hg.strokeStyle = hg.fillStyle = t.pinch || H.thumb ? '#ffd23f' : '#19e6c8'; hg.beginPath(); hg.arc(t.x, t.y, t.pinch ? 9 : 16, 0, Math.PI * 2); t.pinch ? hg.fill() : hg.stroke();
-    if (H.thumb) { hg.beginPath(); hg.arc(t.x, t.y, 22, -Math.PI / 2, -Math.PI / 2 + Math.min(1, (now - H.thumb) / 450) * Math.PI * 2); hg.stroke(); } }
-  const p = H.plane; if (p.lm) { hg.strokeStyle = hg.fillStyle = '#ffd23f'; const s = p.pinch ? 10 : 16; p.pinch ? hg.fillRect(p.x - s, p.y - s, s * 2, s * 2) : hg.strokeRect(p.x - s, p.y - s, s * 2, s * 2); }
+  const t = H.tool; if (t.lm) { hg.strokeStyle = hg.fillStyle = t.pinch || H.thumb ? KEY : '#19e6c8'; hg.beginPath(); hg.arc(t.x, t.y, t.pinch ? 8 : 15, 0, Math.PI * 2); t.pinch ? hg.fill() : hg.stroke();
+    if (H.thumb) { hg.beginPath(); hg.arc(t.x, t.y, 21, -Math.PI / 2, -Math.PI / 2 + Math.min(1, (now - H.thumb) / 450) * Math.PI * 2); hg.stroke(); } }
+  const p = H.plane; if (p.lm) { hg.strokeStyle = hg.fillStyle = '#ffd23f'; const s = p.pinch ? 9 : 15; p.pinch ? hg.fillRect(p.x - s, p.y - s, s * 2, s * 2) : hg.strokeRect(p.x - s, p.y - s, s * 2, s * 2); }
 }
 
 /* ================= loop ================= */
-let last = performance.now();
 (function loop(now){
   requestAnimationFrame(loop);
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
   try { handTick(now); } catch(e){}
   drawHand(now);
-  if (!grip && !(press && press.kind === 'bar') && !playing) { const k = Math.min(1, dt * 9); if (Math.abs(depth.t - depth.d) > .001 || Math.abs(depth.yaw) > .05) { depth.d += (depth.t - depth.d) * k; depth.yaw += (depth.tyaw - depth.yaw) * k; placePlanes(); } }
-  const pe = planesEl[S.front];
-  if (pe && !trimDrag) pe.querySelectorAll('.sq video').forEach(v => { const c = v._c; if (!c || v.readyState < 1) return; const a = c.in || 0, o = outOf(c); if (v.currentTime >= o - .04 || v.currentTime < a - .2 || v.ended) { v.currentTime = a; v.play().catch(() => {}); } });
-  if (sel) drawTrim();
-  cutTick(now);
+  if (animSpread) { const k = Math.min(1, dt * 7); spread += (spreadT - spread) * k; yaw += (yawT - yaw) * k; pitch += (pitchT - pitch) * k; if (Math.abs(spreadT - spread) < .003 && Math.abs(yawT - yaw) < .1) { spread = spreadT; yaw = yawT; pitch = pitchT; animSpread = false; } setSpread(spread); }
+  if (playing && W) { acc += dt; const step = 1 / W.fps; while (acc >= step) { acc -= step; setFrame(f + 1); } }
+  if (press && press.kind === 'draw') dirty.add(press.l.id);
+  paintDirty();
 })(performance.now());
 
-new ResizeObserver(() => render()).observe(stage);
-renderTray(); render();
-window.__s = { get S(){ return S; }, get cut(){ return cut; }, get sel(){ return sel; }, placeAt, takeBack, clearGame, goTo, addPlane, setRule, playCut, stopCut, seekCut, togglePlay, togglePlanes, zeroPlayers, woprFirst, selectClip, doneTrim, gameState, undoOne, addStroke, setTool:t => { tool = t; render(); }, CLIPS, LINES3, depth, get playing(){ return !!playing; } };
+/* ================= boot ================= */
+new ResizeObserver(() => { if (W) { layout(); styleLayers(); } }).observe(stage);
+(async () => {
+  try { const o = JSON.parse(localStorage.getItem(KEYW) || 'null'); if (o && o.layers) W = o; } catch(e){}
+  if (!W) { W = { v:1, name:'Giraffe walks past', W:480, H:360, fps:8, lead:'giraffe-walks-past', layers:[] }; loading('Loading Giraffe walks past…');
+    try { W = await newWorldFrom('giraffe-walks-past'); } catch(e) { toast('Could not load the giraffe shot: ' + e.message); } loading(''); }
+  sel = W.layers.length ? W.layers[W.layers.length - 1].id : null;
+  rebuild();
+})();
+window.__v = { get W(){ return W; }, get f(){ return f; }, setFrame, getShot, need, newWorldFrom, addLayers, layersFromShot, layerBase, worldtext, undo, rebuild, setSpread, gridPut, get sel(){ return sel; }, select:id => { sel = id; rebuild(); }, setTool:t => { tool = t; renderTools(); }, pdown, pmove, pup, frameCount, togglePlay, get playing(){ return playing; } };
 </script>
 </body>
 </html>
