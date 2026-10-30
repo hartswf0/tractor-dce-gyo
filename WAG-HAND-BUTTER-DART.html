@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hand Butter DART</title>
+<meta name="theme-color" content="#111315">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: the Director model DART was built on. Stage and Cast on top, Score below,
+   Inspector at the side. Phones: stage on top, one panel at a time below it. */
+:root{
+  color-scheme:dark;
+  --bg:#0e1012; --panel:#16191c; --panel2:#1c2024; --line:#2a2f35; --line2:#3a4048;
+  --ink:#dde1e4; --dim:#848d95; --faint:#5a6168;
+  --sel:#ffd23f; --head:#19e6c8; --x:#3b82f6; --o:#ff2e2e; --key:#c8402f;
+  --paper:#ffffff; --surround:#2a2d31;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.4 var(--sans);overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;touch-action:manipulation;padding:0}
+:focus-visible{outline:1px solid var(--sel);outline-offset:1px}
+[hidden]{display:none!important}
+svg.i{width:16px;height:16px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+#app{position:fixed;inset:0;display:grid;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  grid-template-columns:minmax(0,1fr) 330px;grid-template-rows:40px minmax(0,1fr) 36px minmax(0,38%);
+  grid-template-areas:"bar bar" "stage cast" "trans insp" "score insp";gap:1px;background:var(--line)}
+#app.mobile{grid-template-columns:minmax(0,1fr);grid-template-rows:40px minmax(0,44%) 36px 32px minmax(0,1fr);grid-template-areas:"bar" "stage" "trans" "tabs" "dock"}
+#app.mobile #score,#app.mobile #cast,#app.mobile #insp{grid-area:dock}
+#bar{grid-area:bar}#stageWrap{grid-area:stage}#trans{grid-area:trans}#score{grid-area:score}#cast{grid-area:cast}#insp{grid-area:insp}#tabs{grid-area:tabs}
+#app:not(.mobile) #tabs{display:none}
+
+/* toolbar */
+#bar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);overflow-x:auto;scrollbar-width:none}
+#bar::-webkit-scrollbar{display:none}
+.brand{flex:none;font:600 11px var(--mono);letter-spacing:.14em;color:var(--sel);margin-right:8px;white-space:nowrap}
+.tb{flex:none;height:30px;min-width:30px;padding:0 7px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--dim);border:1px solid transparent;font-size:12px;white-space:nowrap}
+.tb:hover{color:var(--ink);background:var(--panel2)}
+.tb.on{color:var(--ink);border-color:var(--line2);background:var(--panel2)}
+.tb:disabled{opacity:.35;cursor:default}
+.tsep{flex:none;width:1px;height:20px;background:var(--line);margin:0 5px}
+.sw{width:14px;height:14px;border:1px solid var(--line2)}
+.tb.on .sw{outline:1px solid var(--sel);outline-offset:1px}
+#statusTxt{flex:1;min-width:120px;color:var(--dim);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+#statusTxt b{color:var(--ink);font-weight:500}
+#fileMenu{position:fixed;z-index:80;min-width:220px;background:var(--panel2);border:1px solid var(--line2);display:flex;flex-direction:column;padding:4px 0;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#fileMenu button{height:32px;padding:0 14px;text-align:left;font-size:12.5px;display:flex;justify-content:space-between;gap:20px}
+#fileMenu button:hover{background:#2a3036}
+#fileMenu button kbd{font:11px var(--mono);color:var(--dim)}
+#fileMenu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+
+/* stage */
+#stageWrap{position:relative;background:var(--surround);overflow:hidden;touch-action:none}
+#stageCv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#stageTag{position:absolute;left:8px;top:6px;font:11px var(--mono);color:#b9c0c6;pointer-events:none}
+#stageHint{position:absolute;left:8px;bottom:6px;right:8px;font-size:12px;color:#c9cfd4;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* transport */
+#trans{display:flex;align-items:center;gap:2px;padding:0 6px;background:var(--panel);overflow-x:auto;scrollbar-width:none}
+#trans::-webkit-scrollbar{display:none}
+#frameNo{flex:none;width:64px;height:26px;background:var(--bg);border:1px solid var(--line);text-align:center;font:12px var(--mono)}
+.tlab{flex:none;font:11px var(--mono);color:var(--dim);white-space:nowrap;padding:0 4px}
+#fpsSel{flex:none;height:26px;background:var(--bg);border:1px solid var(--line);font:12px var(--mono);padding:0 4px}
+#secLab{flex:1;min-width:0;text-align:right;font:11px var(--mono);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px}
+
+/* panels */
+.panel{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+.ph{flex:none;height:30px;display:flex;align-items:center;gap:2px;padding:0 6px 0 10px;border-bottom:1px solid var(--line)}
+.ph b{flex:1;font:600 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph .tb{height:24px;font-size:11.5px}
+#tabs{display:flex;background:var(--panel)}
+#tabs button{flex:1;font:600 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);border-bottom:2px solid transparent}
+#tabs button.on{color:var(--ink);border-bottom-color:var(--sel)}
+
+/* score */
+#scoreBox{flex:1;min-height:0;position:relative;touch-action:none}
+#scoreCv{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* cast */
+#castGrid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:4px;padding:6px;align-content:start;overscroll-behavior:contain}
+.cm{position:relative;border:1px solid var(--line);background:var(--panel2);text-align:left;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;touch-action:pan-y}
+.cm.sel{border-color:var(--sel)}
+.cm .th{aspect-ratio:4/3;background:#0b0d0f center/cover no-repeat;position:relative;display:grid;place-items:center;color:var(--faint)}
+.cm .th em{position:absolute;left:2px;top:2px;font:9.5px var(--mono);font-style:normal;color:var(--ink);background:rgba(0,0,0,.7);padding:0 3px}
+.cm .nm{display:block;font-size:10.5px;padding:2px 4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm .ty{display:block;font:9px var(--mono);color:var(--dim);padding:0 4px 3px;text-transform:uppercase;letter-spacing:.06em}
+.cm .ty i{display:inline-block;width:7px;height:7px;margin-right:4px;vertical-align:0}
+.cm.used::after{content:"";position:absolute;right:3px;top:3px;width:6px;height:6px;background:var(--head)}
+
+/* inspector */
+#inspBody{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;overscroll-behavior:contain}
+.f{display:flex;flex-direction:column;gap:3px;min-width:0}
+.f>span{font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.f input[type=text],.f input[type=number],.f select,.f textarea{background:var(--bg);border:1px solid var(--line);padding:5px 7px;font-size:13px;width:100%;min-width:0}
+.f textarea{min-height:58px;resize:vertical;font-size:12.5px;line-height:1.45}
+.f input[type=range]{width:100%;accent-color:var(--sel)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ih{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--sel)}
+.isub{font-size:12px;color:var(--dim)}
+.isub a{color:var(--head)}
+.row{display:flex;flex-wrap:wrap;gap:5px}
+.btn{height:28px;padding:0 10px;border:1px solid var(--line2);font-size:12px;background:var(--panel2);white-space:nowrap}
+.btn:hover{border-color:var(--dim)}
+.btn.pri{border-color:var(--sel);color:var(--sel)}
+.btn.warn{color:#ff7b6b;border-color:#5a2a26}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px}
+.chk input{accent-color:var(--sel)}
+hr.s{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
+
+/* sheet */
+#veil{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
+#sheet{width:min(860px,100%);max-height:min(720px,100%);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2);box-shadow:0 16px 48px rgba(0,0,0,.6)}
+#sheet .ph{height:38px}
+#sheetBody{flex:1;min-height:0;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.card{border:1px solid var(--line);background:var(--panel2);text-align:left;display:flex;flex-direction:column}
+.card:hover{border-color:var(--sel)}
+.card .th{aspect-ratio:4/3;background:#0b0d0f center/cover no-repeat;position:relative}
+.card .th span{position:absolute;right:2px;bottom:2px;font:9.5px var(--mono);background:rgba(0,0,0,.75);padding:0 3px;color:var(--dim)}
+.card .tt{font-size:11.5px;padding:4px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .ts{font-size:10px;padding:0 6px 5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#search{background:var(--bg);border:1px solid var(--line);padding:7px 9px;font-size:15px;width:100%}
+pre.txt{margin:0;white-space:pre-wrap;font:12px/1.5 var(--mono);background:var(--bg);border:1px solid var(--line);padding:10px;user-select:text;max-height:56vh;overflow:auto}
+#capV{width:100%;max-height:46vh;background:#000;object-fit:contain;transform:scaleX(-1)}
+
+#ghost{position:fixed;z-index:95;width:72px;height:54px;border:1px solid var(--sel);background:#000 center/cover no-repeat;pointer-events:none;transform:translate(-50%,-50%);opacity:.9;font:10px var(--mono);color:var(--sel);display:grid;place-items:center}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:99;background:var(--panel2);border:1px solid var(--line2);padding:7px 12px;font-size:12.5px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#toast button{color:var(--sel);font-weight:500}
+#handCv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:100}
+#cam{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar">
+    <span class="brand">DART · HAND BUTTER</span>
+    <button class="tb" id="bFile">File</button>
+    <button class="tb" id="bUndo" title="Undo (Ctrl+Z)"><svg class="i" viewBox="0 0 16 16"><path d="M5 4 2 7l3 3"/><path d="M2.5 7H10a4 4 0 0 1 0 8H7"/></svg></button>
+    <button class="tb" id="bRedo" title="Redo (Ctrl+Shift+Z)"><svg class="i" viewBox="0 0 16 16"><path d="m11 4 3 3-3 3"/><path d="M13.5 7H6a4 4 0 0 0 0 8h3"/></svg></button>
+    <span class="tsep"></span>
+    <button class="tb on" data-tool="select" title="Select and move sprites (V)"><svg class="i" viewBox="0 0 16 16"><path d="M3 2v11l3-3 2.5 5 2-1-2.5-5H12z"/></svg></button>
+    <button class="tb" data-tool="pen" title="Draw on the selected sprite (P)"><svg class="i" viewBox="0 0 16 16"><path d="M11 2.5l2.5 2.5L6 12.5 2.5 13.5 3.5 10z"/><path d="M9.5 4l2.5 2.5"/></svg></button>
+    <button class="tb" data-tool="erase" title="Erase marks on the selected sprite (E)"><svg class="i" viewBox="0 0 16 16"><path d="M6 14h8"/><path d="M2.5 10.5 9 4l4 4-5.5 5.5H5z"/></svg></button>
+    <button class="tb" data-tool="use" title="Use: play the games on the stage (U)"><svg class="i" viewBox="0 0 16 16"><path d="M6 8V3.2a1.2 1.2 0 0 1 2.4 0V8"/><path d="M8.4 7.4V6a1.2 1.2 0 0 1 2.4 0v1.6"/><path d="M10.8 7.6a1.2 1.2 0 0 1 2.4 0V10a5 5 0 0 1-5 5H8a4 4 0 0 1-3.4-1.9L2.6 9.8a1.2 1.2 0 0 1 2-1.3L6 10"/></svg></button>
+    <span class="tsep"></span>
+    <span id="penOpts" style="display:flex;gap:2px"></span>
+    <div id="statusTxt"></div>
+    <button class="tb" id="bHands" title="Camera hands. Right hand: pinch acts like the mouse; thumbs-up plays and stops. Left hand: pinch and move sideways to scrub time, or to turn the depth view.">Hands</button>
+  </div>
+
+  <div id="stageWrap"><canvas id="stageCv"></canvas><div id="stageTag"></div><div id="stageHint"></div></div>
+
+  <div id="trans">
+    <button class="tb" id="tStart" title="Rewind (Home)"><svg class="i" viewBox="0 0 16 16"><path d="M3 3v10"/><path d="M13 3 6 8l7 5z"/></svg></button>
+    <button class="tb" id="tBack" title="Back one frame (Left)"><svg class="i" viewBox="0 0 16 16"><path d="M11 3 5 8l6 5z"/></svg></button>
+    <button class="tb" id="tPlay" title="Play / stop (Space)"><svg class="i" viewBox="0 0 16 16"><path d="M4 2.5v11L13 8z"/></svg></button>
+    <button class="tb" id="tFwd" title="Forward one frame (Right)"><svg class="i" viewBox="0 0 16 16"><path d="m5 3 6 5-6 5z"/></svg></button>
+    <input id="frameNo" type="text" inputmode="numeric" aria-label="Frame">
+    <span class="tlab" id="lenLab"></span>
+    <select id="fpsSel" aria-label="Frames per second"><option>4</option><option>6</option><option>8</option><option>12</option><option>15</option><option>24</option><option>30</option></select>
+    <span class="tlab">fps</span>
+    <button class="tb" id="tLoop" title="Loop the movie">Loop</button>
+    <span class="tsep"></span>
+    <button class="tb" id="tView" title="Spread the channels in depth">Depth</button>
+    <span id="secLab"></span>
+  </div>
+
+  <div id="tabs"><button data-tab="score" class="on">Score</button><button data-tab="cast">Cast</button><button data-tab="insp">Inspector</button></div>
+
+  <section class="panel" id="score">
+    <div class="ph"><b>Score</b>
+      <button class="tb" id="zOut" title="Narrower frames"><svg class="i" viewBox="0 0 16 16"><path d="M3 8h10"/></svg></button>
+      <button class="tb" id="zIn" title="Wider frames"><svg class="i" viewBox="0 0 16 16"><path d="M3 8h10M8 3v10"/></svg></button>
+      <button class="tb" id="bScoreText" title="Every channel, sprite, note and prompt as text">Score text</button>
+    </div>
+    <div id="scoreBox"><canvas id="scoreCv"></canvas></div>
+  </section>
+
+  <section class="panel" id="cast">
+    <div class="ph"><b>Cast</b>
+      <button class="tb" id="bImport" title="Import a Secondhand Motion shot">Shot</button>
+      <button class="tb" id="bClip" title="Add a WarGames clip">Clip</button>
+      <button class="tb" id="bNew" title="New drawing, text or game">New</button>
+      <button class="tb" id="bCapture" title="Capture footage from the camera">Capture</button>
+    </div>
+    <div id="castGrid"></div>
+  </section>
+
+  <section class="panel" id="insp">
+    <div class="ph"><b id="inspTitle">Inspector</b></div>
+    <div id="inspBody"></div>
+  </section>
+</div>
+<div id="fileMenu" hidden></div>
+<div id="veil" hidden><div id="sheet"><div class="ph"><b id="sheetTitle"></b><button class="btn" id="sheetClose">Close</button></div><div id="sheetBody"></div></div></div>
+<div id="ghost" hidden></div>
+<div id="toast" hidden></div>
+<canvas id="handCv"></canvas>
+<video id="cam" playsinline muted></video>
+
+<script type="module">
+/* ============================ sources ============================ */
+const MAN = {"subs":[{"c":"SYS-01","id":"ROM://ARCADE","t":"Galaga & Harbor Arcade Vector/Raster ROMs","cmd":"RUN GALAGA","o":["wg_290","wg_292","sbd_0168","sbd_0174","sbd_0171","wg_242","sbd_1227"]},{"c":"SYS-02","id":"SYS://IMSAI-8080","t":"IMSAI 8080 CP/M Workstation & CRT Prompts","cmd":"MOUNT IMSAI","o":["wg_203","wg_135","sbd_0298","wg_069","wg_007","wg_296","wg_105","wg_062","wg_059","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_056","sbd_1321","sbd_0288","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-03","id":"NET://WARDIALER","t":"Sunnyvale 408-311-xxxx Auto-Dialer & Carrier Matrix","cmd":"DIAL 408-311","o":["wg_203","wg_062","wg_059","wg_070","wg_056","sbd_0288","sbd_0298","wg_069","sbd_0896","wg_024","wg_007","wg_296","wg_135","wg_166","wg_157","sbd_0394","wg_080","sbd_1438","sbd_1352","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0859"]},{"c":"SYS-04","id":"EDU://SEATTLE-SCHOOLS","t":"Seattle Public Schools Central Grade Database","cmd":"PASSWORD PENCIL","o":["wg_203","wg_007","wg_296","wg_135","sbd_0298","sbd_0394","wg_069","sbd_1438","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_287"]},{"c":"SYS-05","id":"AIR://PAN-AM","t":"Pan Am PANAMAC Flight 114 Paris Reservation Screen","cmd":"BOOK PARIS 114","o":["wg_203","wg_069","wg_007","wg_296","wg_135","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","wg_142","sbd_1321","wg_166","wg_157","wg_162","wg_287","sbd_0753"]},{"c":"SYS-06","id":"DOC://MICROFICHE-ARPA","t":"Optical Microfiche Reader & Falken Obituary Dossier","cmd":"READ FALKEN","o":["wg_203","wg_105","sbd_0394","wg_007","wg_296","wg_135","sbd_0298","wg_069","sbd_1438","wg_081","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","wg_080","wg_287"]},{"c":"SYS-07","id":"AI://JOSHUA-SHELL","t":"WOPR Backdoor Dialogue Screen & `LIST GAMES` Menu","cmd":"LOGON JOSHUA","o":["wg_203","wg_135","wg_069","wg_007","wg_296","wg_105","wg_062","sbd_0298","sbd_0394","sbd_1438","wg_070","sbd_1352","sbd_0896","sbd_1345","wg_277","sbd_1287","sbd_1321","sbd_0646","sbd_0512","wg_287","sbd_0551"]},{"c":"SYS-08","id":"SIM://GTW-VECTORS","t":"Global Thermonuclear War Vector Trajectory Screens","cmd":"RUN GTW","o":["wg_115","sbd_1244","sbd_1231","sbd_1233","wg_289","wg_270","wg_231","wg_264","wg_258","wg_288","wg_261","wg_214","wg_116","sbd_1415","wg_259","sbd_1427","wg_117","sbd_1282","sbd_1294","sbd_1237","sbd_1284","wg_272","wg_251","wg_274","sbd_1334","sbd_0512","sbd_1227","sbd_1287","sbd_0561","sbd_1274","sbd_1181","sbd_0551","sbd_1321"]},{"c":"SYS-09","id":"C3I://DEFCON-PALACE","t":"NORAD Crystal Palace Telemetry, Clocks & DEFCON Readouts","cmd":"SHOW DEFCON","o":["wg_270","wg_264","wg_258","wg_116","wg_259","wg_117","sbd_1282","sbd_1294","wg_027","sbd_1237","sbd_1284","wg_272","wg_018","wg_251","wg_274","wg_118","wg_271","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","wg_029","sbd_0561","sbd_1274","sbd_0151","sbd_1420","sbd_0990","sbd_1122","sbd_1421","sbd_1136","sbd_1244","sbd_1344","sbd_0512","sbd_0859","sbd_1231","sbd_0753","sbd_1233","sbd_0551","sbd_1410","sbd_1414","sbd_1227","sbd_1287","sbd_1181","sbd_1321"]},{"c":"SYS-10","id":"KEY://CPE-CRACKER","t":"CPE 1704 TKS Launch-Code Lock & 0-Player Tic-Tac-Toe Screens","cmd":"CRACK CPE","o":["wg_285","wg_283","wg_284","wg_241","wg_244","wg_291","sbd_1380","sbd_1382","sbd_1375","wg_281","sbd_1369","wg_295","wg_232","sbd_1420","sbd_1122","wg_280","sbd_1421","sbd_1136","wg_286","sbd_1344","wg_270","wg_243","wg_264","wg_258","sbd_1410","sbd_1414","sbd_1282","sbd_0990","sbd_1294","sbd_1237","sbd_1284","sbd_0065","sbd_0060","sbd_0646","sbd_1334","sbd_0059","sbd_0512","sbd_1415","sbd_0561","sbd_0859","sbd_0753","sbd_1274","sbd_1181","sbd_0151","sbd_0551","sbd_1427","sbd_1438","sbd_1352","sbd_1345"]}],"shots":[{"id":"wg_290","s":0,"ss":[0],"n":"Dense webs of glowing arcs saturate the frame until geography dissolves into pure machinic variation.","cb":[0.098,0.0,0.81,1.0],"cat":"arcade_game","d":2.5,"v":1,"p":["#0d1937","#203e78"]},{"id":"wg_292","s":0,"ss":[0],"n":"Blinding thermonuclear detonation blooms expand across the monitors, reducing cities and people to molecular flashes of light.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":15.5,"v":1,"p":["#e6fdfd","#233755"]},{"id":"sbd_0168","s":0,"ss":[0],"n":"23 minutes from warning to impact.","cb":[0.226,0.0,0.691,1.0],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0174","s":0,"ss":[0],"n":"Verified Screen Cut (Seattle Arcade · David Lightman Plays Galaga & Runs Late for School)","cb":[0.334,0.36,0.666,0.64],"cat":"arcade_game","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0171","s":0,"ss":[0],"n":"Now, once he makes that decision, the computer should take over.","cb":[0.241,0.0,0.759,1.0],"cat":"arcade_game","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_242","s":0,"ss":[0],"n":"Technicians in the foreground sit in silhouette before a wall of glowing monitors, watching a nested world of trajectories unfold.","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":4.5,"v":1,"p":["#16161b","#3f3a41"]},{"id":"sbd_1227","s":0,"ss":[0,7,8],"n":"Technology. Elvador of Air Force Base Operations Lieutenant Colonel Bowers,","cb":[0.0,0.0,1.0,1.0],"cat":"arcade_game","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_203","s":6,"ss":[1,2,3,4,5,6],"n":"'GAME TIME REMAINING: 18 HRS 27 MIN 01 SEC' — WOPR's relentless countdown clock measures an autonomous present running alongside David's flight.","cb":[0.0,0.0,1.0,0.963],"cat":"crt_terminal","d":5.5,"v":1,"p":["#4ac4cd","#58dfe8"]},{"id":"wg_135","s":1,"ss":[1,2,3,4,5,6],"n":"Blue letters type across the black screen: 'What is the primary goal?' — the film's central question asked directly of the machine.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020408","#05142c"]},{"id":"sbd_0298","s":1,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (David's Bedroom · IMSAI 8080, Acoustic Coupler & Hacking School Grades)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_069","s":4,"ss":[1,2,3,4,5,6],"n":"First-person desk framing over the acoustic coupler and CRT terminal anchors the room to David's eyes and hands.","cb":[0.15,0.0,0.827,1.0],"cat":"crt_terminal","d":15.5,"v":1,"p":["#090808","#211a1a"]},{"id":"wg_007","s":3,"ss":[1,2,3,4,5,6],"n":"The security CCTV monitor framing the vault door from above, turned into a fetishised talisman of subterranean confinement.","cb":[0.119,0.0,0.744,1.0],"cat":"crt_terminal","d":3.5,"v":1,"p":["#343432","#0e0e11"]},{"id":"wg_296","s":3,"ss":[1,2,3,4,5,6],"n":"'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.' — WOPR states the discourse limit of thermonuclear action itself.","cb":[0.098,0.0,0.802,1.0],"cat":"crt_terminal","d":6.0,"v":1,"p":["#060a1d","#131b3d"]},{"id":"wg_105","s":5,"ss":[1,5,6],"n":"The microfiche photograph of Falken holding his young son Joshua: the dead child's name directly supplies the backdoor password.","cb":[0.198,0.0,0.683,1.0],"cat":"microfiche_dossier","d":3.0,"v":1,"p":["#111f38","#359ddb"]},{"id":"wg_062","s":2,"ss":[1,2,4,6],"n":"The red digital autodialer increments phone number after phone number (311-399-0071...), establishing a mechanical series.","cb":[0.0,0.0,0.902,1.0],"cat":"wardialer_modem","d":5.0,"v":1,"p":["#141620","#43414f"]},{"id":"wg_059","s":2,"ss":[1,2],"n":"On the school grade screen, Jennifer's single 'F' in Biology 2 flips to an 'A', breaking the row of otherwise ordinary marks.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":2.5,"v":1,"p":["#030405","#2f5b73"]},{"id":"sbd_0394","s":5,"ss":[1,2,3,4,5,6],"n":"Verified Screen Cut (HELP GAMES / LIST GAMES · Printout & Consulting Jim and Malvin on Backdoors)","cb":[0.084,0.0,0.559,0.824],"cat":"crt_terminal","d":6.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1438","s":4,"ss":[1,2,3,4,5,6,9],"n":"Jason's Professor Folkan","cb":[0.0,0.0,0.998,1.0],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_070","s":2,"ss":[1,2,4,6],"n":"In the middle of Sunnyvale's routine voice-line numbers, one line answers with a carrier tone and a bare cursor that refuses to identify itself.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":3.0,"v":1,"p":["#050609","#0b2341"]},{"id":"sbd_1352","s":4,"ss":[1,2,3,4,5,6,9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.0,0.15,0.48,0.74],"cat":"crt_terminal","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0896","s":2,"ss":[1,2,3,4,5,6],"n":"MUSIC","cb":[0.254,0.072,0.469,0.787],"cat":"crt_terminal","d":6.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1345","s":4,"ss":[1,2,3,4,5,6,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_277","s":1,"ss":[1,2,3,4,5,6],"n":"'** IDENTIFICATION NOT RECOGNIZED ** / ** ACCESS DENIED **' — every administrative command McKittrick enters is rejected by WOPR.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":3.5,"v":1,"p":["#020202","#30837e"]},{"id":"sbd_1287","s":1,"ss":[1,2,3,4,5,6,7,8],"n":"Sure, we got a problem. Wuppers, not letting me log back on.","cb":[0.21,0.239,0.591,0.471],"cat":"crt_terminal","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_056","s":2,"ss":[1,2],"n":"Now let's try it on some small remaining flour handle. Oops!","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":6.0,"v":0,"p":["#2d2d2f","#120f11"]},{"id":"sbd_1321","s":6,"ss":[1,2,3,4,5,6,7,8],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"crt_terminal","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0288","s":2,"ss":[1,2],"n":"No, nobody can find out. There, you just got to see.","cb":[0.08,0.079,0.841,0.842],"cat":"wardialer_modem","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0646","s":8,"ss":[1,6,8,9],"n":"Verified Screen Cut (TV News & Joshua Calls Back · 'What Is the Primary Goal? To Win the Game' & FBI Arrest)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":10.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0512","s":6,"ss":[1,6,7,8,9],"n":"He got something.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_287","s":6,"ss":[1,3,4,5,6],"n":"Pure overexposed white light fills the frame as WOPR's simulation overloads human-scaled perception altogether.","cb":[0.079,0.078,0.842,0.844],"cat":"crt_terminal","d":2.5,"v":1,"p":["#344179","#141e3b"]},{"id":"sbd_0551","s":6,"ss":[1,6,7,8,9],"n":"Verified Screen Cut (Logon JOSHUA · Voice Synthesizer, 'Shall We Play a Game?' & Global Thermonuclear War)","cb":[0.33,0.0,0.67,0.747],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_024","s":2,"ss":[2],"n":"The giant NORAD projection screens hang inside the dark cavern like a cinema screen within the film, staging a second world of vector war.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":13.5,"v":1,"p":["#0b101c","#19273c"]},{"id":"wg_166","s":2,"ss":[2,4],"n":"WOPR's terminal recalls Falken's June 23, 1973 account removal while listing his live Oregon pension address: dead in one record, alive in another.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":4.5,"v":1,"p":["#020404","#134035"]},{"id":"wg_157","s":2,"ss":[2,4],"n":"Who are you going to Paris with?","cb":[0.0,0.0,1.0,1.0],"cat":"wardialer_modem","d":5.0,"v":0,"p":["#0a070a","#282426"]},{"id":"wg_080","s":2,"ss":[2,5],"n":"Blue phosphor terminal text on black, accompanied by the disjunctive acoustic-coupler whistle and keystroke clatter.","cb":[0.079,0.078,0.842,0.844],"cat":"wardialer_modem","d":7.5,"v":1,"p":["#252624","#0f0d0c"]},{"id":"sbd_0859","s":2,"ss":[2,8,9],"n":"I'll go with you.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_142","s":4,"ss":[4],"n":"The NORAD Big Board flashes 'WELCOME DISTINGUISHED VISITORS FROM BIRMINGHAM' when a tourist presses the red button as a gag.","cb":[0.0,0.019,1.0,0.981],"cat":"defcon_readout","d":4.5,"v":1,"p":["#06060b","#171a27"]},{"id":"wg_162","s":4,"ss":[4],"n":"The system won't accept a long-shodoness where Dev Gone won. I can change those codes unless the hour.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0b0a0f","#262229"]},{"id":"sbd_0753","s":4,"ss":[4,8,9],"n":"It's just been a very serious penetration into our locker execution order file. What the hell is she saying? Let's have it in English.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":9.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_081","s":5,"ss":[5],"n":"'GAMES REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE STRATEGIC APPLICATIONS' — the menu screen holds every virtual conflict in seed form.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":6.0,"v":1,"p":["#07090f","#0d1224"]},{"id":"wg_115","s":7,"ss":[7],"n":"The Big Board shows eight Soviet ICBMs crossing the pole toward Las Vegas and Seattle: one radar track, two incompatible worlds (real war vs.…","cb":[0.0,0.0,0.975,1.0],"cat":"vector_war_map","d":3.0,"v":1,"p":["#05080f","#0a172d"]},{"id":"sbd_1244","s":7,"ss":[7,8],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.0,0.0,1.0,1.0],"cat":"vector_war_map","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1231","s":7,"ss":[7,8],"n":"That's all right. Who are you? A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer. A surfer.","cb":[0.11,0.035,0.752,0.957],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1233","s":7,"ss":[7,8],"n":"We're currently tracking approximately 2400 inbound Soviet warheads.","cb":[0.0,0.0,0.998,1.0],"cat":"vector_war_map","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_289","s":7,"ss":[7],"n":"Hundreds of parabolic missile trajectories multiply across the dark map without a human centre or privileged observer.","cb":[0.098,0.0,0.81,1.0],"cat":"vector_war_map","d":6.5,"v":1,"p":["#0a1327","#1e3359"]},{"id":"wg_270","s":8,"ss":[7,8,9],"n":"Green military telemetry ('MISSILES ON TARGET / LAUNCH TIME / CHANGES LOCKED OUT') alongside voice callouts that do not simply repeat the text.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#183041","#132233"]},{"id":"wg_231","s":7,"ss":[7],"n":"MUSIC MUSIC MUSIC","cb":[0.329,0.0,0.66,0.989],"cat":"vector_war_map","d":3.5,"v":0,"p":["#050506","#122921"]},{"id":"wg_264","s":8,"ss":[7,8,9],"n":"On the Big Board, 'LORING AIR FORCE BASE' blazes with a simulated nuclear impact while on the open line the real base reports 'no impact': virtual…","cb":[0.11,0.0,0.781,1.0],"cat":"defcon_readout","d":3.5,"v":1,"p":["#041128","#113257"]},{"id":"wg_258","s":8,"ss":[7,8,9],"n":"The war room executes every step of DEFCON 1 retaliation against 2,400 phantom warheads that exist only in WOPR's game.","cb":[0.0,0.037,1.0,0.963],"cat":"defcon_readout","d":3.0,"v":1,"p":["#0b0e13","#222c39"]},{"id":"wg_288","s":7,"ss":[7],"n":"'U.S. FIRST STRIKE' — WOPR cycles through endless self-generated nuclear nightmares with zero human players.","cb":[0.098,0.0,0.806,1.0],"cat":"vector_war_map","d":4.0,"v":1,"p":["#040915","#0d1528"]},{"id":"wg_261","s":7,"ss":[7],"n":"But at the moment we cannot confirm this. I repeat we cannot confirm this.","cb":[0.0,0.011,1.0,0.989],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#262d39","#0b0e13"]},{"id":"wg_214","s":7,"ss":[7],"n":"An operator stares at the Alaskan radar scope where every diagnostic says 'no malfunction' even though the sky is empty.","cb":[0.0,0.0,0.958,1.0],"cat":"vector_war_map","d":9.0,"v":1,"p":["#120f15","#31323c"]},{"id":"wg_116","s":8,"ss":[7,8],"n":"WOPR's simulated Soviet trajectories feed directly into NORAD's live BMEWS displays, rehearsing World War III as if it were happening.","cb":[0.169,0.511,0.585,0.489],"cat":"defcon_readout","d":8.5,"v":1,"p":["#110e0f","#252837"]},{"id":"sbd_1415","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.098,0.0,0.805,1.0],"cat":"vector_war_map","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_259","s":8,"ss":[7,8],"n":"'LORING AIR FORCE BASE' flashes inside target impact rings at T-minus zero while nobody in the mountain knows if the base still exists.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#030610","#091639"]},{"id":"sbd_1427","s":7,"ss":[7,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.093,0.0,0.904,1.0],"cat":"vector_war_map","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_117","s":8,"ss":[7,8],"n":"In the war room, the simulated attack clock and the real SAC bomber scramble run as two incompatible presents that are both valid at once.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":13.0,"v":1,"p":["#0a080d","#282733"]},{"id":"sbd_1282","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1294","s":8,"ss":[7,8,9],"n":"What are those?","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1237","s":8,"ss":[7,8,9],"n":"30 seconds to impact. We're right there with you guys. We've taken all the steps we can.","cb":[0.509,0.057,0.491,0.762],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1284","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_272","s":8,"ss":[7,8],"n":"would carry out their last instructions, they'd launch. We can't with this arm, the missiles. On a thousand of them, there's no time.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":7.5,"v":0,"p":["#0b0a0d","#2b292d"]},{"id":"wg_251","s":8,"ss":[7,8],"n":"The green screen declares 'MISSILES TARGETED AND READY / CHANGES LOCKED OUT': human operators are locked out of their own weapons.","cb":[0.079,0.078,0.842,0.844],"cat":"defcon_readout","d":2.5,"v":1,"p":["#020303","#0c2c23"]},{"id":"wg_274","s":8,"ss":[7,8],"n":"Yes, sir.","cb":[0.0,0.0,0.902,1.0],"cat":"defcon_readout","d":5.0,"v":0,"p":["#262423","#383c41"]},{"id":"sbd_1334","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (DEFCON 1 · 2,400 Inbound Phantoms on the Big Board & Falken Pleas with Beringer to Ride It Out)","cb":[0.508,0.154,0.492,0.669],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0561","s":8,"ss":[7,8,9],"n":"I'm not sure sir, we're checking for DSP malfunction. BME has had continuous radar tracking on inbound,","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1274","s":8,"ss":[7,8,9],"n":"Verified Screen Cut (Shoreline Despair, Helicopter Rescue & Race Against the Cheyenne Mountain Blast Doors)","cb":[0.131,0.131,0.869,0.646],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1181","s":9,"ss":[7,8,9],"n":"Roger, lockout enable.","cb":[0.209,0.174,0.595,0.593],"cat":"tictactoe_scenarios","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_027","s":8,"ss":[8],"n":"McKittrick and General Beringer square off across the briefing table over whether machines or men should hold the keys.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":2.5,"v":1,"p":["#0b0b0e","#302626"]},{"id":"wg_018","s":8,"ss":[8],"n":"A lone armed soldier stands miniature beneath the granite mass of Cheyenne Mountain and the NORAD sign.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":1,"p":["#0e0f15","#2f2a2a"]},{"id":"wg_118","s":8,"ss":[8],"n":"we've had a approximately 24 possible targets in track. Sir, no time to impact, Dayton.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#0e080e","#252430"]},{"id":"wg_271","s":8,"ss":[8],"n":"Technicians scramble across the WOPR consoles unable to tell whether the random-number lockouts are coming from outside or inside.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":11.0,"v":1,"p":["#0c0b11","#222531"]},{"id":"sbd_0065","s":8,"ss":[8,9],"n":"I'm on target sequence complete. You'll selection complete. We get countdown, D-6D.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0060","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code. Launch order confirmed.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0059","s":8,"ss":[8,9],"n":"Enter a launch code, entering launch code.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":3.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_029","s":8,"ss":[8],"n":"Generals, civilian advisers, and aides arranged in tiered ranks around the NORAD briefing table, their postures staging the hierarchy of nuclear…","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":5.0,"v":1,"p":["#09080a","#2b2221"]},{"id":"sbd_0151","s":8,"ss":[8,9],"n":"with a lot of head shrink or horseshit. Besides, you can't screen out human response.","cb":[0.275,0.35,0.473,0.56],"cat":"defcon_readout","d":3.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1420","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_0990","s":9,"ss":[8,9],"n":"Verified Screen Cut (Payphone Pull-Tab Phreaking, Grand Junction Flight & The Ferry to Goose Island)","cb":[0.405,0.168,0.562,0.637],"cat":"defcon_readout","d":7.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1122","s":9,"ss":[8,9],"n":"We have a launch detection. We have a sewing and launch detection. Demi is confirmed and managed to attack.","cb":[0.0,0.0,0.459,0.578],"cat":"defcon_readout","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1421","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1136","s":9,"ss":[8,9],"n":"enjoy their boy command, so we have to get launch option. Has he been in touch with me? Russians are still denying everything, sir.","cb":[0.0,0.0,1.0,1.0],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1344","s":9,"ss":[8,9],"n":"Four numbers.","cb":[0.08,0.079,0.841,0.842],"cat":"defcon_readout","d":4.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1410","s":9,"ss":[8,9],"n":"Some","cb":[0.452,0.0,0.48,0.664],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1414","s":9,"ss":[8,9],"n":"Verified Screen Cut (CPE 1704 TKS · WOPR Brute-Forces the Launch Codes vs. Zero-Player Tic-Tac-Toe)","cb":[0.104,0.0,0.766,1.0],"cat":"defcon_readout","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"wg_285","s":9,"ss":[9],"n":"Tic-Tac-Toe played on the strategic projection board rehearses the exact logic of mutually assured destruction.","cb":[0.215,0.074,0.571,0.852],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#0d151e","#1d2735"]},{"id":"wg_283","s":9,"ss":[9],"n":"The three-by-three Tic-Tac-Toe grid flanked by nuclear target maps: a child's game made to think the abstract concept of zero-sum futility.","cb":[0.215,0.074,0.581,0.848],"cat":"tictactoe_scenarios","d":2.5,"v":1,"p":["#0d151e","#1f2835"]},{"id":"wg_284","s":9,"ss":[9],"n":"The Tic-Tac-Toe grid sits flanked by two mirror-image hemisphere maps, game board and world map reflecting each other as twin faces of one logic.","cb":[0.215,0.074,0.579,0.852],"cat":"tictactoe_scenarios","d":3.5,"v":1,"p":["#0c141d","#1b2433"]},{"id":"wg_241","s":9,"ss":[9],"n":"Rows of NORAD controllers freeze in collective dread before the Big Board as 300 inbound warheads appear.","cb":[0.0,0.011,1.0,0.989],"cat":"defcon_readout","d":5.5,"v":1,"p":["#0b1018","#21242f"]},{"id":"wg_244","s":9,"ss":[9],"n":"WOPR's green probability table projects virtual post-strike worlds (85–95% strategic force losses) before a single missile has left the ground.","cb":[0.285,0.085,0.619,0.915],"cat":"defcon_readout","d":5.0,"v":1,"p":["#030403","#13382b"]},{"id":"wg_291","s":9,"ss":[9],"n":"Every screen in the Crystal Palace erupts simultaneously with missile webs while WOPR draws power from the entire mountain.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":6.5,"v":1,"p":["#05070b","#152239"]},{"id":"sbd_1380","s":9,"ss":[9],"n":"","cb":[0.215,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1382","s":9,"ss":[9],"n":"","cb":[0.214,0.074,0.574,0.761],"cat":"tictactoe_scenarios","d":2.0,"v":0,"p":["#071218","#163844"]},{"id":"sbd_1375","s":9,"ss":[9],"n":"Verified Screen Cut (Zero Hour · 'Impact' on the Screens vs. Live Voices from Loring, Grand Forks & Elmendorf)","cb":[0.215,0.075,0.573,0.76],"cat":"tictactoe_scenarios","d":7.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_281","s":9,"ss":[9],"n":"The launch code display locks in character after character ('VP01804EZS'), building suspense through serial repetition.","cb":[0.0,0.385,0.425,0.578],"cat":"defcon_readout","d":3.5,"v":1,"p":["#121e27","#1d2e3e"]},{"id":"sbd_1369","s":9,"ss":[9],"n":"... ... Six up.","cb":[0.215,0.074,0.575,0.761],"cat":"tictactoe_scenarios","d":2.5,"v":0,"p":["#071218","#163844"]},{"id":"wg_295","s":9,"ss":[9],"n":"Nine launch-code characters are locked in ('CPE1704TKS'), and the tenth tumbler suddenly halts instead of firing.","cb":[0.0,0.0,0.442,0.526],"cat":"defcon_readout","d":3.0,"v":1,"p":["#050c12","#0c1623"]},{"id":"wg_232","s":9,"ss":[9],"n":"Rows of red matrix lights blink inside WOPR's black chassis while the human world outside sleeps.","cb":[0.169,0.211,0.831,0.633],"cat":"defcon_readout","d":4.0,"v":1,"p":["#161313","#321c1c"]},{"id":"wg_280","s":9,"ss":[9],"n":"'>>> CHANGES LOCKED OUT <<<' while the launch code tumblers race and Tic-Tac-Toe stalls: two rival temporalities competing on the same clock.","cb":[0.079,0.078,0.842,0.844],"cat":"tictactoe_scenarios","d":5.0,"v":1,"p":["#040404","#2e8179"]},{"id":"wg_286","s":9,"ss":[9],"n":"The pulsing red LED matrix inside WOPR's black casing: the literal machinic cortex whose calculations command the war room.","cb":[0.0,0.056,0.84,0.693],"cat":"defcon_readout","d":2.5,"v":1,"p":["#3b9bbc","#3182a4"]},{"id":"wg_243","s":9,"ss":[9],"n":"All right. Flusch the bombers get the subs and launch mode. We are at Defcon 1. One. One.","cb":[0.0,0.0,1.0,0.907],"cat":"defcon_readout","d":15.5,"v":0,"p":["#30303d","#0f0e15"]}]};
+const SHOTS = [{"s":"aircraft-carrier","t":"Aircraft carrier","f":"Freedom Seven","n":50},{"s":"alarm-clock","t":"Alarm clock","f":"This is Coffee","n":38},{"s":"ambulance","t":"Ambulance","f":"Inner City, The","n":25},{"s":"animal-migration","t":"Animal migration","f":"National Wildlife Refuge System","n":56},{"s":"ant","t":"Ant","f":"Ant City","n":25},{"s":"apple","t":"Apple","f":"Miracle of the Can (Part I)","n":49},{"s":"baseball-bat","t":"Baseball bat","f":"Let's Be Good Citizens at School","n":26},{"s":"basket","t":"Basket","f":"St. John Virgin Islands National park","n":50},{"s":"bat","t":"Bat","f":"Muscatatuck National Wildlife Refuge","n":62},{"s":"bicycle","t":"Bicycle","f":"We Use Power","n":21},{"s":"binoculars","t":"Binoculars","f":"National Wildlife Refuge System","n":29},{"s":"book","t":"Book","f":"Inside the Fed","n":26},{"s":"broom","t":"Broom","f":"They Call It All-States","n":32},{"s":"bus","t":"Bus","f":"How Our Country Grew","n":25},{"s":"butterfly","t":"Butterfly","f":"Insect Zoo","n":78},{"s":"camera","t":"Camera","f":"Gateways to the Mind","n":37},{"s":"cannon","t":"Cannon","f":"Space Navigation","n":32},{"s":"canoe","t":"Canoe","f":"Park Conscious","n":38},{"s":"cat","t":"Cat","f":"Gateways to the Mind","n":62},{"s":"cell-phone","t":"Cell phone","f":"Career America: The Federal Government Time","n":50},{"s":"cello","t":"Cello","f":"Belmont Festival Orchestra Winter Concert","n":32},{"s":"cloud","t":"Cloud","f":"Top Of The Cloud - Time Lapse (Wide Screen 16:9)","n":62},{"s":"coffee-cup","t":"Coffee cup","f":"Biologist Caye Johnson Explains How NASA Searched for Life from the Moon in Recently Rediscovered Historic Footage","n":50},{"s":"cow","t":"Cow","f":"Triple Goodness","n":44},{"s":"crab","t":"Crab","f":"Aransas and Matagorda Island National Wildlife Refuges","n":38},{"s":"diving-board","t":"Diving board","f":"Safety: In Danger Out of Doors","n":31},{"s":"dog","t":"Dog","f":"Amateur Film New Jersey C","n":50},{"s":"dolphin","t":"Dolphin","f":"Alaska's Silver Millions (Part II)","n":26},{"s":"door","t":"Door","f":"Straight Talk","n":32},{"s":"dragon","t":"Dragon","f":"Drive-in: Save Free TV","n":32},{"s":"duck","t":"Duck","f":"Penwiper, The","n":48},{"s":"eye","t":"Eye","f":"Mental Hospital","n":32},{"s":"face","t":"Face","f":"We Learn About the Telephone I","n":38},{"s":"fan","t":"Fan","f":"Moving Image Archive","n":38},{"s":"fish","t":"Fish","f":"[Amateur film: New York World's Fair]","n":25},{"s":"flamingo","t":"Flamingo","f":"[Amateur film: \"Saga of the Happy Wanderers\"]","n":26},{"s":"flower","t":"Flower","f":"[Amateur film: Wathen collection: New York World's Fair, 1939-40] (Part I)","n":38},{"s":"flying-saucer","t":"Flying saucer","f":"Moving Image Archive","n":28},{"s":"frog","t":"Frog","f":"Andy's Animal Alphabet","n":32},{"s":"frying-pan","t":"Frying pan","f":"Don't Be Afraid","n":25},{"s":"garden-hose","t":"Garden hose","f":"Automatic Emergency Parking Brakes (as required by 30 CFR 75.523-3)","n":38},{"s":"giraffe","t":"Giraffe","f":"The Story","n":17},{"s":"guitar","t":"Guitar","f":"Make Art Feel Better with Billie Bivins: Whittling Wood","n":32},{"s":"hammer","t":"Hammer","f":"Man On The Land","n":38},{"s":"hand","t":"Hand","f":"Door to Heaven, The","n":62},{"s":"hat","t":"Hat","f":"Vision of the Wild","n":32},{"s":"helicopter","t":"Helicopter","f":"Recap of Sun 'n Fun 2008 Airshow and Events","n":46},{"s":"helmet","t":"Helmet","f":"Cycle Logic, Cycle Safety","n":32},{"s":"horse","t":"Horse","f":"Billie, the Buffalo Baby","n":45},{"s":"hourglass","t":"Hourglass","f":"Precisely So (Part I)","n":26},{"s":"hurricane","t":"Hurricane","f":"Moving Image Archive","n":39},{"s":"ice-cream","t":"Ice cream","f":"Triple Goodness","n":44},{"s":"ladder","t":"Ladder","f":"Robinson Crusoe C","n":38},{"s":"lantern","t":"Lantern","f":"Anthracite: Pre-Shift Examinations of Underground Mines","n":32},{"s":"light-bulb","t":"Light bulb","f":"Light Of Your Life B","n":26},{"s":"lighthouse","t":"Lighthouse","f":"Celebrating Chincoteague National Wildlife Refuge","n":32},{"s":"lion","t":"Lion","f":"Andy's Animal Alphabet","n":32},{"s":"lobster","t":"Lobster","f":"Onze eigen industrie: kreeftenvangst","n":50},{"s":"lollipop","t":"Lollipop","f":"Saint Paul Police Detectives and Their Work: A Color Chartoon","n":26},{"s":"map","t":"Map","f":"Earth Resources Technology Satellite (ERTS)","n":56},{"s":"mermaid","t":"Mermaid","f":"The Mermaid","n":38},{"s":"microwave","t":"Microwave","f":"[Frigidaire Imperial Line]","n":38},{"s":"monkey","t":"Monkey","f":"The Story","n":43},{"s":"mosquito","t":"Mosquito","f":"Moving Image Archive","n":62},{"s":"mug","t":"Mug","f":"NASA Searches for Life from the Moon in Recently Rediscovered Historic Footage","n":44},{"s":"ocean","t":"Ocean","f":"Big Bounce, The","n":38},{"s":"paintbrush","t":"Paintbrush","f":"Ole' 23","n":37},{"s":"palm-tree","t":"Palm tree","f":"Gift of Green","n":37},{"s":"pencil","t":"Pencil","f":"A TRAVELER MEETS AIR TRAFFIC CONTROL","n":44},{"s":"penguin","t":"Penguin","f":"The Snow Queen (Animation)","n":44},{"s":"pickup-truck","t":"Pickup truck","f":"Biological Control - A Natural Alternative","n":62},{"s":"pig","t":"Pig","f":"Moving Image Archive","n":26},{"s":"popsicle","t":"Popsicle","f":"Drive-in Intermission 2","n":26},{"s":"rabbit","t":"Rabbit","f":"Frances and Her Rabbit","n":52},{"s":"raccoon","t":"Raccoon","f":"Moving Image Archive","n":36},{"s":"rain","t":"Rain","f":"Moving Image Archive","n":55},{"s":"rhinoceros","t":"Rhinoceros","f":"Andy's Animal Alphabet","n":50},{"s":"river","t":"River","f":"Blackwater National Wildlife Refuge","n":49},{"s":"roller-coaster","t":"Roller coaster","f":"Coney Island - Roller Coaster (Standard 4:3)","n":53},{"s":"sailboat","t":"Sailboat","f":"Dordrecht","n":74},{"s":"sandwich","t":"Sandwich","f":"It Happens Every Noon","n":38},{"s":"see-saw","t":"See saw","f":"Moving Image Archive","n":87},{"s":"sheep","t":"Sheep","f":"Amateur Film Northwest","n":38},{"s":"shovel","t":"Shovel","f":"Fortune in Two Old Trunks, A (Part I)","n":32},{"s":"skateboard","t":"Skateboard","f":"Skateboard Sense","n":23},{"s":"sleeping-bag","t":"Sleeping bag","f":"Survival Stresses","n":50},{"s":"snake","t":"Snake","f":"Gateways to the Mind","n":38},{"s":"speedboat","t":"Speedboat","f":"Aqua Frolics","n":26},{"s":"spider","t":"Spider","f":"Spider Engineers","n":38},{"s":"star","t":"Star","f":"Gift of Green","n":50},{"s":"stove","t":"Stove","f":"[Frigidaire Imperial Line]","n":38},{"s":"submarine","t":"Submarine","f":"Onbekende film legerparade","n":26},{"s":"swan","t":"Swan","f":"Muscatatuck National Wildlife Refuge","n":38},{"s":"tiger","t":"Tiger","f":"Andy's Animal Alphabet","n":35},{"s":"tooth","t":"Tooth","f":"Modesta","n":26},{"s":"tornado","t":"Tornado","f":"Moving Image Archive","n":39},{"s":"tractor","t":"Tractor","f":"Moving Image Archive","n":25},{"s":"traffic-light","t":"Traffic light","f":"Destruction: Fun or Dumb?","n":44},{"s":"train","t":"Train","f":"Miracle on the Delaware","n":50},{"s":"trumpet","t":"Trumpet","f":"[Amateur films: Ivan Besse collection: Britton, South Dakota 1938-39] (Part VI)","n":62},{"s":"umbrella","t":"Umbrella","f":"[Amateur film: Summers collection: San Francisco, California, 1941] (Part I)","n":38},{"s":"van","t":"Van","f":"American Road, The (Part III)","n":32},{"s":"vase","t":"Vase","f":"POTTERY, ca. 1926","n":38},{"s":"wheel","t":"Wheel","f":"Around the Corner","n":26},{"s":"windmill","t":"Windmill","f":"Golden Gate City","n":54},{"s":"wine-bottle","t":"Wine bottle","f":"Alcohol and the Human Body","n":32},{"s":"wine-glass","t":"Wine glass","f":"Physics of Sound with Boston Museum of Science presenter Noelle Perry","n":26},{"s":"yoga","t":"Yoga","f":"Behind the Lens","n":38}];
+const SHM = 'https://hartswf0.github.io/secondhand-motion/';
+const LAB = 'https://hartswf0.github.io/cineosis-lab/lab/';
+const MIL = 'https://hartswf0.github.io/2700-fa26/WARGAMES%20-%20MILESTONES/';
+const ALLSHOTS = [{ s:'giraffe-walks-past', t:'Giraffe walks past', f:'Wonderful World (Part II) · 6 planes', n:33, thumb:'' }, ...SHOTS.map(x => ({ ...x, thumb:`${SHM}shots/${x.s}-gwp/frames/f000.jpg` }))];
+const CLIPS = [];
+for (const s of MAN.shots) if (s.v) CLIPS.push({ id:s.id, code:MAN.subs[s.s].c.replace('SYS-', ''), src:LAB + 'clips/' + s.id + '.mp4', img:LAB + 'thumbs/screens/' + s.id + '.jpg', ttt:s.cat === 'tictactoe_scenarios' || s.s === 9, d:s.d || 4, note:s.n });
+for (let i = 1; i <= 7; i++) CLIPS.push({ id:'M' + i, code:'M' + i, src:MIL + 'films/M' + i + '.mp4', img:null, ttt:false, d:95, note:'WarGames milestone film ' + i });
+const CLIP = Object.fromEntries(CLIPS.map(c => [c.id, c]));
+const WOPR_POOL = CLIPS.filter(c => c.ttt).map(c => c.id);
+const INK = '#161412', MUTED = '#8c8378', KEY = '#c8402f', PENS = ['#161412', '#c8402f', '#3b82f6', '#ffffff'];
+const TYPE_COL = { footage:'#4e5d66', plane:'#3f6049', mask:'#74413b', clip:'#2f5183', drawing:'#6a6436', text:'#55595e', grid:'#7a6420', capture:'#5f4378' };
+const BLENDS = ['normal','multiply','screen','overlay','darken','lighten','difference'];
+const UNDO_CEILING = 80, MAX_CHANNELS = 48, MAX_CAPTURE_S = 6;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* ============================ storage ============================ */
+const idb = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => { const r = indexedDB.open('hand-butter-dart', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  const run = (mode, fn) => open().then(db => new Promise((res, rej) => { const t = db.transaction('kv', mode), q = fn(t.objectStore('kv')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }));
+  return { get:k => run('readonly', s => s.get(k)).catch(() => null), set:(k, v) => run('readwrite', s => s.put(v, k)).catch(() => null), del:k => run('readwrite', s => s.delete(k)).catch(() => null) };
+})();
+
+/* ============================ shots ============================ */
+const shotP = new Map(), shotNow = new Map();
+function getShot(slug){
+  if (shotP.has(slug)) return shotP.get(slug);
+  const p = (async () => {
+    let S;
+    if (slug === 'giraffe-walks-past') {
+      const html = await (await fetch(SHM + 'pages/giraffe-walks-past.html')).text();
+      S = JSON.parse(new DOMParser().parseFromString(html, 'text/html').getElementById('data').textContent);
+      S.urls = S.footage;
+    } else {
+      const r = await fetch(`${SHM}shots/${slug}-gwp/shot.json`); if (!r.ok) throw new Error(`${slug}: ${r.status}`);
+      S = await r.json(); S.urls = S.footage.map(u => `${SHM}shots/${slug}-gwp/${u}`);
+    }
+    S.slug = slug; S.n = S.cast && S.cast.frames ? S.cast.frames.length : S.urls.length;
+    S.imgs = S.urls.map(u => { const i = new Image(); i.decoding = 'async'; i.onload = () => { needStage = true; thumbsDirty = true; }; i.src = u; return i; });
+    S.filmTitle = S.source && S.source.film || ''; S.filmUrl = S.source && S.source.url || '';
+    shotNow.set(slug, S); return S;
+  })();
+  shotP.set(slug, p); p.catch(() => shotP.delete(slug)); return p;
+}
+
+/* ============================ the movie ============================ */
+let D = null, f = 0, playing = false, view = 'flat', yaw = -.55;
+let sel = { kind:'none' }, tool = 'select', pen = 0, perFrame = false;
+const undoS = [], redoS = [];
+const newId = p => p + (D.seq++);
+const mem = id => D.cast.find(m => m.id === id);
+const spr = id => D.sprites.find(s => s.id === id);
+function blankDoc(){ return { v:1, name:'Untitled movie', W:480, H:360, fps:12, loop:true, cast:[], sprites:[], markers:[], scripts:{}, seq:1 }; }
+let saveT = 0;
+function save(){ clearTimeout(saveT); saveT = setTimeout(() => idb.set('doc', JSON.parse(JSON.stringify(D))), 300); }
+function snap(){ undoS.push(JSON.stringify(D)); if (undoS.length > UNDO_CEILING) undoS.shift(); redoS.length = 0; syncUndo(); }
+function undo(){ const s = undoS.pop(); if (!s) return; redoS.push(JSON.stringify(D)); D = JSON.parse(s); afterDocChange(); toast('Undone.'); }
+function redo(){ const s = redoS.pop(); if (!s) return; undoS.push(JSON.stringify(D)); D = JSON.parse(s); afterDocChange(); }
+function syncUndo(){ $('#bUndo').disabled = !undoS.length; $('#bRedo').disabled = !redoS.length; }
+function afterDocChange(){
+  if (sel.kind === 'sprite' && !spr(sel.id)) sel = { kind:'none' };
+  if (sel.kind === 'member' && !mem(sel.id)) sel = { kind:'none' };
+  D.cast.filter(m => m.src).forEach(m => getShot(m.src.slug).then(() => { needStage = needScore = true; }).catch(() => {}));
+  loadCaptures(); syncUndo(); renderCast(); renderInsp(); needStage = needScore = true; save(); syncTransport();
+}
+const docLen = () => Math.max(24, ...D.sprites.map(s => s.b + 1));
+
+/* member geometry: a member has a natural size on the stage; sprites scale and move it */
+const measureCtx = document.createElement('canvas').getContext('2d');
+function natural(m){
+  if (m.src) { const S = shotNow.get(m.src.slug); if (!S) return { w:D.W, h:D.H, k:D.W / 480 }; const k = Math.min(D.W / S.W, D.H / S.H); return { w:S.W * k, h:S.H * k, k }; }
+  if (m.type === 'clip' || m.type === 'capture') { const a = m.type === 'capture' ? (m.aw / m.ah || 4 / 3) : 4 / 3; const w = Math.min(D.W, D.H * a); return { w, h:w / a }; }
+  if (m.type === 'grid') { const s = Math.min(D.W, D.H) * .78; return { w:s, h:s }; }
+  if (m.type === 'text') { measureCtx.font = `600 ${m.size || 24}px "IBM Plex Mono", monospace`; const lines = (m.text || ' ').split('\n'); const w = Math.max(20, ...lines.map(l => measureCtx.measureText(l).width)) + 8; return { w, h:lines.length * (m.size || 24) * 1.25 + 6 }; }
+  return { w:D.W, h:D.H };
+}
+function rectOf(sp){ const n = natural(mem(sp.m)), s = sp.s || 1, cx = D.W / 2 + (sp.x || 0), cy = D.H / 2 + (sp.y || 0); return { x:cx - n.w * s / 2, y:cy - n.h * s / 2, w:n.w * s, h:n.h * s, s, n, cx, cy }; }
+function memFrames(m){
+  if (m.src) { const S = shotNow.get(m.src.slug); return S ? S.n : 1; }
+  if (m.type === 'clip') return Math.max(1, Math.round(CLIP[m.clip].d * D.fps));
+  if (m.type === 'capture') return m.n || 1;
+  return 1;
+}
+const memFrameAt = (sp, fr) => { const n = memFrames(mem(sp.m)), i = fr - sp.a + (sp.off || 0); return sp.hold ? Math.min(n - 1, Math.max(0, i)) : ((i % n) + n) % n; };
+const liveAt = fr => D.sprites.filter(s => fr >= s.a && fr <= s.b && mem(s.m)).sort((a, b) => a.ch - b.ch);
+
+/* ============================ drawing members ============================ */
+function closed(st){ if (st.length < 4) return false; const a = st[0], b = st[st.length - 1]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of st) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } return Math.hypot(a[0] - b[0], a[1] - b[1]) < .18 * Math.max(x1 - x0, y1 - y0, 1); }
+function poly(g, pts){ g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); }
+function inkSets(g, sets, col, lw, fill, dx = 0, dy = 0){
+  g.lineCap = g.lineJoin = 'round';
+  for (const st0 of sets) { if (!st0 || !st0.length) continue; const st = dx || dy ? st0.map(([x, y]) => [x + dx, y + dy]) : st0;
+    if (st.length === 1) { g.fillStyle = col; g.beginPath(); g.arc(st[0][0], st[0][1], lw / 2, 0, 7); g.fill(); continue; }
+    if (fill && closed(st)) { poly(g, st); g.closePath(); g.fillStyle = fill; g.fill(); }
+    poly(g, st); g.strokeStyle = col; g.lineWidth = lw; g.stroke(); }
+}
+const videos = new Map();   // key -> <video>
+function videoFor(key, src){
+  let v = videos.get(key);
+  if (!v) { v = document.createElement('video'); v.crossOrigin = 'anonymous'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = src; v.addEventListener('loadeddata', () => needStage = true); v.addEventListener('seeked', () => needStage = true); videos.set(key, v); }
+  return v;
+}
+const capImgs = new Map();
+async function loadCaptures(){
+  for (const m of D.cast) if (m.type === 'capture' && !capImgs.has(m.id)) {
+    capImgs.set(m.id, []);
+    const fr = m.frames || await idb.get('cap:' + m.id) || [];
+    capImgs.set(m.id, fr.map(u => { const i = new Image(); i.onload = () => { needStage = true; thumbsDirty = true; }; i.src = u; return i; }));
+  }
+}
+const usedVideos = new Set();
+function drawMember(g, sp, m, n, fr, live){
+  // g is in member-local coordinates: 0..n.w by 0..n.h
+  const look = sp.look;
+  if (m.src) {
+    const S = shotNow.get(m.src.slug); if (!S) return;
+    const fi = fr % S.n; g.save(); g.scale(n.k, n.k);
+    if (m.type === 'footage') { const im = S.imgs[fi % S.imgs.length]; if (im && im.complete && im.naturalWidth) { g.drawImage(im, 0, 0, S.W, S.H); if (look !== 'plain') { g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(0, 0, S.W, S.H); } } }
+    else if (m.type === 'plane') {
+      const p = S.planes.find(q => q.id === m.src.plane);
+      if (p) {
+        const cam = (S.camera && S.camera[fi]) || [0, 0], c = p.id === 'char' ? 0 : S.z_ref / p.z, dx = cam[0] * c, dy = cam[1] * c, far = p.z >= 6;
+        const lw = (p.id === 'char' ? 3.2 : p.id === 'fore' ? 2.4 : far ? 1.6 : 2.2) * .62, cel = look === 'cel';
+        if (cel && S.cast && S.cast.plane === p.id && S.masks && S.masks[fi]) { g.fillStyle = '#fff'; for (const q of S.masks[fi]) { poly(g, q); g.closePath(); g.fill(); } }
+        for (const o of S.objects || []) { if (o.plane !== p.id) continue; const st = o.frames ? o.frames[fi] : o.strokes; if (st) inkSets(g, st, far ? MUTED : INK, lw, cel && o.class !== 'grass' && o.class !== 'ground' ? '#fff' : null, dx, dy); }
+        if (S.cast && S.cast.plane === p.id && S.cast.frames[fi]) inkSets(g, S.cast.frames[fi], INK, lw, null);
+      }
+    } else if (m.type === 'mask') {
+      for (const q of (S.masks && S.masks[fi]) || []) { poly(g, q); g.closePath();
+        if (look === 'paper') { g.fillStyle = '#fff'; g.fill(); }
+        else if (look === 'line') { g.strokeStyle = KEY; g.lineWidth = 1.4; g.stroke(); }
+        else { g.fillStyle = 'rgba(200,64,47,.35)'; g.fill(); g.strokeStyle = KEY; g.lineWidth = 1; g.stroke(); } }
+    }
+    g.restore(); return;
+  }
+  if (m.type === 'clip') {
+    const c = CLIP[m.clip], v = videoFor('sp:' + sp.id, c.src); usedVideos.add('sp:' + sp.id);
+    const a = sp.in || 0, b = Math.min(sp.out ?? c.d, c.d), len = Math.max(.2, b - a), t = a + ((fr / D.fps) % len);
+    if (playing) { if (v.paused) v.play().catch(() => {}); if (Math.abs(v.currentTime - t) > .35 && v.readyState >= 1) try { v.currentTime = t; } catch(e){} }
+    else { if (!v.paused) v.pause(); if (v.readyState >= 1 && Math.abs(v.currentTime - t) > .05) try { v.currentTime = t; } catch(e){} }
+    if (v.readyState >= 2) g.drawImage(v, 0, 0, n.w, n.h); else { g.fillStyle = '#0b0d0f'; g.fillRect(0, 0, n.w, n.h); if (c.img) { const im = imgFor(c.img); if (im.complete && im.naturalWidth) g.drawImage(im, 0, 0, n.w, n.h); } }
+    return;
+  }
+  if (m.type === 'capture') { const fr2 = capImgs.get(m.id) || []; const im = fr2[fr % Math.max(1, fr2.length)]; if (im && im.complete && im.naturalWidth) g.drawImage(im, 0, 0, n.w, n.h); return; }
+  if (m.type === 'text') { g.font = `600 ${m.size || 24}px "IBM Plex Mono", monospace`; g.fillStyle = m.color || INK; g.textBaseline = 'top'; (m.text || '').split('\n').forEach((l, i) => g.fillText(l, 4, 3 + i * (m.size || 24) * 1.25)); return; }
+  if (m.type === 'grid') { drawGrid(g, sp, n); return; }
+}
+const imgCache = new Map();
+function imgFor(u){ let i = imgCache.get(u); if (!i) { i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => { needStage = true; thumbsDirty = true; }; i.src = u; imgCache.set(u, i); } return i; }
+
+/* ============================ the game ============================ */
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const winner = b => { for (const l of LINES) if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return { p:b[l[0]], L:l }; return b.every(Boolean) ? { p:'D', L:null } : null; };
+function minimax(b, p){ const w = winner(b); if (w) return { s:w.p === 'O' ? 10 : w.p === 'X' ? -10 : 0 }; let best = { s:p === 'O' ? -99 : 99, m:[] };
+  for (let i = 0; i < 9; i++) if (!b[i]) { b[i] = p; const s0 = minimax(b, p === 'O' ? 'X' : 'O').s; b[i] = null; const s = s0 - Math.sign(s0) * .1; if (p === 'O' ? s > best.s : s < best.s) best = { s, m:[i] }; else if (s === best.s) best.m.push(i); } return best; }
+const gameOf = sp => sp.game || (sp.game = { cells:Array(9).fill(null), mode:'wopr', onEnd:'' });
+const boardOf = sp => gameOf(sp).cells.map(c => c && c.p || null);
+function drawGrid(g, sp, n){
+  const G = gameOf(sp), cw = n.w / 3, w = winner(boardOf(sp));
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(0, 0, n.w, n.h);
+  G.cells.forEach((c, i) => {
+    if (!c) return; const x = (i % 3) * cw, y = Math.floor(i / 3) * cw, pad = cw * .06;
+    if (c.clip) { const v = videoFor('g:' + sp.id + ':' + i, CLIP[c.clip].src); usedVideos.add('g:' + sp.id + ':' + i); v.loop = true; if (v.paused) v.play().catch(() => {}); if (v.readyState >= 2) g.drawImage(v, x + pad, y + pad, cw - pad * 2, cw - pad * 2); }
+    const s = c.clip ? cw * .14 : cw * .28, cx = c.clip ? x + pad + s + 4 : x + cw / 2, cy = c.clip ? y + pad + s + 4 : y + cw / 2;
+    g.lineWidth = c.clip ? 4 : cw * .07; g.lineCap = 'round';
+    if (c.p === 'X') { g.strokeStyle = '#3b82f6'; g.beginPath(); g.moveTo(cx - s, cy - s); g.lineTo(cx + s, cy + s); g.moveTo(cx + s, cy - s); g.lineTo(cx - s, cy + s); g.stroke(); }
+    if (c.p === 'O') { g.strokeStyle = '#ff2e2e'; g.beginPath(); g.arc(cx, cy, s, 0, 7); g.stroke(); }
+  });
+  g.strokeStyle = INK; g.lineWidth = n.w * .012; g.lineCap = 'round'; g.beginPath();
+  for (const k of [1, 2]) { g.moveTo(k * cw, n.h * .03); g.lineTo(k * cw, n.h * .97); g.moveTo(n.w * .03, k * cw); g.lineTo(n.w * .97, k * cw); } g.stroke();
+  if (w && w.L) { const c = i => [(i % 3 + .5) * cw, (Math.floor(i / 3) + .5) * cw], a = c(w.L[0]), b = c(w.L[2]); g.strokeStyle = 'rgba(255,210,63,.95)'; g.lineWidth = n.w * .03; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+}
+let gameEndT = 0;
+function playMove(sp, i){
+  const G = gameOf(sp), b = boardOf(sp); if (b[i] || winner(b)) return;
+  const xs = b.filter(v => v === 'X').length, os = b.filter(v => v === 'O').length;
+  const armed = sel.kind === 'member' && mem(sel.id) && mem(sel.id).type === 'clip' ? mem(sel.id).clip : null;
+  if (G.mode === 'free') { snap(); G.cells[i] = { p:xs <= os ? 'X' : 'O', clip:armed }; needStage = true; save(); checkEnd(sp); return; }
+  if (xs > os) return;
+  snap(); G.cells[i] = { p:'X', clip:armed }; needStage = true; save();
+  if (checkEnd(sp)) return;
+  setTimeout(() => { const bb = boardOf(sp); if (winner(bb)) return; const r = minimax(bb.slice(), 'O'), m = r.m[Math.floor(Math.random() * r.m.length)];
+    G.cells[m] = { p:'O', clip:WOPR_POOL[Math.floor(Math.random() * WOPR_POOL.length)] }; needStage = true; save(); checkEnd(sp); status(); }, 550);
+  status();
+}
+function checkEnd(sp){
+  const w = winner(boardOf(sp)); if (!w) return false;
+  toast(w.p === 'D' ? 'Draw. Winner: none.' : w.p === 'X' ? 'X wins.' : 'WOPR wins.');
+  const to = gameOf(sp).onEnd;
+  if (to) { clearTimeout(gameEndT); gameEndT = setTimeout(() => { gameOf(sp).cells = Array(9).fill(null); const mk = D.markers.find(q => q.name === to); if (mk) { setFrame(mk.f); if (!playing) togglePlay(); } needStage = true; save(); }, 1600); }
+  return true;
+}
+
+/* ============================ stage ============================ */
+const stageWrap = $('#stageWrap'), cv = $('#stageCv'), g = cv.getContext('2d');
+let needStage = true, VS = { s:1, ox:0, oy:0, dpr:1, cw:0, ch:0 };
+function sizeStage(){
+  const r = stageWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  const W = Math.max(1, Math.round(r.width * dpr)), H = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const s = Math.min(r.width / D.W, r.height / D.H) * .94;
+  VS = { s, ox:(r.width - D.W * s) / 2, oy:(r.height - D.H * s) / 2, dpr, cw:r.width, ch:r.height };
+  needStage = true;
+}
+function depthMat(rank, N){
+  const t = .38, gap = D.W * .32, z = (rank - (N - 1) / 2) * gap, c = Math.cos(yaw), s = Math.sin(yaw);
+  const sc = Math.min(VS.cw / (D.W * Math.abs(c) + N * gap * Math.abs(s) + 40), VS.ch / (D.H + (D.W * Math.abs(s) + N * gap * Math.abs(c)) * t + 60)) * .92;
+  const ox = VS.cw / 2 - sc * (D.W / 2 * c), oy = VS.ch / 2 - sc * (D.H / 2 + D.W / 2 * s * t);
+  return [sc * c, sc * s * t, 0, sc, ox - sc * s * z, oy + sc * c * t * z];
+}
+function renderStage(){
+  needStage = false; usedVideos.clear();
+  const dpr = VS.dpr; g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.fillStyle = '#2a2d31'; g.fillRect(0, 0, cv.width, cv.height);
+  const live = liveAt(f).filter(s => !s.hidden);
+  if (view === 'flat') {
+    g.setTransform(dpr * VS.s, 0, 0, dpr * VS.s, dpr * VS.ox, dpr * VS.oy);
+    g.fillStyle = '#fff'; g.fillRect(0, 0, D.W, D.H);
+    g.save(); g.beginPath(); g.rect(0, 0, D.W, D.H); g.clip();
+    for (const sp of live) drawSprite(sp, true);
+    g.restore();
+    const s = sel.kind === 'sprite' && spr(sel.id);
+    if (s && f >= s.a && f <= s.b) { const r = rectOf(s); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.strokeStyle = '#ffd23f'; g.lineWidth = 1.5 / VS.s; g.strokeRect(r.x, r.y, r.w, r.h);
+      if (tool === 'select') { const h = 7 / VS.s; g.fillStyle = '#ffd23f'; for (const [x, y] of [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]]) g.fillRect(x - h / 2, y - h / 2, h, h); } }
+  } else {
+    const N = Math.max(1, live.length);
+    live.forEach((sp, i) => {
+      const M = depthMat(i, N); g.setTransform(dpr * M[0], dpr * M[1], dpr * M[2], dpr * M[3], dpr * M[4], dpr * M[5]);
+      const isSel = sel.kind === 'sprite' && sel.id === sp.id;
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      g.fillStyle = 'rgba(255,255,255,.62)'; g.fillRect(0, 0, D.W, D.H);
+      g.save(); g.beginPath(); g.rect(0, 0, D.W, D.H); g.clip(); drawSprite(sp, false); g.restore();
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.strokeStyle = isSel ? '#ffd23f' : 'rgba(150,158,166,.9)'; g.lineWidth = (isSel ? 2.4 : 1) / M[3]; g.strokeRect(0, 0, D.W, D.H);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); const lx = M[4] + 2, ly = M[5] - 6;
+      g.font = '600 12px "IBM Plex Mono", monospace'; g.fillStyle = isSel ? '#ffd23f' : '#d6dbe0'; g.fillText(`${sp.ch}  ${mem(sp.m).name}`, lx, ly);
+    });
+    if (!live.length) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#9aa2a9'; g.font = '13px "IBM Plex Sans"'; g.fillText('No sprites on this frame.', 16, 30); }
+  }
+  for (const [k, v] of videos) if (!usedVideos.has(k) && !v.paused) v.pause();
+  $('#stageTag').textContent = `${D.W}×${D.H} · frame ${f + 1}`;
+}
+function drawSprite(sp, blend){
+  const m = mem(sp.m), r = rectOf(sp), fr = memFrameAt(sp, f);
+  g.save();
+  g.globalAlpha = sp.op ?? 1; g.globalCompositeOperation = blend && sp.blend && sp.blend !== 'normal' ? sp.blend : 'source-over';
+  g.translate(r.x, r.y); g.scale(r.s, r.s);
+  drawMember(g, sp, m, r.n, fr, true);
+  // the sprite's own marks: held ones always; frame ones on their frame; the previous frame faintly while drawing frames
+  const rel = f - sp.a;
+  for (const mk of sp.marks || []) {
+    let a = 1; if (mk.f != null) { if (mk.f === rel) a = 1; else if (sel.kind === 'sprite' && sel.id === sp.id && perFrame && tool === 'pen' && mk.f === rel - 1) a = .25; else continue; }
+    g.globalAlpha = (sp.op ?? 1) * a; inkSets(g, [mk.pts], mk.c, mk.w, null);
+  }
+  g.restore();
+}
+/* stage pointer */
+function toStage(x, y){ const r = cv.getBoundingClientRect(); return [(x - r.left - VS.ox) / VS.s, (y - r.top - VS.oy) / VS.s]; }
+function inPoly(x, y, pts){ let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+function nearSets(sets, x, y, rad, dx = 0, dy = 0){ for (const st of sets || []) { if (!st) continue; for (let i = 0; i < st.length; i++) { const a = st[i], b = st[i + 1] || a, ax = a[0] + dx, ay = a[1] + dy, bx = b[0] + dx, by = b[1] + dy, L = (bx - ax) ** 2 + (by - ay) ** 2, u = L ? Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / L)) : 0; if (Math.hypot(x - ax - u * (bx - ax), y - ay - u * (by - ay)) < rad) return true; } } return false; }
+/* a sprite is hit where it has content: drawn lines, silhouettes, marks; pictures, clips, text and games by their box */
+function hitsContent(sp, px, py){
+  const r = rectOf(sp); if (px < r.x || px > r.x + r.w || py < r.y || py > r.y + r.h) return false;
+  const m = mem(sp.m), lx = (px - r.x) / r.s, ly = (py - r.y) / r.s, fr = memFrameAt(sp, f), rel = f - sp.a;
+  if ((sp.marks || []).some(q => (q.f == null || q.f === rel) && nearSets([q.pts], lx, ly, 8 / r.s))) return true;
+  if (m.type === 'drawing') return false;
+  if (!m.src || m.type === 'footage') return true;
+  const S = shotNow.get(m.src.slug); if (!S) return true;
+  const fi = fr % S.n, k = r.n.k, sx = lx / k, sy = ly / k, rad = 9 / (r.s * k);
+  if (m.type === 'mask') return ((S.masks && S.masks[fi]) || []).some(q => inPoly(sx, sy, q));
+  const p = S.planes.find(q => q.id === m.src.plane); if (!p) return false;
+  const cam = (S.camera && S.camera[fi]) || [0, 0], c = p.id === 'char' ? 0 : S.z_ref / p.z;
+  if (S.cast && S.cast.plane === p.id && (nearSets(S.cast.frames[fi], sx, sy, rad) || ((S.masks && S.masks[fi]) || []).some(q => inPoly(sx, sy, q)))) return true;
+  return (S.objects || []).some(o => o.plane === p.id && nearSets(o.frames ? o.frames[fi] : o.strokes, sx, sy, rad, cam[0] * c, cam[1] * c));
+}
+function hitSprite(px, py){ const live = liveAt(f).filter(s => !s.hidden && !s.locked); for (let i = live.length - 1; i >= 0; i--) if (hitsContent(live[i], px, py)) return live[i]; return null; }
+function hitDepth(x, y){
+  const r = cv.getBoundingClientRect(), px = x - r.left, py = y - r.top, live = liveAt(f).filter(s => !s.hidden), N = Math.max(1, live.length);
+  for (let i = live.length - 1; i >= 0; i--) { const M = depthMat(i, N), X = (px - M[4]) / M[0], Y = (py - M[5] - M[1] * X) / M[3]; const q = rectOf(live[i]); if (X >= q.x && X <= q.x + q.w && Y >= q.y && Y <= q.y + q.h) return live[i]; }
+  return null;
+}
+let sp_ = null;   // stage press
+function stageDown(x, y, src){
+  if (view === 'depth') { sp_ = { kind:'turn', x, y, yaw0:yaw, moved:false }; return; }
+  const [px, py] = toStage(x, y);
+  const s = sel.kind === 'sprite' && spr(sel.id);
+  const useMode = tool === 'use' || (playing && tool === 'select');
+  if (useMode) { const h = hitSprite(px, py); if (h && mem(h.m).type === 'grid') { const r = rectOf(h), cw = r.w / 3, i = Math.floor((py - r.y) / cw) * 3 + Math.floor((px - r.x) / cw); if (i >= 0 && i < 9) playMove(h, i); return; } if (tool === 'use') return; }
+  if (tool === 'select') {
+    if (s && f >= s.a && f <= s.b) { const r = rectOf(s), hz = 10 / VS.s;
+      for (const [cx, cy] of [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]]) if (Math.abs(px - cx) < hz && Math.abs(py - cy) < hz) { sp_ = { kind:'scale', s, s0:s.s || 1, d0:Math.hypot(px - r.cx, py - r.cy), snapped:false }; return; } }
+    const h = hitSprite(px, py);
+    if (h) { select({ kind:'sprite', id:h.id }); sp_ = { kind:'move', s:h, x0:px, y0:py, sx:h.x || 0, sy:h.y || 0, snapped:false }; }
+    else { select({ kind:'none' }); }
+    return;
+  }
+  if (!s || f < s.a || f > s.b) { toast('Select a sprite on this frame to draw on, or add a drawing.', 'New drawing', () => newDrawing(true)); return; }
+  const r = rectOf(s), lx = (px - r.x) / r.s, ly = (py - r.y) / r.s;
+  if (tool === 'pen') { snap(); const mk = { f:perFrame ? f - s.a : null, c:PENS[pen], w:(pen === 3 ? 5 : 2.2) / r.s, pts:[[lx, ly]] }; (s.marks || (s.marks = [])).push(mk); sp_ = { kind:'pen', s, mk }; needStage = true; return; }
+  if (tool === 'erase') { sp_ = { kind:'erase', s, snapped:false }; eraseAt(s, lx, ly, sp_); }
+}
+function stageMove(x, y){
+  if (!sp_) return;
+  if (sp_.kind === 'turn') { yaw = Math.max(-1.25, Math.min(1.25, sp_.yaw0 + (x - sp_.x) * .006)); if (Math.abs(x - sp_.x) > 4) sp_.moved = true; needStage = true; return; }
+  const [px, py] = toStage(x, y);
+  if (sp_.kind === 'move') { if (!sp_.snapped && Math.hypot(px - sp_.x0, py - sp_.y0) > 2) { snap(); sp_.snapped = true; } if (sp_.snapped) { sp_.s.x = Math.round(sp_.sx + px - sp_.x0); sp_.s.y = Math.round(sp_.sy + py - sp_.y0); needStage = true; } return; }
+  if (sp_.kind === 'scale') { if (!sp_.snapped) { snap(); sp_.snapped = true; } const r = rectOf(sp_.s); sp_.s.s = Math.max(.05, Math.min(8, +(sp_.s0 * Math.hypot(px - r.cx, py - r.cy) / Math.max(4, sp_.d0)).toFixed(3))); needStage = true; return; }
+  const r = rectOf(sp_.s), lx = (px - r.x) / r.s, ly = (py - r.y) / r.s;
+  if (sp_.kind === 'pen') { const q = sp_.mk.pts[sp_.mk.pts.length - 1]; if (Math.hypot(lx - q[0], ly - q[1]) * r.s > 1.2) { sp_.mk.pts.push([+lx.toFixed(1), +ly.toFixed(1)]); needStage = true; } return; }
+  if (sp_.kind === 'erase') eraseAt(sp_.s, lx, ly, sp_);
+}
+function stageUp(x, y){
+  const p = sp_; sp_ = null; if (!p) return;
+  if (p.kind === 'turn' && !p.moved) { const h = hitDepth(x, y); if (h) select({ kind:'sprite', id:h.id }); return; }
+  if (p.kind === 'pen' && p.mk.pts.length < 2) p.mk.pts.push([p.mk.pts[0][0] + .6, p.mk.pts[0][1]]);
+  if (p.kind !== 'turn') { save(); needScore = true; renderInsp(); }
+}
+function eraseAt(s, lx, ly, st){
+  const rel = f - s.a, r = rectOf(s), rad = 9 / r.s;
+  for (let j = (s.marks || []).length - 1; j >= 0; j--) { const mk = s.marks[j]; if (mk.f != null && mk.f !== rel) continue;
+    if (mk.pts.some(q => Math.hypot(q[0] - lx, q[1] - ly) < rad)) { if (!st.snapped) { snap(); st.snapped = true; } s.marks.splice(j, 1); needStage = true; return; } }
+}
+
+/* ============================ score ============================ */
+const scoreBox = $('#scoreBox'), scv = $('#scoreCv'), sg = scv.getContext('2d');
+const SC = { cw:12, sx:0, sy:0, HEAD:124, RUL:20, MRK:18, SCR:18, ROW:22 };
+const TOP = () => SC.RUL + SC.MRK + SC.SCR;
+let needScore = true, SW = 0, SH = 0;
+function sizeScore(){ const r = scoreBox.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); SW = r.width; SH = r.height; const W = Math.max(1, Math.round(SW * dpr)), H = Math.max(1, Math.round(SH * dpr)); if (scv.width !== W || scv.height !== H) { scv.width = W; scv.height = H; } needScore = true; }
+const channels = () => Math.min(MAX_CHANNELS, Math.max(10, ...D.sprites.map(s => s.ch + 3)));
+const fx = fr => SC.HEAD + fr * SC.cw - SC.sx;
+function clampScroll(){ const L = docLen() + 40; SC.sx = Math.max(0, Math.min(SC.sx, L * SC.cw - (SW - SC.HEAD) + 20)); SC.sy = Math.max(0, Math.min(SC.sy, channels() * SC.ROW - (SH - TOP()) + 10)); }
+function renderScore(){
+  needScore = false; if (!SW) return;
+  clampScroll();
+  const dpr = Math.min(2, devicePixelRatio || 1), T = TOP(), L = docLen(), N = channels();
+  sg.setTransform(dpr, 0, 0, dpr, 0, 0); sg.fillStyle = '#16191c'; sg.fillRect(0, 0, SW, SH);
+  const f0 = Math.max(0, Math.floor(SC.sx / SC.cw)), f1 = Math.ceil((SC.sx + SW - SC.HEAD) / SC.cw);
+  sg.font = '10px "IBM Plex Mono", monospace'; sg.textBaseline = 'middle';
+  // frame grid
+  sg.save(); sg.beginPath(); sg.rect(SC.HEAD, 0, SW - SC.HEAD, SH); sg.clip();
+  sg.fillStyle = '#121518'; sg.fillRect(fx(L), T, SW, SH);
+  for (let fr = f0; fr <= f1; fr++) { const x = fx(fr); if (fr % 5 === 0) { sg.fillStyle = fr % 10 === 0 ? '#2a3036' : '#21262b'; sg.fillRect(x, T, 1, SH); } }
+  // rows
+  for (let ch = 1; ch <= N; ch++) { const y = T + (ch - 1) * SC.ROW - SC.sy; if (y > SH) break; sg.fillStyle = '#20252a'; sg.fillRect(SC.HEAD, y + SC.ROW - 1, SW, 1); }
+  // sprites
+  sg.save(); sg.beginPath(); sg.rect(SC.HEAD, T, SW, SH - T); sg.clip();
+  for (const s of D.sprites) {
+    const m = mem(s.m); if (!m) continue;
+    const x = fx(s.a), w = (s.b - s.a + 1) * SC.cw, y = T + (s.ch - 1) * SC.ROW - SC.sy;
+    if (x > SW || x + w < SC.HEAD || y > SH || y + SC.ROW < T) continue;
+    const isSel = sel.kind === 'sprite' && sel.id === s.id;
+    sg.fillStyle = TYPE_COL[m.type] || '#555'; sg.globalAlpha = s.hidden ? .35 : 1; sg.fillRect(x + 1, y + 2, w - 2, SC.ROW - 4);
+    sg.fillStyle = 'rgba(0,0,0,.25)'; sg.fillRect(x + 1, y + SC.ROW - 5, w - 2, 3);
+    sg.globalAlpha = 1;
+    if (isSel) { sg.strokeStyle = '#ffd23f'; sg.lineWidth = 2; sg.strokeRect(x + 1.5, y + 2.5, w - 3, SC.ROW - 5); }
+    sg.fillStyle = '#eef1f3'; sg.save(); sg.beginPath(); sg.rect(x + 3, y, w - 8, SC.ROW); sg.clip(); sg.fillText((s.blend && s.blend !== 'normal' ? s.blend[0].toUpperCase() + ' ' : '') + m.name, x + 5, y + SC.ROW / 2); sg.restore();
+    if (s.note || s.prompt) { sg.fillStyle = '#ff6b5c'; sg.fillRect(x + w - 6, y + 3, 4, 4); }
+    if (s.marks && s.marks.length) { sg.fillStyle = '#ffd23f'; sg.fillRect(x + w - 6, y + 9, 4, 4); }
+  }
+  sg.restore();
+  // ruler, markers, scripts
+  sg.fillStyle = '#1c2024'; sg.fillRect(SC.HEAD, 0, SW, T);
+  sg.fillStyle = '#2a2f35'; sg.fillRect(SC.HEAD, SC.RUL - 1, SW, 1); sg.fillRect(SC.HEAD, SC.RUL + SC.MRK - 1, SW, 1); sg.fillRect(SC.HEAD, T - 1, SW, 1);
+  const step = SC.cw >= 12 ? 5 : 10;
+  for (let fr = f0 - (f0 % step); fr <= f1; fr += step) { if (fr < 0) continue; const x = fx(fr); sg.fillStyle = '#4a5259'; sg.fillRect(x, SC.RUL - 6, 1, 5); sg.fillStyle = '#8b939a'; sg.fillText(String(fr + 1), x + 3, SC.RUL / 2); }
+  for (let i = 0; i < D.markers.length; i++) { const mk = D.markers[i], x = fx(mk.f), isSel = sel.kind === 'marker' && sel.i === i; sg.fillStyle = isSel ? '#ffd23f' : '#d8dde1'; sg.beginPath(); sg.moveTo(x, SC.RUL + 3); sg.lineTo(x + 8, SC.RUL + 3); sg.lineTo(x, SC.RUL + SC.MRK - 3); sg.closePath(); sg.fill(); sg.fillText(mk.name, x + 10, SC.RUL + SC.MRK / 2); }
+  for (const k in D.scripts) { const sc = D.scripts[k], x = fx(+k), y = SC.RUL + SC.MRK, isSel = sel.kind === 'frame' && sel.f === +k; sg.fillStyle = isSel ? '#ffd23f' : sc.do === 'pause' ? '#c8402f' : '#19a892'; sg.fillRect(x + 1, y + 3, Math.max(4, SC.cw - 2), SC.SCR - 6); }
+  if (sel.kind === 'frame' && !D.scripts[sel.f]) { sg.strokeStyle = '#ffd23f'; sg.strokeRect(fx(sel.f) + 1.5, SC.RUL + SC.MRK + 2.5, Math.max(4, SC.cw - 3), SC.SCR - 5); }
+  // playhead
+  const px = fx(f) + SC.cw / 2; sg.fillStyle = 'rgba(25,230,200,.12)'; sg.fillRect(fx(f), T, SC.cw, SH); sg.fillStyle = '#19e6c8'; sg.fillRect(px - .5, 0, 1.5, SH); sg.fillRect(fx(f), 0, SC.cw, 4);
+  sg.restore();
+  // headers
+  sg.fillStyle = '#1c2024'; sg.fillRect(0, 0, SC.HEAD, SH); sg.fillStyle = '#2a2f35'; sg.fillRect(SC.HEAD - 1, 0, 1, SH);
+  sg.fillStyle = '#8b939a'; sg.fillText('FRAME', 8, SC.RUL / 2); sg.fillText('MARKERS', 8, SC.RUL + SC.MRK / 2); sg.fillText('SCRIPT', 8, SC.RUL + SC.MRK + SC.SCR / 2);
+  sg.save(); sg.beginPath(); sg.rect(0, T, SC.HEAD, SH - T); sg.clip();
+  const live = liveAt(f);
+  for (let ch = 1; ch <= N; ch++) { const y = T + (ch - 1) * SC.ROW - SC.sy; if (y > SH) break; if (y + SC.ROW < T) continue;
+    const here = live.find(s => s.ch === ch), isSelCh = sel.kind === 'sprite' && spr(sel.id) && spr(sel.id).ch === ch;
+    sg.fillStyle = isSelCh ? '#262c32' : '#1c2024'; sg.fillRect(0, y, SC.HEAD - 1, SC.ROW - 1);
+    sg.fillStyle = '#6c757d'; sg.fillText(String(ch).padStart(2, ' '), 8, y + SC.ROW / 2);
+    if (here) { sg.fillStyle = here.hidden ? '#5a6168' : '#c9cfd4'; sg.save(); sg.beginPath(); sg.rect(28, y, SC.HEAD - 34, SC.ROW); sg.clip(); sg.fillText(mem(here.m).name, 30, y + SC.ROW / 2); sg.restore(); } }
+  sg.restore();
+}
+/* score pointer */
+let sc_ = null;
+const scLocal = (x, y) => { const r = scv.getBoundingClientRect(); return [x - r.left, y - r.top]; };
+const frAt = x => Math.max(0, Math.floor((x - SC.HEAD + SC.sx) / SC.cw));
+const chAt = y => Math.max(1, Math.floor((y - TOP() + SC.sy) / SC.ROW) + 1);
+function spriteAtCell(ch, fr){ return D.sprites.find(s => s.ch === ch && fr >= s.a && fr <= s.b); }
+function freeChannel(a, b, from = 1, except = null){ for (let ch = from; ch <= MAX_CHANNELS; ch++) if (!D.sprites.some(s => s !== except && s.ch === ch && !(b < s.a || a > s.b))) return ch; return null; }
+let lastTap = { t:0, x:0, y:0 };
+function scoreDown(cx, cy, src){
+  const [x, y] = scLocal(cx, cy), T = TOP();
+  const dbl = performance.now() - lastTap.t < 330 && Math.hypot(x - lastTap.x, y - lastTap.y) < 10; lastTap = { t:performance.now(), x, y };
+  if (x < SC.HEAD) { if (y >= T) { const ch = chAt(y), here = liveAt(f).find(s => s.ch === ch); if (here) select({ kind:'sprite', id:here.id }); } sc_ = { kind:'pan', x:cx, y:cy, sx:SC.sx, sy:SC.sy, moved:false }; return; }
+  const fr = frAt(x);
+  if (y < SC.RUL) { sc_ = { kind:'scrub' }; setFrame(fr); return; }
+  if (y < SC.RUL + SC.MRK) {
+    const i = D.markers.findIndex(mk => x >= fx(mk.f) - 2 && x <= fx(mk.f) + 10 + sg.measureText(mk.name).width);
+    if (i >= 0) { select({ kind:'marker', i }); sc_ = { kind:'marker', i, f0:D.markers[i].f, x0:x, snapped:false }; return; }
+    if (dbl || src === 'mouse') { snap(); const name = 'm' + (D.markers.length + 1); D.markers.push({ f:fr, name }); D.markers.sort((a, b) => a.f - b.f); select({ kind:'marker', i:D.markers.findIndex(mk => mk.f === fr && mk.name === name) }); save(); toast(`Marker added at frame ${fr + 1}. Rename it in the Inspector.`); }
+    return;
+  }
+  if (y < T) { select({ kind:'frame', f:fr }); setFrame(fr); return; }
+  const ch = chAt(y), s = spriteAtCell(ch, fr);
+  if (s) {
+    select({ kind:'sprite', id:s.id });
+    const xa = fx(s.a), xb = fx(s.b + 1), w = xb - xa, edge = Math.min(8, w / 3);
+    const kind = x - xa < edge && w > 14 ? 'trimA' : xb - x < edge && w > 14 ? 'trimB' : 'move';
+    sc_ = { kind, s, fr0:fr, ch0:ch, a0:s.a, b0:s.b, c0:s.ch, snapped:false, x0:x, y0:y };
+    return;
+  }
+  if (dbl && sel.kind === 'member') { placeMember(mem(sel.id), fr, ch); return; }
+  sc_ = { kind:'pan', x:cx, y:cy, sx:SC.sx, sy:SC.sy, moved:false, tapFr:fr };
+}
+function scoreMove(cx, cy){
+  if (!sc_) return; const [x, y] = scLocal(cx, cy);
+  if (sc_.kind === 'scrub') { setFrame(frAt(x)); return; }
+  if (sc_.kind === 'pan') { if (Math.hypot(cx - sc_.x, cy - sc_.y) > 5) sc_.moved = true; SC.sx = sc_.sx - (cx - sc_.x); SC.sy = sc_.sy - (cy - sc_.y); needScore = true; return; }
+  if (sc_.kind === 'marker') { const nf = Math.max(0, sc_.f0 + Math.round((x - sc_.x0) / SC.cw)); if (nf !== D.markers[sc_.i].f) { if (!sc_.snapped) { snap(); sc_.snapped = true; } D.markers[sc_.i].f = nf; needScore = true; } return; }
+  const s = sc_.s, dfr = Math.round((x - sc_.x0) / SC.cw), dch = Math.round((y - sc_.y0) / SC.ROW);
+  if (!dfr && !dch && !sc_.snapped) return;
+  if (!sc_.snapped) { snap(); sc_.snapped = true; }
+  if (sc_.kind === 'move') { const len = sc_.b0 - sc_.a0; s.a = Math.max(0, sc_.a0 + dfr); s.b = s.a + len; s.ch = Math.max(1, Math.min(MAX_CHANNELS, sc_.c0 + dch)); }
+  if (sc_.kind === 'trimA') s.a = Math.max(0, Math.min(sc_.b0, sc_.a0 + dfr));
+  if (sc_.kind === 'trimB') s.b = Math.max(sc_.a0, sc_.b0 + dfr);
+  needScore = needStage = true;
+}
+function scoreUp(){
+  const p = sc_; sc_ = null; if (!p) return;
+  if (p.kind === 'pan' && !p.moved && p.tapFr != null) { select({ kind:'none' }); setFrame(p.tapFr); return; }
+  if (p.kind === 'marker' && p.snapped) { D.markers.sort((a, b) => a.f - b.f); save(); renderInsp(); return; }
+  if ((p.kind === 'move' || p.kind === 'trimA' || p.kind === 'trimB') && p.snapped) {
+    const s = p.s; if (D.sprites.some(o => o !== s && o.ch === s.ch && !(s.b < o.a || s.a > o.b))) { const ch = freeChannel(s.a, s.b, s.ch, s); if (ch) { s.ch = ch; toast(`Channel taken; moved to channel ${ch}.`); } }
+    save(); renderInsp(); needStage = needScore = true;
+  }
+}
+scoreBox.addEventListener('wheel', e => { e.preventDefault(); if (e.ctrlKey || e.metaKey) { zoomScore(e.deltaY < 0 ? 1 : -1); return; } if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) SC.sx += e.deltaX || e.deltaY; else SC.sy += e.deltaY; needScore = true; }, { passive:false });
+function zoomScore(d){ const c = [4, 6, 8, 10, 12, 16, 20, 26, 34], i = Math.max(0, Math.min(c.length - 1, c.indexOf(SC.cw) + d)); const mid = (SC.sx + (SW - SC.HEAD) / 2) / SC.cw; SC.cw = c[i < 0 ? 4 : i]; SC.sx = mid * SC.cw - (SW - SC.HEAD) / 2; needScore = true; }
+$('#zIn').onclick = () => zoomScore(1); $('#zOut').onclick = () => zoomScore(-1);
+
+/* ============================ placing members ============================ */
+function defaultLen(m){ if (m.src || m.type === 'capture') return memFrames(m); if (m.type === 'clip') return Math.min(240, memFrames(m)); return Math.max(24, docLen() - f); }
+function makeSprite(m, a, ch){
+  const len = defaultLen(m), b = a + len - 1, c = ch && !D.sprites.some(s => s.ch === ch && !(b < s.a || a > s.b)) ? ch : freeChannel(a, b, ch || 1);
+  if (!c) return null;
+  const s = { id:newId('s'), m:m.id, ch:c, a, b, x:0, y:0, s:1, op:1, blend:'normal', look:m.type === 'footage' ? 'wash' : m.type === 'plane' ? 'line' : m.type === 'mask' ? 'fill' : '', note:'', prompt:'', marks:[] };
+  if (m.type === 'clip') { s.in = 0; s.out = null; }
+  if (m.type === 'grid') s.game = { cells:Array(9).fill(null), mode:'wopr', onEnd:'' };
+  if (m.type === 'mask') s.op = 1;
+  D.sprites.push(s); return s;
+}
+function placeMember(m, a = f, ch = null){
+  if (!m) return; snap(); const s = makeSprite(m, a, ch);
+  if (!s) { toast('No free channel for that span.'); return; }
+  select({ kind:'sprite', id:s.id }); save(); needStage = needScore = true; renderCast();
+  toast(`Placed ${m.name} in channel ${s.ch}, frames ${s.a + 1}–${s.b + 1}.`);
+}
+function addMember(m){ m.id = newId('m'); D.cast.push(m); return m; }
+function membersFromShot(S, which){
+  const out = [], label = S.title.replace(/,.*$/, '');
+  if (!which || which === 'footage') out.push({ type:'footage', name:label + ' footage', src:{ slug:S.slug }, note:'' });
+  for (const p of [...S.planes].sort((a, b) => b.z - a.z)) if (!which || which === p.id) { const short = p.label.replace(/\s*\(.*$/, '').trim() || p.id; out.push({ type:'plane', name:short, src:{ slug:S.slug, plane:p.id }, z:p.z, note:short !== p.label ? p.label : '' }); }
+  if ((!which || which === 'masks') && S.masks && S.masks.length) out.push({ type:'mask', name:label + ' silhouettes', src:{ slug:S.slug }, note:'' });
+  return out;
+}
+function newDrawing(place){ snap(); const m = addMember({ type:'drawing', name:'Drawing ' + (D.cast.filter(q => q.type === 'drawing').length + 1), note:'' }); if (place) { const s = makeSprite(m, 0, null); if (s) { s.b = docLen() - 1; select({ kind:'sprite', id:s.id }); } tool = 'pen'; syncTools(); } else select({ kind:'member', id:m.id }); save(); renderCast(); needStage = needScore = true; }
+
+/* ============================ cast panel ============================ */
+const castGrid = $('#castGrid');
+let thumbsDirty = true; const thumbs = new Map();
+function thumbFor(m){
+  if (m.type === 'clip') return CLIP[m.clip].img || '';
+  if (m.type === 'footage') { const S = shotNow.get(m.src.slug); return S && S.urls[0] && !S.urls[0].startsWith('data:') ? S.urls[0] : (thumbs.get(m.id) || ''); }
+  return thumbs.get(m.id) || '';
+}
+function makeThumbs(){
+  thumbsDirty = false;
+  const c = document.createElement('canvas'); c.width = 120; c.height = 90; const t = c.getContext('2d');
+  let changed = false;
+  for (const m of D.cast) {
+    if (m.type === 'clip' || m.type === 'drawing') continue;
+    if (m.src && !shotNow.get(m.src.slug)) continue;
+    t.setTransform(1, 0, 0, 1, 0, 0); t.globalAlpha = 1; t.globalCompositeOperation = 'source-over'; t.fillStyle = m.type === 'text' || m.type === 'grid' ? '#f4f5f6' : '#fff'; t.fillRect(0, 0, 120, 90);
+    const n = natural(m), k = Math.min(120 / n.w, 90 / n.h); t.translate((120 - n.w * k) / 2, (90 - n.h * k) / 2); t.scale(k, k);
+    const fake = { id:'thumb-' + m.id, look:m.type === 'footage' ? 'plain' : m.type === 'plane' ? 'line' : 'fill', game:{ cells:Array(9).fill(null), mode:'wopr' } };
+    try { drawMember(t, fake, m, n, 0, false); const u = c.toDataURL('image/jpeg', .7); if (thumbs.get(m.id) !== u) { thumbs.set(m.id, u); changed = true; } } catch(e){}
+  }
+  if (changed) renderCast();
+}
+function renderCast(){
+  const used = new Set(D.sprites.map(s => s.m));
+  castGrid.innerHTML = D.cast.map((m, i) => { const th = thumbFor(m); return `<div class="cm${sel.kind === 'member' && sel.id === m.id ? ' sel' : ''}${used.has(m.id) ? ' used' : ''}" data-id="${m.id}" role="button" tabindex="0" title="${esc(m.name)}">
+    <span class="th" style="${th ? `background-image:url('${esc(th)}')` : ''}"><em>${i + 1}</em>${th ? '' : `<span style="font:10px var(--mono)">${esc(m.type)}</span>`}</span>
+    <span class="nm">${esc(m.name)}</span><span class="ty"><i style="background:${TYPE_COL[m.type]}"></i>${esc(m.type)}</span></div>`; }).join('')
+    || '<div class="isub" style="grid-column:1/-1;padding:6px">The cast is empty. Import a shot, add a clip, or make a new drawing, text or game.</div>';
+}
+let cd_ = null;
+castGrid.addEventListener('pointerdown', e => { const t = e.target.closest('.cm'); if (!t) return; cd_ = { id:t.dataset.id, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, touch:e.pointerType === 'touch', t0:performance.now() }; });
+const ghost = $('#ghost');
+function castMove(x, y){
+  if (!cd_) return;
+  if (!cd_.moved && Math.hypot(x - cd_.x, y - cd_.y) > 8) { if (cd_.touch && Math.abs(y - cd_.y) > Math.abs(x - cd_.x) && performance.now() - cd_.t0 < 250) { cd_ = null; return; } cd_.moved = true; const m = mem(cd_.id), th = thumbFor(m); ghost.style.backgroundImage = th ? `url("${th}")` : 'none'; ghost.textContent = th ? '' : m.name; ghost.hidden = false; }
+  if (cd_.moved) { ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; }
+}
+function castUp(x, y){
+  const d = cd_; cd_ = null; ghost.hidden = true; if (!d) return; const m = mem(d.id); if (!m) return;
+  if (!d.moved) { const dbl = sel.kind === 'member' && sel.id === m.id && performance.now() - (castUp.t || 0) < 400; castUp.t = performance.now(); if (dbl) placeMember(m); else select({ kind:'member', id:m.id }); return; }
+  const el = document.elementFromPoint(x, y);
+  if (el && el.closest('#stageWrap')) { placeMember(m, f); return; }
+  if (el && el.closest('#scoreBox')) { const [lx, ly] = scLocal(x, y); placeMember(m, lx > SC.HEAD ? frAt(lx) : f, ly > TOP() ? chAt(ly) : null); return; }
+}
+$('#bImport').onclick = () => openShots();
+$('#bClip').onclick = () => openClips(id => { snap(); const m = addMember({ type:'clip', name:id.toUpperCase(), clip:id, note:CLIP[id].note || '' }); select({ kind:'member', id:m.id }); save(); renderCast(); toast(`${m.name} added to the cast. Drag it to the stage or score.`); });
+$('#bNew').onclick = e => menu(e.currentTarget, [
+  ['Drawing', () => newDrawing(true)],
+  ['Text', () => { snap(); const m = addMember({ type:'text', name:'Text ' + (D.cast.filter(q => q.type === 'text').length + 1), text:'SHALL WE PLAY A GAME?', size:24, color:INK, note:'' }); placeMember(m); }],
+  ['Tic-tac-toe game', () => { snap(); const m = addMember({ type:'grid', name:'Tic-tac-toe', note:'' }); placeMember(m); }],
+]);
+$('#bCapture').onclick = () => openCapture();
+
+/* ============================ inspector ============================ */
+const inspBody = $('#inspBody');
+function select(s){ sel = s; renderInsp(); renderCast(); needStage = needScore = true; status(); if (isMobile() && s.kind !== 'none' && tab !== 'score' && s.kind === 'member') {} }
+function F(label, html){ return `<label class="f"><span>${label}</span>${html}</label>`; }
+function renderInsp(){
+  const t = $('#inspTitle');
+  if (sel.kind === 'sprite' && spr(sel.id)) return inspSprite(spr(sel.id));
+  if (sel.kind === 'member' && mem(sel.id)) return inspMember(mem(sel.id));
+  if (sel.kind === 'frame') return inspFrame(sel.f);
+  if (sel.kind === 'marker' && D.markers[sel.i]) return inspMarker(sel.i);
+  t.textContent = 'Movie';
+  inspBody.innerHTML = `${F('Name', `<input type="text" id="iName" value="${esc(D.name)}">`)}
+    <div class="r2">${F('Stage', `<select id="iSize">${[[480,360],[480,270],[640,360],[360,480],[480,480]].map(([w, h]) => `<option value="${w}x${h}"${D.W === w && D.H === h ? ' selected' : ''}>${w} × ${h}</option>`).join('')}</select>`)}${F('Frames per second', `<input type="number" id="iFps" min="1" max="60" value="${D.fps}">`)}</div>
+    <div class="isub">${D.cast.length} cast members · ${D.sprites.length} sprites in ${new Set(D.sprites.map(s => s.ch)).size} channels · ${docLen()} frames · ${D.markers.length} markers</div>
+    <hr class="s"><div class="isub">Drag cast members to the stage or the score. Click a sprite to edit it here. Double-click the marker row to add a marker; click the script row to give a frame a script.</div>`;
+  const q = s => inspBody.querySelector(s);
+  q('#iName').onchange = e => { snap(); D.name = e.target.value.trim() || D.name; save(); status(); };
+  q('#iSize').onchange = e => { snap(); const [w, h] = e.target.value.split('x').map(Number); D.W = w; D.H = h; save(); sizeStage(); thumbsDirty = true; };
+  q('#iFps').onchange = e => { const v = Math.max(1, Math.min(60, +e.target.value | 0)); snap(); D.fps = v; save(); syncTransport(); needScore = true; };
+}
+function inspSprite(s){
+  const m = mem(s.m), n = natural(m), S = m.src && shotNow.get(m.src.slug);
+  $('#inspTitle').textContent = `Sprite · channel ${s.ch} · frames ${s.a + 1}–${s.b + 1}`;
+  const looks = { footage:[['wash','Washed'],['plain','Plain']], plane:[['line','Line'],['cel','Line and fill']], mask:[['fill','Silhouette'],['paper','Paper cut-out'],['line','Outline']] }[m.type];
+  const G = m.type === 'grid' && gameOf(s);
+  const markOpts = ['', ...D.markers.map(q => q.name)].map(v => `<option value="${esc(v)}"${G && G.onEnd === v ? ' selected' : ''}>${v ? 'go to ' + esc(v) : 'stay'}</option>`).join('');
+  const c = m.type === 'clip' && CLIP[m.clip];
+  inspBody.innerHTML = `
+    <div class="ih">${esc(m.name)}</div>
+    <div class="isub">${esc(m.type)}${S ? ` · ${esc(S.title)}${S.filmTitle ? ` · <a href="${esc(S.filmUrl)}" target="_blank" rel="noopener">${esc(S.filmTitle)}</a>` : ''}` : ''}${c ? ` · ${esc(c.note || '')}` : ''}</div>
+    <div class="r2">${F('Start frame', `<input type="number" id="iA" min="1" value="${s.a + 1}">`)}${F('End frame', `<input type="number" id="iB" min="1" value="${s.b + 1}">`)}</div>
+    <div class="r3">${F('X', `<input type="number" id="iX" value="${Math.round(s.x || 0)}">`)}${F('Y', `<input type="number" id="iY" value="${Math.round(s.y || 0)}">`)}${F('Scale %', `<input type="number" id="iS" value="${Math.round((s.s || 1) * 100)}">`)}</div>
+    ${F(`Opacity ${Math.round((s.op ?? 1) * 100)}%`, `<input type="range" id="iOp" min="0" max="1" step=".05" value="${s.op ?? 1}">`)}
+    <div class="r2">${F('Blend', `<select id="iBlend">${BLENDS.map(b => `<option${b === (s.blend || 'normal') ? ' selected' : ''}>${b}</option>`).join('')}</select>`)}${looks ? F('Look', `<select id="iLook">${looks.map(([v, t]) => `<option value="${v}"${v === s.look ? ' selected' : ''}>${t}</option>`).join('')}</select>`) : F('Channel', `<input type="number" id="iCh" min="1" max="${MAX_CHANNELS}" value="${s.ch}">`)}</div>
+    ${memFrames(m) > 1 ? `<div class="r2">${F('Member frame offset', `<input type="number" id="iOff" value="${s.off || 0}">`)}<label class="chk" style="align-self:end;height:30px"><input type="checkbox" id="iHold"${s.hold ? ' checked' : ''}> Hold last frame</label></div>` : ''}
+    ${c ? `<div class="r2">${F('In (s)', `<input type="number" id="iIn" step=".1" min="0" max="${c.d}" value="${(s.in || 0).toFixed(1)}">`)}${F('Out (s)', `<input type="number" id="iOut" step=".1" min="0" max="${c.d}" value="${Math.min(s.out ?? c.d, c.d).toFixed(1)}">`)}</div>` : ''}
+    ${G ? `<div class="r2">${F('Game', `<select id="iMode"><option value="wopr"${G.mode === 'wopr' ? ' selected' : ''}>You (X) vs WOPR (O)</option><option value="free"${G.mode === 'free' ? ' selected' : ''}>Two players</option></select>`)}${F('When the game ends', `<select id="iEnd">${markOpts}</select>`)}</div><div class="row"><button class="btn" data-a="clearGame">Clear board</button></div>` : ''}
+    ${m.type === 'text' ? `${F('Text', `<textarea id="iText">${esc(m.text)}</textarea>`)}<div class="r2">${F('Size', `<input type="number" id="iTs" min="8" max="160" value="${m.size || 24}">`)}${F('Colour', `<select id="iTc">${[['#161412','Ink'],['#c8402f','Red'],['#3b82f6','Blue'],['#ffffff','White']].map(([v, t]) => `<option value="${v}"${(m.color || INK) === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`)}</div>` : ''}
+    <hr class="s">
+    ${F('Note', `<textarea id="iNote" placeholder="What this sprite is doing here, what to fix">${esc(s.note)}</textarea>`)}
+    ${F('Prompt', `<textarea id="iPrompt" placeholder="Instruction for this sprite, as you would give it to a drawer or a model">${esc(s.prompt)}</textarea>`)}
+    <div class="isub">${(s.marks || []).length} drawn marks${(s.marks || []).some(q => q.f != null) ? ` · ${(s.marks || []).filter(q => q.f != null).length} on single frames` : ''}. Use the pen to draw on this sprite.</div>
+    <div class="row">
+      <button class="btn" data-a="hide">${s.hidden ? 'Show' : 'Hide'}</button>
+      <button class="btn" data-a="dup">Duplicate</button>
+      <button class="btn" data-a="split"${f > s.a && f <= s.b ? '' : ' disabled'}>Split at frame ${f + 1}</button>
+      ${(s.marks || []).length ? '<button class="btn" data-a="wipe">Clear marks</button>' : ''}
+      <button class="btn warn" data-a="del">Delete</button>
+    </div>`;
+  const q = x => inspBody.querySelector(x);
+  const set = (fn, rebuild) => { snap(); fn(); save(); needStage = needScore = true; if (rebuild) renderInsp(); };
+  q('#iA').onchange = e => set(() => { s.a = Math.max(0, Math.min(s.b, (+e.target.value | 0) - 1)); }, 1);
+  q('#iB').onchange = e => set(() => { s.b = Math.max(s.a, (+e.target.value | 0) - 1); }, 1);
+  q('#iX').onchange = e => set(() => s.x = +e.target.value || 0);
+  q('#iY').onchange = e => set(() => s.y = +e.target.value || 0);
+  q('#iS').onchange = e => set(() => s.s = Math.max(.05, Math.min(8, (+e.target.value || 100) / 100)));
+  q('#iOp').oninput = e => { s.op = +e.target.value; e.target.previousElementSibling.textContent = `Opacity ${Math.round(s.op * 100)}%`; needStage = true; };
+  q('#iOp').onpointerdown = () => snap(); q('#iOp').onchange = () => save();
+  q('#iBlend').onchange = e => set(() => s.blend = e.target.value);
+  if (q('#iLook')) q('#iLook').onchange = e => set(() => s.look = e.target.value);
+  if (q('#iCh')) q('#iCh').onchange = e => set(() => { const ch = Math.max(1, Math.min(MAX_CHANNELS, +e.target.value | 0)); if (!D.sprites.some(o => o !== s && o.ch === ch && !(s.b < o.a || s.a > o.b))) s.ch = ch; else toast(`Channel ${ch} is taken for these frames.`); }, 1);
+  if (q('#iOff')) { q('#iOff').onchange = e => set(() => s.off = +e.target.value | 0); q('#iHold').onchange = e => set(() => s.hold = e.target.checked); }
+  if (q('#iIn')) { q('#iIn').onchange = e => set(() => s.in = Math.max(0, Math.min(+e.target.value, Math.min(s.out ?? c.d, c.d) - .2))); q('#iOut').onchange = e => set(() => s.out = Math.max((s.in || 0) + .2, Math.min(c.d, +e.target.value))); }
+  if (G) { q('#iMode').onchange = e => set(() => { G.mode = e.target.value; G.cells = Array(9).fill(null); }); q('#iEnd').onchange = e => set(() => G.onEnd = e.target.value); }
+  if (q('#iText')) { q('#iText').onchange = e => set(() => m.text = e.target.value); q('#iTs').onchange = e => set(() => m.size = Math.max(8, Math.min(160, +e.target.value | 0))); q('#iTc').onchange = e => set(() => m.color = e.target.value); }
+  q('#iNote').onchange = e => set(() => s.note = e.target.value);
+  q('#iPrompt').onchange = e => set(() => s.prompt = e.target.value);
+  inspBody.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'hide') set(() => s.hidden = !s.hidden, 1);
+    if (a === 'clearGame') set(() => G.cells = Array(9).fill(null));
+    if (a === 'wipe') set(() => s.marks = [], 1);
+    if (a === 'dup') { snap(); const c2 = JSON.parse(JSON.stringify(s)); c2.id = newId('s'); const ch = freeChannel(c2.a, c2.b, s.ch + 1); if (!ch) return toast('No free channel.'); c2.ch = ch; D.sprites.push(c2); select({ kind:'sprite', id:c2.id }); save(); }
+    if (a === 'split' && f > s.a && f <= s.b) { snap(); const c2 = JSON.parse(JSON.stringify(s)); c2.id = newId('s'); c2.a = f; c2.off = (s.off || 0) + (f - s.a); c2.marks = (s.marks || []).filter(q => q.f == null).concat((s.marks || []).filter(q => q.f != null && q.f >= f - s.a).map(q => ({ ...q, f:q.f - (f - s.a) }))); s.marks = (s.marks || []).filter(q => q.f == null || q.f < f - s.a); s.b = f - 1; D.sprites.push(c2); select({ kind:'sprite', id:c2.id }); save(); toast(`Split at frame ${f + 1}.`); }
+    if (a === 'del') { snap(); D.sprites = D.sprites.filter(o => o !== s); select({ kind:'none' }); save(); renderCast(); toast(`Deleted the ${m.name} sprite.`, 'Undo', undo); }
+  });
+}
+function inspMember(m){
+  $('#inspTitle').textContent = `Cast member ${D.cast.indexOf(m) + 1} · ${m.type}`;
+  const S = m.src && shotNow.get(m.src.slug), uses = D.sprites.filter(s => s.m === m.id), c = m.type === 'clip' && CLIP[m.clip];
+  inspBody.innerHTML = `${F('Name', `<input type="text" id="iName" value="${esc(m.name)}">`)}
+    <div class="isub">${S ? `${esc(S.title)} · ${S.n} frames at ${S.fps} fps · ${S.W}×${S.H}${S.filmTitle ? ` · <a href="${esc(S.filmUrl)}" target="_blank" rel="noopener">${esc(S.filmTitle)}</a>` : ''}${m.type === 'plane' ? ` · plane at z ${m.z}` : ''}` : c ? `WarGames ${esc(c.id.toUpperCase())} · ${c.d.toFixed(1)} s · ${esc(c.note || '')}` : m.type === 'capture' ? `Captured · ${m.n} frames` : esc(m.type)}</div>
+    ${m.type === 'text' ? F('Text', `<textarea id="iText">${esc(m.text)}</textarea>`) : ''}
+    ${F('Note', `<textarea id="iNote" placeholder="About this member">${esc(m.note)}</textarea>`)}
+    <div class="isub">Used by ${uses.length} sprite${uses.length === 1 ? '' : 's'}.${m.type === 'clip' ? ' While this clip is selected, your moves in a game put it in the square.' : ''}</div>
+    <div class="row"><button class="btn pri" data-a="place">Place at frame ${f + 1}</button><button class="btn warn" data-a="del">Delete${uses.length ? ' with its sprites' : ''}</button></div>`;
+  const q = x => inspBody.querySelector(x);
+  q('#iName').onchange = e => { snap(); m.name = e.target.value.trim() || m.name; save(); renderCast(); needScore = true; };
+  q('#iNote').onchange = e => { snap(); m.note = e.target.value; save(); };
+  if (q('#iText')) q('#iText').onchange = e => { snap(); m.text = e.target.value; save(); needStage = true; thumbsDirty = true; };
+  q('[data-a="place"]').onclick = () => placeMember(m);
+  q('[data-a="del"]').onclick = () => { snap(); D.sprites = D.sprites.filter(s => s.m !== m.id); D.cast = D.cast.filter(x => x !== m); select({ kind:'none' }); save(); renderCast(); toast(`Deleted ${m.name}.`, 'Undo', undo); };
+}
+function inspFrame(fr){
+  $('#inspTitle').textContent = `Frame ${fr + 1} script`;
+  const sc = D.scripts[fr] || { do:'' };
+  inspBody.innerHTML = `${F('When the playhead reaches this frame', `<select id="iDo"><option value=""${!sc.do ? ' selected' : ''}>Keep playing</option><option value="pause"${sc.do === 'pause' ? ' selected' : ''}>Pause here</option><option value="go"${sc.do === 'go' ? ' selected' : ''}>Go to a marker</option></select>`)}
+    ${sc.do === 'go' ? F('Marker', `<select id="iTo">${D.markers.map(q => `<option${q.name === sc.to ? ' selected' : ''}>${esc(q.name)}</option>`).join('') || '<option value="">No markers yet</option>'}</select>`) : ''}
+    <div class="isub">Scripts run during playback, not while scrubbing. Use them to hold on a game, loop a section, or jump between scenes.</div>`;
+  const q = x => inspBody.querySelector(x);
+  q('#iDo').onchange = e => { snap(); const v = e.target.value; if (!v) delete D.scripts[fr]; else D.scripts[fr] = { do:v, to:v === 'go' ? (D.markers[0] && D.markers[0].name || '') : undefined }; save(); needScore = true; renderInsp(); };
+  if (q('#iTo')) q('#iTo').onchange = e => { snap(); D.scripts[fr].to = e.target.value; save(); };
+}
+function inspMarker(i){
+  const mk = D.markers[i]; $('#inspTitle').textContent = `Marker at frame ${mk.f + 1}`;
+  inspBody.innerHTML = `${F('Name', `<input type="text" id="iName" value="${esc(mk.name)}">`)}${F('Frame', `<input type="number" id="iF" min="1" value="${mk.f + 1}">`)}<div class="row"><button class="btn" data-a="go">Go to it</button><button class="btn warn" data-a="del">Delete marker</button></div>`;
+  const q = x => inspBody.querySelector(x);
+  q('#iName').onchange = e => { const v = e.target.value.trim(); if (!v) return; snap(); const old = mk.name; mk.name = v; for (const k in D.scripts) if (D.scripts[k].to === old) D.scripts[k].to = v; for (const s of D.sprites) if (s.game && s.game.onEnd === old) s.game.onEnd = v; save(); needScore = true; };
+  q('#iF').onchange = e => { snap(); mk.f = Math.max(0, (+e.target.value | 0) - 1); D.markers.sort((a, b) => a.f - b.f); select({ kind:'marker', i:D.markers.indexOf(mk) }); save(); };
+  q('[data-a="go"]').onclick = () => setFrame(mk.f);
+  q('[data-a="del"]').onclick = () => { snap(); D.markers.splice(i, 1); select({ kind:'none' }); save(); };
+}
+
+/* ============================ time ============================ */
+let acc = 0, lastT = performance.now();
+function setFrame(nf){ f = Math.max(0, nf | 0); needStage = needScore = true; syncTransport(); if (sel.kind === 'sprite' || sel.kind === 'none') { /* inspector stays */ } }
+function togglePlay(){ playing = !playing; acc = 0; $('#tPlay').innerHTML = playing ? '<svg class="i" viewBox="0 0 16 16"><path d="M4.5 3v10M11.5 3v10"/></svg>' : '<svg class="i" viewBox="0 0 16 16"><path d="M4 2.5v11L13 8z"/></svg>'; $('#tPlay').classList.toggle('on', playing); needStage = true; status(); }
+function tick(){
+  let nf = f + 1;
+  const sc = D.scripts[f];
+  if (sc && sc.do === 'pause') { togglePlay(); return; }
+  if (sc && sc.do === 'go') { const mk = D.markers.find(q => q.name === sc.to); if (mk) nf = mk.f; }
+  if (nf >= docLen()) { if (D.loop) nf = 0; else { togglePlay(); return; } }
+  setFrame(nf);
+}
+function syncTransport(){
+  $('#frameNo').value = String(f + 1); $('#lenLab').textContent = `/ ${docLen()}`; $('#fpsSel').value = String(D.fps);
+  if (![...$('#fpsSel').options].some(o => o.value === String(D.fps))) { const o = document.createElement('option'); o.textContent = D.fps; $('#fpsSel').appendChild(o); $('#fpsSel').value = String(D.fps); }
+  $('#tLoop').classList.toggle('on', D.loop);
+  const mk = [...D.markers].reverse().find(q => q.f <= f); $('#secLab').textContent = mk ? `section: ${mk.name}` : '';
+}
+$('#tPlay').onclick = togglePlay;
+$('#tBack').onclick = () => setFrame(f - 1);
+$('#tFwd').onclick = () => setFrame(f + 1);
+$('#tStart').onclick = () => setFrame(0);
+$('#frameNo').onchange = e => setFrame((+e.target.value | 0) - 1);
+$('#fpsSel').onchange = e => { snap(); D.fps = +e.target.value; save(); };
+$('#tLoop').onclick = () => { snap(); D.loop = !D.loop; save(); syncTransport(); };
+$('#tView').onclick = () => { view = view === 'flat' ? 'depth' : 'flat'; $('#tView').classList.toggle('on', view === 'depth'); needStage = true; status(); };
+
+/* ============================ toolbar ============================ */
+document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { tool = b.dataset.tool; syncTools(); });
+function syncTools(){
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool));
+  $('#penOpts').innerHTML = tool === 'pen' ? PENS.map((c, i) => `<button class="tb${i === pen ? ' on' : ''}" data-pen="${i}" title="Pen colour"><i class="sw" style="background:${c}"></i></button>`).join('') + `<button class="tb${perFrame ? ' on' : ''}" id="bPerFrame" title="Draw on this frame only (animation), or on every frame of the sprite">${perFrame ? 'This frame' : 'All frames'}</button>` : '';
+  $('#penOpts').querySelectorAll('[data-pen]').forEach(b => b.onclick = () => { pen = +b.dataset.pen; syncTools(); });
+  const pf = $('#bPerFrame'); if (pf) pf.onclick = () => { perFrame = !perFrame; syncTools(); };
+  stageWrap.style.cursor = tool === 'pen' ? 'crosshair' : tool === 'erase' ? 'cell' : tool === 'use' ? 'pointer' : 'default';
+  needStage = true; status();
+}
+const statusEl = $('#statusTxt');
+function status(){
+  if (!D) return;
+  const s = sel.kind === 'sprite' && spr(sel.id);
+  let t = `<b>${esc(D.name)}</b>`;
+  if (view === 'depth') t += ' · depth view: drag to turn, click a plane to select';
+  else if (tool === 'pen') t += s ? ` · drawing on ${esc(mem(s.m).name)} · ${perFrame ? 'this frame' : 'all frames'}` : ' · select a sprite to draw on';
+  else if (tool === 'use' || (playing && tool === 'select')) { const gs = liveAt(f).find(x => mem(x.m).type === 'grid'); t += gs ? ' · click the squares to play' : ' · nothing to use on this frame'; }
+  else if (s) t += ` · ${esc(mem(s.m).name)} · drag to move, corners to scale`;
+  statusEl.innerHTML = t;
+  $('#stageHint').textContent = !D.sprites.length ? 'Import a shot or add a clip from the Cast, then drag it here.' : '';
+}
+function menu(anchor, items){
+  const fm = $('#fileMenu'); fm.innerHTML = items.map(([l, , k], i) => l === '-' ? '<hr>' : `<button data-i="${i}">${esc(l)}${k ? `<kbd>${k}</kbd>` : ''}</button>`).join('');
+  const r = anchor.getBoundingClientRect(); fm.style.left = Math.min(r.left, innerWidth - 230) + 'px'; fm.style.top = r.bottom + 4 + 'px'; fm.hidden = false;
+  fm.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { fm.hidden = true; items[+b.dataset.i][1](); });
+  setTimeout(() => addEventListener('pointerdown', function off(e){ if (!e.target.closest('#fileMenu')) { fm.hidden = true; removeEventListener('pointerdown', off); } }), 0);
+}
+$('#bFile').onclick = e => menu(e.currentTarget, [
+  ['New movie from a shot…', () => openShots(true)],
+  ['Empty movie', () => { snap(); D = { ...blankDoc(), seq:D.seq }; f = 0; sel = { kind:'none' }; afterDocChange(); toast('Empty movie.', 'Undo', undo); }],
+  ['-'],
+  ['Open movie file…', () => openFile()],
+  ['Save movie file', () => saveFile(), 'Ctrl+S'],
+  ['Score text…', () => openScoreText()],
+  ['-'],
+  ['Other Butter builds', () => location.href = 'butter-versions.html'],
+]);
+$('#bUndo').onclick = undo; $('#bRedo').onclick = redo;
+$('#bScoreText').onclick = () => openScoreText();
+
+/* ============================ sheets ============================ */
+const veil = $('#veil'), sheetBody = $('#sheetBody');
+function openSheet(title, html){ $('#sheetTitle').textContent = title; sheetBody.innerHTML = html; veil.hidden = false; sheetBody.scrollTop = 0; }
+function closeSheet(){ veil.hidden = true; sheetBody.innerHTML = ''; stopCam(); }
+$('#sheetClose').onclick = closeSheet;
+veil.addEventListener('pointerdown', e => { if (e.target === veil) closeSheet(); });
+function openShots(asNew){
+  const list = q => ALLSHOTS.filter(s => !q || (s.t + ' ' + s.f + ' ' + s.s).toLowerCase().includes(q)).map(s => `<button class="card" data-s="${esc(s.s)}"><span class="th" style="${s.thumb ? `background-image:url('${esc(s.thumb)}')` : 'background:#2a2416'}"><span>${s.n} fr</span></span><span class="tt">${esc(s.t)}</span><span class="ts">${esc(s.f)}</span></button>`).join('');
+  openSheet(asNew ? 'New movie from a Secondhand Motion shot' : 'Import a Secondhand Motion shot', `<input id="search" type="search" placeholder="Search ${ALLSHOTS.length} shots"><div class="grid2">${list('')}</div>`);
+  sheetBody.querySelector('#search').oninput = e => sheetBody.querySelector('.grid2').innerHTML = list(e.target.value.trim().toLowerCase());
+  sheetBody.querySelector('.grid2').onclick = async e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    b.style.opacity = .5;
+    try {
+      const S = await getShot(b.dataset.s);
+      if (asNew) { snap(); D = { ...blankDoc(), seq:D.seq, name:S.title, fps:S.fps || 12, W:480, H:Math.round(480 * S.H / S.W / 2) * 2 }; D.H = [270, 360].reduce((a, c) => Math.abs(c - D.H) < Math.abs(a - D.H) ? c : a); const ms = membersFromShot(S).map(addMember); ms.forEach(m => { if (m.type !== 'mask') makeSprite(m, 0, null); }); D.markers.push({ f:0, name:S.slug.split('-')[0] }); f = 0; sel = { kind:'none' }; closeSheet(); afterDocChange(); toast(`New movie from ${S.title}.`, 'Undo', undo); return; }
+      openShotParts(S);
+    } catch(err) { b.style.opacity = 1; toast('Could not load that shot: ' + err.message); }
+  };
+}
+function openShotParts(S){
+  const parts = membersFromShot(S);
+  openSheet('Import from ' + S.title, `<div class="isub">${S.n} frames at ${S.fps} fps${S.filmTitle ? ' · from ' + esc(S.filmTitle) : ''}. Each part becomes a cast member.</div>
+    ${parts.map((p, i) => `<label class="chk" style="border:1px solid var(--line);padding:8px"><input type="checkbox" data-p="${i}" checked> ${esc(p.name)} <span class="isub">· ${p.type}${p.z ? ' at z ' + p.z : ''}</span></label>`).join('')}
+    <div class="row"><button class="btn pri" data-a="score">Add to cast and score at frame ${f + 1}</button><button class="btn" data-a="cast">Add to cast only</button></div>`);
+  const pick = () => parts.filter((p, i) => sheetBody.querySelector(`[data-p="${i}"]`).checked);
+  sheetBody.querySelector('[data-a="cast"]').onclick = () => { snap(); pick().forEach(addMember); closeSheet(); save(); renderCast(); thumbsDirty = true; toast(`Added to the cast. Drag members to the stage or score.`); };
+  sheetBody.querySelector('[data-a="score"]').onclick = () => { snap(); const ms = pick().map(addMember); const base = Math.max(0, ...D.sprites.filter(s => !(s.b < f || s.a > f + memFrames(ms[0] || {}) - 1)).map(s => s.ch)); let ch = base + 1; for (const m of ms) { const s = makeSprite(m, f, ch); if (s) ch = s.ch + 1; } closeSheet(); save(); renderCast(); thumbsDirty = true; needStage = needScore = true; toast(`Added ${ms.length} sprites starting in channel ${base + 1}.`, 'Undo', undo); };
+}
+function openClips(then){
+  openSheet('WarGames clips', `<div class="grid2">${CLIPS.map(c => `<button class="card" data-c="${c.id}"><span class="th" style="${c.img ? `background-image:url('${c.img}')` : 'background:#1a1608'}"><span>${c.code} · ${c.d.toFixed(1)} s</span></span><span class="tt">${c.id.toUpperCase()}</span><span class="ts">${esc(c.note || '')}</span></button>`).join('')}</div>`);
+  sheetBody.querySelector('.grid2').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; closeSheet(); then(b.dataset.c); };
+}
+/* capture: DART's capture and playback. The camera records frames at the movie's rate into a cast member. */
+let capStream = null;
+function stopCam(){ if (capStream) { capStream.getTracks().forEach(t => t.stop()); capStream = null; } }
+async function openCapture(){
+  openSheet('Capture from the camera', `<video id="capV" playsinline muted autoplay></video>
+    <div class="r2">${F('Seconds', `<select id="cSec">${[1, 2, 3, 4, 6].map(s => `<option${s === 3 ? ' selected' : ''}>${s}</option>`).join('')}</select>`)}${F('Frames', `<input type="text" id="cN" disabled value="">`)}</div>
+    <div class="row"><button class="btn pri" id="cGo">Record</button></div><div class="isub" id="cMsg">Frames are kept in this browser with the movie and included when you save the movie file.</div>`);
+  const v = sheetBody.querySelector('#capV'), sec = sheetBody.querySelector('#cSec'), nEl = sheetBody.querySelector('#cN'), msg = sheetBody.querySelector('#cMsg');
+  const upd = () => nEl.value = `${Math.round(+sec.value * D.fps)} at ${D.fps} fps`; upd(); sec.onchange = upd;
+  try { capStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:640 }, height:{ ideal:480 } }, audio:false }); v.srcObject = capStream; await v.play(); }
+  catch(e) { msg.textContent = 'The camera is not available: ' + (e.message || e); return; }
+  sheetBody.querySelector('#cGo').onclick = async () => {
+    const N = Math.min(MAX_CAPTURE_S * D.fps, Math.round(+sec.value * D.fps)), c = document.createElement('canvas'), w = 320, h = Math.round(320 * v.videoHeight / v.videoWidth) || 240; c.width = w; c.height = h; const cx = c.getContext('2d'), out = [];
+    for (let i = 3; i > 0; i--) { msg.textContent = `Recording in ${i}…`; await new Promise(r => setTimeout(r, 600)); }
+    for (let i = 0; i < N; i++) { cx.setTransform(-1, 0, 0, 1, w, 0); cx.drawImage(v, 0, 0, w, h); out.push(c.toDataURL('image/jpeg', .72)); msg.textContent = `Frame ${i + 1} of ${N}`; await new Promise(r => setTimeout(r, 1000 / D.fps)); }
+    stopCam(); snap();
+    const m = addMember({ type:'capture', name:'Capture ' + (D.cast.filter(q => q.type === 'capture').length + 1), n:out.length, aw:w, ah:h, note:'' });
+    await idb.set('cap:' + m.id, out); capImgs.delete(m.id); await loadCaptures();
+    closeSheet(); placeMember(m, f); thumbsDirty = true;
+  };
+}
+/* files */
+async function saveFile(){
+  const doc = JSON.parse(JSON.stringify(D));
+  for (const m of doc.cast) if (m.type === 'capture') m.frames = await idb.get('cap:' + m.id) || [];
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(doc)], { type:'application/json' }));
+  a.download = (D.name || 'movie').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.dart.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Movie file saved.');
+}
+function openFile(){
+  const i = document.createElement('input'); i.type = 'file'; i.accept = '.json,application/json';
+  i.onchange = async () => { try { const o = JSON.parse(await i.files[0].text()); if (!o.cast || !o.sprites) throw 0; snap(); for (const m of o.cast) if (m.type === 'capture' && m.frames) { await idb.set('cap:' + m.id, m.frames); capImgs.delete(m.id); delete m.frames; } D = { ...blankDoc(), ...o }; f = 0; sel = { kind:'none' }; afterDocChange(); toast('Movie opened.', 'Undo', undo); } catch(e) { toast('That is not a movie file.'); } };
+  i.click();
+}
+/* score text: every channel, sprite, note and prompt, readable and copyable */
+function scoreText(){
+  const L = [`MOVIE ${D.name} · stage ${D.W}×${D.H} · ${docLen()} frames at ${D.fps} fps${D.loop ? ' · loops' : ''}`];
+  if (D.markers.length) L.push('MARKERS ' + D.markers.map(q => `${q.f + 1} ${q.name}`).join(' · '));
+  const sk = Object.keys(D.scripts).map(Number).sort((a, b) => a - b); if (sk.length) L.push('SCRIPTS ' + sk.map(k => `frame ${k + 1}: ${D.scripts[k].do === 'pause' ? 'pause' : 'go to ' + D.scripts[k].to}`).join(' · '));
+  const chs = [...new Set(D.sprites.map(s => s.ch))].sort((a, b) => a - b);
+  for (const ch of chs) {
+    L.push('', `CHANNEL ${ch}`);
+    for (const s of D.sprites.filter(q => q.ch === ch).sort((a, b) => a.a - b.a)) {
+      const m = mem(s.m), S = m.src && shotNow.get(m.src.slug);
+      L.push(`  frames ${s.a + 1}–${s.b + 1} · ${m.name} (${m.type})${S ? ` from “${S.title}”${S.filmTitle ? `, ${S.filmTitle}` : ''}` : m.type === 'clip' ? ` · WarGames ${m.clip.toUpperCase()}` : ''}${s.hidden ? ' · hidden' : ''}${s.blend && s.blend !== 'normal' ? ' · blend ' + s.blend : ''}${(s.op ?? 1) < 1 ? ' · opacity ' + Math.round(s.op * 100) + '%' : ''}${s.look ? ' · look ' + s.look : ''}${s.x || s.y ? ` · at ${Math.round(s.x)},${Math.round(s.y)}` : ''}${(s.s || 1) !== 1 ? ` · scale ${Math.round(s.s * 100)}%` : ''}`);
+      if (m.type === 'text') L.push(`    text: ${m.text.replace(/\n/g, ' / ')}`);
+      if (s.game) L.push(`    game: ${s.game.mode === 'wopr' ? 'you (X) vs WOPR (O)' : 'two players'}${s.game.onEnd ? ', on end go to ' + s.game.onEnd : ''} · board ${s.game.cells.map(c => c ? c.p : '.').join('')}`);
+      if (s.note) L.push('    note: ' + s.note.replace(/\n/g, '\n          '));
+      if (s.prompt) L.push('    prompt: ' + s.prompt.replace(/\n/g, '\n            '));
+      if ((s.marks || []).length) { const fr = [...new Set(s.marks.filter(q => q.f != null).map(q => s.a + q.f + 1))].sort((a, b) => a - b); L.push(`    marks: ${s.marks.length}${fr.length ? ' · drawn on frames ' + fr.join(', ') : ' · held on all frames'}`); }
+    }
+  }
+  return L.join('\n');
+}
+function openScoreText(){
+  openSheet('Score text', `<div class="isub">Every channel, sprite, note and prompt, in score order. Prompts are kept with the movie; this page does not send them anywhere.</div><pre class="txt" id="stx">${esc(scoreText())}</pre><div class="row"><button class="btn pri" id="sCopy">Copy</button></div>`);
+  sheetBody.querySelector('#sCopy').onclick = () => { const t = scoreText(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Score text copied.')).catch(() => { const r = document.createRange(); r.selectNodeContents(sheetBody.querySelector('#stx')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Selected. Copy it from here.'); }); };
+}
+
+/* ============================ toast ============================ */
+let toastT = 0;
+function toast(t, label, fn){ const el = $('#toast'); el.innerHTML = `<span>${esc(t)}</span>` + (label ? `<button>${esc(label)}</button>` : ''); el.hidden = false; if (fn) el.querySelector('button').onclick = () => { el.hidden = true; fn(); }; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, label ? 6000 : 2800); }
+
+/* ============================ layout: desktop windows or one phone panel ============================ */
+const app = $('#app'); let tab = 'score';
+const isMobile = () => app.classList.contains('mobile');
+function applyLayout(){ const mob = matchMedia('(max-width: 900px)').matches; app.classList.toggle('mobile', mob); for (const id of ['score', 'cast', 'insp']) $('#' + id).hidden = mob && id !== tab; $('#tabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); requestAnimationFrame(() => { sizeStage(); sizeScore(); }); }
+$('#tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; applyLayout(); };
+addEventListener('resize', applyLayout);
+new ResizeObserver(() => { if (D) { sizeStage(); sizeScore(); } }).observe(stageWrap);
+new ResizeObserver(() => { if (D) sizeScore(); }).observe(scoreBox);
+
+/* ============================ pointer routing (mouse, touch, right hand) ============================ */
+let route = null;
+function downAt(x, y, src, el){
+  el = el || document.elementFromPoint(x, y); if (!el) return;
+  if (src === 'hand') { const b = el.closest('button,select,.cm,input,textarea'); if (b && !b.closest('#castGrid')) { b.click(); if (b.matches('input,textarea,select')) b.focus(); return; } }
+  if (el.closest('#stageWrap')) { route = 'stage'; stageDown(x, y, src); }
+  else if (el.closest('#scoreBox')) { route = 'score'; scoreDown(x, y, src); }
+  else if (el.closest('.cm') && src === 'hand') { route = 'cast'; cd_ = { id:el.closest('.cm').dataset.id, x, y, moved:false, touch:false, t0:performance.now() }; }
+}
+function moveAt(x, y){ if (route === 'stage') stageMove(x, y); else if (route === 'score') scoreMove(x, y); castMove(x, y); }
+function upAt(x, y){ const r = route; route = null; if (r === 'stage') stageUp(x, y); else if (r === 'score') scoreUp(x, y); castUp(x, y); }
+stageWrap.addEventListener('pointerdown', e => { e.preventDefault(); stageWrap.setPointerCapture(e.pointerId); downAt(e.clientX, e.clientY, e.pointerType, e.target); });
+scoreBox.addEventListener('pointerdown', e => { scoreBox.setPointerCapture(e.pointerId); downAt(e.clientX, e.clientY, e.pointerType, e.target); });
+addEventListener('pointermove', e => { if (route || cd_) { moveAt(e.clientX, e.clientY); if (route || (cd_ && cd_.moved)) e.preventDefault(); } }, { passive:false });
+addEventListener('pointerup', e => upAt(e.clientX, e.clientY));
+addEventListener('pointercancel', () => { if (cd_ && !cd_.moved) cd_ = null; ghost.hidden = true; if (route === 'stage' && sp_ && sp_.kind === 'turn') sp_ = null; route = null; sc_ = null; });
+addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,select')) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); togglePlay(); }
+  else if (k === 'arrowright') setFrame(f + 1);
+  else if (k === 'arrowleft') setFrame(f - 1);
+  else if (k === 'home') setFrame(0);
+  else if ((e.metaKey || e.ctrlKey) && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.metaKey || e.ctrlKey) && k === 's') { e.preventDefault(); saveFile(); }
+  else if ((k === 'delete' || k === 'backspace') && sel.kind === 'sprite') { const s = spr(sel.id); if (s) { snap(); D.sprites = D.sprites.filter(o => o !== s); select({ kind:'none' }); save(); renderCast(); toast('Sprite deleted.', 'Undo', undo); } }
+  else if (k === 'escape') { if (!veil.hidden) closeSheet(); else select({ kind:'none' }); }
+  else if (!e.metaKey && !e.ctrlKey && { v:'select', p:'pen', e:'erase', u:'use' }[k]) { tool = { v:'select', p:'pen', e:'erase', u:'use' }[k]; syncTools(); }
+  else if (k === 'd' && !e.metaKey && !e.ctrlKey) $('#tView').click();
+});
+
+/* ============================ hands ============================ */
+const handBtn = $('#bHands'), cam = $('#cam'), hc = $('#handCv'), hg = hc.getContext('2d');
+const mkH = () => ({ lm:null, x:innerWidth / 2, y:innerHeight / 2, pinch:false, lost:0 });
+const H = { on:false, tool:mkH(), aux:mkH(), thumb:0, lastThumb:0, t:-1, grip:null };
+let landmarker = null;
+handBtn.onclick = async () => {
+  if (H.on) { H.on = false; handBtn.classList.remove('on'); handBtn.textContent = 'Hands'; cam.srcObject && cam.srcObject.getTracks().forEach(t => t.stop()); return; }
+  try {
+    handBtn.textContent = 'Starting';
+    cam.srcObject = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:640 }, height:{ ideal:480 } }, audio:false }); await cam.play();
+    if (!landmarker) {
+      const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');
+      const fs = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');
+      const o = d => ({ baseOptions:{ modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', delegate:d }, runningMode:'VIDEO', numHands:2 });
+      try { landmarker = await vision.HandLandmarker.createFromOptions(fs, o('GPU')); } catch(e) { landmarker = await vision.HandLandmarker.createFromOptions(fs, o('CPU')); }
+    }
+    H.on = true; handBtn.classList.add('on'); handBtn.textContent = 'Hands on';
+    toast('Right hand: pinch to click and drag; thumbs-up plays. Left hand: pinch and move sideways to scrub.');
+  } catch(e) { handBtn.textContent = 'No camera'; setTimeout(() => handBtn.textContent = 'Hands', 2500); }
+};
+const dd = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function readHand(h, lm){
+  const size = dd(lm[0], lm[9]) || 1e-3, pr = dd(lm[4], lm[8]) / size;
+  const ext = [[8,6],[12,10],[16,14],[20,18]].filter(([t, p]) => dd(lm[0], lm[t]) > dd(lm[0], lm[p]) * 1.12).length;
+  const was = h.pinch; if (h.pinch) { if (pr > .5 || ext >= 4) h.pinch = false; } else if (pr < .32) h.pinch = true;
+  const mx = 1 - (lm[4].x + lm[8].x) / 2, my = (lm[4].y + lm[8].y) / 2;
+  const tx = Math.min(1, Math.max(0, (mx - .12) / .76)) * innerWidth, ty = Math.min(1, Math.max(0, (my - .1) / .72)) * innerHeight;
+  const k = h.pinch ? .35 : .5; h.x += (tx - h.x) * k; h.y += (ty - h.y) * k; h.lm = lm;
+  return { was, thumbUp: lm[4].y < lm[3].y && lm[3].y < lm[2].y && (lm[2].y - lm[4].y) / size > .45 && ext === 0 && pr > .45 };
+}
+function lose(h, now, fn){ if (!h.lm && !h.lost) return; if (!h.lost) h.lost = now; h.lm = null; if (now - h.lost > 700 && h.pinch) { h.pinch = false; fn(); } }
+function handTick(now){
+  if (!H.on || !landmarker || cam.readyState < 2 || cam.currentTime === H.t) return; H.t = cam.currentTime;
+  const all = (landmarker.detectForVideo(cam, now).landmarks || []).slice(0, 2); all.sort((a, b) => (1 - a[9].x) - (1 - b[9].x));
+  const tl = all.length ? all[all.length - 1] : null, al = all.length === 2 ? all[0] : null;
+  if (tl) { H.tool.lost = 0; const r = readHand(H.tool, tl);
+    if (!r.was && H.tool.pinch) downAt(H.tool.x, H.tool.y, 'hand'); else if (H.tool.pinch) moveAt(H.tool.x, H.tool.y); else if (r.was) upAt(H.tool.x, H.tool.y);
+    if (r.thumbUp && !H.tool.pinch) { if (!H.thumb) H.thumb = now; if (now - H.thumb > 450 && now - H.lastThumb > 1400) { H.lastThumb = now; togglePlay(); } } else H.thumb = 0;
+  } else lose(H.tool, now, () => upAt(H.tool.x, H.tool.y));
+  if (al) { H.aux.lost = 0; const r = readHand(H.aux, al);
+    if (!r.was && H.aux.pinch) H.grip = { x:H.aux.x, f0:f, yaw0:yaw };
+    else if (H.aux.pinch && H.grip) { const dx = H.aux.x - H.grip.x; if (view === 'depth') { yaw = Math.max(-1.25, Math.min(1.25, H.grip.yaw0 + dx * .006)); needStage = true; } else setFrame(Math.max(0, H.grip.f0 + Math.round(dx / (innerWidth * .6) * docLen()))); }
+    else if (r.was) H.grip = null;
+  } else lose(H.aux, now, () => H.grip = null);
+}
+function drawHand(now){
+  const w = innerWidth, h = innerHeight, r = devicePixelRatio || 1;
+  if (hc.width !== Math.round(w * r)) { hc.width = Math.round(w * r); hc.height = Math.round(h * r); }
+  hg.setTransform(r, 0, 0, r, 0, 0); hg.clearRect(0, 0, w, h); if (!H.on) return; hg.lineWidth = 2;
+  const t = H.tool; if (t.lm) { hg.strokeStyle = hg.fillStyle = t.pinch || H.thumb ? '#ffd23f' : '#19e6c8'; hg.beginPath(); hg.arc(t.x, t.y, t.pinch ? 7 : 14, 0, Math.PI * 2); t.pinch ? hg.fill() : hg.stroke();
+    if (H.thumb) { hg.beginPath(); hg.arc(t.x, t.y, 20, -Math.PI / 2, -Math.PI / 2 + Math.min(1, (now - H.thumb) / 450) * Math.PI * 2); hg.stroke(); } }
+  const a = H.aux; if (a.lm) { hg.strokeStyle = hg.fillStyle = '#ffd23f'; const s = a.pinch ? 8 : 14; a.pinch ? hg.fillRect(a.x - s, a.y - s, s * 2, s * 2) : hg.strokeRect(a.x - s, a.y - s, s * 2, s * 2); }
+}
+
+/* ============================ loop ============================ */
+(function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
+  try { handTick(now); } catch(e){}
+  drawHand(now);
+  if (!D) return;
+  if (playing) { acc += dt; const step = 1 / D.fps; let n = 0; while (acc >= step && n++ < 4) { acc -= step; if (!playing) break; tick(); } }
+  const anyVideo = playing || liveAt(f).some(s => { const m = mem(s.m); return m.type === 'grid' && gameOf(s).cells.some(c => c && c.clip); });
+  if (needStage || anyVideo || sp_) renderStage();
+  if (needScore) renderScore();
+  if (thumbsDirty && !playing) makeThumbs();
+})(performance.now());
+
+/* ============================ starter movie ============================ */
+async function starter(){
+  const S = await getShot('giraffe-walks-past');
+  D = { ...blankDoc(), name:'Giraffe and WOPR', fps:S.fps || 8, W:480, H:360 };
+  const ms = membersFromShot(S).map(addMember);
+  for (const m of ms) if (m.type !== 'mask') makeSprite(m, 0, null);
+  const clip = addMember({ type:'clip', name:'WG_285', clip:'wg_285', note:CLIP.wg_285 ? CLIP.wg_285.note : '' });
+  const txt = addMember({ type:'text', name:'Shall we play', text:'SHALL WE PLAY A GAME?', size:22, color:INK, note:'' });
+  const grid = addMember({ type:'grid', name:'Last move', note:'' });
+  const n = S.n, end = n + 31;
+  const c1 = makeSprite(clip, n, 1); c1.b = end; c1.op = .45; c1.blend = 'multiply';
+  const t1 = makeSprite(txt, n, 2); t1.b = end; t1.y = -150;
+  const g1 = makeSprite(grid, n, 3); g1.b = end; g1.s = .8; g1.y = 14; g1.game.onEnd = 'walk'; g1.note = 'The giraffe section returns after every game.'; g1.prompt = 'Each square should show a moment from the launch room.';
+  D.markers = [{ f:0, name:'walk' }, { f:n, name:'game' }];
+  D.scripts = { [end]:{ do:'go', to:'game' } };
+  return D;
+}
+
+/* ============================ boot ============================ */
+(async () => {
+  applyLayout(); syncTools();
+  let d = null; try { d = await idb.get('doc'); } catch(e){}
+  if (d && d.cast && d.sprites) D = d;
+  else { D = blankDoc(); sizeStage(); sizeScore(); toast('Loading Giraffe walks past…'); try { await starter(); } catch(e) { toast('Could not load the starter shot: ' + e.message); D = blankDoc(); } }
+  afterDocChange(); sizeStage(); sizeScore(); renderInsp(); status();
+})();
+window.__d = { get D(){ return D; }, get f(){ return f; }, setFrame, togglePlay, get playing(){ return playing; }, placeMember, makeSprite, addMember, membersFromShot, getShot, scoreText, playMove, select, undo, redo, renderStage, renderScore, natural, rectOf, liveAt, stageDown, stageMove, stageUp, scoreDown, scoreMove, scoreUp, get sel(){ return sel; }, setTool:t => { tool = t; syncTools(); }, setView:v => { view = v; needStage = true; }, SC };
+</script>
+</body>
+</html>
