@@ -69,6 +69,29 @@
   <div class="hud-top">
     <div class="badge" id="card-badge"><strong>3D LDraw Studio</strong> · Loading kit…</div>
     <div class="controls">
+      <select id="kit-select" class="btn" title="Switch 3D LEGO Kit">
+        <option value="shield-of-achilles">★ Master Shield M0–M9 (7,522 pcs)</option>
+        <option value="shield-diorama-office">Diorama IX: 3D Agent Office (3,290 pcs)</option>
+        <option value="shield-diorama-wedding">Diorama I: Bridal Procession (3,475 pcs)</option>
+        <option value="shield-diorama-agora">Diorama II: Sacred Circle Agora (2,119 pcs)</option>
+        <option value="shield-diorama-ambush">Diorama III: Ares, Athena &amp; Ambush (2,535 pcs)</option>
+        <option value="shield-diorama-sheepfold">Diorama IV: White Sheep Glen (1,781 pcs)</option>
+        <option value="shield-diorama-harvest">Diorama V: Plough &amp; King's Harvest (2,403 pcs)</option>
+        <option value="shield-diorama-vineyard">Diorama VI: Golden Vineyard (2,155 pcs)</option>
+        <option value="shield-diorama-cattle">Diorama VII: Two Lions &amp; Cattle (2,108 pcs)</option>
+        <option value="shield-diorama-choros">Diorama VIII: Choros of Daedalus (2,764 pcs)</option>
+        <option value="shield-m0">Section M0: Heavens on Boss</option>
+        <option value="shield-m1">Section M1: Sacred Circle &amp; Wedding</option>
+        <option value="shield-m2">Section M2: Ares, Athena &amp; Siege</option>
+        <option value="shield-m3">Section M3: Black Furrows Ploughing</option>
+        <option value="shield-m4">Section M4: Silent King &amp; Oak</option>
+        <option value="shield-m5">Section M5: Golden Vineyard</option>
+        <option value="shield-m6">Section M6: Two Lions &amp; Bull</option>
+        <option value="shield-m7">Section M7: White Sheep Glen</option>
+        <option value="shield-m8">Section M8: Choros Turntable</option>
+        <option value="shield-m9">Section M9: River Oceanus Rim</option>
+        <option value="achilles-rotunda">Scale III: 96×96 Rotunda (18,901 pcs)</option>
+      </select>
       <button id="btn-turn" class="btn active">⚙ Turn 360° + Mechanism</button>
       <button id="btn-flip" class="btn">⇄ Flip 180° (Other Side)</button>
       <button id="btn-walk" class="btn">🚶 Walk Mode (WASD)</button>
@@ -83,17 +106,29 @@
 <script>
 (function() {
   const params = new URLSearchParams(location.search);
-  const cardParam = params.get('card') || 'achilles/cards/set.achilles-shield.mpd';
+  const hashCard = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
+  const cardParam = params.get('card') || params.get('kit') || hashCard || 'odyssey/cards/set.shield-of-achilles.mpd';
   const bgParam = params.get('bg');
   if (bgParam && (bgParam.toLowerCase() === '0d0f12' || bgParam.toLowerCase() === 'dark')) {
     document.body.classList.add('dark');
   }
 
-  // Extract slug / card name (e.g. "set.achilles-shield" or "achilles-shield")
+  // Extract slug / card name (e.g. "set.shield-of-achilles" or "shield-of-achilles")
   const cleanName = cardParam.split('/').pop().replace(/\.mpd$/i, '');
   const slug = cleanName.replace(/^set\./, '');
 
-  const bundle = (window.ACHILLES_BUNDLE && (window.ACHILLES_BUNDLE[slug] || window.ACHILLES_BUNDLE[cleanName] || window.ACHILLES_BUNDLE['achilles-shield'])) || null;
+  const kitSel = document.getElementById('kit-select');
+  if (kitSel) {
+    if ([...kitSel.options].some(o => o.value === slug)) kitSel.value = slug;
+    kitSel.addEventListener('change', () => {
+      const nextUrl = new URL(location.href);
+      nextUrl.searchParams.set('card', 'odyssey/cards/set.' + kitSel.value + '.mpd');
+      nextUrl.searchParams.delete('kit');
+      location.href = nextUrl.toString();
+    });
+  }
+
+  const bundle = (window.ACHILLES_BUNDLE && (window.ACHILLES_BUNDLE[slug] || window.ACHILLES_BUNDLE[cleanName] || window.ACHILLES_BUNDLE['shield-of-achilles'])) || null;
   if (!bundle) {
     document.getElementById('card-badge').innerHTML = '<strong>Error:</strong> Kit bundle not found for ' + cleanName;
     return;

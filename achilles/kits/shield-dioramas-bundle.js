@@ -25,7 +25,7 @@ window.ACHILLES_BUNDLE["set.shield-diorama-office"] = window.ACHILLES_BUNDLE["sh
   for (const k of Object.keys(window.ACHILLES_BUNDLE)) {
     const b = window.ACHILLES_BUNDLE[k];
     if (b && b.data) {
-      b.data.cols = Object.assign({}, b.data.cols || {}, EXTRA_COLS);
+      b.data.cols = Object.assign({"43": {"hex": "#52b8d9", "m": false}}, b.data.cols || {}, EXTRA_COLS);
       const r = Object.assign({}, allR, b.data.rect || {}, EXTRA_RECT);
       delete r["98366"];
       b.data.rect = r;
