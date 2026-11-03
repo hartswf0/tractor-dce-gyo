@@ -69,7 +69,8 @@
   <div class="hud-top">
     <div class="badge" id="card-badge"><strong>3D LDraw Studio</strong> · Loading kit…</div>
     <div class="controls">
-      <button id="btn-turn" class="btn active">⚙ Turn Object (61485c01)</button>
+      <button id="btn-turn" class="btn active">⚙ Turn 360° + Mechanism</button>
+      <button id="btn-flip" class="btn">⇄ Flip 180° (Other Side)</button>
       <button id="btn-walk" class="btn">🚶 Walk Mode (WASD)</button>
       <button id="btn-theme" class="btn">◐ Paper / Dark</button>
     </div>
@@ -113,27 +114,41 @@
 
   function buildRectTris(b, hasStuds) {
     const [x0, y0, z0, x1, y1, z1] = b;
-    const ins = 0.25;
-    const ax0 = x0 + ins, ay0 = y0 + ins * 0.4, az0 = z0 + ins;
-    const ax1 = x1 - ins, ay1 = y1 - ins * 0.4, az1 = z1 - ins;
+    const ins = 0.22;
+    const bev = 0.68;
+    const ox0 = x0 + ins, oz0 = z0 + ins;
+    const ox1 = x1 - ins, oz1 = z1 - ins;
+    const ix0 = x0 + ins + bev, iz0 = z0 + ins + bev;
+    const ix1 = x1 - ins - bev, iz1 = z1 - ins - bev;
+    const ty0 = y0;
+    const tyB = y0 + bev * 0.85;
+    const by1 = y1 - ins * 0.35;
+
     const p = [
-      [ax0,ay0,az0],[ax1,ay0,az0],[ax1,ay1,az0],[ax0,ay1,az0],
-      [ax0,ay0,az1],[ax1,ay0,az1],[ax1,ay1,az1],[ax0,ay1,az1]
+      [ix0, ty0, iz0], [ix1, ty0, iz0], [ix1, ty0, iz1], [ix0, ty0, iz1],
+      [ox0, tyB, oz0], [ox1, tyB, oz0], [ox1, tyB, oz1], [ox0, tyB, oz1],
+      [ox0, by1, oz0], [ox1, by1, oz0], [ox1, by1, oz1], [ox0, by1, oz1]
     ];
-    const f = [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[4,5,1,0]];
+    const f = [
+      [3,2,1,0],
+      [0,1,5,4], [1,2,6,5], [2,3,7,6], [3,0,4,7],
+      [4,5,9,8], [5,6,10,9], [6,7,11,10], [7,4,8,11],
+      [8,9,10,11]
+    ];
     const tris = [];
     for (const [a,b_,c,d] of f) {
       tris.push([p[a],p[b_],p[c]], [p[a],p[c],p[d]]);
     }
     const nx = Math.max(1, Math.round((x1 - x0) / 20));
     const nz = Math.max(1, Math.round((z1 - z0) / 20));
-    if (hasStuds && nx * nz <= 32) {
+    if (hasStuds && nx * nz <= 48) {
+      const segs = 10;
       for (let ix = 0; ix < nx; ix++) {
         for (let iz = 0; iz < nz; iz++) {
           const sx = x0 + (ix + 0.5) * 20, sz = z0 + (iz + 0.5) * 20;
           const sy0 = y0, sy1 = y0 - 4.0, sr = 6.0;
-          for (let s = 0; s < 8; s++) {
-            const a0 = (s / 8) * Math.PI * 2, a1 = ((s + 1) / 8) * Math.PI * 2;
+          for (let s = 0; s < segs; s++) {
+            const a0 = (s / segs) * Math.PI * 2, a1 = ((s + 1) / segs) * Math.PI * 2;
             const xA = sx + Math.cos(a0)*sr, zA = sz + Math.sin(a0)*sr;
             const xB = sx + Math.cos(a1)*sr, zB = sz + Math.sin(a1)*sr;
             tris.push([[xA,sy1,zA],[xB,sy1,zB],[xB,sy0,zB]], [[xA,sy1,zA],[xB,sy0,zB],[xA,sy0,zA]]);
@@ -218,7 +233,7 @@
   `;
 
   const fsSrc = `
-    precision mediump float;
+    precision highp float;
     varying vec3 vNorm;
     varying vec3 vPos;
     varying vec4 vCol;
@@ -230,24 +245,47 @@
       vec3 N = normalize(vNorm);
       if (!gl_FrontFacing) N = -N;
       vec3 V = normalize(uEye - vPos);
-      vec3 L1 = normalize(vec3(0.45, 0.78, 0.43));
-      vec3 L2 = normalize(vec3(-0.62, 0.45, -0.64));
-      vec3 L3 = normalize(vec3(0.0, 0.42, -0.90));
+      vec3 L1 = normalize(vec3(0.68, 0.48, 0.55));
+      vec3 L2 = normalize(vec3(-0.66, 0.44, -0.61));
+      vec3 L3 = normalize(vec3(-0.58, 0.25, 0.77));
+      vec3 L4 = normalize(vec3(0.58, 0.28, -0.76));
       float d1 = max(dot(N, L1), 0.0);
       float d2 = max(dot(N, L2), 0.0);
       float d3 = max(dot(N, L3), 0.0);
+      float d4 = max(dot(N, L4), 0.0);
       float hemiMix = N.y * 0.5 + 0.5;
-      vec3 hemiCol = mix(vec3(0.29, 0.25, 0.21), vec3(1.0, 0.965, 0.90), hemiMix);
-      float metal = vCol.a;
-      vec3 base = pow(vCol.rgb, vec3(2.2));
-      vec3 diff = base * (hemiCol * 0.52 + vec3(1.0, 0.95, 0.86) * d1 * 1.15 + vec3(0.61, 0.72, 1.0) * d2 * 0.48 + vec3(1.0, 0.88, 0.69) * d3 * 0.32);
+      vec3 hemiCol = mix(vec3(0.18, 0.16, 0.14), vec3(0.92, 0.89, 0.84), hemiMix);
+      float isRect = step(1.5, vCol.a);
+      float metal = mod(vCol.a, 2.0);
+      vec3 base = pow(clamp(vCol.rgb, 0.0, 1.0), vec3(2.2));
+      float gx = abs(fract((vPos.x + 10.0) / 20.0) - 0.5) * 2.0;
+      float gz = abs(fract((vPos.z + 10.0) / 20.0) - 0.5) * 2.0;
+      float gy = abs(fract(vPos.y / 8.0) - 0.5) * 2.0;
+      float seamH = smoothstep(0.88, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
+      float seamV = smoothstep(0.86, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
+      float cavity = 1.0 - 0.24 * max(seamH, seamV) * isRect;
+      float dirShade = 0.88 + 0.12 * (N.x * 0.6 + N.z * 0.4);
+      vec3 diff = base * cavity * dirShade * (hemiCol * 0.26 + vec3(1.0, 0.96, 0.89) * d1 * 0.74 + vec3(0.94, 0.91, 0.86) * d2 * 0.58 + vec3(0.68, 0.78, 1.0) * d3 * 0.24 + vec3(1.0, 0.86, 0.66) * d4 * 0.22);
       vec3 H1 = normalize(L1 + V);
-      float shininess = mix(28.0, 72.0, metal);
-      float specStrength = mix(0.18, 0.95, metal);
-      vec3 specCol = mix(vec3(1.0, 0.97, 0.92), base, metal * 0.7);
-      vec3 spec = specCol * pow(max(dot(N, H1), 0.0), shininess) * specStrength;
-      vec3 linearOut = diff * mix(1.0, 0.72, metal) + spec;
-      vec3 mapped = pow(acesFilm(linearOut * 1.06), vec3(1.0 / 2.2));
+      vec3 H2 = normalize(L2 + V);
+      vec3 H3 = normalize(L3 + V);
+      vec3 H4 = normalize(L4 + V);
+      float shininess = mix(46.0, 78.0, metal);
+      float specStrength = mix(0.24, 1.35, metal);
+      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.15), metal * 0.88);
+      float s1 = pow(max(dot(N, H1), 0.0), shininess);
+      float s2 = pow(max(dot(N, H2), 0.0), shininess) * 0.85;
+      float s3 = pow(max(dot(N, H3), 0.0), shininess * 0.55) * 0.35;
+      float s4 = pow(max(dot(N, H4), 0.0), shininess * 0.55) * 0.35;
+      vec3 spec = specCol * (s1 + s2 + s3 + s4) * specStrength;
+      vec3 R = reflect(-V, N);
+      float envBand = 0.5 + 0.5 * sin(R.y * 6.0 + R.x * 3.0 - R.z * 2.5);
+      vec3 envCol = mix(vec3(0.16, 0.11, 0.06), vec3(1.0, 0.92, 0.72), smoothstep(-0.4, 0.75, R.y));
+      vec3 metalEnv = base * envCol * (0.32 + 0.68 * envBand) * metal;
+      float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+      vec3 rim = mix(vec3(0.85, 0.90, 1.0) * 0.08, base * 0.48, metal) * fresnel;
+      vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim;
+      vec3 mapped = pow(acesFilm(linearOut * 0.96), vec3(1.0 / 2.2));
       gl_FragColor = vec4(mapped, 1.0);
     }
   `;
@@ -266,6 +304,7 @@
 
   const rectTris = {};
   for (const [pid, rInfo] of Object.entries(data.rect)) {
+    if (pid === '98366' || !Array.isArray(rInfo.b) || typeof rInfo.b[0] !== 'number') continue;
     rectTris[pid] = buildRectTris(rInfo.b, rInfo.s === 1);
   }
   const meshTris = {};
@@ -304,7 +343,7 @@
         const len = Math.hypot(nx, ny, nz) || 1;
         nx /= len; ny /= len; nz /= len;
         for (const P of [A, B, C]) {
-          buf.push(P[0], P[1], P[2], nx, ny, nz, baseRgba[0], baseRgba[1], baseRgba[2], baseRgba[3], pivX, pivZ, turnFlag);
+          buf.push(P[0], P[1], P[2], nx, ny, nz, baseRgba[0], baseRgba[1], baseRgba[2], baseRgba[3] + 2.0, pivX, pivZ, turnFlag);
         }
       }
     } else if (meshTris[pid]) {
@@ -435,6 +474,10 @@
     turnActive = !turnActive;
     this.classList.toggle('active', turnActive);
   };
+  document.getElementById('btn-flip').onclick = function() {
+    spherical.theta += Math.PI;
+    updateEyeFromOrbit();
+  };
   document.getElementById('btn-walk').onclick = function() {
     walkMode = !walkMode;
     this.classList.toggle('active', walkMode);
@@ -451,6 +494,7 @@
       gl.viewport(0, 0, w, h);
     }
     gl.enable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
     const isDark = document.body.classList.contains('dark');
     if (isDark) gl.clearColor(0.051, 0.059, 0.071, 1.0);
     else gl.clearColor(0.937, 0.925, 0.894, 1.0);
@@ -467,15 +511,26 @@
   window.__forage = {
     ready: true,
     look: function(ex, ey, ez, tx, ty, tz, fov) {
+      turnActive = false;
       eye = [ex, ey, ez];
       target = [tx, ty, tz];
+      const dx = ex - tx, dy = ey - ty, dz = ez - tz;
+      spherical.r = Math.max(40, Math.hypot(dx, dy, dz));
+      spherical.theta = Math.atan2(dx, dz);
+      spherical.phi = Math.max(0.1, Math.min(2.9, Math.acos(dy / spherical.r)));
       drawFrame();
     }
   };
 
   function loop() {
     requestAnimationFrame(loop);
-    if (turnActive) turnAngle += 0.014;
+    if (turnActive) {
+      turnAngle += 0.014;
+      if (!dragging && !walkMode) {
+        spherical.theta += 0.0038;
+        updateEyeFromOrbit();
+      }
+    }
     if (walkMode) {
       const spd = 4.0;
       const fx = target[0] - eye[0], fy = target[1] - eye[1], fz = target[2] - eye[2];

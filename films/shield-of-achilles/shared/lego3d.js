@@ -1,10 +1,11 @@
 /**
  * films/shield-of-achilles/shared/lego3d.js
- * Real-Time 3D WebGL LDraw Cinema Engine for the Eight Shield of Achilles Films.
+ * Real-Time 3D WebGL LDraw Cinema Engine for the Nine Shield of Achilles Films.
  * Renders the actual pre-compiled LDraw .mpd models from achilles/kits/forage-bundle.js
  * and achilles/kits/shield-dioramas-bundle.js (up to 8,891 bricks per scene) at 1920x1080
- * with brick-by-brick assembly, modular section lift-out, turntable rotation, minifigure/animal
- * motion, dynamic torch/forge point lighting, and ACES Filmic tone mapping.
+ * with 100% un-truncated minifigure heads/hair/beards/crowns/helmets, 45-degree beveled
+ * LEGO bricks, 360-degree two-sided studio PBR lighting, unified minifigure actor rigs,
+ * and ACES Filmic tone mapping.
  */
 (function (global) {
   'use strict';
@@ -49,29 +50,56 @@
     ]);
   }
 
+  // Build rectangular brick/plate/tile with a physical 45-degree top bevel chamfer
+  // so every individual brick and tile edge catches studio highlights and crisp seams.
   function buildRectTris(b, hasStuds) {
     const [x0, y0, z0, x1, y1, z1] = b;
-    const ins = 0.25;
-    const ax0 = x0 + ins, ay0 = y0 + ins * 0.4, az0 = z0 + ins;
-    const ax1 = x1 - ins, ay1 = y1 - ins * 0.4, az1 = z1 - ins;
+    const ins = 0.22;
+    const bev = 0.68; // 45-deg top chamfer in LDU
+    const ox0 = x0 + ins, oz0 = z0 + ins;
+    const ox1 = x1 - ins, oz1 = z1 - ins;
+    const ix0 = x0 + ins + bev, iz0 = z0 + ins + bev;
+    const ix1 = x1 - ins - bev, iz1 = z1 - ins - bev;
+    const ty0 = y0;             // top surface (LDraw Y points down)
+    const tyB = y0 + bev * 0.85; // bottom of top chamfer
+    const by1 = y1 - ins * 0.35; // bottom of brick
+
+    // Top inner quad (0..3), outer chamfer ring (4..7), bottom ring (8..11)
     const p = [
-      [ax0, ay0, az0], [ax1, ay0, az0], [ax1, ay1, az0], [ax0, ay1, az0],
-      [ax0, ay0, az1], [ax1, ay0, az1], [ax1, ay1, az1], [ax0, ay1, az1]
+      [ix0, ty0, iz0], [ix1, ty0, iz0], [ix1, ty0, iz1], [ix0, ty0, iz1],
+      [ox0, tyB, oz0], [ox1, tyB, oz0], [ox1, tyB, oz1], [ox0, tyB, oz1],
+      [ox0, by1, oz0], [ox1, by1, oz0], [ox1, by1, oz1], [ox0, by1, oz1]
     ];
-    const faces = [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [4, 5, 1, 0]];
+    const quads = [
+      // Top flat face
+      [3, 2, 1, 0],
+      // 45-degree top bevel chamfer strips (catch crisp edge highlights!)
+      [0, 1, 5, 4],
+      [1, 2, 6, 5],
+      [2, 3, 7, 6],
+      [3, 0, 4, 7],
+      // 4 vertical side walls
+      [4, 5, 9, 8],
+      [5, 6, 10, 9],
+      [6, 7, 11, 10],
+      [7, 4, 8, 11],
+      // Bottom closure face
+      [8, 9, 10, 11]
+    ];
     const tris = [];
-    for (const [a, b_, c, d] of faces) {
+    for (const [a, b_, c, d] of quads) {
       tris.push([p[a], p[b_], p[c]], [p[a], p[c], p[d]]);
     }
     const nx = Math.max(1, Math.round((x1 - x0) / 20));
     const nz = Math.max(1, Math.round((z1 - z0) / 20));
-    if (hasStuds && nx * nz <= 36) {
+    if (hasStuds && nx * nz <= 48) {
+      const segs = 10;
       for (let ix = 0; ix < nx; ix++) {
         for (let iz = 0; iz < nz; iz++) {
           const sx = x0 + (ix + 0.5) * 20, sz = z0 + (iz + 0.5) * 20;
           const sy0 = y0, sy1 = y0 - 4.0, sr = 6.0;
-          for (let s = 0; s < 8; s++) {
-            const a0 = (s / 8) * Math.PI * 2, a1 = ((s + 1) / 8) * Math.PI * 2;
+          for (let s = 0; s < segs; s++) {
+            const a0 = (s / segs) * Math.PI * 2, a1 = ((s + 1) / segs) * Math.PI * 2;
             const xA = sx + Math.cos(a0) * sr, zA = sz + Math.sin(a0) * sr;
             const xB = sx + Math.cos(a1) * sr, zB = sz + Math.sin(a1) * sr;
             tris.push(
@@ -99,30 +127,37 @@
     return tris;
   }
 
-  // Classify a part ID into an animation role:
-  // 0 = static architecture/ground, 1 = minifigure/animal/actor (bobs & steps), 2 = flame/torch/gold highlight, 3 = celestial/turntable
-  function classifyRole(pid, col, wy, rDist) {
+  // Minifigure & creature sub-parts that belong to a unified character/animal rig
+  const FIG_SUBPARTS = new Set([
+    '3815', '3815b', '3816', '3816c', '3817', '3817c', '973', '3818', '3819', '3820',
+    '3626bp01', '3626bp02', '3626bp05', '3626bp08', '3626bp09', '3626bp35', '3626bp4g',
+    '3626bp88', '3626bp8m', '3626bpq5', '3626bpsg',
+    '93223', '3901', '39262', '3844', '98366', '4524', '11256', '12890', '13251',
+    '3846', '3847', '3876', '4497', '4499', '3959', '2343', '75902', '30374'
+  ]);
+  const ANIMAL_ROOTS = new Set(['64452', '60749', '14734', '92586', '95341', '33322', '11264']);
+
+  function isFigSubpart(pid) {
     const p = String(pid).toLowerCase();
-    if (p.includes('6126') || p.includes('37775') || p.includes('85959') || col === 46) return 2.0; // flame / trans-orange
-    if (p.includes('3626') || p.includes('973') || p.includes('970') || p.includes('3815') ||
-        p.includes('3816') || p.includes('3817') || p.includes('3818') || p.includes('3819') ||
-        p.includes('3820') || p.includes('4493') || p.includes('10352') || p.includes('13786') ||
-        p.includes('48812') || p.includes('2335') || p.includes('4497') || p.includes('3846')) {
-      return 1.0; // minifigure / horse / ox / lion / dog / spear / shield
-    }
+    return FIG_SUBPARTS.has(p) || p.startsWith('3626') || p.startsWith('973') || p.startsWith('381');
+  }
+
+  function classifyRole(pid, col, wy, rDist, isGroupedActor) {
+    const p = String(pid).toLowerCase();
+    if (isGroupedActor || ANIMAL_ROOTS.has(p)) return 1.0; // unified minifigure / animal actor (including hand-held props)
+    if (p.includes('6126') || p.includes('37775') || p.includes('85959') || col === 46) return 2.0; // standalone flame / trans-orange
     if (wy > 34 && (col === 297 || col === 179 || col === 80) && rDist < 220) {
       return 3.0; // elevated golden/silver boss or statue element
     }
     return 0.0;
   }
 
-  // Compute radial section ID (0..9) for 96x96 circular shield lift-out animation
+  // Compute radial section ID (0..10) for 96x96 circular shield lift-out animation
   function computeSectionId(wx, wy, wz) {
-    const r = Math.hypot(wx, wz) / 20.0; // in studs
-    if (wy < 14.0) return 0.0; // base frame stays anchored
-    if (r <= 10.5) return 1.0; // M0 Boss
-    const ang = Math.atan2(wz, wx); // -PI..PI
-    if (r <= 21.5) return wx < 0 ? 2.0 : 3.0; // M1 / M2
+    const r = Math.hypot(wx, wz) / 20.0;
+    if (wy < 14.0) return 0.0;
+    if (r <= 10.5) return 1.0;
+    if (r <= 21.5) return wx < 0 ? 2.0 : 3.0;
     if (r <= 32.5) {
       if (wz < -80) return 4.0;
       return wx < 0 ? 5.0 : 6.0;
@@ -131,7 +166,7 @@
       if (wz < -80) return 7.0;
       return wx < 0 ? 8.0 : 9.0;
     }
-    return 10.0; // M9 Oceanus rim
+    return 10.0;
   }
 
   const VS_SRC = `
@@ -201,24 +236,35 @@
         n.x = nx; n.z = nz;
       }
 
-      // 4. Living Minifigure / Animal / Flame choreography
+      // 4. Unified Minifigure / Animal / Flame choreography
+      // Because all sub-parts of a minifigure share the exact same aCenter.xz torso anchor,
+      // the head, hair, beard, crown, torso, arms, hands, and weapons pivot and step as ONE solid figure!
       float glow = 0.0;
       if (role > 0.5 && role < 1.5) {
-        // Minifigure / animal: gentle walking bob & sway
         float seed = fract(sin(aCenter.x * 0.037 + aCenter.z * 0.071) * 43758.5453);
-        float stepWave = abs(sin(uTime * 4.5 + seed * 6.283));
-        p.y += stepWave * 4.2;
-        p.x += sin(uTime * 2.25 + seed * 6.283) * 2.0;
+        // Expressive character turn around the minifigure's own vertical axis so both front and back faces are visible
+        float figAng = sin(uTime * 1.15 + seed * 6.283) * 0.72;
+        float fc = cos(figAng), fs = sin(figAng);
+        float fdx = p.x - aCenter.x;
+        float fdz = p.z - aCenter.z;
+        p.x = aCenter.x + fdx * fc - fdz * fs;
+        p.z = aCenter.z + fdx * fs + fdz * fc;
+        float fnx = n.x * fc - n.z * fs;
+        float fnz = n.x * fs + n.z * fc;
+        n.x = fnx; n.z = fnz;
+
+        float stepWave = abs(sin(uTime * 3.6 + seed * 6.283));
+        p.y += stepWave * 1.8;
       } else if (role > 1.5 && role < 2.5) {
         // Torch flame / forge fire flicker
         float seed = fract(sin(aCenter.x * 0.11 + aCenter.z * 0.17) * 19341.2);
         float flick = 0.5 + 0.5 * sin(uTime * 18.0 + seed * 6.283);
-        p.y += flick * 2.8;
+        p.y += flick * 2.5;
         glow = 0.65 + 0.35 * flick;
       } else if (role > 2.5) {
         // Golden deity / celestial emblem gentle hover
-        p.y += sin(uTime * 2.6 + aCenter.x * 0.02) * 2.5;
-        glow = 0.18;
+        p.y += sin(uTime * 2.4 + aCenter.x * 0.02) * 1.8;
+        glow = 0.14;
       }
 
       // 5. Acoustic / Forge Radial Shockwave (for beat hits & Earshot onsets)
@@ -227,8 +273,8 @@
         float dist = abs(r - uPulseR);
         if (dist < 140.0) {
           float w = exp(-(dist * dist) / (2.0 * 48.0 * 48.0)) * uPulseAmp;
-          p.y += w * 22.0;
-          glow = max(glow, w * 0.75);
+          p.y += w * 18.0;
+          glow = max(glow, w * 0.65);
         }
       }
 
@@ -241,7 +287,7 @@
   `;
 
   const FS_SRC = `
-    precision mediump float;
+    precision highp float;
     varying vec3 vNorm;
     varying vec3 vPos;
     varying vec4 vCol;
@@ -262,47 +308,84 @@
       if (!gl_FrontFacing) N = -N;
       vec3 V = normalize(uEye - vPos);
 
-      vec3 L1 = normalize(vec3(0.45, 0.78, 0.43));
-      vec3 L2 = normalize(vec3(-0.62, 0.45, -0.64));
-      vec3 L3 = normalize(vec3(0.0, 0.42, -0.90));
+      // 360-Degree Two-Sided Opposing Studio Lighting Rig:
+      // Lower elevation raking lights sculpt vertical minifigure faces, beards, crowns, and walls
+      // on BOTH +Z (front) and -Z (back) sides without over-exposing horizontal top surfaces!
+      vec3 L1 = normalize(vec3(0.68, 0.48, 0.55));
+      vec3 L2 = normalize(vec3(-0.66, 0.44, -0.61));
+      vec3 L3 = normalize(vec3(-0.58, 0.25, 0.77));
+      vec3 L4 = normalize(vec3(0.58, 0.28, -0.76));
 
       float d1 = max(dot(N, L1), 0.0);
       float d2 = max(dot(N, L2), 0.0);
       float d3 = max(dot(N, L3), 0.0);
+      float d4 = max(dot(N, L4), 0.0);
 
       float hemiMix = N.y * 0.5 + 0.5;
-      vec3 hemiCol = mix(vec3(0.24, 0.21, 0.19), vec3(1.0, 0.965, 0.90), hemiMix);
+      vec3 hemiCol = mix(vec3(0.18, 0.16, 0.14), vec3(0.92, 0.89, 0.84), hemiMix);
 
-      float metal = vCol.a;
-      vec3 base = pow(vCol.rgb, vec3(2.2));
+      float isRect = step(1.5, vCol.a);
+      float metal = mod(vCol.a, 2.0);
+      vec3 base = pow(clamp(vCol.rgb, 0.0, 1.0), vec3(2.2));
+
+      // Crisp LDraw brick/plate micro-seam shading on rectangular bricks/plates/tiles (never on smooth molded minifigures)
+      float gx = abs(fract((vPos.x + 10.0) / 20.0) - 0.5) * 2.0;
+      float gz = abs(fract((vPos.z + 10.0) / 20.0) - 0.5) * 2.0;
+      float gy = abs(fract(vPos.y / 8.0) - 0.5) * 2.0;
+      float seamH = smoothstep(0.88, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
+      float seamV = smoothstep(0.86, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
+      float cavity = 1.0 - 0.24 * max(seamH, seamV) * isRect;
+
+      // Directional normal shading so perpendicular brick faces have strong 3D separation
+      float dirShade = 0.88 + 0.12 * (N.x * 0.6 + N.z * 0.4);
 
       // Dynamic Torch / Forge Point Light
       vec3 toLight = uTorchPos - vPos;
       float lDist = length(toLight);
       vec3 Lp = toLight / max(lDist, 1.0);
-      float atten = uTorchStr / (1.0 + 0.0012 * lDist + 0.0000045 * lDist * lDist);
+      float atten = uTorchStr / (1.0 + 0.0016 * lDist + 0.0000065 * lDist * lDist);
       float dp = max(dot(N, Lp), 0.0) * atten;
 
-      vec3 diff = base * (
-        hemiCol * 0.50 +
-        uSunCol * d1 * 1.18 +
-        vec3(0.58, 0.72, 1.0) * d2 * 0.50 +
-        vec3(1.0, 0.88, 0.69) * d3 * 0.34 +
-        uTorchCol * dp * 1.65
+      vec3 diff = base * cavity * dirShade * (
+        hemiCol * 0.26 +
+        uSunCol * d1 * 0.74 +
+        vec3(0.94, 0.91, 0.86) * d2 * 0.58 +
+        vec3(0.68, 0.78, 1.0) * d3 * 0.24 +
+        vec3(1.0, 0.86, 0.66) * d4 * 0.22 +
+        uTorchCol * dp * 0.95
       );
 
+      // Dual opposing Blinn-Phong studio softbox highlights + Fresnel rim gloss
       vec3 H1 = normalize(L1 + V);
-      float shininess = mix(28.0, 76.0, metal);
-      float specStrength = mix(0.20, 1.05, metal);
-      vec3 specCol = mix(vec3(1.0, 0.97, 0.92), base, metal * 0.72);
-      vec3 spec = specCol * pow(max(dot(N, H1), 0.0), shininess) * specStrength;
+      vec3 H2 = normalize(L2 + V);
+      vec3 H3 = normalize(L3 + V);
+      vec3 H4 = normalize(L4 + V);
+      float shininess = mix(46.0, 78.0, metal);
+      float specStrength = mix(0.24, 1.35, metal);
+      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.15), metal * 0.88);
+
+      float s1 = pow(max(dot(N, H1), 0.0), shininess);
+      float s2 = pow(max(dot(N, H2), 0.0), shininess) * 0.85;
+      float s3 = pow(max(dot(N, H3), 0.0), shininess * 0.55) * 0.35;
+      float s4 = pow(max(dot(N, H4), 0.0), shininess * 0.55) * 0.35;
+      vec3 spec = specCol * (s1 + s2 + s3 + s4) * specStrength;
+
+      // Studio environment reflection for metallic Gold (297), Silver (80/179), and Bronze (300)
+      vec3 R = reflect(-V, N);
+      float envBand = 0.5 + 0.5 * sin(R.y * 6.0 + R.x * 3.0 - R.z * 2.5);
+      vec3 envCol = mix(vec3(0.16, 0.11, 0.06), vec3(1.0, 0.92, 0.72), smoothstep(-0.4, 0.75, R.y));
+      vec3 metalEnv = base * envCol * (0.32 + 0.68 * envBand) * metal;
+
+      // Fresnel rim sheen for both ABS plastic and forged metal
+      float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+      vec3 rim = mix(vec3(0.85, 0.90, 1.0) * 0.08, base * 0.48, metal) * fresnel;
 
       // Specular from point light
       vec3 Hp = normalize(Lp + V);
-      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 42.0) * atten * (0.35 + 0.65 * metal);
+      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 52.0) * atten * (0.25 + 0.75 * metal);
 
-      vec3 linearOut = diff * mix(1.0, 0.72, metal) + spec + base * vGlow * 1.8 + vec3(1.0, 0.78, 0.32) * vGlow * 0.6;
-      vec3 mapped = pow(acesFilm(linearOut * 1.08), vec3(1.0 / 2.2));
+      vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim + base * vGlow * 1.3 + vec3(1.0, 0.78, 0.32) * vGlow * 0.4;
+      vec3 mapped = pow(acesFilm(linearOut * 0.96), vec3(1.0 / 2.2));
       gl_FragColor = vec4(mapped, 1.0);
     }
   `;
@@ -367,6 +450,7 @@
 
       const rectTris = {};
       for (const [pid, rInfo] of Object.entries(data.rect)) {
+        if (pid === '98366' || !Array.isArray(rInfo.b) || typeof rInfo.b[0] !== 'number') continue;
         rectTris[pid] = buildRectTris(rInfo.b, rInfo.s === 1);
       }
       const meshTris = {};
@@ -379,20 +463,62 @@
         const [r, g, b] = hexToRgb(info.hex);
         colMap[code] = [r, g, b, info.m ? 1.0 : 0.0];
       }
-      if (!colMap['0']) colMap['0'] = [0.11, 0.16, 0.20, 0.0];
+      if (!colMap['0']) colMap['0'] = [0.13, 0.16, 0.19, 0.0];
+
+      // Group contiguous minifigure parts in data.inst by anchoring each head (3626*) back to its
+      // hips/torso root (3815*/973) and forward through its hair/beard/crown/helmet/cape, including
+      // any multi-part scepters, torches, cups, or shields held in the hands!
+      const rawInst = data.inst;
+      const actorGroups = new Array(rawInst.length).fill(null);
+      for (let i = 0; i < rawInst.length; i++) {
+        const p = String(rawInst[i][1]).toLowerCase();
+        if (p.startsWith('3626')) {
+          const [hx, hy, hz] = rawInst[i][2];
+          let rootIdx = i;
+          for (let j = i - 1; j >= Math.max(0, i - 22); j--) {
+            if (actorGroups[j]) break;
+            const pj = String(rawInst[j][1]).toLowerCase();
+            const [jx, jy, jz] = rawInst[j][2];
+            if ((pj.startsWith('3815') || pj === '973') && Math.hypot(hx - jx, hz - jz) < 40) {
+              rootIdx = j;
+              if (pj.startsWith('3815')) break;
+            }
+          }
+          let endIdx = i;
+          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 6); k++) {
+            const pk = String(rawInst[k][1]).toLowerCase();
+            if (pk.startsWith('3815') || pk === '973' || pk.startsWith('3626') || ANIMAL_ROOTS.has(pk)) break;
+            const [kx, ky, kz] = rawInst[k][2];
+            if (Math.hypot(kx - hx, kz - hz) < 28 && (-ky) >= (-hy) - 48) {
+              endIdx = k;
+            } else {
+              break;
+            }
+          }
+          const rootY = -rawInst[rootIdx][2][1];
+          const grp = { ax: hx, ay: rootY, az: hz, startIdx: rootIdx };
+          for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) actorGroups[mIdx] = grp;
+        } else if (ANIMAL_ROOTS.has(p) && !actorGroups[i]) {
+          const [ax, ay, az] = rawInst[i][2];
+          actorGroups[i] = { ax, ay: -ay, az, startIdx: i };
+        }
+      }
 
       // Sort instances bottom-to-top (by world Y = -y_ldraw, then radial distance) so buildProgress constructs from baseplate upward!
-      const indexedInst = data.inst.map((item, idx) => {
+      const indexedInst = rawInst.map((item, idx) => {
         const [col, pid, m, ttIdx] = item;
-        const wx = m[0], wy = -m[1], wz = m[2];
+        const grp = actorGroups[idx];
+        const wx = grp ? grp.ax : m[0];
+        const wy = grp ? grp.ay : -m[1];
+        const wz = grp ? grp.az : m[2];
         const rDist = Math.hypot(wx, wz);
-        return { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx: idx };
+        return { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx: idx, isActor: !!grp };
       });
       indexedInst.sort((a, b) => (a.wy - b.wy) || (a.rDist - b.rDist));
 
       const totalInst = Math.max(1, indexedInst.length);
 
-      // Count exact number of triangles first so we allocate a single contiguous Float32Array (no JS Array push overhead)
+      // Count exact number of triangles first so we allocate a single contiguous Float32Array
       let totalTris = 0;
       for (let idx = 0; idx < indexedInst.length; idx++) {
         const pid = indexedInst[idx].pid;
@@ -403,17 +529,27 @@
       const buf = new Float32Array(totalTris * 3 * 19);
       let ptr = 0;
 
+      // Map actor startIdx -> unified buildOrder so a minifigure drops in as one piece
+      const actorBuildMap = new Map();
+
       // Stride = 19 floats:
       // aPos(3), aNorm(3), aCol(4), aCenter(3), aMeta(4), aPivot(2)
       for (let idx = 0; idx < indexedInst.length; idx++) {
-        const { col, pid, m, ttIdx, wx, wy, wz, rDist } = indexedInst[idx];
+        const { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx, isActor } = indexedInst[idx];
         const baseRgba = colMap[String(col)] || [0.7, 0.7, 0.7, 0.0];
         const [x, y, z, a, b, c, d, e, f, g, h, i] = m;
         const turnFlag = ttIdx >= 0 ? 1.0 : 0.0;
         const pivX = (ttIdx >= 0 && data.tt && data.tt[ttIdx]) ? data.tt[ttIdx][0] : 0.0;
         const pivZ = (ttIdx >= 0 && data.tt && data.tt[ttIdx]) ? data.tt[ttIdx][1] : 0.0;
-        const buildOrder = idx / totalInst;
-        const role = classifyRole(pid, col, wy, rDist);
+
+        let buildOrder = idx / totalInst;
+        if (isActor && actorGroups[origIdx]) {
+          const sKey = actorGroups[origIdx].startIdx;
+          if (!actorBuildMap.has(sKey)) actorBuildMap.set(sKey, buildOrder);
+          buildOrder = actorBuildMap.get(sKey);
+        }
+
+        const role = classifyRole(pid, col, wy, rDist, isActor);
         const secId = computeSectionId(wx, wy, wz);
 
         const xf = (v) => [
@@ -442,9 +578,10 @@
 
         if (rectTris[pid]) {
           const rList = rectTris[pid];
+          const rectRgba = [baseRgba[0], baseRgba[1], baseRgba[2], baseRgba[3] + 2.0];
           for (let k = 0; k < rList.length; k++) {
             const [p0, p1, p2] = rList[k];
-            pushTri(xf(p0), xf(p2), xf(p1), baseRgba);
+            pushTri(xf(p0), xf(p2), xf(p1), rectRgba);
           }
         } else if (meshTris[pid]) {
           const mList = meshTris[pid];
@@ -457,7 +594,7 @@
         }
       }
 
-      // Evict older cached models if > 1 to keep GPU & JS heap small across multi-scene films
+      // Evict older cached models if >= 1 to keep GPU & JS heap small across multi-scene films
       const loadedKeys = Object.keys(this.models);
       if (loadedKeys.length >= 1) {
         for (const oldKey of loadedKeys) {
@@ -493,11 +630,12 @@
       const w = this.canvas.width, h = this.canvas.height;
       gl.viewport(0, 0, w, h);
       gl.enable(gl.DEPTH_TEST);
+      gl.disable(gl.CULL_FACE);
 
       if (opts.clearColor) {
         gl.clearColor(opts.clearColor[0], opts.clearColor[1], opts.clearColor[2], opts.clearColor[3] ?? 1.0);
       } else {
-        gl.clearColor(0.0, 0.0, 0.0, 0.0); // transparent so CSS sky gradient shows behind 3D LEGO model
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
       }
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -528,8 +666,8 @@
       const pulseAmp = opts.pulseAmp || 0.0;
       const torchPos = opts.torchPos || [Math.sin(time * 1.5) * 180, 140, Math.cos(time * 1.5) * 180];
       const torchCol = opts.torchCol || [1.0, 0.68, 0.25];
-      const torchStr = opts.torchStr !== undefined ? opts.torchStr : 1.1;
-      const sunCol = opts.sunCol || [1.0, 0.95, 0.86];
+      const torchStr = opts.torchStr !== undefined ? opts.torchStr : 1.05;
+      const sunCol = opts.sunCol || [1.0, 0.96, 0.89];
 
       gl.uniformMatrix4fv(this.locs.uProj, false, perspMat(fovDeg * Math.PI / 180, w / Math.max(1, h), 6.0, 8000.0));
       gl.uniformMatrix4fv(this.locs.uView, false, lookAtMat(eye, target, [0, 1, 0]));
@@ -550,6 +688,7 @@
   }
 
   // Helper to evaluate a sequence of camera shots [{ t0, t1, slug, eye0, eye1, target0, target1, fov0, fov1, build0, build1, explode0, explode1, turnSpeed, ... }]
+  // Includes a two-sided orbital azimuth sweep on circular models & wide stereo parallax on dioramas so both sides of scenes & figures are visible!
   function evalShotList(shots, t) {
     let active = shots[shots.length - 1];
     for (const s of shots) {
@@ -560,21 +699,39 @@
     }
     const u = clamp((t - active.t0) / Math.max(0.001, active.t1 - active.t0), 0, 1);
     const e = active.linear ? u : easeInOutCubic(u);
+    const baseEye = lerp3(active.eye0, active.eye1 || active.eye0, e);
+    const target = lerp3(active.target0, active.target1 || active.target0, e);
+
+    // Add smooth two-sided orbital azimuth sweep around target so both sides of Circular Shield / Rotunda / M-sections
+    // and wide left-to-right stereo angles on Dioramas are clearly seen!
+    const slugStr = String(active.slug || '');
+    const isCircular = !slugStr.includes('diorama');
+    const orbitArc = active.orbitArc !== undefined ? active.orbitArc : (isCircular ? Math.PI * 0.85 : 0.42);
+    const orbitAngle = Math.sin((u - 0.5) * Math.PI) * (orbitArc * 0.5);
+    const dx = baseEye[0] - target[0];
+    const dz = baseEye[2] - target[2];
+    const ca = Math.cos(orbitAngle), sa = Math.sin(orbitAngle);
+    const eye = [
+      target[0] + dx * ca - dz * sa,
+      baseEye[1],
+      target[2] + dx * sa + dz * ca
+    ];
+
     return {
       shot: active,
       u,
       e,
       slug: active.slug,
-      eye: lerp3(active.eye0, active.eye1 || active.eye0, e),
-      target: lerp3(active.target0, active.target1 || active.target0, e),
+      eye,
+      target,
       fov: lerp(active.fov0 || 32, active.fov1 || active.fov0 || 32, e),
       build: active.buildFn ? active.buildFn(u, t) : lerp(active.build0 ?? 1, active.build1 ?? 1, u),
       explode: active.explodeFn ? active.explodeFn(u, t) : lerp(active.explode0 ?? 0, active.explode1 ?? 0, e),
       turnAngle: (active.turn0 || 0) + t * (active.turnSpeed ?? 0.35),
       torchPos: active.torchPos || [Math.sin(t * 2.0) * 180, 130, Math.cos(t * 2.0) * 180],
       torchCol: active.torchCol || [1.0, 0.68, 0.25],
-      torchStr: active.torchStr ?? 1.15,
-      sunCol: active.sunCol || [1.0, 0.95, 0.86]
+      torchStr: active.torchStr ?? 1.05,
+      sunCol: active.sunCol || [1.0, 0.96, 0.89]
     };
   }
 
