@@ -1,0 +1,1 @@
+../../shared/lego3d.js

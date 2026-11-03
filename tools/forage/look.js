@@ -5,9 +5,15 @@
    Serve the repository first: (setsid nohup python3 -m http.server 8899 > /dev/null 2>&1 &)
    NODE_PATH=<dir with playwright@1.56 and three@0.128> node tools/forage/look.js --out <dir> [--size 480] [--jpeg] id [id ...] | --all [--type t] */
 'use strict';
-const fs = require('fs'), path = require('path');
-const { chromium } = require('playwright');
+const fs = require('fs'), path = require('path'), { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..'), args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
+const CHROME_LINUX = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+if (!fs.existsSync(CHROME_LINUX)) {
+  const subArgs = args.includes('--contact') ? args : ['--look', ...args];
+  const r = spawnSync('python3', [path.join(__dirname, 'product', 'shoot.py'), ...subArgs], { stdio: 'inherit' });
+  process.exit(r.status || 0);
+}
+const { chromium } = require('playwright');
 const OUT = opt('out', path.join(ROOT, 'odyssey/thumbs')), SIZE = +opt('size', 480), BASE = opt('base', 'http://localhost:8899/');
 const THREE_DIR = path.dirname(require.resolve('three/package.json'));
 let ids = args.filter((a, i) => !a.startsWith('--') && !['--out', '--size', '--base', '--type', '--t', '--view', '--studio', '--az', '--el', '--zoom', '--w', '--h', '--at'].includes(args[i - 1]));
@@ -15,7 +21,7 @@ const TIMES = opt('t', '') ? opt('t').split(',').map(Number) : [null];   // --t 
 if (args.includes('--all')) { const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'odyssey/forage.json'), 'utf8')); ids = idx.cards.filter(c => !opt('type') || c.type === opt('type')).map(c => c.id); }
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
+  const browser = await chromium.launch({ executablePath: CHROME_LINUX, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: +opt('w', SIZE), height: +opt('h', SIZE) } });
   await page.route('https://cdn.jsdelivr.net/npm/three@0.128.0/**', r => { const rel = r.request().url().split('three@0.128.0/')[1]; const f = path.join(THREE_DIR, rel); return fs.existsSync(f) ? r.fulfill({ path: f, contentType: 'application/javascript' }) : r.abort(); });
   page.on('pageerror', e => console.error('page error:', e.message));

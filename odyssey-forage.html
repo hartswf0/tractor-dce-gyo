@@ -1,320 +1,501 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Odyssey LDraw forage</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f2f1ec'/%3E%3Crect x='6' y='12' width='20' height='12' fill='%23141414'/%3E%3Crect x='9' y='8' width='5' height='4' fill='%23141414'/%3E%3Crect x='18' y='8' width='5' height='4' fill='%23141414'/%3E%3C/svg%3E">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Odyssey &amp; Shield of Achilles — 3D LDraw Studio (odyssey-forage)</title>
+<script src="achilles/kits/forage-bundle.js"></script>
+<script src="achilles/kits/shield-dioramas-bundle.js"></script>
 <style>
-  :root{
-    --paper:#f2f1ec; --card:#f7f6f2; --ink:#141414; --dim:#77766f; --faint:#d8d6cf; --red:#e01b1b; --blue:#0033cc;
-    --green:#2f7f5a; --yellow:#c99a00; --mono:ui-monospace,'SF Mono','IBM Plex Mono',Menlo,Consolas,monospace;
+  :root {
+    --bg: #efece4;
+    --panel: rgba(247, 244, 237, 0.92);
+    --ink: #1a1815;
+    --muted: #655e53;
+    --rule: rgba(26, 24, 21, 0.14);
+    --accent: #8f6324;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; } }
-  :root[data-theme="dark"]{ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--paper);color:var(--ink);font-family:var(--mono)}
-  a{color:var(--blue)}
-  #top{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--ink);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  #brand{font-size:11px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;margin-right:6px}
-  #brand em{font-style:normal;color:var(--dim);font-weight:400}
-  .chip{border:1px solid var(--faint);background:var(--card);cursor:pointer;font:inherit;font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:7px 10px;color:var(--dim);white-space:nowrap;min-height:32px}
-  .chip:hover,.chip.on{border-color:var(--ink);color:var(--ink)}
-  .chip.on{box-shadow:inset 0 -2px 0 var(--red)}
-  #q{border:1px solid var(--faint);background:var(--card);color:var(--ink);padding:7px 10px;font:inherit;font-size:11px;width:160px;min-height:32px}
-  #totals{width:100%;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
-  #totals b{color:var(--ink);font-size:15px;letter-spacing:0;margin-right:5px}
-  #table{padding:16px}
-  .section{margin-bottom:26px}
-  .secHead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:10px}
-  .secHead .rn{font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
-  .secHead .sc{margin-left:auto;font-size:9px;color:var(--dim);letter-spacing:.14em}
-  .cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
-  .cell{position:relative;border:1.5px solid var(--faint);background:var(--card);cursor:pointer;padding:6px 7px 5px 9px;min-height:118px;display:flex;flex-direction:column;text-align:left;font:inherit;color:inherit}
-  .cell:hover,.cell:focus-visible{border-color:var(--ink);outline:none}
-  .cell .bar{position:absolute;left:0;top:0;bottom:0;width:4px}
-  .GREEN .bar{background:var(--green)} .YELLOW .bar{background:var(--yellow)} .RED .bar{background:var(--red)}
-  .cell .num{font-size:8px;color:var(--dim);display:flex;justify-content:space-between;letter-spacing:.06em}
-  .cell .num b{color:var(--blue)}
-  .cell img{width:100%;height:58px;object-fit:contain;margin:3px 0}
-  .cell .sym{font-size:24px;font-weight:900;line-height:58px;height:58px;margin:3px 0;text-align:center}
-  .cell .nm{font-size:8px;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-  /* the detail sheet */
-  #sheet{position:fixed;inset:0 0 0 auto;width:min(620px,100%);background:var(--paper);border-left:1px solid var(--ink);z-index:40;display:flex;flex-direction:column;transform:translateX(102%);transition:transform .18s}
-  #sheet.on{transform:none}
-  #sheetHead{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--faint)}
-  #sheetHead h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;flex:1}
-  #close{min-width:44px}
-  #stage{position:relative;height:min(46vh,380px);background:#efece4;border-bottom:1px solid var(--faint)}
-  #stage canvas{width:100%;height:100%;display:block}
-  #veil{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#77766f;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
-  #body{overflow:auto;padding:14px;flex:1}
-  .big{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:12px}
-  .big div{display:flex;flex-direction:column}
-  .big b{font-size:30px;font-weight:900;letter-spacing:-.01em;line-height:1}
-  .big span{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:4px}
-  .dims{font-size:20px;font-weight:900;margin:4px 0 2px}
-  .dims small{font-size:11px;font-weight:400;color:var(--dim)}
-  .sub{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
-  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
-  .actions a{font-size:10px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--ink);padding:10px 12px;text-decoration:none;color:var(--ink);min-height:40px;display:inline-flex;align-items:center}
-  .actions a.primary{background:var(--ink);color:var(--paper)}
-  h3{font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin:16px 0 8px}
-  .why{font-size:11px;line-height:1.6;color:var(--ink)}
-  .why li{margin-left:16px}
-  /* the tree: sub-builds as the trailer draws them, a rail and branches */
-  .tree ul{list-style:none;margin-left:14px;border-left:1px solid var(--faint);padding-left:10px}
-  .tree>ul{margin-left:0;border:0;padding:0}
-  .tree li{margin:5px 0;font-size:11px;line-height:1.45}
-  .tree .node{display:inline-flex;gap:8px;align-items:baseline;flex-wrap:wrap}
-  .tree .how{font-size:8px;letter-spacing:.16em;text-transform:uppercase;border:1px solid var(--faint);padding:1px 5px;color:var(--dim)}
-  .tree .how.donor{border-color:var(--blue);color:var(--blue)}
-  .tree .n{color:var(--dim)}
-  .tree .src{display:block;font-size:9px;color:var(--dim)}
-  .credits{font-size:10px;line-height:1.6;color:var(--dim)}
-  #pvbar{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:linear-gradient(transparent,rgba(20,20,20,.72));color:#fff;font-size:11px;line-height:1.45}
-  #pvbar #cap{margin-bottom:6px;text-shadow:0 1px 2px #000;max-height:4.4em;overflow:hidden}
-  #pvbar #cap b{letter-spacing:.14em;text-transform:uppercase;color:#ffd84a;margin-right:6px}
-  #pvbar .row{display:flex;gap:8px;align-items:center}
-  #pvbar input{flex:1;min-width:80px}
-  #pvbar .chip{background:rgba(255,255,255,.92);color:#141414;border-color:#fff}
-  body.film #pvbar .row{display:none}
-  body.film #pvbar{padding:14px 5% 18px;font-size:15px;background:linear-gradient(transparent,rgba(10,10,10,.8))}
-  body.film #pvbar #cap{max-height:none;text-align:center}
-  body.film #pvbar #cap b{display:block;font-size:11px;margin:0 0 4px}
-  body.render #top,body.render #table{display:none}
-  body.render #sheet{inset:0;width:100%;transform:none;border:0}
-  body.render #sheetHead,body.render #body{display:none}
-  body.render #stage{height:100vh;background:#f2f1ec;border:0}
-  @media (max-width:560px){ #q{width:100%} .cells{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))} #stage{height:38vh} .big b{font-size:24px} }
+  body.dark {
+    --bg: #0d0f12;
+    --panel: rgba(18, 21, 26, 0.90);
+    --ink: #ece6da;
+    --muted: #9c9484;
+    --rule: rgba(236, 230, 218, 0.14);
+    --accent: #d8a856;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    user-select: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  canvas:active { cursor: grabbing; }
+  .hud-top {
+    position: absolute; top: 12px; left: 12px; right: 12px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+    pointer-events: none; z-index: 10;
+  }
+  .badge {
+    pointer-events: auto;
+    background: var(--panel); backdrop-filter: blur(10px);
+    border: 1px solid var(--rule); border-radius: 6px;
+    padding: 7px 12px; font-size: 11.5px; font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .badge strong { color: var(--accent); font-weight: 600; }
+  .controls {
+    pointer-events: auto; display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 5px;
+    padding: 6px 10px; font-size: 11px; font-weight: 500;
+    cursor: pointer; backdrop-filter: blur(8px);
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .hud-bottom {
+    position: absolute; bottom: 12px; left: 12px; right: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    pointer-events: none; z-index: 10; flex-wrap: wrap;
+  }
+  .hotspots { pointer-events: auto; display: flex; gap: 5px; flex-wrap: wrap; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="examples/js/loaders/LDrawLoader.js"></script>
 </head>
 <body>
-<div id="top">
-  <div id="brand"><a href="index.html" style="color:inherit;text-decoration:none">Odyssey</a> <em>/ LDraw forage</em> <a href="odyssey-kit.html" style="font-weight:400;letter-spacing:.14em">The kit</a></div>
-  <input id="q" type="search" placeholder="Search cards" aria-label="Search cards">
-  <div id="types" style="display:contents"></div>
-  <div id="totals"></div>
-</div>
-<div id="table"></div>
-<aside id="sheet" aria-label="Card build">
-  <div id="sheetHead"><h2 id="sTitle"></h2><button class="chip" id="close">Close</button></div>
-  <div id="stage"><canvas id="c"></canvas><div id="veil"></div></div>
-  <div id="body"></div>
-</aside>
+  <canvas id="gl-canvas"></canvas>
+  <div class="hud-top">
+    <div class="badge" id="card-badge"><strong>3D LDraw Studio</strong> · Loading kit…</div>
+    <div class="controls">
+      <button id="btn-turn" class="btn active">⚙ Turn Object (61485c01)</button>
+      <button id="btn-walk" class="btn">🚶 Walk Mode (WASD)</button>
+      <button id="btn-theme" class="btn">◐ Paper / Dark</button>
+    </div>
+  </div>
+  <div class="hud-bottom">
+    <div class="hotspots" id="hotspots"></div>
+    <div class="badge" id="status-pill">Real ./ldraw/parts/*.dat Geometry · ACES Filmic · Drag to orbit · Scroll to zoom</div>
+  </div>
+
 <script>
-(async function () {
-  const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  const q = new URLSearchParams(location.search), RENDER = q.get('render');
-  const TYPES = [['scene', 'Scenes'], ['location', 'Locations'], ['character', 'Characters'], ['ensemble', 'Ensembles'], ['creature', 'Creatures'], ['vehicle', 'Vehicles'], ['prop', 'Props'], ['set_piece', 'Set pieces'], ['environment', 'Environments'], ['divine_fx', 'Divine effects'], ['sound_source', 'Sound sources'], ['wearable', 'Wearables'], ['kit', 'Set-design kit']];
-  const ATLAS = 'https://hartswf0.github.io/odyssey-halfworld/viewer/cards.html';
-  let INDEX; try { INDEX = await (await fetch('odyssey/forage.json')).json(); } catch (e) { $('#table').textContent = 'The forage index (odyssey/forage.json) could not be read.'; return; }
-  const byId = new Map(INDEX.cards.map(c => [c.id, c]));
+(function() {
+  const params = new URLSearchParams(location.search);
+  const cardParam = params.get('card') || 'achilles/cards/set.achilles-shield.mpd';
+  const bgParam = params.get('bg');
+  if (bgParam && (bgParam.toLowerCase() === '0d0f12' || bgParam.toLowerCase() === 'dark')) {
+    document.body.classList.add('dark');
+  }
 
-  /* ── the 3D stage ── */
-  const canvas = $('#c'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: !!RENDER }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.outputEncoding = THREE.LinearEncoding;   /* LDraw's colours are already sRGB: encoding them again washed every dark colour to pastel (black read as pale blue-grey) */
-  const scene = new THREE.Scene(); scene.background = new THREE.Color('#efece4');
-  const camera = new THREE.PerspectiveCamera(30, 1, 1, 200000), controls = new THREE.OrbitControls(camera, canvas); controls.enableDamping = true;
-  /* light with tone: a soft sky, a warm key, a cool fill from the other side, filmic tone mapping (black stays black, white stays white) */
-  scene.add(new THREE.HemisphereLight(0xdfe7f2, 0x3a332b, 0.62)); const sun = new THREE.DirectionalLight(0xfff0dc, 1.3); sun.position.set(-1, 2.2, 1.4); scene.add(sun); const fill = new THREE.DirectionalLight(0xcfdcf5, 0.38); fill.position.set(1.4, 0.8, -1); scene.add(fill); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2;
-  const resize = () => { const r = canvas.getBoundingClientRect(); if (!r.width) return; renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); };
-  addEventListener('resize', resize);
-  const loader = new THREE.LDrawLoader(); loader.setPath('ldraw/'); loader.setFileMap({}); loader.smoothNormals = true;
-  const colours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { loader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});   // the loader learns its colours by reading LDConfig as a model
-  /* part packs: each part with all its sub-files, one request a part, straight into the loaders' caches (the loader looks there
-     before it guesses folder after folder over the network) */
-  const packed = new Set();
-  async function withPacks(text) {
-    const need = new Set(); for (const l of text.split('\n')) { const t = l.trim().split(/\s+/); if (t[0] === '1' && t.length >= 15) { const r = t.slice(14).join(' ').toLowerCase(); if (r.endsWith('.dat') && !packed.has(r)) need.add(r.replace(/\.dat$/, '')); } }
-    await Promise.all([...need].map(async id => { try { const pk = await (await fetch('odyssey/packs/' + id.replace(/\//g, '_') + '.json')).json(); Object.assign(loader.subobjectCache, pk); try { Object.assign(ploader.subobjectCache, pk); } catch (e) { } packed.add(id + '.dat'); } catch (e) { } }));
+  // Extract slug / card name (e.g. "set.achilles-shield" or "achilles-shield")
+  const cleanName = cardParam.split('/').pop().replace(/\.mpd$/i, '');
+  const slug = cleanName.replace(/^set\./, '');
+
+  const bundle = (window.ACHILLES_BUNDLE && (window.ACHILLES_BUNDLE[slug] || window.ACHILLES_BUNDLE[cleanName] || window.ACHILLES_BUNDLE['achilles-shield'])) || null;
+  if (!bundle) {
+    document.getElementById('card-badge').innerHTML = '<strong>Error:</strong> Kit bundle not found for ' + cleanName;
+    return;
   }
-  let current = null, token = 0;
-  async function show3d(id) {
-    const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; }
-    await colours; let text; try { text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No build file'; return; }
-    await withPacks(text);
-    const model = await new Promise(res => { const t = setTimeout(() => res(null), 90000); try { loader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
-    if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
-    model.rotation.x = Math.PI; scene.add(model); current = model; resize();
-    const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), r = Math.max(size.x, size.y, size.z, 60);
-    controls.target.copy(c); const dir = (q.get('view') === 'front' ? new THREE.Vector3(-0.25, 0.18, 1) : new THREE.Vector3(-0.9, 0.85, 1.05)).normalize();   /* ?view=front: eye level, the way a film camera meets a figure */ const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
-    camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
-    if (q.get('studio')) studio(model, box, c, r, fit);
-    $('#veil').textContent = ''; window.__ready = id;
+
+  document.getElementById('card-badge').innerHTML =
+    `<strong>KIT ${bundle.num} · ${bundle.title}</strong> · ${bundle.pieces} pcs · <span style="color:#26592e">✓ 0 loose · 0 clashes</span>`;
+
+  const data = bundle.data;
+  const HOTSPOTS = bundle.hotspots || [];
+  const canvas = document.getElementById('gl-canvas');
+  const gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: true });
+
+  function hexToRgb(hex) {
+    const v = parseInt(hex.replace('#', ''), 16);
+    return [((v >> 16) & 255) / 255, ((v >> 8) & 255) / 255, (v & 255) / 255];
   }
-  /* ── studio: product photography for a set, the way a box or an Ideas page shows it. ?studio=dark|light&az=deg&el=deg&zoom=f
-     A seamless backdrop (a vignette that falls to black or to warm paper), a key light from high front-left with soft shadows on the
-     table, a cool rim light behind to lift the silhouette, the camera at the asked azimuth and elevation about the model ── */
-  function studio(model, box, c, r, fit) {
-    const dark = q.get('studio') !== 'light', az = THREE.MathUtils.degToRad(+(q.get('az') || 35)), el = THREE.MathUtils.degToRad(+(q.get('el') || 18)), zoom = +(q.get('zoom') || 1);
-    const cv = document.createElement('canvas'); cv.width = cv.height = 512; const g = cv.getContext('2d'), gr = g.createRadialGradient(256, 230, 30, 256, 256, 360);
-    if (dark) { gr.addColorStop(0, '#3a3530'); gr.addColorStop(0.55, '#1a1714'); gr.addColorStop(1, '#050404'); } else { gr.addColorStop(0, '#f6f1e6'); gr.addColorStop(0.6, '#e2d8c4'); gr.addColorStop(1, '#b9ab90'); }
-    g.fillStyle = gr; g.fillRect(0, 0, 512, 512); const tex = new THREE.CanvasTexture(cv); tex.encoding = THREE.sRGBEncoding; scene.background = tex;
-    scene.children.filter(o => o.isLight).forEach(o => o.intensity *= dark ? 0.35 : 0.6);
-    const ka = az + 0.55, key = new THREE.SpotLight(0xfff1dc, dark ? 0.95 : 0.8, 0, Math.PI / 5, 0.6, 1); key.position.set(c.x + Math.sin(ka) * r * 2.4, c.y + r * 1.7, c.z + Math.cos(ka) * r * 2.4);   /* the key a little to the right of the lens and above */ key.target.position.copy(c); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; scene.add(key, key.target);
-    const rim = new THREE.DirectionalLight(0xdfe6f4, dark ? 0.9 : 0.5); rim.position.set(c.x - Math.sin(az + 0.6) * r * 2, c.y + r * 1.2, c.z - Math.cos(az + 0.6) * r * 2); scene.add(rim);
-    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-    const floorM = new THREE.Mesh(new THREE.PlaneGeometry(r * 30, r * 30), new THREE.ShadowMaterial({ opacity: dark ? 0.55 : 0.28 })); floorM.rotation.x = -Math.PI / 2; floorM.position.y = box.min.y - 0.5; floorM.receiveShadow = true; scene.add(floorM);
-    const at = (q.get('at') || '').split(',').map(Number); if (at.length === 3 && at.every(isFinite)) c = new THREE.Vector3(at[0], at[1], at[2]).applyMatrix4(model.matrixWorld);   /* ?at=x,y,z: aim at a point of the build (LDraw units), for a detail shot */
-    const d = (fit + r * 0.35) / zoom, dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
-    camera.position.copy(c).addScaledVector(dir, d); controls.target.copy(c); camera.lookAt(c); camera.updateProjectionMatrix(); renderer.toneMappingExposure = dark ? 1.1 : 1.0;
-  }
-  /* ── previs: the scene's cast blocked on the set, the beats as shots; figures walk between marks, speakers gesture, the camera cuts ── */
-  const ploader = new THREE.LDrawLoader(); ploader.setPath('ldraw/'); ploader.setFileMap({}); ploader.smoothNormals = true; ploader.separateObjects = true;
-  const pcolours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { ploader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});
-  let PV = null;   // { data, model, figs: [{ g, base, baseQ, legs, arms, cast }], t, playing, centre, radius }
-  const V3 = (x, y, z) => new THREE.Vector3(x, y, z), ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
-  async function loadPrevis(id) {
-    const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; } PV = null;
-    await pcolours; let data, text;
-    try { data = await (await fetch('odyssey/previs/' + id + '.json')).json(); text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No previs for this card'; return null; }
-    await withPacks(text);
-    const model = await new Promise(res => { const t = setTimeout(() => res(null), 120000); try { ploader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
-    if (my !== token || !model) { if (!model) $('#veil').textContent = 'The build could not be parsed'; return null; }
-    model.rotation.x = Math.PI; scene.add(model); current = model; model.updateMatrixWorld(true); resize();
-    /* the loader leaves embedded files unnamed: the scene's group is the one with as many sub-builds as the scene has; each figure is the child standing where the file put it */
-    let sceneGroup = null; model.traverse(o => { if (!sceneGroup && o.isGroup && data.cast[0] && o.children.filter(k => k.isGroup).length === data.cast[0].n) sceneGroup = o; });
-    const kids = sceneGroup ? sceneGroup.children.filter(k => k.isGroup) : [];
-    const figs = data.cast.map(c => { const g = c.at && kids.find(k => Math.abs(k.position.x - c.at[0]) < 0.6 && Math.abs(k.position.y - c.at[1]) < 0.6 && Math.abs(k.position.z - c.at[2]) < 0.6); if (!g) return null; const legs = [], arms = [];
-      const near = (o, p) => Math.abs(o.position.x - p[0]) < 0.6 && Math.abs(o.position.y - p[1]) < 0.6 && Math.abs(o.position.z - p[2]) < 0.6;
-      for (const o of g.children) { if (!o.isGroup) continue; if ((c.legs || []).some(p => near(o, p))) legs.push(o); else if ((c.arms || []).some(p => near(o, p))) arms.push(o); }
-      return { g, cast: c, base: g.position.clone(), baseQ: g.quaternion.clone(), legs: legs.map(o => [o, o.rotation.x]), arms: arms.map(o => [o, o.rotation.x]), yaw: null }; });
-    /* the set is still: its parts baked into three meshes (opaque, transparent, edges) so a frame is a few draw calls, not
-       thousands; the parts stay in the scene hidden, for the camera's sight lines; the cast stays loose to move */
-    const active = new Set(); for (const sh of data.shots) { for (const k of [sh.camera.subject, sh.camera.object, sh.speaker, sh.action]) if (k >= 0) active.add(k); for (const m of sh.moves) active.add(m.fig); }
-    figs.forEach((f, i) => { if (f && !active.has(i)) figs[i] = null; });   // a figure that never walks, speaks, acts or is framed is part of the set: baked with it
-    const moving = new Set(); for (const f of figs) if (f) f.g.traverse(o => moving.add(o));
-    model.traverse(o => { if (o.isConditionalLine) o.visible = false; });   // the conditional edges are the dearest thing to draw; the plain edges keep the look
-    model.updateMatrixWorld(true); const bake = { solid: [[], [], []], clear: [[], [], []], edge: [] };
-    model.traverse(o => { if (moving.has(o) || !o.visible) return;
-      if (o.isConditionalLine) { o.visible = false; return; }
-      if (o.isLineSegments) { const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, p = g.attributes.position, v = V3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); bake.edge.push(v.x, v.y, v.z); } o.visible = false; return; }
-      if (!o.isMesh) return;
-      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, p = g.attributes.position, nrm = g.attributes.normal, nm = new THREE.Matrix3().getNormalMatrix(o.matrixWorld), v = V3(), n = V3();
-      const groups = g.groups.length ? g.groups : [{ start: 0, count: p.count, materialIndex: 0 }];
-      for (const gr of groups) { const mat = Array.isArray(o.material) ? o.material[gr.materialIndex] : o.material, c = mat.color || new THREE.Color(0x888888), dst = mat.transparent || mat.opacity < 1 ? bake.clear : bake.solid;
-        for (let i = gr.start; i < gr.start + gr.count && i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); dst[0].push(v.x, v.y, v.z); if (nrm) { n.fromBufferAttribute(nrm, i).applyMatrix3(nm).normalize(); dst[1].push(n.x, n.y, n.z); } else dst[1].push(0, 1, 0); dst[2].push(c.r, c.g, c.b); } }
-      o.visible = false; });
-    const baked = new THREE.Group(); baked.name = 'baked set';
-    for (const [k, arr] of [['solid', bake.solid], ['clear', bake.clear]]) { if (!arr[0].length) continue; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr[0], 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(arr[1], 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(arr[2], 3));
-      const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, transparent: k === 'clear', opacity: k === 'clear' ? 0.55 : 1, depthWrite: k !== 'clear', polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })); m.userData.baked = true; baked.add(m); }
-    if (bake.edge.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(bake.edge, 3)); const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.55 })); l.userData.baked = true; baked.add(l); }
-    scene.add(baked); model.userData.baked = baked;
-    const box = new THREE.Box3().setFromObject(model), centre = box.getCenter(V3()), size = box.getSize(V3());
-    PV = { data, model, figs, t: 0, playing: false, centre, radius: Math.max(size.x, size.z) / 2, last: performance.now() };
-    controls.enabled = false; $('#veil').textContent = ''; drawPrevisUI(); setTime(0); return PV;
-  }
-  /* where each figure stands at time t, in studs, and whether it is walking */
-  function figState(i, t) { const c = PV.data.cast[i]; let x = c.x, z = c.z, walking = false, dir = null;
-    for (const s of PV.data.shots) for (const m of s.moves) { if (m.fig !== i || t < m.t0) continue; const k = ease((t - m.t0) / Math.max(0.1, m.t1 - m.t0)); x = m.from[0] + (m.to[0] - m.from[0]) * k; z = m.from[1] + (m.to[1] - m.from[1]) * k; if (t < m.t1) { walking = true; dir = [m.to[0] - m.from[0], m.to[1] - m.from[1]]; } }
-    return { x, z, walking, dir }; }
-  const headOf = f => { const v = V3(); f.g.getWorldPosition(v); if (f.h == null) { const b = new THREE.Box3().setFromObject(f.g); f.h = Math.max(40, b.max.y - v.y); } v.y += f.h - Math.max(16, f.h * 0.12); return v; };   // the face: a stud below the top of the figure, a minifigure's or a giant's
-  /* a line of sight: from the subject's head toward candidate camera bearings, the first that nothing in the set blocks (cached per shot) */
-  const ray = new THREE.Raycaster();
-  function clearDir(shot, S, keep) {
-    PV.dirs = PV.dirs || {}; const key = shot.n + (shot.moves.length ? ':' + Math.floor(PV.t * 2) : ''); if (PV.dirs[key]) return PV.dirs[key];   // a shot with a walk looks again twice a second
-    const mine = new Set(); for (const f of keep) if (f) f.g.traverse(o => mine.add(o));
-    let base = Math.atan2(-0.35, 1); const meshes = [];
-    if (keep[0]) { const q = new THREE.Quaternion(); keep[0].g.getWorldQuaternion(q); const fw = V3(0, 0, -1).applyQuaternion(q); fw.y = 0; if (fw.lengthSq() > 0.01) { fw.normalize(); base = Math.atan2(fw.x, fw.z) - 0.35; } }   // start from where the subject faces, a little off-axis: faces, not backs PV.model.traverse(o => { if (o.isMesh && !mine.has(o) && !o.userData.baked) meshes.push(o); });
-    const fw = V3(Math.sin(base + 0.35), 0, Math.cos(base + 0.35));   // the way the subject faces
-    let best = null, bestScore = -1e9;
-    for (let da = -Math.PI; da < Math.PI; da += Math.PI / 8) for (const el of [0.12, 0.3, 0.55]) {
-      const d = V3(Math.sin(base + 0.35 + da), el, Math.cos(base + 0.35 + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
-      const clear = [-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; });   /* three rays, a head's width apart: a neighbour's shoulder blocks too */
-      const h = V3(d.x, 0, d.z).normalize(), score = (clear ? 10 : 0) + h.dot(fw) * 2 + Math.cos(da - 0.35) * 0.3 - el;   // clear first, then the face, then a little off-axis, then low
-      if (score > bestScore) { bestScore = score; best = h; best.el = el; }
+
+  function buildRectTris(b, hasStuds) {
+    const [x0, y0, z0, x1, y1, z1] = b;
+    const ins = 0.25;
+    const ax0 = x0 + ins, ay0 = y0 + ins * 0.4, az0 = z0 + ins;
+    const ax1 = x1 - ins, ay1 = y1 - ins * 0.4, az1 = z1 - ins;
+    const p = [
+      [ax0,ay0,az0],[ax1,ay0,az0],[ax1,ay1,az0],[ax0,ay1,az0],
+      [ax0,ay0,az1],[ax1,ay0,az1],[ax1,ay1,az1],[ax0,ay1,az1]
+    ];
+    const f = [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[4,5,1,0]];
+    const tris = [];
+    for (const [a,b_,c,d] of f) {
+      tris.push([p[a],p[b_],p[c]], [p[a],p[c],p[d]]);
     }
-    PV.dirs[key] = best || V3(-0.35, 0, 1).normalize(); return PV.dirs[key];
-  }
-  function setTime(t) {
-    if (!PV) return; PV.t = Math.max(0, Math.min(PV.data.duration, t)); t = PV.t;
-    const shot = PV.data.shots.find(s => t >= s.t0 && t < s.t1) || PV.data.shots[PV.data.shots.length - 1];
-    PV.figs.forEach((f, i) => { if (!f) return; const st = figState(i, t), c = f.cast;
-      f.g.position.set(f.base.x + (st.x - c.x) * 20, f.base.y, f.base.z + (st.z - c.z) * 20);   // LDraw units, the figure's parent frame (a pure translation of the set's)
-      let yaw = st.dir ? Math.atan2(-st.dir[0], -st.dir[1]) : f.yaw;
-      if (shot && (shot.speaker === i || shot.action === i) && shot.camera.object >= 0 && PV.figs[shot.camera.object] && !st.walking) { const o = figState(shot.camera.object, t); yaw = Math.atan2(-(o.x - st.x), -(o.z - st.z)); }
-      if (yaw != null) { f.yaw = yaw; f.g.quaternion.setFromAxisAngle(V3(0, 1, 0), yaw); } else f.g.quaternion.copy(f.baseQ);
-      const ph = t * 9, swing = st.walking ? Math.sin(ph) * 0.6 : 0; f.legs.forEach(([o, r0], k) => { o.rotation.x = r0 + (k % 2 ? swing : -swing); });
-      const talk = shot && shot.speaker === i ? Math.max(0, Math.sin(t * 5)) * 0.7 : 0, hit = shot && shot.action === i ? Math.max(0, Math.sin(t * 3)) * 1.4 : 0;
-      f.arms.forEach(([o, r0], k) => { o.rotation.x = r0 - (k === 0 ? talk + hit : st.walking ? -swing * 0.6 : 0) - (k === 1 && st.walking ? swing * 0.6 : 0); });
-    });
-    PV.model.updateMatrixWorld(true);
-    /* the camera: each shot a move over its length */
-    const k = shot ? ease((t - shot.t0) / (shot.t1 - shot.t0)) : 0, C = PV.centre, R = PV.radius;
-    const subj = shot && PV.figs[shot.camera.subject], obj = shot && PV.figs[shot.camera.object];
-    const S = subj ? headOf(subj) : C.clone(), O = obj ? headOf(obj) : null; let pos, look;
-    const front = shot ? clearDir(shot, S, [subj, obj]) : V3(-0.35, 0, 1).normalize(), G = subj && subj.h ? Math.max(1, Math.sqrt(subj.h / 80)) : 1;   // a giant is framed from further off   // the side of the subject the camera can see from
-    switch (shot ? shot.camera.kind : 'establish') {
-      case 'establish': pos = C.clone().addScaledVector(front, R * (2.6 - 1.0 * k)).add(V3(0, R * (1.6 - 0.9 * k), 0)); look = C.clone().lerp(S, 0.3 * k); break;
-      case 'pullback': pos = S.clone().addScaledVector(front, 160 + R * 2.2 * k).add(V3(0, 40 + R * 1.2 * k, 0)); look = S.clone().lerp(C, k); break;
-      case 'two': { const mid = O ? S.clone().lerp(O, 0.5) : S; const d = O ? S.distanceTo(O) : 0; pos = mid.clone().addScaledVector(front, 220 + d * 1.1).add(V3(0, (front.el || 0.15) * (220 + d) + 10 * k, 0)); look = mid; break; }
-      case 'ots': { if (!O) { pos = S.clone().addScaledVector(front, 170); look = S; break; } const back = O.clone().sub(S).setY(0).normalize(); const side = V3(back.z, 0, -back.x); pos = O.clone().addScaledVector(back, 70).addScaledVector(side, 30).add(V3(0, 12, 0)); look = S; break; }
-      case 'push': pos = S.clone().addScaledVector(front, G * (330 - 150 * k)).add(V3(0, (front.el || 0.15) * G * (330 - 150 * k) - 20, 0)); look = S.clone().add(V3(0, -10, 0)); break;
-      case 'track': pos = S.clone().addScaledVector(front, G * 300).add(V3(0, (front.el || 0.2) * G * 300, 0)); look = S; break;
-      case 'orbit': { const a = -0.8 + 1.4 * k; pos = S.clone().add(V3(Math.sin(a) * 240, 90, Math.cos(a) * 240)); look = S; break; }
-      default: pos = S.clone().addScaledVector(front, G * (280 - 30 * k)).add(V3(0, (front.el || 0.15) * G * 280, 0)); look = S.clone().add(V3(0, -15, 0));
+    const nx = Math.max(1, Math.round((x1 - x0) / 20));
+    const nz = Math.max(1, Math.round((z1 - z0) / 20));
+    if (hasStuds && nx * nz <= 32) {
+      for (let ix = 0; ix < nx; ix++) {
+        for (let iz = 0; iz < nz; iz++) {
+          const sx = x0 + (ix + 0.5) * 20, sz = z0 + (iz + 0.5) * 20;
+          const sy0 = y0, sy1 = y0 - 4.0, sr = 6.0;
+          for (let s = 0; s < 8; s++) {
+            const a0 = (s / 8) * Math.PI * 2, a1 = ((s + 1) / 8) * Math.PI * 2;
+            const xA = sx + Math.cos(a0)*sr, zA = sz + Math.sin(a0)*sr;
+            const xB = sx + Math.cos(a1)*sr, zB = sz + Math.sin(a1)*sr;
+            tris.push([[xA,sy1,zA],[xB,sy1,zB],[xB,sy0,zB]], [[xA,sy1,zA],[xB,sy0,zB],[xA,sy0,zA]]);
+            tris.push([[sx,sy1,sz],[xB,sy1,zB],[xA,sy1,zA]]);
+          }
+        }
+      }
     }
-    /* a spring arm: whatever stands between the look point and the lens pulls the lens in, in front of it */
-    if (!PV.meshes) { PV.meshes = []; PV.model.traverse(o => { if (o.isMesh) PV.meshes.push(o); }); }
-    { const own = new Set(); for (const f of [subj]) if (f) f.g.traverse(o => own.add(o)); const d = pos.clone().sub(look), len = d.length(); d.normalize(); ray.set(look, d); ray.far = len;
-      const hit = ray.intersectObjects(PV.meshes, false).find(h => !own.has(h.object) && h.distance > 25); if (hit) pos = look.clone().addScaledVector(d, Math.max(45, hit.distance - 18)); }
-    camera.position.copy(pos); camera.lookAt(look); camera.near = 2; camera.far = R * 40; camera.updateProjectionMatrix(); controls.target.copy(look);
-    const cap = $('#cap'); if (cap && shot) cap.innerHTML = `<b>${shot.n}/${PV.data.shots.length} · ${shot.camera.kind}</b> ${esc(shot.beat)}`;
-    const sc = $('#scrub'); if (sc) sc.value = t;
+    return tris;
   }
-  function drawPrevisUI() {
-    let bar = $('#pvbar'); if (!bar) { bar = document.createElement('div'); bar.id = 'pvbar'; $('#stage').appendChild(bar); }
-    bar.innerHTML = `<div id="cap"></div><div class="row"><button class="chip" id="pvplay">Play</button><input type="range" id="scrub" min="0" max="${PV.data.duration}" step="0.05" value="0" aria-label="Time"><button class="chip" id="pvfree">Free camera</button></div>`;
-    $('#pvplay').onclick = () => { PV.playing = !PV.playing; if (PV.t >= PV.data.duration) PV.t = 0; PV.last = performance.now(); $('#pvplay').textContent = PV.playing ? 'Pause' : 'Play'; };
-    $('#scrub').oninput = e => { PV.playing = false; $('#pvplay').textContent = 'Play'; setTime(+e.target.value); };
-    $('#pvfree').onclick = () => { PV.playing = false; $('#pvplay').textContent = 'Play'; controls.enabled = true; };
-  }
-  const endPrevis = () => { PV = null; controls.enabled = true; const b = $('#pvbar'); if (b) b.remove(); };
-  (function loop(now) { if (window.__manual) { requestAnimationFrame(loop); return; } if (PV && PV.playing) { PV.t += Math.min(0.1, ((now || 0) - PV.last) / 1000); PV.last = now || 0; if (PV.t >= PV.data.duration) { PV.playing = false; const b = $('#pvplay'); if (b) b.textContent = 'Play'; } setTime(PV.t); } else if (PV) PV.last = now || 0;
-    controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
-  if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize();
-    if (q.get('t') != null) { loadPrevis(RENDER).then(p => { if (!p) return; setTime(+q.get('t')); requestAnimationFrame(() => { window.__ready = RENDER; }); }); window.__pv = () => PV; window.__seek = t => { window.__manual = true; setTime(t); controls.update(); renderer.render(scene, camera); return true; }; if (q.get('film')) document.body.classList.add("film"); }   /* film: one render a frame, on demand */ else show3d(RENDER); return; }
 
-  /* ── the table ── */
-  const T = INDEX.cards, sum = k => T.reduce((s, c) => s + (c[k] || 0), 0), n = x => x.toLocaleString('en');
-  const st = T.reduce((m, c) => (m[c.status] = (m[c.status] || 0) + 1, m), {});
-  $('#totals').innerHTML = [[T.length, 'cards'], [sum('pieces'), 'pieces'], [sum('subBuilds'), 'sub-builds'], [sum('joints'), 'stud joints'], [Object.keys(INDEX.donors).length, 'donor sets'], [st.GREEN || 0, 'green'], [st.YELLOW || 0, 'yellow'], [st.RED || 0, 'red']].map(([v, k]) => `<span><b>${n(v)}</b>${k}</span>`).join('');
-  let filter = q.get('type') || 'all', search = '';
-  $('#types').innerHTML = [['all', 'All'], ...TYPES].map(([k, l]) => `<button class="chip${k === filter ? ' on' : ''}" data-t="${k}">${l}</button>`).join('');
-  $('#types').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; filter = b.dataset.t; for (const x of $('#types').children) x.classList.toggle('on', x === b); draw(); };
-  $('#q').oninput = e => { search = e.target.value.trim().toLowerCase(); draw(); };
-  const sym = name => { const w = name.replace(/[^A-Za-z ]/g, '').split(/\s+/).filter(x => x.length > 2 && !/^(the|and|with|from|for)$/i.test(x)); return ((w[0] || name)[0] + ((w[1] || w[0] || name)[w[1] ? 0 : 1] || '')).toUpperCase().replace(/^(.)(.)$/, (m, a, b) => a + b.toLowerCase()); };
-  function draw() {
-    const show = T.filter(c => (filter === 'all' || c.type === filter) && (!search || (c.name + ' ' + c.id).toLowerCase().includes(search)));
-    $('#table').innerHTML = TYPES.filter(([k]) => show.some(c => c.type === k)).map(([k, l]) => { const list = show.filter(c => c.type === k); return `<section class="section"><div class="secHead"><span class="rn">${l}</span><span class="sc">${list.length} cards · ${n(list.reduce((s, c) => s + c.pieces, 0))} pieces</span></div><div class="cells">${list.map(c => `<button class="cell ${c.status}" data-id="${esc(c.id)}" title="${esc(c.name)}"><span class="bar"></span><span class="num"><span>${esc(c.type === 'scene' ? c.id.replace('OD-', '') : (c.books || []).join('·'))}</span><b>${c.pieces}</b></span>${c.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(c.id)}.webp">` : `<span class="sym">${esc(sym(c.name))}</span>`}<span class="nm">${esc(c.name)}</span></button>`).join('')}</div></section>`; }).join('') || '<p class="sub">No card matches.</p>';
+  function buildMeshTris(mData) {
+    const v = mData.v, idx = mData.i, tc = mData.c || [];
+    const tris = [];
+    for (let k = 0; k < idx.length; k += 3) {
+      const i0 = idx[k]*3, i1 = idx[k+1]*3, i2 = idx[k+2]*3;
+      tris.push({
+        pts: [[v[i0], v[i0+1], v[i0+2]], [v[i1], v[i1+1], v[i1+2]], [v[i2], v[i2+1], v[i2+2]]],
+        col: tc[k / 3] !== undefined ? tc[k / 3] : 16
+      });
+    }
+    return tris;
   }
-  $('#table').onclick = e => { const b = e.target.closest('.cell'); if (b) open(b.dataset.id); };
-  $('#close').onclick = () => { $('#sheet').classList.remove('on'); history.replaceState(null, '', location.pathname + (filter !== 'all' ? '?type=' + filter : '')); };
-  addEventListener('keydown', e => { if (e.key === 'Escape') $('#close').click(); });
 
-  const treeHTML = t => `<li><span class="node"><b>${esc(t.name)}</b><span class="how ${t.how}">${esc(t.how)}</span><span class="n">${t.pieces} pieces</span></span>${t.source ? `<span class="src">${esc(t.source)}</span>` : ''}${t.children.length ? `<ul>${t.children.map(treeHTML).join('')}</ul>` : ''}</li>`;
-  function open(id) {
-    const c = byId.get(id); if (!c) return;
-    $('#sTitle').textContent = c.name; $('#sheet').classList.add('on'); history.replaceState(null, '', '#' + id);
-    const cast = c.assets ? c.assets.map(a => byId.get(a)).filter(Boolean) : [];
-    $('#body').innerHTML = `
-      <div class="big"><div><b>${n(c.pieces)}</b><span>pieces</span></div><div><b>${c.subBuilds}</b><span>sub-builds</span></div><div><b>${n(c.joints)}</b><span>stud joints</span></div><div><b>${c.depth}</b><span>levels</span></div></div>
-      <div class="dims">${c.cm[0]} × ${c.cm[1]} × ${c.cm[2]} <small>cm</small></div>
-      <div class="sub">${c.studs[0]} × ${c.studs[1]} studs · ${c.height.plates} plates high · ${c.anchored} pieces held to the plate by studs, ${c.held} by contact (clips, hands, hinges), ${c.detached} detached${c.flex ? `, ${c.flex} rope segments` : ''} · status <b>${c.status}</b></div>
-      <div class="actions">${c.previs ? `<a class="primary" href="#" id="pvgo">Play previs · ${Math.round(c.previs.duration)} s, ${c.previs.shots} shots</a>` : ''}<a class="${c.previs ? '' : 'primary'}" href="play/hand-butter-odyssey.html?scene=${encodeURIComponent(c.id)}">Open in Hand Butter</a><a href="${esc(c.files.mpd)}" download>LDraw MPD</a><a href="${esc(c.files.butter)}" download>Butter scene</a><a href="${ATLAS}#${c.type === 'scene' ? 'scene' : 'asset'}/${encodeURIComponent(c.id)}">Atlas card</a></div>
-      ${c.why.length ? `<h3>Notes</h3><ul class="why">${c.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
-      ${cast.length ? `<h3>Cast and set</h3><div class="cells">${cast.map(a => `<button class="cell ${a.status}" data-open="${esc(a.id)}"><span class="bar"></span><span class="num"><span>${esc(a.type.replace('_', ' '))}</span><b>${a.pieces}</b></span>${a.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(a.id)}.webp">` : `<span class="sym">${esc(sym(a.name))}</span>`}<span class="nm">${esc(a.name)}</span></button>`).join('')}</div>` : ''}
-      <h3>Sub-builds</h3><div class="tree"><ul>${treeHTML(c.tree)}</ul></div>
-      ${c.sources.length ? `<h3>Foraged from</h3><div class="credits">${c.sources.map(s => `${esc(s.file || s.donor)}${s.sub ? ' : ' + esc(s.sub) : ''}${s.author ? ', by ' + esc(s.author) : ''}`).join('<br>')}<br>LDraw models redistributed under CCAL 2.0; the authors keep their credit in each FILE header.</div>` : ''}`;
-    $('#body').querySelectorAll('[data-open]').forEach(b => b.onclick = () => open(b.dataset.open));
-    $('#body').scrollTop = 0; endPrevis(); show3d(id);
-    const go = $('#pvgo'); if (go) go.onclick = e => { e.preventDefault(); loadPrevis(id).then(p => { if (p) { p.playing = true; p.last = performance.now(); $('#pvplay').textContent = 'Pause'; } }); };
+  function perspMat(fov, aspect, near, far) {
+    const f = 1.0 / Math.tan(fov / 2), nf = 1 / (near - far);
+    return new Float32Array([
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (far + near) * nf, -1,
+      0, 0, (2 * far * near) * nf, 0
+    ]);
   }
-  draw();
-  if (location.hash.length > 1 && byId.has(decodeURIComponent(location.hash.slice(1)))) open(decodeURIComponent(location.hash.slice(1)));
+
+  function lookAtMat(eye, center, up) {
+    let zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
+    let len = Math.hypot(zx, zy, zz) || 1; zx /= len; zy /= len; zz /= len;
+    let xx = up[1]*zz - up[2]*zy, xy = up[2]*zx - up[0]*zz, xz = up[0]*zy - up[1]*zx;
+    len = Math.hypot(xx, xy, xz) || 1; xx /= len; xy /= len; xz /= len;
+    const yx = zy*xz - zz*xy, yy = zz*xx - zx*xz, yz = zx*xy - zy*xx;
+    return new Float32Array([
+      xx, yx, zx, 0,
+      xy, yy, zy, 0,
+      xz, yz, zz, 0,
+      -(xx*eye[0] + xy*eye[1] + xz*eye[2]),
+      -(yx*eye[0] + yy*eye[1] + yz*eye[2]),
+      -(zx*eye[0] + zy*eye[1] + zz*eye[2]),
+      1
+    ]);
+  }
+
+  const vsSrc = `
+    attribute vec3 aPos;
+    attribute vec3 aNorm;
+    attribute vec4 aCol;
+    attribute vec2 aPivot;
+    attribute float aTurn;
+    uniform mat4 uProj;
+    uniform mat4 uView;
+    uniform float uAngle;
+    varying vec3 vNorm;
+    varying vec3 vPos;
+    varying vec4 vCol;
+    void main() {
+      vec3 p = aPos;
+      vec3 n = aNorm;
+      if (aTurn > 0.5) {
+        float c = cos(uAngle), s = sin(uAngle);
+        float dx = p.x - aPivot.x;
+        float dz = p.z - aPivot.y;
+        p.x = aPivot.x + dx * c - dz * s;
+        p.z = aPivot.y + dx * s + dz * c;
+        float nx = n.x * c - n.z * s;
+        float nz = n.x * s + n.z * c;
+        n.x = nx; n.z = nz;
+      }
+      vPos = p;
+      vNorm = n;
+      vCol = aCol;
+      gl_Position = uProj * uView * vec4(p, 1.0);
+    }
+  `;
+
+  const fsSrc = `
+    precision mediump float;
+    varying vec3 vNorm;
+    varying vec3 vPos;
+    varying vec4 vCol;
+    uniform vec3 uEye;
+    vec3 acesFilm(vec3 x) {
+      return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+    }
+    void main() {
+      vec3 N = normalize(vNorm);
+      if (!gl_FrontFacing) N = -N;
+      vec3 V = normalize(uEye - vPos);
+      vec3 L1 = normalize(vec3(0.45, 0.78, 0.43));
+      vec3 L2 = normalize(vec3(-0.62, 0.45, -0.64));
+      vec3 L3 = normalize(vec3(0.0, 0.42, -0.90));
+      float d1 = max(dot(N, L1), 0.0);
+      float d2 = max(dot(N, L2), 0.0);
+      float d3 = max(dot(N, L3), 0.0);
+      float hemiMix = N.y * 0.5 + 0.5;
+      vec3 hemiCol = mix(vec3(0.29, 0.25, 0.21), vec3(1.0, 0.965, 0.90), hemiMix);
+      float metal = vCol.a;
+      vec3 base = pow(vCol.rgb, vec3(2.2));
+      vec3 diff = base * (hemiCol * 0.52 + vec3(1.0, 0.95, 0.86) * d1 * 1.15 + vec3(0.61, 0.72, 1.0) * d2 * 0.48 + vec3(1.0, 0.88, 0.69) * d3 * 0.32);
+      vec3 H1 = normalize(L1 + V);
+      float shininess = mix(28.0, 72.0, metal);
+      float specStrength = mix(0.18, 0.95, metal);
+      vec3 specCol = mix(vec3(1.0, 0.97, 0.92), base, metal * 0.7);
+      vec3 spec = specCol * pow(max(dot(N, H1), 0.0), shininess) * specStrength;
+      vec3 linearOut = diff * mix(1.0, 0.72, metal) + spec;
+      vec3 mapped = pow(acesFilm(linearOut * 1.06), vec3(1.0 / 2.2));
+      gl_FragColor = vec4(mapped, 1.0);
+    }
+  `;
+
+  function compile(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  const rectTris = {};
+  for (const [pid, rInfo] of Object.entries(data.rect)) {
+    rectTris[pid] = buildRectTris(rInfo.b, rInfo.s === 1);
+  }
+  const meshTris = {};
+  for (const [pid, mInfo] of Object.entries(data.meshes)) {
+    if (mInfo.v && mInfo.v.length > 0) meshTris[pid] = buildMeshTris(mInfo);
+  }
+
+  const colMap = {};
+  for (const [code, info] of Object.entries(data.cols)) {
+    const [r, g, b] = hexToRgb(info.hex);
+    colMap[code] = [r, g, b, info.m ? 1.0 : 0.0];
+  }
+  if (!colMap['0']) colMap['0'] = [0.11, 0.16, 0.20, 0.0];
+
+  const buf = [];
+  for (const [col, pid, m, ttIdx] of data.inst) {
+    const baseRgba = colMap[String(col)] || [0.7, 0.7, 0.7, 0.0];
+    const [x, y, z, a, b, c, d, e, f, g, h, i] = m;
+    const turnFlag = ttIdx >= 0 ? 1.0 : 0.0;
+    const pivX = (ttIdx >= 0 && data.tt[ttIdx]) ? data.tt[ttIdx][0] : 0.0;
+    const pivZ = (ttIdx >= 0 && data.tt[ttIdx]) ? data.tt[ttIdx][1] : 0.0;
+
+    // LDraw (x, y_down, z_front) -> World (x, y_up = -y_down, z_front = +z_front)
+    const xf = (v) => [
+      x + a*v[0] + b*v[1] + c*v[2],
+      -(y + d*v[0] + e*v[1] + f*v[2]),
+      z + g*v[0] + h*v[1] + i*v[2]
+    ];
+
+    if (rectTris[pid]) {
+      for (const [p0, p1, p2] of rectTris[pid]) {
+        const A = xf(p0), B = xf(p2), C = xf(p1);
+        const ux = B[0]-A[0], uy = B[1]-A[1], uz = B[2]-A[2];
+        const vx = C[0]-A[0], vy = C[1]-A[1], vz = C[2]-A[2];
+        let nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+        const len = Math.hypot(nx, ny, nz) || 1;
+        nx /= len; ny /= len; nz /= len;
+        for (const P of [A, B, C]) {
+          buf.push(P[0], P[1], P[2], nx, ny, nz, baseRgba[0], baseRgba[1], baseRgba[2], baseRgba[3], pivX, pivZ, turnFlag);
+        }
+      }
+    } else if (meshTris[pid]) {
+      for (const tObj of meshTris[pid]) {
+        const [p0, p1, p2] = tObj.pts;
+        const rgba = (tObj.col !== 16 && colMap[String(tObj.col)]) ? colMap[String(tObj.col)] : baseRgba;
+        const A = xf(p0), B = xf(p2), C = xf(p1);
+        const ux = B[0]-A[0], uy = B[1]-A[1], uz = B[2]-A[2];
+        const vx = C[0]-A[0], vy = C[1]-A[1], vz = C[2]-A[2];
+        let nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+        const len = Math.hypot(nx, ny, nz) || 1;
+        nx /= len; ny /= len; nz /= len;
+        for (const P of [A, B, C]) {
+          buf.push(P[0], P[1], P[2], nx, ny, nz, rgba[0], rgba[1], rgba[2], rgba[3], pivX, pivZ, turnFlag);
+        }
+      }
+    }
+  }
+
+  const vbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(buf), gl.STATIC_DRAW);
+
+  const stride = 13 * 4;
+  const bindAttr = (name, size, offset) => {
+    const loc = gl.getAttribLocation(prog, name);
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, size, gl.FLOAT, false, stride, offset * 4);
+  };
+  bindAttr('aPos', 3, 0);
+  bindAttr('aNorm', 3, 3);
+  bindAttr('aCol', 4, 6);
+  bindAttr('aPivot', 2, 10);
+  bindAttr('aTurn', 1, 12);
+
+  const vertCount = buf.length / 13;
+  const uProj = gl.getUniformLocation(prog, 'uProj');
+  const uView = gl.getUniformLocation(prog, 'uView');
+  const uAngle = gl.getUniformLocation(prog, 'uAngle');
+  const uEye = gl.getUniformLocation(prog, 'uEye');
+
+  let target = [0, 45, 0];
+  let spherical = { r: 620, theta: 0.14, phi: 1.04 };
+  let eye = [80, 420, 660];
+  let turnActive = true;
+  let turnAngle = 0;
+  let walkMode = false;
+  const keys = {};
+
+  function updateEyeFromOrbit() {
+    const sinP = Math.sin(spherical.phi);
+    eye = [
+      target[0] + spherical.r * sinP * Math.sin(spherical.theta),
+      target[1] + spherical.r * Math.cos(spherical.phi),
+      target[2] + spherical.r * sinP * Math.cos(spherical.theta)
+    ];
+  }
+
+  function jumpToHotspot(hs) {
+    const [cx, cy, cz] = hs[1];
+    const [tx, ty, tz] = hs[2];
+    target = [tx, ty, tz];
+    const dx = cx - tx, dy = cy - ty, dz = cz - tz;
+    spherical.r = Math.max(80, Math.hypot(dx, dy, dz));
+    spherical.theta = Math.atan2(dx, dz);
+    spherical.phi = Math.max(0.18, Math.min(1.48, Math.acos(dy / spherical.r)));
+    updateEyeFromOrbit();
+  }
+
+  const hsWrap = document.getElementById('hotspots');
+  HOTSPOTS.forEach((hs, idx) => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (idx === 0 ? ' active' : '');
+    b.textContent = hs[0];
+    b.onclick = () => {
+      document.querySelectorAll('#hotspots .btn').forEach(el => el.classList.remove('active'));
+      b.classList.add('active');
+      jumpToHotspot(hs);
+    };
+    hsWrap.appendChild(b);
+  });
+  if (HOTSPOTS.length > 0) jumpToHotspot(HOTSPOTS[0]);
+  else updateEyeFromOrbit();
+
+  let dragging = false, prevX = 0, prevY = 0, rightDrag = false;
+  canvas.addEventListener('pointerdown', e => {
+    dragging = true; rightDrag = (e.button === 2 || e.shiftKey);
+    prevX = e.clientX; prevY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - prevX, dy = e.clientY - prevY;
+    prevX = e.clientX; prevY = e.clientY;
+    if (walkMode) {
+      spherical.theta -= dx * 0.005;
+      spherical.phi = Math.max(0.2, Math.min(2.8, spherical.phi + dy * 0.005));
+      const sinP = Math.sin(spherical.phi);
+      target = [
+        eye[0] + 100 * sinP * Math.sin(spherical.theta),
+        eye[1] + 100 * Math.cos(spherical.phi),
+        eye[2] + 100 * sinP * Math.cos(spherical.theta)
+      ];
+    } else if (rightDrag) {
+      const pan = spherical.r * 0.0015;
+      target[0] -= dx * Math.cos(spherical.theta) * pan;
+      target[2] += dx * Math.sin(spherical.theta) * pan;
+      target[1] += dy * pan;
+      updateEyeFromOrbit();
+    } else {
+      spherical.theta -= dx * 0.0065;
+      spherical.phi = Math.max(0.15, Math.min(1.48, spherical.phi - dy * 0.0065));
+      updateEyeFromOrbit();
+    }
+  });
+  canvas.addEventListener('pointerup', () => { dragging = false; });
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    spherical.r = Math.max(70, Math.min(2800, spherical.r * (1 + e.deltaY * 0.001)));
+    if (!walkMode) updateEyeFromOrbit();
+  }, { passive: false });
+
+  window.addEventListener('keydown', e => { keys[e.code] = true; });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  document.getElementById('btn-turn').onclick = function() {
+    turnActive = !turnActive;
+    this.classList.toggle('active', turnActive);
+  };
+  document.getElementById('btn-walk').onclick = function() {
+    walkMode = !walkMode;
+    this.classList.toggle('active', walkMode);
+  };
+  document.getElementById('btn-theme').onclick = function() {
+    document.body.classList.toggle('dark');
+  };
+
+  function drawFrame() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.floor(canvas.clientWidth * dpr), h = Math.floor(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+    gl.enable(gl.DEPTH_TEST);
+    const isDark = document.body.classList.contains('dark');
+    if (isDark) gl.clearColor(0.051, 0.059, 0.071, 1.0);
+    else gl.clearColor(0.937, 0.925, 0.894, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.uniformMatrix4fv(uProj, false, perspMat(35 * Math.PI / 180, w / Math.max(1, h), 4.0, 6000.0));
+    gl.uniformMatrix4fv(uView, false, lookAtMat(eye, target, [0, 1, 0]));
+    gl.uniform1f(uAngle, turnAngle);
+    gl.uniform3fv(uEye, new Float32Array(eye));
+    gl.drawArrays(gl.TRIANGLES, 0, vertCount);
+  }
+
+  // Expose __forage API for look.js / automated inspection
+  window.__forage = {
+    ready: true,
+    look: function(ex, ey, ez, tx, ty, tz, fov) {
+      eye = [ex, ey, ez];
+      target = [tx, ty, tz];
+      drawFrame();
+    }
+  };
+
+  function loop() {
+    requestAnimationFrame(loop);
+    if (turnActive) turnAngle += 0.014;
+    if (walkMode) {
+      const spd = 4.0;
+      const fx = target[0] - eye[0], fy = target[1] - eye[1], fz = target[2] - eye[2];
+      const fl = Math.hypot(fx, fy, fz) || 1;
+      const dx = fx/fl, dy = fy/fl, dz = fz/fl;
+      const rx = -dz, rz = dx;
+      const move = (mx, my, mz) => {
+        eye[0] += mx; eye[1] += my; eye[2] += mz;
+        target[0] += mx; target[1] += my; target[2] += mz;
+      };
+      if (keys['KeyW'] || keys['ArrowUp']) move(dx*spd, dy*spd, dz*spd);
+      if (keys['KeyS'] || keys['ArrowDown']) move(-dx*spd, -dy*spd, -dz*spd);
+      if (keys['KeyA'] || keys['ArrowLeft']) move(-rx*spd, 0, -rz*spd);
+      if (keys['KeyD'] || keys['ArrowRight']) move(rx*spd, 0, rz*spd);
+      if (keys['KeyE']) move(0, spd, 0);
+      if (keys['KeyQ']) move(0, -spd, 0);
+    }
+    drawFrame();
+  }
+  loop();
 })();
 </script>
 </body>

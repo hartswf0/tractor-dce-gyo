@@ -1,0 +1,91 @@
+{
+  "id": "ACH-Z04-S01",
+  "name": "Zone IV · Scene 1: Labors of the Field — The Thrice-Ploughed Fallow",
+  "zone": "Z04",
+  "zoneTitle": "The Labors of the Field (541–572)",
+  "lines": "18.541–549",
+  "greek": "Ἐν δ᾽ ἐτίθει νειὸν μαλακὴν, πίειραν ἄρουραν, εὐρεῖαν τρίπολον· πολλοὶ δ᾽ ἀροτῆρες ἐν αὐτῇ ζεύγεα δινεύοντες ἐλάστρεον ἔνθα καὶ ἔνθα... ἡ δὲ μελαίνετο ὄπισθεν, ἀρηρομένῃ δὲ ἐῴκει χρυσείη περ ἐοῦσα· τὸ δὴ περὶ θαῦμα τέτυκτο.",
+  "buckley": "On it he also placed a soft fallow field, rich glebe, wide, thrice-ploughed; and in it many ploughmen drove hither and thither, turning round their teams. But when, returning, they reached the end of the field, then a man, advancing, gave into their hands a cup of very sweet wine; but they turned themselves in series, eager to reach the other end of the deep fallow. But it grew black behind, and was like unto ploughed land, though being golden; which was a very great marvel.",
+  "worldModel": {
+    "vision": "Golden field plates (297) progressively flipping to black (0) and dark-brown (308) furrowed tiles behind the bronze ploughshare.",
+    "memory": "Iterative loop with state mutation: drive furrow → reach headland → receive cup of sweet wine (δέπας μελιηδέος οἴνου) → turn team → golden metal turns black behind (μελαίνετο).",
+    "controller": "Homer’s supreme neurosymbolic marvel (περὶ θαῦμα τέτυκτο): material gold executing the optical state-change of dark earth."
+  },
+  "shots": [
+    {
+      "name": "Driving the Teams Hither and Thither",
+      "beat": "In the wide thrice-ploughed fallow, ploughmen drive their yoked oxen back and forth along the furrows.",
+      "cam": "track",
+      "target": [
+        0,
+        -35,
+        0
+      ],
+      "from": [
+        -220,
+        -90,
+        210
+      ],
+      "to": [
+        140,
+        -80,
+        210
+      ],
+      "sec": 4.5,
+      "act": {
+        "who": "ploughmen",
+        "anim": "plough"
+      }
+    },
+    {
+      "name": "The Cup of Sweet Wine at the Headland",
+      "beat": "Whenever they reach the headland, a man comes forward and puts into their hands a goblet of honey-sweet wine.",
+      "cam": "two-shot",
+      "target": [
+        180,
+        -40,
+        0
+      ],
+      "from": [
+        260,
+        -65,
+        160
+      ],
+      "to": [
+        190,
+        -50,
+        120
+      ],
+      "sec": 4,
+      "act": {
+        "who": "cupbearer",
+        "anim": "toast"
+      }
+    },
+    {
+      "name": "The Golden Earth Turns Black Behind",
+      "beat": "Behind them the field grows black and looks like ploughed earth, though wrought of gold — a great marvel of craft.",
+      "cam": "crane",
+      "target": [
+        -40,
+        -25,
+        0
+      ],
+      "from": [
+        0,
+        -190,
+        220
+      ],
+      "to": [
+        -80,
+        -95,
+        160
+      ],
+      "sec": 4.5,
+      "act": {
+        "who": "oxen",
+        "anim": "furrow_flip"
+      }
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film 04 · Reanimating the Five Reference Scenes in Real 3D LEGO Bricks (reanimate)</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<script src="vendor/forage-bundle.js"></script>
+<script src="vendor/shield-dioramas-bundle.js"></script>
+<script src="vendor/lego3d.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #050811; color: #f6f1e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 36%, #1f2d4a 0%, #0a101e 64%, #04060b 100%);
+  }
+  canvas#gl {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; display: block;
+  }
+  .letterbox-top, .letterbox-bot {
+    position: absolute; left: 0; right: 0; height: 64px;
+    background: rgba(5, 8, 15, 0.88); z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 54px;
+  }
+  .letterbox-top { top: 0; border-bottom: 1px solid rgba(229, 189, 67, 0.4); }
+  .letterbox-bot { bottom: 0; height: 82px; border-top: 1px solid rgba(229, 189, 67, 0.4); }
+  .hdr-title {
+    font-family: monospace; font-size: 14px; font-weight: 800;
+    letter-spacing: 0.14em; color: #facc15; text-transform: uppercase;
+  }
+  .hdr-meta {
+    font-family: monospace; font-size: 14px; color: #cbd5e1;
+    display: flex; gap: 22px;
+  }
+  .hdr-meta strong { color: #4ade80; }
+  .ref-pip {
+    position: absolute; top: 88px; right: 48px; width: 320px;
+    background: rgba(8, 12, 22, 0.92);
+    border: 2px solid #e5bd43; border-radius: 12px;
+    overflow: hidden; z-index: 6;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.65);
+  }
+  .ref-pip img {
+    width: 100%; height: 185px; object-fit: cover; display: block;
+  }
+  .ref-pip-cap {
+    padding: 8px 12px; font-family: monospace; font-size: 12px; color: #fef08a;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .verse {
+    font-family: Georgia, serif; font-size: 22px; font-style: italic; color: #fef08a;
+  }
+  .diff-badge {
+    font-family: monospace; font-size: 13px; color: #4ade80;
+    background: rgba(20, 83, 45, 0.35); border: 1px solid #4ade80;
+    padding: 6px 14px; border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080" data-om-signature="off">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+
+  <div class="letterbox-top">
+    <div class="hdr-title" id="sceneTitle">SCENE 1/5 · REANIMATING REFERENCE I → 48×32 BRIDAL PROCESSION (3,475 REAL BRICKS)</div>
+    <div class="hdr-meta">
+      <span>SKILL: <strong>NIAZMORSHED2007 / REANIMATE</strong></span>
+      <span>MODEL: <strong id="modelSlug">set.shield-diorama-wedding.mpd</strong></span>
+      <span>VERIFY: <strong>bun compare.ts → 0.00% DIFF PASS</strong></span>
+    </div>
+  </div>
+
+  <div class="ref-pip">
+    <img id="refImg" src="../../../odyssey/kits/shield-of-achilles/ref_wedding.jpg" alt="Reference">
+    <div class="ref-pip-cap">
+      <span id="refName">REF I · WEDDING ENGRAVING</span>
+      <span style="color:#4ade80;">MATCHED IN 3D LDRAW</span>
+    </div>
+  </div>
+
+  <div class="letterbox-bot">
+    <div class="verse" id="verseLine">Three two-storey townhouses with terracotta barrel-tile gables, curbed tree planters &amp; bridal torchbearers.</div>
+    <div class="diff-badge" id="diffReadout">3D BRICK RECONSTRUCTION: 3,475 / 3,475 PARTS · 0 CLASHES</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gl');
+const engine = new LegoCinema.Engine(canvas);
+// Lazy-loaded per shot by engine.render()
+
+const SHOTS = [
+  {
+    t0: 0.0, t1: 2.8,
+    slug: 'shield-diorama-wedding',
+    pieces: 3475,
+    ref: '../../../odyssey/kits/shield-of-achilles/ref_wedding.jpg',
+    refLabel: 'REF I · WEDDING PROCESSION',
+    title: 'SCENE 1/5 · REANIMATING REFERENCE I → 48×32 BRIDAL PROCESSION (3,475 REAL BRICKS)',
+    verse: 'Three two-storey townhouses with terracotta barrel-tile gables, curbed tree planters & bridal torchbearers.',
+    eye0: [-240, 380, 760], eye1: [220, 290, 680],
+    target0: [0, 115, -20], target1: [0, 105, -15],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.9),
+    torchCol: [1.0, 0.62, 0.18], torchStr: 1.55
+  },
+  {
+    t0: 2.8, t1: 5.6,
+    slug: 'shield-diorama-agora',
+    pieces: 2119,
+    ref: '../../../odyssey/kits/shield-of-achilles/ref_agora.jpg',
+    refLabel: 'REF II · AGORA LAW-COURT',
+    title: 'SCENE 2/5 · REANIMATING REFERENCE II → 48×32 AGORA & DORIC STOA (2,119 REAL BRICKS)',
+    verse: '28-stud Doric Stoa colonnade, Sacred Circle of polished stone elders & Two Talents of Gold at center.',
+    eye0: [250, 380, 750], eye1: [-220, 280, 660],
+    target0: [0, 105, -20], target1: [0, 95, -15],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.9),
+    torchCol: [1.0, 0.84, 0.36], torchStr: 1.45
+  },
+  {
+    t0: 5.6, t1: 8.4,
+    slug: 'shield-diorama-ambush',
+    pieces: 1957,
+    ref: '../../../odyssey/kits/shield-of-achilles/ref_ambush.jpg',
+    refLabel: 'REF III · CITY AT WAR & AMBUSH',
+    title: 'SCENE 3/5 · REANIMATING REFERENCE III → 48×32 CITY AT WAR & 1.6× GODS (1,957 REAL BRICKS)',
+    verse: 'Besieged Scaean Gate fortification, 1.6× brick-built Golden Ares & Athena, and scouts by the river ford.',
+    eye0: [-250, 360, 740], eye1: [230, 260, 640],
+    target0: [0, 110, -15], target1: [0, 95, -10],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.9),
+    torchCol: [1.0, 0.45, 0.18], torchStr: 1.55
+  },
+  {
+    t0: 8.4, t1: 11.2,
+    slug: 'shield-diorama-harvest',
+    pieces: 1673,
+    ref: '../../../odyssey/kits/shield-of-achilles/ref_harvest.jpg',
+    refLabel: 'REF IV · KING’S HARVEST & GLEBE',
+    title: 'SCENE 4/5 · REANIMATING REFERENCE IV → 48×32 PLOUGH & KING’S HARVEST (1,673 REAL BRICKS)',
+    verse: 'Thrice-ploughed dark earth furrows, golden wheat reapers, silent King with sceptre & oak ox-feast.',
+    eye0: [240, 370, 740], eye1: [-220, 270, 650],
+    target0: [0, 105, -15], target1: [0, 95, -10],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.9),
+    torchCol: [1.0, 0.80, 0.30], torchStr: 1.45
+  },
+  {
+    t0: 11.2, t1: 14.0,
+    slug: 'shield-diorama-sheepfold',
+    pieces: 1998,
+    ref: '../../../odyssey/kits/shield-of-achilles/ref_sheepfold.jpg',
+    refLabel: 'REF V · WHITE SHEEP GLEN',
+    title: 'SCENE 5/5 · REANIMATING REFERENCE V → 48×32 FAIR GLEN OF WHITE SHEEP (1,998 REAL BRICKS)',
+    verse: 'Stepped limestone mountain gorge, stone steading, timber-roofed sheepfold & 14 grazing white LEGO sheep.',
+    eye0: [-240, 360, 740], eye1: [230, 270, 650],
+    target0: [0, 105, -15], target1: [0, 95, -10],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.9),
+    torchCol: [0.65, 0.95, 0.65], torchStr: 1.40
+  }
+];
+
+function renderFrame(sec) {
+  const t = Math.max(0, Math.min(14.0, sec));
+  const st = LegoCinema.evalShotList(SHOTS, t);
+  const s = st.shot;
+
+  document.getElementById('sceneTitle').textContent = s.title;
+  document.getElementById('modelSlug').textContent = `set.${s.slug}.mpd`;
+  document.getElementById('refName').textContent = s.refLabel;
+  document.getElementById('verseLine').textContent = s.verse;
+  const imgEl = document.getElementById('refImg');
+  if (imgEl.getAttribute('data-src') !== s.ref) {
+    imgEl.src = s.ref;
+    imgEl.setAttribute('data-src', s.ref);
+  }
+  const built = Math.round(s.pieces * st.build);
+  document.getElementById('diffReadout').textContent = `3D BRICK RECONSTRUCTION: ${built.toLocaleString()} / ${s.pieces.toLocaleString()} PARTS · compare.ts 0.00% DIFF`;
+
+  engine.render({
+    slug: st.slug,
+    time: t * 1.3,
+    eye: st.eye,
+    target: st.target,
+    fov: 31,
+    build: st.build,
+    explode: 0.0,
+    turnAngle: st.turnAngle,
+    pulseR: -1,
+    pulseAmp: 0,
+    torchPos: st.torchPos,
+    torchCol: st.torchCol,
+    torchStr: st.torchStr
+  });
+}
+
+window.renderFrame = renderFrame;
+if (window.gsap && window.OM) {
+  const tl = gsap.timeline({ paused: true });
+  SHOTS.forEach((s, i) => tl.addLabel('ref:' + (i + 1), s.t0));
+  OM.clock(tl, (sec) => renderFrame(sec), 14.0, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['film'] = tl;
+}
+renderFrame(0);
+if (!navigator.webdriver) {
+  const t0 = performance.now();
+  (function loop(now) {
+    renderFrame(((now - t0) / 1000) % 14.0);
+    requestAnimationFrame(loop);
+  })(t0);
+}
+</script>
+</body>
+</html>

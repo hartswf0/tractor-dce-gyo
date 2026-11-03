@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film 05 · Walking the 3D LEGO Shield Studio (Argo Playwright Tour + Voiceover)</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<script src="vendor/forage-bundle.js"></script>
+<script src="vendor/shield-dioramas-bundle.js"></script>
+<script src="vendor/lego3d.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #070b14; color: #f6f1e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, #1d2d4e 0%, #090f1d 65%, #04060b 100%);
+  }
+  canvas#gl {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; display: block;
+  }
+  .studio-hud-top {
+    position: absolute; top: 20px; left: 28px; right: 28px;
+    display: flex; justify-content: space-between; align-items: center; z-index: 6;
+  }
+  .hud-badge {
+    background: rgba(10, 16, 28, 0.9); border: 1.5px solid rgba(229, 189, 67, 0.5);
+    border-radius: 10px; padding: 10px 18px; font-family: monospace; font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  .hud-badge strong { color: #facc15; }
+  .kit-pills {
+    display: flex; gap: 10px;
+  }
+  .kit-pill {
+    background: rgba(15, 23, 42, 0.88); border: 1.5px solid rgba(148, 163, 184, 0.35);
+    border-radius: 8px; padding: 9px 16px; font-family: monospace; font-size: 13px; color: #cbd5e1;
+  }
+  .kit-pill.active {
+    background: #e5bd43; color: #070b14; border-color: #facc15; font-weight: 800;
+    box-shadow: 0 0 18px rgba(250, 204, 21, 0.5);
+  }
+  .argo-callout {
+    position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%);
+    background: rgba(8, 13, 24, 0.92); border: 2px solid #38bdf8;
+    border-radius: 14px; padding: 14px 28px; z-index: 8;
+    text-align: center; min-width: 780px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+  }
+  .argo-callout-tag {
+    font-family: monospace; font-size: 12px; color: #38bdf8; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .argo-callout-text {
+    font-size: 21px; font-weight: 600; color: #ffffff; margin-top: 4px;
+  }
+  /* Argo Focus Ring & Cursor */
+  #focusRing {
+    position: absolute; width: 220px; height: 220px;
+    border: 3px dashed #facc15; border-radius: 50%;
+    box-shadow: 0 0 40px rgba(250, 204, 21, 0.35), inset 0 0 24px rgba(250, 204, 21, 0.2);
+    pointer-events: none; z-index: 7; transform: translate(-50%, -50%);
+  }
+  #humanCursor {
+    position: absolute; width: 34px; height: 34px; pointer-events: none; z-index: 12;
+    transform: translate(-4px, -4px);
+  }
+  #clickRipple {
+    position: absolute; width: 64px; height: 64px; border-radius: 50%;
+    border: 3px solid #38bdf8; pointer-events: none; z-index: 11;
+    transform: translate(-50%, -50%) scale(0); opacity: 0;
+  }
+  .studio-hud-bot {
+    position: absolute; bottom: 20px; left: 28px; right: 28px; height: 54px;
+    background: rgba(8, 12, 22, 0.9); border: 1px solid rgba(229, 189, 67, 0.35);
+    border-radius: 10px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; font-family: monospace; font-size: 13px; color: #94a3b8; z-index: 6;
+  }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080" data-om-signature="off">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+
+  <div class="studio-hud-top">
+    <div class="hud-badge" id="topBadge">
+      <strong>3D LDRAW WEBGL STUDIO</strong> · set.shield-of-achilles.mpd · 7,522 pcs · <span style="color:#4ade80;">✓ 0 loose · 0 clashes</span>
+    </div>
+    <div class="kit-pills">
+      <div class="kit-pill active" id="pill0">1 · 96×96 Shield (7,522 pcs)</div>
+      <div class="kit-pill" id="pill1">2 · Bridal Street (3,475 pcs)</div>
+      <div class="kit-pill" id="pill2">3 · Agora &amp; Stoa (2,119 pcs)</div>
+      <div class="kit-pill" id="pill3">4 · Cattle &amp; Lions (2,108 pcs)</div>
+    </div>
+  </div>
+
+  <div id="focusRing" style="left:960px;top:520px;"></div>
+  <div id="clickRipple"></div>
+  <svg id="humanCursor" viewBox="0 0 32 32">
+    <path d="M5 3 L26 15 L16 18 L21 28 L16 30 L11 20 L5 25 Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.2"/>
+  </svg>
+
+  <div class="argo-callout">
+    <div class="argo-callout-tag" id="argoTag">ARGO SCENE 1/4 · createHumanCursor() + orbitDrag() · 0.0s–4.0s</div>
+    <div class="argo-callout-text" id="argoSub">“Welcome to the 3D LEGO Shield of Achilles Studio—7,522 real LDraw bricks across five concentric rings.”</div>
+  </div>
+
+  <div class="studio-hud-bot">
+    <span>ARGO PLAYWRIGHT TOUR · @argo-video/cli · Real ./ldraw/parts/*.dat Meshes</span>
+    <span id="camCoords" style="color:#facc15;">EYE: [340, 780, 1080] → TARGET: [0, 65, 0] · TURNTABLE 61485c01 ACTIVE</span>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gl');
+const engine = new LegoCinema.Engine(canvas);
+// Lazy-loaded per shot by engine.render()
+
+const SCENES = [
+  {
+    t0: 0.0, t1: 4.0, idx: 0,
+    slug: 'shield-of-achilles', pieces: 7522,
+    tag: 'ARGO SCENE 1/4 · createHumanCursor() + spotlight(M0 Boss) · 0.0s–4.0s',
+    sub: '“Welcome to the 3D LEGO Shield of Achilles Studio—7,522 real LDraw bricks across five concentric rings.”',
+    eye0: [360, 820, 1120], eye1: [-220, 520, 820],
+    target0: [0, 75, 0], target1: [0, 95, 0],
+    cur0: [1180, 62], cur1: [960, 510],
+    ring: [960, 510]
+  },
+  {
+    t0: 4.0, t1: 8.0, idx: 1,
+    slug: 'shield-diorama-wedding', pieces: 3475,
+    tag: 'ARGO SCENE 2/4 · cursorHighlight() → 48×32 Bridal Torch-Procession (3,475 bricks)',
+    sub: '“Clicking Diorama One loads 3,475 bricks: three two-storey townhouses and the bridal torch-procession.”',
+    eye0: [-260, 360, 740], eye1: [240, 260, 640],
+    target0: [-30, 115, -20], target1: [30, 100, -15],
+    cur0: [1395, 42], cur1: [980, 540],
+    ring: [980, 540]
+  },
+  {
+    t0: 8.0, t1: 12.0, idx: 2,
+    slug: 'shield-diorama-agora', pieces: 2119,
+    tag: 'ARGO SCENE 3/4 · zoomTo(Sacred Circle & Two Gold Talents) · 2,119 bricks',
+    sub: '“In the Agora Law-Court, elders sit on polished stone seats around the Two Talents of Pearl Gold.”',
+    eye0: [250, 360, 720], eye1: [-180, 230, 560],
+    target0: [20, 105, -20], target1: [0, 85, 20],
+    cur0: [1605, 42], cur1: [960, 560],
+    ring: [960, 560]
+  },
+  {
+    t0: 12.0, t1: 16.0, idx: 3,
+    slug: 'shield-diorama-cattle', pieces: 2108,
+    tag: 'ARGO SCENE 4/4 · focusRing(Two Tawny Lions & Nine Hounds) · 2,108 bricks',
+    sub: '“Beside the reed-bed, two tawny LEGO lions seize the bull while four herdsmen and nine hounds rush in.”',
+    eye0: [-250, 350, 730], eye1: [230, 250, 630],
+    target0: [-30, 105, -15], target1: [30, 95, -10],
+    cur0: [1805, 42], cur1: [940, 540],
+    ring: [940, 540]
+  }
+];
+
+function renderFrame(sec) {
+  const t = Math.max(0, Math.min(16.0, sec));
+  const st = LegoCinema.evalShotList(SCENES, t);
+  const s = st.shot;
+
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('pill' + i).classList.toggle('active', i === s.idx);
+  }
+  document.getElementById('topBadge').innerHTML =
+    `<strong>3D LDRAW WEBGL STUDIO</strong> · set.${s.slug}.mpd · ${s.pieces.toLocaleString()} pcs · <span style="color:#4ade80;">✓ 0 loose · 0 clashes</span>`;
+  document.getElementById('argoTag').textContent = s.tag;
+  document.getElementById('argoSub').textContent = s.sub;
+  document.getElementById('camCoords').textContent =
+    `EYE: [${st.eye.map(Math.round).join(', ')}] → TARGET: [${st.target.map(Math.round).join(', ')}] · t=${t.toFixed(2)}s`;
+
+  // Animate human cursor from pill button to 3D model center and orbit-drag
+  const curU = Math.min(1.0, st.u * 2.2);
+  const curE = LegoCinema.easeInOutCubic(curU);
+  const dragX = st.u > 0.45 ? Math.sin((st.u - 0.45) * Math.PI * 2) * 140 : 0;
+  const dragY = st.u > 0.45 ? Math.cos((st.u - 0.45) * Math.PI * 2) * 45 : 0;
+  const cx = LegoCinema.lerp(s.cur0[0], s.cur1[0], curE) + dragX;
+  const cy = LegoCinema.lerp(s.cur0[1], s.cur1[1], curE) + dragY;
+  const curEl = document.getElementById('humanCursor');
+  curEl.style.left = cx + 'px';
+  curEl.style.top = cy + 'px';
+
+  // Click ripple at start of each scene
+  const ripEl = document.getElementById('clickRipple');
+  if (st.u < 0.22) {
+    const rp = st.u / 0.22;
+    ripEl.style.left = s.cur0[0] + 'px';
+    ripEl.style.top = s.cur0[1] + 'px';
+    ripEl.style.transform = `translate(-50%, -50%) scale(${0.4 + rp * 1.8})`;
+    ripEl.style.opacity = String(1.0 - rp);
+  } else {
+    ripEl.style.opacity = '0';
+  }
+
+  // Focus ring over the 3D LEGO focal action
+  const ringEl = document.getElementById('focusRing');
+  ringEl.style.left = (s.ring[0] + dragX * 0.5) + 'px';
+  ringEl.style.top = (s.ring[1] + dragY * 0.5) + 'px';
+  ringEl.style.transform = `translate(-50%, -50%) rotate(${(t * 28) % 360}deg)`;
+
+  engine.render({
+    slug: st.slug,
+    time: t * 1.3,
+    eye: st.eye,
+    target: st.target,
+    fov: 31,
+    build: 1.0,
+    explode: 0.0,
+    turnAngle: t * 0.5,
+    pulseR: -1,
+    pulseAmp: 0,
+    torchPos: st.torchPos,
+    torchCol: [1.0, 0.78, 0.32],
+    torchStr: 1.45
+  });
+}
+
+window.renderFrame = renderFrame;
+if (window.gsap && window.OM) {
+  const tl = gsap.timeline({ paused: true });
+  SCENES.forEach((s, i) => tl.addLabel('argo:' + (i + 1), s.t0));
+  OM.clock(tl, (sec) => renderFrame(sec), 16.0, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['film'] = tl;
+}
+renderFrame(0);
+if (!navigator.webdriver) {
+  const t0 = performance.now();
+  (function loop(now) {
+    renderFrame(((now - t0) / 1000) % 16.0);
+    requestAnimationFrame(loop);
+  })(t0);
+}
+</script>
+</body>
+</html>

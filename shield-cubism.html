@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>3D Spatiotemporal Cinema Worm V(u,v,τ) & Multiplane Agent Office — Shield of Achilles</title>
+<style>
+  :root {
+    --bg: #050811;
+    --panel: #0b1120;
+    --panel-alt: #10192e;
+    --border: rgba(212, 175, 55, 0.30);
+    --gold: #f6d365;
+    --gold-deep: #d4af37;
+    --cyan: #79c0ff;
+    --green: #7ee787;
+    --crimson: #ff7b72;
+    --purple: #d2a8ff;
+    --orange: #ffa657;
+    --text: #f0ece1;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(circle at 50% 0%, #131d36 0%, #070b16 55%, #04060c 100%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.55;
+    padding-bottom: 80px;
+  }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace; }
+
+  .top-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5, 8, 17, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 28px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;
+  }
+  .brand-title {
+    font-size: 15px; font-weight: 800; letter-spacing: 0.08em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .nav-links { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; }
+  .nav-pill {
+    padding: 6px 12px; border-radius: 6px;
+    background: rgba(212, 175, 55, 0.10);
+    border: 1px solid rgba(212, 175, 55, 0.32);
+    color: var(--text); font-weight: 600;
+  }
+  .nav-pill.active {
+    background: var(--gold-deep); color: #050811; border-color: var(--gold);
+  }
+
+  .container { max-width: 1560px; margin: 0 auto; padding: 28px 24px; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(16, 25, 46, 0.92) 0%, rgba(8, 13, 26, 0.96) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 32px; margin-bottom: 24px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+  }
+  .hero-eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    color: var(--cyan); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .hero h1 {
+    font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 10px;
+  }
+  .hero p { color: #cbd5e1; font-size: 15px; max-width: 1180px; }
+  .hero-badges {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;
+  }
+  .badge {
+    font-size: 11px; padding: 5px 11px; border-radius: 999px;
+    background: rgba(121, 192, 255, 0.10);
+    border: 1px solid rgba(121, 192, 255, 0.30);
+    color: var(--cyan); font-family: 'JetBrains Mono', monospace;
+  }
+  .badge.gold {
+    background: rgba(246, 211, 101, 0.12);
+    border-color: rgba(246, 211, 101, 0.40);
+    color: var(--gold);
+  }
+  .badge.green {
+    background: rgba(126, 231, 135, 0.12);
+    border-color: rgba(126, 231, 135, 0.40);
+    color: var(--green);
+  }
+
+  /* Film Selector Strip */
+  .film-selector {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 8px; margin-bottom: 22px;
+  }
+  .film-btn {
+    background: var(--panel);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 10px; padding: 10px 12px;
+    text-align: left; cursor: pointer; color: var(--text);
+    transition: all 0.16s ease;
+  }
+  .film-btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+  .film-btn.active {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(16, 25, 46, 0.95));
+    border-color: var(--gold);
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+  }
+  .film-btn .f-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--gold); font-weight: 700;
+  }
+  .film-btn .f-title {
+    font-size: 12px; font-weight: 700; color: #fff;
+    margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .film-btn .f-repo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Studio Grid: Left Video+Armature, Right 3D Spatiotemporal Volume Prism */
+  .studio-grid {
+    display: grid; grid-template-columns: 1.05fr 1fr; gap: 20px; margin-bottom: 24px;
+  }
+  @media (max-width: 1200px) {
+    .studio-grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  }
+  .card-header {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 12px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-title {
+    font-size: 14px; font-weight: 800; letter-spacing: 0.06em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .controls-row {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .ctrl-btn {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: var(--text); font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .ctrl-btn.active {
+    background: rgba(212, 175, 55, 0.22);
+    border-color: var(--gold); color: var(--gold); font-weight: 700;
+  }
+
+  .video-stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    background: #000; border-radius: 10px; overflow: hidden;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+  }
+  .video-stage video {
+    width: 100%; height: 100%; display: block; object-fit: cover;
+  }
+  .video-stage canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .prism-stage {
+    position: relative; width: 100%; height: 430px;
+    background: radial-gradient(circle at 50% 45%, #121c34 0%, #060a14 75%);
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid rgba(121, 192, 255, 0.32);
+    cursor: grab;
+  }
+  .prism-stage:active { cursor: grabbing; }
+  .prism-stage canvas { width: 100%; height: 100%; display: block; }
+  .prism-legend {
+    position: absolute; bottom: 10px; left: 12px; right: 12px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: rgba(5, 8, 17, 0.82); padding: 6px 10px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1); pointer-events: none;
+  }
+
+  /* Telemetry KPI Strip */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px; margin-top: 12px;
+  }
+  .kpi-box {
+    background: var(--panel-alt);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 8px 10px;
+  }
+  .kpi-label {
+    font-size: 10px; font-family: 'JetBrains Mono', monospace;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .kpi-val {
+    font-size: 15px; font-weight: 800; color: var(--gold);
+    font-family: 'JetBrains Mono', monospace; margin-top: 2px;
+  }
+
+  /* Four Visualizations Grid */
+  .viz-grid-2 {
+    display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; margin-bottom: 24px;
+  }
+  @media (max-width: 1100px) {
+    .viz-grid-2 { grid-template-columns: 1fr; }
+  }
+  .slit-stack { display: flex; flex-direction: column; gap: 12px; }
+  .slit-row {
+    background: var(--panel-alt); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px;
+  }
+  .slit-label {
+    display: flex; justify-content: space-between; font-size: 11px;
+    font-family: 'JetBrains Mono', monospace; color: var(--cyan); margin-bottom: 6px;
+  }
+  .slit-wrap {
+    position: relative; width: 100%; height: 115px; border-radius: 6px;
+    overflow: hidden; cursor: pointer; border: 1px solid rgba(212, 175, 55, 0.28);
+  }
+  .slit-wrap.barcode { height: 76px; }
+  .slit-wrap img { width: 100%; height: 100%; object-fit: fill; display: block; }
+  .slit-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .torus-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .torus-wrap canvas {
+    width: 100%; max-width: 390px; aspect-ratio: 1 / 1;
+    background: radial-gradient(circle, #0e172a 0%, #060a13 75%);
+    border-radius: 50%; border: 1px solid rgba(212, 175, 55, 0.30);
+  }
+
+  /* Shot-by-Shot Cultural Analytics & Topology Table */
+  table.data-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  table.data-table th, table.data-table td {
+    padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-align: left; vertical-align: middle;
+  }
+  table.data-table th {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--gold); text-transform: uppercase; background: rgba(255,255,255,0.03);
+  }
+  table.data-table tr:hover { background: rgba(212, 175, 55, 0.06); }
+  .swatch-row { display: flex; gap: 4px; }
+  .swatch {
+    width: 18px; height: 18px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .topo-pill {
+    display: inline-block; padding: 3px 8px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+    background: rgba(121, 192, 255, 0.14); color: var(--cyan);
+    border: 1px solid rgba(121, 192, 255, 0.35);
+  }
+  .cut-pill {
+    display: inline-block; padding: 3px 8px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  }
+  .cut-pill.murch {
+    background: rgba(126, 231, 135, 0.14); color: var(--green);
+    border: 1px solid rgba(126, 231, 135, 0.4);
+  }
+  .cut-pill.eisenstein {
+    background: rgba(255, 123, 114, 0.14); color: var(--crimson);
+    border: 1px solid rgba(255, 123, 114, 0.4);
+  }
+
+  /* Kohnny & Multiplane Studio Section */
+  .office-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;
+  }
+  @media (max-width: 1100px) {
+    .office-grid { grid-template-columns: 1fr; }
+  }
+  .kanban-board {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px;
+  }
+  .kb-col {
+    background: var(--panel-alt); border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 10px; padding: 10px;
+  }
+  .kb-col h4 {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .kb-item {
+    background: rgba(5, 9, 18, 0.85);
+    border-left: 3px solid var(--cyan);
+    border-radius: 6px; padding: 8px; margin-bottom: 8px; font-size: 11px;
+  }
+  .kb-item strong { display: block; color: #fff; margin-bottom: 2px; }
+  .kb-item span { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+</style>
+<script src="films/shield-of-achilles/cubism/spatiotemporal-worms-data.js"></script>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="brand-title">Shield of Achilles · 3D Spatiotemporal Cinema Worm V(u,v,τ) &amp; Multiplane Agent Studio</div>
+  <div class="nav-links">
+    <a class="nav-pill" href="index.html">Main Tractor Hub</a>
+    <a class="nav-pill" href="shield-films.html">All 9 3D LEGO Films</a>
+    <a class="nav-pill active" href="shield-cubism.html">3D Spatiotemporal Worm Studio</a>
+    <a class="nav-pill" href="shield-experiments.html">Scale &amp; Diorama Experiments</a>
+    <a class="nav-pill" href="odyssey-forage.html">Interactive 3D LDraw Kits</a>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">Interactive Video Cubism (Fels &amp; Mase 2000) · Action Tubes · KALMUS &amp; Itten · Bouleau 14-Line Armature · Kohnny Agent Office</div>
+    <h1>3D Spatiotemporal Volume <span class="mono" style="color:var(--gold);">V(u, v, τ)</span> &amp; Behind-the-Scenes Multiplane Studio</h1>
+    <p>
+      When every 2D frame <span class="mono">(u, v) ∈ [0, 1]²</span> of our nine 3D WebGL LDraw LEGO films is stacked along the time axis <span class="mono">τ ∈ [0, T]</span>, each film becomes a solid 3D Spatiotemporal Volume <span class="mono">V(u, v, τ)</span>. Inside that prism, tracked LEGO characters, golden gods, rotating turntables, and terracotta townhouses extrude into <strong>3D Spatiotemporal Worms (Action Tubes / Worldlines)</strong> threading through the structural planes of the <strong>Rule of Thirds</strong>, <strong>Golden Spiral</strong>, and <strong>Charles Bouleau’s 14-Line Harmonic Armature</strong>. Below, explore all <strong>9 films</strong> and all <strong>37 parts/shots</strong> across all four spatiotemporal visualizations—plus <strong>Film 09</strong>, our behind-the-scenes 3D LEGO <em>Multiplane Forge &amp; Agent Office</em> (<span class="mono">set.shield-diorama-office.mpd</span>, 3,290 bricks).
+    </p>
+    <div class="hero-badges">
+      <span class="badge gold">9 Full-Screen 1080p 3D WebGL LDraw Films</span>
+      <span class="badge green">37 Shots Analyzed · 1,440 Sampled Volume Slices</span>
+      <span class="badge">Real u-τ &amp; v-τ Tomographic Slit-Scans</span>
+      <span class="badge">KALMUS Core-Worm vs Outer-Shell Stratigraphy</span>
+      <span class="badge">Brodbeck 360° Radial Cinemetrics Torus</span>
+      <span class="badge gold">New Kit: set.shield-diorama-office.mpd (3,290 pcs · 0 loose · 0 clashes)</span>
+    </div>
+  </section>
+
+  <!-- 9-FILM SELECTOR -->
+  <div class="film-selector" id="filmSelector"></div>
+
+  <!-- STUDIO GRID: LEFT = LIVE VIDEO + ARMATURE OVERLAY, RIGHT = 3D GLASS-PRISM VOLUME RENDERER -->
+  <div class="studio-grid">
+    <!-- Left Card: Video + 2D Armature & Worm Cross-Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="videoCardTitle">FILM 01 · LIVE 3D WEBGL LDRAW FRAME + ARMATURE OVERLAY</div>
+        <div class="controls-row">
+          <button class="ctrl-btn active" data-grid="armature" onclick="setGridMode('armature')">14-Line Armature</button>
+          <button class="ctrl-btn" data-grid="thirds" onclick="setGridMode('thirds')">Rule of Thirds + Rabatment</button>
+          <button class="ctrl-btn" data-grid="golden" onclick="setGridMode('golden')">Golden Spiral</button>
+          <button class="ctrl-btn active" id="btnShowWorm2D" onclick="toggleWorm2D()">Worm Tube ON</button>
+        </div>
+      </div>
+      <div class="video-stage">
+        <video id="mainVideo" controls playsinline loop muted crossorigin="anonymous"></video>
+        <canvas id="videoOverlay" width="960" height="540"></canvas>
+      </div>
+      <div class="kpi-strip">
+        <div class="kpi-box">
+          <div class="kpi-label">Time Slice τ</div>
+          <div class="kpi-val" id="kpiTau">0.00s</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Worm Centroid (u, v)</div>
+          <div class="kpi-val" id="kpiUV">(0.50, 0.50)</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Itten ΔL* (Chiaroscuro)</div>
+          <div class="kpi-val" id="kpiDL">16.4</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Hue Polarity ΔH</div>
+          <div class="kpi-val" id="kpiDH">48.0°</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Grid Distance d_grid</div>
+          <div class="kpi-val" id="kpiDGrid">0.014 (LOCK)</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Curvature κ(τ) / Jerk</div>
+          <div class="kpi-val" id="kpiKappa">10.2 / 1.4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Card: View 2 — Interactive 3D Glass-Prism Spatiotemporal Volume V(u,v,τ) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">VIEW 2 · 3D GLASS-PRISM SPATIOTEMPORAL VOLUME V(u, v, τ)</div>
+        <div class="controls-row">
+          <button class="ctrl-btn active" id="btnBraided" onclick="toggleBraided()">Double-Helix Rabatment</button>
+          <button class="ctrl-btn active" id="btnCutPlanes" onclick="toggleCutPlanes()">Cut Fracture Planes</button>
+          <button class="ctrl-btn" onclick="resetPrismCam()">Reset 3D Orbit</button>
+        </div>
+      </div>
+      <div class="prism-stage" id="prismStage">
+        <canvas id="prismCanvas" width="760" height="430"></canvas>
+        <div class="prism-legend">
+          <span style="color:var(--gold);">● Solid Tube: Extruded Core Worm c(τ)=(u,v,τ)</span>
+          <span style="color:var(--cyan);">╌ Dashed Tubes: Left/Right Rabatment Counterpoint</span>
+          <span style="color:var(--green);">■ Green Plane: Murch Eye-Trace Cut</span>
+          <span style="color:var(--crimson);">■ Red Plane: Eisenstein Collision Cut</span>
+        </div>
+      </div>
+      <div class="kpi-strip">
+        <div class="kpi-box">
+          <div class="kpi-label">Active Shot Topology</div>
+          <div class="kpi-val" id="kpiTopology" style="font-size:12px;color:var(--cyan);">Sheared Diagonal Ribbon</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Arnheim State</div>
+          <div class="kpi-val" id="kpiArnheim" style="font-size:12px;color:var(--green);">Compositional Lock</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Rabatment Gap Δu(τ)</div>
+          <div class="kpi-val" id="kpiRabGap">0.382</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Active 3D LDraw Kit</div>
+          <div class="kpi-val" id="kpiModel" style="font-size:12px;">set.shield-diorama-office.mpd</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 1 (TOMOGRAPHIC SLIT-SCANS & KALMUS BARCODE) + VIEW 3 (BRODBECK RADIAL CINEMETRICS TORUS) -->
+  <div class="viz-grid-2">
+    <!-- View 1: Tomographic Slit-Scans -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">VIEW 1 · TOMOGRAPHIC SLIT-SCAN SLICES (u-τ &amp; v-τ) + KALMUS CHROMATIC STRATIGRAPHY</div>
+        <span class="mono" style="font-size:11px;color:var(--muted);">Click any slice to scrub τ ∈ [0, T]</span>
+      </div>
+      <div class="slit-stack">
+        <div class="slit-row">
+          <div class="slit-label">
+            <span>1A. HORIZONTAL HORIZON TOMOGRAM (u-τ SLICE @ v = 0.50) — Diagonal waves = Camera pans θ = arctan(du/dτ); Vertical strata = Cut planes τ_cut</span>
+            <span id="slitUTInfo">640×180 empirical slice</span>
+          </div>
+          <div class="slit-wrap" onclick="seekFromSlit(event, this)">
+            <img id="imgSlitUT" src="films/shield-of-achilles/cubism/film-01-slit-ut.png" alt="u-tau slit scan" />
+            <canvas id="ovSlitUT" width="640" height="115"></canvas>
+          </div>
+        </div>
+
+        <div class="slit-row">
+          <div class="slit-label">
+            <span>1B. VERTICAL CENTER TOMOGRAM (v-τ SLICE @ u = 0.50) — Reveals crane elevation sweeps, modular lift-out &amp; negative-space compression</span>
+            <span id="slitVTInfo">640×180 empirical slice</span>
+          </div>
+          <div class="slit-wrap" onclick="seekFromSlit(event, this)">
+            <img id="imgSlitVT" src="films/shield-of-achilles/cubism/film-01-slit-vt.png" alt="v-tau slit scan" />
+            <canvas id="ovSlitVT" width="640" height="115"></canvas>
+          </div>
+        </div>
+
+        <div class="slit-row">
+          <div class="slit-label">
+            <span>1C. KALMUS &amp; JOHANNES ITTEN CORE-WORM (TOP) vs OUTER-SHELL (BOTTOM) DUAL CHROMATIC BARCODE</span>
+            <span id="kalmusInfo">Core L* vs Shell L*</span>
+          </div>
+          <div class="slit-wrap barcode" onclick="seekFromSlit(event, this)">
+            <img id="imgKalmus" src="films/shield-of-achilles/cubism/film-01-barcode-kalmus.png" alt="KALMUS dual barcode" />
+            <canvas id="ovKalmus" width="640" height="76"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 3: Frederic Brodbeck Radial Cinemetrics Torus -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">VIEW 3 · RADIAL CINEMETRICS 360° TORUS (FREDERIC BRODBECK)</div>
+      </div>
+      <div class="torus-wrap">
+        <canvas id="torusCanvas" width="440" height="440"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center;">
+          Circumference = Timeline <span class="mono">τ ∈ [0, T]</span> · Radial Spokes = Cut Fractures <span class="mono">τ_cut</span> · 5 Inner Rings = Shot K-Means LDraw Palette · Outer Gold Spikes = Frame-to-Frame Motion &amp; Earshot Jerk Peaks <span class="mono">‖c‴(τ)‖</span>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: CULTURAL ANALYTICS MONTAGE CURVES (BRUCE BLOCK, ITTEN, ARNHEIM, CURVATURE & JERK) -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <div class="card-title">VIEW 4 · CULTURAL ANALYTICS MONTAGE GRAPHS (MANOVICH / BRUCE BLOCK / ITTEN / ARNHEIM / JERK)</div>
+      <span class="mono" style="font-size:11px;color:var(--cyan);">Gold: ΔL* Chiaroscuro · Cyan: d_grid(τ) Arnheim Torque · Crimson: Kinetic Jerk ‖c‴(τ)‖ · Green: Bruce Block Visual Intensity</span>
+    </div>
+    <canvas id="curvesCanvas" width="1480" height="230" style="width:100%;height:230px;display:block;background:#070c18;border-radius:8px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;" onclick="seekFromSlit(event, this)"></canvas>
+  </div>
+
+  <!-- SHOT-BY-SHOT WORM TOPOLOGY & CUT FRACTURE TABLE FOR SELECTED FILM -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <div class="card-title" id="shotTableTitle">SHOT-BY-SHOT 3D WORM TOPOLOGY &amp; CUT FRACTURE ANALYSIS</div>
+      <span class="mono" style="font-size:11px;color:var(--gold);">Click any row to jump directly to that part in the film</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Part / Shot</th>
+            <th>Time τ</th>
+            <th>3D LDraw Model (Pieces)</th>
+            <th>3D Spatiotemporal Worm Topology</th>
+            <th>Director's Grammar &amp; Parallax</th>
+            <th>Pan θ / Δr</th>
+            <th>Arnheim Grid Resonance</th>
+            <th>Itten ΔL* / ΔH</th>
+            <th>5-Swatch Palette</th>
+          </tr>
+        </thead>
+        <tbody id="shotTableBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;">
+      <h4 class="mono" style="font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;">Cut Fracture Planes τ_cut (Walter Murch Eye-Trace Match Cuts vs. Eisenstein Collision Cuts)</h4>
+      <div id="cutsContainer" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- COMPLETE CROSS-FILM SUMMARY TABLE (ALL 9 FILMS & 37 PARTS) -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <div class="card-title">ALL 9 FILMS · EMPIRICAL SPATIOTEMPORAL WORM &amp; CHROMATIC STRATIGRAPHY MATRIX</div>
+      <span class="mono" style="font-size:11px;color:var(--green);">Computed by tools/analyze_spatiotemporal_worms.py across all 1,440 sampled frames</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Film</th>
+            <th>Skill / Architecture</th>
+            <th>Dur / FPS</th>
+            <th>Mean ΔL* (Chiaroscuro)</th>
+            <th>Mean ΔH (Cold–Warm)</th>
+            <th>Accent Area A_worm/A</th>
+            <th>Mean d_grid (Bouleau 14-Line)</th>
+            <th>Compositional Lock %</th>
+            <th>Mean Curvature κ(τ)</th>
+            <th>Bruce Block Intensity</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="allFilmsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BEHIND THE SCENES: MULTIPLANE ANIMATION STUDIO & KOHNNY / AGENT-OFFICE KANBAN WORKTREES -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">BEHIND THE SCENES · THE MULTIPLANE FORGE &amp; 3D MULTIPLAYER AGENT OFFICE (FILM 09 &amp; KIT IX)</div>
+      <span class="badge gold">set.shield-diorama-office.mpd · 3,290 Real LDraw Bricks · 0 Not Clicked · 0 Clashes</span>
+    </div>
+    <p style="font-size:14px;color:#cbd5e1;margin-bottom:14px;">
+      Inspired by Walt Disney’s 1937 Multiplane Camera and John Sorrentino’s <strong>Kohnny</strong> (<em>“I Turned Claude Code Into a Video Game”</em>)—alongside its ten open-source equivalents (<strong>AgentSystemLabs/agent-office</strong>, <strong>bill10/agent-007</strong>, <strong>W17ant/Claude-Office</strong>, <strong>KalebKE/PixelOffice</strong>, <strong>pixel-agents-hq/pixel-agents</strong>, <strong>khanh020905/my-office</strong>, <strong>proactive-agent/workbench</strong>, <strong>langwatch/kanban-code</strong>, <strong>BloopAI/vibe-kanban</strong>, and <strong>NikiforovAll/claude-code-kanban</strong>)—we engineered a physical 48×32 3D LEGO studio (<span class="mono">set.shield-diorama-office.mpd</span>, 3,290 pieces) and filmed <strong>Film 09</strong> inside it.
+    </p>
+
+    <div class="office-grid">
+      <div>
+        <img src="films/shield-of-achilles/09-behind-the-scenes/poster.png" alt="3D LEGO Multiplane Forge & Agent Office" style="width:100%;border-radius:10px;border:1px solid var(--gold);margin-bottom:10px;" />
+        <img src="films/shield-of-achilles/09-behind-the-scenes/contact-sheet/sheet.png" alt="Film 09 24-Frame Contact Sheet" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,0.15);" />
+      </div>
+      <div>
+        <h3 style="font-size:16px;color:var(--gold);margin-bottom:8px;">Live Kanban + Isolated Git Worktree Pipeline</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+          Every Shield section (<span class="mono">shield-m0</span> through <span class="mono">shield-m9</span>) and standalone 48×32 diorama was built as an isolated module on a 2-layer cross-bonded baseplate, verified by the independent Auditor (<span class="mono">clicks.py</span> &amp; <span class="mono">qa_video.py</span>), and merged single-file into <span class="mono">shield_frame.py</span>.
+        </p>
+        <div class="kanban-board">
+          <div class="kb-col">
+            <h4>1. Planning</h4>
+            <div class="kb-item"><strong>Iliad XVIII.478–608 Brief</strong><span>Palette: 297, 179, 80, 300, 272</span></div>
+            <div class="kb-item"><strong>5 Reference Diorama Mockups</strong><span>48×32 Deep Stage Plinths</span></div>
+            <div class="kb-item"><strong>Bouleau 14-Line Armature</strong><span>Grid-Tunnel Spec</span></div>
+          </div>
+          <div class="kb-col">
+            <h4>2. Doing (Worktrees)</h4>
+            <div class="kb-item"><strong>wt/shield-m0..m9</strong><span>10 Radial Wedge Kits (7,522 pcs)</span></div>
+            <div class="kb-item"><strong>wt/dioramas-1..9</strong><span>9 Monumental 48×32 Kits</span></div>
+            <div class="kb-item"><strong>wt/ldraw-75-meshes</strong><span>75 Special .dat Parts → miss: 0</span></div>
+            <div class="kb-item"><strong>wt/films-01..09</strong><span>9 1080p 3D WebGL Films</span></div>
+          </div>
+          <div class="kb-col">
+            <h4>3. Auditor Review</h4>
+            <div class="kb-item" style="border-color:var(--green);"><strong>clicks.py Structural Pass</strong><span>0 not clicked · 0 same space</span></div>
+            <div class="kb-item" style="border-color:var(--green);"><strong>om check Determinism</strong><span>0 errors · timeline locked</span></div>
+            <div class="kb-item" style="border-color:var(--green);"><strong>qa_video.py &amp; Earshot</strong><span>0 flashes · −14.2 LUFS</span></div>
+          </div>
+          <div class="kb-col">
+            <h4>4. FIFO Merge</h4>
+            <div class="kb-item" style="border-color:var(--gold);"><strong>shield_frame.py Seat Lock</strong><span>All 10 Wedges Clicked</span></div>
+            <div class="kb-item" style="border-color:var(--gold);"><strong>Cubism V(u,v,τ) Atlas</strong><span>27 Slit-Scans + JSON</span></div>
+            <div class="kb-item" style="border-color:var(--gold);"><strong>55m Auto-Compact &amp; Push</strong><span>origin/main synced</span></div>
+          </div>
+        </div>
+
+        <h3 style="font-size:15px;color:var(--gold);margin:16px 0 8px;">Kohnny &amp; The 10 Open-Source 3D/Pixel Agent-Office &amp; Worktree Repos</h3>
+        <div style="max-height:285px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
+          <table class="data-table" style="font-size:11px;">
+            <thead>
+              <tr>
+                <th>Repository</th>
+                <th>Category</th>
+                <th>How It Maps to Our 3D LEGO Multiplane Studio (<span class="mono">set.shield-diorama-office.mpd</span>)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><a href="https://github.com/AgentSystemLabs/agent-office" target="_blank">AgentSystemLabs/agent-office</a></td><td>3D Office + Worktrees</td><td>4-level 3D LEGO studio floor with 4 specialist agent desks, Kanban corkboard &amp; MCP orchestration</td></tr>
+              <tr><td><a href="https://github.com/bill10/agent-007" target="_blank">bill10/agent-007</a></td><td>Kanban Worktrees + Maestro</td><td>Maestro (Hephaestus) &amp; Auditor (Athena) on the elevated gallery overseeing per-card worktrees</td></tr>
+              <tr><td><a href="https://github.com/W17ant/Claude-Office" target="_blank">W17ant/Claude-Office</a></td><td>Isometric Office + Task Board</td><td>Live 4-column brick-built Kanban board with specialist routing (Builder, Reviewer, Sound Designer)</td></tr>
+              <tr><td><a href="https://github.com/KalebKE/PixelOffice" target="_blank">KalebKE/PixelOffice</a></td><td>Event-Driven Office + Lounge</td><td>Agents walk to the Kanban wall in plan mode, code at desks, and chat at the Espresso/Ambrosia Bar</td></tr>
+              <tr><td><a href="https://github.com/pixel-agents-hq/pixel-agents" target="_blank">pixel-agents-hq/pixel-agents</a></td><td>Canvas 2D State Machines</td><td>Non-invasive transcript &amp; timeline state tracking rendered in our live HUD overlay</td></tr>
+              <tr><td><a href="https://github.com/khanh020905/my-office" target="_blank">khanh020905/my-office</a></td><td>3D Session Characters</td><td>Each of the 8 video-skill sessions spawns a distinct LDraw minifigure character at its station</td></tr>
+              <tr><td><a href="https://github.com/proactive-agent/workbench" target="_blank">proactive-agent/workbench</a></td><td>Worktrees + Semantic Merge</td><td>Conflict-free assembly of <span class="mono">M0..M9</span> into <span class="mono">shield_frame.py</span> with zero stud clashes</td></tr>
+              <tr><td><a href="https://github.com/langwatch/kanban-code" target="_blank">langwatch/kanban-code</a></td><td>Kanban + tmux + PRs</td><td>Links each diorama build script, checker output, and contact-sheet review card</td></tr>
+              <tr><td><a href="https://github.com/BloopAI/vibe-kanban" target="_blank">BloopAI/vibe-kanban</a></td><td>Multi-Agent Kanban + Previews</td><td>Supports all 8 video skills with live 3D WebGL dev-server previews per card</td></tr>
+              <tr><td><a href="https://github.com/NikiforovAll/claude-code-kanban" target="_blank">NikiforovAll/claude-code-kanban</a></td><td>Local Kanban + Context Meter</td><td>Tracks 55-minute prompt-cache auto-compact countdown &amp; piece-budget telemetry</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const DATA = window.SHIELD_CUBISM_DATA;
+  if (!DATA || !DATA.films || !DATA.films.length) return;
+
+  let currentFilm = DATA.films[0];
+  let gridMode = 'armature'; // 'armature' | 'thirds' | 'golden'
+  let showWorm2D = true;
+  let showBraided = true;
+  let showCutPlanes = true;
+
+  // 3D Prism camera orbit state
+  let prismYaw = -0.58;
+  let prismPitch = 0.42;
+  let isDragging = false;
+  let lastX = 0, lastY = 0;
+
+  const video = document.getElementById('mainVideo');
+  const videoOverlay = document.getElementById('videoOverlay');
+  const vCtx = videoOverlay.getContext('2d');
+  const prismCanvas = document.getElementById('prismCanvas');
+  const pCtx = prismCanvas.getContext('2d');
+  const torusCanvas = document.getElementById('torusCanvas');
+  const tCtx = torusCanvas.getContext('2d');
+  const curvesCanvas = document.getElementById('curvesCanvas');
+  const cCtx = curvesCanvas.getContext('2d');
+
+  // Build 9-Film Selector buttons
+  const selectorEl = document.getElementById('filmSelector');
+  DATA.films.forEach((f, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'film-btn' + (idx === 0 ? ' active' : '');
+    btn.innerHTML = `
+      <div class="f-num">FILM ${f.num} · ${f.duration.toFixed(0)}s (${f.fps}fps)</div>
+      <div class="f-title">${f.title}</div>
+      <div class="f-repo">${f.repo}</div>
+    `;
+    btn.onclick = () => selectFilm(idx);
+    selectorEl.appendChild(btn);
+  });
+
+  // Build All-Films Summary Table
+  const allFilmsBody = document.getElementById('allFilmsBody');
+  DATA.films.forEach((f, idx) => {
+    const s = f.summary;
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => selectFilm(idx);
+    tr.innerHTML = `
+      <td class="mono" style="color:var(--gold);font-weight:700;">FILM ${f.num}</td>
+      <td><strong>${f.title}</strong><br><span class="mono" style="font-size:10px;color:var(--muted);">${f.repo}</span></td>
+      <td class="mono">${f.duration.toFixed(1)}s · ${f.fps}fps</td>
+      <td class="mono" style="color:var(--gold);">${s.meanDL.toFixed(1)}</td>
+      <td class="mono" style="color:var(--cyan);">${s.meanDH.toFixed(1)}°</td>
+      <td class="mono">${(s.meanExt * 100).toFixed(1)}%</td>
+      <td class="mono">${s.meanDGrid.toFixed(4)}</td>
+      <td class="mono" style="color:var(--green);">${s.lockPct.toFixed(1)}%</td>
+      <td class="mono">${s.meanKappa.toFixed(2)}</td>
+      <td class="mono" style="color:var(--orange);">${s.meanBlockIntensity.toFixed(3)}</td>
+      <td><button class="ctrl-btn active">Load Prism</button></td>
+    `;
+    allFilmsBody.appendChild(tr);
+  });
+
+  window.selectFilm = function(idx) {
+    currentFilm = DATA.films[idx];
+    document.querySelectorAll('.film-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+    document.getElementById('videoCardTitle').textContent = `FILM ${currentFilm.num} · ${currentFilm.title.toUpperCase()} (${currentFilm.repo})`;
+    video.src = currentFilm.mp4;
+    video.poster = currentFilm.poster;
+    video.play().catch(() => {});
+
+    document.getElementById('imgSlitUT').src = currentFilm.slitUT;
+    document.getElementById('imgSlitVT').src = currentFilm.slitVT;
+    document.getElementById('imgKalmus').src = currentFilm.barcodeKalmus;
+
+    renderShotTable();
+    drawAllViews(0);
+  };
+
+  window.setGridMode = function(mode) {
+    gridMode = mode;
+    document.querySelectorAll('[data-grid]').forEach(b => b.classList.toggle('active', b.getAttribute('data-grid') === mode));
+    drawAllViews(video.currentTime || 0);
+  };
+
+  window.toggleWorm2D = function() {
+    showWorm2D = !showWorm2D;
+    const b = document.getElementById('btnShowWorm2D');
+    b.classList.toggle('active', showWorm2D);
+    b.textContent = showWorm2D ? 'Worm Tube ON' : 'Worm Tube OFF';
+    drawAllViews(video.currentTime || 0);
+  };
+
+  window.toggleBraided = function() {
+    showBraided = !showBraided;
+    document.getElementById('btnBraided').classList.toggle('active', showBraided);
+    drawAllViews(video.currentTime || 0);
+  };
+
+  window.toggleCutPlanes = function() {
+    showCutPlanes = !showCutPlanes;
+    document.getElementById('btnCutPlanes').classList.toggle('active', showCutPlanes);
+    drawAllViews(video.currentTime || 0);
+  };
+
+  window.resetPrismCam = function() {
+    prismYaw = -0.58;
+    prismPitch = 0.42;
+    drawAllViews(video.currentTime || 0);
+  };
+
+  window.seekFromSlit = function(ev, el) {
+    const rect = el.getBoundingClientRect();
+    const u = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+    const tau = u * currentFilm.duration;
+    video.currentTime = tau;
+    drawAllViews(tau);
+  };
+
+  // Prism 3D drag orbit
+  const prismStage = document.getElementById('prismStage');
+  prismStage.addEventListener('mousedown', (e) => {
+    isDragging = true; lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    prismYaw += (e.clientX - lastX) * 0.008;
+    prismPitch = Math.max(-1.1, Math.min(1.2, prismPitch + (e.clientY - lastY) * 0.008));
+    lastX = e.clientX; lastY = e.clientY;
+    drawPrism3D(video.currentTime || 0);
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+
+  function renderShotTable() {
+    document.getElementById('shotTableTitle').textContent =
+      `FILM ${currentFilm.num} (${currentFilm.title.toUpperCase()}) · SHOT-BY-SHOT 3D WORM TOPOLOGY & CUT FRACTURES`;
+    const tb = document.getElementById('shotTableBody');
+    tb.innerHTML = '';
+    currentFilm.shots.forEach((sh) => {
+      const tr = document.createElement('tr');
+      tr.style.cursor = 'pointer';
+      tr.onclick = () => {
+        video.currentTime = sh.t0 + 0.05;
+        video.play().catch(() => {});
+        drawAllViews(sh.t0 + 0.05);
+      };
+      const swatches = sh.palette5.map(c => `<span class="swatch" style="background:${c};" title="${c}"></span>`).join('');
+      tr.innerHTML = `
+        <td><strong>${sh.part}</strong></td>
+        <td class="mono">${sh.t0.toFixed(1)}s – ${sh.t1.toFixed(1)}s</td>
+        <td class="mono" style="color:var(--gold);">${sh.model}<br><span style="color:var(--muted);font-size:10px;">${sh.pieces.toLocaleString()} bricks</span></td>
+        <td><span class="topo-pill">${sh.topology}</span></td>
+        <td style="max-width:300px;color:#cbd5e1;">${sh.grammar}</td>
+        <td class="mono">θ = ${sh.panAngleDeg.toFixed(1)}°<br>Δr = ${sh.radiusDelta >= 0 ? '+' : ''}${sh.radiusDelta.toFixed(3)}</td>
+        <td class="mono">d_grid = ${sh.meanDGrid.toFixed(4)}<br><span style="color:var(--green);font-size:10px;">${sh.arnheimState}</span></td>
+        <td class="mono">ΔL* = ${sh.meanDL.toFixed(1)}<br>ΔH = ${sh.meanDH.toFixed(1)}°</td>
+        <td><div class="swatch-row">${swatches}</div></td>
+      `;
+      tb.appendChild(tr);
+    });
+
+    const cutsEl = document.getElementById('cutsContainer');
+    cutsEl.innerHTML = '';
+    currentFilm.cuts.forEach((ct) => {
+      const isMurch = ct.cutType.includes('Murch');
+      const div = document.createElement('div');
+      div.style.background = 'var(--panel-alt)';
+      div.style.border = '1px solid rgba(255,255,255,0.09)';
+      div.style.borderRadius = '8px';
+      div.style.padding = '10px 12px';
+      div.style.cursor = 'pointer';
+      div.onclick = () => {
+        video.currentTime = ct.tauCut;
+        drawAllViews(ct.tauCut);
+      };
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span class="mono" style="font-size:12px;color:var(--gold);font-weight:700;">Cut Plane @ τ = ${ct.tauCut.toFixed(1)}s</span>
+          <span class="cut-pill ${isMurch ? 'murch' : 'eisenstein'}">${ct.cutType}</span>
+        </div>
+        <div style="font-size:11px;color:#cbd5e1;margin-bottom:4px;"><strong>${ct.fromPart}</strong> → <strong>${ct.toPart}</strong></div>
+        <div class="mono" style="font-size:11px;color:var(--muted);">${ct.explanation}</div>
+      `;
+      cutsEl.appendChild(div);
+    });
+  }
+
+  function samplePointAt(tau) {
+    const pts = currentFilm.trajectory;
+    if (!pts || !pts.length) return null;
+    const u = Math.max(0, Math.min(1, tau / currentFilm.duration));
+    const idx = Math.min(pts.length - 1, Math.round(u * (pts.length - 1)));
+    return { pt: pts[idx], idx };
+  }
+
+  // 1. Draw 2D Armature & Worm Cross-Section over Live Video
+  function drawVideoOverlay(tau) {
+    const W = videoOverlay.width, H = videoOverlay.height;
+    vCtx.clearRect(0, 0, W, H);
+    vCtx.save();
+
+    // Draw selected composition grid
+    vCtx.strokeStyle = 'rgba(246, 211, 101, 0.34)';
+    vCtx.lineWidth = 1.3;
+    vCtx.beginPath();
+    if (gridMode === 'armature') {
+      DATA.armature14.forEach(ln => {
+        vCtx.moveTo(ln.p1[0] * W, ln.p1[1] * H);
+        vCtx.lineTo(ln.p2[0] * W, ln.p2[1] * H);
+      });
+    } else if (gridMode === 'thirds') {
+      [1 / 3, 2 / 3].forEach(f => {
+        vCtx.moveTo(f * W, 0); vCtx.lineTo(f * W, H);
+        vCtx.moveTo(0, f * H); vCtx.lineTo(W, f * H);
+      });
+      // Rabatment squares (H/W and 1 - H/W)
+      const rab = H / W;
+      vCtx.stroke();
+      vCtx.beginPath();
+      vCtx.strokeStyle = 'rgba(121, 192, 255, 0.38)';
+      vCtx.setLineDash([6, 4]);
+      vCtx.moveTo(rab * W, 0); vCtx.lineTo(rab * W, H);
+      vCtx.moveTo((1 - rab) * W, 0); vCtx.lineTo((1 - rab) * W, H);
+    } else if (gridMode === 'golden') {
+      [0.382, 0.618].forEach(f => {
+        vCtx.moveTo(f * W, 0); vCtx.lineTo(f * W, H);
+        vCtx.moveTo(0, f * H); vCtx.lineTo(W, f * H);
+      });
+      DATA.goldenNodes.forEach(([gx, gy]) => {
+        vCtx.moveTo(gx * W + 10, gy * H);
+        vCtx.arc(gx * W, gy * H, 10, 0, Math.PI * 2);
+      });
+    }
+    vCtx.stroke();
+    vCtx.setLineDash([]);
+
+    const samp = samplePointAt(tau);
+    if (samp && showWorm2D) {
+      const { pt, idx } = samp;
+      const pts = currentFilm.trajectory;
+      const i0 = Math.max(0, idx - 24);
+      for (let i = i0 + 1; i <= idx; i++) {
+        const p0 = pts[i - 1], p1 = pts[i];
+        const a = (i - i0) / (idx - i0 + 1);
+        vCtx.beginPath();
+        vCtx.strokeStyle = p1.coreHex;
+        vCtx.globalAlpha = a * 0.78;
+        vCtx.lineWidth = Math.max(3, p1.r * 95 * a);
+        vCtx.lineCap = 'round';
+        vCtx.moveTo(p0.u * W, p0.v * H);
+        vCtx.lineTo(p1.u * W, p1.v * H);
+        vCtx.stroke();
+      }
+      vCtx.globalAlpha = 1.0;
+
+      // Current worm cross-section circle
+      const cx = pt.u * W, cy = pt.v * H;
+      const rad = Math.max(14, pt.r * 85);
+      vCtx.beginPath();
+      vCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+      vCtx.strokeStyle = '#7ee787';
+      vCtx.lineWidth = 2.5;
+      vCtx.stroke();
+
+      // Braided left/right Rabatment centroids
+      if (showBraided) {
+        const lx = pt.uL * W, ly = pt.vL * H;
+        const rx = pt.uR * W, ry = pt.vR * H;
+        vCtx.beginPath();
+        vCtx.setLineDash([4, 4]);
+        vCtx.strokeStyle = '#79c0ff';
+        vCtx.lineWidth = 1.5;
+        vCtx.moveTo(lx, ly); vCtx.lineTo(rx, ry);
+        vCtx.stroke();
+        vCtx.setLineDash([]);
+        [ [lx, ly, 'L'], [rx, ry, 'R'] ].forEach(([px, py, lbl]) => {
+          vCtx.beginPath();
+          vCtx.arc(px, py, 7, 0, Math.PI * 2);
+          vCtx.fillStyle = '#79c0ff';
+          vCtx.fill();
+        });
+      }
+    }
+    vCtx.restore();
+  }
+
+  // 2. Draw Interactive 3D Glass-Prism Spatiotemporal Volume V(u, v, tau)
+  function project3D(u, v, tNorm, W, H) {
+    // Center coordinates in [-0.5, 0.5] for u, v and [-0.75, 0.75] for tau
+    const x0 = (u - 0.5) * 1.15;
+    const y0 = (0.5 - v) * 0.85;
+    const z0 = (tNorm - 0.5) * 1.65;
+
+    // Rotate around Y (yaw) then X (pitch)
+    const cy = Math.cos(prismYaw), sy = Math.sin(prismYaw);
+    const cp = Math.cos(prismPitch), sp = Math.sin(prismPitch);
+
+    const x1 = x0 * cy + z0 * sy;
+    const z1 = -x0 * sy + z0 * cy;
+    const y2 = y0 * cp - z1 * sp;
+    const z2 = y0 * sp + z1 * cp;
+
+    const fov = 2.6 / (2.9 - z2 * 0.65);
+    const sx = W * 0.5 + x1 * W * 0.34 * fov;
+    const sy_scr = H * 0.50 - y2 * H * 0.42 * fov;
+    return { x: sx, y: sy_scr, z: z2, scale: fov };
+  }
+
+  function drawPrism3D(tau) {
+    const W = prismCanvas.width, H = prismCanvas.height;
+    pCtx.clearRect(0, 0, W, H);
+    pCtx.save();
+
+    // 1. Draw the 3D Glass Prism Wireframe Box [0,1]^2 x [0,1]
+    const corners = [
+      [0,0,0], [1,0,0], [1,1,0], [0,1,0],
+      [0,0,1], [1,0,1], [1,1,1], [0,1,1]
+    ].map(([u,v,t]) => project3D(u, v, t, W, H));
+
+    const edges = [
+      [0,1],[1,2],[2,3],[3,0],
+      [4,5],[5,6],[6,7],[7,4],
+      [0,4],[1,5],[2,6],[3,7]
+    ];
+    pCtx.strokeStyle = 'rgba(121, 192, 255, 0.28)';
+    pCtx.lineWidth = 1.2;
+    edges.forEach(([a, b]) => {
+      pCtx.beginPath();
+      pCtx.moveTo(corners[a].x, corners[a].y);
+      pCtx.lineTo(corners[b].x, corners[b].y);
+      pCtx.stroke();
+    });
+
+    // Axis labels
+    pCtx.font = '11px "JetBrains Mono", monospace';
+    pCtx.fillStyle = '#79c0ff';
+    pCtx.fillText('τ=0s', corners[3].x - 28, corners[3].y + 12);
+    pCtx.fillText(`τ=${currentFilm.duration.toFixed(0)}s`, corners[7].x - 10, corners[7].y + 14);
+
+    // 2. Draw 3D Composition Grid Tunnel Filaments along tau in [0, 1]
+    pCtx.strokeStyle = 'rgba(246, 211, 101, 0.16)';
+    pCtx.lineWidth = 1.0;
+    const tunnelNodes = gridMode === 'golden'
+      ? DATA.goldenNodes
+      : [ [1/3, 1/3], [2/3, 1/3], [1/3, 2/3], [2/3, 2/3], [0.5, 0.5] ];
+    tunnelNodes.forEach(([gu, gv]) => {
+      const p0 = project3D(gu, gv, 0, W, H);
+      const p1 = project3D(gu, gv, 1, W, H);
+      pCtx.beginPath();
+      pCtx.moveTo(p0.x, p0.y);
+      pCtx.lineTo(p1.x, p1.y);
+      pCtx.stroke();
+    });
+
+    // 3. Draw Cut Fracture Planes at tau_cut
+    if (showCutPlanes) {
+      currentFilm.cuts.forEach(ct => {
+        const tn = ct.tauCut / currentFilm.duration;
+        const isMurch = ct.cutType.includes('Murch');
+        const poly = [ [0,0,tn], [1,0,tn], [1,1,tn], [0,1,tn] ].map(([u,v,t]) => project3D(u,v,t,W,H));
+        pCtx.beginPath();
+        pCtx.moveTo(poly[0].x, poly[0].y);
+        poly.slice(1).forEach(p => pCtx.lineTo(p.x, p.y));
+        pCtx.closePath();
+        pCtx.fillStyle = isMurch ? 'rgba(126, 231, 135, 0.08)' : 'rgba(255, 123, 114, 0.10)';
+        pCtx.fill();
+        pCtx.strokeStyle = isMurch ? 'rgba(126, 231, 135, 0.55)' : 'rgba(255, 123, 114, 0.65)';
+        pCtx.lineWidth = 1.3;
+        pCtx.stroke();
+      });
+    }
+
+    // 4. Draw Braided Left/Right Rabatment Counterpoint Worms
+    const pts = currentFilm.trajectory;
+    if (showBraided && pts.length > 1) {
+      ['L', 'R'].forEach(side => {
+        pCtx.beginPath();
+        pCtx.setLineDash([4, 3]);
+        pCtx.strokeStyle = side === 'L' ? 'rgba(121, 192, 255, 0.55)' : 'rgba(210, 168, 255, 0.55)';
+        pCtx.lineWidth = 2.0;
+        pts.forEach((pt, i) => {
+          const tn = i / (pts.length - 1);
+          const u = side === 'L' ? pt.uL : pt.uR;
+          const v = side === 'L' ? pt.vL : pt.vR;
+          const pr = project3D(u, v, tn, W, H);
+          if (i === 0) pCtx.moveTo(pr.x, pr.y);
+          else pCtx.lineTo(pr.x, pr.y);
+        });
+        pCtx.stroke();
+        pCtx.setLineDash([]);
+      });
+    }
+
+    // 5. Draw Extruded 3D Spatiotemporal Subject Worm (Action Tube)
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1], p1 = pts[i];
+      const t0 = (i - 1) / (pts.length - 1);
+      const t1 = i / (pts.length - 1);
+      const pr0 = project3D(p0.u, p0.v, t0, W, H);
+      const pr1 = project3D(p1.u, p1.v, t1, W, H);
+      const rad = Math.max(4, p1.r * 52 * pr1.scale);
+
+      // Outer shadow/shell
+      pCtx.beginPath();
+      pCtx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+      pCtx.lineWidth = rad + 3;
+      pCtx.lineCap = 'round';
+      pCtx.moveTo(pr0.x, pr0.y);
+      pCtx.lineTo(pr1.x, pr1.y);
+      pCtx.stroke();
+
+      // Core k-means LDraw brick color
+      pCtx.beginPath();
+      pCtx.strokeStyle = p1.coreHex;
+      pCtx.lineWidth = rad;
+      pCtx.lineCap = 'round';
+      pCtx.moveTo(pr0.x, pr0.y);
+      pCtx.lineTo(pr1.x, pr1.y);
+      pCtx.stroke();
+    }
+
+    // 6. Draw Active Playhead Slice Plane at current tau
+    const tCur = Math.max(0, Math.min(1, tau / currentFilm.duration));
+    const slicePoly = [ [0,0,tCur], [1,0,tCur], [1,1,tCur], [0,1,tCur] ].map(([u,v,t]) => project3D(u,v,t,W,H));
+    pCtx.beginPath();
+    pCtx.moveTo(slicePoly[0].x, slicePoly[0].y);
+    slicePoly.slice(1).forEach(p => pCtx.lineTo(p.x, p.y));
+    pCtx.closePath();
+    pCtx.fillStyle = 'rgba(246, 211, 101, 0.12)';
+    pCtx.fill();
+    pCtx.strokeStyle = '#f6d365';
+    pCtx.lineWidth = 2.0;
+    pCtx.stroke();
+
+    const samp = samplePointAt(tau);
+    if (samp) {
+      const prNow = project3D(samp.pt.u, samp.pt.v, tCur, W, H);
+      pCtx.beginPath();
+      pCtx.arc(prNow.x, prNow.y, Math.max(7, samp.pt.r * 58 * prNow.scale), 0, Math.PI * 2);
+      pCtx.fillStyle = samp.pt.coreHex;
+      pCtx.fill();
+      pCtx.strokeStyle = '#7ee787';
+      pCtx.lineWidth = 2.5;
+      pCtx.stroke();
+    }
+
+    pCtx.restore();
+  }
+
+  // 3. Draw View 3: Frederic Brodbeck Radial Cinemetrics 360° Torus
+  function drawTorus(tau) {
+    const W = torusCanvas.width, H = torusCanvas.height;
+    tCtx.clearRect(0, 0, W, H);
+    const cx = W * 0.5, cy = H * 0.5;
+    const rInner = 68, rOuter = 148;
+    const dur = currentFilm.duration;
+
+    tCtx.save();
+    // Draw 5 concentric dominant color rings per shot
+    currentFilm.shots.forEach(sh => {
+      const a0 = -Math.PI * 0.5 + (sh.t0 / dur) * Math.PI * 2;
+      const a1 = -Math.PI * 0.5 + (sh.t1 / dur) * Math.PI * 2;
+      const ringW = (rOuter - rInner) / 5;
+      sh.palette5.forEach((hex, rIdx) => {
+        const r0 = rInner + rIdx * ringW;
+        const r1 = r0 + ringW - 1;
+        tCtx.beginPath();
+        tCtx.arc(cx, cy, (r0 + r1) * 0.5, a0, a1);
+        tCtx.strokeStyle = hex;
+        tCtx.lineWidth = ringW;
+        tCtx.stroke();
+      });
+    });
+
+    // Draw outer motion & kinetic jerk spikes around the torus
+    const pts = currentFilm.trajectory;
+    pts.forEach((pt, i) => {
+      const a = -Math.PI * 0.5 + (i / pts.length) * Math.PI * 2;
+      const spike = Math.min(54, pt.motion * 130 + pt.jerk * 1.4);
+      const x0 = cx + Math.cos(a) * (rOuter + 4);
+      const y0 = cy + Math.sin(a) * (rOuter + 4);
+      const x1 = cx + Math.cos(a) * (rOuter + 4 + spike);
+      const y1 = cy + Math.sin(a) * (rOuter + 4 + spike);
+      tCtx.beginPath();
+      tCtx.strokeStyle = pt.jerk > 6.0 ? '#ff7b72' : '#f6d365';
+      tCtx.lineWidth = 2.0;
+      tCtx.moveTo(x0, y0);
+      tCtx.lineTo(x1, y1);
+      tCtx.stroke();
+    });
+
+    // Draw shot cut spokes
+    currentFilm.shots.forEach(sh => {
+      const a = -Math.PI * 0.5 + (sh.t0 / dur) * Math.PI * 2;
+      tCtx.beginPath();
+      tCtx.strokeStyle = '#050811';
+      tCtx.lineWidth = 3.0;
+      tCtx.moveTo(cx + Math.cos(a) * rInner, cy + Math.sin(a) * rInner);
+      tCtx.lineTo(cx + Math.cos(a) * (rOuter + 52), cy + Math.sin(a) * (rOuter + 52));
+      tCtx.stroke();
+    });
+
+    // Current tau radial needle
+    const aCur = -Math.PI * 0.5 + (tau / dur) * Math.PI * 2;
+    tCtx.beginPath();
+    tCtx.strokeStyle = '#7ee787';
+    tCtx.lineWidth = 3.0;
+    tCtx.moveTo(cx + Math.cos(aCur) * (rInner - 14), cy + Math.sin(aCur) * (rInner - 14));
+    tCtx.lineTo(cx + Math.cos(aCur) * (rOuter + 58), cy + Math.sin(aCur) * (rOuter + 58));
+    tCtx.stroke();
+
+    // Center label
+    tCtx.fillStyle = '#f6d365';
+    tCtx.font = 'bold 13px "JetBrains Mono", monospace';
+    tCtx.textAlign = 'center';
+    tCtx.fillText(`FILM ${currentFilm.num}`, cx, cy - 6);
+    tCtx.fillStyle = '#94a3b8';
+    tCtx.font = '11px "JetBrains Mono", monospace';
+    tCtx.fillText(`τ = ${tau.toFixed(2)}s`, cx, cy + 12);
+    tCtx.restore();
+  }
+
+  // 4. Draw Slit-Scan Playheads & View 4 Multi-Track Cultural Analytics Curves
+  function drawSlitAndCurves(tau) {
+    const uPlay = Math.max(0, Math.min(1, tau / currentFilm.duration));
+    ['ovSlitUT', 'ovSlitVT', 'ovKalmus'].forEach(id => {
+      const cv = document.getElementById(id);
+      const ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      // Cut lines
+      currentFilm.cuts.forEach(ct => {
+        const cx = (ct.tauCut / currentFilm.duration) * cv.width;
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = ct.cutType.includes('Murch') ? '#7ee787' : '#ff7b72';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(cx, 0); ctx.lineTo(cx, cv.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+      // Playhead
+      const px = uPlay * cv.width;
+      ctx.beginPath();
+      ctx.strokeStyle = '#f6d365';
+      ctx.lineWidth = 2.5;
+      ctx.moveTo(px, 0); ctx.lineTo(px, cv.height);
+      ctx.stroke();
+    });
+
+    // View 4 Curves
+    const W = curvesCanvas.width, H = curvesCanvas.height;
+    cCtx.clearRect(0, 0, W, H);
+    const pts = currentFilm.trajectory;
+    if (!pts.length) return;
+
+    // Arnheim Eccentric Tension band
+    cCtx.fillStyle = 'rgba(121, 192, 255, 0.05)';
+    cCtx.fillRect(0, H * 0.25, W, H * 0.35);
+
+    function plotLine(valFn, col, width) {
+      cCtx.beginPath();
+      cCtx.strokeStyle = col;
+      cCtx.lineWidth = width;
+      pts.forEach((p, i) => {
+        const x = (i / (pts.length - 1)) * W;
+        const y = H - 18 - Math.max(0, Math.min(1, valFn(p))) * (H - 36);
+        if (i === 0) cCtx.moveTo(x, y);
+        else cCtx.lineTo(x, y);
+      });
+      cCtx.stroke();
+    }
+
+    plotLine(p => p.dL / 45.0, '#f6d365', 2.0);           // Itten Light-Dark Chiaroscuro
+    plotLine(p => p.dGrid / 0.06, '#79c0ff', 1.8);        // Bouleau Armature distance
+    plotLine(p => p.jerk / 25.0, '#ff7b72', 1.5);         // Kinetic Jerk ||c'''(tau)||
+    plotLine(p => p.blockIntensity, '#7ee787', 2.2);      // Bruce Block Visual Intensity
+
+    // Playhead
+    const px = uPlay * W;
+    cCtx.beginPath();
+    cCtx.strokeStyle = '#ffffff';
+    cCtx.lineWidth = 2.0;
+    cCtx.moveTo(px, 0); cCtx.lineTo(px, H);
+    cCtx.stroke();
+  }
+
+  function updateKPIs(tau) {
+    const samp = samplePointAt(tau);
+    if (!samp) return;
+    const pt = samp.pt;
+    document.getElementById('kpiTau').textContent = `${tau.toFixed(2)}s / ${currentFilm.duration.toFixed(0)}s`;
+    document.getElementById('kpiUV').textContent = `(${pt.u.toFixed(3)}, ${pt.v.toFixed(3)})`;
+    document.getElementById('kpiDL').textContent = `${pt.dL.toFixed(1)} L*`;
+    document.getElementById('kpiDH').textContent = `${pt.dH.toFixed(1)}°`;
+    const state = pt.dGrid < 0.045 ? 'LOCK' : (pt.dGrid < 0.065 ? 'FLOW' : 'ARNHEIM');
+    document.getElementById('kpiDGrid').textContent = `${pt.dGrid.toFixed(3)} (${state})`;
+    document.getElementById('kpiKappa').textContent = `${pt.kappa.toFixed(1)} / ${pt.jerk.toFixed(1)}`;
+    document.getElementById('kpiRabGap').textContent = `Δu = ${pt.rabatmentGap.toFixed(3)}`;
+
+    const activeShot = currentFilm.shots.find(s => tau >= s.t0 && tau <= s.t1) || currentFilm.shots[0];
+    if (activeShot) {
+      document.getElementById('kpiTopology').textContent = activeShot.topology;
+      document.getElementById('kpiArnheim').textContent = activeShot.arnheimState;
+      document.getElementById('kpiModel').textContent = `${activeShot.model} (${activeShot.pieces.toLocaleString()} pcs)`;
+    }
+  }
+
+  function drawAllViews(tau) {
+    updateKPIs(tau);
+    drawVideoOverlay(tau);
+    drawPrism3D(tau);
+    drawTorus(tau);
+    drawSlitAndCurves(tau);
+  }
+
+  video.addEventListener('timeupdate', () => drawAllViews(video.currentTime || 0));
+  video.addEventListener('seeked', () => drawAllViews(video.currentTime || 0));
+
+  // Initialize with Film 09 (Behind the Scenes) or Film 01
+  selectFilm(8); // Start on Film 09 (Behind-the-Scenes Multiplane Forge & 3D Agent Office) so user sees the new studio immediately!
+})();
+</script>
+</body>
+</html>

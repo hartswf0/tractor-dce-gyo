@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hephaestus’s Forge Kit — The Shield of Achilles LDraw Asset & Metallurgy Catalog</title>
+<style>
+  :root {
+    --bg: #0c0b09;
+    --panel: #151310;
+    --panel-2: #1c1915;
+    --panel-3: #25201a;
+    --ink: #f3ede0;
+    --muted: #9e9482;
+    --dim: #685f50;
+    --rule: #2d271f;
+    --gold: #d4af37;
+    --gold-bright: #f5cf5b;
+    --silver: #c0c5ce;
+    --bronze: #c87d3b;
+    --tin: #d8dadf;
+    --kyanos: #3b6fc4;
+    --green: #38b261;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 24px;
+    background: rgba(18, 16, 13, 0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .brand h1 {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--gold-bright);
+    letter-spacing: 0.03em;
+  }
+
+  .brand p {
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+  }
+
+  .btn.primary {
+    background: rgba(212, 175, 55, 0.16);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    font-weight: 600;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Metallurgy Section */
+  .section-head {
+    margin-bottom: 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+  }
+
+  .section-head h2 {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--gold-bright);
+  }
+
+  .section-head span {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .metals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .metal-card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .metal-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .metal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .ldraw-codes {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+  }
+
+  .metal-role {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* Filter Toolbar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pill {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .pill.active {
+    background: rgba(212, 175, 55, 0.18);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    font-weight: 600;
+  }
+
+  /* Asset Grid */
+  .asset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 14px;
+  }
+
+  .asset-card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .asset-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  .asset-meta-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .asset-card h3 {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink);
+    margin-top: 4px;
+  }
+
+  .asset-greek {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--gold-bright);
+    margin-top: 3px;
+  }
+
+  .asset-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    background: var(--bg);
+    padding: 7px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .asset-stats strong {
+    display: block;
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  .asset-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  /* 3D Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 4, 3, 0.84);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal-card {
+    width: min(960px, 95vw);
+    height: min(680px, 88vh);
+    background: var(--panel);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  }
+
+  .modal-header {
+    padding: 12px 16px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-header h3 {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--gold-bright);
+  }
+
+  .modal-body {
+    flex: 1;
+    position: relative;
+    background: radial-gradient(circle at center, #221d15 0%, #0d0b09 80%);
+  }
+
+  #modal-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>HEPHAESTUS’S FORGE KIT · SHIELD OF ACHILLES LDRAW CATALOG</h1>
+    <p>50 Reusable LDraw Assets · 7 Metallurgical Palettes · Divine Scale (1.6×) vs. Mortal Minifig Scale (*Iliad* 18.478–608)</p>
+  </div>
+  <div class="nav-actions">
+    <a class="btn primary" href="achilles-forage.html">◎ Open 3D Worldtext Forage</a>
+    <a class="btn" href="shield-of-achilles.html">◫ Open TRUBADOR Studio</a>
+    <a class="btn" href="achilles/FORAGE.md" target="_blank">📄 FORAGE.md</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="section-head">
+    <h2>I. Hephaestus’s Five-Metal &amp; Niello Palette (Iliad 18.474–477)</h2>
+    <span>χαλκὸν δ᾽ ἐν πυρὶ βάλλεν ἀτειρέα κασσίτερόν τε καὶ χρυσὸν τιμῆντα καὶ ἄργυρον…</span>
+  </div>
+  <div class="metals-grid" id="metals-grid"></div>
+
+  <div class="section-head">
+    <h2>II. Forged LDraw Asset Cards (Locations, Mortals, Tall Gods, Creatures, Props &amp; Sound)</h2>
+    <span id="count-label">50 Assets</span>
+  </div>
+
+  <div class="filter-bar">
+    <div class="pills" id="type-pills">
+      <button class="pill active" data-type="ALL">All Assets (50)</button>
+      <button class="pill" data-type="location">Locations (12)</button>
+      <button class="pill" data-type="character">Mortal Characters (13)</button>
+      <button class="pill" data-type="divine_fx">Divine Scale &amp; Daemons (3)</button>
+      <button class="pill" data-type="creature">Creatures (6)</button>
+      <button class="pill" data-type="ensemble">Ensembles (2)</button>
+      <button class="pill" data-type="prop">Props &amp; Tools (5)</button>
+      <button class="pill" data-type="set_piece">Set Pieces (5)</button>
+      <button class="pill" data-type="environment">Environments &amp; Sound (4)</button>
+    </div>
+  </div>
+
+  <div class="asset-grid" id="asset-grid"></div>
+</div>
+
+<!-- 3D Inspection Modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-title">Asset Preview</h3>
+        <div id="modal-sub" style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted);"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a class="btn primary" id="modal-open-forage" href="achilles-forage.html">Open in Worldtext Forage</a>
+        <button class="btn" id="modal-close">✕ Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <canvas id="modal-canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="examples/js/loaders/LDrawLoader.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  let kitData = null;
+  let activeType = 'ALL';
+  let scene, camera, renderer, controls, loadedGroup;
+  let ldConfigText = null;
+  const packCache = new Map();
+
+  function renderMetals() {
+    const grid = document.getElementById('metals-grid');
+    grid.innerHTML = '';
+    for (const m of kitData.metals) {
+      const card = document.createElement('div');
+      card.className = 'metal-card';
+      card.innerHTML = `
+        <div class="metal-card-top">
+          <div class="metal-title">
+            <span class="swatch" style="background:${m.hex}"></span>
+            <span>${m.name}</span>
+          </div>
+          <span class="ldraw-codes">LDraw ${m.ldraw.join(', ')}</span>
+        </div>
+        <div class="metal-role">${m.role}</div>
+      `;
+      grid.appendChild(card);
+    }
+  }
+
+  function renderAssets() {
+    const grid = document.getElementById('asset-grid');
+    grid.innerHTML = '';
+
+    const filtered = kitData.cards.filter(c => {
+      if (activeType === 'ALL') return true;
+      if (activeType === 'environment') return c.type === 'environment' || c.type === 'sound_source';
+      return c.type === activeType;
+    });
+
+    document.getElementById('count-label').textContent = `${filtered.length} Assets Shown`;
+
+    for (const c of filtered) {
+      const el = document.createElement('div');
+      el.className = 'asset-card';
+      el.innerHTML = `
+        <div>
+          <div class="asset-meta-top">
+            <span>${c.id}</span>
+            <span>${c.zone} · Iliad ${c.lines}</span>
+          </div>
+          <h3>${c.name}</h3>
+          ${c.greek ? `<div class="asset-greek">«${c.greek}»</div>` : ''}
+        </div>
+
+        <div class="asset-stats">
+          <div><strong>${c.sheet.pieces}</strong>Pieces</div>
+          <div><strong>${c.sheet.subBuilds}</strong>Subs</div>
+          <div><strong>${c.sheet.joints}</strong>Joints</div>
+          <div><strong>${c.sheet.studs[0]}×${c.sheet.studs[1]}</strong>Studs</div>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn primary btn-preview" data-id="${c.id}">👁 3D Inspect</button>
+          <div style="display:flex;gap:5px;">
+            <a class="btn" href="achilles-forage.html?card=${encodeURIComponent(c.id)}">Forage</a>
+            <a class="btn" href="achilles/cards/${c.id}.mpd" download>.MPD</a>
+          </div>
+        </div>
+      `;
+      el.querySelector('.btn-preview').addEventListener('click', () => openModal(c));
+      grid.appendChild(el);
+    }
+  }
+
+  function ensureThreeModal() {
+    if (renderer) return;
+    const body = document.getElementById('modal-body');
+    const canvas = document.getElementById('modal-canvas');
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e0c09);
+
+    camera = new THREE.PerspectiveCamera(38, body.clientWidth / body.clientHeight, 1, 15000);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(body.clientWidth, body.clientHeight);
+    renderer.outputEncoding = THREE.LinearEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    scene.add(new THREE.HemisphereLight(0xffe8b8, 0x1c2536, 0.75));
+    const key = new THREE.DirectionalLight(0xffdf9e, 1.15);
+    key.position.set(300, 600, 450);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x6fa3ff, 0.55);
+    fill.position.set(-400, 300, -350);
+    scene.add(fill);
+
+    const loop = () => {
+      requestAnimationFrame(loop);
+      if (document.getElementById('modal-backdrop').classList.contains('open')) {
+        controls.update();
+        renderer.render(scene, camera);
+      }
+    };
+    requestAnimationFrame(loop);
+  }
+
+  async function openModal(card) {
+    const backdrop = document.getElementById('modal-backdrop');
+    backdrop.classList.add('open');
+    document.getElementById('modal-title').textContent = card.name;
+    document.getElementById('modal-sub').textContent = `${card.id} · ${card.zone} · Iliad ${card.lines} · ${card.sheet.pieces} pieces · ${card.sheet.joints} stud joints`;
+    document.getElementById('modal-open-forage').href = `achilles-forage.html?card=${encodeURIComponent(card.id)}`;
+
+    ensureThreeModal();
+    const body = document.getElementById('modal-body');
+    camera.aspect = body.clientWidth / body.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(body.clientWidth, body.clientHeight);
+
+    if (!ldConfigText) {
+      ldConfigText = await (await fetch('ldraw/LDConfig.ldr')).text();
+    }
+    const mpdText = await (await fetch(`achilles/cards/${card.id}.mpd`)).text();
+    const parts = new Set();
+    for (const line of mpdText.split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t.startsWith('1 ')) continue;
+      const tok = t.split(/\s+/);
+      const ref = tok.slice(14).join(' ').toLowerCase();
+      if (ref.endsWith('.dat')) parts.add(ref.slice(0, -4));
+    }
+
+    await Promise.all([...parts].map(async (p) => {
+      if (packCache.has(p)) return;
+      const res = await fetch(`achilles/packs/${p.replace(/\//g, '_')}.json`);
+      if (res.ok) packCache.set(p, await res.json());
+    }));
+
+    const loader = new THREE.LDrawLoader();
+    loader.separateObjects = true;
+    loader.smoothNormals = true;
+    loader.setPath('ldraw/');
+    loader.processObject(ldConfigText, false, 'LDConfig.ldr');
+    for (const p of parts) {
+      const pk = packCache.get(p);
+      if (!pk) continue;
+      for (const [k, v] of Object.entries(pk)) loader.subobjectCache[k.toLowerCase()] = v;
+    }
+
+    loader.parse(mpdText, card.id + '.mpd', (group) => {
+      if (loadedGroup) scene.remove(loadedGroup);
+      group.rotation.x = Math.PI;
+      scene.add(group);
+      loadedGroup = group;
+
+      const box = new THREE.Box3().setFromObject(group);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z, 100);
+      controls.target.copy(center);
+      camera.position.set(center.x + maxDim * 0.65, center.y + maxDim * 0.7, center.z + maxDim * 1.3);
+      controls.update();
+    });
+  }
+
+  async function init() {
+    const res = await fetch('achilles/kit.json');
+    kitData = await res.json();
+    renderMetals();
+    renderAssets();
+
+    document.querySelectorAll('#type-pills .pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeType = btn.dataset.type;
+        document.querySelectorAll('#type-pills .pill').forEach(b => b.classList.toggle('active', b === btn));
+        renderAssets();
+      });
+    });
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    });
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-backdrop') e.currentTarget.classList.remove('open');
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

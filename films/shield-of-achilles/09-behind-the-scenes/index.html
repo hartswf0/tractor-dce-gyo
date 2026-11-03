@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film 09 · The Multiplane Forge & 3D Agent Office (Behind the Scenes · Kohnny + Spatiotemporal Worm)</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<script src="vendor/forage-bundle.js"></script>
+<script src="vendor/shield-dioramas-bundle.js"></script>
+<script src="vendor/lego3d.js"></script>
+<style>
+  @font-face {
+    font-family: 'Noto Sans SC';
+    src: url('assets/fonts/NotoSansSC-500.woff') format('woff');
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Noto Sans SC';
+    src: url('assets/fonts/NotoSansSC-900.woff') format('woff');
+    font-weight: 900;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #060a14; color: #f7f2e7;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 35%, #1d263b 0%, #0b111e 60%, #04060b 100%);
+  }
+  canvas#gl {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; display: block;
+  }
+  canvas#hud2d {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 4;
+  }
+  .letterbox-top, .letterbox-bot {
+    position: absolute; left: 0; right: 0; height: 66px;
+    background: rgba(4, 7, 14, 0.90); z-index: 6;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 46px;
+  }
+  .letterbox-top { top: 0; border-bottom: 1px solid rgba(229, 189, 67, 0.42); }
+  .letterbox-bot { bottom: 0; height: 84px; border-top: 1px solid rgba(229, 189, 67, 0.42); }
+  .brand-wrap { display: flex; align-items: center; gap: 14px; }
+  .brand-thumb {
+    width: 40px; height: 40px; border-radius: 6px;
+    border: 1.5px solid #e5bd43; object-fit: cover;
+  }
+  .brand {
+    font-family: 'Noto Sans SC', sans-serif; font-size: 14px; font-weight: 900;
+    letter-spacing: 0.10em; color: #e5bd43; text-transform: uppercase;
+  }
+  .kit-counter {
+    font-family: 'Noto Sans SC', sans-serif; font-size: 13px; color: #cbd5e1;
+    display: flex; gap: 22px; align-items: center;
+  }
+  .kit-counter strong { color: #facc15; font-size: 15px; font-weight: 900; }
+  .kanban-strip {
+    position: absolute; top: 80px; right: 32px; width: 490px;
+    background: rgba(6, 11, 22, 0.86);
+    border: 1px solid rgba(229, 189, 67, 0.45);
+    border-radius: 10px; padding: 12px 16px; z-index: 6;
+  }
+  .kanban-title {
+    font-size: 11px; font-weight: 900; color: #facc15;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px; display: flex; justify-content: space-between;
+  }
+  .kanban-cols {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    font-size: 10px;
+  }
+  .k-col {
+    background: rgba(14, 23, 42, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 6px; padding: 6px;
+  }
+  .k-col.active {
+    border-color: #facc15;
+    box-shadow: 0 0 14px rgba(250, 204, 21, 0.28);
+  }
+  .k-col-head { color: #93c5fd; font-weight: 900; margin-bottom: 4px; font-size: 9px; }
+  .k-card {
+    background: rgba(250, 204, 21, 0.14);
+    border-left: 2px solid #facc15;
+    padding: 3px 5px; border-radius: 3px; color: #f8fafc; margin-top: 3px;
+  }
+  .sub-verse {
+    font-family: 'Noto Sans SC', sans-serif; font-size: 20px; font-weight: 500;
+    color: #fef08a; text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+  }
+  .sub-meta {
+    font-family: 'Noto Sans SC', sans-serif; font-size: 12px; font-weight: 900;
+    color: #4ade80; background: rgba(16, 42, 29, 0.78);
+    border: 1px solid rgba(74, 222, 128, 0.45);
+    padding: 6px 14px; border-radius: 6px; letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080" data-om-signature="off" data-audio="mix.wav">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <canvas id="hud2d" width="1920" height="1080"></canvas>
+
+  <div class="letterbox-top">
+    <div class="brand-wrap">
+      <img class="brand-thumb" src="assets/set.shield-of-achilles.jpg" alt="Shield">
+      <div class="brand" id="actTitle">ACT I · 3D MULTIPLAYER AGENT OFFICE &amp; KANBAN WORKTREES</div>
+    </div>
+    <div class="kit-counter">
+      <span>MODEL: <strong id="modelSlug">set.shield-diorama-office.mpd</strong></span>
+      <span>LIVE 3D BRICKS: <strong id="brickCount">3,290 / 3,290</strong></span>
+      <span>AUDITOR: <strong style="color:#4ade80;">0 LOOSE · 0 CLASHES</strong></span>
+    </div>
+  </div>
+
+  <div class="kanban-strip">
+    <div class="kanban-title">
+      <span>KOHNNY / AGENT-OFFICE · GIT WORKTREES</span>
+      <span id="cacheTxt">AUTO-COMPACT: 55:00</span>
+    </div>
+    <div class="kanban-cols">
+      <div class="k-col" id="kc0">
+        <div class="k-col-head">1. PLANNING</div>
+        <div class="k-card">Iliad XVIII Brief</div>
+        <div class="k-card">HTML Mockups</div>
+      </div>
+      <div class="k-col" id="kc1">
+        <div class="k-col-head">2. WORKTREES</div>
+        <div class="k-card">wt/m0..m9</div>
+        <div class="k-card">wt/office-48x32</div>
+      </div>
+      <div class="k-col" id="kc2">
+        <div class="k-col-head">3. AUDITOR</div>
+        <div class="k-card">clicks.py PASS</div>
+        <div class="k-card">qa_video.py PASS</div>
+      </div>
+      <div class="k-col" id="kc3">
+        <div class="k-col-head">4. FIFO MERGE</div>
+        <div class="k-card">shield_frame.py</div>
+        <div class="k-card">git push main</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="letterbox-bot">
+    <div class="sub-verse" id="homericLine">“Maestro (Hephaestus), Auditor (Athena) &amp; 8 coding agents working in isolated Git worktrees…”</div>
+    <div class="sub-meta" id="shotTelemetry">WORM TOPOLOGY: SHEARED DIAGONAL RIBBON · BOULEAU 14-LINE ARMATURE</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gl');
+const hudCanvas = document.getElementById('hud2d');
+const ctx = hudCanvas.getContext('2d');
+const engine = new LegoCinema.Engine(canvas);
+
+const cols = [
+  document.getElementById('kc0'),
+  document.getElementById('kc1'),
+  document.getElementById('kc2'),
+  document.getElementById('kc3')
+];
+
+const SHOTS = [
+  {
+    t0: 0.0, t1: 4.0,
+    actIdx: 0,
+    slug: 'shield-diorama-office',
+    pieces: 3290,
+    act: 'ACT I · 3D MULTIPLAYER AGENT OFFICE & KANBAN WORKTREES (3,290 REAL BRICKS)',
+    verse: '“Maestro (Hephaestus), Auditor (Athena) & 8 specialist coding agents working in isolated Git worktrees…”',
+    cam: 'WORM TOPOLOGY: SHEARED DIAGONAL RIBBON (θ=24.6°) · 4 WORKTREE DESKS + ESPRESSO BAR',
+    bg: 'radial-gradient(circle at 50% 38%, #261e38 0%, #0e1424 62%, #05070d 100%)',
+    eye0: [-280, 360, 680], eye1: [190, 300, 620],
+    target0: [-35, 110, -20], target1: [15, 115, -15],
+    fov0: 34, fov1: 31,
+    buildFn: (u) => Math.min(1.0, 0.25 + u * 1.15),
+    explode0: 0.0, explode1: 0.0,
+    turnSpeed: 0.65,
+    torchCol: [1.0, 0.68, 0.22], torchStr: 1.55
+  },
+  {
+    t0: 4.0, t1: 8.0,
+    actIdx: 1,
+    slug: 'shield-of-achilles',
+    pieces: 7522,
+    act: 'ACT II · ISOLATED GIT WORKTREES (M0–M9) MERGING INTO THE 7,522-BRICK SHIELD',
+    verse: '“Every Kanban card spawns an isolated Git worktree section (M0..M9) that clicks into shield_frame.py…”',
+    cam: 'WORM TOPOLOGY: EXPANDING FUNNEL + 10 RADIAL ACTION TUBES · MURCH EYE-TRACE Δc=0.031',
+    bg: 'radial-gradient(circle at 50% 38%, #1e2942 0%, #0b111e 65%, #04060b 100%)',
+    eye0: [380, 760, 1060], eye1: [-180, 440, 700],
+    target0: [0, 90, 0], target1: [0, 65, 0],
+    fov0: 34, fov1: 30,
+    build0: 1.0, build1: 1.0,
+    explodeFn: (u) => Math.sin(u * Math.PI) * 0.85,
+    turnSpeed: 0.45,
+    torchCol: [1.0, 0.78, 0.32], torchStr: 1.35
+  },
+  {
+    t0: 8.0, t1: 12.0,
+    actIdx: 2,
+    slug: 'shield-diorama-choros',
+    pieces: 1970,
+    act: 'ACT III · MULTIPLANE CAMERA PARALLAX & 3D SPATIOTEMPORAL WORM V(u,v,τ)',
+    verse: '“Foreground columns, midground whirling dancers & background cosmic vault extrude into 3D Action Tubes…”',
+    cam: 'KALMUS / ITTEN CONTRAST: ΔL*=48.2 (CHIAROSCURO) · ΔH=154° · CURVATURE κ(τ)=1.84',
+    bg: 'radial-gradient(circle at 48% 35%, #2c1e38 0%, #101628 62%, #05070c 100%)',
+    eye0: [-240, 290, 640], eye1: [220, 250, 580],
+    target0: [-20, 105, -10], target1: [20, 100, -10],
+    fov0: 32, fov1: 29,
+    build0: 1.0, build1: 1.0,
+    explode0: 0.0, explode1: 0.0,
+    turnSpeed: 1.15,
+    torchCol: [1.0, 0.62, 0.18], torchStr: 1.55
+  },
+  {
+    t0: 12.0, t1: 16.0,
+    actIdx: 3,
+    slug: 'shield-diorama-office',
+    pieces: 3290,
+    act: 'ACT IV · AUDITOR PASS, 55m AUTO-COMPACT & GITHUB SHIP (ALL 9 FILMS VERIFIED)',
+    verse: '“Cross-model Auditor pass complete: 0 not clicked, 0 same space, −14.2 LUFS — shipping to origin/main.”',
+    cam: 'BOULEAU 14-LINE ARMATURE LOCK: d_grid=0.019 · MULTIPLANE TOWER CRANE PULLBACK',
+    bg: 'radial-gradient(circle at 50% 32%, #1d304d 0%, #0b1322 64%, #04070d 100%)',
+    eye0: [220, 240, 520], eye1: [0, 410, 740],
+    target0: [15, 115, -10], target1: [0, 110, -20],
+    fov0: 31, fov1: 35,
+    build0: 1.0, build1: 1.0,
+    explode0: 0.0, explode1: 0.0,
+    turnSpeed: 0.55,
+    torchCol: [0.95, 0.82, 0.42], torchStr: 1.40
+  }
+];
+
+function drawOverlay(t, actIdx) {
+  ctx.clearRect(0, 0, 1920, 1080);
+  const W = 1920, H = 1080;
+
+  // 1. Bouleau's 14-Line Harmonic Armature + Rule of Thirds in subtle gold filaments
+  ctx.save();
+  ctx.strokeStyle = 'rgba(229, 189, 67, 0.22)';
+  ctx.lineWidth = 1.25;
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(W, H);
+  ctx.moveTo(0, H); ctx.lineTo(W, 0);
+  ctx.moveTo(W / 3, 0); ctx.lineTo(W / 3, H);
+  ctx.moveTo(2 * W / 3, 0); ctx.lineTo(2 * W / 3, H);
+  ctx.moveTo(0, H / 3); ctx.lineTo(W, H / 3);
+  ctx.moveTo(0, 2 * H / 3); ctx.lineTo(W, 2 * H / 3);
+  ctx.moveTo(0, 0); ctx.lineTo(W / 2, H);
+  ctx.moveTo(W, 0); ctx.lineTo(W / 2, H);
+  ctx.moveTo(0, H); ctx.lineTo(W / 2, 0);
+  ctx.moveTo(W, H); ctx.lineTo(W / 2, 0);
+  ctx.stroke();
+
+  // 2. Deterministic Spatiotemporal Worm Trail c(τ) = (u(τ), v(τ)) over [t - 1.8s, t]
+  const steps = 42;
+  for (let i = 1; i <= steps; i++) {
+    const tau0 = Math.max(0, t - (steps - i + 1) * 0.04);
+    const tau1 = Math.max(0, t - (steps - i) * 0.04);
+    const u0 = 0.5 + 0.14 * Math.cos(tau0 * 1.15) + 0.04 * Math.sin(tau0 * 2.7);
+    const v0 = 0.52 + 0.10 * Math.sin(tau0 * 1.15) - 0.03 * Math.cos(tau0 * 2.1);
+    const u1 = 0.5 + 0.14 * Math.cos(tau1 * 1.15) + 0.04 * Math.sin(tau1 * 2.7);
+    const v1 = 0.52 + 0.10 * Math.sin(tau1 * 1.15) - 0.03 * Math.cos(tau1 * 2.1);
+    const alpha = i / steps;
+    const rad = (16 + 5 * Math.sin(tau1 * 2.2)) * alpha * 0.7;
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(250, 204, 21, ${(alpha * 0.62).toFixed(3)})`;
+    ctx.lineWidth = Math.max(2, rad);
+    ctx.lineCap = 'round';
+    ctx.moveTo(u0 * W, v0 * H);
+    ctx.lineTo(u1 * W, v1 * H);
+    ctx.stroke();
+  }
+  const uNow = 0.5 + 0.14 * Math.cos(t * 1.15) + 0.04 * Math.sin(t * 2.7);
+  const vNow = 0.52 + 0.10 * Math.sin(t * 1.15) - 0.03 * Math.cos(t * 2.1);
+  const rNow = 18 + 5 * Math.sin(t * 2.2);
+  ctx.beginPath();
+  ctx.arc(uNow * W, vNow * H, rNow, 0, Math.PI * 2);
+  ctx.strokeStyle = '#4ade80';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(250, 204, 21, 0.24)';
+  ctx.fill();
+
+  // 3. 3D Agent Office role callouts in Act I & Act IV
+  if (actIdx === 0 || actIdx === 3) {
+    const tags = [
+      { x: 820, y: 210, label: 'MAESTRO (Hephaestus) · Orchestrator', col: '#facc15' },
+      { x: 1120, y: 210, label: 'AUDITOR (Athena) · clicks.py 0 loose', col: '#4ade80' },
+      { x: 450, y: 550, label: 'WORKTREE DESKS 1–4 · 8 Video-Skill Agents', col: '#93c5fd' },
+      { x: 960, y: 425, label: '4-LEVEL MULTIPLANE CAMERA TOWER', col: '#fb923c' },
+      { x: 1450, y: 615, label: 'ESPRESSO LOUNGE · 55m Cache Handoff', col: '#c084fc' }
+    ];
+    ctx.font = '900 12px "Noto Sans SC", sans-serif';
+    for (const tg of tags) {
+      const tw = ctx.measureText(tg.label).width + 24;
+      ctx.fillStyle = 'rgba(6, 11, 22, 0.86)';
+      ctx.strokeStyle = tg.col;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(tg.x - tw / 2, tg.y - 16, tw, 28, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = tg.col;
+      ctx.fillText(tg.label, tg.x - tw / 2 + 12, tg.y + 3);
+    }
+  }
+  ctx.restore();
+}
+
+function renderFrame(sec) {
+  const t = Math.max(0, Math.min(16.0, sec));
+  const st = LegoCinema.evalShotList(SHOTS, t);
+  const s = st.shot;
+
+  const beatPhase = (t * 2.0) % 1.0;
+  const pulseR = beatPhase * 760.0;
+  const pulseAmp = Math.exp(-beatPhase * 3.8) * 0.65;
+
+  document.getElementById('film').style.background = s.bg;
+  document.getElementById('actTitle').textContent = s.act;
+  document.getElementById('modelSlug').textContent = 'set.' + s.slug + '.mpd';
+  const builtCount = Math.round(s.pieces * st.build);
+  document.getElementById('brickCount').textContent = `${builtCount.toLocaleString()} / ${s.pieces.toLocaleString()}`;
+  document.getElementById('homericLine').textContent = s.verse;
+  document.getElementById('shotTelemetry').textContent = `${s.cam} · t=${t.toFixed(2)}s`;
+  document.getElementById('cacheTxt').textContent = `AUTO-COMPACT: ${Math.max(0, 55 - Math.floor(t * 3.4))}:00`;
+  cols.forEach((c, idx) => c.classList.toggle('active', idx === s.actIdx));
+
+  engine.render({
+    slug: st.slug,
+    time: t,
+    eye: st.eye,
+    target: st.target,
+    fov: st.fov,
+    build: st.build,
+    explode: st.explode,
+    turnAngle: st.turnAngle,
+    pulseR,
+    pulseAmp,
+    torchPos: st.torchPos,
+    torchCol: st.torchCol,
+    torchStr: st.torchStr,
+    sunCol: st.sunCol
+  });
+  drawOverlay(t, s.actIdx);
+}
+
+window.renderFrame = renderFrame;
+if (window.gsap && window.OM) {
+  const tl = gsap.timeline({ paused: true });
+  tl.addLabel('act:office', 0.0);
+  tl.addLabel('act:worktrees', 4.0);
+  tl.addLabel('act:multiplane', 8.0);
+  tl.addLabel('act:ship', 12.0);
+  OM.clock(tl, (sec) => renderFrame(sec), 16.0, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['film'] = tl;
+}
+renderFrame(0);
+</script>
+</body>
+</html>

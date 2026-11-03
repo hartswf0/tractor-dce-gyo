@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Shield of Achilles — The Kit Line &amp; Grand Rotunda (Iliad XVIII.478–608)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #efece4;
+    --surface: #f7f4ed;
+    --ink: #1a1815;
+    --muted: #655e53;
+    --rule: #d8d2c5;
+    --accent: #8f6324;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.55; padding: 36px 28px 80px;
+    max-width: 1320px; margin: 0 auto;
+  }
+  header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 24px; margin-bottom: 28px;
+    display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;
+  }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 44px; font-weight: 600; line-height: 1.08; margin-top: 4px;
+  }
+  .subhead {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 20px; font-style: italic; color: var(--muted); margin-top: 6px; max-width: 820px;
+  }
+  .nav-links a {
+    color: var(--ink); text-decoration: none; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--rule); padding: 7px 13px; border-radius: 4px;
+    background: var(--surface); margin-left: 6px;
+  }
+  .nav-links a:hover { border-color: var(--accent); color: var(--accent); }
+  .flagship-banner {
+    background: var(--surface); border: 2px solid var(--accent);
+    border-radius: 8px; overflow: hidden; margin-bottom: 28px;
+    display: grid; grid-template-columns: 1.35fr 1fr;
+  }
+  .flagship-thumbs {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 4px; background: var(--rule);
+  }
+  .flagship-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .flagship-stack { display: flex; flex-direction: column; gap: 4px; }
+  .flagship-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .ribbon {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+    margin-bottom: 28px;
+  }
+  .ribbon-cell {
+    background: var(--surface); border: 1px solid var(--rule);
+    padding: 8px 10px; border-radius: 4px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .ribbon-cell:hover { border-color: var(--accent); }
+  .ribbon-cell .r-num { font-size: 10px; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; }
+  .ribbon-cell .r-name { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600; }
+  .studio-bar {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 8px; overflow: hidden; margin-bottom: 32px;
+  }
+  .studio-head {
+    padding: 10px 16px; border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; font-weight: 600;
+  }
+  #viewer-frame { width: 100%; height: 560px; border: 0; display: block; background: #efece4; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(390px, 1fr)); gap: 22px;
+  }
+  .kit-card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .kit-thumb-link { display: block; overflow: hidden; border-bottom: 1px solid var(--rule); background: #efece4; }
+  .kit-thumb { width: 100%; height: 245px; object-fit: cover; display: block; transition: transform 0.25s ease; }
+  .kit-thumb-link:hover .kit-thumb { transform: scale(1.02); }
+  .kit-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .kit-meta { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 600; }
+  .kit-num { color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .kit-clicks { color: #2f6838; background: rgba(47,104,56,0.1); padding: 2px 7px; border-radius: 3px; }
+  .kit-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 600; line-height: 1.15; }
+  .kit-title a { color: inherit; text-decoration: none; }
+  .kit-title a:hover { color: var(--accent); }
+  .kit-greek { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 14px; color: var(--muted); }
+  .kit-epigraph {
+    font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
+    font-size: 15.5px; color: var(--ink); border-left: 2px solid var(--accent); padding-left: 10px;
+  }
+  .kit-moment { font-size: 13px; color: var(--muted); }
+  .kit-object {
+    font-size: 12.5px; background: rgba(143,99,36,0.08);
+    border-left: 2px solid var(--accent); padding: 8px 10px; border-radius: 0 4px 4px 0;
+  }
+  .kit-actions { margin-top: auto; padding-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .load-btn {
+    background: var(--ink); color: var(--surface); border: 0;
+    padding: 7px 12px; border-radius: 4px; font-size: 11.5px; font-weight: 500; cursor: pointer;
+  }
+  .load-btn:hover { background: var(--accent); }
+  .page-link { font-size: 11.5px; color: var(--ink); text-decoration: none; font-weight: 600; }
+  .page-link:hover { color: var(--accent); }
+  .mpd-link { font-size: 11.5px; color: var(--accent); text-decoration: none; font-weight: 500; margin-left: auto; }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="eyebrow">Operative Ekphrasis · From Imagetext to Worldtext (Bolter &amp; Hartsoe)</div>
+      <h1>The Shield of Achilles — The Kit Line &amp; Grand Rotunda</h1>
+      <div class="subhead">Eight playable LDraw architectural kits (16 inspected builds · 17,546 pieces · 0 loose · 0 clashes) from Homer’s Iliad XVIII.468–608, crowned by the 80×80-stud UCS Grand Rotunda of Achilles.</div>
+    </div>
+    <div class="nav-links">
+      <a href="../../shield-experiments.html">🛡️ How Built · Experiments &amp; 48×32 Dioramas</a>
+      <a href="achilles-rotunda/index.html">#75910 Grand Rotunda (9 Builds)</a>
+      <a href="brief.html">The Design Brief (5 Rules)</a>
+      <a href="../../odyssey/kits/index.html">The Odyssey Line</a>
+    </div>
+  </header>
+
+  <section class="flagship-banner">
+    <a href="achilles-rotunda/index.html" class="flagship-thumbs">
+      <img src="achilles-rotunda/hero.jpg" alt="Stage III Grand Rotunda of Achilles"/>
+      <div class="flagship-stack">
+        <img src="achilles-rotunda/shell_center.jpg" alt="Stage II Structural Shell"/>
+        <img src="achilles-rotunda/plinth.jpg" alt="Stage I Oceanus Plinth &amp; Atrium"/>
+      </div>
+    </a>
+    <div class="flagship-body">
+      <div class="kit-meta">
+        <span class="kit-num">UCS FLAGSHIP #75910 · 80×80 STUDS · 3 STAGES + 6 MODULES</span>
+        <span class="kit-clicks">✓ 8,891 pcs · 0 loose · 0 clashes</span>
+      </div>
+      <h2 class="kit-title" style="font-size:28px;"><a href="achilles-rotunda/index.html">The Grand Rotunda of Achilles: Panopticon of Iliad XVIII</a></h2>
+      <blockquote class="kit-epigraph">"Therein he wrought the earth, therein the heavens, therein the sea, and the unwearying sun, and the moon at the full, and therein all the constellations wherewith heaven is crowned... and two fair cities of mortal men... and a soft fallow, a fertile field, wide and thrice-ploughed... and a herd of straight-horned kine... and the great might of the River of Ocean around the uttermost rim." (Iliad XVIII.483-608)</blockquote>
+      <p class="kit-moment">All five concentric rings and ten narrative worlds of Homer's Shield of Achilles united inside a two-level circular architectural rotunda: from the Sunken Central Fountain Atrium and Twin Escalators up to the Concourse Kiosks, the Midnight-Blue Celestial Starfield Canopy, the City at Peace, the City at War, the Black Ploughed Fallow, the Golden Corn Harvest, the Vineyard, the Pastoral Meadow of Sheep, Cattle and Lions, the Northern Forest, and the outer moat of River Oceanus.</p>
+      <div class="kit-object">
+        <strong>Staged &amp; Modular Architecture:</strong> Inspect Stage I (<code>set.achilles-rotunda-plinth</code>, 4,727 pcs), Stage II (<code>set.achilles-rotunda-shell</code>, 6,042 pcs), Stage III (<code>set.achilles-rotunda</code>, 8,891 pcs), and all 6 Sector Sub-Builds.
+      </div>
+      <div class="kit-actions">
+        <button class="load-btn" onclick="loadKit('set.achilles-rotunda', 'Stage III: The Grand Rotunda of Achilles')">Load Stage III in 3D Studio ↓</button>
+        <button class="load-btn" style="background:#544d42;" onclick="loadKit('set.achilles-rotunda-shell', 'Stage II: Architectural Shell &amp; Space-Frame')">Stage II Shell ↓</button>
+        <button class="load-btn" style="background:#544d42;" onclick="loadKit('set.achilles-rotunda-plinth', 'Stage I: Oceanus Plinth &amp; Sunken Atrium')">Stage I Plinth ↓</button>
+        <a class="page-link" href="achilles-rotunda/index.html">All 14 Studio Photos &amp; 9 Builds →</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ribbon">
+    <div class="ribbon-cell" onclick="loadKit('set.achilles-rotunda', 'KIT #75910 · The Grand Rotunda of Achilles')"><div class="r-num">UCS #75910 · 8,891 PCS</div><div class="r-name">The Grand Rotunda</div></div>
+    <div class="ribbon-cell" onclick="loadKit('set.achilles-forge', 'The Forge of Hephaestus & The Revolving Bear')"><div class="r-num">KIT I · 936 PCS</div><div class="r-name">The Forge of Hephaestus & The Revolving Bear</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-peace', 'The Two Talents in the Agora & The Bridal Torch-Dance')"><div class="r-num">KIT II · 954 PCS</div><div class="r-name">The Two Talents in the Agora & The Bridal Torch-Dance</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-war', 'The River Ambush & The Tall Golden Gods')"><div class="r-num">KIT III · 1073 PCS</div><div class="r-name">The River Ambush & The Tall Golden Gods</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-field', 'The Plough That Turns Black, The King’s Harvest & The Vintage')"><div class="r-num">KIT IV · 1243 PCS</div><div class="r-name">The Plough That Turns Black, The King’s Harvest & The Vintage</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-pasture', 'The Two Lions, the Gold-and-Tin Oxen & the Sheep Glen')"><div class="r-num">KIT V · 1299 PCS</div><div class="r-name">The Two Lions, the Gold-and-Tin Oxen & the Sheep Glen</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-choros', 'The Choros of Daedalus & The River Oceanus')"><div class="r-num">KIT VI · 848 PCS</div><div class="r-name">The Choros of Daedalus & The River Oceanus</div></div><div class="ribbon-cell" onclick="loadKit('set.achilles-shield', 'The Shield of Achilles — Five-Fold Worldtext')"><div class="r-num">KIT MASTER · 2302 PCS</div><div class="r-name">The Shield of Achilles — Five-Fold Worldtext</div></div>
+  </div>
+
+  <section class="studio-bar">
+    <div class="studio-head">
+      <span id="studio-label">Live 3D LDraw Studio — UCS #75910 · The Grand Rotunda of Achilles (Stage III Masterpiece)</span>
+      <span>Real ./ldraw/parts/*.dat · ACES Filmic · Warm Sun / Cool Fill</span>
+    </div>
+    <iframe id="viewer-frame" src="../../odyssey-forage.html?card=../../achilles/cards/set.achilles-rotunda.mpd&bg=efece4"></iframe>
+  </section>
+
+  <section class="grid">
+    
+        <article class="kit-card" data-card="set.achilles-forge" data-slug="achilles-forge">
+          <a href="achilles-forge/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-forge/hero.jpg" alt="The Forge of Hephaestus & The Revolving Bear" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT I · Medium · Iliad XVIII.468–490</span>
+              <span class="kit-clicks">✓ 936 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-forge/index.html">The Forge of Hephaestus & The Revolving Bear</a></h2>
+            <p class="kit-greek">Ἐν μὲν γαῖαν ἔτευξ’, ἐν δ’ οὐρανόν, ἐν δὲ θάλασσαν… Ἄρκτον θ’, ἣν καὶ Ἄμαξαν ἐπίκλησιν καλέουσιν</p>
+            <blockquote class="kit-epigraph">“On it he wrought the earth, and the heaven, and the sea, the unwearied sun, and the full moon; and the Bear, which revolves in place and watches Orion, and alone has no share in the baths of Ocean.”</blockquote>
+            <p class="kit-moment">Inside Hephaestus’s colonnaded bronze foundry on Olympus: twin articulated bellows pump into the volcanic magma hearth as Hephaestus hammers the five-fold shield blank on a revolving anvil turntable, flanked by his two living Golden Handmaidens and Silver-Footed Thetis beneath the revolving Celestial Vault.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> Twin Turntables: The Revolving Bear Celestial Vault & The Five-Fold Anvil (two 61485c01 Turntables) — rotate the 8×8 celestial dome above the furnace so the Bear revolves watching Orion, and turn the five-fold shield blank on Hephaestus’s anvil.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-forge', 'The Forge of Hephaestus & The Revolving Bear')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-forge/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-forge.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-peace" data-slug="achilles-peace">
+          <a href="achilles-peace/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-peace/hero.jpg" alt="The Two Talents in the Agora & The Bridal Torch-Dance" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT II · Large · Iliad XVIII.491–508</span>
+              <span class="kit-clicks">✓ 954 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-peace/index.html">The Two Talents in the Agora & The Bridal Torch-Dance</a></h2>
+            <p class="kit-greek">κεῖτο δ’ ἄρ’ ἐν μέσσοισι δύω χρυσοῖο τάλαντα, τῷ δόμεν ὃς μετὰ τοῖσι δίκην ἰθύντατα εἴποι</p>
+            <blockquote class="kit-epigraph">“And there lay in the midst two talents of gold, to give to him who among them should pronounce judgment most straightly.”</blockquote>
+            <p class="kit-moment">Two complete Mycenaean architectural worlds: on the right, a two-storey frescoed Megaron with columned portico, Horns of Consecration, upper balcony, side house portal, and an 8×8 revolving bridal dance floor; on the left, a roofed marble Agora Stoa framing the sacred circle of eight polished stone benches and the revolving altar of the Two Talents of Gold.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The Turning Judgment Dais & Whirling Bridal Ring (two 8×8 cross-bonded 61485c01 Turntables) — turn the central Agora altar to award the two talents of gold, and spin the bridal chorus of lyre-player, flute-player, and dancers.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-peace', 'The Two Talents in the Agora & The Bridal Torch-Dance')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-peace/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-peace.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-war" data-slug="achilles-war">
+          <a href="achilles-war/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-war/hero.jpg" alt="The River Ambush & The Tall Golden Gods" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT III · Flagship · Iliad XVIII.509–540</span>
+              <span class="kit-clicks">✓ 1073 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-war/index.html">The River Ambush & The Tall Golden Gods</a></h2>
+            <p class="kit-greek">ἦρχε δ’ ἄρα σφιν Ἄρης καὶ Παλλὰς Ἀθήνη ἄμφω χρυσείω, χρύσεια δὲ εἵματα ἕσθην, καλὼ καὶ μεγάλω σὺν τεύχεσιν</p>
+            <blockquote class="kit-epigraph">“And Ares and Pallas Athena led them, both golden, and clad in golden garments, beautiful and large with their arms, like gods, both very conspicuous; and the people were smaller.”</blockquote>
+            <p class="kit-moment">Through the linteled Scaean Gate of a crenellated Cyclopean fortress guarded by wives, children, and elders, the sortie marches out behind 1.7× Golden Colossi of Ares and Athena down to the river ford, where scouts pivot out from an 8×8 riverbank blind upon piping shepherds, sculpted lofty-horned oxen, sheep, cavalry, and crimson-cloaked Ker.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The 8×8 Riverbank Ambush Blind (61485c01 Turntable) & 1.7× Golden Colossi — rotate the camouflaged reed-and-rock riverbank outcrop to spring the bronze-armored scouts upon the watering herds.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-war', 'The River Ambush & The Tall Golden Gods')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-war/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-war.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-field" data-slug="achilles-field">
+          <a href="achilles-field/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-field/hero.jpg" alt="The Plough That Turns Black, The King’s Harvest & The Vintage" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT IV · Flagship · Iliad XVIII.541–572</span>
+              <span class="kit-clicks">✓ 1243 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-field/index.html">The Plough That Turns Black, The King’s Harvest & The Vintage</a></h2>
+            <p class="kit-greek">ἡ δὲ μελαίνετ’ ὄπισθεν, ἀρηρομένῃ δὲ ἐῴκει χρυσείη περ ἐοῦσα· τὸ δὴ περὶ θαῦμα τέτυκτο</p>
+            <blockquote class="kit-epigraph">“And the field grew black behind, and was like unto ploughed land, though being golden; which was a very great marvel.”</blockquote>
+            <p class="kit-moment">Three georgic worlds divided by dry-stone walls: the thrice-ploughed fallow with a roofed headland wine-pergola and an 8×8 revolving ox-plough cassette turning golden glebe into black furrow; the deep corn where the Silent King rejoices on his plinth before the spreading Oak and ox-roast hearth; and the golden vineyard on silver poles enclosed by a dark-blue kyanos trench, tin fence, and single stone causeway.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The 8×8 Marvel of the Turning Furrow (61485c01 Turntable) — rotate the yoked ox-team and ploughman cassette so the golden soil physically flips to freshly ploughed black earth.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-field', 'The Plough That Turns Black, The King’s Harvest & The Vintage')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-field/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-field.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-pasture" data-slug="achilles-pasture">
+          <a href="achilles-pasture/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-pasture/hero.jpg" alt="The Two Lions, the Gold-and-Tin Oxen & the Sheep Glen" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT V · Large · Iliad XVIII.573–589</span>
+              <span class="kit-clicks">✓ 1299 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-pasture/index.html">The Two Lions, the Gold-and-Tin Oxen & the Sheep Glen</a></h2>
+            <p class="kit-greek">αἱ δὲ βόες χρυσοῖο τετεύχατο κασσιτέροιο τε… σμερδαλέω δὲ λέοντε δύ’ ἐν πρώτῃσι βόεσσιν ταῦρον ἐρύγμηλον ἐχέτην</p>
+            <blockquote class="kit-epigraph">“The oxen were made of gold and tin… and two terrible lions among the foremost oxen seized a loud-bellowing bull.”</blockquote>
+            <p class="kit-moment">From a roofed timber-and-stone cattle byre (kopros), five sculpted gold-and-tin lofty-horned oxen rush down to a reed-fringed river where two maned, fanged lions tear the foremost bull on an 8×8 ford turntable; four golden herdsmen urge on nine sculpted hounds below a wooded mountain glen with a pitched-roof shepherd’s cottage and dry-stone sheepfold.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The 8×8 River-Ford Lion Attack (61485c01 Turntable) — revolve the central river-shoal struggle of the two tawny lions and bellowing bull surrounded by the nine recoiling hounds.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-pasture', 'The Two Lions, the Gold-and-Tin Oxen & the Sheep Glen')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-pasture/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-pasture.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-choros" data-slug="achilles-choros">
+          <a href="achilles-choros/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-choros/hero.jpg" alt="The Choros of Daedalus & The River Oceanus" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT VI · Medium · Iliad XVIII.590–608</span>
+              <span class="kit-clicks">✓ 848 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-choros/index.html">The Choros of Daedalus & The River Oceanus</a></h2>
+            <p class="kit-greek">οἱ δ’ ὁτὲ μὲν θρέξασκον ἐπισταμένοισι πόδεσσιν ῥεῖα μάλ’, ὡς ὅτε τις τροχὸν ἄρμενον ἐν παλάμῃσιν ἑζόμενος κεραμεὺς πειρήσεται</p>
+            <blockquote class="kit-epigraph">“At one time they would run lightly with skilled feet, as when a seated potter makes trial of a wheel fitted to his hands; and around the extreme border he placed the mighty strength of River Oceanus.”</blockquote>
+            <p class="kit-moment">Framed by a Knossian Palace portico of four downward-tapering red columns crowned with white Minoan Horns of Consecration, stepped Theatral viewing tiers, and the surging wave-wall of River Oceanus, eight youths and maidens dance wrist-on-wrist around two spinning tumblers on a 10×10 labyrinth wheel.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The 10×10 Potter’s Wheel Choros (61485c01 Turntable) — spin the entire cross-bonded Knossian labyrinth platform of eight youths with golden swords, maidens with golden garlands, and two central tumblers.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-choros', 'The Choros of Daedalus & The River Oceanus')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-choros/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-choros.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+        <article class="kit-card" data-card="set.achilles-shield" data-slug="achilles-shield">
+          <a href="achilles-shield/index.html" class="kit-thumb-link">
+            <img class="kit-thumb" src="achilles-shield/hero.jpg" alt="The Shield of Achilles — Five-Fold Worldtext" loading="lazy"/>
+          </a>
+          <div class="kit-body">
+            <div class="kit-meta">
+              <span class="kit-num">KIT MASTER · Collectors’ Edition · Iliad XVIII.478–608</span>
+              <span class="kit-clicks">✓ 2302 pcs · 0 loose · 0 clashes</span>
+            </div>
+            <h2 class="kit-title"><a href="achilles-shield/index.html">The Shield of Achilles — Five-Fold Worldtext</a></h2>
+            <p class="kit-greek">Πέντε δ’ ἄρ’ αὐτοῦ ἔσαν πτύχες· αὐτὰρ ἐν αὐτῷ ποίει δαίδαλα πολλὰ ἰδυίῃσι πραπίδεσσιν</p>
+            <blockquote class="kit-epigraph">“Five were the folds of the shield itself; and on it he wrought many cunning things with his skillful mind.”</blockquote>
+            <p class="kit-moment">The complete 48×48 concentric five-fold bronze, tin, kyanos, and gold relief world: the 8×8 Revolving Celestial Boss at the center; architectural reliefs of the Cities of Peace and War (with 1.7× Golden Ares & Athena); the Plough Ox-Team, Silent King’s Harvest under the Oak, and Silver-Poled Vineyard; the Sculpted Lions, Gold-and-Tin Oxen & Knossian Choros with Horns of Consecration; sealed by River Oceanus and the Triple Glittering Rim.</p>
+            <div class="kit-object">
+              <strong>The object:</strong> The Concentric World-Wheel (61485c01 Central Turntable) — revolve the 8×8 central Celestial Vault of Helios, Selene, Orion, and the Bear at the crown of the five concentric relief folds.
+            </div>
+            <div class="kit-actions">
+              <button class="load-btn" onclick="loadKit('set.achilles-shield', 'The Shield of Achilles — Five-Fold Worldtext')">Inspect in 3D Studio ↑</button>
+              <a class="page-link" href="achilles-shield/index.html">Kit Page &amp; Photos →</a>
+              <a class="mpd-link" href="../cards/set.achilles-shield.mpd" download>.MPD</a>
+            </div>
+          </div>
+        </article>
+  </section>
+
+<script>
+function loadKit(card, title) {
+  document.getElementById('studio-label').textContent = 'Live 3D LDraw Studio — ' + title + ' (' + card + '.mpd)';
+  document.getElementById('viewer-frame').src = '../../odyssey-forage.html?card=../../achilles/cards/' + card + '.mpd&bg=efece4';
+  document.querySelector('.studio-bar').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

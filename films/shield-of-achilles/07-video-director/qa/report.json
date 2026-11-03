@@ -1,0 +1,156 @@
+{
+  "file": "films/shield-of-achilles/film-07-video-director.mp4",
+  "info": {
+    "w": 1920,
+    "h": 1080,
+    "fps": 30.0,
+    "dur": 12.0,
+    "audio": true
+  },
+  "picture": {
+    "frame0": {
+      "mean": 110.0,
+      "contrast": 77.8
+    },
+    "flashes": [],
+    "pops": [],
+    "cuts": [
+      4.0,
+      8.0
+    ],
+    "frozen": [],
+    "flat": [],
+    "median_step": 7.897
+  },
+  "cuts_vs_plan": null,
+  "audio": {
+    "lufs": -14.0,
+    "true_peak": -2.1,
+    "loudest_at": 8.5,
+    "loudest_db": -7.3,
+    "p90_db": -12.1,
+    "silence_threshold_db": -30.0,
+    "silences": [
+      {
+        "from": 7.45,
+        "to": 8.35
+      }
+    ],
+    "silence_before_peak": true,
+    "planned_silences": [
+      {
+        "from": 7.5,
+        "to": 8.3,
+        "max_db": -120.0,
+        "depth_db": 107.9,
+        "ok": true
+      }
+    ]
+  },
+  "texts": [
+    {
+      "text": "NINE DOGS & TWO LIONS",
+      "role": "hook",
+      "from": 0.0,
+      "box": [
+        84,
+        132,
+        1080,
+        118
+      ],
+      "font_px": 86.1,
+      "contrast": 19.7,
+      "at": 0.1
+    },
+    {
+      "text": "SHIELD-EXPERIMENTS.HTML \u00b7 6,404 PCS",
+      "role": "cta",
+      "from": 0.0,
+      "box": [
+        84,
+        272,
+        1040,
+        76
+      ],
+      "font_px": 48.6,
+      "contrast": 15.2,
+      "at": 0.1
+    },
+    {
+      "text": "CHOROS WHEEL \u00b7 2,081 PCS",
+      "role": "term",
+      "from": 4.0,
+      "box": [
+        84,
+        132,
+        920,
+        84
+      ],
+      "font_px": 56.9,
+      "contrast": 19.7,
+      "at": 4.1
+    }
+  ],
+  "sheets": {
+    "beats": "films/shield-of-achilles/07-video-director/qa/beats_sheet.jpg",
+    "phone": "films/shield-of-achilles/07-video-director/qa/phone_sheet.jpg",
+    "hook": "films/shield-of-achilles/07-video-director/qa/hook_sheet.jpg"
+  },
+  "checks": [
+    {
+      "level": "PASS",
+      "check": "frame 0",
+      "detail": "mean 110.0, contrast 77.8; still confirm it's a finished composition"
+    },
+    {
+      "level": "PASS",
+      "check": "hook text",
+      "detail": "'NINE DOGS & TWO LIONS' at 0.1 s: ~86.1 px font (>= 84), contrast 19.7:1 (>= 7:1)"
+    },
+    {
+      "level": "PASS",
+      "check": "cta text",
+      "detail": "'SHIELD-EXPERIMENTS.HTML \u00b7 6,404 PCS' at 0.1 s: ~48.6 px font (>= 48), contrast 15.2:1 (>= 7:1)"
+    },
+    {
+      "level": "PASS",
+      "check": "term text",
+      "detail": "'CHOROS WHEEL \u00b7 2,081 PCS' at 4.1 s: ~56.9 px font (>= 48), contrast 19.7:1 (>= 7:1)"
+    },
+    {
+      "level": "PASS",
+      "check": "single-frame flashes",
+      "detail": "none"
+    },
+    {
+      "level": "PASS",
+      "check": "pops",
+      "detail": "none"
+    },
+    {
+      "level": "INFO",
+      "check": "detected cuts",
+      "detail": "[4.0, 8.0]"
+    },
+    {
+      "level": "PASS",
+      "check": "loudness",
+      "detail": "-14.0 LUFS (target -14.0 +/-1), true peak -2.1 dBTP (<= -1.0)"
+    },
+    {
+      "level": "PASS",
+      "check": "loudest moment",
+      "detail": "loudest 100 ms at 8.5 s (-7.3 dBFS); hero moment at 8.5 s (offset +0.00 s)"
+    },
+    {
+      "level": "PASS",
+      "check": "silence before peak",
+      "detail": "silences >= 0.4 s below -30.0 dBFS: [{'from': 7.45, 'to': 8.35}]"
+    },
+    {
+      "level": "PASS",
+      "check": "planned silence",
+      "detail": "7.5-8.3 s peaks at -120.0 dBFS, 107.9 dB under p90 (needs < -30.0 dBFS)"
+    }
+  ]
+}

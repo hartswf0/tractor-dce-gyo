@@ -1,0 +1,1 @@
+../../../../achilles/kits/shield-dioramas-bundle.js

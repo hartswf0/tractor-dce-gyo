@@ -1,23 +1,51 @@
-# Shield of Achilles · HOMER × MENTO Shell
+# Shield of Achilles · Operative LDraw Worldtext & HOMER × MENTO Studio
 
-## Intent
+## I. Operative Ekphrasis: From Imagetext to Worldtext in LEGO/LDraw
 
-**Shield of Achilles** is a **HOMER-derived studio shell** that:
+Grounded in Jay David Bolter & Watson Hartsoe’s *Operative Ekphrasis: From Imagetext to Worldtext* and modeled on the LDraw assembly pipeline of *The Odyssey* (`odyssey-forage.html` / `tools/odyssey-forage.js`), **The Shield of Achilles** (*Iliad* XVIII, 478–608) is realized here as a self-contained, navigable **3D LEGO/LDraw Worldtext**.
 
-- Keeps the full **Swiss / Frank / Courage / Weaver / Were / Master** chain.
-- Replaces the legacy **Momento** panel with the new **MENTO v8 camera surface** (`mento-369.html`).
+Where traditional ekphrasis uses verbal description to evoke a mental image in the listener, and generative prompting produces an *imagetext*, an **operative worldtext** compiles Homer’s verses into an inhabitable, rule-governed 3D world with a **Vision Model**, a **Memory Model**, and a **Controller**:
 
-Where `homer.html` still docks the older Momento capture app, **`shield-of-achilles.html` is the variant where MENTO v8 is mounted directly into the TRUBADOR chrome.**
+1. **Vision Model (Hephaestus’s Five-Metal & Niello Surface)**:
+   - **Gold (`χρυσός`, LDraw `297, 14, 46`)**: Ares & Pallas Athena in divine scale, Unwearied Sun, Constellations, Two Talents of Gold in the Agora, Royal Sceptres, Golden Vines, Golden Herdsmen, Unploughed Glebe, Lofty-Horned Oxen.
+   - **Silver (`ἄργυρος`, LDraw `179, 47`)**: Shield Baldric (`τελαμών`), Full Moon, Vineyard Props (`κάμακες`), Youths’ Sword-Belts, Herald Staves, Silver-Footed Thetis.
+   - **Bronze & Copper (`χαλκός`, LDraw `28, 70, 84, 19`)**: Five Structural Folds (`πέντε πτύχες`), Armor of the Two Armies, Brazen Spears, Ploughshares, Cauldron Tripods.
+   - **Tin (`κασσίτερος`, LDraw `71, 15`)**: Vineyard Fence (`ἕρκος κασσιτέροιο`), Tin Oxen, Polished Stone Circle of the Elders (`ξεστοῖσι λίθοισι`), Triple Glittering Rim (`ἄντυξ τρίπλαξ`).
+   - **Kyanos Enamel (`κύανος`, LDraw `272, 33, 1`)**: Dark-Blue Vineyard Trench (`κυανέη κάπετος`), Night Sky Vault, Murmuring River, and the River Oceanus Rim.
+   - **Blackened Glebe (`μελαίνετο`, LDraw `0, 308`)**: Thrice-Ploughed Furrow turning black behind the plough (`χρυσείη περ ἐοῦσα`), Black Grape Clusters.
+   - **Blood-Crimson & Wine-Dark (`δαφοινεός`, LDraw `320, 4, 22`)**: Blood-crimsoned cloak of Destructive Fate (`Κήρ`), Sweet Wine at the Headland, Royal Chiton of the Harvest King.
 
-This olog documents:
+2. **Memory Model (Homeric Temporal & Procedural Invariants)**:
+   - **Zone I (`18.478–490`)**: The Bear (`Ἄρκτος / Ἄμαξα`) revolves around the celestial pole watching Orion and alone never bathes in the waters of Oceanus (`οἴη δ᾽ ἄμμορός ἐστι λοετρῶν Ὠκεανοῖο`).
+   - **Zone II (`18.491–508`)**: Bridal torch processions whirl through the street while in the Agora Elders sit on polished stones in the Sacred Circle (`ἱερῷ ἐνὶ κύκλῳ`) and rise in turn holding herald staves to adjudicate the blood-price (`ποινή`) for two talents of gold.
+   - **Zone III (`18.509–540`)**: Ares and Pallas Athena lead the ambush in **tall, golden divine scale (`καλὼ καὶ μεγάλω`, 1.6× brick-built figure height)** while mortal warriors are smaller (`οἱ δ᾽ ὑπὸλίζονες ἦσαν`); Eris, Kydoimos, and crimson-cloaked Ker drag the slain by the feet at the river watering-place.
+   - **Zone IV (`18.541–572`)**: As ploughmen reach the headland (`τέλσον ἀρούρης`) and receive a goblet of sweet wine, the golden earth turns marvelously black (`μελαίνετο`) behind their ploughs; the Silent King (`βασιλεύς`) rejoices at his staff while reapers, sheaf-binders, and oak-tree sacrificers labor; youths and maidens gather black grapes along the single path through the kyanos trench and tin fence to the boy’s Linus song.
+   - **Zone V (`18.573–589`)**: Two terrible lions seize a bellowing bull among the gold-and-tin oxen while four golden herdsmen urge on nine swift dogs that bark close by yet dart back (`ὑλάοντές τε καὶ ἐκτὸς ἀλυσκάζοντες`), refusing to bite.
+   - **Zone VI (`18.590–608`)**: Youths with golden daggers on silver belts and garlanded maidens spin like a potter’s trial wheel (`τροχὸν ἄρμενον ἐν παλάμῃσιν`) and counter-march in rows around two spinning tumblers (`κυβιστητῆρε`), all enclosed by the mighty River Oceanus (`ποταμοῖο μέγα σθένος Ὠκεανοῖο`).
 
-1. What changed between `homer.html` and `shield-of-achilles.html`.
-2. How the MENTO-369 panel is wired.
-3. How to use Shield of Achilles in relation to the rest of the studio surfaces.
+3. **Controller (Previs Choreography, Concentric Radar & Studio Bridge)**:
+   - **63 Audited LDraw Cards** (`12,462` pieces, `411` sub-builds, `72,122` stud joints, `78` pre-bundled part packs, `63 GREEN / 0 YELLOW / 0 RED`):
+     - `ACH-WORLD-SHIELD`: Master 84×84-stud 5-Fold Concentric Shield of Achilles (`3,735` pieces).
+     - `12` Directed Scene Cards (`ACH-Z01-S01` through `ACH-Z06-S01`) with multi-shot Previs timelines (`achilles/previs/<id>.json`).
+     - `50` Reusable Forge Kit Asset Cards (`location`, `character`, `divine_fx`, `ensemble`, `creature`, `prop`, `set_piece`, `environment`, `sound_source`).
+
+### Files & Surfaces
+- Generator: [`tools/achilles-forage.js`](tools/achilles-forage.js) (`node tools/achilles-forage.js`)
+- 3D Worldtext Forage & Previs Explorer: [`achilles-forage.html`](achilles-forage.html)
+- Hephaestus’s Forge Kit & Metallurgy Catalog: [`achilles-kit.html`](achilles-kit.html)
+- Studio Shell (Worldtext + Forge Kit + Swiss/Frank/Courage/Weaver/Were/Master/Mento): [`shield-of-achilles.html`](shield-of-achilles.html)
+- Markdown & JSON Indexes: [`achilles/FORAGE.md`](achilles/FORAGE.md), [`achilles/forage.json`](achilles/forage.json), [`achilles/kit.json`](achilles/kit.json)
 
 ---
 
-## Lineage
+## II. Lineage: Shield of Achilles · HOMER × MENTO Shell
+
+**Shield of Achilles** (`shield-of-achilles.html`) is also the **HOMER-derived studio shell** that:
+
+- Mounts **`Worldtext`** (`achilles-forage.html`) and **`Forge Kit`** (`achilles-kit.html`) as the primary entry tabs.
+- Keeps the full **Swiss / Frank / Courage / Weaver / Were / Master** chain.
+- Docks the **MENTO v8 camera surface** (`mento-373.html`) in the `Mento` tab.
+- Relays `achilles-load-mpd` messages from `achilles-forage.html` ("⚡ Send to Studio") directly into **Courage**, **Weaver**, **Were**, **Master**, and **Mento**, automatically docking Courage side-by-side with the Worldtext explorer in `MULTI` mode.
 
 ### From HOMER Studio
 
@@ -30,133 +58,14 @@ HOMER (see `HOMER-STUDIO-OLOG.md`) is a TRUBADOR shell that:
   - Unified Ontology Weaver.
   - WAG WERE.
   - WAG MASTER.
-  - Momento capture panel.
+  - Momento / Mento capture panel.
 - Bridges GOLD / MPD between Courage, Weaver, Were, and Master.
-- Treats the **Momento panel** as a lightweight capture surface that reads `MomentoInterface` / `_captureData` from Courage.
 
-### From MENTO v8 (368 / 369)
+### From MENTO v8 (368 / 369 / 373)
 
-The MENTO v8 surfaces (`mento-368.html`, `mento-369.html`) are **standalone camera and capture instruments**:
+The MENTO v8 surfaces (`mento-368.html`, `mento-369.html`, `mento-373.html`) are **standalone camera and capture instruments**:
 
-- Own their own Three.js scene and GLB loader.
+- Own their own Three.js scene and MPD/GLB loader.
 - Parse `!MENTO SHOT` manifests into structured shot objects.
-- Provide a sculptural camera path editor.
-- Implement deterministic capture timing.
-- Have mobile-aware UI (splitter, fullscreen, safe areas) and an LDraw-style ruler.
-
-`mento-369.html` in particular boots into a **Grace lab**:
-
-- Scene presets: GRACE / DESERT / BLANK.
-- Built-in `GRACE-SCENE-SAMPLE.bin` GLB.
-- `LOAD GRACE SAMPLE` button for `Searchers_Rider_Grounded_SpinFix.mpd`.
-
-Shield of Achilles **brings that surface into the Homer chrome** as a docked panel.
-
----
-
-## Layout: Shield of Achilles Shell
-
-File: `shield-of-achilles.html`
-
-Starting point: a direct copy of `homer.html`, with minimal but precise edits:
-
-- **Header title** still describes the tab set:
-  - Swiss / Frank / Courage / Weaver / Were / Master / Mento.
-- **Panels**:
-  - `data-panel="swiss"` → Swiss Designator.
-  - `data-panel="frank"` → `wag-frankwag-fromer.html` (Homer Frank wrapper).
-  - `data-panel="courage"` → `wag-courage.html` (Homer Courage).
-  - `data-panel="weaver"` → `assembly-line.html` (Unified Weaver).
-  - `data-panel="were"` → `wag-were.html`.
-  - `data-panel="master"` → `wag-master.html`.
-  - `data-panel="mento"` → **MENTO-369** (Shield-specific change).
-
-The key panel difference:
-
-```html
-<section class="panel" data-panel="mento">
-  <div class="panel-body">
-    <iframe src="mento-369.html" title="MENTO v8 Camera"></iframe>
-  </div>
-</section>
-```
-
-vs. Homer’s original:
-
-```html
-<section class="panel" data-panel="mento">
-  <div class="panel-body">
-    <iframe src="Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html?host=homer" title="Momento / Mento"></iframe>
-  </div>
-</section>
-```
-
-So Shield of Achilles is **HOMER with the MENTO tab bound to the new 369 camera surface instead of the legacy Momento host**.
-
----
-
-## How MENTO-369 Behaves Inside Shield
-
-Inside the Mento panel, `mento-369.html` runs unchanged:
-
-- Owns its own Three.js scene, GLB loading, and camera.
-- Offers the GRACE / DESERT / BLANK scene presets.
-- Provides the MENTO SHOT parser, keyframe editor, and capture stack.
-- Uses the mobile splitter and fullscreen affordances.
-
-In other words, in Shield of Achilles **MENTO-369 is not yet wired into Courage’s `MomentoInterface`**. It is a **parallel camera lab** that simply shares chrome and screen real estate with Homer’s GOLD chain.
-
-This yields a concrete, usable pattern:
-
-- Use **Swiss / Frank / Courage / Weaver / Were / Master** exactly as in Homer:
-  - MPD/GOLD authoring and lab work.
-- Use **Shield’s Mento tab (MENTO-369)** as a dedicated camera + capture surface aimed at:
-  - Grace sample scenes.
-  - Desert GLB experiments.
-  - Any GLB + MENTO manifest you choose to load in 369.
-
-All of this lives in **one browser window**, with Homer’s tab + grid layout.
-
----
-
-## Relationship to Other Docs
-
-- `HOMER-STUDIO-OLOG.md`
-  - Explains the original Homer shell: Swiss / Frank / Courage / Weaver / Were / Master / Momento capture.
-  - Focuses on GOLD / MPD loops and lab integration.
-
-- `MENTO-HOMER-OLOG.md`
-  - Maps how standalone MENTO-368/369 surfaces conceptually relate to Homer.
-  - Describes side-by-side, docked-panel, and future `MomentoInterface` mounting patterns.
-
-- `SHIELD-OF-ACHILLES-OLOG.md` (this file)
-  - Records the **first concrete docked-panel mount**:
-    - A Homer-derived shell where the Mento panel is explicitly **MENTO-369**.
-    - Does not yet share COURAGE’s scene/camera; that’s reserved for a future integration pass.
-
-Together, these three ologs trace a path from:
-
-> HOMER (geometry + GOLD loop) → MENTO (camera instrument) → Shield of Achilles (Homer × MENTO shell).
-
----
-
-## Future Work (Shield Variant)
-
-Open questions for Shield of Achilles:
-
-1. **Shared scene / camera via MomentoInterface**
-   - Should Shield grow a variant of MENTO-369 that can attach to Courage’s active scene via `MomentoInterface`?
-   - How should that coexist with 369’s own GLB loader and scene presets?
-
-2. **Capture artifact routing**
-   - Where should MENTO-369’s captures and camera manifests live in relation to GOLD / MPD?
-   - Possible pattern: store camera paths alongside MPD scenes in the same Swiss/Frank project tree.
-
-3. **Naming and identity**
-   - HOMER already uses a Homer/Greek visual identity in favicons and copy.
-   - Shield of Achilles could extend that motif to the MENTO panel (badges, HUD copy, or color accents) without breaking the existing studio palette.
-
-For now, Shield of Achilles is the **practical mount point** where:
-
-- The full **HOMER TRUBADOR chain** and the **MENTO-369 camera lab** live in one surface.
-- Operators can keep geometry and camera in view together, and iterate narratively on both.
+- Provide a sculptural camera path editor and deterministic capture timing.
+- Receive `studio-load-gold-into-mento` messages whenever a Shield of Achilles card is broadcast from `achilles-forage.html` or Courage.

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film 02 · The Celestial Boss &amp; Living Automata (60fps Single-Clock 3D LEGO · rossark-motion-skill)</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<script src="vendor/forage-bundle.js"></script>
+<script src="vendor/shield-dioramas-bundle.js"></script>
+<script src="vendor/lego3d.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #060912; color: #f6f1e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, #1d2d4e 0%, #0a1020 62%, #04060c 100%);
+  }
+  canvas#gl {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; display: block;
+  }
+  .letterbox-top, .letterbox-bot {
+    position: absolute; left: 0; right: 0; height: 64px;
+    background: rgba(5, 8, 15, 0.86); z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 54px;
+  }
+  .letterbox-top { top: 0; border-bottom: 1px solid rgba(229, 189, 67, 0.38); }
+  .letterbox-bot { bottom: 0; height: 82px; border-top: 1px solid rgba(229, 189, 67, 0.38); }
+  .title {
+    font-family: monospace; font-size: 14px; font-weight: 800;
+    letter-spacing: 0.14em; color: #facc15; text-transform: uppercase;
+  }
+  .clock-strip {
+    font-family: monospace; font-size: 14px; color: #cbd5e1;
+    display: flex; gap: 22px;
+  }
+  .clock-strip strong { color: #38bdf8; }
+  .verse {
+    font-family: Georgia, serif; font-size: 23px; font-style: italic; color: #fef08a;
+  }
+  .rig-info {
+    font-family: monospace; font-size: 13px; color: #94a3b8;
+  }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080" data-om-signature="off">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+
+  <div class="letterbox-top">
+    <div class="title" id="sceneTitle">SCENE I · M0 CELESTIAL BOSS — SUN, MOON, PLEIADES &amp; REVOLVING BEAR (376 BRICKS)</div>
+    <div class="clock-strip">
+      <span>ENGINE: <strong>ROSSARK SINGLE-CLOCK 60 FPS</strong></span>
+      <span>BRICKS: <strong id="brickLabel">376 REAL LDRAW PARTS</strong></span>
+      <span>CLOCK: <strong id="clockLabel">t = 0.000 s (f 000/720)</strong></span>
+    </div>
+  </div>
+
+  <div class="letterbox-bot">
+    <div class="verse" id="verseLabel">“And the Bear, which men also call the Wain, that turns about in one place and watches Orion…” — Iliad XVIII.487–488</div>
+    <div class="rig-info" id="rigLabel">MOTION.MD: track() · flow() · wave() · bell() · turntable 61485c01</div>
+  </div>
+</div>
+
+<script>
+// Rossark single-clock primitives (MOTION.md)
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const flow  = (u) => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+const seg   = (t, t0, t1) => flow((t - t0) / Math.max(1e-6, t1 - t0));
+const wave  = (t, hz, ph = 0) => Math.sin((t * hz + ph) * Math.PI * 2);
+const bell  = (u) => Math.sin(clamp(u, 0, 1) * Math.PI);
+
+const canvas = document.getElementById('gl');
+const engine = new LegoCinema.Engine(canvas);
+// Lazy-loaded per shot by engine.render()
+
+const SCENES = [
+  {
+    t0: 0.0, t1: 3.0,
+    slug: 'shield-m0',
+    pieces: 376,
+    title: 'SCENE I · M0 CELESTIAL BOSS — SUN, MOON, PLEIADES & REVOLVING BEAR (376 BRICKS)',
+    verse: '“And the Bear, which men also call the Wain, that turns about in one place and watches Orion…” — Iliad XVIII.487–488',
+    rig: 'MOTION.MD: wave(0.8Hz) Celestial Orbit · Turntable Boss Rotation · 0 Teleports',
+    bg: 'radial-gradient(circle at 50% 42%, #1e315c 0%, #091022 65%, #04060c 100%)',
+    eye0: [-140, 320, 460], eye1: [160, 240, 380],
+    target0: [0, 75, -10], target1: [0, 85, -20],
+    fov0: 30, fov1: 27,
+    turnSpeed: 0.85,
+    torchCol: [1.0, 0.84, 0.38], torchStr: 1.45
+  },
+  {
+    t0: 3.0, t1: 6.0,
+    slug: 'shield-diorama-choros',
+    pieces: 1970,
+    title: 'SCENE II · 48×32 CHOROS OF DAEDALUS, KNOSSIAN PALACE & POTTER’S WHEEL (1,970 BRICKS)',
+    verse: '“They ran round with deft feet very lightly, as when a sitting potter tries his wheel…” — Iliad XVIII.599–601',
+    rig: 'MOTION.MD: Turntable 61485c01 @ 1.15 rad/s · 10 Linked Dancers & 2 Tumblers Step-Wave',
+    bg: 'radial-gradient(circle at 50% 35%, #2e2418 0%, #101628 64%, #05070e 100%)',
+    eye0: [210, 310, 620], eye1: [-170, 185, 440],
+    target0: [0, 75, -20], target1: [20, 70, -60],
+    fov0: 31, fov1: 28,
+    turnSpeed: 1.15,
+    torchCol: [1.0, 0.72, 0.28], torchStr: 1.50
+  },
+  {
+    t0: 6.0, t1: 9.0,
+    slug: 'shield-diorama-vineyard',
+    pieces: 1809,
+    title: 'SCENE III · 48×32 GOLDEN VINEYARD, KYANOS TRENCH & LINUS PHORMINX BOY (1,809 BRICKS)',
+    verse: '“A boy in their midst made sweet music on a clear-toned lyre, and sang the Linus-song…” — Iliad XVIII.569–570',
+    rig: 'MOTION.MD: Minifigure Basket-Carriers Step-Wave · Silver Pole Trellis & Wine-Press',
+    bg: 'radial-gradient(circle at 50% 35%, #2b1d3d 0%, #0e1426 64%, #05070d 100%)',
+    eye0: [-190, 220, 480], eye1: [165, 250, 520],
+    target0: [-30, 78, -60], target1: [30, 82, -50],
+    fov0: 30, fov1: 29,
+    turnSpeed: 0.45,
+    torchCol: [0.95, 0.65, 0.95], torchStr: 1.35
+  },
+  {
+    t0: 9.0, t1: 12.0,
+    slug: 'shield-of-achilles',
+    pieces: 7522,
+    title: 'SCENE IV · FULL 96×96 CIRCULAR SHIELD — FIVE CONCENTRIC RINGS IN CLOCKWORK MOTION (7,522 BRICKS)',
+    verse: '“Therein he wrought the earth, therein the sky, therein the sea, and the untiring sun…” — Iliad XVIII.483–484',
+    rig: 'MOTION.MD: Full 7,522-Brick Cosmic Clockwork · M0 Boss + M8 Choros Counter-Rotation',
+    bg: 'radial-gradient(circle at 50% 38%, #1d2f52 0%, #091020 66%, #04060b 100%)',
+    eye0: [-280, 620, 960], eye1: [320, 880, 1180],
+    target0: [0, 65, 0], target1: [0, 50, 0],
+    fov0: 31, fov1: 34,
+    turnSpeed: 0.95,
+    torchCol: [1.0, 0.82, 0.35], torchStr: 1.40
+  }
+];
+
+function renderFrame(sec) {
+  const t = clamp(sec, 0, 12.0);
+  const st = LegoCinema.evalShotList(SCENES, t);
+  const s = st.shot;
+
+  // Smooth single-clock breathing offset on camera eye (MOTION.md calm idle motion)
+  const breathY = wave(t, 0.35, 0.0) * 14.0;
+  const breathX = wave(t, 0.25, 0.25) * 18.0;
+  const eye = [st.eye[0] + breathX, st.eye[1] + breathY, st.eye[2]];
+
+  const frameNum = Math.min(720, Math.round(t * 60));
+  document.getElementById('film').style.background = s.bg;
+  document.getElementById('sceneTitle').textContent = s.title;
+  document.getElementById('brickLabel').textContent = `${s.pieces.toLocaleString()} REAL LDRAW PARTS`;
+  document.getElementById('clockLabel').textContent = `t = ${t.toFixed(3)} s (f ${String(frameNum).padStart(3, '0')}/720)`;
+  document.getElementById('verseLabel').textContent = s.verse;
+  document.getElementById('rigLabel').textContent = s.rig;
+
+  engine.render({
+    slug: st.slug,
+    time: t * 1.4,
+    eye,
+    target: st.target,
+    fov: st.fov,
+    build: 1.0,
+    explode: 0.0,
+    turnAngle: t * s.turnSpeed,
+    pulseR: ((t * 1.5) % 1.0) * 680.0,
+    pulseAmp: bell((t * 1.5) % 1.0) * 0.45,
+    torchPos: [Math.sin(t * 1.8) * 200, 150, Math.cos(t * 1.8) * 200],
+    torchCol: st.torchCol,
+    torchStr: st.torchStr
+  });
+}
+
+window.renderFrame = renderFrame;
+if (window.gsap && window.OM) {
+  const tl = gsap.timeline({ paused: true });
+  tl.addLabel('scene:boss', 0.0);
+  tl.addLabel('scene:choros', 3.0);
+  tl.addLabel('scene:vineyard', 6.0);
+  tl.addLabel('scene:cosmos', 9.0);
+  OM.clock(tl, (sec) => renderFrame(sec), 12.0, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['film'] = tl;
+}
+renderFrame(0);
+if (!navigator.webdriver) {
+  const t0 = performance.now();
+  (function loop(now) {
+    renderFrame(((now - t0) / 1000) % 12.0);
+    requestAnimationFrame(loop);
+  })(t0);
+}
+</script>
+</body>
+</html>

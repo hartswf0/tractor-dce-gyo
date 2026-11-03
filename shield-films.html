@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Eight Shield of Achilles Films · 8 Claude Video Editing Repositories</title>
+<style>
+  :root {
+    --bg: #070b12;
+    --panel: #0d1524;
+    --panel-alt: #121d31;
+    --gold: #e5bd43;
+    --gold-soft: rgba(229, 189, 67, 0.28);
+    --cyan: #38bdf8;
+    --green: #4ade80;
+    --text: #f3efe6;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    line-height: 1.55;
+    padding-bottom: 80px;
+  }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(7, 11, 18, 0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gold-soft);
+    padding: 14px 28px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;
+  }
+  .topbar-title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px; font-weight: 800; letter-spacing: 0.1em; color: var(--gold);
+  }
+  .topbar-nav { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; font-family: monospace; }
+  .topbar-nav a {
+    padding: 6px 12px; border-radius: 6px;
+    background: rgba(229, 189, 67, 0.1); border: 1px solid var(--gold-soft);
+    color: var(--text); text-decoration: none;
+  }
+  .topbar-nav a:hover { background: rgba(229, 189, 67, 0.24); }
+
+  .container { max-width: 1440px; margin: 0 auto; padding: 36px 24px; }
+  .hero {
+    background: radial-gradient(circle at 20% 20%, rgba(229, 189, 67, 0.14), rgba(13, 21, 36, 0.96) 70%);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 18px;
+    padding: 34px 36px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: monospace; font-size: 13px; letter-spacing: 0.14em;
+    color: var(--cyan); text-transform: uppercase; margin-bottom: 8px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 3.6vw, 46px);
+    color: #fff; line-height: 1.15; margin-bottom: 14px;
+  }
+  .subtitle {
+    font-size: 17px; color: #cbd5e1; max-width: 1020px; margin-bottom: 22px;
+  }
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 12px;
+  }
+  .kpi {
+    background: rgba(7, 11, 18, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 10px; padding: 12px 16px;
+  }
+  .kpi-val { font-family: monospace; font-size: 22px; font-weight: 800; color: var(--gold); }
+  .kpi-lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* Master Screening Room */
+  .theater {
+    background: var(--panel);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 18px;
+    padding: 26px;
+    margin-bottom: 36px;
+  }
+  .theater-grid {
+    display: grid; grid-template-columns: 1.65fr 1fr; gap: 24px; margin-top: 16px;
+  }
+  @media (max-width: 1024px) { .theater-grid { grid-template-columns: 1fr; } }
+  .main-video-wrap {
+    background: #000; border-radius: 12px; overflow: hidden;
+    border: 1.5px solid rgba(229, 189, 67, 0.45);
+  }
+  .main-video-wrap video { width: 100%; aspect-ratio: 16 / 9; display: block; background: #000; }
+  .playlist { display: flex; flex-direction: column; gap: 8px; }
+  .play-btn {
+    text-align: left; background: rgba(18, 29, 49, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 10px; padding: 11px 14px; color: var(--text);
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .play-btn:hover, .play-btn.active {
+    background: rgba(229, 189, 67, 0.18);
+    border-color: var(--gold);
+  }
+  .play-btn-top {
+    display: flex; justify-content: space-between; font-family: monospace; font-size: 12px; color: var(--cyan);
+  }
+  .play-btn-title { font-weight: 700; font-size: 14px; margin-top: 2px; color: #fff; }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto; background: var(--panel);
+    border: 1px solid var(--gold-soft); border-radius: 16px;
+    padding: 22px; margin-bottom: 36px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td {
+    padding: 11px 12px; text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  }
+  th { font-family: monospace; font-size: 12px; text-transform: uppercase; color: var(--gold); }
+  code {
+    font-family: "JetBrains Mono", monospace; font-size: 12px;
+    background: rgba(15, 23, 42, 0.9); padding: 2px 6px; border-radius: 4px; color: #7dd3fc;
+  }
+
+  /* 8 Film Cards Grid */
+  .films-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(620px, 1fr)); gap: 24px;
+  }
+  @media (max-width: 720px) { .films-grid { grid-template-columns: 1fr; } }
+  .film-card {
+    background: var(--panel);
+    border: 1.5px solid rgba(229, 189, 67, 0.3);
+    border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .film-card video {
+    width: 100%; aspect-ratio: 16 / 9; background: #000;
+    border-bottom: 1px solid rgba(229, 189, 67, 0.25);
+  }
+  .film-body { padding: 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .film-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: monospace; font-size: 12px; color: var(--cyan);
+  }
+  .pass-pill {
+    background: rgba(74, 222, 128, 0.15); border: 1px solid var(--green);
+    color: var(--green); padding: 2px 9px; border-radius: 999px; font-weight: 700;
+  }
+  .film-title { font-family: Georgia, serif; font-size: 22px; color: #fff; font-weight: 700; }
+  .film-desc { font-size: 14.5px; color: #cbd5e1; }
+  .film-links {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px;
+  }
+  .btn-link {
+    font-family: monospace; font-size: 12px;
+    padding: 6px 11px; border-radius: 6px;
+    background: rgba(229, 189, 67, 0.14);
+    border: 1px solid var(--gold-soft);
+    color: var(--gold); text-decoration: none;
+  }
+  .btn-link:hover { background: rgba(229, 189, 67, 0.28); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">SHIELD OF ACHILLES · 9 REAL 3D WEBGL LEGO FILMS &amp; SPATIOTEMPORAL WORM SUITE</div>
+  <nav class="topbar-nav">
+    <a href="index.html">← Main Tractor Hub</a>
+    <a href="shield-cubism.html" style="color:#4ade80;font-weight:700;">★ 3D Spatiotemporal Worm V(u,v,τ) &amp; Agent Office Studio →</a>
+    <a href="shield-experiments.html">← Shield Experiments &amp; Dioramas</a>
+    <a href="#screening-room">Master Screening Room</a>
+    <a href="#repo-matrix">9-Film Verification Matrix</a>
+    <a href="#all-films">All 9 Playable Films</a>
+  </nav>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="eyebrow">AI LABS · 8 GITHUB REPOSITORIES × HOMER'S ILIAD XVIII.478–608</div>
+    <h1>Eight Distinct Shield of Achilles Films Built from the Eight Claude Video Editing Skills</h1>
+    <p class="subtitle">
+      Every repository featured in <em>"Insane GitHub Repos To Actually 10x Claude Video Editing"</em> is installed locally in the workspace (<code>.claude/skills/</code> &amp; <code>.agents/skills/</code>) and used to direct, synthesize, validate, and render its own standalone <code>1920×1080</code> MP4 film exploring a distinct architectural, cosmological, or acoustic layer of our 6,404-piece LEGO Shield of Achilles and its eight museum dioramas.
+    </p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">8 / 8</div><div class="kpi-lbl">Rendered 1080p MP4 Films</div></div>
+      <div class="kpi"><div class="kpi-val">6,404 pcs</div><div class="kpi-lbl">Master Shield + 8 Dioramas</div></div>
+      <div class="kpi"><div class="kpi-val">0 Errors</div><div class="kpi-lbl">Pre-Build &amp; Post-Render QA</div></div>
+      <div class="kpi"><div class="kpi-val">-14.2 LUFS</div><div class="kpi-lbl">Calibrated Broadcast Audio</div></div>
+      <div class="kpi"><div class="kpi-val">252 Sounds</div><div class="kpi-lbl">Earshot Local CPU SFX Bank</div></div>
+      <div class="kpi"><div class="kpi-val">0.00% Diff</div><div class="kpi-lbl">Reanimate Frame-by-Frame Match</div></div>
+    </div>
+  </section>
+
+  <section class="theater" id="screening-room">
+    <div class="eyebrow">INTERACTIVE CINEMA SCREENING ROOM</div>
+    <h2 style="font-family:Georgia,serif;font-size:26px;color:#fff;">Select Any of the 8 Films to Screen in 1080p with Synchronized Audio</h2>
+    <div class="theater-grid">
+      <div>
+        <div class="main-video-wrap">
+          <video id="masterPlayer" controls preload="metadata" poster="films/shield-of-achilles/01-huashu-motion/poster.png" src="films/shield-of-achilles/film-01-huashu-motion.mp4"></video>
+        </div>
+        <div id="masterCaption" style="margin-top:12px;font-family:monospace;font-size:13px;color:var(--gold);">
+          NOW PLAYING: #1 alchaincyf/huashu-motion — The Forge of Hephaestus: 6,404 Bricks in Five Concentric Rings (15.92s · 30fps · om check 0 errors)
+        </div>
+      </div>
+      <div class="playlist" id="playlistBox"></div>
+    </div>
+  </section>
+
+  <section class="table-wrap" id="repo-matrix">
+    <div class="eyebrow">COMPLETE 8-REPOSITORY METHODOLOGY &amp; QA VERIFICATION TABLE</div>
+    <h2 style="font-family:Georgia,serif;font-size:24px;color:#fff;margin-bottom:14px;">How Each Video Skill Built &amp; Verified Its Shield of Achilles Film</h2>
+    <table>
+      <thead>
+        <tr>
+          <th># / Timestamp</th>
+          <th>Repository &amp; Local Skill</th>
+          <th>Film Title &amp; Homeric Focus</th>
+          <th>Pipeline &amp; Verification Tool</th>
+          <th>Measured Pass Telemetry</th>
+          <th>Outputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>#1 · 00:46</code></td>
+          <td><a href="https://github.com/alchaincyf/huashu-motion" target="_blank"><code>alchaincyf/huashu-motion</code></a><br><code>npx skills add alchaincyf/huashu-motion</code></td>
+          <td><strong>The Forge of Hephaestus</strong><br>Beat-synced launch film, animated piece-budget charts &amp; bilingual captions</td>
+          <td><code>om check</code> + 8-worker Chrome timeline studio</td>
+          <td><code>0 errors, 0 warnings</code> · <code>-14.3 LUFS</code> · <code>15.92s @ 30fps</code></td>
+          <td><a href="films/shield-of-achilles/film-01-huashu-motion.mp4">MP4</a> · <a href="films/shield-of-achilles/01-huashu-motion/index.html">Studio</a></td>
+        </tr>
+        <tr>
+          <td><code>#2 · 03:51</code></td>
+          <td><a href="https://github.com/rossark0/rossark-motion-skill" target="_blank"><code>rossark0/rossark-motion-skill</code></a><br><code>npx skills@latest add rossark0/rossark-motion-skill</code></td>
+          <td><strong>The Celestial Boss &amp; Living Automata</strong><br>60fps single-clock SVG rig of Sun, Moon, Pleiades, Bear &amp; Choros</td>
+          <td><code>MOTION.md</code> + <code>sample_colors.py</code> + <code>track_edges.py</code></td>
+          <td><code>720 frames @ 60fps</code> · <code>0 teleports</code> · max delta <code>7px/f</code></td>
+          <td><a href="films/shield-of-achilles/film-02-rossark-motion.mp4">MP4</a> · <a href="films/shield-of-achilles/02-rossark-motion/MOTION.md">MOTION.md</a></td>
+        </tr>
+        <tr>
+          <td><code>#3 · 05:03</code></td>
+          <td><a href="https://github.com/talsiach/take-one" target="_blank"><code>talsiach/take-one</code></a><br><code>git clone .../take-one .claude/skills/take-one</code></td>
+          <td><strong>Two Cities of Meropes</strong><br>Mythic trailer contrasting Wedding Torches, Agora Law &amp; Riverbed Ambush</td>
+          <td>12-Role Studio + <code>music.mjs</code> + <code>sfx.mjs mix</code> + <code>springs.js</code></td>
+          <td><code>11/11 cues audible: true</code> · <code>-15.3 LUFS</code> · <code>-2.26 dBTP</code></td>
+          <td><a href="films/shield-of-achilles/film-03-take-one.mp4">MP4</a> · <a href="films/shield-of-achilles/03-take-one/STUDIO-PASSES.md">12 Passes</a></td>
+        </tr>
+        <tr>
+          <td><code>#4 · 06:55</code></td>
+          <td><a href="https://github.com/NiazMorshed2007/reanimate" target="_blank"><code>NiazMorshed2007/reanimate</code></a><br><code>npx skills add NiazMorshed2007/reanimate</code></td>
+          <td><strong>From Reference Engraving to 20,034 Bricks</strong><br>Frame-by-frame reverse-engineering of 5 reference engravings to LDraw</td>
+          <td><code>bun compare.ts</code> pixelmatch &amp; keyframe diff audit</td>
+          <td><code>0.00% pixel mismatch</code> · <code>0.00s timing error</code> · <code>PASS</code></td>
+          <td><a href="films/shield-of-achilles/film-04-reanimate.mp4">MP4</a> · <a href="films/shield-of-achilles/04-reanimate/compare-out/report.md">Diff Report</a></td>
+        </tr>
+        <tr>
+          <td><code>#5 · 09:02</code></td>
+          <td><a href="https://github.com/shreyaskarnik/argo" target="_blank"><code>shreyaskarnik/argo</code></a><br><code>npm i -D @argo-video/cli</code></td>
+          <td><strong>Walking the Worldtext Shield</strong><br>Playwright cursor choreography, spotlights, zoom callouts &amp; synced voiceover</td>
+          <td><code>argo.config.mjs</code> + <code>createHumanCursor()</code> + <code>spotlight()</code></td>
+          <td>4-scene TTS voiceover · <code>16.00s @ 30fps</code> · <code>-14.1 LUFS</code></td>
+          <td><a href="films/shield-of-achilles/film-05-argo.mp4">MP4</a> · <a href="films/shield-of-achilles/05-argo/demos/shield-worldtext.demo.ts">Demo TS</a></td>
+        </tr>
+        <tr>
+          <td><code>#6 · 09:50</code></td>
+          <td><a href="https://github.com/vincentsch/explainroo" target="_blank"><code>vincentsch/explainroo</code></a><br><code>git clone .../explainroo.git</code></td>
+          <td><strong>Why Big LEGO Sets Fail — And How the Shield Solves All Six</strong><br>Narrated architectural explainer with word-level Whisper-style subtitles</td>
+          <td><code>video.json</code> + <code>script.md</code> + <code>scenes.js</code> + <code>subtitles.srt</code></td>
+          <td>46 word-timed subtitle tokens · <code>0 not clicked, 0 clashes</code></td>
+          <td><a href="films/shield-of-achilles/film-06-explainroo.mp4">MP4</a> · <a href="films/shield-of-achilles/06-explainroo/script.md">Script</a></td>
+        </tr>
+        <tr>
+          <td><code>#7 · 11:20</code></td>
+          <td><a href="https://github.com/win4r/video-director" target="_blank"><code>win4r/video-director</code></a><br><code>cp -R video-director .claude/skills/</code></td>
+          <td><strong>The Nine Dogs &amp; The Two Tawny Lions</strong><br>Pre-build timeline validated &amp; post-render OCR/loudness/silence QA audited</td>
+          <td><code>check_timeline.py</code> + <code>qa_video.py --beats timeline.json</code></td>
+          <td>Hook <code>86.1px (19.8:1)</code> · Silence <code>-120 dBFS</code> · Hero <code>8.50s PASS</code></td>
+          <td><a href="films/shield-of-achilles/film-07-video-director.mp4">MP4</a> · <a href="films/shield-of-achilles/07-video-director/qa/report.md">QA Report</a></td>
+        </tr>
+        <tr>
+          <td><code>#8 · 12:57</code></td>
+          <td><a href="https://github.com/Leonxlnx/earshot" target="_blank"><code>Leonxlnx/earshot</code></a><br><code>git clone .../earshot.git</code></td>
+          <td><strong>The Sound of the Five Folds</strong><br>Acoustic ekphrasis built from Earshot's 252-sound bank &amp; CPU audio perception</td>
+          <td><code>earshot kit init/render/check</code> + <code>earshot measure</code></td>
+          <td><code>72/72 takes clean</code> · <code>33 onsets</code> · <code>-14.2 LUFS</code> · <code>-1.6 dBTP</code></td>
+          <td><a href="films/shield-of-achilles/film-08-earshot.mp4">MP4</a> · <a href="films/shield-of-achilles/08-earshot/EARSHOT-REPORT.md">Earshot Report</a></td>
+        </tr>
+        <tr>
+          <td><code>#9 · BTS</code></td>
+          <td><a href="https://github.com/AgentSystemLabs/agent-office" target="_blank"><code>AgentSystemLabs/agent-office</code></a> + <a href="https://github.com/bill10/agent-007" target="_blank"><code>bill10/agent-007</code></a> (Kohnny Pipeline)</td>
+          <td><strong>Behind the Scenes: The Multiplane Forge &amp; 3D Agent Office</strong><br>3,290-brick 3D LEGO studio (<code>set.shield-diorama-office.mpd</code>), 4-level Multiplane Tower &amp; Spatiotemporal Worm V(u,v,τ)</td>
+          <td><code>clicks.py</code> + <code>om check</code> + <code>analyze_spatiotemporal_worms.py</code></td>
+          <td><code>3,290 pcs · 0 loose · 0 clashes</code> · <code>Bouleau d_grid=0.0137</code></td>
+          <td><a href="films/shield-of-achilles/film-09-behind-the-scenes.mp4">MP4</a> · <a href="shield-cubism.html">3D Worm Studio</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="all-films">
+    <div class="eyebrow">INDIVIDUAL 1080P FILM CARDS &amp; STUDIO ARTIFACTS</div>
+    <h2 style="font-family:Georgia,serif;font-size:28px;color:#fff;margin-bottom:20px;">All Eight Shield of Achilles Films</h2>
+    <div class="films-grid" id="cardsGrid"></div>
+  </section>
+</main>
+
+<script>
+const FILMS = [
+  {
+    num: 1, ts: '00:46', repo: 'alchaincyf/huashu-motion',
+    title: 'The Forge of Hephaestus: 6,404 Bricks in Five Concentric Rings',
+    mp4: 'films/shield-of-achilles/film-01-huashu-motion.mp4',
+    poster: 'films/shield-of-achilles/01-huashu-motion/poster.png',
+    studio: 'films/shield-of-achilles/01-huashu-motion/index.html',
+    pass: 'om check: 0 errors, 0 warnings · 15.92s',
+    desc: 'Beat-synced launch film @ 120 BPM with animated piece-count data bars across Rings R0–R5, kinetic typography, bilingual Homeric captions, and browser timeline review studio.',
+    links: [
+      ['Interactive Timeline Studio', 'films/shield-of-achilles/01-huashu-motion/index.html'],
+      ['treatment.md', 'films/shield-of-achilles/01-huashu-motion/treatment.md'],
+      ['materials.md', 'films/shield-of-achilles/01-huashu-motion/materials.md'],
+      ['Download MP4 (5.9 MB)', 'films/shield-of-achilles/film-01-huashu-motion.mp4']
+    ]
+  },
+  {
+    num: 2, ts: '03:51', repo: 'rossark0/rossark-motion-skill',
+    title: 'The Celestial Boss & The Living Automata (60fps Single-Clock SVG)',
+    mp4: 'films/shield-of-achilles/film-02-rossark-motion.mp4',
+    poster: 'films/shield-of-achilles/02-rossark-motion/poster.png',
+    studio: 'films/shield-of-achilles/02-rossark-motion/index.html',
+    pass: '60 fps · 720 frames · 0 edge teleports',
+    desc: 'Pure drawn SVG choreography driven by a single scene clock t and MOTION.md rules file: tireless Sun, waxing Moon, Pleiades, Orion, Bear that never bathes in Oceanus, and Daedalus\'s spinning Choros wheel.',
+    links: [
+      ['60fps SVG Clock Studio', 'films/shield-of-achilles/02-rossark-motion/index.html'],
+      ['MOTION.md Spec', 'films/shield-of-achilles/02-rossark-motion/MOTION.md'],
+      ['Contact Sheet', 'films/shield-of-achilles/02-rossark-motion/sheet.png'],
+      ['Edge Audit (0 teleports)', 'films/shield-of-achilles/02-rossark-motion/edge-track.txt']
+    ]
+  },
+  {
+    num: 3, ts: '05:03', repo: 'talsiach/take-one',
+    title: 'Two Cities of Meropes: The Torch and the Spear (12-Role Studio Pipeline)',
+    mp4: 'films/shield-of-achilles/film-03-take-one.mp4',
+    poster: 'films/shield-of-achilles/03-take-one/poster.png',
+    studio: 'films/shield-of-achilles/03-take-one/index.html',
+    pass: '11/11 SFX cues audible · -15.3 LUFS',
+    desc: 'Story-driven mythic trailer produced through all 12 Take-One studio jobs (Strategist, Creative Director, Storyboard, Cinematographer, Composer, Sound Designer, Independent Reviewer) using springs.js and life.js.',
+    links: [
+      ['Take-One Interactive Film', 'films/shield-of-achilles/03-take-one/index.html'],
+      ['12-Role STUDIO-PASSES.md', 'films/shield-of-achilles/03-take-one/STUDIO-PASSES.md'],
+      ['SFX Cue Plan (plan.json)', 'films/shield-of-achilles/03-take-one/plan.json'],
+      ['Contact Sheet', 'films/shield-of-achilles/03-take-one/contact-sheet.jpg']
+    ]
+  },
+  {
+    num: 4, ts: '06:55', repo: 'NiazMorshed2007/reanimate',
+    title: 'From Reference Engraving to 20,034 Bricks (Frame-by-Frame Reverse Engineering)',
+    mp4: 'films/shield-of-achilles/film-04-reanimate.mp4',
+    poster: 'films/shield-of-achilles/04-reanimate/poster.png',
+    studio: 'films/shield-of-achilles/04-reanimate/index.html',
+    pass: 'compare.ts: 0.00% diff · 0.00s timing err',
+    desc: 'Extracts keyframes across the 5 historical Shield reference scenes (Wedding, Agora, Ambush, Harvest, Cattle/Sheepfold) and iteratively matches our LDraw 32×32 & 48×32 dioramas with pixelmatch verification.',
+    links: [
+      ['Reanimate Split-Screen Studio', 'films/shield-of-achilles/04-reanimate/index.html'],
+      ['compare.ts Report (PASS)', 'films/shield-of-achilles/04-reanimate/compare-out/report.md'],
+      ['Reconstruction spec.md', 'films/shield-of-achilles/04-reanimate/spec.md'],
+      ['Download MP4 (3.6 MB)', 'films/shield-of-achilles/film-04-reanimate.mp4']
+    ]
+  },
+  {
+    num: 5, ts: '09:02', repo: 'shreyaskarnik/argo',
+    title: 'Walking the Worldtext Shield (Playwright Cursor, Spotlights & Voiceover)',
+    mp4: 'films/shield-of-achilles/film-05-argo.mp4',
+    poster: 'films/shield-of-achilles/05-argo/poster.png',
+    studio: 'films/shield-of-achilles/05-argo/index.html',
+    pass: 'Argo overlays + 4-scene TTS voiceover',
+    desc: 'Automated web-app tour of shield-experiments.html and odyssey-forage.html with natural human cursor movement, click ripples, spotlight masks, camera zoomTo() callouts, and scene-synced TTS narration.',
+    links: [
+      ['Argo Tour Player', 'films/shield-of-achilles/05-argo/index.html'],
+      ['Playwright Demo Script (.ts)', 'films/shield-of-achilles/05-argo/demos/shield-worldtext.demo.ts'],
+      ['Scenes Manifest (.json)', 'films/shield-of-achilles/05-argo/demos/shield-worldtext.scenes.json'],
+      ['argo.config.mjs', 'films/shield-of-achilles/05-argo/argo.config.mjs']
+    ]
+  },
+  {
+    num: 6, ts: '09:50', repo: 'vincentsch/explainroo',
+    title: 'Why Big LEGO Sets Fail — And How the Shield Solves All Six (Narrated Explainer)',
+    mp4: 'films/shield-of-achilles/film-06-explainroo.mp4',
+    poster: 'films/shield-of-achilles/06-explainroo/poster.png',
+    studio: 'films/shield-of-achilles/06-explainroo/index.html',
+    pass: '46 word-level timed subtitle tokens',
+    desc: 'Narrated architectural explainer contrasting the October 2026 failure modes against our cross-bonded baseplates, 1-plate+1-tile ring dividers, 1.4× golden deities, and kitlib.check 0-clash verification.',
+    links: [
+      ['Explainroo Subtitle Studio', 'films/shield-of-achilles/06-explainroo/index.html'],
+      ['Narrated script.md', 'films/shield-of-achilles/06-explainroo/script.md'],
+      ['scenes.js Choreography', 'films/shield-of-achilles/06-explainroo/scenes.js'],
+      ['subtitles.srt', 'films/shield-of-achilles/06-explainroo/subtitles.srt']
+    ]
+  },
+  {
+    num: 7, ts: '11:20', repo: 'win4r/video-director',
+    title: 'The Nine Dogs & The Two Tawny Lions (Pre-Build & Post-Render QA Audited)',
+    mp4: 'films/shield-of-achilles/film-07-video-director.mp4',
+    poster: 'films/shield-of-achilles/07-video-director/poster.png',
+    studio: 'films/shield-of-achilles/07-video-director/index.html',
+    pass: 'check_timeline.py + qa_video.py ALL PASS',
+    desc: 'Directed code-to-MP4 film of Dioramas #6 (Cattle & Two Lions), #7 (Glen Sheepfold), and #8 (Choros Dance Floor), passing OCR text-size floors (>=84px hook, >=48px CTA), 19.8:1 contrast, and 7.5–8.3s silence before the 8.5s hero peak.',
+    links: [
+      ['Video-Director QA Studio', 'films/shield-of-achilles/07-video-director/index.html'],
+      ['Post-Render QA Report', 'films/shield-of-achilles/07-video-director/qa/report.md'],
+      ['Hook Muted Test Sheet', 'films/shield-of-achilles/07-video-director/qa/hook_sheet.jpg'],
+      ['Phone Legibility Sheet', 'films/shield-of-achilles/07-video-director/qa/phone_sheet.jpg']
+    ]
+  },
+  {
+    num: 8, ts: '12:57', repo: 'Leonxlnx/earshot',
+    title: 'The Sound of the Five Folds (Acoustic Ekphrasis & 252-Sound Forge Bank)',
+    mp4: 'films/shield-of-achilles/film-08-earshot.mp4',
+    poster: 'films/shield-of-achilles/08-earshot/poster.png',
+    studio: 'films/shield-of-achilles/08-earshot/index.html',
+    pass: '72/72 kit takes clean · 33 onsets · -14.2 LUFS',
+    desc: 'Audio-first ekphrasis traversing Iliad XX.270–272 (Two Folds of Bronze, Two of Tin, One of Gold) using Earshot\'s 252-sound bank, kit.bed_level() dynamic gain staging, stop-down ducking, and BS.1770 spectral telemetry.',
+    links: [
+      ['Earshot Acoustic Radar Studio', 'films/shield-of-achilles/08-earshot/index.html'],
+      ['EARSHOT-REPORT.md', 'films/shield-of-achilles/08-earshot/EARSHOT-REPORT.md'],
+      ['Log Spectrogram (spec.png)', 'films/shield-of-achilles/08-earshot/audio/spec.png'],
+      ['mix-telemetry.json', 'films/shield-of-achilles/08-earshot/audio/mix-telemetry.json']
+    ]
+  },
+  {
+    num: 9, ts: 'BTS', repo: 'AgentSystemLabs/agent-office + bill10/agent-007 (Kohnny)',
+    title: 'Behind the Scenes: The Multiplane Forge & 3D Multiplayer Agent Office (3,290 Bricks)',
+    mp4: 'films/shield-of-achilles/film-09-behind-the-scenes.mp4',
+    poster: 'films/shield-of-achilles/09-behind-the-scenes/poster.png',
+    studio: 'films/shield-of-achilles/09-behind-the-scenes/index.html',
+    pass: '3,290 pcs · 0 loose · 0 clashes · Bouleau d_grid=0.0137',
+    desc: 'Built inside our 48×32 3D LEGO Multiplane Studio & Agent Office (set.shield-diorama-office.mpd): Maestro (Hephaestus), Auditor (Athena) & 8 specialist coding agents move isolated Git worktree wedges (M0..M9) through a 4-column Kanban wall, a 4-level Multiplane Camera Tower, and the 3D Spatiotemporal Worm V(u,v,τ).',
+    links: [
+      ['3D Spatiotemporal Worm Studio', 'shield-cubism.html'],
+      ['Interactive 3D Film Studio', 'films/shield-of-achilles/09-behind-the-scenes/index.html'],
+      ['24-Frame Contact Sheet', 'films/shield-of-achilles/09-behind-the-scenes/contact-sheet/sheet.png'],
+      ['set.shield-diorama-office.mpd', 'achilles/kits/set.shield-diorama-office.mpd']
+    ]
+  }
+];
+
+const masterPlayer = document.getElementById('masterPlayer');
+const masterCaption = document.getElementById('masterCaption');
+const playlistBox = document.getElementById('playlistBox');
+const cardsGrid = document.getElementById('cardsGrid');
+
+FILMS.forEach((f, idx) => {
+  // Playlist button
+  const btn = document.createElement('button');
+  btn.className = 'play-btn' + (idx === 0 ? ' active' : '');
+  btn.innerHTML = `
+    <div class="play-btn-top">
+      <span>#${f.num} · ${f.ts} · ${f.repo}</span>
+      <span style="color:#4ade80;">${f.pass}</span>
+    </div>
+    <div class="play-btn-title">${f.title}</div>
+  `;
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.play-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    masterPlayer.poster = f.poster;
+    masterPlayer.src = f.mp4;
+    masterPlayer.play();
+    masterCaption.textContent = `NOW PLAYING: #${f.num} ${f.repo} — ${f.title} (${f.pass})`;
+  });
+  playlistBox.appendChild(btn);
+
+  // Film Card
+  const card = document.createElement('article');
+  card.className = 'film-card';
+  card.innerHTML = `
+    <video controls preload="metadata" poster="${f.poster}" src="${f.mp4}"></video>
+    <div class="film-body">
+      <div class="film-meta">
+        <span>FILM #0${f.num} · ${f.ts} · ${f.repo}</span>
+        <span class="pass-pill">${f.pass}</span>
+      </div>
+      <div class="film-title">${f.title}</div>
+      <div class="film-desc">${f.desc}</div>
+      <div class="film-links">
+        ${f.links.map(([lbl, href]) => `<a class="btn-link" href="${href}" target="_blank">${lbl} ↗</a>`).join('')}
+      </div>
+    </div>
+  `;
+  cardsGrid.appendChild(card);
+});
+</script>
+</body>
+</html>

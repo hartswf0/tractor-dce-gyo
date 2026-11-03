@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"kicker","type":"string","label":"Kicker","default":"ILIAD XVIII · 478–608 · OPERATIVE EKPHRASIS"},
+  {"id":"title","type":"string","label":"Title","default":"THE SHIELD OF ACHILLES"},
+  {"id":"subtitle","type":"string","label":"Subtitle","default":"20 Verified LDraw Kits · 96×96 Circular Frame + 8 Monumental 48×32 Dioramas"},
+  {"id":"totalPieces","type":"number","label":"Total Pieces","default":24631,"min":0,"max":99999,"step":1},
+  {"id":"dioramaPieces","type":"number","label":"Diorama Pieces","default":17109,"min":0,"max":99999,"step":1},
+  {"id":"circularPieces","type":"number","label":"Circular Pieces","default":7522,"min":0,"max":99999,"step":1},
+  {"id":"accent","type":"color","label":"Pearl Gold","default":"#e5bd43"},
+  {"id":"paper","type":"color","label":"Kyanos Dark Blue","default":"#0b1220"},
+  {"id":"ink","type":"color","label":"Ivory Text","default":"#f6f1e4"},
+  {"id":"endHold","type":"number","label":"End Hold (s)","default":1.6,"min":0.5,"max":5,"step":0.1,"group":"Rhythm"}
+]'>
+<head>
+<meta charset="utf-8">
+<title>Shield of Achilles · huashu-motion</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<style id="om-fonts">
+@font-face { font-family: "Noto Sans SC"; src: url("assets/fonts/NotoSansSC-500.woff") format("woff"); font-weight: 500; font-style: normal; }
+@font-face { font-family: "Noto Sans SC"; src: url("assets/fonts/NotoSansSC-900.woff") format("woff"); font-weight: 900; font-style: normal; }
+</style>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1220; }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--paper); color: var(--ink);
+    font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .bg-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(900px 600px at 78% 45%, rgba(229,189,67,0.16), transparent 65%),
+      radial-gradient(1000px 700px at 18% 85%, rgba(56,118,214,0.18), transparent 65%);
+  }
+  .scene {
+    position: absolute; inset: 0; width: 1920px; height: 1080px;
+  }
+  /* Scene 1: Hook */
+  #s-hook { display: flex; align-items: center; justify-content: space-between; padding: 72px 96px; }
+  .hook-left { width: 980px; }
+  .kicker-pill {
+    display: inline-block; padding: 10px 22px; border-radius: 999px;
+    border: 2px solid rgba(229,189,67,0.55); background: rgba(229,189,67,0.12);
+    color: var(--accent); font-size: 22px; font-weight: 900; letter-spacing: 3px;
+  }
+  .hero-title {
+    margin: 24px 0 14px; font-size: 92px; line-height: 1.04; font-weight: 900;
+    letter-spacing: -2px; color: var(--ink);
+  }
+  .hero-sub {
+    margin: 0 0 36px; font-size: 30px; line-height: 1.35; color: #c7d2e6;
+  }
+  .hero-stat-row {
+    display: flex; gap: 28px; align-items: stretch;
+  }
+  .stat-card {
+    background: rgba(17, 29, 51, 0.92); border: 2px solid rgba(229,189,67,0.45);
+    border-radius: 20px; padding: 24px 32px; min-width: 280px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  .stat-num {
+    font-size: 74px; line-height: 1; font-weight: 900; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-lbl {
+    margin-top: 10px; font-size: 22px; color: #dbe4f3; font-weight: 500;
+  }
+  .hook-right {
+    width: 680px; height: 680px; border-radius: 32px; overflow: hidden;
+    border: 4px solid var(--accent); box-shadow: 0 32px 80px rgba(0,0,0,0.65);
+    position: relative; background: #080d18;
+  }
+  .hook-right img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hook-badge {
+    position: absolute; left: 24px; bottom: 24px; right: 24px;
+    background: rgba(11,18,32,0.92); border: 2px solid var(--accent);
+    border-radius: 14px; padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 22px; font-weight: 900; color: var(--ink);
+  }
+  .hook-badge span.gold { color: var(--accent); }
+
+  /* Scene 2: Telemetry Data Chart */
+  #s-telemetry { padding: 68px 96px; opacity: 0; }
+  .sec-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; }
+  .sec-kicker { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--accent); }
+  .sec-title { margin: 8px 0 0; font-size: 62px; font-weight: 900; letter-spacing: -1.5px; }
+  .sec-note { font-size: 26px; color: #b9c7df; font-weight: 500; }
+  .chart-grid { display: grid; grid-template-columns: 780px 1fr; gap: 44px; height: 740px; }
+  .chart-panel {
+    background: rgba(16, 27, 48, 0.94); border: 2px solid rgba(229,189,67,0.38);
+    border-radius: 24px; padding: 34px 38px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .panel-title { font-size: 28px; font-weight: 900; color: var(--accent); margin-bottom: 18px; }
+  .phase-row { margin-bottom: 24px; }
+  .phase-head { display: flex; justify-content: space-between; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+  .phase-track { height: 42px; background: rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; position: relative; }
+  .phase-bar { height: 100%; border-radius: 10px; transform-origin: 0 50%; }
+  .phase-sub { margin-top: 8px; font-size: 20px; color: #b9c7df; }
+  .diorama-bars { display: flex; flex-direction: column; gap: 15px; }
+  .d-bar-row { display: grid; grid-template-columns: 270px 1fr 110px; align-items: center; gap: 16px; }
+  .d-bar-name { font-size: 21px; font-weight: 900; color: #e8eef8; }
+  .d-bar-track { height: 28px; background: rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; }
+  .d-bar-fill { height: 100%; background: linear-gradient(90deg, #c86d44, #e5bd43); transform-origin: 0 50%; border-radius: 8px; }
+  .d-bar-val { font-size: 22px; font-weight: 900; color: var(--accent); text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Scene 3: 8 Monumental Dioramas Showcase */
+  #s-dioramas { padding: 60px 88px; opacity: 0; }
+  .dio-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 370px);
+    gap: 24px; margin-top: 24px;
+  }
+  .dio-card {
+    background: #101b30; border: 2px solid rgba(229,189,67,0.45); border-radius: 18px;
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+  }
+  .dio-card img { width: 100%; height: 255px; object-fit: cover; display: block; }
+  .dio-meta { padding: 14px 18px; display: flex; flex-direction: column; gap: 4px; background: #0d1628; flex: 1; }
+  .dio-top { display: flex; justify-content: space-between; align-items: center; font-size: 21px; font-weight: 900; color: var(--ink); }
+  .dio-pcs { color: var(--accent); font-size: 20px; }
+  .dio-line { font-size: 18px; color: #b8c6de; }
+
+  /* Scene 4: Lockup & Signature */
+  #s-cosmos { padding: 72px 96px; opacity: 0; display: flex; align-items: center; justify-content: space-between; }
+  .cosmos-left { width: 920px; }
+  .cosmos-imgs { display: flex; gap: 28px; width: 760px; }
+  .cosmos-box {
+    width: 366px; height: 366px; border-radius: 24px; overflow: hidden;
+    border: 3px solid var(--accent); background: #080d18; position: relative;
+  }
+  .cosmos-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cosmos-cap {
+    position: absolute; left: 14px; right: 14px; bottom: 14px;
+    background: rgba(11,18,32,0.92); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 10px 14px; font-size: 19px; font-weight: 900; color: var(--accent); text-align: center;
+  }
+  .om-sig {
+    position: absolute; right: 64px; bottom: 42px;
+    font-size: 22px; color: #b8c6de; letter-spacing: 1px;
+  }
+  .om-sig b { color: var(--accent); font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080">
+  <div class="bg-glow"></div>
+
+  <!-- SCENE 1: HOOK -->
+  <section id="s-hook" class="scene" data-om-id="scene-hook">
+    <div class="hook-left">
+      <div class="kicker-pill" data-om-id="kicker" data-var-text="kicker">ILIAD XVIII · 478–608 · OPERATIVE EKPHRASIS</div>
+      <h1 class="hero-title" data-om-id="title" data-var-text="title">THE SHIELD OF ACHILLES</h1>
+      <p class="hero-sub" data-om-id="subtitle" data-var-text="subtitle">20 Verified LDraw Kits · 96×96 Circular Frame + 8 Monumental 48×32 Dioramas</p>
+      <div class="hero-stat-row">
+        <div class="stat-card" data-om-id="card-total">
+          <div class="stat-num" id="num-total">24,631</div>
+          <div class="stat-lbl">Total Verified LDraw Pieces</div>
+        </div>
+        <div class="stat-card" data-om-id="card-check">
+          <div class="stat-num">0 / 0</div>
+          <div class="stat-lbl">Loose Parts / Spatial Clashes</div>
+        </div>
+        <div class="stat-card" data-om-id="card-kits">
+          <div class="stat-num">20 KITS</div>
+          <div class="stat-lbl">10 Circular + 8 Stage + 2 Masters</div>
+        </div>
+      </div>
+    </div>
+    <div class="hook-right" data-om-id="hero-shield-image">
+      <img src="assets/set.shield-of-achilles.jpg" alt="96x96 Shield of Achilles">
+      <div class="hook-badge">
+        <span>HEPHAESTUS FORGE · FIVE FOLDS</span>
+        <span class="gold">kitlib.check() PASS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE 2: TELEMETRY -->
+  <section id="s-telemetry" class="scene" data-om-id="scene-telemetry">
+    <div class="sec-header">
+      <div>
+        <div class="sec-kicker" data-om-id="tel-kicker">ARCHITECTURAL TELEMETRY · 3-PHASE EVOLUTION</div>
+        <h2 class="sec-title" data-om-id="tel-title">From Failed Monolith to 24,631 Verified Bricks</h2>
+      </div>
+      <div class="sec-note" data-om-id="tel-note">Every stud graph-checked via BFS &amp; AABB collision audit</div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-panel" data-om-id="chart-phases">
+        <div>
+          <div class="panel-title">THREE ITERATIONS OF THE SHIELD</div>
+          <div class="phase-row" data-om-id="phase-0">
+            <div class="phase-head"><span>Phase 0 · Oct 2026 Monolith</span><span style="color:#ff6b6b">94+ Clashes · FAILED</span></div>
+            <div class="phase-track"><div class="phase-bar" id="pbar-0" style="width:28%;background:#ff6b6b;"></div></div>
+            <div class="phase-sub">Tall navy maze walls · oval sky at top edge · floating unbonded bricks</div>
+          </div>
+          <div class="phase-row" data-om-id="phase-1">
+            <div class="phase-head"><span>Phase 1 · 10 Circular Shield Kits (96×96)</span><span style="color:#51cf66">7,522 pcs · 0 Clashes</span></div>
+            <div class="phase-track"><div class="phase-bar" id="pbar-1" style="width:52%;background:#51cf66;"></div></div>
+            <div class="phase-sub">Cross-laminated wedge bases · M0 Omphalos at center · 1.6× Golden Gods</div>
+          </div>
+          <div class="phase-row" data-om-id="phase-2">
+            <div class="phase-head"><span>Phase 2 · 8 Monumental 48×32 Stage Dioramas</span><span style="color:#e5bd43">17,109 pcs · 0 Clashes</span></div>
+            <div class="phase-track"><div class="phase-bar" id="pbar-2" style="width:100%;background:linear-gradient(90deg,#3b82f6,#e5bd43);"></div></div>
+            <div class="phase-sub">640-part museum plinths · stepped SNOT relief · custom beasts &amp; cypresses</div>
+          </div>
+        </div>
+        <div class="stat-lbl" style="font-size:21px;color:#e5bd43;font-weight:900;">
+          COMBINED ARCHIVE: 24,631 PIECES · 100% STUD-BONDED
+        </div>
+      </div>
+
+      <div class="chart-panel" data-om-id="chart-dioramas">
+        <div class="panel-title">8 MONUMENTAL 48×32 DIORAMAS — PIECE BUDGETS</div>
+        <div class="diorama-bars">
+          <div class="d-bar-row"><span class="d-bar-name">#1 Wedding Procession</span><div class="d-bar-track"><div class="d-bar-fill" style="width:95%"></div></div><span class="d-bar-val">2,115</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#2 Agora Blood-Price</span><div class="d-bar-track"><div class="d-bar-fill" style="width:92.8%"></div></div><span class="d-bar-val">2,066</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#3 Scaean Gate Ambush</span><div class="d-bar-track"><div class="d-bar-fill" style="width:93.7%"></div></div><span class="d-bar-val">2,085</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#4 Ploughing &amp; Harvest</span><div class="d-bar-track"><div class="d-bar-fill" style="width:99.4%"></div></div><span class="d-bar-val">2,213</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#5 Golden Vineyard</span><div class="d-bar-track"><div class="d-bar-fill" style="width:100%"></div></div><span class="d-bar-val">2,226</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#6 Cattle &amp; Two Lions</span><div class="d-bar-track"><div class="d-bar-fill" style="width:95.9%"></div></div><span class="d-bar-val">2,135</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#7 Sheepfold in Glen</span><div class="d-bar-track"><div class="d-bar-fill" style="width:98.3%"></div></div><span class="d-bar-val">2,188</span></div>
+          <div class="d-bar-row"><span class="d-bar-name">#8 Choros Potter's Wheel</span><div class="d-bar-track"><div class="d-bar-fill" style="width:93.5%"></div></div><span class="d-bar-val">2,081</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE 3: 8 DIORAMAS SHOWCASE -->
+  <section id="s-dioramas" class="scene" data-om-id="scene-dioramas">
+    <div class="sec-header" style="margin-bottom:16px;">
+      <div>
+        <div class="sec-kicker">EIGHT STANDALONE 48×32 MUSEUM PLINTH SETS</div>
+        <h2 class="sec-title">Every Line of Homer Built from Real LDraw Parts</h2>
+      </div>
+      <div class="sec-note">Kyanos Dark Blue (272) + Pearl Gold (297)</div>
+    </div>
+    <div class="dio-grid">
+      <div class="dio-card" data-om-id="dio-1"><img src="assets/set.shield-diorama-wedding.jpg" alt="Wedding"><div class="dio-meta"><div class="dio-top"><span>#1 Wedding Torch-Song</span><span class="dio-pcs">2,115 pcs</span></div><div class="dio-line">Iliad 18.491–496 · Bridal flutes &amp; whirling dancers</div></div></div>
+      <div class="dio-card" data-om-id="dio-2"><img src="assets/set.shield-diorama-agora.jpg" alt="Agora"><div class="dio-meta"><div class="dio-top"><span>#2 Agora Trial Circle</span><span class="dio-pcs">2,066 pcs</span></div><div class="dio-line">Iliad 18.497–508 · Elders on polished stones &amp; 2 talents</div></div></div>
+      <div class="dio-card" data-om-id="dio-3"><img src="assets/set.shield-diorama-ambush.jpg" alt="Ambush"><div class="dio-meta"><div class="dio-top"><span>#3 City at War Ambush</span><span class="dio-pcs">2,085 pcs</span></div><div class="dio-line">Iliad 18.509–540 · 1.6× Golden Ares &amp; Athena at river</div></div></div>
+      <div class="dio-card" data-om-id="dio-4"><img src="assets/set.shield-diorama-harvest.jpg" alt="Harvest"><div class="dio-meta"><div class="dio-top"><span>#4 Ploughing &amp; Harvest</span><span class="dio-pcs">2,213 pcs</span></div><div class="dio-line">Iliad 18.541–560 · Black-turning furrow &amp; King's oak</div></div></div>
+      <div class="dio-card" data-om-id="dio-5"><img src="assets/set.shield-diorama-vineyard.jpg" alt="Vineyard"><div class="dio-meta"><div class="dio-top"><span>#5 Golden Vineyard</span><span class="dio-pcs">2,226 pcs</span></div><div class="dio-line">Iliad 18.561–572 · Kyanos trench, tin fence &amp; Linos boy</div></div></div>
+      <div class="dio-card" data-om-id="dio-6"><img src="assets/set.shield-diorama-cattle.jpg" alt="Cattle"><div class="dio-meta"><div class="dio-top"><span>#6 Cattle &amp; Two Lions</span><span class="dio-pcs">2,135 pcs</span></div><div class="dio-line">Iliad 18.573–586 · Gold &amp; tin herd + 9 hounds</div></div></div>
+      <div class="dio-card" data-om-id="dio-7"><img src="assets/set.shield-diorama-sheepfold.jpg" alt="Sheepfold"><div class="dio-meta"><div class="dio-top"><span>#7 Glen Sheepfold</span><span class="dio-pcs">2,188 pcs</span></div><div class="dio-line">Iliad 18.587–589 · Roofed folds, steading &amp; wattled pens</div></div></div>
+      <div class="dio-card" data-om-id="dio-8"><img src="assets/set.shield-diorama-choros.jpg" alt="Choros"><div class="dio-meta"><div class="dio-top"><span>#8 Choros Dance Floor</span><span class="dio-pcs">2,081 pcs</span></div><div class="dio-line">Iliad 18.590–608 · Potter's wheel ring &amp; 2 tumblers</div></div></div>
+    </div>
+  </section>
+
+  <!-- SCENE 4: COSMOS LOCKUP -->
+  <section id="s-cosmos" class="scene" data-om-id="scene-cosmos">
+    <div class="cosmos-left">
+      <div class="kicker-pill" data-om-id="cosmos-kicker">TRACTOR · DCE · GYO · ODYSSEY &amp; ILIAD ARCHIVE</div>
+      <h2 class="hero-title" style="font-size:78px;" data-om-id="cosmos-title">Operative Ekphrasis, Verified to the Stud.</h2>
+      <p class="hero-sub" data-om-id="cosmos-sub">Explore all 20 LDraw kits, contact sheets, and interactive WebGL models in shield-experiments.html</p>
+      <div class="hero-stat-row">
+        <div class="stat-card"><div class="stat-num" style="font-size:56px;">7,522</div><div class="stat-lbl">96×96 Circular Shield</div></div>
+        <div class="stat-card"><div class="stat-num" style="font-size:56px;">17,109</div><div class="stat-lbl">8 Stage Dioramas</div></div>
+      </div>
+    </div>
+    <div class="cosmos-imgs">
+      <div class="cosmos-box" data-om-id="cosmos-m0">
+        <img src="assets/set.shield-m0.jpg" alt="M0 Omphalos Boss">
+        <div class="cosmos-cap">M0 · THE HEAVENS &amp; BEAR (517 pcs)</div>
+      </div>
+      <div class="cosmos-box" data-om-id="cosmos-master">
+        <img src="assets/set.shield-of-achilles.jpg" alt="Master Shield">
+        <div class="cosmos-cap">M0–M9 · FULL 96×96 SHIELD (7,522 pcs)</div>
+      </div>
+    </div>
+    <div class="om-sig" data-om-id="signature">Made with <b>huashu-motion</b></div>
+  </section>
+</div>
+
+<script>
+  const V = OM.vars();
+  OM.music({ product: 'hardware', bpm: 120, seed: 18 });
+
+  const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+
+  // Scene 1: Hook (0.0s - 3.5s) — Frame 0 is already a complete poster
+  tl.addLabel('scene:hook', 0)
+    .fromTo('.hook-right', { scale: 0.94, rotation: -2 }, { scale: 1, rotation: 0, duration: 0.85, ease: 'expo.out' }, OM.sfx('impact', 0.1))
+    .fromTo('.stat-card', { y: 28, opacity: 0.2 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.12, ease: 'back.out(1.4)' }, OM.sfx('thud', 0.35));
+
+  const cTotal = { v: 18000 };
+  tl.fromTo(cTotal, { v: 18000 }, {
+    v: V.totalPieces, duration: 1.1, ease: 'expo.out',
+    onUpdate: () => { document.getElementById('num-total').textContent = Math.round(cTotal.v).toLocaleString(); }
+  }, OM.sfx('count', 0.2, { dur: 1.0 }))
+  .to('#s-hook', { opacity: 0, x: -80, duration: 0.45, ease: 'power2.in' }, 3.15);
+
+  // Scene 2: Telemetry Data Chart (3.5s - 8.0s)
+  tl.addLabel('scene:telemetry', 3.5)
+    .set('#s-telemetry', { opacity: 1 }, 3.5)
+    .fromTo('#s-telemetry .sec-header', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, OM.sfx('whoosh', 3.5))
+    .fromTo('#chart-phases, #chart-dioramas', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.15 }, 3.65)
+    .fromTo('.phase-bar', { scaleX: 0 }, { scaleX: 1, duration: 0.8, stagger: 0.18, ease: 'expo.out' }, OM.sfx('thud', 3.9))
+    .fromTo('.d-bar-fill', { scaleX: 0 }, { scaleX: 1, duration: 0.7, stagger: 0.08, ease: 'expo.out' }, OM.sfx('tick', 4.3))
+    .to('#s-telemetry', { opacity: 0, y: -50, duration: 0.45, ease: 'power2.in' }, 7.6);
+
+  // Scene 3: 8 Monumental Dioramas Showcase (8.0s - 13.0s)
+  tl.addLabel('scene:dioramas', 8.0)
+    .set('#s-dioramas', { opacity: 1 }, 8.0)
+    .fromTo('#s-dioramas .sec-header', { y: -25, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45 }, OM.sfx('hit', 8.0))
+    .fromTo('.dio-card', { scale: 0.88, y: 36, opacity: 0 }, {
+      scale: 1, y: 0, opacity: 1, duration: 0.55, stagger: 0.09, ease: 'back.out(1.3)'
+    }, OM.sfx('shutter', 8.2))
+    .to('.dio-card', { borderColor: '#f3d266', duration: 0.4, stagger: 0.06 }, OM.sfx('ding', 10.2))
+    .to('#s-dioramas', { opacity: 0, scale: 0.96, duration: 0.45, ease: 'power2.in' }, 12.6);
+
+  // Scene 4: Cosmos Lockup (13.0s - 16.0s)
+  tl.addLabel('scene:cosmos', 13.0)
+    .set('#s-cosmos', { opacity: 1 }, 13.0)
+    .fromTo('.cosmos-left', { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.65, ease: 'expo.out' }, OM.sfx('chime', 13.05))
+    .fromTo('.cosmos-box', { scale: 0.88, y: 30, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'expo.out' }, OM.sfx('thud', 13.25))
+    .fromTo('.om-sig', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5 }, 13.8)
+    .to({}, { duration: V.endHold });
+
+  window.__timelines['film'] = tl;
+</script>
+</body>
+</html>

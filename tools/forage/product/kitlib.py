@@ -139,8 +139,11 @@ def write(name, title, rows, author='tools/forage/product/kitlib.py'):
 
 
 def check(name, show=10):
-    P_ = clicks.parts(os.path.join(CARDS, name + '.mpd'))
-    L, O = clicks.loose(P_), clicks.overlaps(P_)
+    path = os.path.join(CARDS, name + '.mpd')
+    P_ = clicks.parts(path)
+    ug, fc = clicks.figures(path, P_)
+    L = clicks.loose(P_, one_piece=('shield-m' in name)) + ug
+    O = clicks.overlaps(P_) + fc
     for p in L[:show]: print('   loose:', p['line'])
     for a, b in O[:show]: print('   clash:', a['line'], ' <> ', b['line'])
     print(f'{name}: {len(P_)} parts on the grid, {len(L)} not clicked, {len(O)} pairs in the same space')

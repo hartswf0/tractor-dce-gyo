@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Shield of Achilles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, minmax(0, 1fr)); } .ribbon a, .ribbon div { min-width: 0; overflow-wrap: anywhere; } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Flagship · Book XVIII · 7,522 pieces</div>
+  <h1>The Shield of Achilles</h1>
+  <p class="lede">In Hephaestus&#x27;s Olympus foundry, the god hammers five concentric folds of bronze, tin, dark-blue kyanos, and gold into a living cosmos: the revolving Heavens on the central boss, the Cities at Peace and at War, the Thrice-Ploughed Field, the King&#x27;s Harvest, the Vintage, the Herd of Straight-Horned Cattle attacked by Two Lions, the Sheepfold in the Fair Glen, the Choros of Daedalus, and the mighty stream of River Oceanus.</p>
+  <blockquote>On it he wrought the earth, the sea, the heaven, the unwearying sun, the moon at the full, and all the signs that crown the sky... and two fair cities of mortal men... and around the uttermost rim he set the great strength of the River Ocean. (Iliad XVIII.483-608)</blockquote>
+  <figure><img src="set.shield-of-achilles.jpg" alt="The complete 96x96 LEGO Shield of Achilles with five concentric rings."><figcaption>Master Circular Shield Assembly (96x96 studs, 7,522 pieces): five concentric rings stepping down from the central celestial boss (M0) to the outer wave-rim of River Oceanus (M9).</figcaption></figure>
+  <h2>The object</h2>
+  <p>Two complete architectural systems built from the same procedural LDraw grammar and verified to 0 not clicked and 0 clashes by clicks.py: (1) The 96x96-stud Five-Ring Circular Relief Shield (7,522 pieces) with 10 independent lift-out radial kits (M0-M9) seated on a stepped bronze, kyanos, and gold frame; and (2) Eight Monumental 48x32 Collector&#x27;s Diorama Stage Sets (17,109 pieces) on Dark Blue (272) and Pearl Gold (297) museum plinths with multi-storey stone townhouses, continuous 54200 barrel-tile roofs, Doric stoas, cyclopean bastions, raised stone tree planters, and brick-built livestock.</p>
+  <div class="two"><figure><img src="set.shield-diorama-wedding.jpg" alt="48x32 LEGO diorama of the Wedding Procession in the City at Peace." loading="lazy"><figcaption>Monumental Diorama I (48x32 studs, 3,475 pieces): The Bridal Torch-Procession &amp; Flute-Players before three multi-storey Tan/LBG townhouses with continuous 54200 terracotta roofs, climbing ivy, raised stone tree planters, and doorway matrons.</figcaption></figure><figure><img src="set.shield-diorama-agora.jpg" alt="48x32 LEGO diorama of the Agora Law-Court and Doric Stoa." loading="lazy"><figcaption>Monumental Diorama II (48x32 studs, 2,119 pieces): The Agora Dispute &amp; Two Talents of Gold framed by a 28-stud Doric Stoa, civic archives tower, and 12-stud Sacred Circle of polished stone elder thrones.</figcaption></figure><figure><img src="set.shield-diorama-ambush.jpg" alt="48x32 LEGO diorama of the City at War and River Ambush." loading="lazy"><figcaption>Monumental Diorama III (48x32 studs, 1,957 pieces): The City at War, Scaean Gatehouse, 1.6x Golden Colossi of Ares &amp; Athena, and the Riverbank Reed Ambush.</figcaption></figure><figure><img src="set.shield-diorama-sheepfold.jpg" alt="48x32 LEGO diorama of the Sheepfold in the Mountain Glen." loading="lazy"><figcaption>Monumental Diorama IV (48x32 studs, 1,998 pieces): The Fair Glen of White Sheep with pitched-roof stone steading, timber sheep-byre, dry-stone pen, and 14 brick-built sheep.</figcaption></figure><figure><img src="set.shield-diorama-harvest.jpg" alt="48x32 LEGO diorama of the Ploughing and Harvest." loading="lazy"><figcaption>Monumental Diorama V (48x32 studs, 1,673 pieces): The King&#x27;s Harvest, Thrice-Ploughed Glebe turning black behind two yoked ox-teams, Royal Granary, and Oak-Tree Ox Sacrifice.</figcaption></figure><figure><img src="set.shield-diorama-vineyard.jpg" alt="48x32 LEGO diorama of the Golden Vineyard and Wine-Press." loading="lazy"><figcaption>Monumental Diorama VI (48x32 studs, 1,809 pieces): The Golden Vineyard on silver poles, Kyanos Trench, Tin Fence, single stone causeway, and roofed Wine-Press Pavilion.</figcaption></figure><figure><img src="set.shield-diorama-cattle.jpg" alt="48x32 LEGO diorama of the Cattle of Gold and Tin and Two Lions." loading="lazy"><figcaption>Monumental Diorama VII (48x32 studs, 2,108 pieces): Straight-Horned Cattle of Gold &amp; Tin emerging from the timber Kopros Byre to the river ford where Two Tawny Lions seize the bull before four herdsmen and nine white hounds.</figcaption></figure><figure><img src="set.shield-diorama-choros.jpg" alt="48x32 LEGO diorama of the Choros of Daedalus at Knossos." loading="lazy"><figcaption>Monumental Diorama VIII (48x32 studs, 1,970 pieces): The Choros of Daedalus before a two-storey Knossian Palace facade with red columns, upper loggia, Minoan Horns of Consecration, and 16-stud Labyrinth Wheel.</figcaption></figure><figure><img src="shield_master_contact.jpg" alt="Six-panel contact sheet of the circular LEGO Shield of Achilles." loading="lazy"><figcaption>Reviewer Contact Sheet for the 96x96 Circular Shield: Hero view, Minifigure eye-level, Top-down architectural plan, and close-ups of M0/M1/M2 and M6/M8.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>Every single kit and sub-module is generated by Python code on tools/forage/product/kitlib.py and tools/forage/product/kits/shield_diorama_lib.py — never hand-typed LDraw lines.</li><li>All 20 builds pass tools/forage/product/clicks.py with 0 parts not clicked and 0 pairs of parts in the same space.</li><li>Continuous pitched terracotta barrel-tile roofs built from alternating Dark Orange (484), Medium Nougat (84), and Reddish Brown (70) 54200 cheese slopes over stepped Tan/Dark Tan gable tympanums.</li><li>Coursed Tan (19) and Dark Tan (28) ashlar walls with Light Bluish Gray (71) corner quoins, stone and timber doorway lintels, recessed Dark Blue (272) interiors, and climbing Bright Green (10) ivy.</li><li>Two-layer cross-bonded baseplates on every lift-out circular section (M0-M9) and a 3-plate stepped Dark Blue (272) + Pearl Gold (297) museum plinth on all eight 48x32 standalone dioramas.</li></ul>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>Master Circular Shield Assembly (96x96 studs, Frame + M0-M9)</td><td><a href="../../cards/set.shield-of-achilles.mpd"><code>set.shield-of-achilles</code></a></td><td class="n">7,522</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama I: The Bridal Torch-Procession &amp; Flute-Players (48x32)</td><td><a href="../../cards/set.shield-diorama-wedding.mpd"><code>set.shield-diorama-wedding</code></a></td><td class="n">3,475</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama II: The Agora Dispute &amp; Two Talents of Gold (48x32)</td><td><a href="../../cards/set.shield-diorama-agora.mpd"><code>set.shield-diorama-agora</code></a></td><td class="n">2,119</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama III: The City at War, Golden Ares &amp; Athena &amp; River Ambush (48x32)</td><td><a href="../../cards/set.shield-diorama-ambush.mpd"><code>set.shield-diorama-ambush</code></a></td><td class="n">1,957</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama IV: The Fair Glen of White Sheep, Roofed Folds &amp; Steading (48x32)</td><td><a href="../../cards/set.shield-diorama-sheepfold.mpd"><code>set.shield-diorama-sheepfold</code></a></td><td class="n">1,998</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama V: The King&#x27;s Harvest, Thrice-Ploughed Glebe &amp; Oak Feast (48x32)</td><td><a href="../../cards/set.shield-diorama-harvest.mpd"><code>set.shield-diorama-harvest</code></a></td><td class="n">1,673</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama VI: The Golden Vineyard, Kyanos Trench, Tin Fence &amp; Wine-Press (48x32)</td><td><a href="../../cards/set.shield-diorama-vineyard.mpd"><code>set.shield-diorama-vineyard</code></a></td><td class="n">1,809</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama VII: Straight-Horned Cattle of Gold &amp; Tin &amp; Two Tawny Lions (48x32)</td><td><a href="../../cards/set.shield-diorama-cattle.mpd"><code>set.shield-diorama-cattle</code></a></td><td class="n">2,108</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Diorama VIII: The Choros of Daedalus, Knossian Palace &amp; Tumblers (48x32)</td><td><a href="../../cards/set.shield-diorama-choros.mpd"><code>set.shield-diorama-choros</code></a></td><td class="n">1,970</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Circular Shield Frame (96x96 Baseplates, Stepped Seats &amp; Dividers)</td><td><a href="../../cards/set.shield-frame.mpd"><code>set.shield-frame</code></a></td><td class="n">2,754</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M0: Earth, Sea, Sky, Sun, Moon &amp; Revolving Bear on the Boss</td><td><a href="../../cards/set.shield-m0.mpd"><code>set.shield-m0</code></a></td><td class="n">376</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M1: The City at Peace — Bridal Torch-Song &amp; Sacred Circle</td><td><a href="../../cards/set.shield-m1.mpd"><code>set.shield-m1</code></a></td><td class="n">486</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M2: The City at War — Golden Ares &amp; Athena &amp; River Ambush</td><td><a href="../../cards/set.shield-m2.mpd"><code>set.shield-m2</code></a></td><td class="n">527</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M3: The Thrice-Ploughed Field &amp; Headland Wine-Cup</td><td><a href="../../cards/set.shield-m3.mpd"><code>set.shield-m3</code></a></td><td class="n">437</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M4: The King&#x27;s Estate, Reapers, Binders &amp; Oak Ox-Feast</td><td><a href="../../cards/set.shield-m4.mpd"><code>set.shield-m4</code></a></td><td class="n">497</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M5: The Golden Vineyard, Kyanos Trench, Tin Fence &amp; Linus Boy</td><td><a href="../../cards/set.shield-m5.mpd"><code>set.shield-m5</code></a></td><td class="n">443</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M6: Cattle of Gold &amp; Tin, Two Lions &amp; Nine Dogs at the River</td><td><a href="../../cards/set.shield-m6.mpd"><code>set.shield-m6</code></a></td><td class="n">413</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M7: The Fair Glen of White Sheep, Roofed Folds &amp; Cots</td><td><a href="../../cards/set.shield-m7.mpd"><code>set.shield-m7</code></a></td><td class="n">426</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M8: The Choros Dance Floor of Daedalus &amp; Potter&#x27;s Wheel</td><td><a href="../../cards/set.shield-m8.mpd"><code>set.shield-m8</code></a></td><td class="n">470</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>Section M9: The Mighty Stream of River Oceanus &amp; Triple Rim</td><td><a href="../../cards/set.shield-m9.mpd"><code>set.shield-m9</code></a></td><td class="n">693</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <footer>Built by <code>tools/forage/product/kits/shield-of-achilles.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/docs/sets/README.md"><code>docs/sets/README.md</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/docs/sets/shield-of-achilles.md"><code>docs/sets/shield-of-achilles.md</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/docs/sets/shield-experiments-log.md"><code>docs/sets/shield-experiments-log.md</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/tools/forage/product/kits/shield_frame.py"><code>tools/forage/product/kits/shield_frame.py</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/tools/forage/product/kits/shield_diorama_lib.py"><code>tools/forage/product/kits/shield_diorama_lib.py</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/tools/forage/product/kits/shield_dioramas.py"><code>tools/forage/product/kits/shield_dioramas.py</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

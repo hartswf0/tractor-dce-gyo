@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Shield of Achilles — LDraw Worldtext Forage (Iliad XVIII, 478–608)</title>
+<style>
+  :root {
+    --bg: #0c0b09;
+    --panel: #151310;
+    --panel-2: #1c1915;
+    --panel-3: #25201a;
+    --ink: #f3ede0;
+    --muted: #9e9482;
+    --dim: #685f50;
+    --rule: #2d271f;
+    --gold: #d4af37;
+    --gold-bright: #f5cf5b;
+    --silver: #c0c5ce;
+    --bronze: #c87d3b;
+    --tin: #d8dadf;
+    --kyanos: #3b6fc4;
+    --niello: #3a352f;
+    --crimson: #b83232;
+    --green: #38b261;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Top Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 18px;
+    background: linear-gradient(180deg, #1a1612 0%, #12100d 100%);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .brand-emblem {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #f5cf5b 0%, #d4af37 32%, #7d5622 62%, #1b3b6f 85%, #d4af37 100%);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .brand-titles h1 {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--gold-bright);
+    white-space: nowrap;
+  }
+
+  .brand-titles p {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-stats {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .header-stats strong {
+    color: var(--ink);
+  }
+
+  .header-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    background: var(--panel-3);
+  }
+
+  .btn.primary {
+    background: rgba(212, 175, 55, 0.16);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    font-weight: 600;
+  }
+
+  .btn.primary:hover {
+    background: var(--gold);
+    color: #0c0b09;
+  }
+
+  .btn.active {
+    background: var(--gold);
+    color: #0c0b09;
+    border-color: var(--gold-bright);
+    font-weight: 700;
+  }
+
+  /* Filter & Zone Bar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 18px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+
+  .zone-pills, .type-pills {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .pill {
+    padding: 4px 9px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.12s;
+  }
+
+  .pill:hover {
+    color: var(--ink);
+    border-color: var(--dim);
+  }
+
+  .pill.active {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--gold-bright);
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  .search-input {
+    width: 210px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--gold);
+  }
+
+  /* 3-Column Workspace */
+  .workspace {
+    display: grid;
+    grid-template-columns: 310px 1fr 390px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Left Sidebar: Concentric Map + Card Roster */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--rule);
+    min-height: 0;
+  }
+
+  .shield-radar-box {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    background: radial-gradient(circle at center, #1f1b14 0%, #13110d 100%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .shield-svg {
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .shield-svg circle, .shield-svg path {
+    transition: opacity 0.15s, stroke-width 0.15s;
+  }
+
+  .shield-svg .ring-hit:hover {
+    stroke: #fff;
+    stroke-width: 1.8px;
+    opacity: 1;
+  }
+
+  .radar-legend {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .radar-legend h3 {
+    font-family: var(--font-serif);
+    font-size: 12.5px;
+    color: var(--gold-bright);
+    margin-bottom: 3px;
+  }
+
+  .radar-legend p {
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+
+  .type-bar-scroll {
+    display: flex;
+    gap: 4px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+    background: var(--panel-2);
+  }
+
+  .card-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card-item {
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .card-item:hover {
+    border-color: var(--dim);
+    background: var(--panel-3);
+  }
+
+  .card-item.active {
+    border-color: var(--gold);
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(28, 25, 21, 0.95) 100%);
+    box-shadow: inset 3px 0 0 var(--gold);
+  }
+
+  .card-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .badge {
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .badge.zone {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-bright);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+  }
+
+  .badge.type-world { background: #5a3e12; color: #ffdf80; border: 1px solid #d4af37; }
+  .badge.type-scene { background: #1e3a5f; color: #9ec5fe; border: 1px solid #3b6fc4; }
+  .badge.type-location { background: #263d29; color: #a3cfbb; }
+  .badge.type-character { background: #4a2531; color: #f1aeb5; }
+  .badge.type-divine_fx { background: #594312; color: #ffe69c; }
+  .badge.type-creature { background: #432e1c; color: #f8d7b5; }
+  .badge.type-ensemble { background: #36274d; color: #d8b9ff; }
+
+  .card-item-title {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+
+  .card-item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 4px;
+  }
+
+  /* Center Stage */
+  .stage-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(circle at 50% 42%, #211d16 0%, #0d0b09 78%);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .viewport-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  #stage-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Top Stage HUD */
+  .stage-hud-top {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .stage-title-card {
+    background: rgba(15, 13, 10, 0.84);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 6px;
+    padding: 8px 12px;
+    max-width: 62%;
+    pointer-events: auto;
+  }
+
+  .stage-title-card .kicker {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+  }
+
+  .stage-title-card h2 {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .stage-controls-overlay {
+    display: flex;
+    gap: 6px;
+    pointer-events: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Loading Banner */
+  .loader-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 13, 10, 0.92);
+    border: 1px solid var(--gold);
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold-bright);
+    z-index: 20;
+    pointer-events: none;
+    display: none;
+  }
+
+  /* Ekphrastic Subtitle / Caption Overlay */
+  .subtitle-overlay {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92%, 760px);
+    background: rgba(12, 11, 9, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 6px;
+    padding: 10px 16px;
+    z-index: 10;
+    pointer-events: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  }
+
+  .subtitle-shot-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold-bright);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .subtitle-greek {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 13px;
+    color: #e8dec8;
+    margin-bottom: 3px;
+  }
+
+  .subtitle-english {
+    font-family: var(--font-serif);
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* Bottom Previs & World-Model Controller Bar */
+  .previs-bar {
+    background: var(--panel);
+    border-top: 1px solid var(--rule);
+    padding: 9px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .previs-row-1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .shot-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .shot-btn {
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    cursor: pointer;
+  }
+
+  .shot-btn:hover {
+    color: var(--ink);
+    border-color: var(--dim);
+  }
+
+  .shot-btn.active {
+    background: var(--gold);
+    color: #0c0b09;
+    border-color: var(--gold-bright);
+    font-weight: 700;
+  }
+
+  .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  .slider-group input[type="range"] {
+    width: 90px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  /* Right Inspector Sheet */
+  .inspector {
+    background: var(--panel);
+    border-left: 1px solid var(--rule);
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+  }
+
+  .ins-section {
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 11px 12px;
+  }
+
+  .ins-section h3 {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+
+  .metric-box {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 6px 8px;
+  }
+
+  .metric-box .lbl {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .metric-box .val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 2px;
+  }
+
+  /* Metallurgical Breakdown Bar */
+  .metal-bar {
+    height: 10px;
+    width: 100%;
+    background: var(--bg);
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 8px;
+    border: 1px solid var(--rule);
+  }
+
+  .metal-seg {
+    height: 100%;
+    transition: width 0.25s ease;
+  }
+
+  .metal-legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .metal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+  }
+
+  .metal-swatch {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  /* Neurosymbolic World-Model Box */
+  .wm-row {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .wm-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .wm-tag {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+
+  .wm-text {
+    font-size: 11.5px;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  /* Cast & Location Links */
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .link-chip {
+    padding: 3px 7px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold-bright);
+    cursor: pointer;
+  }
+
+  .link-chip:hover {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.12);
+  }
+
+  /* Sub-build Tree */
+  .tree-box {
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+
+  .tree-node {
+    white-space: nowrap;
+  }
+
+  .tree-node strong {
+    color: var(--ink);
+  }
+
+  @media (max-width: 1150px) {
+    .workspace {
+      grid-template-columns: 270px 1fr 330px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-emblem" id="btn-home-emblem" title="Load ACH-WORLD-SHIELD (Master Concentric Shield)"></div>
+      <div class="brand-titles">
+        <h1>THE SHIELD OF ACHILLES · LDRAW WORLDTEXT FORAGE</h1>
+        <p>Homer, <em>Iliad</em> XVIII, 478–608 · Bolter &amp; Hartsoe, <em>Operative Ekphrasis: From Imagetext to Worldtext</em></p>
+      </div>
+    </div>
+
+    <div class="header-stats" id="header-stats">
+      <span><strong id="stat-cards">63</strong> Cards</span>
+      <span><strong id="stat-pieces">12,462</strong> Pieces</span>
+      <span><strong id="stat-subs">411</strong> Sub-builds</span>
+      <span><strong id="stat-joints">72,122</strong> Stud Joints</span>
+      <span style="color:var(--green)">● <strong>63 GREEN</strong></span>
+    </div>
+
+    <div class="header-links">
+      <button class="btn primary" id="btn-load-master" title="Load Full 84×84 Stud 5-Fold Concentric Shield">◎ Master Shield World</button>
+      <a class="btn" href="achilles-kit.html">⚒ Forge Kit (50)</a>
+      <a class="btn" href="shield-of-achilles.html">◫ TRUBADOR Studio</a>
+      <a class="btn" href="achilles/FORAGE.md" target="_blank">📄 FORAGE.md</a>
+    </div>
+  </header>
+
+  <!-- Toolbar: Concentric Zone Filters + Search -->
+  <div class="toolbar">
+    <div class="zone-pills" id="zone-pills">
+      <button class="pill active" data-zone="ALL">All Zones (63)</button>
+      <button class="pill" data-zone="Z01" title="Lines 478–490: Five Folds, Sun, Moon, Pleiades, Hyades, Orion & the Bear">I · Cosmic Boss</button>
+      <button class="pill" data-zone="Z02" title="Lines 491–508: Bridal Torch Procession & Agora Trial of the Two Talents">II · City at Peace</button>
+      <button class="pill" data-zone="Z03" title="Lines 509–540: Siege Walls, Tall Ares & Athena, River Ambush & Crimson Ker">III · City at War</button>
+      <button class="pill" data-zone="Z04" title="Lines 541–572: Thrice-Ploughed Glebe, Silent King's Harvest & Golden Vineyard">IV · Field &amp; Vineyard</button>
+      <button class="pill" data-zone="Z05" title="Lines 573–589: Gold & Tin Oxen, Two Lions, Nine Dogs & White Sheep Glen">V · Cattle &amp; Lions</button>
+      <button class="pill" data-zone="Z06" title="Lines 590–608: Daedalean Choros of Ariadne, Spinning Tumblers & River Oceanus">VI · Choros &amp; Oceanus</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="search" id="search-input" class="search-input" placeholder="Search Greek, Buckley, ID, role…">
+    </div>
+  </div>
+
+  <!-- 3-Column Workspace -->
+  <div class="workspace">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="shield-radar-box">
+        <svg class="shield-svg" viewBox="-50 -50 100 100" id="shield-radar-svg" aria-label="Interactive 5-Fold Concentric Shield Map">
+          <!-- Fold 5: Oceanus Rim -->
+          <circle class="ring-hit" data-zone="Z06" cx="0" cy="0" r="46" fill="#102542" stroke="#d4af37" stroke-width="2" />
+          <!-- Fold 4: Outer Ring (West Cattle / East Choros) -->
+          <path class="ring-hit" data-zone="Z05" d="M 0,-38 A 38,38 0 0,0 0,38 L 0,0 Z" fill="#3a2e1e" stroke="#c0c5ce" stroke-width="0.8" />
+          <path class="ring-hit" data-zone="Z06" d="M 0,-38 A 38,38 0 0,1 0,38 L 0,0 Z" fill="#2d3826" stroke="#c0c5ce" stroke-width="0.8" />
+          <!-- Fold 3: Middle Ring (Labors of the Field) -->
+          <circle class="ring-hit" data-zone="Z04" cx="0" cy="0" r="28" fill="#4f3d17" stroke="#d4af37" stroke-width="1" />
+          <!-- Fold 2: Inner Ring (North Peace / South War) -->
+          <path class="ring-hit" data-zone="Z02" d="M -19,0 A 19,19 0 0,1 19,0 L 0,0 Z" fill="#2c3e50" stroke="#c0c5ce" stroke-width="0.8" />
+          <path class="ring-hit" data-zone="Z03" d="M -19,0 A 19,19 0 0,0 19,0 L 0,0 Z" fill="#4a1c1c" stroke="#c87d3b" stroke-width="0.8" />
+          <!-- Fold 1: Center Cosmic Boss -->
+          <circle class="ring-hit" data-zone="Z01" cx="0" cy="0" r="10" fill="#d4af37" stroke="#fff" stroke-width="1.2" />
+          <circle cx="-3" cy="-2" r="2.2" fill="#fff5cc" pointer-events="none" />
+          <circle cx="3.5" cy="2.5" r="1.6" fill="#c0c5ce" pointer-events="none" />
+        </svg>
+        <div class="radar-legend">
+          <h3 id="radar-active-label">Πέντε Πτύχες (5 Folds)</h3>
+          <p id="radar-active-desc">Click any ring of Hephaestus’s shield to filter by Homeric zone, or double-click to launch its primary scene.</p>
+          <button class="btn" id="btn-reset-zone" style="padding:2px 7px;font-size:10px;">Show All 63 Cards</button>
+        </div>
+      </div>
+
+      <div class="type-bar-scroll" id="type-pills">
+        <button class="pill active" data-type="ALL">All</button>
+        <button class="pill" data-type="scene_world">Scenes (13)</button>
+        <button class="pill" data-type="location">Locations (12)</button>
+        <button class="pill" data-type="character">Characters (13)</button>
+        <button class="pill" data-type="divine_fx">Divine (3)</button>
+        <button class="pill" data-type="creature">Creatures (6)</button>
+        <button class="pill" data-type="ensemble">Ensembles (2)</button>
+        <button class="pill" data-type="prop_set">Props &amp; Sets (14)</button>
+      </div>
+
+      <div class="card-list" id="card-list"></div>
+    </aside>
+
+    <!-- Center 3D WebGL Stage -->
+    <main class="stage-col">
+      <div class="viewport-wrap" id="viewport-wrap">
+        <canvas id="stage-canvas"></canvas>
+
+        <div class="stage-hud-top">
+          <div class="stage-title-card">
+            <div class="kicker" id="hud-kicker">ACH-WORLD-SHIELD · FOLD 1–5 · ILIAD 18.478–608</div>
+            <h2 id="hud-title">The Shield of Achilles — Master Concentric World</h2>
+          </div>
+
+          <div class="stage-controls-overlay">
+            <button class="btn active" id="btn-world-sim" title="Animate Homeric Memory Model Rules (Bear orbit, Potter's wheel choros, Plough & Barking Dogs)">⚙ World Sim: ON</button>
+            <button class="btn" id="btn-turntable" title="Orbit Camera (Shortcut: O)">↻ Orbit</button>
+            <button class="btn" id="btn-sound" title="Synthesize Homeric Phorminx / Aulos / Forge / Oceanus Soundscape">♪ Audio: OFF</button>
+            <button class="btn" id="btn-reset-cam" title="Reset Camera Framing (Shortcut: R)">⌖ Reframe</button>
+          </div>
+        </div>
+
+        <div class="loader-banner" id="loader-banner">Forging LDraw Geometry in Hephaestus’s Furnace…</div>
+
+        <!-- Ekphrastic Subtitle Overlay -->
+        <div class="subtitle-overlay" id="subtitle-overlay">
+          <div class="subtitle-shot-head">
+            <span id="sub-shot-label">PREVIS SHOT 1 / 8 · CRANE</span>
+            <span id="sub-lines-label">ILIAD 18.478–608</span>
+          </div>
+          <div class="subtitle-greek" id="sub-greek">Ποίει δὲ πρώτιστα σάκος μέγα τε στιβαρόν τε πάντοσε δαιδάλλων…</div>
+          <div class="subtitle-english" id="sub-english">First of all he formed a shield, both large and solid, adorning it all over; and around it he threw a shining border, triple, glittering.</div>
+        </div>
+      </div>
+
+      <!-- Bottom Previs & World-Model Controller -->
+      <div class="previs-bar">
+        <div class="previs-row-1">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button class="btn primary" id="btn-play-previs" title="Play/Pause Directed Previs Shots (Space)">▶ Play Previs</button>
+            <div class="shot-buttons" id="shot-buttons"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="slider-group" title="Separate LDraw sub-builds vertically & radially to inspect construction">
+              <span>Explode Folds</span>
+              <input type="range" id="explode-slider" min="0" max="100" value="0">
+            </div>
+            <div class="slider-group" title="Adjust Forge vs. Kyanos Lighting">
+              <span>Forge Light</span>
+              <input type="range" id="light-slider" min="40" max="200" value="115">
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Inspector -->
+    <aside class="inspector">
+      <!-- Action Bar -->
+      <div class="ins-section">
+        <h3>
+          <span>Operative Actions</span>
+          <span id="ins-id-badge" style="color:var(--ink)">ACH-WORLD-SHIELD</span>
+        </h3>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn primary" id="btn-send-studio" title="Broadcast MPD & GOLD to Courage / Were / Master / Mento Studio">⚡ Send to Studio</button>
+          <a class="btn" id="btn-download-mpd" href="achilles/cards/ACH-WORLD-SHIELD.mpd" download>⬇ .MPD</a>
+          <a class="btn" id="btn-download-butter" href="achilles/butter/ACH-WORLD-SHIELD.json" download>⬇ .Butter</a>
+          <button class="btn" id="btn-copy-mpd">📋 Copy MPD</button>
+        </div>
+      </div>
+
+      <!-- Neurosymbolic World-Model Tripartite Inspector -->
+      <div class="ins-section">
+        <h3>
+          <span>Worldtext Architecture</span>
+          <span>Bolter &amp; Hartsoe</span>
+        </h3>
+        <div class="wm-row">
+          <div class="wm-tag">1. Vision Model (Metallurgical Surface)</div>
+          <div class="wm-text" id="wm-vision">Five concentric folds of bronze, tin, dark-blue kyanos, silver, and gold.</div>
+        </div>
+        <div class="wm-row">
+          <div class="wm-tag">2. Memory Model (Procedural State Rule)</div>
+          <div class="wm-text" id="wm-memory">Simultaneous cosmic and civic invariants: the Bear revolves without touching Oceanus; the golden glebe darkens behind the plough.</div>
+        </div>
+        <div class="wm-row">
+          <div class="wm-tag">3. Controller (Operative Navigation)</div>
+          <div class="wm-text" id="wm-controller">Radial &amp; concentric camera choreography from central celestial boss to Oceanus rim.</div>
+        </div>
+      </div>
+
+      <!-- Hephaestus's Metallurgy Breakdown -->
+      <div class="ins-section">
+        <h3>
+          <span>Hephaestus’s Metallurgy</span>
+          <span id="metal-total-lbl">3,735 pcs</span>
+        </h3>
+        <div class="metal-bar" id="metal-bar"></div>
+        <div class="metal-legend" id="metal-legend"></div>
+      </div>
+
+      <!-- LDraw Physical Audit Sheet -->
+      <div class="ins-section">
+        <h3>
+          <span>LDraw Assembly Audit</span>
+          <span style="color:var(--green)" id="ins-status">● GREEN</span>
+        </h3>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="lbl">Pieces</div>
+            <div class="val" id="m-pieces">—</div>
+          </div>
+          <div class="metric-box">
+            <div class="lbl">Sub-builds</div>
+            <div class="val" id="m-subs">—</div>
+          </div>
+          <div class="metric-box">
+            <div class="lbl">Stud Joints</div>
+            <div class="val" id="m-joints">—</div>
+          </div>
+          <div class="metric-box">
+            <div class="lbl">Footprint</div>
+            <div class="val" id="m-studs">—</div>
+          </div>
+          <div class="metric-box">
+            <div class="lbl">Height</div>
+            <div class="val" id="m-height">—</div>
+          </div>
+          <div class="metric-box">
+            <div class="lbl">Real Scale</div>
+            <div class="val" id="m-cm">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene Blocking: Location & Cast Chips -->
+      <div class="ins-section" id="ins-cast-section" style="display:none;">
+        <h3>
+          <span>Blocked Cast &amp; Location</span>
+          <span id="ins-cast-count">0</span>
+        </h3>
+        <div class="chip-list" id="ins-cast-chips"></div>
+      </div>
+
+      <!-- Sub-build Hierarchy Tree -->
+      <div class="ins-section">
+        <h3>
+          <span>LDraw MPD Sub-build Tree</span>
+          <span id="ins-depth-lbl">Depth 3</span>
+        </h3>
+        <div class="tree-box" id="ins-tree-box"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Three.js + OrbitControls + LDrawLoader -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="examples/js/loaders/LDrawLoader.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  const METAL_DEFS = [
+    { key: 'gold',    label: 'Gold (χρυσός)',      color: '#d4af37' },
+    { key: 'silver',  label: 'Silver (ἄργυρος)',    color: '#c0c5ce' },
+    { key: 'bronze',  label: 'Bronze (χαλκός)',     color: '#c87d3b' },
+    { key: 'tin',     label: 'Tin (κασσίτερος)',    color: '#d8dadf' },
+    { key: 'kyanos',  label: 'Kyanos (κύανος)',     color: '#3b6fc4' },
+    { key: 'niello',  label: 'Glebe (μελαίνετο)',   color: '#4a433b' },
+    { key: 'crimson', label: 'Crimson (δαφοινεός)', color: '#b83232' }
+  ];
+
+  let forageIndex = null;
+  let activeZone = 'ALL';
+  let activeType = 'ALL';
+  let searchQuery = '';
+  let currentCard = null;
+  let currentPrevis = null;
+  let currentShotIdx = 0;
+  let previsPlaying = false;
+  let previsShotStart = 0;
+  let worldSimEnabled = true;
+  let turntableEnabled = false;
+  let explodeAmount = 0;
+
+  // Three.js state
+  let scene, camera, renderer, controls;
+  let keyLight, fillLight, rimLight, forgePointLight;
+  let loadedGroup = null;
+  let dynamicSubGroups = [];
+  let ldConfigText = null;
+  const packCache = new Map();
+  const wagChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('wag-frank') : null;
+
+  // WebAudio procedural Homeric synthesizer
+  let audioCtx = null;
+  let audioEnabled = false;
+  let audioTimer = null;
+
+  function initThree() {
+    const wrap = document.getElementById('viewport-wrap');
+    const canvas = document.getElementById('stage-canvas');
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e0c09);
+
+    camera = new THREE.PerspectiveCamera(38, wrap.clientWidth / wrap.clientHeight, 1, 25000);
+    camera.position.set(0, 750, 1250);
+
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    // Keep LDraw LDConfig sRGB colors authentic without double-gamma washout
+    renderer.outputEncoding = THREE.LinearEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.target.set(0, 40, 0);
+
+    const hemi = new THREE.HemisphereLight(0xffe8b8, 0x1c2536, 0.72);
+    scene.add(hemi);
+
+    keyLight = new THREE.DirectionalLight(0xffdf9e, 1.15);
+    keyLight.position.set(500, 950, 650);
+    scene.add(keyLight);
+
+    fillLight = new THREE.DirectionalLight(0x6fa3ff, 0.55);
+    fillLight.position.set(-650, 450, -500);
+    scene.add(fillLight);
+
+    rimLight = new THREE.DirectionalLight(0xf5cf5b, 0.65);
+    rimLight.position.set(0, 350, -850);
+    scene.add(rimLight);
+
+    forgePointLight = new THREE.PointLight(0xff7722, 0.6, 1800);
+    forgePointLight.position.set(0, 120, 0);
+    scene.add(forgePointLight);
+
+    // Subtle concentric bronze anvil floor ring
+    const ringGeo = new THREE.RingGeometry(880, 910, 96);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x3a2e1e, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+    const floorRing = new THREE.Mesh(ringGeo, ringMat);
+    floorRing.position.y = -4;
+    scene.add(floorRing);
+
+    window.addEventListener('resize', onResize);
+    requestAnimationFrame(animate);
+  }
+
+  function onResize() {
+    const wrap = document.getElementById('viewport-wrap');
+    if (!wrap || !renderer) return;
+    camera.aspect = wrap.clientWidth / wrap.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  }
+
+  async function ensureLDConfig() {
+    if (ldConfigText) return ldConfigText;
+    const res = await fetch('ldraw/LDConfig.ldr');
+    ldConfigText = await res.text();
+    return ldConfigText;
+  }
+
+  async function ensurePartPacks(partIds) {
+    const missing = partIds.filter(id => !packCache.has(id));
+    await Promise.all(missing.map(async (partId) => {
+      const fname = partId.replace(/\//g, '_') + '.json';
+      try {
+        const res = await fetch('achilles/packs/' + fname);
+        if (res.ok) {
+          const json = await res.json();
+          packCache.set(partId, json);
+        }
+      } catch (err) {
+        console.warn('Pack fetch warning:', partId, err);
+      }
+    }));
+  }
+
+  function extractPartsFromMPD(mpdText) {
+    const parts = new Set();
+    const lines = mpdText.split(/\r?\n/);
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('1 ')) continue;
+      const tokens = t.split(/\s+/);
+      if (tokens.length < 15) continue;
+      const ref = tokens.slice(14).join(' ').toLowerCase();
+      if (ref.endsWith('.dat')) {
+        parts.add(ref.slice(0, -4));
+      }
+    }
+    return [...parts];
+  }
+
+  async function loadCard3D(card) {
+    const banner = document.getElementById('loader-banner');
+    banner.style.display = 'block';
+    banner.textContent = `Forging ${card.id} (${card.sheet.pieces.toLocaleString()} LDraw pieces)…`;
+
+    try {
+      const [cfgText, mpdRes] = await Promise.all([
+        ensureLDConfig(),
+        fetch(`achilles/cards/${card.id}.mpd`)
+      ]);
+      const mpdText = await mpdRes.text();
+      const neededParts = extractPartsFromMPD(mpdText);
+      await ensurePartPacks(neededParts);
+
+      const loader = new THREE.LDrawLoader();
+      loader.separateObjects = true;
+      loader.smoothNormals = true;
+      loader.setPath('ldraw/');
+      loader.processObject(cfgText, false, 'LDConfig.ldr');
+
+      // Populate loader.subobjectCache from pre-bundled part packs
+      for (const partId of neededParts) {
+        const pack = packCache.get(partId);
+        if (!pack) continue;
+        for (const [k, content] of Object.entries(pack)) {
+          loader.subobjectCache[k.toLowerCase()] = content;
+        }
+      }
+
+      await new Promise((resolve) => {
+        loader.parse(mpdText, card.id + '.mpd', (group) => {
+          if (loadedGroup) {
+            scene.remove(loadedGroup);
+          }
+          // Flip LDraw Y-down coordinate system to Three.js Y-up
+          group.rotation.x = Math.PI;
+          scene.add(group);
+          loadedGroup = group;
+
+          // Record sub-build children for explode view & procedural world-model animation
+          dynamicSubGroups = [];
+          group.updateMatrixWorld(true);
+          group.children.forEach((child, idx) => {
+            const box = new THREE.Box3().setFromObject(child);
+            const center = box.getCenter(new THREE.Vector3());
+            dynamicSubGroups.push({
+              mesh: child,
+              idx,
+              basePos: child.position.clone(),
+              baseRot: child.rotation.clone(),
+              worldCenter: center,
+              name: (child.userData && child.userData.fileName) || child.name || `sub_${idx}`
+            });
+          });
+
+          applyExplode(explodeAmount);
+          reframeCamera(card);
+          resolve();
+        });
+      });
+
+      // Load Previs shots if available
+      if (card.hasPrevis) {
+        const pRes = await fetch(`achilles/previs/${card.id}.json`);
+        currentPrevis = pRes.ok ? await pRes.json() : null;
+      } else {
+        currentPrevis = null;
+      }
+      setupPrevisUI(card, currentPrevis);
+
+    } catch (err) {
+      console.error('Error loading card 3D:', err);
+    } finally {
+      banner.style.display = 'none';
+    }
+  }
+
+  function reframeCamera(card) {
+    if (!loadedGroup) return;
+    const box = new THREE.Box3().setFromObject(loadedGroup);
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z, 120);
+
+    controls.target.copy(center);
+    if (card && card.type === 'world') {
+      camera.position.set(center.x, center.y + maxDim * 0.78, center.z + maxDim * 0.85);
+    } else if (card && (card.type === 'scene' || card.type === 'location')) {
+      camera.position.set(center.x + maxDim * 0.35, center.y + maxDim * 0.55, center.z + maxDim * 0.92);
+    } else {
+      camera.position.set(center.x + maxDim * 0.55, center.y + maxDim * 0.65, center.z + maxDim * 1.25);
+    }
+    controls.update();
+  }
+
+  function applyExplode(val) {
+    explodeAmount = val;
+    const factor = val / 100;
+    for (const item of dynamicSubGroups) {
+      if (item.idx === 0) continue; // Keep baseplate anchored
+      const radialX = item.worldCenter.x * 0.35 * factor;
+      const radialZ = item.worldCenter.z * 0.35 * factor;
+      const liftY = -(item.idx * 14 + 35) * factor; // Negative in LDraw local space = upward in world Y
+      item.mesh.position.set(
+        item.basePos.x + radialX,
+        item.basePos.y + liftY,
+        item.basePos.z + radialZ
+      );
+    }
+  }
+
+  function setupPrevisUI(card, previs) {
+    const shotWrap = document.getElementById('shot-buttons');
+    shotWrap.innerHTML = '';
+    currentShotIdx = 0;
+
+    if (previs && previs.shots && previs.shots.length) {
+      previs.shots.forEach((sh, i) => {
+        const b = document.createElement('button');
+        b.className = 'shot-btn' + (i === 0 ? ' active' : '');
+        b.textContent = `${sh.id}: ${sh.title}`;
+        b.addEventListener('click', () => {
+          previsPlaying = false;
+          updatePlayBtn();
+          selectShot(i, true);
+        });
+        shotWrap.appendChild(b);
+      });
+      selectShot(0, false);
+    } else {
+      const b = document.createElement('span');
+      b.style.fontFamily = 'var(--font-mono)';
+      b.style.fontSize = '10.5px';
+      b.style.color = 'var(--muted)';
+      b.textContent = `Asset Inspection Mode · Use Orbit / Explode Folds`;
+      shotWrap.appendChild(b);
+
+      document.getElementById('sub-shot-label').textContent = `${card.type.toUpperCase()} CARD · ${card.zone}`;
+      document.getElementById('sub-lines-label').textContent = `ILIAD ${card.lines}`;
+      document.getElementById('sub-greek').textContent = card.greek || 'Ποίει δὲ πρώτιστα σάκος μέγα τε στιβαρόν τε…';
+      document.getElementById('sub-english').textContent = card.buckley || `${card.name} — wrought by Hephaestus in LDraw geometry (${card.sheet.pieces} pieces, ${card.sheet.joints} stud joints).`;
+    }
+  }
+
+  function selectShot(idx, snapCamera) {
+    if (!currentPrevis || !currentPrevis.shots || !currentPrevis.shots[idx]) return;
+    currentShotIdx = idx;
+    previsShotStart = performance.now();
+
+    const btns = document.querySelectorAll('#shot-buttons .shot-btn');
+    btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+
+    const sh = currentPrevis.shots[idx];
+    document.getElementById('sub-shot-head');
+    document.getElementById('sub-shot-label').textContent = `SHOT ${idx + 1} / ${currentPrevis.shots.length} · ${(sh.kind || 'CAM').toUpperCase()} · ${sh.title}`;
+    document.getElementById('sub-lines-label').textContent = `ILIAD ${currentCard.lines}`;
+    document.getElementById('sub-greek').textContent = currentCard.greek || '';
+    document.getElementById('sub-english').textContent = sh.caption || currentCard.buckley || '';
+
+    if (snapCamera && sh.cam && sh.look) {
+      camera.position.set(sh.cam[0], sh.cam[1], sh.cam[2]);
+      controls.target.set(sh.look[0], sh.look[1], sh.look[2]);
+      controls.update();
+    }
+  }
+
+  function updatePlayBtn() {
+    const btn = document.getElementById('btn-play-previs');
+    btn.textContent = previsPlaying ? '⏸ Pause Previs' : '▶ Play Previs';
+    btn.classList.toggle('active', previsPlaying);
+  }
+
+  function animate(now) {
+    requestAnimationFrame(animate);
+    const t = now * 0.001;
+
+    // 1. Previs camera choreography
+    if (previsPlaying && currentPrevis && currentPrevis.shots && currentPrevis.shots.length) {
+      const sh = currentPrevis.shots[currentShotIdx];
+      const durMs = (sh.dur || 6) * 1000;
+      const elapsed = now - previsShotStart;
+      const u = Math.min(1, elapsed / durMs);
+      const smoothU = u * u * (3 - 2 * u);
+
+      const nextIdx = (currentShotIdx + 1) % currentPrevis.shots.length;
+      const nextSh = currentPrevis.shots[nextIdx];
+
+      if (sh.cam && sh.look && nextSh.cam && nextSh.look) {
+        const cx = THREE.MathUtils.lerp(sh.cam[0], nextSh.cam[0], smoothU * 0.35);
+        const cy = THREE.MathUtils.lerp(sh.cam[1], nextSh.cam[1], smoothU * 0.35);
+        const cz = THREE.MathUtils.lerp(sh.cam[2], nextSh.cam[2], smoothU * 0.35);
+        camera.position.lerp(new THREE.Vector3(cx, cy, cz), 0.06);
+
+        const lx = THREE.MathUtils.lerp(sh.look[0], nextSh.look[0], smoothU * 0.35);
+        const ly = THREE.MathUtils.lerp(sh.look[1], nextSh.look[1], smoothU * 0.35);
+        const lz = THREE.MathUtils.lerp(sh.look[2], nextSh.look[2], smoothU * 0.35);
+        controls.target.lerp(new THREE.Vector3(lx, ly, lz), 0.08);
+      }
+
+      if (elapsed >= durMs) {
+        selectShot(nextIdx, false);
+      }
+    } else if (turntableEnabled && loadedGroup) {
+      const offset = camera.position.clone().sub(controls.target);
+      offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.0045);
+      camera.position.copy(controls.target).add(offset);
+    }
+
+    // 2. Procedural Homeric World-Model Simulation (Memory Model Invariants)
+    if (worldSimEnabled && dynamicSubGroups.length > 1 && explodeAmount === 0) {
+      const z = currentCard ? currentCard.zone : 'Z01';
+      // Pulse Hephaestus's forge light
+      forgePointLight.intensity = 0.55 + 0.22 * Math.sin(t * 2.6);
+
+      dynamicSubGroups.forEach((item, idx) => {
+        if (idx === 0) return; // Baseplate stays fixed
+        const phase = idx * 0.75;
+
+        if (currentCard.id === 'ACH-WORLD-SHIELD') {
+          // On the Master Shield: subtle living breathing across the concentric rings
+          const r = Math.hypot(item.worldCenter.x, item.worldCenter.z);
+          if (r < 190 && idx > 2) {
+            // Celestial constellations gently wheeling around the pole
+            item.mesh.rotation.y = item.baseRot.y + Math.sin(t * 0.8 + phase) * 0.08;
+          } else {
+            item.mesh.position.y = item.basePos.y + Math.sin(t * 1.8 + phase) * 1.8;
+          }
+        } else if (z === 'Z01') {
+          // Revolving Bear/Wain & celestial bodies
+          item.mesh.position.y = item.basePos.y + Math.sin(t * 1.6 + phase) * 2.2;
+        } else if (z === 'Z02') {
+          // Bridal dancers whirling & Elders rising in turn
+          item.mesh.rotation.y = item.baseRot.y + Math.sin(t * 2.2 + phase) * 0.14;
+          item.mesh.position.y = item.basePos.y + Math.abs(Math.sin(t * 2.2 + phase)) * -2.5;
+        } else if (z === 'Z03') {
+          // Spear clash & horses charging at the river bank
+          item.mesh.position.x = item.basePos.x + Math.sin(t * 3.0 + phase) * 2.0;
+        } else if (z === 'Z04') {
+          // Plough teams driving back and forth & reapers swinging sickles
+          item.mesh.position.z = item.basePos.z + Math.sin(t * 1.5 + phase) * 3.0;
+        } else if (z === 'Z05') {
+          // Nine dogs barking and darting back (ὑλάοντές τε καὶ ἐκτὸς ἀλυσκάζοντες)
+          item.mesh.position.x = item.basePos.x + Math.sin(t * 4.2 + phase) * 2.8;
+          item.mesh.position.y = item.basePos.y - Math.abs(Math.sin(t * 4.2 + phase)) * 2.2;
+        } else if (z === 'Z06') {
+          // Potter's wheel rotation of the Daedalean Choros & two spinning tumblers
+          item.mesh.rotation.y = item.baseRot.y + Math.sin(t * 2.8 + phase) * 0.22;
+          item.mesh.position.y = item.basePos.y - Math.abs(Math.sin(t * 3.2 + phase)) * 3.0;
+        }
+      });
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  // Render Sidebar List
+  function renderCardList() {
+    if (!forageIndex) return;
+    const listEl = document.getElementById('card-list');
+    listEl.innerHTML = '';
+
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = forageIndex.cards.filter(c => {
+      if (activeZone !== 'ALL' && c.zone !== activeZone && c.type !== 'world') return false;
+      if (activeType === 'scene_world' && c.type !== 'scene' && c.type !== 'world') return false;
+      else if (activeType === 'prop_set' && !['prop', 'set_piece', 'environment', 'sound_source'].includes(c.type)) return false;
+      else if (activeType !== 'ALL' && activeType !== 'scene_world' && activeType !== 'prop_set' && c.type !== activeType) return false;
+
+      if (q) {
+        const hay = `${c.id} ${c.name} ${c.type} ${c.zone} ${c.lines} ${c.greek} ${c.buckley} ${c.role}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    for (const c of filtered) {
+      const el = document.createElement('div');
+      el.className = 'card-item' + (currentCard && currentCard.id === c.id ? ' active' : '');
+      el.innerHTML = `
+        <div class="card-item-top">
+          <span><span class="status-dot"></span>${c.id}</span>
+          <div style="display:flex;gap:4px;">
+            <span class="badge zone">${c.zone}</span>
+            <span class="badge type-${c.type}">${c.type}</span>
+          </div>
+        </div>
+        <div class="card-item-title">${c.name}</div>
+        <div class="card-item-meta">
+          <span>Iliad ${c.lines}</span>
+          <span>${c.sheet.pieces.toLocaleString()} pcs · ${c.sheet.joints.toLocaleString()} jts</span>
+        </div>
+      `;
+      el.addEventListener('click', () => selectCard(c));
+      listEl.appendChild(el);
+    }
+  }
+
+  function renderTreeNodes(node, depth = 0) {
+    if (!node) return '';
+    const indent = '&nbsp;&nbsp;'.repeat(depth);
+    const branch = depth > 0 ? '├─ ' : '◎ ';
+    let html = `<div class="tree-node">${indent}${branch}<strong>${node.name}</strong> <span>(${node.pieces} pcs, ${node.how})</span></div>`;
+    if (node.subs && node.subs.length) {
+      for (const s of node.subs) {
+        html += renderTreeNodes(s, depth + 1);
+      }
+    }
+    return html;
+  }
+
+  function selectCard(card) {
+    currentCard = card;
+    renderCardList();
+
+    // Update Top Stage HUD
+    document.getElementById('hud-kicker').textContent = `${card.id} · ${card.zone} · ILIAD ${card.lines}`;
+    document.getElementById('hud-title').textContent = card.name;
+
+    // Update Right Inspector
+    document.getElementById('ins-id-badge').textContent = card.id;
+    document.getElementById('btn-download-mpd').href = `achilles/cards/${card.id}.mpd`;
+    document.getElementById('btn-download-butter').href = `achilles/butter/${card.id}.json`;
+
+    // World-Model Tripartite Readout
+    const wm = card.worldModel || {};
+    document.getElementById('wm-vision').textContent = wm.vision ||
+      `Wrought in Hephaestus’s palette (${card.sheet.metals.gold} gold, ${card.sheet.metals.silver} silver, ${card.sheet.metals.bronze} bronze, ${card.sheet.metals.tin} tin, ${card.sheet.metals.kyanos} kyanos parts).`;
+    document.getElementById('wm-memory').textContent = wm.memory ||
+      `Homeric invariant (${card.lines}): ${card.role || card.type} anchored with ${card.sheet.joints} stud joints across ${card.sheet.subBuilds} sub-builds.`;
+    document.getElementById('wm-controller').textContent = wm.controller ||
+      (card.hasPrevis ? `${card.shotCount}-shot directed Previs camera timeline with interactive orbit and fold explosion.` : `Interactive 360° LDraw inspection with sub-build explosion and studio MPD broadcast.`);
+
+    // Metallurgy Bar & Legend
+    const m = card.sheet.metals || {};
+    const totalParts = Math.max(1, card.sheet.pieces);
+    document.getElementById('metal-total-lbl').textContent = `${card.sheet.pieces.toLocaleString()} pcs`;
+
+    const barEl = document.getElementById('metal-bar');
+    const legEl = document.getElementById('metal-legend');
+    barEl.innerHTML = '';
+    legEl.innerHTML = '';
+
+    for (const def of METAL_DEFS) {
+      const count = m[def.key] || 0;
+      const pct = +((count / totalParts) * 100).toFixed(1);
+      if (count > 0) {
+        const seg = document.createElement('div');
+        seg.className = 'metal-seg';
+        seg.style.width = `${Math.max(2, pct)}%`;
+        seg.style.background = def.color;
+        seg.title = `${def.label}: ${count} pcs (${pct}%)`;
+        barEl.appendChild(seg);
+      }
+      const item = document.createElement('div');
+      item.className = 'metal-item';
+      item.innerHTML = `
+        <span><span class="metal-swatch" style="background:${def.color}"></span>${def.label.split(' ')[0]}</span>
+        <strong>${count}</strong>
+      `;
+      legEl.appendChild(item);
+    }
+
+    // Audit Metrics
+    document.getElementById('m-pieces').textContent = card.sheet.pieces.toLocaleString();
+    document.getElementById('m-subs').textContent = card.sheet.subBuilds.toLocaleString();
+    document.getElementById('m-joints').textContent = card.sheet.joints.toLocaleString();
+    document.getElementById('m-studs').textContent = `${card.sheet.studs[0]}×${card.sheet.studs[1]} st`;
+    document.getElementById('m-height').textContent = `${card.sheet.height.bricks} brk`;
+    document.getElementById('m-cm').textContent = `${card.sheet.cm[0]}×${card.sheet.cm[1]} cm`;
+
+    // Cast & Location Chips
+    const castSec = document.getElementById('ins-cast-section');
+    const castChips = document.getElementById('ins-cast-chips');
+    castChips.innerHTML = '';
+    const refs = [];
+    if (card.locationId) refs.push(card.locationId);
+    if (card.castIds && card.castIds.length) {
+      for (const cid of card.castIds) {
+        if (!refs.includes(cid)) refs.push(cid);
+      }
+    }
+    if (refs.length) {
+      castSec.style.display = 'block';
+      document.getElementById('ins-cast-count').textContent = `${refs.length} linked cards`;
+      for (const refId of refs) {
+        const chip = document.createElement('button');
+        chip.className = 'link-chip';
+        chip.textContent = refId;
+        chip.addEventListener('click', () => {
+          const target = forageIndex.cards.find(x => x.id === refId);
+          if (target) selectCard(target);
+        });
+        castChips.appendChild(chip);
+      }
+    } else {
+      castSec.style.display = 'none';
+    }
+
+    // Tree
+    document.getElementById('ins-depth-lbl').textContent = `Depth ${card.sheet.depth}`;
+    document.getElementById('ins-tree-box').innerHTML = renderTreeNodes(card.tree);
+
+    // Reset explode slider when switching cards
+    const expSlider = document.getElementById('explode-slider');
+    expSlider.value = 0;
+    explodeAmount = 0;
+
+    loadCard3D(card);
+  }
+
+  // Send MPD to TRUBADOR Studio (Parent iframe & BroadcastChannel)
+  async function sendCardToStudio(card) {
+    if (!card) return;
+    const res = await fetch(`achilles/cards/${card.id}.mpd`);
+    const mpdText = await res.text();
+    const payload = {
+      type: 'achilles-load-mpd',
+      cardId: card.id,
+      name: card.name,
+      zone: card.zone,
+      lines: card.lines,
+      mpd: mpdText
+    };
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, '*');
+    }
+    if (wagChannel) {
+      wagChannel.postMessage({
+        type: 'scene-mpd',
+        name: card.name,
+        mpd: mpdText,
+        source: 'achilles-forage'
+      });
+    }
+    const btn = document.getElementById('btn-send-studio');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Sent to Studio';
+    setTimeout(() => { btn.textContent = orig; }, 1600);
+  }
+
+  // Synthesize Homeric Soundscape (Phorminx Lyre / Aulos / Forge Anvil)
+  function toggleSoundscape() {
+    audioEnabled = !audioEnabled;
+    const btn = document.getElementById('btn-sound');
+    btn.textContent = audioEnabled ? '♪ Audio: ON' : '♪ Audio: OFF';
+    btn.classList.toggle('active', audioEnabled);
+
+    if (!audioEnabled) {
+      if (audioTimer) clearInterval(audioTimer);
+      audioTimer = null;
+      return;
+    }
+
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Dorian / Phrygian Homeric phorminx scale (Hz)
+    const scale = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0, 440.0];
+    const playPluck = () => {
+      if (!audioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const zone = currentCard ? currentCard.zone : 'Z01';
+
+      const freq = scale[Math.floor(Math.random() * scale.length)] * (zone === 'Z03' ? 0.5 : 1.0);
+      osc.type = zone === 'Z01' ? 'triangle' : (zone === 'Z03' ? 'sawtooth' : 'sine');
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.15);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 1.2);
+    };
+
+    playPluck();
+    audioTimer = setInterval(playPluck, 680);
+  }
+
+  async function init() {
+    initThree();
+
+    const res = await fetch('achilles/forage.json');
+    forageIndex = await res.json();
+
+    document.getElementById('stat-cards').textContent = forageIndex.totals.cards.toLocaleString();
+    document.getElementById('stat-pieces').textContent = forageIndex.totals.pieces.toLocaleString();
+    document.getElementById('stat-subs').textContent = forageIndex.totals.subBuilds.toLocaleString();
+    document.getElementById('stat-joints').textContent = forageIndex.totals.joints.toLocaleString();
+
+    // Check URL hash or ?card= query parameter
+    const params = new URLSearchParams(window.location.search);
+    const wantedId = params.get('card') || window.location.hash.replace('#', '') || 'ACH-WORLD-SHIELD';
+    const initialCard = forageIndex.cards.find(c => c.id === wantedId) || forageIndex.cards[0];
+    selectCard(initialCard);
+
+    // Zone Filter Pills
+    document.querySelectorAll('#zone-pills .pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeZone = btn.dataset.zone;
+        document.querySelectorAll('#zone-pills .pill').forEach(b => b.classList.toggle('active', b === btn));
+        renderCardList();
+      });
+    });
+
+    // Type Filter Pills
+    document.querySelectorAll('#type-pills .pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeType = btn.dataset.type;
+        document.querySelectorAll('#type-pills .pill').forEach(b => b.classList.toggle('active', b === btn));
+        renderCardList();
+      });
+    });
+
+    // Interactive Concentric SVG Radar Map
+    document.querySelectorAll('#shield-radar-svg .ring-hit').forEach(ring => {
+      ring.addEventListener('click', () => {
+        const z = ring.dataset.zone;
+        activeZone = z;
+        document.querySelectorAll('#zone-pills .pill').forEach(b => b.classList.toggle('active', b.dataset.zone === z));
+        const zMeta = forageIndex.zones.find(x => x.id === z);
+        if (zMeta) {
+          document.getElementById('radar-active-label').textContent = `${zMeta.name}`;
+          document.getElementById('radar-active-desc').textContent = `Iliad ${zMeta.lines} · ${zMeta.fold}: ${zMeta.summary}`;
+        }
+        renderCardList();
+        // Also load the first scene in that zone
+        const zoneScene = forageIndex.cards.find(c => c.zone === z && c.type === 'scene');
+        if (zoneScene) selectCard(zoneScene);
+      });
+    });
+
+    document.getElementById('btn-reset-zone').addEventListener('click', () => {
+      activeZone = 'ALL';
+      activeType = 'ALL';
+      document.querySelectorAll('#zone-pills .pill').forEach(b => b.classList.toggle('active', b.dataset.zone === 'ALL'));
+      document.querySelectorAll('#type-pills .pill').forEach(b => b.classList.toggle('active', b.dataset.type === 'ALL'));
+      document.getElementById('radar-active-label').textContent = 'Πέντε Πτύχες (5 Folds)';
+      document.getElementById('radar-active-desc').textContent = 'Showing all 63 cards across all 6 Homeric zones.';
+      renderCardList();
+    });
+
+    // Search
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderCardList();
+    });
+
+    // Master Shield World Quick Load
+    const loadMaster = () => {
+      const master = forageIndex.cards.find(c => c.id === 'ACH-WORLD-SHIELD');
+      if (master) selectCard(master);
+    };
+    document.getElementById('btn-load-master').addEventListener('click', loadMaster);
+    document.getElementById('btn-home-emblem').addEventListener('click', loadMaster);
+
+    // Stage Controls
+    document.getElementById('btn-play-previs').addEventListener('click', () => {
+      previsPlaying = !previsPlaying;
+      previsShotStart = performance.now();
+      updatePlayBtn();
+    });
+
+    document.getElementById('btn-world-sim').addEventListener('click', (e) => {
+      worldSimEnabled = !worldSimEnabled;
+      e.currentTarget.textContent = worldSimEnabled ? '⚙ World Sim: ON' : '⚙ World Sim: OFF';
+      e.currentTarget.classList.toggle('active', worldSimEnabled);
+    });
+
+    document.getElementById('btn-turntable').addEventListener('click', (e) => {
+      turntableEnabled = !turntableEnabled;
+      e.currentTarget.classList.toggle('active', turntableEnabled);
+    });
+
+    document.getElementById('btn-sound').addEventListener('click', toggleSoundscape);
+    document.getElementById('btn-reset-cam').addEventListener('click', () => reframeCamera(currentCard));
+
+    document.getElementById('explode-slider').addEventListener('input', (e) => {
+      applyExplode(Number(e.target.value));
+    });
+
+    document.getElementById('light-slider').addEventListener('input', (e) => {
+      const exp = Number(e.target.value) / 100;
+      renderer.toneMappingExposure = exp;
+    });
+
+    // Studio & Copy Actions
+    document.getElementById('btn-send-studio').addEventListener('click', () => sendCardToStudio(currentCard));
+    document.getElementById('btn-copy-mpd').addEventListener('click', async (e) => {
+      if (!currentCard) return;
+      const btn = e.currentTarget;
+      const res = await fetch(`achilles/cards/${currentCard.id}.mpd`);
+      const txt = await res.text();
+      await navigator.clipboard.writeText(txt);
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1400);
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        previsPlaying = !previsPlaying;
+        previsShotStart = performance.now();
+        updatePlayBtn();
+      } else if (e.key === 'o' || e.key === 'O') {
+        turntableEnabled = !turntableEnabled;
+        document.getElementById('btn-turntable').classList.toggle('active', turntableEnabled);
+      } else if (e.key === 'r' || e.key === 'R') {
+        reframeCamera(currentCard);
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

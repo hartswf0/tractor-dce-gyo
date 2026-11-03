@@ -1,0 +1,15 @@
+1
+00:00:00,100 --> 00:00:03,900
+In October 2026, our first Shield of Achilles render failed with 94 collisions and floating bricks. Here is how we rebuilt all 20 kits with zero loose parts.
+
+2
+00:00:04,100 --> 00:00:07,900
+First, every section starts with two cross-laminated plate layers. On the 48×32 dioramas, 640 dark-blue and pearl-gold plates lock the stage into one rigid slab.
+
+3
+00:00:08,100 --> 00:00:11,900
+Second, shield_diorama_lib.py replaces flat checkerboards with stepped SNOT relief hills, coursed stone walls with jumper cornices, stud-bonded cypress trees, and articulated oxen and lions.
+
+4
+00:00:12,100 --> 00:00:15,900
+Finally, kitlib.check() runs a breadth-first stud graph search and a 3D bounding-box clash test across all 24,631 pieces before a single frame is rendered.

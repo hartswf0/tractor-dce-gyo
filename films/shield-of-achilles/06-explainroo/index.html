@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Film 06 · Why Big LEGO Sets Fail — 3D LDraw Architectural Explainer (explainroo)</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<script src="vendor/forage-bundle.js"></script>
+<script src="vendor/shield-dioramas-bundle.js"></script>
+<script src="vendor/lego3d.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #060912; color: #f6f1e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+  #film {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 36%, #1c2c4c 0%, #090f1d 65%, #04060b 100%);
+  }
+  canvas#gl {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; display: block;
+  }
+  .letterbox-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 64px;
+    background: rgba(5, 8, 15, 0.88); border-bottom: 1px solid rgba(229, 189, 67, 0.4);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 54px; z-index: 6;
+  }
+  .hdr-title {
+    font-family: monospace; font-size: 14px; font-weight: 800;
+    letter-spacing: 0.14em; color: #facc15; text-transform: uppercase;
+  }
+  .hdr-meta {
+    font-family: monospace; font-size: 14px; color: #cbd5e1; display: flex; gap: 22px;
+  }
+  .hdr-meta strong { color: #4ade80; }
+  .rule-chip {
+    position: absolute; top: 86px; left: 54px;
+    background: rgba(10, 16, 28, 0.9); border: 1.5px solid #e5bd43;
+    border-radius: 10px; padding: 10px 18px; z-index: 6;
+    font-family: monospace; font-size: 14px; color: #fef08a;
+  }
+  /* Word-by-word Whisper subtitle bar */
+  .sub-bar {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: rgba(6, 10, 18, 0.92); border: 2px solid rgba(229, 189, 67, 0.55);
+    border-radius: 16px; padding: 16px 34px; z-index: 8;
+    min-width: 1180px; text-align: center;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.7);
+  }
+  .sub-words {
+    font-size: 26px; font-weight: 700; line-height: 1.35;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  }
+  .w-tok {
+    color: rgba(241, 245, 249, 0.52);
+    padding: 2px 6px; border-radius: 6px;
+  }
+  .w-tok.spoken { color: #f8fafc; }
+  .w-tok.active {
+    background: #facc15; color: #050811; font-weight: 900;
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.55);
+  }
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="film" data-width="1920" data-height="1080" data-om-signature="off">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+
+  <div class="letterbox-top">
+    <div class="hdr-title" id="sceneHdr">EXPLAINROO SCENE 1/4 · STEPPED 96×96 FRAME &amp; LOW DIVIDERS (2,754 BRICKS)</div>
+    <div class="hdr-meta">
+      <span>SKILL: <strong>VINCENTSCH / EXPLAINROO</strong></span>
+      <span>MODEL: <strong id="modelSlug">set.shield-frame.mpd</strong></span>
+      <span>CHECKER: <strong>clicks.py → 0 LOOSE · 0 CLASHES</strong></span>
+    </div>
+  </div>
+
+  <div class="rule-chip" id="ruleChip">CRAFT RULE #1: 1-Plate + 1-Tile Dividers (No Tall Maze Walls)</div>
+
+  <div class="sub-bar">
+    <div class="sub-words" id="subWords"></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gl');
+const engine = new LegoCinema.Engine(canvas);
+// Lazy-loaded per shot by engine.render()
+
+const SCENES = [
+  {
+    t0: 0.0, t1: 4.0,
+    slug: 'shield-frame', pieces: 2754,
+    hdr: 'EXPLAINROO SCENE 1/4 · STEPPED 96×96 FRAME & LOW DIVIDERS (2,754 REAL BRICKS)',
+    rule: 'CRAFT RULE #1: Stepped 5-Ring Relief Dome (+64 LDU Boss) & 1-Plate+Tile Dividers',
+    words: ['Why', 'do', 'giant', 'LEGO', 'sets', 'fail?', 'Tall', 'maze', 'walls', 'bury', 'the', 'scenes—so', 'shield_frame.py', 'uses', 'low', 'one-plate', 'and', 'tile', 'ring', 'dividers.'],
+    eye0: [-340, 620, 960], eye1: [320, 480, 820],
+    target0: [0, 45, 0], target1: [0, 50, 0],
+    buildFn: (u) => Math.min(1.0, 0.30 + u * 1.4),
+    explodeFn: () => 0.0
+  },
+  {
+    t0: 4.0, t1: 8.0,
+    slug: 'shield-of-achilles', pieces: 7522,
+    hdr: 'EXPLAINROO SCENE 2/4 · TEN MODULAR LIFT-OUT KITS M0–M9 (7,522 REAL BRICKS)',
+    rule: 'CRAFT RULE #2: Cross-Bonded 2-Layer Plate Bases That Lift Out in One Piece',
+    words: ['Each', 'of', 'the', 'ten', 'sections', 'M0', 'through', 'M9', 'is', 'built', 'on', 'a', 'cross-bonded', 'base', 'that', 'lifts', 'out', 'and', 'clicks', 'into', 'place.'],
+    eye0: [420, 820, 1140], eye1: [-240, 520, 840],
+    target0: [0, 95, 0], target1: [0, 65, 0],
+    buildFn: () => 1.0,
+    explodeFn: (u) => Math.sin(u * Math.PI) * 0.85
+  },
+  {
+    t0: 8.0, t1: 12.0,
+    slug: 'shield-diorama-ambush', pieces: 1957,
+    hdr: 'EXPLAINROO SCENE 3/4 · 1.6× BRICK-BUILT GOLDEN GODS & ASHLAR COURSING (1,957 BRICKS)',
+    rule: 'CRAFT RULE #3: Gods Larger in Pearl Gold (297) & Coursed Masonry Walls',
+    words: ['Homer’s', 'Ares', 'and', 'Athena', 'stand', 'at', 'one-point-six', 'times', 'mortal', 'scale', 'in', 'Pearl', 'Gold', 'beside', 'the', 'coursed', 'Scaean', 'Gate.'],
+    eye0: [-250, 350, 720], eye1: [230, 240, 620],
+    target0: [-30, 110, -15], target1: [30, 95, -10],
+    buildFn: () => 1.0,
+    explodeFn: () => 0.0
+  },
+  {
+    t0: 12.0, t1: 16.0,
+    slug: 'shield-diorama-harvest', pieces: 1673,
+    hdr: 'EXPLAINROO SCENE 4/4 · MACHINE-VERIFIED WITH CLICKS.PY: 0 LOOSE, 0 CLASHES (1,673 BRICKS)',
+    rule: 'CRAFT RULE #4: Furrowed Fields, 54200 Terracotta Roofs & 0 Volumetric Clashes',
+    words: ['Every', 'furrow,', 'reaper,', 'and', 'terracotta', 'gable', 'passes', 'kitlib.check', 'with', 'zero', 'unclicked', 'parts', 'and', 'zero', 'volumetric', 'clashes.'],
+    eye0: [250, 360, 730], eye1: [-230, 260, 640],
+    target0: [30, 105, -15], target1: [-30, 95, -10],
+    buildFn: () => 1.0,
+    explodeFn: () => 0.0
+  }
+];
+
+function renderFrame(sec) {
+  const t = Math.max(0, Math.min(16.0, sec));
+  const st = LegoCinema.evalShotList(SCENES, t);
+  const s = st.shot;
+
+  document.getElementById('sceneHdr').textContent = s.hdr;
+  document.getElementById('modelSlug').textContent = `set.${s.slug}.mpd (${s.pieces.toLocaleString()} pcs)`;
+  document.getElementById('ruleChip').textContent = s.rule;
+
+  // Word-level Whisper highlight
+  const words = s.words;
+  const activeIdx = Math.min(words.length - 1, Math.floor(st.u * words.length));
+  const subBox = document.getElementById('subWords');
+  subBox.innerHTML = words.map((w, i) => {
+    const cls = i === activeIdx ? 'w-tok active' : (i < activeIdx ? 'w-tok spoken' : 'w-tok');
+    return `<span class="${cls}">${w}</span>`;
+  }).join('');
+
+  engine.render({
+    slug: st.slug,
+    time: t * 1.25,
+    eye: st.eye,
+    target: st.target,
+    fov: 31,
+    build: st.build,
+    explode: st.explode,
+    turnAngle: t * 0.45,
+    pulseR: -1,
+    pulseAmp: 0,
+    torchPos: st.torchPos,
+    torchCol: [1.0, 0.80, 0.34],
+    torchStr: 1.45
+  });
+}
+
+window.renderFrame = renderFrame;
+if (window.gsap && window.OM) {
+  const tl = gsap.timeline({ paused: true });
+  SCENES.forEach((s, i) => tl.addLabel('explain:' + (i + 1), s.t0));
+  OM.clock(tl, (sec) => renderFrame(sec), 16.0, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['film'] = tl;
+}
+renderFrame(0);
+if (!navigator.webdriver) {
+  const t0 = performance.now();
+  (function loop(now) {
+    renderFrame(((now - t0) / 1000) % 16.0);
+    requestAnimationFrame(loop);
+  })(t0);
+}
+</script>
+</body>
+</html>
