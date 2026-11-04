@@ -98,6 +98,30 @@ def pack_plates(cells_col, yup, axis='x'):
     return rows
 
 
+def pack_bricks(cells_col, yup, axis='x', masonry=True):
+    """Pack {(i, k): col} at `yup` with full 24-LDU LEGO bricks, using embossed profile masonry bricks
+    (`98283` 1x2 and `15533` 1x4) when `masonry=True` so walls have tactile 3D ashlar mortar courses."""
+    rows = []
+    rem = dict(cells_col)
+    if axis == 'x':
+        shapes = [(4, 1), (3, 1), (2, 1), (1, 4), (1, 3), (1, 2), (2, 2), (1, 1)]
+    else:
+        shapes = [(1, 4), (1, 3), (1, 2), (4, 1), (3, 1), (2, 1), (2, 2), (1, 1)]
+    for (k, i) in sorted((k, i) for (i, k) in list(rem)):
+        if (i, k) not in rem:
+            continue
+        col = rem[(i, k)]
+        kind = 'stone' if (masonry and col in (TAN, DTAN, LBG, DBG, WHITE, DORANGE, MNOUGAT)) else 'brick'
+        for w, d in shapes:
+            sub = [(i + di, k + dk) for di in range(w) for dk in range(d)]
+            if all(c in rem and rem[c] == col for c in sub):
+                for c in sub:
+                    del rem[c]
+                rows.append(L.block(col, kind, i, k, w, d, yup))
+                break
+    return rows
+
+
 def pack_tiles(cells_col, yup):
     """Pack {(i, k): col} at `yup` with rectangular tiles."""
     rows = []
@@ -287,10 +311,17 @@ class DioramaCanvas:
                 cobbles.append(put(c2, (i + 0.5) * S, y_tile + P, (k + 0.5) * S, '98138'))
             elif t == 'f' and r < 0.55:
                 cobbles.append(put(WHITE if r < 0.3 else TCLEAR, (i + 0.5) * S, y_tile + P, (k + 0.5) * S, '98138'))
-            elif t == 'm' and r < 0.11:
+            elif t == 'm' and r < 0.14:
                 self.rows.append(L.block(OLIVE, 'plate', i, k, 1, 1, y_tile))
                 fcol = [WHITE, YELLOW, RED, MLAV][int(r * 100) % 4]
-                meadow_flowers.append(put(fcol, (i + 0.5) * S, y_tile + 2 * P, (k + 0.5) * S, '24866', RY(r * 6)))
+                if int(r * 1000) % 2 == 0:
+                    meadow_flowers.append(put(GREEN if int(r * 50) % 2 == 0 else OLIVE, (i + 0.5) * S, y_tile + P + 3.3, (k + 0.5) * S, '32607', RY(r * 5.1)))
+                    meadow_flowers.append(put(fcol, (i + 0.5) * S, y_tile + P + 10.0, (k + 0.5) * S, '24866', RY(r * 6.3)))
+                else:
+                    meadow_flowers.append(put(fcol, (i + 0.5) * S, y_tile + P + 2.0, (k + 0.5) * S, '24866', RY(r * 6)))
+            elif t == 't' and r < 0.08:
+                self.rows.append(L.block(OLIVE, 'plate', i, k, 1, 1, y_tile))
+                meadow_flowers.append(put(OLIVE if int(r * 50) % 2 == 0 else DGREEN, (i + 0.5) * S, y_tile + P + 3.3, (k + 0.5) * S, '32607', RY(r * 4.7)))
             else:
                 by_y[y_tile][(i, k)] = col
 
@@ -311,7 +342,7 @@ class DioramaCanvas:
         else:
             y_surf = y_override
         L.avoid(self.rows)
-        fn = getattr(L, kind)
+        fn = mediterranean_cypress if kind == 'cypress' else getattr(L, kind)
         p = fn(i0 * S, k0 * S, y_surf, s)
         self.rows += p.rows
         L.avoid(p.rows)
@@ -470,67 +501,111 @@ def pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', chimney=False,
     return rows
 
 
+def mediterranean_cypress(x, z, yup=4, seed=0):
+    """Build a dense, tapered Mediterranean Pencil Cypress spire on a 2x2 root at (x, z, yup) using `L.Grow` and `L.tiers`:
+    alternates `4727` 2x2 rosettes with 4x4 -> 2x4 -> 4x2 -> 2x2 tiers fringed with `2423` (4x3 leaves), `32607` (3-leaf
+    clusters), and `98138` foliage buds in Dark Green, Green, and Olive, crowned by a `3942c` tapered cone."""
+    g = L.Grow(seed)
+    i0, k0, y = L._root(g, x, z, yup)
+    y = L._bole(g, i0, k0, y, [RB, DB], 2)
+    pal = [(DGREEN, 5), (GREEN, 2), (OLIVE, 1)]
+    plan = [
+        ('gap', '4727', DGREEN), (4, 4), (2, 4),
+        ('gap', '4727', GREEN),  (4, 4), (4, 2),
+        ('gap', '4727', DGREEN), (4, 2), (2, 2),
+        ('gap', '4727', GREEN),  (2, 4), (2, 2),
+        ('gap', '4727', DGREEN), (2, 2),
+        ('gap', '4727', DGREEN),
+    ]
+    L.tiers(g, i0, k0, y, plan, pal, core=2, spacer=RB,
+            plate_pal=[(DGREEN, 3), (GREEN, 1)],
+            small=[(DGREEN, 4), (GREEN, 2), (OLIVE, 1)],
+            top_cone=(DGREEN, '3942c'))
+    return g.finish(fallback=(DGREEN, '98138'), dress=L._dress(pal))
+
+
 def wall_color(i, c, k, seed=0):
-    """Warm Mediterranean limestone & stucco coursing in Tan (19), Dark Tan (28), and Light Bluish Grey (71) quoins."""
+    """Warm Mediterranean limestone & stucco coursing in Tan (19), Dark Tan (28), and Light Bluish Grey (71) quoins.
+    Groups adjacent studs in staggered 2-stud running bond (`(i + c) // 2`, `(k + c) // 2`) so `pack_bricks` places
+    1x2 (`98283`) and 1x4 (`15533`) embossed profile masonry bricks rather than 1x1 posts."""
+    bi = (i + c) // 2
+    bk = (k + c) // 2
     if c == 0:
-        return LBG if (i + k) % 2 == 0 else DTAN
-    r = hsh(i, c, k, seed)
-    return LBG if r < 0.22 else (DTAN if r < 0.48 else TAN)
+        return LBG if (bi + bk) % 2 == 0 else DTAN
+    r = hsh(bi, c, bk, seed)
+    return LBG if r < 0.24 else (DTAN if r < 0.50 else TAN)
 
 
 def build_coursed_box_walls(i0, k0, w, d, y0, courses, door_cells=set(), win_cells=set(), win_courses=range(2, 4), seed=0):
-    """Build a 1-stud-thick coursed masonry box around the perimeter of (i0..i0+w-1, k0..k0+d-1) for `courses` brick courses,
-    with internal cross-wall ribs, LBG corner quoins, stone lintels, and timber window sills."""
+    """Build a 1-stud-thick coursed masonry box around the perimeter of (i0..i0+w-1, k0..k0+d-1) for `courses` brick courses
+    using full 24-LDU LEGO bricks and embossed profile masonry bricks (`98283` 1x2 and `15533` 1x4) in staggered running bond,
+    with internal cross-wall ribs, LBG corner quoins, stone doorway lintels, and recessed timber window sills."""
     rows = []
     perim = [(i, k) for i in range(i0, i0 + w) for k in range(k0, k0 + d)
              if i in (i0, i0 + w - 1, i0 + w // 2) or k in (k0, k0 + d - 1, k0 + d // 2)]
+    # Identify jambs adjacent to doorways so the c==3 stone lintel spans across both jambs (4-stud 15533 lintel!)
+    lintel_span = set(door_cells)
+    for (di, dk) in door_cells:
+        for (ni, nk) in ((di - 1, dk), (di + 1, dk), (di, dk - 1), (di, dk + 1)):
+            if (ni, nk) in perim:
+                lintel_span.add((ni, nk))
+
     for c in range(courses):
         y_c = y0 + c * B
-        for p_sub in range(3):
-            y_p = y_c + p_sub * P
-            cells_col = {}
-            for (i, k) in perim:
-                is_ext = i in (i0, i0 + w - 1) or k in (k0, k0 + d - 1)
-                if is_ext and (i, k) in door_cells and c < 3:
-                    continue
-                if is_ext and (i, k) in door_cells and c == 3:
-                    cells_col[(i, k)] = LBG if p_sub < 2 else RB  # heavy stone & timber lintel over doorway
-                    continue
-                if is_ext and (i, k) in win_cells and c in win_courses:
-                    if p_sub == 0 and c == min(win_courses):
-                        cells_col[(i, k)] = RB  # window sill
-                    elif p_sub == 2 and c == max(win_courses):
-                        cells_col[(i, k)] = LBG  # stone window lintel
-                    continue
-                is_corner = (i in (i0, i0 + 1, i0 + w - 2, i0 + w - 1) and k in (k0, k0 + 1, k0 + d - 2, k0 + d - 1))
-                if not is_ext:
-                    col = RB
-                elif is_corner:
-                    col = LBG if (c % 2 == 0) else TAN
-                elif c == courses - 1 and p_sub == 2:
-                    col = LBG  # upper stone cornice fillet
-                else:
-                    col = wall_color(i, c, k, seed + p_sub)
-                cells_col[(i, k)] = col
-            rows += pack_plates(cells_col, y_p, axis=('x' if (c + p_sub) % 2 == 0 else 'z'))
+        brick_cells = {}
+        for (i, k) in perim:
+            is_ext = i in (i0, i0 + w - 1) or k in (k0, k0 + d - 1)
+            if is_ext and (i, k) in door_cells and c < 3:
+                continue
+            if is_ext and (i, k) in lintel_span and c == 3:
+                brick_cells[(i, k)] = LBG  # heavy 1x4 embossed stone lintel spanning doorway & jambs
+                continue
+            if is_ext and (i, k) in win_cells and c in win_courses:
+                if c == min(win_courses):
+                    # Timber window sill plate + smooth stone sill tile inside window opening
+                    rows.append(L.block(RB, 'plate', i, k, 1, 1, y_c))
+                    rows.append(on(TAN, (i + 0.5) * S, y_c + P, (k + 0.5) * S, '3070b'))
+                continue
+            # Alternating X/Z corner quoins on even/odd courses so corners interlock in 3D ashlar running bond
+            if c % 2 == 0:
+                is_quoin = (i in (i0, i0 + 1, i0 + w - 2, i0 + w - 1) and k in (k0, k0 + d - 1))
+            else:
+                is_quoin = (i in (i0, i0 + w - 1) and k in (k0, k0 + 1, k0 + d - 2, k0 + d - 1))
+            if not is_ext:
+                col = RB
+            elif is_quoin:
+                col = LBG if (c % 2 == 0) else TAN
+            else:
+                col = wall_color(i, c, k, seed)
+            brick_cells[(i, k)] = col
+        rows += pack_bricks(brick_cells, y_c, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
     return rows
 
 
 def build_climbing_vine(canvas, i, k, y0, height_bricks=3, seed=0):
-    """Build a vertical climbing ivy/vine column with white & yellow blossoms at cell (i, k) from `y0`."""
+    """Build a botanical climbing ivy/vine column with woody base stem (`3062b`), stepped leaf plates,
+    spreading 3-leaf clusters (`32607`), and 5-petal LEGO blossoms (`24866`) at cell (i, k) from `y0`."""
     canvas.reserve(i, k, 1, 1)
-    n_plates = height_bricks * 3
-    for p in range(n_plates):
-        yp = y0 + p * P
-        col = DGREEN if p % 2 == 0 else OLIVE
-        canvas.rows.append(L.block(col, 'plate', i, k, 1, 1, yp))
-    top_col = WHITE if seed % 2 == 0 else YELLOW
-    canvas.rows.append(on(top_col, (i + 0.5) * S, y0 + n_plates * P, (k + 0.5) * S, '98138'))
+    cx, cz = (i + 0.5) * S, (k + 0.5) * S
+    for c in range(height_bricks):
+        yc = y0 + c * B
+        if c == 0:
+            canvas.rows.append(on(DB, cx, yc, cz, '3062b'))
+        elif c == 1:
+            canvas.rows.append(L.block(DGREEN, 'plate', i, k, 1, 1, yc))
+            canvas.rows.append(L.block(OLIVE,  'plate', i, k, 1, 1, yc + P))
+            canvas.rows.append(L.block(GREEN,  'plate', i, k, 1, 1, yc + 2 * P))
+        else:
+            canvas.rows.append(on(DGREEN if (c + seed) % 2 == 0 else OLIVE, cx, yc, cz, '3062b'))
+    y_top = y0 + height_bricks * B
+    fcol = [WHITE, YELLOW, WHITE, MLAV][abs(seed) % 4]
+    canvas.rows.append(put(GREEN if seed % 2 == 0 else OLIVE, cx, y_top + 3.3, cz, '32607', RY(math.pi * 0.75)))
+    canvas.rows.append(put(fcol, cx, y_top + 10.0, cz, '24866', RY(seed * 1.1)))
 
 
 def build_raised_tree_planter(canvas, i0, k0, w, d, tree_kind='olive', bricks=2, seed=0):
     """Build a raised coursed-stone planter bastion (`w x d` studs, `bricks` courses tall in Tan/LBG/DTan)
-    and plant `tree_kind` on the elevated 2x2 center bed (matching Reference Images 1 & 2)."""
+    using 24-LDU embossed profile masonry bricks (`98283` and `15533`) and plant `tree_kind` on the elevated 2x2 center bed."""
     canvas.reserve(i0, k0, w, d)
     y0 = canvas.surf_y(i0, k0)
     ti0 = i0 + (w - 2) // 2
@@ -538,20 +613,22 @@ def build_raised_tree_planter(canvas, i0, k0, w, d, tree_kind='olive', bricks=2,
     tree_cells = {(ti0 + di, tk0 + dk) for di in (0, 1) for dk in (0, 1)}
 
     for c in range(bricks):
-        for p_sub in range(3):
-            yp = y0 + c * B + p_sub * P
-            layer = {}
-            for i in range(i0, i0 + w):
-                for k in range(k0, k0 + d):
-                    is_edge = i in (i0, i0 + w - 1) or k in (k0, k0 + d - 1)
-                    is_corner = i in (i0, i0 + w - 1) and k in (k0, k0 + d - 1)
-                    if not is_edge:
-                        layer[(i, k)] = DB if (i, k) in tree_cells else DTAN
-                    elif is_corner:
-                        layer[(i, k)] = LBG if c % 2 == 0 else TAN
-                    else:
-                        layer[(i, k)] = wall_color(i, c, k, seed + p_sub)
-            canvas.rows += pack_plates(layer, yp, axis=('x' if (c + p_sub) % 2 == 0 else 'z'))
+        yc = y0 + c * B
+        layer = {}
+        for i in range(i0, i0 + w):
+            for k in range(k0, k0 + d):
+                is_edge = i in (i0, i0 + w - 1) or k in (k0, k0 + d - 1)
+                if c % 2 == 0:
+                    is_corner = i in (i0, i0 + 1, i0 + w - 2, i0 + w - 1) and k in (k0, k0 + d - 1)
+                else:
+                    is_corner = i in (i0, i0 + w - 1) and k in (k0, k0 + 1, k0 + d - 2, k0 + d - 1)
+                if not is_edge:
+                    layer[(i, k)] = DB if (i, k) in tree_cells else DTAN
+                elif is_corner:
+                    layer[(i, k)] = LBG if c % 2 == 0 else TAN
+                else:
+                    layer[(i, k)] = wall_color(i, c, k, seed)
+        canvas.rows += pack_bricks(layer, yc, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
 
     y_top = y0 + bricks * B
     rim_tiles = {}
@@ -788,9 +865,8 @@ def build_doric_stoa(canvas, i0, k0, w, d, col_side=None, face_dir=None, n_cols=
     wall_i = i0 + w - 1 if side == '-x' else i0
     col_i0 = i0 if side == '-x' else i0 + w - 2
     for c in range(4):
-        w_cells = {(wall_i, k): (TAN if (k + c) % 2 == 0 else LBG) for k in range(k0, k0 + d)}
-        for p_sub in range(3):
-            canvas.rows += pack_plates(w_cells, y_fl + c * B + p_sub * P, axis=('z' if p_sub % 2 == 0 else 'x'))
+        w_cells = {(wall_i, k): (TAN if ((k + c) // 2) % 2 == 0 else LBG) for k in range(k0, k0 + d)}
+        canvas.rows += pack_bricks(w_cells, y_fl + c * B, axis='z', masonry=True)
 
     col_ks = [k0 + 1 + round(n * (d - 4) / max(1, n_cols - 1)) for n in range(n_cols)]
     col_footprint = set()

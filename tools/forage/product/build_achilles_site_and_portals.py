@@ -92,9 +92,9 @@ def extract_part_mesh(pid):
                 sc = cur_col if c in (16, 24) else c
                 sub = ' '.join(t[14:]).lower().replace('\\', '/')
                 base = os.path.basename(sub)
-                if any(base.startswith(k) for k in ('stud4', 'stud3', 'stud2a', 'stud10', 'stud6')):
+                if any(base.startswith(k) for k in ('stud4', 'stud3', 'stud10', 'stud6')):
                     continue
-                if base in ('stud.dat', 'stud2.dat'):
+                if base in ('stud.dat', 'stud2.dat', 'stud2a.dat'):
                     sp_p = ldbox.apply(m, p, float(t[2]), float(t[3]), float(t[4]))
                     sp_m = ldbox.mul(m, [float(v) for v in t[5:14]])
                     pts_b = [ldbox.apply(sp_m, sp_p, 6 * math.cos(a * math.pi / 4), 0, 6 * math.sin(a * math.pi / 4)) for a in range(8)]

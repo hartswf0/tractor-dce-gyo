@@ -22,7 +22,7 @@ import clicks, wardrobe as W
 import landscape as L
 from kits.shield_diorama_lib import (
     SILVER, TIN, BRONZE, KYANOS, BYELLOW, FLOOR, LAND,
-    DioramaCanvas, pack_plates, pack_tiles, put_curve_tile, place_local,
+    DioramaCanvas, pack_plates, pack_bricks, pack_tiles, put_curve_tile, place_local,
     pitched_terracotta_roof, build_coursed_box_walls, build_climbing_vine,
     build_raised_tree_planter, build_townhouse_2storey,
     build_stone_cottage, build_timber_sheep_shed, build_wine_press_pavilion,
@@ -106,8 +106,11 @@ def build_diorama_wedding():
     C.rows += pack_tiles(can_tiles, y_can_top + 2 * P)
     # Floral garland along the front edge of the canopy (k = -7)
     for i in range(-5, 5):
-        fcol = [WHITE, DGREEN, WHITE, GOLD][i % 4]
-        C.rows.append(on(fcol, (i + 0.5) * S, y_can_top + 2 * P, (-7 + 0.5) * S, '98138'))
+        if i % 2 == 0:
+            fcol = WHITE if i % 4 == 0 else GOLD
+            C.rows.append(put(fcol, (i + 0.5) * S, y_can_top + 2 * P + 2.0, (-7 + 0.5) * S, '24866', RY(i * 1.1)))
+        else:
+            C.rows.append(on(DGREEN if i % 4 == 1 else GOLD, (i + 0.5) * S, y_can_top + 2 * P, (-7 + 0.5) * S, '98138'))
 
     # 4. Sculpted Terracotta Amphorae & 6 Blazing Torch Standards
     for (ai, ak, acol) in ((-18, 7, DORANGE), (-10, 7, MNOUGAT), (9, 7, DORANGE), (17, 7, MNOUGAT), (-6, -9, DORANGE), (5, -9, RB)):
@@ -160,7 +163,6 @@ def build_diorama_agora():
 
     # 1. Left Rear (-x, i in -21..-14, k in -13..-1): Monumental 4-Column Doric Stoa Entablature & Tall Cypress (Reference Image 2)
     build_doric_stoa(C, -21, -13, 7, 12, col_side='+x', n_cols=4, roof=False, seed=21)
-    C.add_tree('cypress', -13, -13, seed=22)
 
     # 2. Center (ci=0, ck=2): Concentric Circular Tiled Sacred Circle Floor + Two Talents of Gold
     build_sacred_circle_floor(C, 0, 2, h=2)
@@ -177,6 +179,7 @@ def build_diorama_agora():
     C.rows += L.masonry(ex_back, C.surf_y(0, -13), 3, seed=23, shades=[(TAN, 5), (LBG, 3), (DTAN, 2)])
     C.rows += L.masonry(ex_left, C.surf_y(-11, -10), 2, seed=24, shades=[(TAN, 5), (LBG, 3)])
     C.rows += L.masonry(ex_right, C.surf_y(10, -10), 2, seed=25, shades=[(TAN, 5), (LBG, 3)])
+    C.add_tree('cypress', -13, -13, seed=22)
 
     # Three Sculpted High-Backed Stone Thrones on the Exedra (at h=4, surf_y = 48)
     y_ex = C.surf_y(0, -10)
@@ -274,10 +277,9 @@ def build_diorama_ambush():
     C.reserve(-6, -14, 12, 7)
     y_cliff = C.surf_y(0, -11)  # FLOOR + 6*P = 64
     for c in range(2):
-        for p_sub in range(3):
-            rock_layer = {(i, k): (DBG if (i + k + c) % 3 == 0 else (LBG if (i + c) % 2 == 0 else TAN))
-                          for i in range(-6, 6) for k in range(-14, -7)}
-            C.rows += pack_plates(rock_layer, y_cliff + c * B + p_sub * P, axis=('x' if p_sub % 2 == 0 else 'z'))
+        rock_layer = {(i, k): (DBG if (((i + c) // 2 + (k + c) // 2) % 3 == 0) else (LBG if ((i + c) // 2) % 2 == 0 else TAN))
+                      for i in range(-6, 6) for k in range(-14, -7)}
+        C.rows += pack_bricks(rock_layer, y_cliff + c * B, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
     y_sanct = y_cliff + 2 * B
     s_stylo = {(i, k): TAN for i in range(-6, 6) for k in range(-14, -7)}
     C.rows += pack_plates(s_stylo, y_sanct, axis='x')
@@ -549,7 +551,10 @@ def build_diorama_harvest():
             yw = C.surf_y(wi, wk)
             C.rows.append(on(GOLD if (wi + wk) % 2 == 0 else TAN, (wi + 0.5) * S, yw, (wk + 0.5) * S, '3062b'))
             C.rows.append(on(BYELLOW if wi % 2 == 0 else GOLD, (wi + 0.5) * S, yw + B, (wk + 0.5) * S, '3062b'))
-            C.rows.append(on(GOLD, (wi + 0.5) * S, yw + 2 * B, (wk + 0.5) * S, '98138'))
+            if (wi + wk) % 2 == 0:
+                C.rows.append(put(GOLD if wi % 2 == 0 else BYELLOW, (wi + 0.5) * S, yw + 2 * B + 2.0, (wk + 0.5) * S, '24866', RY(wi * 0.9)))
+            else:
+                C.rows.append(on(GOLD, (wi + 0.5) * S, yw + 2 * B, (wk + 0.5) * S, '98138'))
     for (si, sk) in ((3, 5), (6, 5), (9, 5), (5, 8), (8, 8)):
         C.reserve(si, sk, 1, 1)
         ys = C.surf_y(si, sk)
@@ -621,7 +626,10 @@ def build_diorama_vineyard():
             y_rail = y_v + 3 * B
             C.rows.append(L.block(GOLD, 'plate', side_i0, vk, 8, 1, y_rail))
             for i in range(side_i0, side_i1 + 1):
-                C.rows.append(on(OLIVE if i % 2 == 0 else DGREEN, (i + 0.5) * S, y_rail + P, (vk + 0.5) * S, '98138'))
+                if i % 2 == 0:
+                    C.rows.append(put(GREEN if (i + vk) % 4 == 0 else OLIVE, (i + 0.5) * S, y_rail + P + 3.3, (vk + 0.5) * S, '32607', RY(i * 1.3)))
+                else:
+                    C.rows.append(on(DGREEN if (i + vk) % 3 == 0 else DPURPLE, (i + 0.5) * S, y_rail + P, (vk + 0.5) * S, '98138'))
                 if i not in stakes and i % 2 == 1:
                     C.rows.append(on(BLK if (i + vk) % 3 == 0 else DPURPLE, (i + 0.5) * S, y_rail - B, (vk + 0.5) * S, '3062b'))
 
@@ -745,10 +753,8 @@ def build_diorama_choros():
 
     # Rear frescoed palace wall (4 brick courses high)
     for c in range(4):
-        for p_sub in range(3):
-            w_col = DRED if c in (1, 2) else (GOLD if (c == 3 and p_sub == 2) else (WHITE if (c + p_sub) % 2 == 0 else TAN))
-            w_layer = {(i, -13): w_col for i in range(-16, 16)}
-            C.rows += pack_plates(w_layer, y_stoa + c * B + p_sub * P, axis=('x' if p_sub % 2 == 0 else 'z'))
+        w_layer = {(i, -13): (DRED if c in (1, 2) else (WHITE if ((i + c) // 2) % 2 == 0 else TAN)) for i in range(-16, 16)}
+        C.rows += pack_bricks(w_layer, y_stoa + c * B, axis='x', masonry=True)
 
     # 8 Minoan Red-and-Gold Columns along k in -9..-8
     col_is = [-15, -11, -7, -3, 2, 6, 10, 14]
@@ -813,10 +819,9 @@ def build_diorama_choros():
 
     # Build Central Cosmic Vault of Hephaestus (Sun, Moon, Pleiades, Hyades, Orion, Bear)
     for c in range(2):
-        for p_sub in range(3):
-            c_layer = {(i, k): (GOLD if i in (-5, 4) or k in (-12, -9) else KYANOS)
-                       for (i, k) in cosmic_cells}
-            C.rows += pack_plates(c_layer, y_roof + c * B + p_sub * P, axis=('x' if p_sub % 2 == 0 else 'z'))
+        c_layer = {(i, k): (GOLD if i in (-5, 4) or k in (-12, -9) else KYANOS)
+                   for (i, k) in cosmic_cells}
+        C.rows += pack_bricks(c_layer, y_roof + c * B, axis=('x' if c % 2 == 0 else 'z'), masonry=False)
     y_cos_top = y_roof + 2 * B
     for (ci, ck) in cosmic_cells:
         if (ci, ck) in ((2, -10), (-3, -10), (0, -11), (-1, -10), (1, -11)):
@@ -925,25 +930,24 @@ def build_diorama_office():
     wall_cells = [(i, k) for i in range(-20, 20) for k in range(-13, -9)]
     for c in range(4):
         yc = y_kan_base + c * B
-        for p_sub in range(3):
-            w_layer = {}
-            for (i, k) in wall_cells:
-                # Dividers between the 4 Kanban columns at i in (-20, -10, 0, 10, 19)
-                if i in (-20, -10, 0, 10, 19):
-                    w_layer[(i, k)] = GOLD if c in (0, 3) else DB
-                elif k == -10 and c in (1, 2):
-                    # Colored Kanban Worktree Cards on the front face of the board!
-                    if -19 <= i <= -11:   # Column 1: PLANNING (Tan / White / Gold mockups)
-                        w_layer[(i, k)] = WHITE if (i + c) % 2 == 0 else TAN
-                    elif -9 <= i <= -1:   # Column 2: DOING - GIT WORKTREES M0..M9 (Gold / Bronze)
-                        w_layer[(i, k)] = GOLD if (i + c) % 2 == 0 else BRONZE
-                    elif 1 <= i <= 9:     # Column 3: CROSS-MODEL AUDITOR (Medium Blue / Silver)
-                        w_layer[(i, k)] = MBLUE if (i + c) % 2 == 0 else SILVER
-                    else:                 # Column 4: FIFO MERGE QUEUE (Olive / Gold)
-                        w_layer[(i, k)] = OLIVE if (i + c) % 2 == 0 else GOLD
-                else:
-                    w_layer[(i, k)] = KYANOS if k == -10 else (TAN if (i + k + c) % 2 == 0 else LBG)
-            C.rows += pack_plates(w_layer, yc + p_sub * P, axis=('z' if p_sub % 2 == 0 else 'x'))
+        w_layer = {}
+        for (i, k) in wall_cells:
+            # Dividers between the 4 Kanban columns at i in (-20, -10, 0, 10, 19)
+            if i in (-20, -10, 0, 10, 19):
+                w_layer[(i, k)] = GOLD if c in (0, 3) else DB
+            elif k == -10 and c in (1, 2):
+                # Colored Kanban Worktree Cards on the front face of the board!
+                if -19 <= i <= -11:   # Column 1: PLANNING (Tan / White / Gold mockups)
+                    w_layer[(i, k)] = WHITE if ((i + c) // 2) % 2 == 0 else TAN
+                elif -9 <= i <= -1:   # Column 2: DOING - GIT WORKTREES M0..M9 (Gold / Bronze)
+                    w_layer[(i, k)] = GOLD if ((i + c) // 2) % 2 == 0 else BRONZE
+                elif 1 <= i <= 9:     # Column 3: CROSS-MODEL AUDITOR (Medium Blue / Silver)
+                    w_layer[(i, k)] = MBLUE if ((i + c) // 2) % 2 == 0 else SILVER
+                else:                 # Column 4: FIFO MERGE QUEUE (Olive / Gold)
+                    w_layer[(i, k)] = OLIVE if ((i + c) // 2) % 2 == 0 else GOLD
+            else:
+                w_layer[(i, k)] = KYANOS if k == -10 else (TAN if (((i + c) // 2 + (k + c) // 2) % 2 == 0) else LBG)
+        C.rows += pack_bricks(w_layer, yc, axis=('z' if c % 2 == 0 else 'x'), masonry=True)
 
     y_kan_top = y_kan_base + 4 * B  # 152
     # Tile the top of the Kanban Command Gallery, leaving studs for Maestro (Hephaestus) and Auditor (Athena)

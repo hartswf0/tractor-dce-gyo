@@ -174,6 +174,11 @@
         (col === 15 && (p.startsWith('98138') || p.startsWith('4073') || p.startsWith('3024')) && wy <= 42)) {
       return 4.0;
     }
+    // Botanical foliage, tree leaves, reeds & blossoms (subtle 12-fps stop-motion breeze on 2s)
+    if (p.startsWith('2417') || p.startsWith('2423') || p.startsWith('32607') ||
+        p.startsWith('24866') || p.startsWith('1997') || p.startsWith('11127')) {
+      return 4.5;
+    }
     return 0.0;
   }
 
@@ -371,7 +376,7 @@
         float qTime = floor(uTime * 12.0) / 12.0;
         p.y += sin(qTime * 2.4 + aCenter.x * 0.02) * 2.0;
         glow = 0.18;
-      } else if (role > 3.5) {
+      } else if (role > 3.5 && role < 4.25) {
         // 4.0: Trevor Carlee Reactive LEGO Water (quantized plate-step ripples on 2s!)
         float qTime = floor(uTime * 12.0) / 12.0;
         float wave = sin(aCenter.x * 0.035 + aCenter.z * 0.035 - qTime * 5.0)
@@ -379,6 +384,14 @@
         float quantWave = floor(wave * 2.2) * 1.4;
         p.y += quantWave;
         glow = max(0.0, quantWave * 0.06);
+      } else if (role > 4.25) {
+        // 4.5: Botanical Foliage, Tree Canopy & Reed Breeze on 2s (rossark-motion-skill calm wind sway)
+        float seed = fract(sin(aCenter.x * 0.053 + aCenter.z * 0.089) * 28411.7);
+        float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
+        float breeze = sin(qTime * 2.4 + aCenter.x * 0.018 + aCenter.z * 0.014);
+        p.x += breeze * 0.85;
+        p.z += cos(qTime * 2.1 + seed * 6.283) * 0.55;
+        p.y += sin(qTime * 3.2 + seed * 3.14) * 0.35;
       }
 
       // 4. Turntable / Choros Potter's Wheel / Celestial Boss rotation
@@ -474,13 +487,13 @@
 
       // Stud base contact shadow ring (at r = 6 LDU -> r_norm = 6/20 = 0.30 in 20-LDU stud grid)
       float studR = length(cellXZ);
-      float studRingAO = (1.0 - 0.18 * exp(-pow((studR - 0.30) / 0.065, 2.0))) * step(0.65, N.y);
+      float studRingAO = 1.0 - 0.22 * exp(-pow((studR - 0.30) / 0.065, 2.0)) * step(0.65, N.y);
       // Ground / Plinth vertical contact shadow
       float groundAO = 0.86 + 0.14 * smoothstep(0.0, 28.0, vPos.y);
-      float cavity = (1.0 - 0.25 * max(seamH, seamV) * isRect) * mix(1.0, studRingAO, isRect) * groundAO;
+      float cavity = (1.0 - (0.25 * isRect + 0.10 * (1.0 - isRect)) * max(seamH, seamV)) * studRingAO * groundAO;
 
-      // Directional normal shading so perpendicular brick faces have strong 3D separation
-      float dirShade = 0.88 + 0.12 * (N.x * 0.6 + N.z * 0.4);
+      // Directional normal shading so perpendicular brick faces & embossed 98283/15533 masonry grooves have strong 3D relief
+      float dirShade = 0.85 + 0.15 * (N.x * 0.62 + N.z * 0.38);
 
       // Dynamic Torch / Forge Point Light
       vec3 toLight = uTorchPos - vPos;
