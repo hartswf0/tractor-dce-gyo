@@ -679,9 +679,9 @@ def main():
     json_path = os.path.join(OUT_DIR, "spatiotemporal-worms-data.json")
     js_path = os.path.join(OUT_DIR, "spatiotemporal-worms-data.js")
     with open(json_path, "w") as f:
-        json.dump(payload, f, indent=2)
+        json.dump(payload, f, indent=2, default=float)
     with open(js_path, "w") as f:
-        f.write("window.SHIELD_CUBISM_DATA = " + json.dumps(payload, separators=(",", ":")) + ";\n")
+        f.write("window.SHIELD_CUBISM_DATA = " + json.dumps(payload, separators=(",", ":"), default=float) + ";\n")
 
     print(f"\nWrote {json_path} and {js_path} for all {len(results)} films:")
     for r in results:

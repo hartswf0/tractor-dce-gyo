@@ -21,7 +21,7 @@ from kitlib import *
 import sculpt
 from sculpt import Form, ell, cone, smin, rough
 import landscape as L
-from landscape import TBLUE, TLBLUE, TCLEAR, TGREEN, BLY, AZURE, SILVER, BRONZE, DBROWN
+TBLUE, BLY, AZURE, SILVER, BRONZE, COPPER, DBROWN = TDBLUE, 226, 321, 179, 300, 300, DB
 import clicks
 
 ACH_CARDS = os.path.join(ROOT, 'achilles/cards')
@@ -70,149 +70,59 @@ def colossus(x, yup, z, rot=0, primary=GOLD, accent=DRED, helm_col=GOLD, shield_
 
 
 def ox_beast(x, yup, z, rot=0, body_col=GOLD, horn_col=SILVER):
-    """24-piece sculpted LEGO Homeric Lofty-Horned Ox (boes orthokhairai, Il. XVIII.573-574) with barrel torso,
-    curved haunch slopes (11477/15068), SNOT eye bricks (87087) with pupils (98138), tapered muzzle, dewlap,
-    four articulated hoofed legs, and sweeping lofty crescent horns (54200)."""
+    """LDraw printed Homeric Lofty-Horned Ox (64452p01 with blaze, muzzle & eye pattern + 13564 2.25L horns at exact !HELP pinholes)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.08))
-    belly_col = DTAN if body_col in (RB, DB) else (SILVER if body_col == GOLD else GOLD)
-    out = [
-        # Four sturdy legs with silver/gold hooves (standing flush on h_up=0..32)
-        place_local(M_b, horn_col, -10, 0, -20, '98138'),
-        place_local(M_b, horn_col, 10, 0, -20, '98138'),
-        place_local(M_b, horn_col, -10, 0, 20, '98138'),
-        place_local(M_b, horn_col, 10, 0, 20, '98138'),
-        place_local(M_b, body_col, -10, 8, -20, '3062b'),
-        place_local(M_b, body_col, 10, 8, -20, '3062b'),
-        place_local(M_b, body_col, -10, 8, 20, '3062b'),
-        place_local(M_b, body_col, 10, 8, 20, '3062b'),
-        # Underbelly plate (24..32) & barrel torso brick (32..56)
-        place_local(M_b, belly_col, 0, 24, 0, '3020', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 32, 0, '3001', RY(math.pi / 2)),
-        # Muscular shoulder hump (56..72) & curved haunches (56..72) sitting flush on top of 3001!
-        place_local(M_b, body_col, 0, 56, -20, '15068'),
-        place_local(M_b, body_col, -10, 56, 20, '11477', RY(math.pi)),
-        place_local(M_b, body_col, 10, 56, 20, '11477', RY(math.pi)),
-        place_local(M_b, body_col, 0, 56, 0, '3068b'),
-        # Sculpted Bull Head (SNOT eyes + sloped forehead + nostrils + sweeping lofty horns)
-        place_local(M_b, body_col, -10, 40, -40, '87087', RY(-math.pi / 2)),
-        place_local(M_b, body_col, 10, 40, -40, '87087', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 40, -60, '3022'),
-        place_local(M_b, body_col, 0, 48, -60, '15068'),
-        place_local(M_b, belly_col, 0, 32, -50, '3022'),
-        # Lofty sweeping crescent horns (4085c + 53451 curved horns) sitting flush on top of 87087 head bricks at h_up=64!
-        place_local(M_b, horn_col, -10, 64, -40, '4085c', RY(-math.pi / 2)),
-        place_local(M_b, horn_col, 10, 64, -40, '4085c', RY(math.pi / 2)),
-        # Tail at rear
-        place_local(M_b, body_col, 0, 48, 40, '54200', RY(math.pi)),
+    yoke_col = horn_col if body_col not in (RB, DB) else DTAN
+    return [
+        place_local(M_b, body_col, 0, 0, 0, '64452p01'),
+        place_local(M_b, yoke_col, -10, 48, 0, '54200', RY(-math.pi * 0.5)),
+        place_local(M_b, yoke_col,  10, 48, 0, '54200', RY( math.pi * 0.5)),
+        row(horn_col, mat_mul(M_b, mat_mul(T(-10.6, -79.7, -79.0), RX(-0.65))), '13564'),
+        row(horn_col, mat_mul(M_b, mat_mul(T( 10.6, -79.7, -79.0), mat_mul(RX(-0.65), RZ(math.pi)))), '13564'),
     ]
-    # Sweeping curved bull horns (53451) extending outward (-x / +x) and curving upward (-y)
-    out.append(row(horn_col, mat_mul(M_b, mat_mul(T(-16, -68, -40), mat_mul(RY(-math.pi / 2), RX(-0.35)))), '53451'))
-    out.append(row(horn_col, mat_mul(M_b, mat_mul(T(16, -68, -40), mat_mul(RY(math.pi / 2), RX(-0.35)))), '53451'))
-    # SNOT eye pupils mounted flush on the side studs of 87087
-    out.append(row(BLK, mat_mul(M_b, mat_mul(T(-28, -52, -40), RZ(math.pi / 2))), '98138'))
-    out.append(row(BLK, mat_mul(M_b, mat_mul(T(28, -52, -40), RZ(-math.pi / 2))), '98138'))
-    return out
 
 
 def lion_beast(x, yup, z, rot=0):
-    """22-piece sculpted Tawny Homeric Lion (smerdaleo leonte, Il. XVIII.579) with clawed paws (49668),
-    lithe sloped haunches (11477), shaggy dark-tan & reddish-brown mane (54200/85984), SNOT eyes,
-    and roaring fanged jaws (WHITE 49668 tooth plate)."""
+    """LDraw Update 2025-04 Adult Felid Lion (80672a) with sculpted shaggy dark-tan & reddish-brown Homeric mane ruff."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.11))
-    out = [
-        # Clawed paws (0..8) & muscular legs (8..32)
-        place_local(M_b, TAN, -10, 0, -20, '49668'),
-        place_local(M_b, TAN, 10, 0, -20, '49668'),
-        place_local(M_b, TAN, -10, 0, 20, '3023', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 0, 20, '3023', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 8, -20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 8, -20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 8, 20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 8, 20, '3004', RY(math.pi / 2)),
-        # Lithe tawny body (32..40) & sloped haunches sitting flush at h_up=40 (40..56)
-        place_local(M_b, TAN, 0, 32, 0, '3020', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 40, 20, '11477', RY(math.pi)),
-        place_local(M_b, TAN, 10, 40, 20, '11477', RY(math.pi)),
-        # Shaggy Dark-Tan & Reddish-Brown Mane (40..64 brick + 64..80 mane slopes sitting flush!)
-        place_local(M_b, DTAN, 0, 40, -16, '3003'),
-        place_local(M_b, RB, -10, 64, -20, '54200', RY(-math.pi / 2)),
-        place_local(M_b, RB, 10, 64, -20, '54200', RY(math.pi / 2)),
-        place_local(M_b, DTAN, 0, 64, -10, '85984', RY(math.pi)),
-        # Fierce Lion Head with roaring white fangs (49668) & red lower jaw
-        place_local(M_b, TAN, -10, 40, -36, '87087', RY(-math.pi / 2)),
-        place_local(M_b, TAN, 10, 40, -36, '87087', RY(math.pi / 2)),
-        place_local(M_b, WHITE, -10, 40, -56, '49668'),
-        place_local(M_b, WHITE, 10, 40, -56, '49668'),
-        place_local(M_b, TAN, 0, 48, -56, '15068'),
-        place_local(M_b, DRED, 0, 32, -46, '3022'),
-        # Whipping tail
-        place_local(M_b, TAN, 0, 40, 40, '54200', RY(math.pi)),
+    return [
+        place_local(M_b, TAN,  0,  0,   0, '80672a'),
+        place_local(M_b, RB,  -10, 48, -10, '54200', RY(-math.pi * 0.5)),
+        place_local(M_b, RB,   10, 48, -10, '54200', RY( math.pi * 0.5)),
+        place_local(M_b, DTAN, -10, 48, 10, '54200', RY( math.pi)),
+        place_local(M_b, DTAN,  10, 48, 10, '54200', RY( math.pi)),
+        row(RB, mat_mul(M_b, mat_mul(T(0.0, -96.9, -71.5), RX(0.45))), '53451'),
     ]
-    out.append(row(BLY, mat_mul(M_b, mat_mul(T(-28, -52, -36), RZ(math.pi / 2))), '98138'))
-    out.append(row(BLY, mat_mul(M_b, mat_mul(T(28, -52, -36), RZ(-math.pi / 2))), '98138'))
-    return out
 
 
 def dog_beast(x, yup, z, rot=0, col=TAN):
-    """11-piece sculpted Homeric Hunting Hound (kynes argoi, Il. XVIII.578, 584-586) with four legs,
-    sloped back, alert head, pointed ears, snout, and upturned tail — all sitting 100% flush."""
+    """LDraw Update 2022-01 Printed Hunting Hound (92586p01 with black eyes, nose, blaze, and dark brown muzzle pattern)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.14))
-    ear_col = DB if col == TAN else BLK
     return [
-        place_local(M_b, col, -10, 0, -10, '3024'),
-        place_local(M_b, col, 10, 0, -10, '3024'),
-        place_local(M_b, col, -10, 0, 10, '3024'),
-        place_local(M_b, col, 10, 0, 10, '3024'),
-        place_local(M_b, col, 0, 8, 0, '3021', RY(math.pi / 2)),
-        place_local(M_b, col, -10, 16, 10, '11477', RY(math.pi)),
-        place_local(M_b, col, 10, 16, 10, '11477', RY(math.pi)),
-        place_local(M_b, col, 0, 16, -20, '87087'),
-        place_local(M_b, ear_col, 0, 40, -20, '54200'),
-        place_local(M_b, col, 0, 24, -30, '3023', RY(math.pi / 2)),
-        place_local(M_b, ear_col, 0, 16, 20, '54200', RY(math.pi)),
+        place_local(M_b, col, 0, 0, 0, '92586p01'),
     ]
 
 
 def sheep_beast(x, yup, z, rot=0):
-    """12-piece sculpted White-Fleeced Sheep (oin argikepheon, Il. XVIII.529, 588) with puffy curved-slope wool,
-    four black legs, black face, and curled tan horns — all sitting 100% flush."""
+    """LDraw Update 2024-05 White-Fleeced Sheep (95341p03 with black eyes & tan horns + sculpted white wool fleece)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.12))
     return [
-        place_local(M_b, BLK, -10, 0, -10, '3024'),
-        place_local(M_b, BLK, 10, 0, -10, '3024'),
-        place_local(M_b, BLK, -10, 0, 10, '3024'),
-        place_local(M_b, BLK, 10, 0, 10, '3024'),
-        place_local(M_b, WHITE, 0, 8, 0, '3022'),
-        place_local(M_b, WHITE, -10, 16, 0, '11477', RY(math.pi)),
-        place_local(M_b, WHITE, 10, 16, 0, '11477', RY(math.pi)),
-        place_local(M_b, WHITE, 0, 16, 0, '15068', RY(math.pi)),
-        place_local(M_b, BLK, 0, 16, -20, '87087'),
-        place_local(M_b, TAN, -10, 40, -20, '54200', RY(-math.pi / 2)),
-        place_local(M_b, TAN, 10, 40, -20, '54200', RY(math.pi / 2)),
+        place_local(M_b, WHITE, 0,  0,  0, '95341p03'),
+        place_local(M_b, WHITE, 0, 48,  5, '3023', RY(math.pi * 0.5)),
+        place_local(M_b, WHITE, 0, 56, -5, '54200'),
+        place_local(M_b, WHITE, 0, 56, 15, '54200', RY(math.pi)),
     ]
 
 
 def horse_beast(x, yup, z, rot=0, body_col=DB, mane_col=BLK):
-    """16-piece sculpted Homeric Nimble-Footed Warhorse (aeripodes hippoi, Il. XVIII.532) with long legs,
-    crimson saddle cloth, arched neck, bridled head, and flowing mane."""
+    """LDraw Printed Poseable Warhorse (10509p01 with black bridle & white blaze + crimson Homeric saddle-cloth)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.09))
+    pid = '10509p02' if body_col == WHITE else '10509p01'
     return [
-        place_local(M_b, BLK, -10, 0, -20, '98138'),
-        place_local(M_b, BLK, 10, 0, -20, '98138'),
-        place_local(M_b, BLK, -10, 0, 20, '98138'),
-        place_local(M_b, BLK, 10, 0, 20, '98138'),
-        place_local(M_b, body_col, -10, 8, -20, '3062b'),
-        place_local(M_b, body_col, 10, 8, -20, '3062b'),
-        place_local(M_b, body_col, -10, 8, 20, '3062b'),
-        place_local(M_b, body_col, 10, 8, 20, '3062b'),
-        place_local(M_b, body_col, 0, 32, 0, '3020', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 40, 0, '3001', RY(math.pi / 2)),
-        place_local(M_b, DRED, 0, 64, 10, '3068b'),
-        place_local(M_b, body_col, 0, 64, -20, '3004'),
-        place_local(M_b, body_col, 0, 88, -20, '3023', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 96, -30, '11477'),
-        place_local(M_b, mane_col, 0, 88, -10, '54200', RY(math.pi)),
-        place_local(M_b, mane_col, 0, 56, 40, '54200', RY(math.pi)),
+        place_local(M_b, body_col, 0,  0, 0, pid),
+        place_local(M_b, DRED,     0, 57, 0, '3023', RY(math.pi * 0.5)),
+        place_local(M_b, GOLD,     0, 65, -10, '54200'),
+        place_local(M_b, DRED,     0, 65,  10, '54200', RY(math.pi)),
     ]
 
 
@@ -1447,8 +1357,12 @@ def main():
     summary = []
     for spec in KITS_SPEC:
         rows = spec['fn']()
-        # Settle any angled botanical leaves against the scene
-        rows, dropped = L.settle(rows)
+        # Settle any angled botanical leaves against the scene while preserving articulated creature & figure sub-assemblies
+        LEAF_PIDS = ('2417.dat', '2423.dat', '32607.dat', '24866.dat', '33291.dat', '1997.dat', '61252.dat')
+        non_leaf = [r for r in rows if not r.endswith(LEAF_PIDS)]
+        leaf_only = [r for r in rows if r.endswith(LEAF_PIDS)]
+        kept_leaves, dropped = L.settle(leaf_only, fixed=non_leaf)
+        rows = non_leaf + kept_leaves
         n_pcs = write(spec['card'], spec['title'], rows, cards_dir=ACH_CARDS)
         # Also copy to shield-zones/ so existing workspace viewers load the upgraded models seamlessly
         src_mpd = os.path.join(ACH_CARDS, f"{spec['card']}.mpd")

@@ -40,9 +40,8 @@ from kitlib import *
 from sculpt import settle
 from kits.achilles_line import (
     ox_beast, lion_beast, sheep_beast, dog_beast, horse_beast, colossus,
+    SILVER, BRONZE, COPPER, BLY, AZURE, TBLUE,
 )
-
-BRONZE = COPPER
 
 
 def rotunda_tree(xc, yup, zc, kind='olive', seed=0):

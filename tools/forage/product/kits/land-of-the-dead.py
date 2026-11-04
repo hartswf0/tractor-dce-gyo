@@ -242,7 +242,7 @@ def the_rite():
     for n, (x, z) in enumerate(CREW):
         out += figure('ensemble.crew', f'sailor-{n + 1}', x, top(x, z - 10), z, -math.pi / 2)
     for x, z, r in RAMS:
-        out.append(on(BLK, x, top(x - 10, z - 10), z, '95341', r))
+        out.append(on(BLK, x, top(x - 10, z - 10), z, '95341p02', r))
     out += [on(TRED, (i + 0.5) * S, top((i + 0.5) * S, 130), 130, '6141') for i in range(-8, -5)]
     out += [on(c, x, top(x, z), z, '4740') for (x, z), c in zip(BOWLS, (GOLD, DTAN, DTAN))]                              # the libations: milk and honey, wine, water   # the blood running in
     out += elpenor_mound()

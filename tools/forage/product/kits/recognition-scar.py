@@ -39,7 +39,7 @@ def hall_wall():
     rows_, top = R.wall(col, gaps=gaps, spans=[(DOORS[0] - 1, 4, 4, WALL_K[1], RB, '3010')], cap=DTAN, caps_off={OWL_I},
                         part_of=part_of, longest=lambda h: 2 if h == 3 else 4)
     # the owl on the front stud of the one uncapped column; a round tile on the stud behind it
-    rows_ += [put(LBG, (OWL_I + .5) * S, R.WALL_TOP, (WALL_K[1] + .5) * S, '92084', RY(math.pi)),
+    rows_ += [put(LBG, (OWL_I + .5) * S, R.WALL_TOP, (WALL_K[1] + .5) * S, '67632p01', RY(math.pi)),
               put(DTAN, (OWL_I + .5) * S, R.WALL_TOP + P, (WALL_K[0] + .5) * S, '98138')]
     return rows_
 

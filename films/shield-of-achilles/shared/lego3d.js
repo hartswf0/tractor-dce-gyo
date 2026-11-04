@@ -134,7 +134,21 @@
   }
 
   // True quadruped / creature roots (excluding minifigure beards 60749 and hair 11264, 33322!)
-  const ANIMAL_ROOTS = new Set(['64452', '14734', '92586', '95341', '40243', '4490', '2546']);
+  const ANIMAL_ROOTS = new Set([
+    '64452', '64452p01', '64452p02', '64779c01', '64835p01c01',
+    '80672a', '14734', '14734p01', '48812',
+    '92586', '92586p01', '98386p01',
+    '95341', '95341p01', '95341p02', '95341p03',
+    '10509', '10509p01', '10509p02', '4490',
+    '87621', '87621p01', '87621p02',
+    '11467', '11467p01', '11467p02',
+    '67632p01', '67632p02', '92084p01', '41835p01', '12891', '12891p01', '2546', '2546p01', '2546p02',
+    '40243', '13392p02'
+  ]);
+  const ANIMAL_SUBPARTS = new Set([
+    '13564', '64847', '53451', '54200', '3023', '98138',
+    '11777p01', '11778p01', '11777p02', '11778p02', '1613'
+  ]);
   // Head-mounted accessories that yaw with the minifigure head (3626*) on the neck stud
   const HEAD_ACC = new Set([
     '3901', '39262', '3844', '98366', '11256', '12890', '13251', '32602',
@@ -658,12 +672,23 @@
         } else if (ANIMAL_ROOTS.has(p) && !actorGroups[i]) {
           const [ax, ay, az, ma, mb, mc, md, me, mf, mg] = rawInst[i][2];
           const lLen = Math.hypot(ma || 1.0, mg || 0.0) || 1.0;
-          actorGroups[i] = {
+          const aGrp = {
             ax, ay: -ay, az, startIdx: i,
             subRole: 1.6, pivY: -ay,
             latX: (ma || 1.0) / lLen, latZ: (mg || 0.0) / lLen,
             ttIdx: rawInst[i][3], zNudge: 0.0
           };
+          actorGroups[i] = aGrp;
+          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 6); k++) {
+            const pk = String(rawInst[k][1]).toLowerCase();
+            if (!ANIMAL_SUBPARTS.has(pk) || actorGroups[k]) break;
+            const [kx, ky, kz] = rawInst[k][2];
+            if (Math.hypot(kx - ax, kz - az) < 95 && (-ky) >= (-ay) - 12 && (-ky) <= (-ay) + 64) {
+              actorGroups[k] = aGrp;
+            } else {
+              break;
+            }
+          }
         }
       }
 

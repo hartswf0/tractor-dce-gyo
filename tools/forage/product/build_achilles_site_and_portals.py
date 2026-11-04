@@ -1193,6 +1193,7 @@ def build_hub_html(manifests, rotunda_m):
     total_pcs = sum(m['pieces'] for m in manifests) + rotunda_m['builds'][0]['pieces']
     cards_html = []
     for m in manifests:
+        safe_title = m['title'].replace("'", "\\'")
         cards_html.append(f"""
         <article class="kit-card" data-card="{m['card']}" data-slug="{m['slug']}">
           <a href="{m['slug']}/index.html" class="kit-thumb-link">
@@ -1211,7 +1212,7 @@ def build_hub_html(manifests, rotunda_m):
               <strong>The object:</strong> {m['object']}
             </div>
             <div class="kit-actions">
-              <button class="load-btn" onclick="loadKit('{m['card']}', '{m['title'].replace("'", "\\'")}')">Inspect in 3D Studio ↑</button>
+              <button class="load-btn" onclick="loadKit('{m['card']}', '{safe_title}')">Inspect in 3D Studio ↑</button>
               <a class="page-link" href="{m['slug']}/index.html">Kit Page &amp; Photos →</a>
               <a class="mpd-link" href="../cards/{m['card']}.mpd" download>.MPD</a>
             </div>

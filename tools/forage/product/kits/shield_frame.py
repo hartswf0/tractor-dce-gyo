@@ -730,44 +730,54 @@ def fallen_fig(card, sub, costume, x, yup, z, rot=0.0):
 
 
 def cow_on(col, horn_col, i0, k0, yup, rot=0.0, base_col=DB):
-    """Place a crooked-horned ox/cow (64452 + horns 64847) on a 2x2 stud plate at (i0, k0)."""
+    """Place a crooked-horned ox/cow (64452p01 + lofty horns 13564) on a 2x2 stud plate at (i0, k0)."""
     cx, cz = (i0 + 1.0) * S, (k0 + 1.0) * S
     m = RY(rot)
-    # Horns at head of 64452
+    # Official LDraw 64452p01 !HELP horn pinholes: X = +/-10.6, Y = -31.7, Z = -79
     h_pos = mat_mul(T(cx, -(yup + P + 48.0), cz), m)
-    hl = row(horn_col, mat_mul(h_pos, mat_mul(T(-10, -28, -90), RY(math.pi * 0.5))), '64847')
-    hr = row(horn_col, mat_mul(h_pos, mat_mul(T( 10, -28, -90), RY(-math.pi * 0.5))), '64847')
+    hl = row(horn_col, mat_mul(h_pos, mat_mul(T(-10.6, -31.7, -79.0), RX(-0.65))), '13564')
+    hr = row(horn_col, mat_mul(h_pos, mat_mul(T( 10.6, -31.7, -79.0), mat_mul(RX(-0.65), RZ(math.pi)))), '13564')
     return [
         place_box(base_col, i0, k0, yup, '3022', 0.0),
-        on(col, cx, yup + P, cz, '64452', rot),
+        on(col, cx, yup + P, cz, '64452p01', rot),
         hl, hr,
     ]
 
 
 def lion_on(col, i0, k0, yup, rot=0.0, base_col=DB):
-    """Place a tawny lion (14734) on a 2x2 stud plate at (i0, k0)."""
+    """Place a tawny adult lion (80672a LDraw Update 2025-04 + sculpted mane ruff) on a 2x2 stud plate at (i0, k0)."""
     cx, cz = (i0 + 1.0) * S, (k0 + 1.0) * S
+    m = RY(rot)
+    m_pos = mat_mul(T(cx, -(yup + P + 48.0), cz), m)
+    mane_col = DB if col == BRONZE else BRONZE
+    ml = row(mane_col, mat_mul(m_pos, mat_mul(T(-10.0, -16.0, -10.0), RY(-math.pi * 0.5))), '54200')
+    mr = row(mane_col, mat_mul(m_pos, mat_mul(T( 10.0, -16.0, -10.0), RY( math.pi * 0.5))), '54200')
     return [
         place_box(base_col, i0, k0, yup, '3022', 0.0),
-        on(col, cx, yup + P, cz, '14734', rot),
+        on(col, cx, yup + P, cz, '80672a', rot),
+        '0 !FORAGE ROOT', ml,
+        '0 !FORAGE ROOT', mr,
     ]
 
 
 def dog_on(col, i, k, yup, rot=0.0, base_col=DB):
-    """Place a swift hound (92586) on a 1x1 plate at (i, k)."""
+    """Place a swift printed hound (92586p01 LDraw Update 2022-01) on a 1x1 plate at (i, k)."""
     cx, cz = (i + 0.5) * S, (k + 0.5) * S
     return [
         place_box(base_col, i, k, yup, '3024', 0.0),
-        on(col, cx, yup + P, cz, '92586', rot),
+        on(col, cx, yup + P, cz, '92586p01', rot),
     ]
 
 
 def sheep_on(col, i, k, yup, rot=0.0, base_col=DB):
-    """Place a white sheep (95341) on a 1x1 plate at (i, k)."""
+    """Place a white-fleeced sheep (95341p03 LDraw Update 2024-05 + wool tuft 98138) on a 1x1 plate at (i, k)."""
     cx, cz = (i + 0.5) * S, (k + 0.5) * S
+    m_pos = mat_mul(T(cx, -(yup + P + 48.0), cz), RY(rot))
+    fleece = row(col, mat_mul(m_pos, T(0.0, -8.0, 0.0)), '98138')
     return [
         place_box(base_col, i, k, yup, '3024', 0.0),
-        on(col, cx, yup + P, cz, '95341', rot),
+        on(col, cx, yup + P, cz, '95341p03', rot),
+        '0 !FORAGE ROOT', fleece,
     ]
 
 

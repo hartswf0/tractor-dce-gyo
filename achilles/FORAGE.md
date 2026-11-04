@@ -1,9 +1,9 @@
 # The Shield of Achilles as LDraw: The Operative Worldtext Forage
 
-Generated 2026-10-15 by `tools/achilles-forage.js` for *Iliad* XVIII, 478–608 (*Operative Ekphrasis: From Imagetext to Worldtext*, Jay David Bolter & Watson Hartsoe).
+Generated 2026-11-04 by `tools/achilles-forage.js` for *Iliad* XVIII, 478–608 (*Operative Ekphrasis: From Imagetext to Worldtext*, Jay David Bolter & Watson Hartsoe).
 Browse in [achilles-forage.html](../achilles-forage.html), inspect the metallurgical kit in [achilles-kit.html](../achilles-kit.html), or mount in the studio shell [shield-of-achilles.html](../shield-of-achilles.html).
 
-**63 cards** (1 master world, 12 directed scenes, 50 assets) · **12,462 pieces** · **411 sub-builds** · **72,122 stud joints** · **78 pre-bundled LDraw part packs** · 63 GREEN, 0 YELLOW, 0 RED.
+**63 cards** (1 master world, 12 directed scenes, 50 assets) · **12,466 pieces** · **411 sub-builds** · **72,133 stud joints** · **81 pre-bundled LDraw part packs** · 63 GREEN, 0 YELLOW, 0 RED.
 
 ## Zones of the Shield (Iliad XVIII, 478–608)
 
@@ -20,18 +20,18 @@ Browse in [achilles-forage.html](../achilles-forage.html), inspect the metallurg
 
 | ID | Zone | Lines | Name | Pieces | Sub-builds | Joints | Studs (W×D) | Shots | Status | MPD |
 |---|---|---|---|---:|---:|---:|---|---:|---|---|
-| `ACH-WORLD-SHIELD` | ALL | 18.478–608 | **The Shield of Achilles — Full 5-Fold Concentric Worldtext (Iliad 18.478–608)** | 3344 | 34 | 21052 | 174×100 | 4 | GREEN | [MPD](cards/ACH-WORLD-SHIELD.mpd) |
+| `ACH-WORLD-SHIELD` | ALL | 18.478–608 | **The Shield of Achilles — Full 5-Fold Concentric Worldtext (Iliad 18.478–608)** | 3345 | 34 | 20989 | 174×100 | 4 | GREEN | [MPD](cards/ACH-WORLD-SHIELD.mpd) |
 | `ACH-Z01-S01` | Z01 | 18.468–482 | **Zone I · Scene 1: Hephaestus’s Forge & The Five-Fold Shield** | 307 | 11 | 2073 | 58×54 | 3 | GREEN | [MPD](cards/ACH-Z01-S01.mpd) |
 | `ACH-Z01-S02` | Z01 | 18.483–490 | **Zone I · Scene 2: The Cosmic Boss — Earth, Sky, Sea & The Unbathing Bear** | 205 | 6 | 12467 | 100×100 | 3 | GREEN | [MPD](cards/ACH-Z01-S02.mpd) |
 | `ACH-Z02-S01` | Z02 | 18.491–496 | **Zone II · Scene 1: City at Peace — Torchlit Bridal Procession** | 233 | 15 | 1190 | 53×192 | 3 | GREEN | [MPD](cards/ACH-Z02-S01.mpd) |
 | `ACH-Z02-S02` | Z02 | 18.497–508 | **Zone II · Scene 2: City at Peace — The Sacred Circle & Blood-Price Trial** | 204 | 24 | 1703 | 53×224 | 3 | GREEN | [MPD](cards/ACH-Z02-S02.mpd) |
 | `ACH-Z03-S01` | Z03 | 18.509–519 | **Zone III · Scene 1: City at War — The Besieged Wall & Tall Golden Gods** | 334 | 11 | 1620 | 59×204 | 3 | GREEN | [MPD](cards/ACH-Z03-S01.mpd) |
-| `ACH-Z03-S02` | Z03 | 18.520–540 | **Zone III · Scene 2: City at War — The River Ambush & Crimson Ker** | 209 | 20 | 223 | 130×67 | 3 | GREEN | [MPD](cards/ACH-Z03-S02.mpd) |
-| `ACH-Z04-S01` | Z04 | 18.541–549 | **Zone IV · Scene 1: Labors of the Field — The Thrice-Ploughed Fallow** | 190 | 16 | 58 | 189×54 | 3 | GREEN | [MPD](cards/ACH-Z04-S01.mpd) |
+| `ACH-Z03-S02` | Z03 | 18.520–540 | **Zone III · Scene 2: City at War — The River Ambush & Crimson Ker** | 210 | 20 | 64 | 130×67 | 3 | GREEN | [MPD](cards/ACH-Z03-S02.mpd) |
+| `ACH-Z04-S01` | Z04 | 18.541–549 | **Zone IV · Scene 1: Labors of the Field — The Thrice-Ploughed Fallow** | 190 | 16 | 322 | 189×54 | 3 | GREEN | [MPD](cards/ACH-Z04-S01.mpd) |
 | `ACH-Z04-S02` | Z04 | 18.550–560 | **Zone IV · Scene 2: Labors of the Field — The Silent King’s Harvest & Oak Feast** | 218 | 12 | 4013 | 189×54 | 3 | GREEN | [MPD](cards/ACH-Z04-S02.mpd) |
 | `ACH-Z04-S03` | Z04 | 18.561–572 | **Zone IV · Scene 3: Labors of the Field — The Golden Vineyard & Linus Song** | 242 | 11 | 1535 | 118×54 | 3 | GREEN | [MPD](cards/ACH-Z04-S03.mpd) |
-| `ACH-Z05-S01` | Z05 | 18.573–586 | **Zone V · Scene 1: Pastoral — Oxen of Gold & Tin and the Two Terrible Lions** | 212 | 26 | 388 | 114×53 | 3 | GREEN | [MPD](cards/ACH-Z05-S01.mpd) |
-| `ACH-Z05-S02` | Z05 | 18.587–589 | **Zone V · Scene 2: Pastoral — The White Sheep Glen & Roofed Steadings** | 165 | 12 | 908 | 114×53 | 2 | GREEN | [MPD](cards/ACH-Z05-S02.mpd) |
+| `ACH-Z05-S01` | Z05 | 18.573–586 | **Zone V · Scene 1: Pastoral — Oxen of Gold & Tin and the Two Terrible Lions** | 214 | 26 | 481 | 114×53 | 3 | GREEN | [MPD](cards/ACH-Z05-S01.mpd) |
+| `ACH-Z05-S02` | Z05 | 18.587–589 | **Zone V · Scene 2: Pastoral — The White Sheep Glen & Roofed Steadings** | 162 | 12 | 836 | 114×53 | 2 | GREEN | [MPD](cards/ACH-Z05-S02.mpd) |
 | `ACH-Z06-S01` | Z06 | 18.590–608 | **Zone VI · Scene 1: The Daedalean Choros Dance & The River Oceanus Rim** | 321 | 21 | 1397 | 192×174 | 3 | GREEN | [MPD](cards/ACH-Z06-S01.mpd) |
 
 ## Hephaestus’s Forge Kit & Asset Cards (50)
@@ -74,11 +74,11 @@ Browse in [achilles-forage.html](../achilles-forage.html), inspect the metallurg
 | `ensemble.vintage-maidens-and-youths` | ensemble | Z04 | 18.567–572 | Tender-Minded Maidens & Youths Carrying Woven Baskets of Grapes | 159 | 6 | 32 | 64×118 | GREEN | [MPD](cards/ensemble.vintage-maidens-and-youths.mpd) |
 | `ensemble.four-golden-herdsmen` | ensemble | Z05 | 18.577–578 | The Four Golden Herdsmen (νομῆες χρύσειοι τέσσαρες) | 195 | 6 | 32 | 63×114 | GREEN | [MPD](cards/ensemble.four-golden-herdsmen.mpd) |
 | `ensemble.daedalean-choros-dancers` | ensemble | Z06 | 18.593–606 | Knossian Youths with Golden Swords & Maidens with Fair Garlands, Plus Two Tumblers | 215 | 8 | 48 | 63×174 | GREEN | [MPD](cards/ensemble.daedalean-choros-dancers.mpd) |
-| `creature.gold-and-tin-oxen` | creature | Z05 | 18.573–574 | Herd of Lofty-Horned Oxen in Gold and Tin | 72 | 6 | 0 | 34×71 | GREEN | [MPD](cards/creature.gold-and-tin-oxen.mpd) |
-| `creature.two-terrible-lions-and-bull` | creature | Z05 | 18.579–583 | Two Terrible Lions Seizing the Bellowing Bull | 38 | 5 | 136 | 34×26 | GREEN | [MPD](cards/creature.two-terrible-lions-and-bull.mpd) |
+| `creature.gold-and-tin-oxen` | creature | Z05 | 18.573–574 | Herd of Lofty-Horned Oxen in Gold and Tin | 72 | 6 | 48 | 34×71 | GREEN | [MPD](cards/creature.gold-and-tin-oxen.mpd) |
+| `creature.two-terrible-lions-and-bull` | creature | Z05 | 18.579–583 | Two Terrible Lions Seizing the Bellowing Bull | 40 | 5 | 60 | 34×26 | GREEN | [MPD](cards/creature.two-terrible-lions-and-bull.mpd) |
 | `creature.nine-swift-dogs` | creature | Z05 | 18.578, 584–586 | Nine Swift-Footed Dogs Barking and Darting Back | 40 | 11 | 0 | 18×106 | GREEN | [MPD](cards/creature.nine-swift-dogs.mpd) |
-| `creature.white-wooled-sheep-flock` | creature | Z05 | 18.529, 587–589 | Fair Flock of White-Wooled Sheep | 44 | 5 | 24 | 32×32 | GREEN | [MPD](cards/creature.white-wooled-sheep-flock.mpd) |
-| `creature.nimble-cavalry-horses` | creature | Z03 | 18.531–532 | Nimble-Footed Horses of the Besiegers | 97 | 4 | 0 | 51×50 | GREEN | [MPD](cards/creature.nimble-cavalry-horses.mpd) |
+| `creature.white-wooled-sheep-flock` | creature | Z05 | 18.529, 587–589 | Fair Flock of White-Wooled Sheep | 41 | 5 | 0 | 32×32 | GREEN | [MPD](cards/creature.white-wooled-sheep-flock.mpd) |
+| `creature.nimble-cavalry-horses` | creature | Z03 | 18.531–532 | Nimble-Footed Horses of the Besiegers | 101 | 4 | 0 | 51×50 | GREEN | [MPD](cards/creature.nimble-cavalry-horses.mpd) |
 | `prop.two-talents-of-gold` | prop | Z02 | 18.507–508 | The Two Talents of Gold on the Agora Judgment Stone | 33 | 2 | 4 | 36×36 | GREEN | [MPD](cards/prop.two-talents-of-gold.mpd) |
 | `prop.self-moving-tripod` | prop | Z01 | 18.373–377 | Hephaestus’s Golden-Wheeled Self-Moving Tripod | 86 | 2 | 76 | 50×50 | GREEN | [MPD](cards/prop.self-moving-tripod.mpd) |
 | `prop.silver-baldric-and-triple-rim` | prop | Z01 | 18.479–480 | The Silver Baldric & Triple Glittering Border | 42 | 2 | 202 | 28×20 | GREEN | [MPD](cards/prop.silver-baldric-and-triple-rim.mpd) |

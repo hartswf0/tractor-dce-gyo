@@ -22,6 +22,7 @@ B.TT_ZONES['shield-m8']              = [(360, 680, 40, 45)]
 B.TT_ZONES['shield-diorama-wedding'] = [(0, 80, 20, 75)]
 B.TT_ZONES['shield-diorama-agora']   = [(0, 40, 20, 45)]
 B.TT_ZONES['shield-diorama-choros']  = [(0, 60, 20, 95)]
+B.TT_ZONES['shield-diorama-office']  = [(0, 40, 20, 45)]
 
 B.HOTSPOTS['shield-of-achilles'] = [
     ('Hero Overview',        [340, 960, 1280], [0, 50, 0]),
@@ -58,7 +59,7 @@ DIORAMA_HOTSPOTS = [
 for dslug in (
     'shield-diorama-wedding', 'shield-diorama-agora', 'shield-diorama-ambush',
     'shield-diorama-sheepfold', 'shield-diorama-harvest', 'shield-diorama-vineyard',
-    'shield-diorama-cattle', 'shield-diorama-choros',
+    'shield-diorama-cattle', 'shield-diorama-choros', 'shield-diorama-office',
 ):
     B.HOTSPOTS[dslug] = DIORAMA_HOTSPOTS
 
@@ -114,8 +115,9 @@ BUNDLE_SPECS = [
     ('shield-diorama-sheepfold', 'set.shield-diorama-sheepfold', 'DIORAMA IV (48×32)',   'The Fair Glen of White Sheep, Roofed Folds & Steading', 1998),
     ('shield-diorama-harvest',   'set.shield-diorama-harvest',   'DIORAMA V (48×32)',    'The King’s Harvest, Thrice-Ploughed Glebe & Oak Feast', 1673),
     ('shield-diorama-vineyard',  'set.shield-diorama-vineyard',  'DIORAMA VI (48×32)',   'The Golden Vineyard, Kyanos Trench & Wine-Press Pavilion', 1809),
-    ('shield-diorama-cattle',    'set.shield-diorama-cattle',    'DIORAMA VII (48×32)',  'Straight-Horned Cattle of Gold & Tin & Two Tawny Lions', 2108),
+    ('shield-diorama-cattle',    'set.shield-diorama-cattle',    'DIORAMA VII (48×32)',  'Straight-Horned Cattle of Gold & Tin & Two Tawny Lions', 2168),
     ('shield-diorama-choros',    'set.shield-diorama-choros',    'DIORAMA VIII (48×32)', 'The Choros of Daedalus, Knossian Palace & Tumblers', 1970),
+    ('shield-diorama-office',    'set.shield-diorama-office',    'DIORAMA IX (48×32)',   'The Agent Office — Hephaestus’s Cybernetic Foundry & Eleven Workstations', 2529),
 ]
 
 if __name__ == '__main__':

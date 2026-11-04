@@ -90,7 +90,7 @@ def argos(f, tops):
     """Argos on the heap, lying on his side, his legs out toward the lane and his head toward his master"""
     y = max(12 + (tops[(i, k)] + 1) * P for i in (3, 4, 5) for k in (-1, 0) if (i, k) in tops)
     m = mat_mul(T(90, -(y + 9.87), -10), mat_mul(RY(math.pi / 2), mat_mul(RZ(math.pi / 2), RX(0.0))))
-    return [row(RB, m, '92586')]
+    return [row(RB, m, '92586p01')]
 
 
 def cart():

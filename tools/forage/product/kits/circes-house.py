@@ -322,7 +322,7 @@ def the_hall(): return loom() + hearth() + table() + figure('character.circe', '
 def the_court():
     out = []
     for kind, x, z, r in BEASTS:
-        out.append(on(DBG if kind == 'wolf' else MNOUGAT, x, BASE + 8, z, '48812' if kind == 'wolf' else '14734', r))
+        out.append(on(DBG if kind == 'wolf' else MNOUGAT, x, BASE + 8, z, '48812' if kind == 'wolf' else '80672a', r))
     x, z = ODYSSEUS
     out += figure('character.odysseus', 'odysseus', x, BASE + 8, z, -math.pi / 2, drop=('4499',))
     hx, hz, hy = x + 10, z + 35, BASE + 8 + 66                                                  # his left hand: the moly
@@ -452,7 +452,7 @@ if __name__ == '__main__':
                       H + 'scenes/OD-B10-S05.mjs', H + 'scenes/OD-B10-S06.mjs', H + 'scenes/OD-B10-S07.mjs'],
              status='Built to the bar',
              next=['The red columns are straight 2 x 2 round bricks; they do not taper downward as Minoan columns do.',
-                   'The lions are the lion-cub animal part (14734); there is no adult lion in the parts library used.',
+                   'The lions use the LDraw Update 2025-04 Adult Felid part (80672a).',
                    'The gate hinge and its fence, the figures, the heads and the moly are placed by hand and not checked by the tool; the fence is marked as held by its hinge.',
                    'The smoke is a short column of clear round bricks and a cone; it reads more as glass than as smoke.',
                    'The loom-hall sub-assembly is the house cut from the model without its roof module separated; a real instruction step would build the roof as its own lift-off.'])

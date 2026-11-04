@@ -652,41 +652,42 @@ const KIT = {
   /** Lofty-horned ox of gold or tin (Iliad 18.573-574: βοῶν ὀρθοκραιράων... χρυσοῖο τετεύχατο κασσιτέρου τε) */
   ox: (col = C.gold, hornCol = C.silver, name = 'lofty-horned ox') => REAL(name, [
     R('3032', C.dtan, 0, 0, 0), // 4x6 baseplate footing
-    R('64452', col, 0, 0, -8),  // Animal Cow body
-    R('64847', hornCol, -0.5, -1.8, -56),
-    R('64847', hornCol, 0.5, -1.8, -56)
+    R('64452p01', col, 0, 0, -8),  // Animal Cow with Blaze, Muzzle and Eye Pattern
+    { id: '13564', col: hornCol, x: -10.6 / 20, z: -79.0 / 20, y: -87.7, m: RXa(-0.65) },
+    { id: '13564', col: hornCol, x:  10.6 / 20, z: -79.0 / 20, y: -87.7, m: mul(RXa(-0.65), [0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1]) }
   ], { how: 'creature' }),
 
-  /** Terrible lion (σμερδαλέω δὲ λέοντε) — sculpted tawny/gold lion with Lion Head brick 30274 & crouching body */
+  /** Terrible lion (σμερδαλέω δὲ λέοντε) — LDraw Update 2025-04 Adult Felid 80672a with sculpted Homeric mane & printed cub 14734p01 */
   lion: (col = C.nougat, mane = C.gold, name = 'terrible lion') => REAL(name, [
     R('3032', C.dtan, 0, 0, 0),
-    R('3001', col, 0, -0.5, -8, 1),
-    R('3003', mane, 0, 1, -8),
-    R('30274', mane, 0, 1.5, -32), // Brick 2x3x3 with Lion's Head Carving!
-    R('3040b', col, 0, -2, -32, 2),
-    R('14734', col, 0, -1, -32)
+    R('80672a', col, 0, 0, -8),
+    R('54200', mane, -0.5, -0.5, -56, 3),
+    R('54200', mane,  0.5, -0.5, -56, 1),
+    R('54200', C.rbrown, -0.5, 0.5, -56, 2),
+    R('54200', C.rbrown,  0.5, 0.5, -56, 2),
+    R('14734p01', col, 1.0, 1.0, -8)
   ], { how: 'creature' }),
 
-  /** White-wooled sheep (ὀΐων ἀργεννάων) — Goat/Sheep 95341 + woolly fleece build */
+  /** White-wooled sheep (ὀΐων ἀργεννάων) — LDraw Update 2024-05 Printed Goat/Sheep 95341p03 + wool tuft + Printed Lamb 98386p01 */
   sheep: (col = C.white, name = 'white-wooled sheep') => REAL(name, [
     R('3020', C.green, 0, 0, 0, 1),
-    R('95341', col, -0.5, 0, -8),
-    // Second woolly lamb beside it
-    R('3004', C.lbg, 1, 0, -8, 1),
-    R('3003', col, 1, 0, -32),
-    R('3023', C.black, 1, 1, -40)
+    R('95341p03', col, -0.5, 0, -8),
+    R('98138', col, -0.5, 0, -56),
+    R('98386p01', col, 0.8, 0.2, -8)
   ], { how: 'creature' }),
 
-  /** Swift-footed hound (κύνες πόδας ἀργοὶ) */
+  /** Swift-footed hound (κύνες πόδας ἀργοὶ) — LDraw Update 2022-01 Printed German Shepherd 92586p01 */
   hound: (col = C.rbrown, name = 'swift-footed hound') => REAL(name, [
     R('3020', C.dtan, 0, 0, 0, 1),
-    R('92586', col, 0, 0, -8)
+    R('92586p01', col, 0, 0, -8)
   ], { how: 'creature' }),
 
-  /** Nimble-footed cavalry horse (ἀερσιπόδων ἵππων) */
+  /** Nimble-footed cavalry horse (ἀερσιπόδων ἵππων) — LDraw Printed Poseable Horse 10509p01 with bridle & blaze */
   horse: (col = C.rbrown, name = 'nimble-footed horse') => REAL(name, [
     R('3032', C.dtan, 0, 0, 0, 1),
-    R('10509', col, 0, 0, -8)
+    R('10509p01', col, 0, 0, -8),
+    R('3023', C.dred, 0, 0, -65, 1),
+    R('3069b', C.gold, 0, 0, -73, 1)
   ], { how: 'creature' }),
 
   /** Hephaestus's Golden-Wheeled Self-Moving Tripod (Iliad 18.373-377) */

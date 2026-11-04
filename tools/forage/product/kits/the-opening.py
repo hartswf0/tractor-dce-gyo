@@ -932,7 +932,7 @@ def trees():
     gx, gz, gr = GOATHERD
     out += figure('ensemble.suitor-uproar', 'herdsman-3', gx, top_at(gx, gz - 10), gz, gr)
     for x, z, r in GOATS_T + KNOLL_GOATS:
-        out.append(on(WHITE if hsh(x, z) % 3 else TAN, x, top_at(x, z), z, '95341', r))
+        out.append(on(WHITE if hsh(x, z) % 3 else TAN, x, top_at(x, z), z, '95341p01' if hsh(x, z) % 2 else '95341p02', r))
     return out
 
 
@@ -1060,7 +1060,7 @@ def pen():
         out += [on(DBG if hsh(i, k) % 3 else LBG, (i + .5) * S, GRASS, (k + .5) * S, '3005'),
                 put(DTAN if hsh(i, k, 1) % 2 else LBG, (i + .5) * S, GRASS + B + P, (k + .5) * S, '3070b')]
         cells.add((i, k))
-    out += [on(WHITE, (i0 + 1.5) * S, GRASS, (k0 + 2) * S, '95341', 0.8), on(TAN, (i0 + 2.5) * S, GRASS, (k0 + 2) * S, '95341', 2.6)]
+    out += [on(WHITE, (i0 + 1.5) * S, GRASS, (k0 + 2) * S, '95341p03', 0.8), on(TAN, (i0 + 2.5) * S, GRASS, (k0 + 2) * S, '95341p01', 2.6)]
     cells |= {(i0 + 1, k0 + 1), (i0 + 1, k0 + 2), (i0 + 2, k0 + 1), (i0 + 2, k0 + 2)}
     return out, cells
 

@@ -119,14 +119,14 @@ function ensemble(a) {
 
 /* ── creatures ── */
 const ANIMALS = [
-  [/ram\b|rams\b|ewe/, ['95341', C.white], 3], [/horse|team/, ['10509', C.dbrown], 2], [/boar/, ['87621', C.dbrown], 1], [/pig|swine/, ['87621p01', 29], 5], [/cattle|heifer|bulls|cow/, ['64452', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341', C.white], 5],
-  [/dog|hound|argos/, ['92586', C.rbrown], 2], [/wolves|lions/, ['48812', C.dbg], 3], [/eagle|hawk/, ['11467', C.rbrown], 2], [/geese|goose|dove/, ['12891', C.white], 6], [/stag/, ['10509', C.rbrown], 1],
+  [/ram\b|rams\b|ewe/, ['95341p03', C.white], 3], [/horse|team/, ['10509p01', C.dbrown], 2], [/boar/, ['87621p02', C.dbrown], 1], [/pig|swine/, ['87621p01', 29], 5], [/cattle|heifer|bulls|cow/, ['64452p01', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341p01', C.white], 5],
+  [/dog|hound|argos/, ['92586p01', C.rbrown], 2], [/wolves|lions/, ['80672a', C.dtan], 3], [/eagle|hawk/, ['11467p02', C.rbrown], 2], [/geese|goose|dove/, ['12891p01', C.white], 6], [/stag/, ['10509p02', C.rbrown], 1],
 ];
 function creature(a) {
   const n0 = a.name.toLowerCase(), r = rng(a.id);
   if (/scylla/.test(n0)) return { comps: [parts('scylla', [['6086', C.dgreen, 0, 0, 0], ['6027', C.dgreen, -24, -40, 0], ['6027', C.dgreen, 24, -40, 0], ['6027', C.dgreen, 0, -48, 16]]), fig(ROLES.sailor(r), 'seized sailor')], base: C.dbg };
   if (/crew-to-swine/.test(n0)) return { comps: [fig(ROLES.sailor(r), 'sailor'), part('87621p01', 29, { n: 3, name: 'swine' })], base: C.tan };
-  if (/black bulls and altar/.test(n0)) return { comps: [part('64452', C.black, { n: 2, step: 100, name: 'black bulls' }), kit('altar fire', [K.box(0, 0, 2, 2, 1, C.lbg), K.part('3062b', C.orange, 0, 0, 1), K.part('3062b', C.yellow, 1, 1, 1)])], base: C.dtan };
+  if (/black bulls and altar/.test(n0)) return { comps: [part('64452p01', C.black, { n: 2, step: 100, name: 'black bulls' }), kit('altar fire', [K.box(0, 0, 2, 2, 1, C.lbg), K.part('3062b', C.orange, 0, 0, 1), K.part('3062b', C.yellow, 1, 1, 1)])], base: C.dtan };
   for (const [re, [id, col], n] of ANIMALS) if (re.test(n0)) {
     let count = n; for (const [w, v] of Object.entries(NUM)) if (new RegExp('\\b' + w + '\\b').test(n0)) count = Math.min(v, 8);
     if (/lead ram|great stag|parnassus boar|argos/.test(n0)) count = 1;
@@ -182,8 +182,8 @@ function fx(a) {
   if (/mist|darkness|concealment|concealing/.test(n0)) return { comps: [cloud(C.tClear, 8, 6), cloud(C.white, 6, 4), cloud(C.tClear, 4, 4)], base: C.lbg };
   if (/wind/.test(n0)) return { comps: [kit('wind', [...column(C.tClear, 4, 0, 0), ...column(C.tClear, 3, 3, 1), ...column(C.tClear, 5, 6, 0)]), part('4495b', C.white, { name: 'streamer' })], base: C.sblue };
   if (/lamp|golden/.test(n0)) return { comps: [part('3959', C.gold), part('3062b', C.tYellow, { n: 3, step: 20, name: 'light' }), fig(ROLES.athena(r), 'athena')], base: C.dbg };
-  if (/eagle|birdlike|sea-eagle/.test(n0)) return { comps: [fig(ROLES.athena(r), 'athena'), part('11467', C.rbrown, { name: 'sea eagle' })], base: C.lbg };
-  if (/transformation|disguise|shepherd-to-goddess|proteus/.test(n0)) return { comps: [fig(ROLES.beggar(r), 'before'), kit('change', column(C.tClear, 3)), fig(/proteus/.test(n0) ? ROLES.god(r) : ROLES.athena(r), 'after'), ...(/proteus/.test(n0) ? [part('48812', C.dbg, { name: 'lion' }), part('30115', C.green, { name: 'serpent' })] : [])], base: C.lbg };
+  if (/eagle|birdlike|sea-eagle/.test(n0)) return { comps: [fig(ROLES.athena(r), 'athena'), part('11467p02', C.rbrown, { name: 'sea eagle' })], base: C.lbg };
+  if (/transformation|disguise|shepherd-to-goddess|proteus/.test(n0)) return { comps: [fig(ROLES.beggar(r), 'before'), kit('change', column(C.tClear, 3)), fig(/proteus/.test(n0) ? ROLES.god(r) : ROLES.athena(r), 'after'), ...(/proteus/.test(n0) ? [part('80672a', C.dtan, { name: 'lion' }), part('30115', C.green, { name: 'serpent' })] : [])], base: C.lbg };
   if (/oath|decree|peace|vow/.test(n0)) return { comps: [kit('oath stone', [K.box(0, 0, 4, 2, 2, C.white), K.slab(0, 0, 4, 2, C.gold, { y: 2 })]), fig(ROLES.athena(r), 'witness'), fig(ROLES.king(r), 'swearer')], base: C.white };
   if (/memory|tableau|field|song|genealogy|life-story|dream|phantom|imagined|embrace|mourning|grief|attention|restoration|beautification|courage|emphasis|doom|curse|prophecy|path|absence|complaint|descent|flight|dawn|river god/.test(n0)) {
     const who = /penelope/.test(n0) ? 'queen' : /troy|trojan|neoptolemus|armed/.test(n0) ? 'warrior' : /poseidon/.test(n0) ? 'poseidon' : /helios/.test(n0) ? 'god' : /athena/.test(n0) ? 'athena' : /orestes|aegisthus|murder/.test(n0) ? 'king' : /ares|aphrodite|hephaestus/.test(n0) ? 'god' : /river god/.test(n0) ? 'god' : /ithaca|family|master/.test(n0) ? 'hero' : 'shade';
@@ -220,7 +220,7 @@ function setPiece(a) {
     return { comps: [kit('map', sea), ...(/suitor|force|ambush/.test(n0) ? [group('markers', [0, 1, 2, 3].map(i => part('3062b', C.red)))] : [])], base: C.white }; }
   if (/lane|threshold|formation/.test(n0)) return { comps: [PROP_KITS.axes(n0), fig({ ...ROLES.hero(r), L: ['4499', C.rbrown] }, 'archer')], base: C.dtan };
   if (/blood|pit|cave floor/.test(n0)) return { comps: [kit('pit', [K.box(0, 0, 6, 6, 1, C.dbg, { hollow: true }), K.slab(1, 1, 4, 4, C.dred)]), fig(ROLES.shade(r), 'shade')], base: C.dbg };
-  if (/scar|boar/.test(n0)) return { comps: [fig(ROLES.beggar(r), 'odysseus'), fig(ROLES.maid(r), 'eurycleia'), part('2654a', C.silver, { name: 'basin' }), ...(/boar/.test(n0) ? [part('87621', C.dbrown, { name: 'boar' })] : [])], base: C.dtan };
+  if (/scar|boar/.test(n0)) return { comps: [fig(ROLES.beggar(r), 'odysseus'), fig(ROLES.maid(r), 'eurycleia'), part('2654a', C.silver, { name: 'basin' }), ...(/boar/.test(n0) ? [part('87621p02', C.dbrown, { name: 'boar' })] : [])], base: C.dtan };
   if (/fig tree/.test(n0)) return { comps: [kit('fig tree', [K.tree(0, 0, 4, { r: 2, leaf: C.dgreen })]), kit('rock', [K.rock(0, 0, 6, 6, 2, C.dbg)])], base: C.tDBlue };
   if (/olive leaf|shelter/.test(n0)) return { comps: [kit('leaf bed', [K.bush(0, 0, 6, 4, C.olive)]), fig(ROLES.beggar(r), 'sleeper')], base: C.dtan };
   if (/hearth/.test(n0)) return { comps: [kit('hearth', [K.box(0, 0, 6, 6, 1, C.dbg, { hollow: true }), K.part('3062b', C.orange, 2, 2, 0), K.part('3062b', C.yellow, 3, 3, 0), K.part('3062b', C.tOrange, 2, 3, 1)])], base: C.lbg };
@@ -234,8 +234,8 @@ function raft(n0) { const ops = []; for (let i = 0; i < 6; i++) ops.push(K.box(i
 function vehicle(a) {
   const n0 = a.name.toLowerCase(), r = rng(a.id);
   if (/raft/.test(n0)) return { comps: [raft(n0), ...(/storm/.test(n0) ? [fig(ROLES.hero(r), 'odysseus'), kit('wave', [K.box(0, 0, 6, 2, 1, C.tDBlue)])] : [])], base: C.tDBlue };
-  if (/chariot/.test(n0)) return { comps: [donor('6799', '6799 - Carrige.ldr', { name: 'chariot' }), part('10509', C.white, { n: 2, step: 60, name: 'horses' }), ...(/gift/.test(n0) ? [PROP_KITS.chest(n0)] : [])], base: C.dtan };
-  if (/wagon/.test(n0)) return { comps: [donor('6716', '6716 - Wagon.ldr', { name: 'wagon' }), part('10509', C.dbrown, { name: 'mule' }), part('10169', C.white, { n: 2, step: 40, name: 'laundry' })], base: C.dtan };
+  if (/chariot/.test(n0)) return { comps: [donor('6799', '6799 - Carrige.ldr', { name: 'chariot' }), part('10509p01', C.white, { n: 2, step: 60, name: 'horses' }), ...(/gift/.test(n0) ? [PROP_KITS.chest(n0)] : [])], base: C.dtan };
+  if (/wagon/.test(n0)) return { comps: [donor('6716', '6716 - Wagon.ldr', { name: 'wagon' }), part('10509p02', C.dbrown, { name: 'mule' }), part('10169', C.white, { n: 2, step: 40, name: 'laundry' })], base: C.dtan };
   if (/twelve-ship|fleet|destroyed/.test(n0)) { const n = /twelve/.test(n0) ? 6 : 4, boats = []; for (let i = 0; i < n; i++) boats.push(donor(i % 2 ? '6279' : '6285', i % 2 ? '6279 - Boat 1.ldr' : '6285 - jollyboat.ldr', { name: 'ship ' + (i + 1), noFlex: true }));
     return { comps: [group(n0, boats, { gap: 2 })], base: C.tDBlue }; }
   if (/convoy|phaeacian/.test(n0)) return { comps: [donor('6286', null, { name: 'phaeacian ship' })], base: C.tDBlue };
@@ -262,16 +262,16 @@ const LOC = {
   'location.cimmerian-shore-and-underworld-pit': r => [donor('cave-of-shadows', null, { name: 'underworld', crop: [-20, -16, 20, 16] }), setPiece({ id: 'pit', name: 'blood-pit boundary' }).comps[0]],
   'location.circes-forest-palace': r => [donor('21325', null, { name: "circe's hall" }), ...trees(2, r)],
   'location.cyclops-beach-and-waiting-ship': r => [donor('6285', '6285 - jollyboat.ldr', { name: 'waiting ship', noFlex: true }), ...rocks(3, r), water(12, 8)],
-  'location.cyclops-coast': r => [donor('6279', '6279 - Island.ldr', { name: 'cyclops coast' }), part('95341', C.white, { n: 3, name: 'goats' })],
+  'location.cyclops-coast': r => [donor('6279', '6279 - Island.ldr', { name: 'cyclops coast' }), part('95341p03', C.white, { n: 3, name: 'goats' })],
   'location.eumaeus-hut-interior': r => [donor('6066', '6066 - Building rock side.ldr', { name: 'hut' }), kit('hearth', [K.fire(0, 0)]), part('87621p01', 29, { n: 2 })],
-  'location.eumaeuss-pig-farm': r => [hut('swineherd hut'), kit('sties', [K.box(0, 0, 12, 8, 1, C.rbrown, { hollow: true })]), part('87621p01', 29, { n: 4, name: 'pigs' }), part('92586', C.rbrown, { name: 'dog' })],
+  'location.eumaeuss-pig-farm': r => [hut('swineherd hut'), kit('sties', [K.box(0, 0, 12, 8, 1, C.rbrown, { hollow: true })]), part('87621p01', 29, { n: 4, name: 'pigs' }), part('92586p01', C.rbrown, { name: 'dog' })],
   'location.farm-battlefield-at-peace': r => [hut('laertes farm'), ...trees(2, r, C.olive), kit('field wall', [K.box(0, 0, 16, 1, 1, C.dbg)])],
   'location.farm-to-palace-route': r => [kit('road', [K.slab(0, 0, 6, 24, C.dtan)]), ...trees(3, r, C.olive), ...rocks(2, r)],
   'location.farmhouse-feast': r => [hut('farmhouse'), FURN().table(), FURN().bench(), FURN().bench(), FURN().fire(), FURN().pithos()],
   'location.feast-hall-at-attentive-silence': r => [hall('feast hall', 24, 16, C.tan), PROP_KITS.table('feast'), PROP_KITS.table('feast')],
   'location.fight-threshold': r => [donor('6080', '6080 - Front.ldr', { name: 'threshold' }), PROP_KITS.axes('')],
   'location.forest-meeting-path': r => [donor('forest-clearing', null, { name: 'forest path', crop: [-20, -8, 20, 8] })],
-  'location.goat-island-harbor': r => [donor('6278', null, { name: 'goat island', crop: [-20, -16, 20, 16] }), part('95341', C.white, { n: 4, name: 'goats' })],
+  'location.goat-island-harbor': r => [donor('6278', null, { name: 'goat island', crop: [-20, -16, 20, 16] }), part('95341p01', C.white, { n: 4, name: 'goats' })],
   'location.hand-mills-and-grain-room': r => [furnished('the grain room', 22, 18, C.tan, [...[-7, -1, 5].map(x => [PROP_KITS.mill(''), x, -5]), [FURN().pithos(), -8, 3], [FURN().pithos(), -5, 4], [part('10169', C.tan, { n: 3, step: 40, name: 'grain sacks' }), 5, 4]])],
   'location.island-of-syria-memory': r => [donor('6245', '6245 - Harbor Sentry.ldr', { name: 'harbour' }), hut('syrian house', C.white)],
   'location.ismarus-coast-and-town': r => [donor('21041', null, { name: 'town wall' }), hut('ciconian house', C.white), water(10, 6)],
@@ -284,7 +284,7 @@ const LOC = {
   'location.marriage-chamber': r => [furnished('the marriage chamber', 22, 18, C.tan, [[FURN().bed(), -4, -4], [kit('olive trunk', [K.part('3941', C.rbrown, 0, 0, 0), K.part('3941', C.rbrown, 0, 0, 1), K.part('3941', C.rbrown, 0, 0, 2), K.part('3941', C.rbrown, 0, 0, 3)]), -4, -9], [FURN().loom(), 6, -6], [FURN().chest(), 6, 2], [FURN().chair(), 0, 3], [FURN().urn(), -8, 6], [FURN().brazier(), 8, 6]])],
   'location.megaron-hall': r => [hall('megaron', 28, 20, C.tan, C.dtan), colonnade(4, C.white)],
   'location.menelauss-palace': r => [furnished("menelaus's hall", 30, 22, C.white, [[FURN().throne(C.gold, C.dred), -3, -8], [FURN().throne(C.gold, C.purple), 3, -8], [FURN().column(7), -9, -3], [FURN().column(7), 9, -3], [FURN().hearth(), 0, -2], [FURN().bath(), -9, 5], [FURN().table(), 6, 4], [FURN().chest(), 11, 7], [FURN().urn(), -12, 8]])],
-  'location.mount-parnassus-hunt': r => [...rocks(4, r), ...trees(3, r, C.dgreen), part('87621', C.dbrown, { name: 'boar' })],
+  'location.mount-parnassus-hunt': r => [...rocks(4, r), ...trees(3, r, C.dgreen), part('87621p02', C.dbrown, { name: 'boar' })],
   'location.narrow-monster-strait': r => [donor('6279', '6279 - Island.ldr', { name: 'scylla rock' }), environment({ id: 'charybdis', name: 'charybdis' }).comps[0], water(12, 8)],
   'location.nestors-palace-and-courtyard': r => [donor('21022', null, { name: "nestor's palace" }), FURN().altar(), FURN().couch(), FURN().table(), FURN().bath()],
   'location.nymph-cave': r => [donor('7327', '7327 - Stairway.ldr', { name: 'cave mouth' }), ...rocks(3, r), part('4429', C.tan, { n: 2, name: 'mixing bowls' })],
@@ -306,7 +306,7 @@ const LOC = {
   'location.polyphemuss-cave': r => [donor('6279', '6279 - Island.ldr', { name: 'cave' }), PROP_KITS.stone(''), kit('cheese racks', [K.box(0, 0, 6, 1, 3, C.rbrown)])],
   'location.punishment-landscape': r => [...rocks(4, r, C.dbg), kit('boulder hill', [K.stairs(0, 0, 'e', 6, 4, C.dbg)])],
   'location.pylos-harbor': r => [donor('6285', null, { name: 'pylian harbour ship', crop: [-17, -20, 17, 20] })],
-  'location.pylos-sacrificial-beach': r => [donor('ithaca-cove', null, { name: 'beach', crop: [-20, -16, 20, 16] }), part('64452', C.black, { n: 3, step: 100, name: 'black bulls' }), altar()],
+  'location.pylos-sacrificial-beach': r => [donor('ithaca-cove', null, { name: 'beach', crop: [-20, -16, 20, 16] }), part('64452p01', C.black, { n: 3, step: 100, name: 'black bulls' }), altar()],
   'location.pylos-to-sparta-road': r => [kit('road', [K.slab(0, 0, 6, 28, C.dtan)]), donor('6799', '6799 - Carrige.ldr', { name: 'chariot' }), ...trees(2, r, C.olive)],
   'location.river-washing-pools': r => [donor('7410', null, { name: 'river' }), water(10, 6), part('10169', C.white, { n: 2, name: 'laundry' })],
   'location.road-from-river-to-scheria': r => [kit('road', [K.slab(0, 0, 6, 24, C.dtan)]), ...trees(3, r, C.olive), donor('6716', '6716 - Wagon.ldr', { name: 'mule cart' })],

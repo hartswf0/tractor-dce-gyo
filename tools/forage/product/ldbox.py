@@ -15,6 +15,8 @@ DIRS = ['parts', 'p', 'parts/s', 'p/48', 'p/8']
 
 def find(name):
     name = name.replace('\\', '/').lower()
+    if not name.endswith('.dat'):
+        name += '.dat'
     for d in DIRS:
         for cand in (os.path.join(LD, d, name), os.path.join(LD, d, os.path.basename(name))):
             if os.path.exists(cand): return cand
@@ -23,6 +25,14 @@ def find(name):
 
 def mul(a, b):
     return [sum(a[r * 3 + q] * b[q * 3 + c] for q in range(3)) for r in range(3) for c in range(3)]
+
+
+def apply(m, p, x, y, z):
+    return (
+        p[0] + m[0] * x + m[1] * y + m[2] * z,
+        p[1] + m[3] * x + m[4] * y + m[5] * z,
+        p[2] + m[6] * x + m[7] * y + m[8] * z,
+    )
 
 
 @functools.lru_cache(maxsize=None)

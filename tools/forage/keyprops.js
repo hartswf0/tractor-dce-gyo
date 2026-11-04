@@ -46,7 +46,7 @@ props.wine = { parts: [[0, 0], [22, 8], [-14, 18], [36, 26], [8, 34]].map(([x, z
 props.blood = { parts: [row('4589', 36, L.T(0, 0, 0)), row('4589', 36, L.mul(L.T(14, 6, 6), RX(0.6))), row('4589', 36, L.mul(L.T(-12, 8, -4), RX(-0.7))), row('3062b', 36, L.T(4, 16, 10)), row('6141', 36, L.T(-18, 22, 8))], anchors: { centre: [0, 8, 0] } };
 props.steam = { parts: [row('3062b', 47, L.T(0, 0, 0)), row('3062b', 47, L.T(6, -24, 4)), row('3062b', 47, L.T(-4, -48, 8)), row('4589', 47, L.T(2, -72, 10)), row('4589', 15, L.T(10, -18, -8))], anchors: { base: [0, 24, 0] } };
 props.ember = { parts: [row('3062b', 57, L.T(0, 0, 0)), row('4589', 46, L.T(6, -22, 4)), row('4589', 57, L.T(-6, -18, -4)), row('3024', 46, L.T(0, 8, 10)), row('4589', 46, L.mul(L.T(10, 4, -8), RX(0.8)))], anchors: { heart: [0, -8, 0] } };
-props.ram = { parts: [row('95341', 15, L.I12)], anchors: { back: [0, -30, 0] } };
+props.ram = { parts: [row('95341p03', 15, L.I12), row('98138', 15, L.T(0, -19.2, 0))], anchors: { back: [0, -30, 0] } };
 props.boulder = { parts: [row('53934p01c01', 71, L.I12), row('53934p01c01', 71, L.T(50, 0, 20)), row('42291', 71, L.T(20, -72, 10)), row('42284', 71, L.T(20, -104, 10))], anchors: { top: [20, -110, 10] } };
 props.perch = { parts: [row('53934p01c01', 72, L.I12)], anchors: { top: [0, -4, 0] } };
 /* Circe's hall (Homer X): the men as swine, the beasts she tamed, the acorns she threw them */
@@ -55,7 +55,7 @@ props.pig = { parts: [row('87621p01', 29, L.I12)], anchors: { back: [0, -20, 0],
 props.pigMask = { parts: [row('17351p01', 29, L.I12)], anchors: {} };
 props.wolf = { parts: [row('48812', 72, L.I12)], anchors: { back: [0, -30, 0] } };
 props.wolfGrey = { parts: [row('48812', 71, L.I12)], anchors: { back: [0, -30, 0] } };
-props.lion = { parts: [row('14734', 191, L.I12)], anchors: { back: [0, -24, 0] } };
+props.lion = { parts: [row('80672a', 191, L.T(0, -48, 0)), row('54200', 28, L.T(-10, -76, -25)), row('54200', 28, L.T(10, -76, -25))], anchors: { back: [0, -76, 0] } };
 props.acorns = { parts: [[0, 0, 0], [9, -14, 5], [-8, -26, -3], [4, -40, 8], [-5, -52, 2], [12, -6, -9]].map(([x, y, z], i) => row('98138p86', 19, L.mul(L.T(x, y, z), L.mul(RX(0.5 + i * 0.9), RY(i * 1.3))))), anchors: { base: [0, 0, 0] } };
 props.acornPile = { parts: [[0, 0], [10, 3], [-9, 5], [4, -8], [-4, 10], [14, -6], [-13, -4]].map(([x, z], i) => row('98138p86', 19, L.mul(L.T(x, 0, z), RY(i)))), anchors: { centre: [0, 0, 0] } };
 props.basket = { parts: [row('4523', 70, L.I12), row('98138p86', 19, L.T(-3, -2, 0)), row('98138p86', 19, L.T(4, -3, 2))], anchors: { rim: [0, -4, 0] } };
@@ -104,7 +104,7 @@ props.spout = (() => { const parts = [];
   for (let k = 0; k < 20; k++) { const b = k * 0.31, rr = 44 + (k % 3) * 16; parts.push(row(k % 2 ? '6141' : '3062b', k % 3 ? 15 : 47, L.T(rr * Math.cos(b), (k % 2) * -12, rr * Math.sin(b)))); }
   return { parts, anchors: { crest: [0, -440, 0], base: [0, 0, 0] } }; })();
 /* Argos (Homer XVII): the old hound, a German shepherd in dark brown, standing (his head up) or laid on his side (dead) */
-props.argos = { parts: [row('92586', 308, L.I12)], anchors: { head: [0, -20, -40], back: [0, -24, 0] } };
+props.argos = { parts: [row('92586p01', 308, L.I12)], anchors: { head: [0, -20, -40], back: [0, -24, 0] } };
 /* the bow (Homer XXI): twelve axes set in a trench in a straight line, each a twin-bladed axe head (the hole through it along the line)
    on an upright handle; the arrow, a bar with white fletching, to be aimed through the holes */
 props.axes = { parts: Array.from({ length: 12 }, (_, i) => [row('3062b', 70, L.T(0, -24, i * 34)), row('3062b', 70, L.T(0, -48, i * 34)), row('11096', 71, L.T(0, -62, i * 34))]).flat(),
@@ -117,8 +117,8 @@ props.raft = { parts: [...Array.from({ length: 7 }, (_, i) => row('30137', 70, L
   ...[0, 1, 2].map(k => row('3009', 15, L.T(0, -120 - k * 24, -12))), row('2542', 70, L.mul(L.T(0, -10, 90), RX(0.5)))], anchors: { deck: [0, -8, 0], mast: [0, -190, 0], stern: [0, -8, 60] } };
 props.trunk = { parts: Array.from({ length: 9 }, (_, i) => row('3941', i % 4 === 3 ? 308 : 70, L.T(0, i * 24, 0))), anchors: { butt: [0, 216, 0], mid: [0, 108, 0], crown: [0, 0, 0] } };
 /* the cattle of the Sun (Homer XII: "broad-faced, horned"): the cow in white with its blaze, and in reddish brown */
-props.cow = { parts: [row('64452p01', 15, L.I12)], anchors: { back: [0, -40, 0] } };
-props.cowRed = { parts: [row('64452', 70, L.I12)], anchors: { back: [0, -40, 0] } };
+props.cow = { parts: [row('64452p01', 15, L.I12), row('13564', 297, L.mul(L.T(-10.6, -31.7, -79.0), RX(-0.65))), row('13564', 297, L.mul(L.T(10.6, -31.7, -79.0), L.mul(RX(-0.65), RZ(Math.PI))))], anchors: { back: [0, -40, 0] } };
+props.cowRed = { parts: [row('64452p01', 70, L.I12), row('13564', 19, L.mul(L.T(-10.6, -31.7, -79.0), RX(-0.65))), row('13564', 19, L.mul(L.T(10.6, -31.7, -79.0), L.mul(RX(-0.65), RZ(Math.PI))))], anchors: { back: [0, -40, 0] } };
 /* Helios: the sun's disc, gold dish with a trans yellow face and a ring of trans orange rays */
 props.sun = { parts: [row('3960', 297, L.mul(L.I12, RX(Math.PI / 2))), row('4150', 46, L.mul(L.T(0, 0, -16), RX(Math.PI / 2))), ...Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return row('4589', 57, L.mul(L.T(60 * Math.cos(a), 60 * Math.sin(a), 0), [0, 0, 0, -Math.sin(a), Math.cos(a), 0, Math.cos(a), Math.sin(a), 0, 0, 0, 1].map((v, j) => j < 3 ? v : v))); })], anchors: { face: [0, 0, -20] } };
 /* the lotus: a flower in white on a green stem, as it is handed over */
@@ -127,7 +127,7 @@ props.lotus = { parts: [row('3742', 15, L.I12), row('3742', 13, L.T(0, -2, 0)), 
 props.lotusHeld = { parts: [row('3741ac05', 15, L.I12)], anchors: { grip: [0, 8, 0], bloom: [0, -38, 0] } };
 props.axe = { parts: [row('3835', 72, L.I12)], anchors: { grip: [0, 26, 0], head: [0, -22, -6] } };
 /* the Underworld (Homer XI): the black ram; Tiresias's shade, a ghost shroud in trans clear with a white head and his golden staff */
-props.ramBlack = { parts: [row('95341', 0, L.I12)], anchors: { back: [0, -30, 0] } };
+props.ramBlack = { parts: [row('95341p02', 0, L.I12), row('98138', 0, L.T(0, -19.2, 0))], anchors: { back: [0, -30, 0] } };
 props.tiresias = { parts: [row('2588', 47, L.T(0, -32, 0)), row('3626bp01', 15, L.T(0, -56, 0)), row('3957a', 297, L.T(-22, 8, -6)), row('4589', 297, L.mul(L.T(-22, -88, -6), RX(Math.PI)))], anchors: { head: [0, -66, 0] } };
 props.shade = { parts: [row('2588', 47, L.T(0, -32, 0)), row('3626bp01', 15, L.T(0, -56, 0))], anchors: { head: [0, -66, 0] } };
 /* the foot-bath (Homer XIX): a basin (the 4 x 4 dish turned up) of water; the spill when it tips */
@@ -160,11 +160,11 @@ props.mist = { parts: [...Array.from({ length: 6 }, (_, k) => Array.from({ lengt
   ...Array.from({ length: 7 }, (_, i) => row('4073', i % 2 ? 15 : 47, L.T(i ? 14 * Math.cos(i) : 0, -48, i ? 14 * Math.sin(i) : 0)))], anchors: { centre: [0, 0, 0] } };
 /* the sea-eagle Athena becomes (Homer III: "she flew away in the form of an eagle"): the eagle body with its beak and eyes and the two
    wings spread, in reddish brown (staged at about a third of the part's size, so a bird of a man's span) */
-props.seaEagle = { parts: [row('11467p01', 70, L.I12), row('11777p01', 70, L.T(-30, 2, -10)), row('11778p01', 70, L.T(30, 2, -10))], anchors: { back: [0, 0, 0] } };
-props.seaEagleUp = { parts: [row('11467p01', 70, L.I12), row('11777p01', 70, L.mul(L.T(-30, 2, -10), RZ(0.7))), row('11778p01', 70, L.mul(L.T(30, 2, -10), RZ(-0.7)))], anchors: { back: [0, 0, 0] } };
+props.seaEagle = { parts: [row('11467p02', 70, L.I12), row('11777p01', 70, L.T(-30, 2, -10)), row('11778p01', 70, L.T(30, 2, -10))], anchors: { back: [0, 0, 0] } };
+props.seaEagleUp = { parts: [row('11467p02', 70, L.I12), row('11777p01', 70, L.mul(L.T(-30, 2, -10), RZ(0.7))), row('11778p01', 70, L.mul(L.T(30, 2, -10), RZ(-0.7)))], anchors: { back: [0, 0, 0] } };
 /* the omen at Ithaca (Homer XV: "a hawk, Apollo's swift messenger ... with a dove in its talons"): a brown bird with a white one hanging
    from it, and the white feathers that fall between Telemachus and the sea */
-props.hawkDove = { parts: [row('13665', 70, L.I12), row('2546', 15, L.mul(L.T(0, 26, 4), RX(2.6)))], anchors: { back: [0, -10, 0] } };
+props.hawkDove = { parts: [row('67632p01', 70, L.I12), row('41835p01', 15, L.mul(L.T(0, 10, 4), RX(2.6)))], anchors: { back: [0, -10, 0] } };
 props.feathers = { parts: [[0, 0, 0], [12, -14, 6], [-10, -26, -4], [6, -40, 10], [-14, -54, 2], [10, -66, -8]].map(([x, y, z], i) => row(i % 2 ? '4073' : '3024', 15, L.mul(L.T(x, y, z), RX(0.5 * i)))), anchors: {} };
 /* Theoclymenus's vision (Homer XX): the meat the suitors eat "dabbled with blood" (a joint, drops of trans red hanging from it), and the
    walls "running with blood" (a streak of 1 x 2 tiles stood on edge down a wall, dark red and trans red, uneven, about four bricks
@@ -249,9 +249,9 @@ const sealEyes = [-7, 7].map(x => row('98138', 0, L.mul(L.T(x, -15, -31), L.mul(
 props.seal = { parts: [row('3399', 72, L.I12), ...sealEyes], anchors: { back: [0, -22, 0] } };   /* the LEGO seal (3399), body along z, head up */
 props.sealGrey = { parts: [row('3399', 71, L.I12), ...sealEyes], anchors: { back: [0, -22, 0] } };
 props.snake = { parts: [row('30115', 2, L.I12)], anchors: {} };
-props.dog = { parts: [row('92586', 308, L.I12)], anchors: {} };
-props.dogBlack = { parts: [row('92586', 0, L.I12)], anchors: {} };
-props.dogWhite = { parts: [row('92586', 15, L.I12)], anchors: {} };
+props.dog = { parts: [row('92586p01', 308, L.I12)], anchors: {} };
+props.dogBlack = { parts: [row('92586p01', 0, L.I12)], anchors: {} };
+props.dogWhite = { parts: [row('92586p01', 15, L.I12)], anchors: {} };
 props.staff = { parts: [row('3957a', 70, L.I12), row('3957a', 70, L.T(0, -88, 0))], anchors: { grip: [0, -60, 0] } };
 props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
 /* the making-of studio (tools/making/studio.py; the film OD-B25-S01..S04): the film camera on its tripod (three legs of 4L bars splayed

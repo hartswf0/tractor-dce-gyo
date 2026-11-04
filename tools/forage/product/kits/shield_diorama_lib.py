@@ -296,8 +296,7 @@ class DioramaCanvas:
 
         for y_tile, cells_col in sorted(by_y.items()):
             self.rows += pack_tiles(cells_col, y_tile)
-        self.rows += cobbles
-        self.free_rows += meadow_flowers
+        self.rows += cobbles + meadow_flowers
 
     def add_tree(self, kind, i0, k0, y_override=None, seed=None):
         """Plant a landscape.py tree (`olive`, `cypress`, `oak`, `willow`, `poplar`, `fig`, `pine`) on 2x2 cells at (i0, k0)."""
@@ -380,9 +379,9 @@ class DioramaCanvas:
     def finalize(self):
         """Finish ground, settle any off-grid foliage against fixed figures & creatures, and return all LDraw rows."""
         self.finish_ground()
-        fixed_1 = [r for r in self.fig_rows if r.startswith('1 ')]
-        settled, _ = L.settle(self.rows + self.free_rows, fixed=fixed_1)
-        return settled + self.fig_rows
+        fixed_1 = [r for r in (self.fig_rows + self.free_rows) if r.startswith('1 ')]
+        settled, _ = L.settle(self.rows, fixed=fixed_1)
+        return settled + self.free_rows + self.fig_rows
 
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -896,142 +895,70 @@ def build_sacred_circle_floor(canvas, ci, ck, h=2):
 
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-# 3. BRICK-BUILT CREATURES (WOOLLY SHEEP, GOATS, LOFTY-HORNED OXEN, TAWNY LIONS & HUNTING DOGS)
+# 3. LDRAW UPDATE CREATURES (WOOLLY SHEEP, PRINTED GOATS, LOFTY-HORNED OXEN, MANED FELID LIONS, HOUNDS & BIRDS)
 # ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 def woolly_sheep(x, yup, z, rot=0.0, lamb=False):
-    """Brick-built woolly white sheep with contrasting black head and legs (matching Reference Images 3, 4 & 5)."""
+    """LDraw Update 2024-05 printed sheep/goat (95341p03) with sculpted Homeric white wool fleece, or printed lamb (98386p01)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.11))
     if lamb:
         return [
-            place_local(M_b, BLK, 0, 0, -10, '98138'),
-            place_local(M_b, BLK, 0, 0,  10, '98138'),
-            place_local(M_b, WHITE, 0, 8, 0, '3023'),
-            place_local(M_b, WHITE, 0, 16, 10, '54200', RY(math.pi)),
-            place_local(M_b, BLK, 0, 16, -10, '54200'),
+            place_local(M_b, WHITE, 0, 0, 0, '98386p01'),
         ]
     return [
-        # Four black hooves/legs (h_up = 0..8)
-        place_local(M_b, BLK, -10, 0, -10, '98138'),
-        place_local(M_b, BLK,  10, 0, -10, '98138'),
-        place_local(M_b, BLK, -10, 0,  10, '98138'),
-        place_local(M_b, BLK,  10, 0,  10, '98138'),
-        # Underbelly 2x3 plate (3021 rotated along z, h_up = 8..16, spanning x in -20..20, z in -30..30)
-        place_local(M_b, WHITE, 0, 8, 0, '3021', RY(math.pi * 0.5)),
-        # Plump white fleece body 2x2 brick (3003 at z=10, h_up = 16..40, spanning z in -10..30)
-        place_local(M_b, WHITE, 0, 16, 10, '3003'),
-        # Contrasting black head 1x2 brick (3004 at z=-20, h_up = 16..40, spanning z in -30..-10)
-        place_local(M_b, BLK, 0, 16, -20, '3004'),
-        # Fluffy wool top (cheese slopes + round wool tufts at h_up = 40)
-        place_local(M_b, WHITE, -10, 40,  0, '98138'),
-        place_local(M_b, WHITE,  10, 40,  0, '98138'),
-        place_local(M_b, WHITE, -10, 40, 20, '54200', RY(math.pi)),
-        place_local(M_b, WHITE,  10, 40, 20, '54200', RY(math.pi)),
-        # Black/tan forehead & horns over the head at z=-20, h_up = 40
-        place_local(M_b, TAN, -10, 40, -20, '54200', RY(-math.pi * 0.5)),
-        place_local(M_b, TAN,  10, 40, -20, '54200', RY(math.pi * 0.5)),
+        place_local(M_b, WHITE, 0, 0, 0, '95341p03'),
+        place_local(M_b, WHITE, 0, 48, 5, '3023', RY(math.pi * 0.5)),
+        place_local(M_b, WHITE, 0, 56, -5, '54200'),
+        place_local(M_b, WHITE, 0, 56, 15, '54200', RY(math.pi)),
     ]
 
 
 def brown_goat(x, yup, z, rot=0.0):
-    """Brick-built brown-and-tan Mediterranean goat with swept horns (matching Reference Images 3 & 4)."""
+    """LDraw Update 2024-05 printed Mediterranean goat with black eyes, dark tan horns, and medium nougat spots (95341p01)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.13))
     return [
-        place_local(M_b, DB, -10, 0, -10, '98138'),
-        place_local(M_b, DB,  10, 0, -10, '98138'),
-        place_local(M_b, DB, -10, 0,  10, '98138'),
-        place_local(M_b, DB,  10, 0,  10, '98138'),
-        place_local(M_b, DTAN, 0, 8, 0, '3021', RY(math.pi * 0.5)),
-        place_local(M_b, RB, 0, 16, 10, '3003'),
-        place_local(M_b, DB, 0, 16, -20, '3004'),
-        place_local(M_b, RB, -10, 40, 20, '54200', RY(math.pi)),
-        place_local(M_b, RB,  10, 40, 20, '54200', RY(math.pi)),
-        place_local(M_b, DTAN, 0, 40, 0, '3069b'),
-        place_local(M_b, TAN, -10, 40, -20, '54200', RY(math.pi)),
-        place_local(M_b, TAN,  10, 40, -20, '54200', RY(math.pi)),
+        place_local(M_b, TAN, 0, 0, 0, '95341p01'),
+        place_local(M_b, DTAN, 0, 48, 0, '98138'),
     ]
 
 
 def ox_beast(x, yup, z, rot=0, body_col=GOLD, horn_col=SILVER):
-    """24-piece sculpted LEGO Homeric Lofty-Horned Ox (boes orthokhairai, Il. XVIII.573-574)."""
+    """LDraw printed Homeric Lofty-Horned Ox (64452p01 with blaze, muzzle & eye pattern + 13564 2.25L horns at exact !HELP pinholes)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.08))
-    belly_col = DTAN if body_col in (RB, DB) else (SILVER if body_col == GOLD else GOLD)
-    out = [
-        place_local(M_b, horn_col, -10, 0, -20, '98138'),
-        place_local(M_b, horn_col, 10, 0, -20, '98138'),
-        place_local(M_b, horn_col, -10, 0, 20, '98138'),
-        place_local(M_b, horn_col, 10, 0, 20, '98138'),
-        place_local(M_b, body_col, -10, 8, -20, '3062b'),
-        place_local(M_b, body_col, 10, 8, -20, '3062b'),
-        place_local(M_b, body_col, -10, 8, 20, '3062b'),
-        place_local(M_b, body_col, 10, 8, 20, '3062b'),
-        place_local(M_b, belly_col, 0, 24, 0, '3020', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 32, 0, '3001', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 56, -20, '15068'),
-        place_local(M_b, body_col, -10, 56, 20, '11477', RY(math.pi)),
-        place_local(M_b, body_col, 10, 56, 20, '11477', RY(math.pi)),
-        place_local(M_b, body_col, 0, 56, 0, '3068b'),
-        place_local(M_b, body_col, -10, 40, -40, '87087', RY(-math.pi / 2)),
-        place_local(M_b, body_col, 10, 40, -40, '87087', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 40, -60, '3022'),
-        place_local(M_b, body_col, 0, 48, -60, '15068'),
-        place_local(M_b, belly_col, 0, 32, -50, '3022'),
-        place_local(M_b, horn_col, -10, 64, -40, '4085c', RY(-math.pi / 2)),
-        place_local(M_b, horn_col, 10, 64, -40, '4085c', RY(math.pi / 2)),
-        place_local(M_b, body_col, 0, 48, 40, '54200', RY(math.pi)),
+    yoke_col = horn_col if body_col in (GOLD, TIN, BRONZE) else body_col
+    return [
+        place_local(M_b, body_col, 0, 0, 0, '64452p01'),
+        place_local(M_b, yoke_col, -10, 48, 0, '54200', RY(-math.pi * 0.5)),
+        place_local(M_b, yoke_col,  10, 48, 0, '54200', RY( math.pi * 0.5)),
+        row(horn_col, mat_mul(M_b, mat_mul(T(-10.6, -79.7, -79.0), RX(-0.65))), '13564'),
+        row(horn_col, mat_mul(M_b, mat_mul(T( 10.6, -79.7, -79.0), mat_mul(RX(-0.65), RZ(math.pi)))), '13564'),
     ]
-    out.append(row(horn_col, mat_mul(M_b, mat_mul(T(-16, -68, -40), mat_mul(RY(-math.pi / 2), RX(-0.35)))), '53451'))
-    out.append(row(horn_col, mat_mul(M_b, mat_mul(T(16, -68, -40), mat_mul(RY(math.pi / 2), RX(-0.35)))), '53451'))
-    out.append(row(BLK, mat_mul(M_b, mat_mul(T(-28, -52, -40), RZ(math.pi / 2))), '98138'))
-    out.append(row(BLK, mat_mul(M_b, mat_mul(T(28, -52, -40), RZ(-math.pi / 2))), '98138'))
-    return out
 
 
-def lion_beast(x, yup, z, rot=0):
-    """22-piece sculpted Tawny Homeric Lion (smerdaleo leonte, Il. XVIII.579)."""
+def lion_beast(x, yup, z, rot=0, body_col=TAN):
+    """LDraw Update 2025-04 Adult Felid Lion (80672a) with sculpted shaggy dark-tan & reddish-brown Homeric mane ruff."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.11))
-    out = [
-        place_local(M_b, TAN, -10, 0, -20, '49668'),
-        place_local(M_b, TAN, 10, 0, -20, '49668'),
-        place_local(M_b, TAN, -10, 0, 20, '3023', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 0, 20, '3023', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 8, -20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 8, -20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 8, 20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, 10, 8, 20, '3004', RY(math.pi / 2)),
-        place_local(M_b, TAN, 0, 32, 0, '3020', RY(math.pi / 2)),
-        place_local(M_b, TAN, -10, 40, 20, '11477', RY(math.pi)),
-        place_local(M_b, TAN, 10, 40, 20, '11477', RY(math.pi)),
-        place_local(M_b, DTAN, 0, 40, -16, '3003'),
-        place_local(M_b, RB, -10, 64, -20, '54200', RY(-math.pi / 2)),
-        place_local(M_b, RB, 10, 64, -20, '54200', RY(math.pi / 2)),
-        place_local(M_b, DTAN, 0, 64, -10, '85984', RY(math.pi)),
-        place_local(M_b, TAN, -10, 40, -36, '87087', RY(-math.pi / 2)),
-        place_local(M_b, TAN, 10, 40, -36, '87087', RY(math.pi / 2)),
-        place_local(M_b, WHITE, -10, 40, -56, '49668'),
-        place_local(M_b, WHITE, 10, 40, -56, '49668'),
-        place_local(M_b, TAN, 0, 48, -56, '15068'),
-        place_local(M_b, DRED, 0, 32, -46, '3022'),
-        place_local(M_b, TAN, 0, 40, 40, '54200', RY(math.pi)),
+    return [
+        place_local(M_b, body_col, 0, 0, 0, '80672a'),
+        place_local(M_b, RB,   -10, 48, -10, '54200', RY(-math.pi * 0.5)),
+        place_local(M_b, RB,    10, 48, -10, '54200', RY( math.pi * 0.5)),
+        place_local(M_b, DTAN, -10, 48,  10, '54200', RY( math.pi)),
+        place_local(M_b, DTAN,  10, 48,  10, '54200', RY( math.pi)),
+        row(RB, mat_mul(M_b, mat_mul(T(0.0, -96.9, -71.5), RX(0.45))), '53451'),
     ]
-    out.append(row(BYELLOW, mat_mul(M_b, mat_mul(T(-28, -52, -36), RZ(math.pi / 2))), '98138'))
-    out.append(row(BYELLOW, mat_mul(M_b, mat_mul(T(28, -52, -36), RZ(-math.pi / 2))), '98138'))
-    return out
 
 
 def dog_beast(x, yup, z, rot=0, col=TAN):
-    """11-piece sculpted Homeric Hunting Hound (kynes argoi, Il. XVIII.578, 584-586)."""
+    """LDraw Update 2022-01 Printed Hunting Hound (92586p01 with black eyes, nose, blaze, and dark brown muzzle pattern)."""
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.14))
-    ear_col = DB if col == TAN else BLK
     return [
-        place_local(M_b, col, -10, 0, -10, '3024'),
-        place_local(M_b, col, 10, 0, -10, '3024'),
-        place_local(M_b, col, -10, 0, 10, '3024'),
-        place_local(M_b, col, 10, 0, 10, '3024'),
-        place_local(M_b, col, 0, 8, 0, '3021', RY(math.pi / 2)),
-        place_local(M_b, col, -10, 16, 10, '11477', RY(math.pi)),
-        place_local(M_b, col, 10, 16, 10, '11477', RY(math.pi)),
-        place_local(M_b, col, 0, 16, -20, '87087'),
-        place_local(M_b, ear_col, 0, 40, -20, '54200'),
-        place_local(M_b, col, 0, 24, -30, '3023', RY(math.pi / 2)),
-        place_local(M_b, ear_col, 0, 16, 20, '54200', RY(math.pi)),
+        place_local(M_b, col, 0, 0, 0, '92586p01'),
+    ]
+
+
+def bird_perch(x, yup, z, rot=0.0, kind='owl', col=WHITE):
+    """LDraw Update 2024-2025 perched bird: Spread-Wing Owl (67632p01), Angular Owl (92084p01), or Printed Songbird (41835p01)."""
+    M_b = mat_mul(T(x, -yup, z), RY(rot + 0.09))
+    pid = '67632p01' if kind == 'owl' else ('92084p01' if kind == 'owl_perched' else '41835p01')
+    return [
+        place_local(M_b, col, 0, 0, 0, pid),
     ]

@@ -27,7 +27,7 @@ from kits.shield_diorama_lib import (
     build_raised_tree_planter, build_townhouse_2storey,
     build_stone_cottage, build_timber_sheep_shed, build_wine_press_pavilion,
     build_doric_stoa, build_elder_throne, build_sacred_circle_floor,
-    woolly_sheep, brown_goat, ox_beast, lion_beast, dog_beast,
+    woolly_sheep, brown_goat, ox_beast, lion_beast, dog_beast, bird_perch,
 )
 
 
@@ -386,6 +386,8 @@ def build_diorama_ambush():
         C.free_rows += woolly_sheep((sx + 0.5) * S, C.surf_y(sx, sk), (sk + 0.5) * S, rot=srot, lamb=slamb)
     C.free_rows += brown_goat((16 + 0.5) * S, C.surf_y(16, 9), (9 + 0.5) * S, rot=0.5)
     C.free_rows += brown_goat((18 + 0.5) * S, C.surf_y(18, 7), (7 + 0.5) * S, rot=0.4)
+    # Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) perched atop the right rampart watching over Athena
+    C.free_rows += bird_perch(20.5 * S, C.surf_y(20, -13) + 4 * B + P, -12.5 * S, rot=math.pi * 0.25, kind='owl', col=WHITE)
 
     return C.finalize()
 
@@ -467,6 +469,8 @@ def build_diorama_sheepfold():
     ]
     for (si, sk, srot, slamb) in flock:
         C.free_rows += woolly_sheep((si + 0.5) * S, C.surf_y(si, sk), (sk + 0.5) * S, rot=srot, lamb=slamb)
+    # Printed Songbird (41835p01, LDraw Update 2024-08) perched on the dry-stone gate pier
+    C.free_rows += bird_perch(2.5 * S, C.surf_y(2, 11) + 2 * B + P, 11.5 * S, rot=math.pi * 0.8, kind='songbird', col=MBLUE)
 
     return C.finalize()
 
@@ -957,13 +961,14 @@ def build_diorama_office():
         C.rows.append(on(GOLD, (bi + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S, '3062b'))
         C.rows.append(on(TORANGE, (bi + 0.5) * S, y_kan_top + P + B, (-11 + 0.5) * S, '4589'))
 
-    # Place Maestro (Hephaestus) and Auditor (Athena) on the Command Gallery overlooking the Multiplane Studio
+    # Place Maestro (Hephaestus) and Auditor (Athena) + Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) on the Command Gallery
     C.add_fig_at('character.odysseus', 'odysseus', (-4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
                  rot=math.pi, hips=DB, legs=GOLD, torso=('973', BRONZE), headgear=None,
                  crown=('98138', GOLD), held_r=('4589', GOLD))
     C.add_fig_at('character.athena', 'athena', (4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
                  rot=math.pi, hips=GOLD, legs=GOLD, torso=('973', GOLD),
                  held_r=('4497', GOLD), held_l=('3846', GOLD))
+    C.free_rows += bird_perch(7.5 * S, y_kan_top + P, -10.5 * S, rot=math.pi, kind='owl', col=WHITE)
 
     # 2. CENTERPIECE: The 4-Level Multiplane Camera Tower & Spatiotemporal Worm Prism (i in -6..5, k in -5..4)
     mp_cells = [(i, k) for i in range(-6, 6) for k in range(-5, 5)]
