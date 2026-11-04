@@ -182,19 +182,72 @@
 
 <main class="container">
   <section class="hero">
-    <div class="eyebrow">AI LABS · 8 GITHUB REPOSITORIES × HOMER'S ILIAD XVIII.478–608</div>
-    <h1>Eight Distinct Shield of Achilles Films Built from the Eight Claude Video Editing Skills</h1>
+    <div class="eyebrow">THE LEGO MOVIE ("EMMET MEETS VITRUVIUS") × TREVOR CARLEE ON-2S STOP-MOTION PRODUCTION</div>
+    <h1>Nine Real 3D LEGO Stop-Motion Shield of Achilles Films</h1>
     <p class="subtitle">
-      Every repository featured in <em>"Insane GitHub Repos To Actually 10x Claude Video Editing"</em> is installed locally in the workspace (<code>.claude/skills/</code> &amp; <code>.agents/skills/</code>) and used to direct, synthesize, validate, and render its own standalone <code>1920×1080</code> MP4 film exploring a distinct architectural, cosmological, or acoustic layer of our 6,404-piece LEGO Shield of Achilles and its eight museum dioramas.
+      Upgraded to the <strong>"Blind-Critic" Vitruvius &amp; Trevor Carlee Production Bar</strong> (<a href="https://www.youtube.com/watch?v=1bWq_yLgD4Y&t=66s" target="_blank">The LEGO Movie</a> · <a href="https://www.youtube.com/watch?v=nLj6Y5OTnjI" target="_blank">Animating on 2s Non-Destructively</a> · <a href="https://www.youtube.com/watch?v=R5UKSGUztMk" target="_blank">Animating A Scene in LEGO Live</a>): every film renders 100% real LDraw bricks with <strong>12-fps ("on-2s") stepped limb articulation</strong> (swinging left/right legs, arms, held weapons, and yawing heads/beards/crowns), <strong>Reactive LEGO Plate-Step Water</strong>, <strong>Master-Builder helical flying brick assembly</strong>, <strong>ABS subsurface scattering + thumbprint micro-roughness</strong>, and a dedicated <strong>48 kHz multi-voice dialogue + stop-motion foley soundtrack</strong> muxed into all 9 MP4s.
     </p>
     <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val">8 / 8</div><div class="kpi-lbl">Rendered 1080p MP4 Films</div></div>
-      <div class="kpi"><div class="kpi-val">6,404 pcs</div><div class="kpi-lbl">Master Shield + 8 Dioramas</div></div>
-      <div class="kpi"><div class="kpi-val">0 Errors</div><div class="kpi-lbl">Pre-Build &amp; Post-Render QA</div></div>
-      <div class="kpi"><div class="kpi-val">-14.2 LUFS</div><div class="kpi-lbl">Calibrated Broadcast Audio</div></div>
+      <div class="kpi"><div class="kpi-val">9 / 9</div><div class="kpi-lbl">1080p MP4s w/ Stereo Audio</div></div>
+      <div class="kpi"><div class="kpi-val">12 FPS (On-2s)</div><div class="kpi-lbl">Stepped Limb Articulation</div></div>
+      <div class="kpi"><div class="kpi-val">6 Bone Roles</div><div class="kpi-lbl">Legs, Arms, Head &amp; Props</div></div>
+      <div class="kpi"><div class="kpi-val">-14.2 LUFS</div><div class="kpi-lbl">Multi-Voice + Foley Mix</div></div>
       <div class="kpi"><div class="kpi-val">252 Sounds</div><div class="kpi-lbl">Earshot Local CPU SFX Bank</div></div>
-      <div class="kpi"><div class="kpi-val">0.00% Diff</div><div class="kpi-lbl">Reanimate Frame-by-Frame Match</div></div>
+      <div class="kpi"><div class="kpi-val">0 Orphans</div><div class="kpi-lbl">31 LDraw Kits Verified</div></div>
     </div>
+  </section>
+
+  <section class="table-wrap" id="lego-movie-architecture" style="margin-bottom:32px;">
+    <div class="eyebrow">STOP-MOTION VISUAL &amp; ACOUSTIC ENGINEERING</div>
+    <h2 style="font-family:Georgia,serif;font-size:24px;color:#fff;margin-bottom:12px;">How We Achieved the "Blind-Critic" LEGO Movie &amp; Trevor Carlee Stop-Motion Bar</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Production Layer</th>
+          <th>Reference Technique</th>
+          <th>WebGL / Audio Implementation (<code>lego3d.js</code> &amp; <code>build_lego_movie_soundtracks.py</code>)</th>
+          <th>Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Non-Destructive "On-2s" Timing</strong></td>
+          <td>Trevor Carlee (<code>nLj6Y5OTnjI</code>): Stepped F-curve modifier holding poses for 2 frames</td>
+          <td><code>t2s = floor(uTime * 12.0) / 12.0</code> in vertex shader drives all character limbs, water waves, and replacement flames at 12 fps while camera racks remain cinematic</td>
+          <td>12.0 Hz pose hold across all 9 films</td>
+        </tr>
+        <tr>
+          <td><strong>2. Full Minifigure Limb Rigging (<code>EpicFigRig</code>)</strong></td>
+          <td>Trevor Carlee (<code>R5UKSGUztMk</code>): Hip/shoulder socket rotation &amp; torso lean</td>
+          <td>Every minifigure is segmented into 6 bone roles: <code>1.0</code> Torso/Skirt, <code>1.1/1.2</code> Left/Right Legs around hip axle, <code>1.3/1.4</code> Left/Right Arms + Held Weapons around shoulder socket, <code>1.5</code> Head/Beard/Crown yaw on neck stud</td>
+          <td>0 orphan parts across all 31 models</td>
+        </tr>
+        <tr>
+          <td><strong>3. Reactive LEGO Water &amp; Replacement Fire</strong></td>
+          <td>Trevor Carlee Playlist: Reactive Plate-Step LEGO Water &amp; Brick-Built FX</td>
+          <td>Trans-Blue/Light-Blue water tiles (<code>role = 4.0</code>) step vertically in quantized 1-plate (<code>8 LDU</code>) waves; Trans-Orange flames (<code>role = 2.0</code>) snap scale/yaw on 2s</td>
+          <td>Active in Forge, Ambush &amp; Oceanus</td>
+        </tr>
+        <tr>
+          <td><strong>4. Master-Builder Flying Brick Assembly</strong></td>
+          <td><em>The LEGO Movie</em> (<code>1bWq_yLgD4Y</code>): Rapid helical brick-snap construction</td>
+          <td>Per-brick <code>aPartIdx</code> helical trajectory flies bricks down onto studs with quantized 24-fps snap timing at scene cuts and close-up camera racks</td>
+          <td>Synced to ABS click-clatter bursts</td>
+        </tr>
+        <tr>
+          <td><strong>5. Physical ABS Plastic Shader &amp; Facial Decals</strong></td>
+          <td><em>The LEGO Movie</em>: Subsurface scattering, mold seams, stud AO &amp; thumbprints</td>
+          <td>Warm back-lit ABS subsurface wrap, procedural micro-roughness/fingerprint normal perturbation, stud-ring contact AO, and <code>0.08 LDU</code> facial decal offset (<code>3626bp01</code>)</td>
+          <td>Zero z-fighting front or back</td>
+        </tr>
+        <tr>
+          <td><strong>6. "Blind-Critic" Multi-Voice + Foley Soundtrack</strong></td>
+          <td>Vitruvius the Blind Seer (<code>1bWq_yLgD4Y</code>): Wooden staff taps, footsteps &amp; dialogue</td>
+          <td>All 9 MP4s mux a custom 48 kHz stereo WAV combining 4 character voices (<code>Daniel</code>, <code>Reed</code>, <code>Samantha</code>, <code>Moira</code>), 12-fps plastic footsteps &amp; staff taps, and 20 <code>earshot</code> stems</td>
+          <td><code>-14.2 LUFS</code> · <code>&lt;= -1.7 dBTP</code> · 9/9 AAC</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <section class="theater" id="screening-room">

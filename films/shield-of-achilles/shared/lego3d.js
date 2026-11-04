@@ -1,11 +1,22 @@
 /**
  * films/shield-of-achilles/shared/lego3d.js
- * Real-Time 3D WebGL LDraw Cinema Engine for the Nine Shield of Achilles Films.
- * Renders the actual pre-compiled LDraw .mpd models from achilles/kits/forage-bundle.js
- * and achilles/kits/shield-dioramas-bundle.js (up to 8,891 bricks per scene) at 1920x1080
- * with 100% un-truncated minifigure heads/hair/beards/crowns/helmets, 45-degree beveled
- * LEGO bricks, 360-degree two-sided studio PBR lighting, unified minifigure actor rigs,
- * and ACES Filmic tone mapping.
+ * Real-Time 3D WebGL LDraw Stop-Motion Cinema Engine for the Nine Shield of Achilles Films.
+ *
+ * Production Architecture (Animal Logic / The LEGO Movie & Trevor Carlee Stop-Motion Standard):
+ * - 100% un-truncated LDraw meshes from achilles/kits/forage-bundle.js & shield-dioramas-bundle.js
+ * - Non-Destructive "Animating on 2s" (12 fps stepped F-curve interpolation with per-actor phase)
+ * - Full Articulated Minifigure Limb Rigging (EpicFigRig in WebGL):
+ *     * 1.0: Torso / Hips / Dress Skirt root (3815, 3815b, 36036, 973, 4524, 10052)
+ *     * 1.1: Right Leg (3816, 3816c) swinging around the hip axle
+ *     * 1.2: Left Leg (3817, 3817c) swinging in alternating stride around the hip axle
+ *     * 1.3: Right Arm + Right Hand + Held Weapon/Staff/Hammer (3818, 3820, prop) swinging at shoulder socket
+ *     * 1.4: Left Arm + Left Hand + Held Torch/Shield/Cup (3819, 3820, prop) swinging at shoulder socket
+ *     * 1.5: Head + Beard + Hair + Crown + Corinthian Helmet (3626*, 93223, 60749, 3901, 39262, 98366) yawing on neck stud
+ *     * 1.6: Quadruped Animals (64452 horse, 14734 lion, 92586 hound, 95341 bull/ox) rearing & bounding on 2s
+ * - Reactive LEGO Water (role 4.0) stepping in quantized plate-height ripples & white stud foam
+ * - Stop-Motion Replacement Flame Plumes & Forge Sparks (role 2.0)
+ * - Master-Builder Helical Flying Brick Assembly (uBuild)
+ * - Physical ABS Plastic Subsurface Scatter (SSS), Micro-Roughness/Thumbprint Normals, Stud Contact AO & ACES Filmic
  */
 (function (global) {
   'use strict';
@@ -60,30 +71,25 @@
     const ox1 = x1 - ins, oz1 = z1 - ins;
     const ix0 = x0 + ins + bev, iz0 = z0 + ins + bev;
     const ix1 = x1 - ins - bev, iz1 = z1 - ins - bev;
-    const ty0 = y0;             // top surface (LDraw Y points down)
+    const ty0 = y0 + 0.12;      // top surface slightly inset in Y so curved macaroni tiles (27925/79393/27507) never z-fight with rect tiles
     const tyB = y0 + bev * 0.85; // bottom of top chamfer
     const by1 = y1 - ins * 0.35; // bottom of brick
 
-    // Top inner quad (0..3), outer chamfer ring (4..7), bottom ring (8..11)
     const p = [
       [ix0, ty0, iz0], [ix1, ty0, iz0], [ix1, ty0, iz1], [ix0, ty0, iz1],
       [ox0, tyB, oz0], [ox1, tyB, oz0], [ox1, tyB, oz1], [ox0, tyB, oz1],
       [ox0, by1, oz0], [ox1, by1, oz0], [ox1, by1, oz1], [ox0, by1, oz1]
     ];
     const quads = [
-      // Top flat face
       [3, 2, 1, 0],
-      // 45-degree top bevel chamfer strips (catch crisp edge highlights!)
       [0, 1, 5, 4],
       [1, 2, 6, 5],
       [2, 3, 7, 6],
       [3, 0, 4, 7],
-      // 4 vertical side walls
       [4, 5, 9, 8],
       [5, 6, 10, 9],
       [6, 7, 11, 10],
       [7, 4, 8, 11],
-      // Bottom closure face
       [8, 9, 10, 11]
     ];
     const tris = [];
@@ -127,27 +133,30 @@
     return tris;
   }
 
-  // Minifigure & creature sub-parts that belong to a unified character/animal rig
-  const FIG_SUBPARTS = new Set([
-    '3815', '3815b', '3816', '3816c', '3817', '3817c', '973', '3818', '3819', '3820',
-    '3626bp01', '3626bp02', '3626bp05', '3626bp08', '3626bp09', '3626bp35', '3626bp4g',
-    '3626bp88', '3626bp8m', '3626bpq5', '3626bpsg',
-    '93223', '3901', '39262', '3844', '98366', '4524', '11256', '12890', '13251',
-    '3846', '3847', '3876', '4497', '4499', '3959', '2343', '75902', '30374'
+  // True quadruped / creature roots (excluding minifigure beards 60749 and hair 11264, 33322!)
+  const ANIMAL_ROOTS = new Set(['64452', '14734', '92586', '95341', '40243', '4490', '2546']);
+  // Head-mounted accessories that yaw with the minifigure head (3626*) on the neck stud
+  const HEAD_ACC = new Set([
+    '3901', '39262', '3844', '98366', '11256', '12890', '13251', '32602',
+    '11264', '33322', '93562', '10048', '10053', '10054', '4592', '93223', '60749'
   ]);
-  const ANIMAL_ROOTS = new Set(['64452', '60749', '14734', '92586', '95341', '33322', '11264']);
+  // Torso-mounted accessories (capes, armor)
+  const TORSO_ACC = new Set(['4524', '10052']);
 
-  function isFigSubpart(pid) {
+  function classifyRole(pid, col, wy, rDist, grpInfo) {
+    if (grpInfo) return grpInfo.subRole; // 1.0..1.6 articulated minifigure or animal sub-part
     const p = String(pid).toLowerCase();
-    return FIG_SUBPARTS.has(p) || p.startsWith('3626') || p.startsWith('973') || p.startsWith('381');
-  }
-
-  function classifyRole(pid, col, wy, rDist, isGroupedActor) {
-    const p = String(pid).toLowerCase();
-    if (isGroupedActor || ANIMAL_ROOTS.has(p)) return 1.0; // unified minifigure / animal actor (including hand-held props)
-    if (p.includes('6126') || p.includes('37775') || p.includes('85959') || col === 46) return 2.0; // standalone flame / trans-orange
+    if (p.includes('6126') || p.includes('37775') || p.includes('85959') || col === 46 || col === 57) {
+      return 2.0; // Stop-motion replacement flame / trans-orange ember
+    }
     if (wy > 34 && (col === 297 || col === 179 || col === 80) && rDist < 220) {
-      return 3.0; // elevated golden/silver boss or statue element
+      return 3.0; // Elevated golden/silver boss or statue element
+    }
+    // Trevor Carlee Reactive LEGO Water: riverbeds, Oceanus rim waves, and trans-blue/white water foam studs
+    if ((col === 1 || col === 73 || col === 43 || col === 212) ||
+        (col === 47 && wy <= 48) ||
+        (col === 15 && (p.startsWith('98138') || p.startsWith('4073') || p.startsWith('3024')) && wy <= 42)) {
+      return 4.0;
     }
     return 0.0;
   }
@@ -174,8 +183,9 @@
     attribute vec3 aNorm;
     attribute vec4 aCol;
     attribute vec3 aCenter;
-    attribute vec4 aMeta; // x: buildOrder (0..1), y: turnFlag/pivot, z: role (0..3), w: sectionId (0..10)
+    attribute vec4 aMeta; // x: buildOrder (0..1), y: turnFlag, z: role (0..4), w: sectionId (0..10)
     attribute vec2 aPivot;
+    attribute vec3 aRig;  // x: limbPivotY, y: latX, z: latZ (minifigure shoulder/hip lateral unit axis)
 
     uniform mat4 uProj;
     uniform mat4 uView;
@@ -191,6 +201,29 @@
     varying vec4 vCol;
     varying float vGlow;
 
+    // Rotate point p and normal n around horizontal unit axis u = (latX, 0, latZ) passing through (cx, pivY, cz)
+    void rotateLimbX(inout vec3 p, inout vec3 n, float cx, float pivY, float cz, float latX, float latZ, float ang) {
+      vec2 f = vec2(-latZ, latX); // forward facing horizontal unit vector perpendicular to lateral axis
+      float dx = p.x - cx;
+      float dz = p.z - cz;
+      float df = dx * f.x + dz * f.y;
+      float dy = p.y - pivY;
+      float c = cos(ang), s = sin(ang);
+      float dfNew = df * c - dy * s;
+      float dyNew = df * s + dy * c;
+      p.x += (dfNew - df) * f.x;
+      p.y = pivY + dyNew;
+      p.z += (dfNew - df) * f.y;
+
+      float nf = n.x * f.x + n.z * f.y;
+      float ny = n.y;
+      float nfNew = nf * c - ny * s;
+      float nyNew = nf * s + ny * c;
+      n.x += (nfNew - nf) * f.x;
+      n.y = nyNew;
+      n.z += (nfNew - nf) * f.y;
+    }
+
     void main() {
       vec3 p = aPos;
       vec3 n = aNorm;
@@ -199,7 +232,7 @@
       float role = aMeta.z;
       float secId = aMeta.w;
 
-      // 1. Brick-by-brick assembly (spring drop-in onto studs)
+      // 1. Master-Builder Flying Brick Assembly (The LEGO Movie style helical snap-in!)
       float span = 0.14;
       float localB = clamp((uBuild * (1.0 + span) - buildOrder) / span, 0.0, 1.0);
       if (localB <= 0.001) {
@@ -207,8 +240,15 @@
         return;
       }
       if (localB < 1.0) {
+        // Quantize assembly on 2s (12 fps) for authentic stop-motion Master Building
+        float qB = floor(localB * 10.0) / 10.0;
         float inv = 1.0 - localB;
-        float dropY = inv * inv * 320.0 - sin(localB * 3.14159) * 14.0 * inv;
+        float dropY = inv * inv * 320.0 - sin(localB * 3.14159) * 16.0 * inv;
+        float swirl = inv * 2.4 * (fract(buildOrder * 97.3) - 0.5);
+        float cs = cos(swirl), ss = sin(swirl);
+        float bx = p.x - aCenter.x, bz = p.z - aCenter.z;
+        p.x = aCenter.x + bx * cs - bz * ss + sin(qB * 6.283 + buildOrder * 31.0) * 28.0 * inv;
+        p.z = aCenter.z + bx * ss + bz * cs + cos(qB * 6.283 + buildOrder * 31.0) * 28.0 * inv;
         p.y += dropY;
       }
 
@@ -221,29 +261,62 @@
         p.z += aCenter.z * uExplode * 0.12;
       }
 
-      // 3. Turntable / Choros / Celestial Boss rotation
-      if (turnFlag > 0.5 || (secId == 1.0 && abs(uTurnAngle) > 0.001)) {
-        float ang = turnFlag > 0.5 ? uTurnAngle : uTurnAngle * 0.65;
-        float c = cos(ang), s = sin(ang);
-        float px = turnFlag > 0.5 ? aPivot.x : 0.0;
-        float pz = turnFlag > 0.5 ? aPivot.y : 0.0;
-        float dx = p.x - px;
-        float dz = p.z - pz;
-        p.x = px + dx * c - dz * s;
-        p.z = pz + dx * s + dz * c;
-        float nx = n.x * c - n.z * s;
-        float nz = n.x * s + n.z * c;
-        n.x = nx; n.z = nz;
-      }
-
-      // 4. Unified Minifigure / Animal / Flame choreography
-      // Because all sub-parts of a minifigure share the exact same aCenter.xz torso anchor,
-      // the head, hair, beard, crown, torso, arms, hands, and weapons pivot and step as ONE solid figure!
+      // 3. Trevor Carlee Non-Destructive "Animating on 2s" (12 fps Stepped Interpolation)
+      //    + EpicFigRig Articulated Minifigure Limbs & Reactive LEGO Water
       float glow = 0.0;
-      if (role > 0.5 && role < 1.5) {
+      if (role > 0.5 && role < 1.75) {
         float seed = fract(sin(aCenter.x * 0.037 + aCenter.z * 0.071) * 43758.5453);
-        // Expressive character turn around the minifigure's own vertical axis so both front and back faces are visible
-        float figAng = sin(uTime * 1.15 + seed * 6.283) * 0.72;
+        // Non-destructive 12 fps stepped F-curve modifier (holds each pose for 2 frames at 24/30 fps)
+        float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
+        float pivY = aRig.x;
+        float latX = aRig.y;
+        float latZ = aRig.z;
+
+        if (role > 1.55) {
+          // 1.6: Quadruped Animal (horse, lion, hound, bull) rearing/galloping on 2s
+          float rearAng = sin(qTime * 5.2 + seed * 6.283) * 0.19;
+          rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rearAng);
+          p.y += abs(sin(qTime * 5.2 + seed * 6.283)) * 3.2;
+        } else {
+          // 1.1..1.5: Articulated Minifigure Limb Sub-Part Rotations (prior to whole-body turn)
+          float walkCycle = sin(qTime * 6.4 + seed * 6.283);
+          float actCycle  = sin(qTime * 4.2 + seed * 11.13);
+
+          if (role > 1.05 && role < 1.15) {
+            // 1.1: Right Leg (3816c) swings around hip axle
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, walkCycle * 0.42);
+          } else if (role > 1.15 && role < 1.25) {
+            // 1.2: Left Leg (3817c) swings in opposite stride around hip axle
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, -walkCycle * 0.42);
+          } else if (role > 1.25 && role < 1.35) {
+            // 1.3: Right Arm + Right Hand + Held Weapon/Staff/Hammer swings at shoulder socket
+            float rArmAng = 0.18 + actCycle * 0.46 + walkCycle * 0.18;
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rArmAng);
+          } else if (role > 1.35 && role < 1.45) {
+            // 1.4: Left Arm + Left Hand + Held Torch/Shield/Cup swings in counterpoint at shoulder socket
+            float lArmAng = 0.12 - actCycle * 0.36 - walkCycle * 0.18;
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, lArmAng);
+          } else if (role > 1.45 && role < 1.55) {
+            // 1.5: Head + Beard + Hair + Crown + Helmet yaws left/right on the cylindrical neck stud
+            float headYaw = sin(qTime * 2.7 + seed * 9.42) * 0.46;
+            float hc = cos(headYaw), hs = sin(headYaw);
+            float hdx = p.x - aCenter.x, hdz = p.z - aCenter.z;
+            p.x = aCenter.x + hdx * hc - hdz * hs;
+            p.z = aCenter.z + hdx * hs + hdz * hc;
+            float hnx = n.x * hc - n.z * hs;
+            float hnz = n.x * hs + n.z * hc;
+            n.x = hnx; n.z = hnz;
+          }
+
+          // Subtle upper-body hip-hinge lean during stride (applies to torso, arms, head)
+          if (role < 1.05 || role > 1.25) {
+            float torsoLean = sin(qTime * 3.2 + seed * 6.283) * 0.08;
+            rotateLimbX(p, n, aCenter.x, aCenter.y, aCenter.z, latX, latZ, torsoLean);
+          }
+        }
+
+        // Whole-actor stepped stop-motion body turn & plastic stud-hop
+        float figAng = sin(qTime * 1.25 + seed * 6.283) * 0.68;
         float fc = cos(figAng), fs = sin(figAng);
         float fdx = p.x - aCenter.x;
         float fdz = p.z - aCenter.z;
@@ -253,28 +326,57 @@
         float fnz = n.x * fs + n.z * fc;
         n.x = fnx; n.z = fnz;
 
-        float stepWave = abs(sin(uTime * 3.6 + seed * 6.283));
-        p.y += stepWave * 1.8;
-      } else if (role > 1.5 && role < 2.5) {
-        // Torch flame / forge fire flicker
+        float stepHop = abs(sin(qTime * 6.4 + seed * 6.283));
+        p.y += stepHop * 2.2;
+      } else if (role > 1.75 && role < 2.5) {
+        // 2.0: Stop-Motion Replacement Flame / Forge Spark (stepped at 12 fps!)
         float seed = fract(sin(aCenter.x * 0.11 + aCenter.z * 0.17) * 19341.2);
-        float flick = 0.5 + 0.5 * sin(uTime * 18.0 + seed * 6.283);
-        p.y += flick * 2.5;
-        glow = 0.65 + 0.35 * flick;
-      } else if (role > 2.5) {
-        // Golden deity / celestial emblem gentle hover
-        p.y += sin(uTime * 2.4 + aCenter.x * 0.02) * 1.8;
-        glow = 0.14;
+        float qTime = floor(uTime * 12.0 + seed * 8.0) / 12.0;
+        float flick = 0.5 + 0.5 * sin(qTime * 24.0 + seed * 6.283);
+        float sway = sin(qTime * 19.0 + seed * 3.14) * 2.2;
+        p.x += sway * clamp((p.y - aCenter.y) * 0.08, 0.0, 1.5);
+        p.y += flick * 3.8;
+        glow = 0.78 + 0.42 * flick;
+      } else if (role > 2.5 && role < 3.5) {
+        // 3.0: Golden deity / celestial emblem stepped hover
+        float qTime = floor(uTime * 12.0) / 12.0;
+        p.y += sin(qTime * 2.4 + aCenter.x * 0.02) * 2.0;
+        glow = 0.18;
+      } else if (role > 3.5) {
+        // 4.0: Trevor Carlee Reactive LEGO Water (quantized plate-step ripples on 2s!)
+        float qTime = floor(uTime * 12.0) / 12.0;
+        float wave = sin(aCenter.x * 0.035 + aCenter.z * 0.035 - qTime * 5.0)
+                   + 0.5 * cos(aCenter.x * 0.06 - aCenter.z * 0.05 + qTime * 3.8);
+        float quantWave = floor(wave * 2.2) * 1.4;
+        p.y += quantWave;
+        glow = max(0.0, quantWave * 0.06);
+      }
+
+      // 4. Turntable / Choros Potter's Wheel / Celestial Boss rotation
+      // Only rotates turntable-mounted elements above the floor baseplate (aCenter.y >= 38.0)
+      if (turnFlag > 0.5 && aCenter.y >= 38.0) {
+        float ang = uTurnAngle;
+        float c = cos(ang), s = sin(ang);
+        float px = aPivot.x;
+        float pz = aPivot.y;
+        float dx = p.x - px;
+        float dz = p.z - pz;
+        p.x = px + dx * c - dz * s;
+        p.z = pz + dx * s + dz * c;
+        float nx = n.x * c - n.z * s;
+        float nz = n.x * s + n.z * c;
+        n.x = nx; n.z = nz;
       }
 
       // 5. Acoustic / Forge Radial Shockwave (for beat hits & Earshot onsets)
+      // Keeps baseplates & floor masonry 100% rigid (no floor-plate tilting!) while pulsing actors & rim glow
       if (uPulseR >= 0.0 && uPulseAmp > 0.001) {
-        float r = length(p.xz);
+        float r = length(aCenter.xz);
         float dist = abs(r - uPulseR);
         if (dist < 140.0) {
           float w = exp(-(dist * dist) / (2.0 * 48.0 * 48.0)) * uPulseAmp;
-          p.y += w * 18.0;
-          glow = max(glow, w * 0.65);
+          if (role > 0.5) p.y += w * 4.0;
+          glow = max(glow, w * 0.35);
         }
       }
 
@@ -308,33 +410,45 @@
       if (!gl_FrontFacing) N = -N;
       vec3 V = normalize(uEye - vPos);
 
-      // 360-Degree Two-Sided Opposing Studio Lighting Rig:
-      // Lower elevation raking lights sculpt vertical minifigure faces, beards, crowns, and walls
-      // on BOTH +Z (front) and -Z (back) sides without over-exposing horizontal top surfaces!
+      // Animal Logic / Mecabricks Molded ABS Micro-Roughness & Subtle Thumbprint Normal Perturbation
+      float microGrain = sin(vPos.x * 2.9 + vPos.y * 1.7) * cos(vPos.z * 2.9 - vPos.y * 1.3);
+      float thumbWave  = sin(vPos.x * 0.14 + vPos.z * 0.11) * cos(vPos.z * 0.15 - vPos.y * 0.18);
+      N = normalize(N + vec3(microGrain * 0.012 + thumbWave * 0.015, thumbWave * 0.008, -microGrain * 0.012));
+
+      // 360-Degree Two-Sided Opposing Studio Softbox Rig:
       vec3 L1 = normalize(vec3(0.68, 0.48, 0.55));
       vec3 L2 = normalize(vec3(-0.66, 0.44, -0.61));
       vec3 L3 = normalize(vec3(-0.58, 0.25, 0.77));
       vec3 L4 = normalize(vec3(0.58, 0.28, -0.76));
 
-      float d1 = max(dot(N, L1), 0.0);
-      float d2 = max(dot(N, L2), 0.0);
-      float d3 = max(dot(N, L3), 0.0);
-      float d4 = max(dot(N, L4), 0.0);
-
-      float hemiMix = N.y * 0.5 + 0.5;
-      vec3 hemiCol = mix(vec3(0.18, 0.16, 0.14), vec3(0.92, 0.89, 0.84), hemiMix);
-
       float isRect = step(1.5, vCol.a);
       float metal = mod(vCol.a, 2.0);
       vec3 base = pow(clamp(vCol.rgb, 0.0, 1.0), vec3(2.2));
 
-      // Crisp LDraw brick/plate micro-seam shading on rectangular bricks/plates/tiles (never on smooth molded minifigures)
-      float gx = abs(fract((vPos.x + 10.0) / 20.0) - 0.5) * 2.0;
-      float gz = abs(fract((vPos.z + 10.0) / 20.0) - 0.5) * 2.0;
+      // Subsurface Scattering (SSS) wrap diffuse for warm tactile ABS plastic (prevents harsh CG black shadows on minifig faces)
+      float sssWrap = mix(0.28, 0.04, metal);
+      float d1 = max((dot(N, L1) + sssWrap) / (1.0 + sssWrap), 0.0);
+      float d2 = max((dot(N, L2) + sssWrap) / (1.0 + sssWrap), 0.0);
+      float d3 = max((dot(N, L3) + sssWrap * 0.5) / (1.0 + sssWrap * 0.5), 0.0);
+      float d4 = max((dot(N, L4) + sssWrap * 0.5) / (1.0 + sssWrap * 0.5), 0.0);
+
+      float hemiMix = N.y * 0.5 + 0.5;
+      vec3 hemiCol = mix(vec3(0.19, 0.16, 0.14), vec3(0.94, 0.90, 0.85), hemiMix);
+
+      // Crisp LDraw brick/plate micro-seam shading + Stud Ring Contact Ambient Occlusion
+      vec2 cellXZ = fract((vPos.xz + 10.0) / 20.0) - 0.5;
+      float gx = abs(cellXZ.x) * 2.0;
+      float gz = abs(cellXZ.y) * 2.0;
       float gy = abs(fract(vPos.y / 8.0) - 0.5) * 2.0;
-      float seamH = smoothstep(0.88, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
-      float seamV = smoothstep(0.86, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
-      float cavity = 1.0 - 0.24 * max(seamH, seamV) * isRect;
+      float seamH = smoothstep(0.87, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
+      float seamV = smoothstep(0.85, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
+
+      // Stud base contact shadow ring (at r = 6 LDU -> r_norm = 6/20 = 0.30 in 20-LDU stud grid)
+      float studR = length(cellXZ);
+      float studRingAO = (1.0 - 0.18 * exp(-pow((studR - 0.30) / 0.065, 2.0))) * step(0.65, N.y);
+      // Ground / Plinth vertical contact shadow
+      float groundAO = 0.86 + 0.14 * smoothstep(0.0, 28.0, vPos.y);
+      float cavity = (1.0 - 0.25 * max(seamH, seamV) * isRect) * mix(1.0, studRingAO, isRect) * groundAO;
 
       // Directional normal shading so perpendicular brick faces have strong 3D separation
       float dirShade = 0.88 + 0.12 * (N.x * 0.6 + N.z * 0.4);
@@ -343,26 +457,29 @@
       vec3 toLight = uTorchPos - vPos;
       float lDist = length(toLight);
       vec3 Lp = toLight / max(lDist, 1.0);
-      float atten = uTorchStr / (1.0 + 0.0016 * lDist + 0.0000065 * lDist * lDist);
-      float dp = max(dot(N, Lp), 0.0) * atten;
+      float atten = uTorchStr / (1.0 + 0.0015 * lDist + 0.0000058 * lDist * lDist);
+      float dp = max((dot(N, Lp) + sssWrap) / (1.0 + sssWrap), 0.0) * atten;
 
-      vec3 diff = base * cavity * dirShade * (
-        hemiCol * 0.26 +
+      // Warm ABS subsurface scatter tint in shadow terminators
+      vec3 sssTint = base * vec3(1.12, 0.92, 0.78) * (1.0 - metal) * 0.07;
+
+      vec3 diff = (base * cavity * dirShade + sssTint) * (
+        hemiCol * 0.27 +
         uSunCol * d1 * 0.74 +
-        vec3(0.94, 0.91, 0.86) * d2 * 0.58 +
-        vec3(0.68, 0.78, 1.0) * d3 * 0.24 +
-        vec3(1.0, 0.86, 0.66) * d4 * 0.22 +
-        uTorchCol * dp * 0.95
+        vec3(0.95, 0.91, 0.86) * d2 * 0.58 +
+        vec3(0.70, 0.80, 1.0) * d3 * 0.25 +
+        vec3(1.0, 0.87, 0.68) * d4 * 0.23 +
+        uTorchCol * dp * 1.05
       );
 
-      // Dual opposing Blinn-Phong studio softbox highlights + Fresnel rim gloss
+      // Dual opposing Blinn-Phong studio softbox highlights + clearcoat ABS gloss
       vec3 H1 = normalize(L1 + V);
       vec3 H2 = normalize(L2 + V);
       vec3 H3 = normalize(L3 + V);
       vec3 H4 = normalize(L4 + V);
-      float shininess = mix(46.0, 78.0, metal);
-      float specStrength = mix(0.24, 1.35, metal);
-      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.15), metal * 0.88);
+      float shininess = mix(54.0, 84.0, metal);
+      float specStrength = mix(0.28, 1.42, metal);
+      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.16), metal * 0.88);
 
       float s1 = pow(max(dot(N, H1), 0.0), shininess);
       float s2 = pow(max(dot(N, H2), 0.0), shininess) * 0.85;
@@ -374,18 +491,18 @@
       vec3 R = reflect(-V, N);
       float envBand = 0.5 + 0.5 * sin(R.y * 6.0 + R.x * 3.0 - R.z * 2.5);
       vec3 envCol = mix(vec3(0.16, 0.11, 0.06), vec3(1.0, 0.92, 0.72), smoothstep(-0.4, 0.75, R.y));
-      vec3 metalEnv = base * envCol * (0.32 + 0.68 * envBand) * metal;
+      vec3 metalEnv = base * envCol * (0.34 + 0.66 * envBand) * metal;
 
       // Fresnel rim sheen for both ABS plastic and forged metal
       float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.2);
-      vec3 rim = mix(vec3(0.85, 0.90, 1.0) * 0.08, base * 0.48, metal) * fresnel;
+      vec3 rim = mix(vec3(0.88, 0.92, 1.0) * 0.10, base * 0.52, metal) * fresnel;
 
       // Specular from point light
       vec3 Hp = normalize(Lp + V);
-      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 52.0) * atten * (0.25 + 0.75 * metal);
+      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 56.0) * atten * (0.28 + 0.72 * metal);
 
-      vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim + base * vGlow * 1.3 + vec3(1.0, 0.78, 0.32) * vGlow * 0.4;
-      vec3 mapped = pow(acesFilm(linearOut * 0.96), vec3(1.0 / 2.2));
+      vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim + base * vGlow * 1.35 + vec3(1.0, 0.78, 0.32) * vGlow * 0.42;
+      vec3 mapped = pow(acesFilm(linearOut * 0.97), vec3(1.0 / 2.2));
       gl_FragColor = vec4(mapped, 1.0);
     }
   `;
@@ -419,6 +536,7 @@
         aCenter: gl.getAttribLocation(prog, 'aCenter'),
         aMeta: gl.getAttribLocation(prog, 'aMeta'),
         aPivot: gl.getAttribLocation(prog, 'aPivot'),
+        aRig: gl.getAttribLocation(prog, 'aRig'),
         uProj: gl.getUniformLocation(prog, 'uProj'),
         uView: gl.getUniformLocation(prog, 'uView'),
         uTime: gl.getUniformLocation(prog, 'uTime'),
@@ -466,59 +584,104 @@
       if (!colMap['0']) colMap['0'] = [0.13, 0.16, 0.19, 0.0];
 
       // Group contiguous minifigure parts in data.inst by anchoring each head (3626*) back to its
-      // hips/torso root (3815*/973) and forward through its hair/beard/crown/helmet/cape, including
-      // any multi-part scepters, torches, cups, or shields held in the hands!
+      // hips/skirt/torso root (3815*/36036/973) and forward through its hair/beard/crown/helmet/cape
+      // and hand-held weapons/scepters/torches/tools, assigning each sub-part its anatomical limb role & pivot!
       const rawInst = data.inst;
       const actorGroups = new Array(rawInst.length).fill(null);
       for (let i = 0; i < rawInst.length; i++) {
         const p = String(rawInst[i][1]).toLowerCase();
         if (p.startsWith('3626')) {
-          const [hx, hy, hz] = rawInst[i][2];
+          const [hx, hy, hz, ma, mb, mc, md, me, mf, mg, mh, mi] = rawInst[i][2];
           let rootIdx = i;
-          for (let j = i - 1; j >= Math.max(0, i - 22); j--) {
+          for (let j = i - 1; j >= Math.max(0, i - 24); j--) {
             if (actorGroups[j]) break;
             const pj = String(rawInst[j][1]).toLowerCase();
             const [jx, jy, jz] = rawInst[j][2];
-            if ((pj.startsWith('3815') || pj === '973') && Math.hypot(hx - jx, hz - jz) < 40) {
+            if ((pj.startsWith('3815') || pj === '36036' || pj === '973') && Math.hypot(hx - jx, hz - jz) < 42) {
               rootIdx = j;
-              if (pj.startsWith('3815')) break;
+              if (pj.startsWith('3815') || pj === '36036') break;
             }
           }
           let endIdx = i;
-          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 6); k++) {
+          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 10); k++) {
             const pk = String(rawInst[k][1]).toLowerCase();
-            if (pk.startsWith('3815') || pk === '973' || pk.startsWith('3626') || ANIMAL_ROOTS.has(pk)) break;
+            if (pk.startsWith('3815') || pk === '36036' || pk === '973' || pk.startsWith('3626') || ANIMAL_ROOTS.has(pk) || data.rect[pk]) break;
             const [kx, ky, kz] = rawInst[k][2];
-            if (Math.hypot(kx - hx, kz - hz) < 28 && (-ky) >= (-hy) - 48) {
+            if (Math.hypot(kx - hx, kz - hz) < 42 && (-ky) >= (-hy) - 68) {
               endIdx = k;
             } else {
               break;
             }
           }
+
+          let rArmPos = null, lArmPos = null;
+          let hipY = -rawInst[rootIdx][2][1];
+          let shoulderY = -hy - 24;
+          const neckY = -hy;
+          for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
+            const pm = String(rawInst[mIdx][1]).toLowerCase();
+            const pos = rawInst[mIdx][2];
+            if (pm.startsWith('3816') || pm.startsWith('3817')) hipY = -pos[1];
+            if (pm === '3818') { rArmPos = [pos[0], -pos[1], pos[2]]; shoulderY = -pos[1]; }
+            if (pm === '3819') { lArmPos = [pos[0], -pos[1], pos[2]]; shoulderY = -pos[1]; }
+          }
+          let latX = ma || 1.0, latZ = mg || 0.0;
+          if (rArmPos && lArmPos) {
+            latX = rArmPos[0] - lArmPos[0];
+            latZ = rArmPos[2] - lArmPos[2];
+          }
+          const lLen = Math.hypot(latX, latZ) || 1.0;
+          latX /= lLen; latZ /= lLen;
+
           const rootY = -rawInst[rootIdx][2][1];
-          const grp = { ax: hx, ay: rootY, az: hz, startIdx: rootIdx };
-          for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) actorGroups[mIdx] = grp;
+          const rootTT = rawInst[rootIdx][3];
+          const zNudge = (String(slug).includes('wedding') && Math.abs(hz - 110) < 3 && Math.abs(hx) > 200) ? 18.0 : 0.0;
+          for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
+            const pm = String(rawInst[mIdx][1]).toLowerCase();
+            const pos = rawInst[mIdx][2];
+            let subRole = 1.0, pivY = rootY;
+            if (pm.startsWith('3816')) { subRole = 1.1; pivY = hipY; }
+            else if (pm.startsWith('3817')) { subRole = 1.2; pivY = hipY; }
+            else if (pm === '3818') { subRole = 1.3; pivY = shoulderY; }
+            else if (pm === '3819') { subRole = 1.4; pivY = shoulderY; }
+            else if (pm.startsWith('3626') || HEAD_ACC.has(pm)) { subRole = 1.5; pivY = neckY; }
+            else if (pm === '973' || pm.startsWith('3815') || pm === '36036' || TORSO_ACC.has(pm)) { subRole = 1.0; pivY = rootY; }
+            else {
+              // Hand (3820) or held prop (scepter, hammer, spear, sword, goblet, torch): attach to closer arm socket!
+              const dR = rArmPos ? Math.hypot(pos[0] - rArmPos[0], pos[2] - rArmPos[2]) : 999;
+              const dL = lArmPos ? Math.hypot(pos[0] - lArmPos[0], pos[2] - lArmPos[2]) : 999;
+              subRole = dR <= dL ? 1.3 : 1.4;
+              pivY = shoulderY;
+            }
+            actorGroups[mIdx] = { ax: hx, ay: rootY, az: hz + zNudge, startIdx: rootIdx, subRole, pivY, latX, latZ, ttIdx: rootTT, zNudge };
+          }
         } else if (ANIMAL_ROOTS.has(p) && !actorGroups[i]) {
-          const [ax, ay, az] = rawInst[i][2];
-          actorGroups[i] = { ax, ay: -ay, az, startIdx: i };
+          const [ax, ay, az, ma, mb, mc, md, me, mf, mg] = rawInst[i][2];
+          const lLen = Math.hypot(ma || 1.0, mg || 0.0) || 1.0;
+          actorGroups[i] = {
+            ax, ay: -ay, az, startIdx: i,
+            subRole: 1.6, pivY: -ay,
+            latX: (ma || 1.0) / lLen, latZ: (mg || 0.0) / lLen,
+            ttIdx: rawInst[i][3], zNudge: 0.0
+          };
         }
       }
 
       // Sort instances bottom-to-top (by world Y = -y_ldraw, then radial distance) so buildProgress constructs from baseplate upward!
       const indexedInst = rawInst.map((item, idx) => {
-        const [col, pid, m, ttIdx] = item;
+        const [col, pid, m, rawTT] = item;
         const grp = actorGroups[idx];
+        const ttIdx = grp ? grp.ttIdx : rawTT;
         const wx = grp ? grp.ax : m[0];
         const wy = grp ? grp.ay : -m[1];
         const wz = grp ? grp.az : m[2];
         const rDist = Math.hypot(wx, wz);
-        return { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx: idx, isActor: !!grp };
+        return { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx: idx, grp };
       });
       indexedInst.sort((a, b) => (a.wy - b.wy) || (a.rDist - b.rDist));
 
       const totalInst = Math.max(1, indexedInst.length);
 
-      // Count exact number of triangles first so we allocate a single contiguous Float32Array
       let totalTris = 0;
       for (let idx = 0; idx < indexedInst.length; idx++) {
         const pid = indexedInst[idx].pid;
@@ -526,16 +689,16 @@
         else if (meshTris[pid]) totalTris += meshTris[pid].length;
       }
 
-      const buf = new Float32Array(totalTris * 3 * 19);
+      const STRIDE = 22;
+      const buf = new Float32Array(totalTris * 3 * STRIDE);
       let ptr = 0;
 
-      // Map actor startIdx -> unified buildOrder so a minifigure drops in as one piece
       const actorBuildMap = new Map();
 
-      // Stride = 19 floats:
-      // aPos(3), aNorm(3), aCol(4), aCenter(3), aMeta(4), aPivot(2)
+      // Stride = 22 floats:
+      // aPos(3), aNorm(3), aCol(4), aCenter(3), aMeta(4), aPivot(2), aRig(3)
       for (let idx = 0; idx < indexedInst.length; idx++) {
-        const { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx, isActor } = indexedInst[idx];
+        const { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx, grp } = indexedInst[idx];
         const baseRgba = colMap[String(col)] || [0.7, 0.7, 0.7, 0.0];
         const [x, y, z, a, b, c, d, e, f, g, h, i] = m;
         const turnFlag = ttIdx >= 0 ? 1.0 : 0.0;
@@ -543,19 +706,24 @@
         const pivZ = (ttIdx >= 0 && data.tt && data.tt[ttIdx]) ? data.tt[ttIdx][1] : 0.0;
 
         let buildOrder = idx / totalInst;
-        if (isActor && actorGroups[origIdx]) {
-          const sKey = actorGroups[origIdx].startIdx;
+        if (grp) {
+          const sKey = grp.startIdx;
           if (!actorBuildMap.has(sKey)) actorBuildMap.set(sKey, buildOrder);
           buildOrder = actorBuildMap.get(sKey);
         }
 
-        const role = classifyRole(pid, col, wy, rDist, isActor);
-        const secId = computeSectionId(wx, wy, wz);
+        const isCircularShield = !String(slug).includes('diorama');
+        const role = classifyRole(pid, col, wy, rDist, grp);
+        const secId = isCircularShield ? computeSectionId(wx, wy, wz) : 0.0;
+        const limbPivY = grp ? grp.pivY : wy;
+        const latX = grp ? grp.latX : 1.0;
+        const latZ = grp ? grp.latZ : 0.0;
+        const zOff = grp ? (grp.zNudge || 0.0) : 0.0;
 
         const xf = (v) => [
           x + a * v[0] + b * v[1] + c * v[2],
           -(y + d * v[0] + e * v[1] + f * v[2]),
-          z + g * v[0] + h * v[1] + i * v[2]
+          z + zOff + g * v[0] + h * v[1] + i * v[2]
         ];
 
         const pushTri = (A, B, C, rgba) => {
@@ -573,6 +741,7 @@
             buf[ptr++] = wx;   buf[ptr++] = wy;   buf[ptr++] = wz;
             buf[ptr++] = buildOrder; buf[ptr++] = turnFlag; buf[ptr++] = role; buf[ptr++] = secId;
             buf[ptr++] = pivX; buf[ptr++] = pivZ;
+            buf[ptr++] = limbPivY; buf[ptr++] = latX; buf[ptr++] = latZ;
           }
         };
 
@@ -594,7 +763,6 @@
         }
       }
 
-      // Evict older cached models if >= 1 to keep GPU & JS heap small across multi-scene films
       const loadedKeys = Object.keys(this.models);
       if (loadedKeys.length >= 1) {
         for (const oldKey of loadedKeys) {
@@ -615,7 +783,7 @@
         pieces: bundle.pieces,
         hotspots: bundle.hotspots || [],
         vbo,
-        vertCount: ptr / 19
+        vertCount: ptr / STRIDE
       };
       this.models[slug] = modelObj;
       return modelObj;
@@ -642,7 +810,7 @@
       gl.useProgram(this.prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, model.vbo);
 
-      const stride = 19 * 4;
+      const stride = 22 * 4;
       const bind = (loc, size, offset) => {
         if (loc < 0) return;
         gl.enableVertexAttribArray(loc);
@@ -654,8 +822,9 @@
       bind(this.locs.aCenter, 3, 10);
       bind(this.locs.aMeta, 4, 13);
       bind(this.locs.aPivot, 2, 17);
+      bind(this.locs.aRig, 3, 19);
 
-      const fovDeg = opts.fov || 33;
+      const fovDeg = opts.fov || 30;
       const eye = opts.eye || [0, 420, 680];
       const target = opts.target || [0, 45, 0];
       const time = opts.time || 0;
@@ -687,8 +856,9 @@
     }
   }
 
-  // Helper to evaluate a sequence of camera shots [{ t0, t1, slug, eye0, eye1, target0, target1, fov0, fov1, build0, build1, explode0, explode1, turnSpeed, ... }]
-  // Includes a two-sided orbital azimuth sweep on circular models & wide stereo parallax on dioramas so both sides of scenes & figures are visible!
+  // Evaluate a sequence of camera shots with Trevor Carlee / LEGO Movie multi-angle staging:
+  // Supports intimate character close-ups (during the middle of a shot or via closeUp beats)
+  // plus two-sided orbital azimuth sweeps so both faces and action of every minifigure are seen!
   function evalShotList(shots, t) {
     let active = shots[shots.length - 1];
     for (const s of shots) {
@@ -699,23 +869,44 @@
     }
     const u = clamp((t - active.t0) / Math.max(0.001, active.t1 - active.t0), 0, 1);
     const e = active.linear ? u : easeInOutCubic(u);
-    const baseEye = lerp3(active.eye0, active.eye1 || active.eye0, e);
-    const target = lerp3(active.target0, active.target1 || active.target0, e);
+    let baseEye = lerp3(active.eye0, active.eye1 || active.eye0, e);
+    let target = lerp3(active.target0, active.target1 || active.target0, e);
+    let fov = lerp(active.fov0 || 30, active.fov1 || active.fov0 || 30, e);
 
-    // Add smooth two-sided orbital azimuth sweep around target so both sides of Circular Shield / Rotunda / M-sections
-    // and wide left-to-right stereo angles on Dioramas are clearly seen!
     const slugStr = String(active.slug || '');
     const isCircular = !slugStr.includes('diorama');
-    const orbitArc = active.orbitArc !== undefined ? active.orbitArc : (isCircular ? Math.PI * 0.85 : 0.42);
+    const orbitArc = active.orbitArc !== undefined ? active.orbitArc : (isCircular ? Math.PI * 0.85 : 0.44);
     const orbitAngle = Math.sin((u - 0.5) * Math.PI) * (orbitArc * 0.5);
     const dx = baseEye[0] - target[0];
     const dz = baseEye[2] - target[2];
     const ca = Math.cos(orbitAngle), sa = Math.sin(orbitAngle);
-    const eye = [
+    let eye = [
       target[0] + dx * ca - dz * sa,
       baseEye[1],
       target[2] + dx * sa + dz * ca
     ];
+
+    // LEGO Movie / Trevor Carlee Macro Telephoto Hero Close-Up:
+    // Just like a physical DSLR macro lens on a LEGO stop-motion table (which cannot pass through LEGO roofs/walls),
+    // we rack the lens focal length (narrowing FOV down to 20.5 deg) with a gentle sightline push so minifigures
+    // fill the frame without ever clipping behind colonnade architraves or townhouse roofs!
+    const buildVal = active.buildFn ? active.buildFn(u, t) : lerp(active.build0 ?? 1, active.build1 ?? 1, u);
+    const explodeVal = active.explodeFn ? active.explodeFn(u, t) : lerp(active.explode0 ?? 0, active.explode1 ?? 0, e);
+    if (explodeVal < 0.05 && buildVal > 0.85 && !active.noCloseUp) {
+      const closeWindow = Math.sin(clamp((u - 0.35) / 0.45, 0.0, 1.0) * Math.PI);
+      const zoomFactor = closeWindow * (isCircular ? 0.30 : 0.34);
+      eye = [
+        lerp(eye[0], target[0] + (eye[0] - target[0]) * 0.86, zoomFactor),
+        Math.max(eye[1], isCircular ? 240 : 330),
+        lerp(eye[2], target[2] + (eye[2] - target[2]) * 0.86, zoomFactor)
+      ];
+      fov = lerp(fov, 21.0, zoomFactor);
+    }
+
+    // Subtle stop-motion handheld camera micro-breath
+    const camQ = Math.floor(t * 12.0) / 12.0;
+    eye[0] += Math.sin(camQ * 2.3) * 2.2;
+    eye[1] += Math.cos(camQ * 1.9) * 1.6;
 
     return {
       shot: active,
@@ -724,9 +915,9 @@
       slug: active.slug,
       eye,
       target,
-      fov: lerp(active.fov0 || 32, active.fov1 || active.fov0 || 32, e),
-      build: active.buildFn ? active.buildFn(u, t) : lerp(active.build0 ?? 1, active.build1 ?? 1, u),
-      explode: active.explodeFn ? active.explodeFn(u, t) : lerp(active.explode0 ?? 0, active.explode1 ?? 0, e),
+      fov,
+      build: buildVal,
+      explode: explodeVal,
       turnAngle: (active.turn0 || 0) + t * (active.turnSpeed ?? 0.35),
       torchPos: active.torchPos || [Math.sin(t * 2.0) * 180, 130, Math.cos(t * 2.0) * 180],
       torchCol: active.torchCol || [1.0, 0.68, 0.25],

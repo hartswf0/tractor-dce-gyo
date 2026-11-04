@@ -60,15 +60,24 @@ def extract_part_mesh(pid):
         return {'v': [], 'i': []}
     verts, vmap, idx, tcols = [], {}, [], []
 
+    is_head = str(pid).lower().startswith('3626')
+
+    def offset_decal_pt(pt, col):
+        if is_head and col != 16:
+            r = math.hypot(pt[0], pt[2])
+            if r > 1.0:
+                return (pt[0] + (pt[0] / r) * 0.08, pt[1], pt[2] + (pt[2] / r) * 0.08)
+        return pt
+
     def add_v(pt):
-        k = (round(pt[0], 1), round(pt[1], 1), round(pt[2], 1))
+        k = (round(pt[0], 2), round(pt[1], 2), round(pt[2], 2))
         if k not in vmap:
             vmap[k] = len(verts) // 3
             verts.extend(k)
         return vmap[k]
 
     def add_tri(a, b, c, col):
-        ia, ib, ic = add_v(a), add_v(b), add_v(c)
+        ia, ib, ic = add_v(offset_decal_pt(a, col)), add_v(offset_decal_pt(b, col)), add_v(offset_decal_pt(c, col))
         if ia != ib and ib != ic and ia != ic:
             idx.extend((ia, ib, ic))
             tcols.append(col)

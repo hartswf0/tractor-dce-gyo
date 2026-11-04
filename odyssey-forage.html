@@ -155,7 +155,7 @@
     const ox1 = x1 - ins, oz1 = z1 - ins;
     const ix0 = x0 + ins + bev, iz0 = z0 + ins + bev;
     const ix1 = x1 - ins - bev, iz1 = z1 - ins - bev;
-    const ty0 = y0;
+    const ty0 = y0 + 0.12;
     const tyB = y0 + bev * 0.85;
     const by1 = y1 - ins * 0.35;
 
@@ -250,7 +250,7 @@
     void main() {
       vec3 p = aPos;
       vec3 n = aNorm;
-      if (aTurn > 0.5) {
+      if (aTurn > 0.5 && p.y > 42.0) {
         float c = cos(uAngle), s = sin(uAngle);
         float dx = p.x - aPivot.x;
         float dz = p.z - aPivot.y;
@@ -280,34 +280,43 @@
       vec3 N = normalize(vNorm);
       if (!gl_FrontFacing) N = -N;
       vec3 V = normalize(uEye - vPos);
+      float microGrain = sin(vPos.x * 2.9 + vPos.y * 1.7) * cos(vPos.z * 2.9 - vPos.y * 1.3);
+      float thumbWave  = sin(vPos.x * 0.14 + vPos.z * 0.11) * cos(vPos.z * 0.15 - vPos.y * 0.18);
+      N = normalize(N + vec3(microGrain * 0.012 + thumbWave * 0.015, thumbWave * 0.008, -microGrain * 0.012));
       vec3 L1 = normalize(vec3(0.68, 0.48, 0.55));
       vec3 L2 = normalize(vec3(-0.66, 0.44, -0.61));
       vec3 L3 = normalize(vec3(-0.58, 0.25, 0.77));
       vec3 L4 = normalize(vec3(0.58, 0.28, -0.76));
-      float d1 = max(dot(N, L1), 0.0);
-      float d2 = max(dot(N, L2), 0.0);
-      float d3 = max(dot(N, L3), 0.0);
-      float d4 = max(dot(N, L4), 0.0);
-      float hemiMix = N.y * 0.5 + 0.5;
-      vec3 hemiCol = mix(vec3(0.18, 0.16, 0.14), vec3(0.92, 0.89, 0.84), hemiMix);
       float isRect = step(1.5, vCol.a);
       float metal = mod(vCol.a, 2.0);
       vec3 base = pow(clamp(vCol.rgb, 0.0, 1.0), vec3(2.2));
-      float gx = abs(fract((vPos.x + 10.0) / 20.0) - 0.5) * 2.0;
-      float gz = abs(fract((vPos.z + 10.0) / 20.0) - 0.5) * 2.0;
+      float sssWrap = mix(0.28, 0.04, metal);
+      float d1 = max((dot(N, L1) + sssWrap) / (1.0 + sssWrap), 0.0);
+      float d2 = max((dot(N, L2) + sssWrap) / (1.0 + sssWrap), 0.0);
+      float d3 = max((dot(N, L3) + sssWrap * 0.5) / (1.0 + sssWrap * 0.5), 0.0);
+      float d4 = max((dot(N, L4) + sssWrap * 0.5) / (1.0 + sssWrap * 0.5), 0.0);
+      float hemiMix = N.y * 0.5 + 0.5;
+      vec3 hemiCol = mix(vec3(0.19, 0.16, 0.14), vec3(0.94, 0.90, 0.85), hemiMix);
+      vec2 cellXZ = fract((vPos.xz + 10.0) / 20.0) - 0.5;
+      float gx = abs(cellXZ.x) * 2.0;
+      float gz = abs(cellXZ.y) * 2.0;
       float gy = abs(fract(vPos.y / 8.0) - 0.5) * 2.0;
-      float seamH = smoothstep(0.88, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
-      float seamV = smoothstep(0.86, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
-      float cavity = 1.0 - 0.24 * max(seamH, seamV) * isRect;
+      float seamH = smoothstep(0.87, 0.99, max(gx, gz)) * step(0.55, abs(N.y));
+      float seamV = smoothstep(0.85, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
+      float studR = length(cellXZ);
+      float studRingAO = (1.0 - 0.18 * exp(-pow((studR - 0.30) / 0.065, 2.0))) * step(0.65, N.y);
+      float groundAO = 0.86 + 0.14 * smoothstep(0.0, 28.0, vPos.y);
+      float cavity = (1.0 - 0.25 * max(seamH, seamV) * isRect) * mix(1.0, studRingAO, isRect) * groundAO;
       float dirShade = 0.88 + 0.12 * (N.x * 0.6 + N.z * 0.4);
-      vec3 diff = base * cavity * dirShade * (hemiCol * 0.26 + vec3(1.0, 0.96, 0.89) * d1 * 0.74 + vec3(0.94, 0.91, 0.86) * d2 * 0.58 + vec3(0.68, 0.78, 1.0) * d3 * 0.24 + vec3(1.0, 0.86, 0.66) * d4 * 0.22);
+      vec3 sssTint = base * vec3(1.12, 0.92, 0.78) * (1.0 - metal) * 0.07;
+      vec3 diff = (base * cavity * dirShade + sssTint) * (hemiCol * 0.27 + vec3(1.0, 0.96, 0.89) * d1 * 0.74 + vec3(0.95, 0.91, 0.86) * d2 * 0.58 + vec3(0.70, 0.80, 1.0) * d3 * 0.25 + vec3(1.0, 0.87, 0.68) * d4 * 0.23);
       vec3 H1 = normalize(L1 + V);
       vec3 H2 = normalize(L2 + V);
       vec3 H3 = normalize(L3 + V);
       vec3 H4 = normalize(L4 + V);
-      float shininess = mix(46.0, 78.0, metal);
-      float specStrength = mix(0.24, 1.35, metal);
-      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.15), metal * 0.88);
+      float shininess = mix(54.0, 84.0, metal);
+      float specStrength = mix(0.28, 1.42, metal);
+      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.16), metal * 0.88);
       float s1 = pow(max(dot(N, H1), 0.0), shininess);
       float s2 = pow(max(dot(N, H2), 0.0), shininess) * 0.85;
       float s3 = pow(max(dot(N, H3), 0.0), shininess * 0.55) * 0.35;
@@ -316,11 +325,11 @@
       vec3 R = reflect(-V, N);
       float envBand = 0.5 + 0.5 * sin(R.y * 6.0 + R.x * 3.0 - R.z * 2.5);
       vec3 envCol = mix(vec3(0.16, 0.11, 0.06), vec3(1.0, 0.92, 0.72), smoothstep(-0.4, 0.75, R.y));
-      vec3 metalEnv = base * envCol * (0.32 + 0.68 * envBand) * metal;
+      vec3 metalEnv = base * envCol * (0.34 + 0.66 * envBand) * metal;
       float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.2);
-      vec3 rim = mix(vec3(0.85, 0.90, 1.0) * 0.08, base * 0.48, metal) * fresnel;
+      vec3 rim = mix(vec3(0.88, 0.92, 1.0) * 0.10, base * 0.52, metal) * fresnel;
       vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim;
-      vec3 mapped = pow(acesFilm(linearOut * 0.96), vec3(1.0 / 2.2));
+      vec3 mapped = pow(acesFilm(linearOut * 0.97), vec3(1.0 / 2.2));
       gl_FragColor = vec4(mapped, 1.0);
     }
   `;

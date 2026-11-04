@@ -1,0 +1,85 @@
+{
+  "file": "films/shield-of-achilles/film-07-video-director.mp4",
+  "info": {
+    "w": 1920,
+    "h": 1080,
+    "fps": 30.0,
+    "dur": 12.022,
+    "audio": true
+  },
+  "picture": {
+    "frame0": {
+      "mean": 102.1,
+      "contrast": 72.7
+    },
+    "flashes": [],
+    "pops": [],
+    "cuts": [
+      4.0,
+      8.0
+    ],
+    "frozen": [],
+    "flat": [],
+    "median_step": 5.408
+  },
+  "cuts_vs_plan": null,
+  "audio": {
+    "lufs": -13.3,
+    "true_peak": -1.3,
+    "loudest_at": 8.55,
+    "loudest_db": -1.6,
+    "p90_db": -10.7,
+    "silence_threshold_db": -30.0,
+    "silences": [
+      {
+        "from": 7.45,
+        "to": 8.45
+      }
+    ],
+    "silence_before_peak": true,
+    "planned_silences": []
+  },
+  "texts": [],
+  "sheets": {
+    "beats": "films/shield-of-achilles/07-video-director/beats_sheet.jpg",
+    "phone": "films/shield-of-achilles/07-video-director/phone_sheet.jpg",
+    "hook": "films/shield-of-achilles/07-video-director/hook_sheet.jpg"
+  },
+  "checks": [
+    {
+      "level": "PASS",
+      "check": "frame 0",
+      "detail": "mean 102.1, contrast 72.7; still confirm it's a finished composition"
+    },
+    {
+      "level": "PASS",
+      "check": "single-frame flashes",
+      "detail": "none"
+    },
+    {
+      "level": "PASS",
+      "check": "pops",
+      "detail": "none"
+    },
+    {
+      "level": "INFO",
+      "check": "detected cuts",
+      "detail": "[4.0, 8.0]"
+    },
+    {
+      "level": "PASS",
+      "check": "loudness",
+      "detail": "-13.3 LUFS (target -14.0 +/-1), true peak -1.3 dBTP (<= -1.0)"
+    },
+    {
+      "level": "INFO",
+      "check": "loudest moment",
+      "detail": "loudest 100 ms at 8.55 s (-1.6 dBFS); is this the payoff?"
+    },
+    {
+      "level": "PASS",
+      "check": "silence before peak",
+      "detail": "silences >= 0.4 s below -30.0 dBFS: [{'from': 7.45, 'to': 8.45}]"
+    }
+  ]
+}
