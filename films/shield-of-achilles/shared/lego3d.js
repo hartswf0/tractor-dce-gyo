@@ -283,9 +283,13 @@
       }
 
       // 3. Trevor Carlee Non-Destructive "Animating on 2s" (12 fps Stepped Interpolation)
-      //    + EpicFigRig Articulated Minifigure Limbs & Reactive LEGO Water
+      //    + Character-Specific Acting Archetypes (actStyle 1..9), 3D Ballistic Arrows (5.0) & Anvil Sparks (6.0)
       float glow = 0.0;
-      if (role > 0.5 && role < 1.75) {
+      float actStyleF = floor(role / 10.0 + 0.01);
+      int actStyle = int(actStyleF);
+      float baseRole = role - actStyleF * 10.0;
+
+      if (baseRole > 0.5 && baseRole < 1.75) {
         float seed = fract(sin(aCenter.x * 0.037 + aCenter.z * 0.071) * 43758.5453);
         // Non-destructive 12 fps stepped F-curve modifier (holds each pose for 2 frames at 24/30 fps)
         float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
@@ -293,13 +297,29 @@
         float latX = aRig.y;
         float latZ = aRig.z;
 
-        if (role > 1.55) {
-          // 1.6: Quadruped Animal (ox, lion, sheep, goat, hound, horse) grounded on 2s
-          // Hooves remain 100% locked onto ground studs (deltaY = 0); only upper body/head breathes & grazes within AABB!
+        if (baseRole > 1.55) {
+          // 1.6: Species-Specific Quadruped Animal Acting on 2s (Hooves 100% locked onto ground studs, deltaY = 0!)
           float upperW = clamp((p.y - (pivY - 12.0)) / 24.0, 0.0, 1.0);
-          float grazePitch = (sin(qTime * 2.8 + seed * 6.283) * 0.032 + sin(qTime * 1.4 + seed * 2.1) * 0.015) * upperW;
+          float grazePitch = 0.0;
+          float animYaw = 0.0;
+          if (actStyle == 1) {
+            // Tawny Lions (80672a / 14734): Fierce predator lunge & maul wrench on 2s
+            grazePitch = (sin(qTime * 5.2 + seed * 6.283) * 0.11 - 0.04) * upperW;
+            animYaw = sin(qTime * 6.4 + seed * 3.14) * 0.095 * upperW;
+          } else if (actStyle == 2) {
+            // Lofty-Horned Cattle & Bellowing Bull (64452*): Skyward head-toss & wide horn sweep
+            grazePitch = (sin(qTime * 3.2 + seed * 6.283) * 0.085 + 0.03) * upperW;
+            animYaw = sin(qTime * 2.4 + seed * 4.71) * 0.075 * upperW;
+          } else if (actStyle == 3) {
+            // Swift Hunting Hounds (92586*): Rapid double-bark head snaps & alert play-bow
+            grazePitch = (sin(qTime * 8.5 + seed * 6.283) * 0.09) * upperW;
+            animYaw = cos(qTime * 7.2 + seed * 2.1) * 0.08 * upperW;
+          } else {
+            // Woolly Sheep, Goats & Lambs (95341*): Calm pastoral grazing dip & flock look-around
+            grazePitch = (sin(qTime * 2.6 + seed * 6.283) * 0.065 - 0.025) * upperW;
+            animYaw = sin(qTime * 1.8 + seed * 4.71) * 0.055 * upperW;
+          }
           rotateLimbX(p, n, aCenter.x, pivY - 12.0, aCenter.z, latX, latZ, grazePitch);
-          float animYaw = sin(qTime * 1.6 + seed * 4.71) * 0.028 * upperW;
           float ac = cos(animYaw), as = sin(animYaw);
           float adx = p.x - aCenter.x, adz = p.z - aCenter.z;
           p.x = aCenter.x + adx * ac - adz * as;
@@ -308,23 +328,174 @@
           float anz = n.x * as + n.z * ac;
           n.x = anx; n.z = anz;
         } else {
-          // 1.0..1.5: Grounded Stop-Motion Minifigure Acting on 2s (Zero Vertical Bouncing!)
-          // Feet & legs (1.1, 1.2) and hips remain 100% clicked onto their baseplate studs (deltaY = 0).
-          // Upper body, arms (1.3, 1.4), and head (1.5) articulate within collision-safe personal AABB envelopes.
-          float actR = sin(qTime * 2.8 + seed * 11.13) + 0.30 * sin(qTime * 5.6 + seed * 5.71);
-          float actL = sin((qTime - 0.18) * 2.4 + seed * 7.89);
+          // 1.0..1.5: 9 Character-Specific Minifigure Acting Archetypes on 2s (Feet & legs 100% stud-locked, deltaY = 0!)
+          float rArmAng = 0.0;
+          float lArmAng = 0.0;
+          float headYaw = 0.0;
+          float headNod = 0.0;
+          float torsoLean = 0.0;
+          float torsoYaw = 0.0;
 
-          if (role > 1.25 && role < 1.35) {
-            // 1.3: Right Arm + Right Hand + Held Tool/Staff/Lyre gestures at shoulder socket within AABB
-            float rArmAng = 0.04 + actR * 0.095;
+          if (actStyle == 1) {
+            // Archetype 1: BOWMAN / SPEARMAN (Odysseus & Telemachus in Ambush, Castle Sentry, Ares, Athena, Phalanx, 4 Herdsmen)
+            // 4-Phase Asymmetric Archery Cycle (2.4s period): Draw & Aim -> Sniper Hold -> Snappy Release Recoil -> Follow-Through
+            float cyc = fract(qTime / 2.4 + seed);
+            if (cyc < 0.65) {
+              float drawP = clamp(cyc / 0.45, 0.0, 1.0);
+              rArmAng = 0.16 + 0.48 * drawP;
+              lArmAng = 0.10 + 0.34 * drawP;
+              torsoLean = -0.08 * drawP;
+              torsoYaw = 0.15 * drawP;
+              headYaw = 0.18 * drawP;
+              headNod = -0.06 * drawP;
+            } else if (cyc < 0.78) {
+              // Snappy bowstring release & recoil!
+              rArmAng = 0.20;
+              lArmAng = -0.10;
+              torsoLean = 0.05;
+              torsoYaw = -0.06;
+              headYaw = 0.08;
+              headNod = 0.04;
+              glow = 0.18;
+            } else {
+              // Lower bow & nock next arrow
+              float recP = (cyc - 0.78) / 0.22;
+              rArmAng = mix(0.20, 0.16, recP);
+              lArmAng = mix(-0.10, 0.10, recP);
+              torsoLean = mix(0.05, 0.0, recP);
+              torsoYaw = mix(-0.06, 0.0, recP);
+              headYaw = mix(0.08, 0.0, recP);
+            }
+          } else if (actStyle == 2) {
+            // Archetype 2: AGORA DEBATERS (Crimson Claimant vs. Kyanos Defendant & Conversing Citizens)
+            // Turn-taking 4.0s rhetorical dialogue across the Two Talents of Gold!
+            float isLeft = step(aCenter.x, 0.0);
+            float dPhase = fract(qTime / 4.0 + isLeft * 0.5);
+            if (dPhase < 0.5) {
+              // Active Speaker: leans forward, thrusts one hand toward the Two Talents of Gold and the other to the Elders
+              float spT = dPhase * 2.0;
+              float emp = sin(spT * 3.14159);
+              float cad = sin(qTime * 6.5 + seed * 3.14);
+              rArmAng = 0.28 + 0.34 * cad * emp;
+              lArmAng = 0.16 - 0.24 * cos(qTime * 5.2) * emp;
+              torsoLean = -0.09 * emp;
+              torsoYaw = sin(qTime * 3.2) * 0.14 * emp;
+              headYaw = sin(qTime * 4.2) * 0.24;
+              headNod = -0.07 * abs(cad);
+              glow = 0.14 * emp;
+            } else {
+              // Skeptical Listener -> Vigorous Head-Shaking Rebuttal ("He refuses to take anything!" Il. XVIII.500)
+              float lsT = (dPhase - 0.5) * 2.0;
+              if (lsT < 0.52) {
+                rArmAng = 0.06;
+                lArmAng = 0.08;
+                torsoLean = 0.06;
+                headYaw = 0.16 * sin(qTime * 1.8);
+                headNod = 0.03;
+              } else {
+                rArmAng = 0.46 + 0.18 * sin(qTime * 8.0);
+                lArmAng = 0.42 + 0.18 * cos(qTime * 8.0);
+                torsoLean = 0.04;
+                torsoYaw = sin(qTime * 5.5) * 0.10;
+                headYaw = sin(qTime * 11.0) * 0.30;
+                headNod = 0.02;
+              }
+            }
+          } else if (actStyle == 3) {
+            // Archetype 3: ENTHRONED ELDER JUDGES / SILENT KING MENELAUS / ROYAL LOGGIA / AUDITOR ATHENA
+            // Deliberate left-to-right judicial survey followed by solemn nod & Golden Sceptre gavel strike!
+            float jPhase = fract(qTime / 3.6 + seed * 0.5);
+            if (jPhase < 0.65) {
+              float sAng = (jPhase / 0.65) * 6.28318;
+              rArmAng = 0.14 + 0.05 * sin(sAng);
+              lArmAng = 0.06;
+              headYaw = sin(sAng) * 0.28;
+              torsoYaw = headYaw * 0.32;
+              headNod = 0.02 * cos(sAng);
+            } else {
+              float gT = (jPhase - 0.65) / 0.35;
+              float gArc = sin(gT * 3.14159);
+              rArmAng = 0.14 + 0.52 * gArc;
+              lArmAng = 0.12 * gArc;
+              torsoLean = -0.06 * gArc;
+              headNod = -0.10 * abs(sin(gT * 6.28318));
+              glow = 0.18 * gArc;
+            }
+          } else if (actStyle == 4) {
+            // Archetype 4: HEPHAESTUS THE MASTER SMITH (Hammer 4589/55295 + Tongs 3959 at the Anvil, 1.6s cycle)
+            float hPhase = fract(qTime / 1.6 + seed);
+            if (hPhase < 0.52) {
+              // High overhead hammer wind-up
+              float wP = hPhase / 0.52;
+              rArmAng = 0.10 + 0.78 * (wP * wP);
+              lArmAng = 0.24;
+              torsoLean = 0.06 * wP;
+              headNod = 0.05 * wP;
+            } else if (hPhase < 0.66) {
+              // Explosive downward anvil smash!
+              rArmAng = -0.16;
+              lArmAng = 0.28;
+              torsoLean = -0.12;
+              headNod = -0.11;
+              glow = 0.32;
+            } else {
+              // Recovery & left-hand tongs work-piece turn
+              float recP = (hPhase - 0.66) / 0.34;
+              rArmAng = mix(-0.16, 0.10, recP);
+              lArmAng = 0.24 + 0.22 * sin(recP * 3.14159);
+              torsoYaw = 0.14 * sin(recP * 3.14159);
+              headYaw = -0.18 * sin(recP * 3.14159);
+            }
+          } else if (actStyle == 5) {
+            // Archetype 5: HARVEST REAPER & SACRIFICER (3847 Bronze Sickle Swath Cut across Wheat Stalks)
+            float sPhase = fract(qTime / 2.0 + seed);
+            float cutWave = sin(sPhase * 6.28318);
+            rArmAng = 0.28 + 0.38 * cutWave;
+            lArmAng = 0.22 - 0.26 * cutWave;
+            torsoLean = -0.09 - 0.05 * max(0.0, cutWave);
+            torsoYaw = cutWave * 0.28;
+            headYaw = cutWave * 0.22;
+            headNod = -0.07;
+          } else if (actStyle == 6) {
+            // Archetype 6: DIVINE BARD DEMODOCUS / BOY PHEMIUS / AULOS PIPERS EUMAEUS & PHILOETIUS
+            lArmAng = 0.36 + 0.06 * sin(qTime * 3.2);
+            rArmAng = 0.32 + 0.22 * sin(qTime * 9.5 + seed * 6.283);
+            torsoYaw = sin(qTime * 2.8 + seed * 3.14) * 0.14;
+            torsoLean = sin(qTime * 2.8) * 0.04;
+            headNod = 0.08 + 0.05 * sin(qTime * 4.5);
+            headYaw = sin(qTime * 2.8 + seed) * 0.22;
+          } else if (actStyle == 8) {
+            // Archetype 8: CUP-BEARER MEDON / SILVER-FOOTED THETIS / THREE FATES / PLOUGHMEN & SHEPHERD
+            float oPhase = sin(qTime * 2.1 + seed * 6.283);
+            float ext = max(0.0, oPhase);
+            rArmAng = 0.24 + 0.26 * ext;
+            lArmAng = 0.18 + 0.20 * ext;
+            torsoLean = -0.07 * ext;
+            headNod = -0.08 * ext;
+            headYaw = sin(qTime * 1.4 + seed * 6.283) * 0.16;
+          } else if (actStyle == 9) {
+            // Archetype 9: GIT WORKTREE CODING AGENT (Rapid 12-fps alternating keystrokes & dual-monitor scan)
+            rArmAng = 0.28 + 0.14 * sin(qTime * 12.0 + seed * 5.1);
+            lArmAng = 0.28 - 0.14 * sin(qTime * 12.0 + seed * 5.1);
+            torsoLean = -0.06;
+            torsoYaw = sin(qTime * 2.4 + seed) * 0.08;
+            headYaw = sin(qTime * 3.6 + seed * 4.2) * 0.22;
+            headNod = -0.05 + 0.03 * sin(qTime * 7.2);
+          } else {
+            // Archetype 7 (Default): WHIRLING CHOROS & BRIDAL RING-DANCER / TUMBLING ACROBATS
+            rArmAng = 0.34 + 0.30 * sin(qTime * 4.2 + seed * 6.283);
+            lArmAng = 0.34 - 0.30 * sin(qTime * 4.2 + seed * 6.283);
+            torsoYaw = cos(qTime * 4.2 + seed * 6.283) * 0.20;
+            torsoLean = sin(qTime * 8.4 + seed) * 0.045;
+            headYaw = sin(qTime * 4.2 + seed * 6.283) * 0.26;
+            headNod = cos(qTime * 4.2) * 0.055;
+          }
+
+          if (baseRole > 1.25 && baseRole < 1.35) {
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rArmAng);
-          } else if (role > 1.35 && role < 1.45) {
-            // 1.4: Left Arm + Left Hand + Held Shield/Cup moves in phase-delayed counterpoint within AABB
-            float lArmAng = 0.03 - actL * 0.085;
+          } else if (baseRole > 1.35 && baseRole < 1.45) {
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, lArmAng);
-          } else if (role > 1.45 && role < 1.55) {
-            // 1.5: Head + Beard + Hair + Crown + Helmet expressive two-harmonic gaze & subtle nod on neck stud
-            float headYaw = sin(qTime * 2.0 + seed * 9.42) * 0.18 + sin(qTime * 0.95 + seed * 3.7) * 0.06;
+          } else if (baseRole > 1.45 && baseRole < 1.55) {
             float hc = cos(headYaw), hs = sin(headYaw);
             float hdx = p.x - aCenter.x, hdz = p.z - aCenter.z;
             p.x = aCenter.x + hdx * hc - hdz * hs;
@@ -332,15 +503,12 @@
             float hnx = n.x * hc - n.z * hs;
             float hnz = n.x * hs + n.z * hc;
             n.x = hnx; n.z = hnz;
-            float headNod = sin((qTime - 0.12) * 2.4 + seed * 6.283) * 0.028;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, headNod);
           }
 
-          // Upper-body waist-hinge breathing & subtle torso twist above hipY (aCenter.y), keeping legs 100% locked to studs!
-          if ((role < 1.05 && p.y > aCenter.y + 2.0) || role > 1.25) {
-            float torsoLean = sin(qTime * 2.2 + seed * 6.283) * 0.028;
+          // Upper-body waist-hinge lean & torso twist above hipY (aCenter.y), keeping legs 100% locked to studs!
+          if ((baseRole < 1.05 && p.y > aCenter.y + 2.0) || baseRole > 1.25) {
             rotateLimbX(p, n, aCenter.x, aCenter.y + 4.0, aCenter.z, latX, latZ, torsoLean);
-            float torsoYaw = sin(qTime * 1.4 + seed * 6.283) * 0.038;
             float tc = cos(torsoYaw), ts = sin(torsoYaw);
             float tdx = p.x - aCenter.x, tdz = p.z - aCenter.z;
             p.x = aCenter.x + tdx * tc - tdz * ts;
@@ -372,7 +540,7 @@
         float quantWave = floor(wave * 2.2) * 1.4;
         p.y += quantWave;
         glow = max(0.0, quantWave * 0.06);
-      } else if (role > 4.25) {
+      } else if (role > 4.25 && role < 4.75) {
         // 4.5: Botanical Foliage, Tree Canopy & Reed Breeze on 2s (rossark-motion-skill calm wind sway)
         float seed = fract(sin(aCenter.x * 0.053 + aCenter.z * 0.089) * 28411.7);
         float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
@@ -380,6 +548,48 @@
         p.x += breeze * 0.85;
         p.z += cos(qTime * 2.1 + seed * 6.283) * 0.55;
         p.y += sin(qTime * 3.2 + seed * 3.14) * 0.35;
+      } else if (role > 4.75 && role < 5.5) {
+        // 5.0: 3D Brick-Built Ballistic Arrow (Draws on bow for cyc < 0.65, then streaks across battlefield on parabolic arc!)
+        float seed = aRig.x;
+        float latX = aRig.y;
+        float latZ = aRig.z;
+        float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
+        float cyc = fract(qTime / 2.4 + seed);
+        if (cyc < 0.65) {
+          float drawP = clamp(cyc / 0.45, 0.0, 1.0);
+          rotateLimbX(p, n, aCenter.x, aCenter.y, aCenter.z, latX, latZ, 0.22 * drawP);
+          p.x -= aPivot.x * drawP * 6.0;
+          p.z -= aPivot.y * drawP * 6.0;
+          p.y += drawP * 4.0;
+          glow = 0.16 * drawP;
+        } else {
+          float flightT = (cyc - 0.65) / 0.35;
+          float dist = flightT * 215.0;
+          float arcY = 165.0 * flightT * (1.0 - flightT) - 12.0 * flightT;
+          float arrowPitch = (0.46 - flightT) * 0.60;
+          rotateLimbX(p, n, aCenter.x, aCenter.y, aCenter.z, latX, latZ, arrowPitch);
+          p.x += aPivot.x * dist;
+          p.z += aPivot.y * dist;
+          p.y += arcY;
+          glow = 0.42;
+        }
+      } else if (role > 5.5 && role < 6.5) {
+        // 6.0: 3D Brick-Built Anvil Spark Burst (Erupts radially from Hephaestus's anvil on every hammer impact!)
+        float seed = aRig.x;
+        float spSpeed = aRig.y;
+        float spLift = aRig.z;
+        float qTime = (floor(uTime * 12.0 + seed * 6.0) - seed * 6.0) / 12.0;
+        float hPhase = fract(qTime / 1.6 + seed);
+        if (hPhase >= 0.52) {
+          float spT = (hPhase - 0.52) / 0.48;
+          p.x += aPivot.x * spT * spSpeed;
+          p.z += aPivot.y * spT * spSpeed;
+          p.y += spLift * 4.0 * spT * (1.0 - spT);
+          glow = (1.0 - spT * 0.55) * 1.15;
+        } else {
+          p.y -= 6.0;
+          glow = 0.35;
+        }
       }
 
       // 4. Turntable / Choros Potter's Wheel / Celestial Boss rotation
@@ -690,8 +900,10 @@
       // hips/skirt/torso root (3815*/36036/973) and forward through its hair/beard/crown/helmet/cape
       // and hand-held weapons/scepters/torches/tools, assigning each sub-part its anatomical limb role & pivot!
       const cleanPid = (s) => String(s).toLowerCase().replace(/\.dat$/, '').replace(/_s$/, '');
+      const glslFract = (x) => x - Math.floor(x);
       const rawInst = data.inst;
       const actorGroups = new Array(rawInst.length).fill(null);
+      const projectileBlocks = [];
       for (let i = 0; i < rawInst.length; i++) {
         const p = cleanPid(rawInst[i][1]);
         if (p.startsWith('3626')) {
@@ -728,8 +940,10 @@
           let hipY = -rawInst[rootIdx][2][1];
           let shoulderY = -hy - 24;
           const neckY = -hy;
+          const figParts = new Set();
           for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
             const pm = cleanPid(rawInst[mIdx][1]);
+            figParts.add(pm);
             const pos = rawInst[mIdx][2];
             if (pm.startsWith('3816') || pm.startsWith('3817')) hipY = -pos[1];
             if (pm === '3818') { rArmPos = [pos[0], -pos[1], pos[2]]; shoulderY = -pos[1]; }
@@ -742,41 +956,98 @@
           }
           const lLen = Math.hypot(latX, latZ) || 1.0;
           latX /= lLen; latZ /= lLen;
+          const fwdX = -latZ, fwdZ = latX;
 
           const rootY = -rawInst[rootIdx][2][1];
           const figHipY = hipY || rootY;
           const rootTT = rawInst[rootIdx][3];
-          const zNudge = (String(slug).includes('wedding') && Math.abs(hz - 110) < 3 && Math.abs(hx) > 200) ? 18.0 : 0.0;
+          const sSlug = String(slug);
+          const zNudge = (sSlug.includes('wedding') && Math.abs(hz - 110) < 3 && Math.abs(hx) > 200) ? 18.0 : 0.0;
+
+          // Classify Minifigure into one of the 9 Character Acting Archetypes (actStyle 1..9)
+          let actStyle = 7; // Default: Whirling Choros & Bridal Ring-Dancer
+          if (figParts.has('4499') || figParts.has('93231') || figParts.has('4497')) actStyle = 1;
+          else if (figParts.has('4589') || figParts.has('55295')) actStyle = 4;
+          else if (figParts.has('3847') && (sSlug.includes('harvest') || sSlug.includes('field'))) actStyle = 5;
+          else if (figParts.has('3847') && sSlug.includes('office')) actStyle = 9;
+          else if ((figParts.has('95049') && figHipY > 52) || ((sSlug.includes('wedding') || sSlug.includes('choros') || sSlug.includes('office')) && figHipY > 80)) actStyle = 3;
+          else if (figParts.has('3959')) actStyle = 6;
+          else if (figParts.has('2343') || figParts.has('30374') || figParts.has('95049')) actStyle = 8;
+          else if (sSlug.includes('agora') || sSlug.includes('peace') || (sSlug.includes('office') && hx > 200)) actStyle = 2;
+
           for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
             const pm = cleanPid(rawInst[mIdx][1]);
             const pos = rawInst[mIdx][2];
             const isCenterline = Math.hypot(pos[0] - hx, pos[2] - hz) < 5.0;
-            let subRole = 1.0, pivY = figHipY;
-            if (pm.startsWith('3816')) { subRole = 1.1; pivY = figHipY; }
-            else if (pm.startsWith('3817')) { subRole = 1.2; pivY = figHipY; }
-            else if (pm === '3818') { subRole = 1.3; pivY = shoulderY; }
-            else if (pm === '3819') { subRole = 1.4; pivY = shoulderY; }
+            let baseSubRole = 1.0, pivY = figHipY;
+            if (pm.startsWith('3816')) { baseSubRole = 1.1; pivY = figHipY; }
+            else if (pm.startsWith('3817')) { baseSubRole = 1.2; pivY = figHipY; }
+            else if (pm === '3818') { baseSubRole = 1.3; pivY = shoulderY; }
+            else if (pm === '3819') { baseSubRole = 1.4; pivY = shoulderY; }
             else if (pm.startsWith('3626') || HEAD_ACC.has(pm) || (isCenterline && (-pos[1]) >= neckY - 4)) {
-              subRole = 1.5; pivY = neckY;
+              baseSubRole = 1.5; pivY = neckY;
             }
             else if (pm.startsWith('973') || pm.startsWith('3815') || pm === '36036' || TORSO_ACC.has(pm) || isCenterline) {
-              subRole = 1.0; pivY = figHipY;
+              baseSubRole = 1.0; pivY = figHipY;
             }
             else {
               // Hand (3820) or held prop (scepter, hammer, spear, sword, goblet, torch): attach to closer arm socket!
               const dR = rArmPos ? Math.hypot(pos[0] - rArmPos[0], pos[2] - rArmPos[2]) : 999;
               const dL = lArmPos ? Math.hypot(pos[0] - lArmPos[0], pos[2] - lArmPos[2]) : 999;
-              subRole = dR <= dL ? 1.3 : 1.4;
+              baseSubRole = dR <= dL ? 1.3 : 1.4;
               pivY = shoulderY;
             }
+            const subRole = baseSubRole + actStyle * 10.0;
             actorGroups[mIdx] = { ax: hx, ay: figHipY, az: hz + zNudge, startIdx: rootIdx, subRole, pivY, latX, latZ, ttIdx: rootTT, zNudge };
+          }
+
+          const actorSeed = glslFract(Math.sin(hx * 0.037 + (hz + zNudge) * 0.071) * 43758.5453);
+          // Spawn 3D Brick-Built Ballistic Arrow (role = 5.0) for active bowmen (4499/93231)
+          if ((figParts.has('4499') || figParts.has('93231')) && !(sSlug.includes('forge') && hx > 340)) {
+            const bowX = (rArmPos ? rArmPos[0] : hx) + fwdX * 16.0;
+            const bowY = shoulderY + 4.0;
+            const bowZ = (rArmPos ? rArmPos[2] : hz) + zNudge + fwdZ * 16.0;
+            const arrowParts = [
+              { tris: buildRectTris([-1.4, -1.4, -14.0, 1.4, 1.4, 14.0], false), rgba: [0.45, 0.26, 0.14, 2.0] },
+              { tris: buildRectTris([-2.8, -2.0,  14.0, 2.8, 2.0, 22.0], false), rgba: [0.92, 0.76, 0.30, 3.0] },
+              { tris: buildRectTris([-3.4, -2.8, -20.0, 3.4, 2.8, -12.0], false), rgba: [0.86, 0.12, 0.14, 2.0] }
+            ];
+            for (const ap of arrowParts) {
+              projectileBlocks.push({
+                tris: ap.tris, pos: [bowX, bowY, bowZ], rgba: ap.rgba,
+                lat: [latX, latZ], fwd: [fwdX, fwdZ],
+                role: 5.0, piv: [fwdX, fwdZ], rig: [actorSeed, latX, latZ]
+              });
+            }
+          }
+          // Spawn 8 Radial 3D Anvil Spark Studs (role = 6.0) for Hephaestus the Master Smith (actStyle === 4)
+          if (actStyle === 4) {
+            const anvX = hx + fwdX * 26.0;
+            const anvY = figHipY + 14.0;
+            const anvZ = hz + zNudge + fwdZ * 26.0;
+            const sparkTris = buildRectTris([-2.2, -2.2, -2.2, 2.2, 2.2, 2.2], false);
+            for (let sIdx = 0; sIdx < 8; sIdx++) {
+              const sAng = (sIdx / 8) * Math.PI * 2 + 0.25;
+              const spSpeed = 28.0 + (sIdx % 3) * 8.0;
+              const spLift = 32.0 + ((sIdx + 1) % 3) * 10.0;
+              const rgba = (sIdx % 2 === 0) ? [1.0, 0.55, 0.12, 2.0] : [1.0, 0.86, 0.28, 3.0];
+              projectileBlocks.push({
+                tris: sparkTris, pos: [anvX, anvY, anvZ], rgba,
+                lat: [1.0, 0.0], fwd: [0.0, 1.0],
+                role: 6.0, piv: [Math.cos(sAng), Math.sin(sAng)], rig: [actorSeed, spSpeed, spLift]
+              });
+            }
           }
         } else if (ANIMAL_ROOTS.has(p) && !actorGroups[i]) {
           const [ax, ay, az, ma, mb, mc, md, me, mf, mg] = rawInst[i][2];
           const lLen = Math.hypot(ma || 1.0, mg || 0.0) || 1.0;
+          let animStyle = 0;
+          if (p.startsWith('80672') || p.startsWith('14734') || p === '48812') animStyle = 1;
+          else if (p.startsWith('64452') || p.startsWith('64779') || p.startsWith('64835')) animStyle = 2;
+          else if (p.startsWith('92586')) animStyle = 3;
           const aGrp = {
             ax, ay: -ay, az, startIdx: i,
-            subRole: 1.6, pivY: -ay,
+            subRole: 1.6 + animStyle * 10.0, pivY: -ay,
             latX: (ma || 1.0) / lLen, latZ: (mg || 0.0) / lLen,
             ttIdx: rawInst[i][3], zNudge: 0.0
           };
@@ -829,6 +1100,7 @@
         }
         for (const cb of cloudBlocks) totalTris += cb.tris.length;
       }
+      for (const pb of projectileBlocks) totalTris += pb.tris.length;
 
       const STRIDE = 22;
       const buf = new Float32Array(totalTris * 3 * STRIDE);
@@ -924,6 +1196,36 @@
             buf[ptr++] = 0.96; buf[ptr++] = 0.0;  buf[ptr++] = 3.0;  buf[ptr++] = 0.0;
             buf[ptr++] = 0.0;  buf[ptr++] = 0.0;
             buf[ptr++] = cy;   buf[ptr++] = 1.0;  buf[ptr++] = 0.0;
+          }
+        }
+      }
+
+      // Append 3D Ballistic Flying Arrows (role = 5.0) & Hephaestus Anvil Spark Bursts (role = 6.0)
+      for (const pb of projectileBlocks) {
+        const [cx, cy, cz] = pb.pos;
+        const [lx, lz] = pb.lat;
+        const [fx, fz] = pb.fwd;
+        const pxf = (v) => [
+          cx + v[0] * lx + v[2] * fx,
+          cy - v[1],
+          cz + v[0] * lz + v[2] * fz
+        ];
+        for (let k = 0; k < pb.tris.length; k++) {
+          const [p0, p1, p2] = pb.tris[k];
+          const A = pxf(p0), B = pxf(p2), C = pxf(p1);
+          const ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2];
+          const vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
+          let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+          const len = Math.hypot(nx, ny, nz) || 1;
+          nx /= len; ny /= len; nz /= len;
+          for (const P of [A, B, C]) {
+            buf[ptr++] = P[0]; buf[ptr++] = P[1]; buf[ptr++] = P[2];
+            buf[ptr++] = nx;   buf[ptr++] = ny;   buf[ptr++] = nz;
+            buf[ptr++] = pb.rgba[0]; buf[ptr++] = pb.rgba[1]; buf[ptr++] = pb.rgba[2]; buf[ptr++] = pb.rgba[3];
+            buf[ptr++] = cx;   buf[ptr++] = cy;   buf[ptr++] = cz;
+            buf[ptr++] = 0.88; buf[ptr++] = 0.0;  buf[ptr++] = pb.role; buf[ptr++] = 0.0;
+            buf[ptr++] = pb.piv[0]; buf[ptr++] = pb.piv[1];
+            buf[ptr++] = pb.rig[0]; buf[ptr++] = pb.rig[1]; buf[ptr++] = pb.rig[2];
           }
         }
       }
