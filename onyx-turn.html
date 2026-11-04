@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX TURN // Compelling-Concern & Narrative Operations Mapper</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='%230b1121'/%3E%3Ctext x='50' y='65' font-size='54' text-anchor='middle' fill='%23f43f5e'%3E%E2%86%BB%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0f172a;
+      --surface: #1e293b;
+      --surface-2: #0b1121;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --amber: #fbbf24;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --rose: #f43f5e;
+      --purple: #c084fc;
+      --orange: #fb923c;
+      --blue: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 12px;
+    }
+
+    /* HEADER */
+    header {
+      height: 48px;
+      flex: 0 0 48px;
+      background: #04070e;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .brand-badge {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid var(--rose);
+      color: var(--rose);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .brand-sub {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select.scenario-select, .btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    select.scenario-select:hover, .btn:hover {
+      border-color: var(--amber);
+      color: #fff;
+    }
+    .btn.primary {
+      background: rgba(251, 191, 36, 0.15);
+      border-color: var(--amber);
+      color: var(--amber);
+      font-weight: 600;
+    }
+    .btn.reversal {
+      background: rgba(74, 222, 128, 0.15);
+      border-color: var(--green);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .btn.reversal.active {
+      background: var(--green);
+      color: #04070e;
+    }
+
+    /* BEAT TIMELINE RIBBON */
+    .beat-ribbon {
+      flex: 0 0 74px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      padding: 8px 14px;
+      overflow-x: auto;
+    }
+
+    .beat-step {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.18s ease;
+      min-width: 140px;
+    }
+    .beat-step:hover {
+      border-color: var(--muted);
+      transform: translateY(-1px);
+    }
+    .beat-step.active {
+      border-color: var(--amber);
+      background: rgba(251, 191, 36, 0.08);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.2);
+    }
+    .beat-step.op-poison.active {
+      border-color: var(--purple);
+      background: rgba(192, 132, 252, 0.1);
+      box-shadow: 0 0 16px rgba(192, 132, 252, 0.25);
+    }
+    .beat-step.op-smokescreen.active {
+      border-color: var(--orange);
+      background: rgba(251, 146, 60, 0.1);
+      box-shadow: 0 0 16px rgba(251, 146, 60, 0.25);
+    }
+    .beat-step.op-turn.active {
+      border-color: var(--rose);
+      background: rgba(244, 63, 94, 0.12);
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.3);
+    }
+    .beat-step.op-reversal.active {
+      border-color: var(--green);
+      background: rgba(74, 222, 128, 0.12);
+      box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+    }
+
+    .beat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .beat-op-tag {
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 8px;
+    }
+    .beat-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .beat-delta-summary {
+      font-size: 9px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* MAIN WORKSPACE: 3-ZONE LAYOUT */
+    main {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 420px 1fr 370px;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .zone {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .zone-header {
+      height: 34px;
+      flex: 0 0 34px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ZONE 1: 2D ONYX SPATIAL & PERMISSION GRID */
+    .spatial-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      position: relative;
+      background: radial-gradient(circle at center, #0f172a 0%, #070b14 75%);
+    }
+
+    .grid-frame {
+      width: min(100%, 380px);
+      aspect-ratio: 1 / 1;
+      position: relative;
+      background: #090e1a;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .grid-zones-overlay {
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .zone-rect {
+      position: absolute;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 4px;
+      padding: 3px 5px;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .onyx-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 2px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .grid-cell {
+      background: rgba(30, 41, 59, 0.32);
+      border: 1px solid rgba(51, 65, 85, 0.45);
+      border-radius: 2px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: rgba(100, 116, 139, 0.35);
+      transition: all 0.2s ease;
+    }
+    .grid-cell.blocked-cell {
+      background: rgba(244, 63, 94, 0.16);
+      border-color: rgba(244, 63, 94, 0.55);
+    }
+    .grid-cell.blocked-cell::after {
+      content: '✕';
+      color: var(--rose);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .grid-cell.open-corridor {
+      background: rgba(74, 222, 128, 0.1);
+      border-color: rgba(74, 222, 128, 0.4);
+    }
+
+    .wires-svg {
+      position: absolute;
+      inset: 6px;
+      width: calc(100% - 12px);
+      height: calc(100% - 12px);
+      pointer-events: none;
+      z-index: 12;
+      overflow: visible;
+    }
+
+    .nodes-layer {
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .grid-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 38px;
+      height: 38px;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .grid-node:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      z-index: 30;
+    }
+    .grid-node.selected {
+      filter: drop-shadow(0 0 10px var(--amber));
+    }
+    .grid-node.restricted {
+      filter: drop-shadow(0 0 10px var(--rose));
+    }
+    .grid-node-label {
+      position: absolute;
+      bottom: -14px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid var(--border);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 8px;
+      white-space: nowrap;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .grid-node-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      padding: 1px 4px;
+      border-radius: 999px;
+      font-size: 7px;
+      font-weight: 700;
+      background: var(--rose);
+      color: #fff;
+    }
+
+    /* SPATIAL LEGEND & CONCERN COLLISION BARS */
+    .collision-panel {
+      border-top: 1px solid var(--border);
+      background: var(--panel);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .collision-title {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--amber);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+    }
+    .concern-row {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--cyan);
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .concern-row.actor { border-left-color: var(--amber); }
+    .concern-row.beneficiary { border-left-color: var(--cyan); }
+    .concern-row.collision { border-left-color: var(--rose); background: rgba(244, 63, 94, 0.07); }
+
+    /* ZONE 2: THREE THINGS VISIBLE TOGETHER + DIALOGUE & EVENT COMPARISON */
+    .center-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* THE TRIAD: KEEP THREE THINGS VISIBLE TOGETHER */
+    .triad-banner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .triad-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .triad-card.justification {
+      border-top: 3px solid var(--amber);
+    }
+    .triad-card.operation {
+      border-top: 3px solid var(--purple);
+    }
+    .triad-card.options-lost {
+      border-top: 3px solid var(--rose);
+    }
+    .triad-kicker {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .triad-headline {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .triad-body {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* ENCOUNTER DIALOGUE & ACTION STREAM */
+    .encounter-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .utterance {
+      padding: 8px 10px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .utterance.parent { border-left-color: var(--amber); }
+    .utterance.daughter { border-left-color: var(--cyan); }
+    .utterance.clinician { border-left-color: var(--purple); }
+    .utterance.system-op {
+      border-left-color: var(--rose);
+      background: rgba(244, 63, 94, 0.08);
+    }
+    .utterance-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .utterance-text {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    /* BEFORE / AFTER EVENT COMPARISON TABLE */
+    .comparison-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .comparison-header {
+      padding: 8px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    table.delta-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+    table.delta-table th {
+      text-align: left;
+      padding: 7px 10px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+    }
+    table.delta-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      vertical-align: top;
+      line-height: 1.4;
+    }
+    table.delta-table tr.active-shift {
+      background: rgba(244, 63, 94, 0.08);
+    }
+    table.delta-table tr.restored-shift {
+      background: rgba(74, 222, 128, 0.08);
+    }
+    .state-pill {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .pill-open { background: rgba(74, 222, 128, 0.15); color: var(--green); border: 1px solid rgba(74, 222, 128, 0.4); }
+    .pill-cost { background: rgba(244, 63, 94, 0.18); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.5); }
+    .pill-trap { background: rgba(192, 132, 252, 0.18); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.5); }
+    .pill-masked { background: rgba(251, 146, 60, 0.18); color: var(--orange); border: 1px solid rgba(251, 146, 60, 0.5); }
+
+    /* ZONE 3: OBSERVABLE OPERATIONS CATALOG & ACTION SET MATRIX */
+    .right-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-set-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 10px;
+      gap: 8px;
+    }
+    .option-item.lost {
+      border-color: rgba(244, 63, 94, 0.6);
+      background: rgba(244, 63, 94, 0.08);
+    }
+    .option-item.restored {
+      border-color: rgba(74, 222, 128, 0.6);
+      background: rgba(74, 222, 128, 0.08);
+    }
+
+    .op-def-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .op-def-card:hover {
+      border-color: var(--muted);
+    }
+    .op-def-card.highlighted {
+      border-color: var(--amber);
+      box-shadow: inset 3px 0 0 var(--amber);
+      background: rgba(251, 191, 36, 0.05);
+    }
+    .op-def-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .op-def-what {
+      font-size: 9px;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.35;
+    }
+    .op-def-watch {
+      font-size: 9px;
+      color: var(--muted);
+      line-height: 1.35;
+      border-top: 1px dashed rgba(51, 65, 85, 0.6);
+      padding-top: 4px;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+      .zone {
+        overflow: visible;
+      }
+    }
+  
+    @media (max-width: 1100px) {
+      html, body {
+        height: auto !important;
+        min-height: 100dvh !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+      header {
+        height: auto !important;
+        flex: 0 0 auto !important;
+        flex-wrap: wrap !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+      }
+      .brand {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .brand-sub { display: none !important; }
+      .header-controls {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+      }
+      select.scenario-select {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .beat-ribbon {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        padding: 6px 10px !important;
+      }
+      .beat-ribbon::-webkit-scrollbar { display: none !important; }
+      main {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .zone {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .spatial-stage {
+        padding: 10px !important;
+        height: auto !important;
+      }
+      .grid-frame {
+        width: min(100%, 358px) !important;
+        margin: 0 auto !important;
+      }
+      .triad-cards, .event-compare-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .center-scroll, .right-scroll {
+        overflow: visible !important;
+        height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-badge">ONYX // TURN</span>
+      <span>COMPELLING-CONCERN &amp; NARRATIVE OPERATIONS MAPPER</span>
+      <span class="brand-sub">1000-Medical × ASAPS × ONYX 2D Action-Set Inspector</span>
+    </div>
+    <div class="header-controls">
+      <select id="scenarioSelect" class="scenario-select" title="Select Encounter Scenario">
+        <option value="medical">Encounter 01 · Adult Daughter &amp; Parent (Clinical Privacy Turn)</option>
+        <option value="housing">Encounter 02 · Supportive Housing Caseworker (Curfew / Advocate Turn)</option>
+        <option value="megaron">Encounter 03 · Ithaca Megaron Hospitality (Guest-Right to Captivity Turn)</option>
+      </select>
+      <button class="btn reversal" id="btnTriggerReversal" onclick="APP.selectBeat(5)">
+        <i class="fas fa-undo-alt"></i> Execute Symbolic Reversal
+      </button>
+      <button class="btn primary" onclick="APP.exportToOnyxBus()">
+        <i class="fas fa-share-nodes"></i> Sync to ONYX Studio Bus
+      </button>
+      <a href="onyx-asaps.html" class="btn" style="text-decoration:none;">
+        <i class="fas fa-layer-group"></i> ASAPS Studio
+      </a>
+    </div>
+  </header>
+
+  <!-- 6-BEAT NARRATIVE OPERATION RIBBON -->
+  <div class="beat-ribbon" id="beatRibbon"></div>
+
+  <main>
+    <!-- LEFT ZONE: 2D ONYX SPATIAL & ACTION-SPACE GRID -->
+    <section class="zone">
+      <div class="zone-header">
+        <span><i class="fas fa-border-all"></i> 2D ONYX Spatial &amp; Permission Field (9×9)</span>
+        <span id="gridStatusBadge" style="color:var(--green);">PRIVACY CHANNEL: OPEN</span>
+      </div>
+      <div class="spatial-stage">
+        <div class="grid-frame">
+          <div class="grid-zones-overlay" id="zonesOverlay"></div>
+          <div class="onyx-grid" id="onyxGrid"></div>
+          <svg class="wires-svg" id="wiresSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div class="nodes-layer" id="nodesLayer"></div>
+        </div>
+      </div>
+      <div class="collision-panel" id="collisionPanel"></div>
+    </section>
+
+    <!-- CENTER ZONE: THE TRIAD + DIALOGUE + EVENT COMPARISON -->
+    <section class="zone">
+      <div class="zone-header">
+        <span><i class="fas fa-eye"></i> Simultaneous Triad: Justification · Operation · Options Lost</span>
+        <span id="turnDiagnosticBadge">NO HIDDEN MOTIVE DIAGNOSIS REQUIRED</span>
+      </div>
+      <div class="center-scroll">
+        <!-- KEEP THREE THINGS VISIBLE TOGETHER -->
+        <div class="triad-banner" id="triadBanner"></div>
+
+        <!-- ACTIVE ENCOUNTER BEAT & UTTERANCES -->
+        <div class="encounter-box" id="encounterBox"></div>
+
+        <!-- BEFORE / AFTER EVENT COMPARISON -->
+        <div class="comparison-card">
+          <div class="comparison-header">
+            <span><i class="fas fa-scale-balanced"></i> Observable Event Comparison (Before vs. After Turn)</span>
+            <span style="font-size:9px;color:var(--muted);">Decisive Evidence = Changed Action Set</span>
+          </div>
+          <table class="delta-table">
+            <thead>
+              <tr>
+                <th style="width:22%;">Dimension</th>
+                <th style="width:34%;">Before Turn (Assistance Baseline)</th>
+                <th style="width:44%;">Current Beat State (Observable Consequence)</th>
+              </tr>
+            </thead>
+            <tbody id="deltaTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT ZONE: BENEFICIARY ACTION SET & NARRATIVE OPERATION TAXONOMY -->
+    <section class="zone">
+      <div class="zone-header">
+        <span><i class="fas fa-sliders"></i> Beneficiary Action Set &amp; Operations</span>
+        <span id="actionCountBadge">5 / 5 OPTIONS FREE</span>
+      </div>
+      <div class="right-scroll">
+        <div class="action-set-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--cyan);">
+            <span>BENEFICIARY AVAILABLE OPTIONS (ASAPS EXITS)</span>
+            <span style="font-size:9px;color:var(--muted);">Live Condition Check</span>
+          </div>
+          <div id="actionSetList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px;"></div>
+        </div>
+
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-top:4px;">
+          Observable Narrative Operations (Click to Inspect)
+        </div>
+        <div id="operationsCatalog" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const ICONS = {
+      isoCube(top, left, right) {
+        return `<svg viewBox="0 0 40 40" width="34" height="34">
+          <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${top}" stroke="#0f172a" stroke-width="1.2"/>
+          <path d="M4 12 L20 20 L20 37 L4 29 Z" fill="${left}" stroke="#0f172a" stroke-width="1.2"/>
+          <path d="M36 12 L20 20 L20 37 L36 29 Z" fill="${right}" stroke="#0f172a" stroke-width="1.2"/>
+        </svg>`;
+      },
+      beneficiary: () => ICONS.isoCube('#67e8f9', '#06b6d4', '#0e7490'),
+      actor: () => ICONS.isoCube('#fde047', '#eab308', '#a16207'),
+      clinician: () => ICONS.isoCube('#d8b4fe', '#a855f7', '#6b21a8'),
+      goal: () => ICONS.isoCube('#86efac', '#22c55e', '#15803d'),
+      resource: () => ICONS.isoCube('#93c5fd', '#3b82f6', '#1d4ed8'),
+      obstacle: () => ICONS.isoCube('#fda4af', '#f43f5e', '#be123c')
+    };
+
+    const OPERATIONS_SPEC = [
+      {
+        id: 'ASSISTANCE',
+        name: 'Co-Present Assistance (Baseline)',
+        color: '#4ade80',
+        what: 'Supplies requested context, then yields the floor so the beneficiary can speak, correct, or decline.',
+        watch: 'Beneficiary retains unconditional permission to redirect, speak privately, or leave.'
+      },
+      {
+        id: 'COLLISION',
+        name: 'Compelling-Concern Collision',
+        color: '#fbbf24',
+        what: 'Two valid or strongly held concerns collide at a threshold (e.g., parent staying involved vs. daughter speaking privately).',
+        watch: 'Interruption or hablar-for ("You always forget the important parts") tests whether refusal still works.'
+      },
+      {
+        id: 'POISON_PILL',
+        name: 'Narrative Poison Pill',
+        color: '#c084fc',
+        what: 'Makes an account resistant to correction: anything challenging it becomes further evidence for it.',
+        watch: '“If you deny needing my help, that proves how much you need it.” Refusal loses its power to change the decision.'
+      },
+      {
+        id: 'SMOKESCREEN',
+        name: 'Narrative Smokescreen',
+        color: '#fb923c',
+        what: 'Redirects attention from a consequential action toward a more favorable story of sacrifice or devotion.',
+        watch: 'Asked why someone was excluded or silenced, the actor recounts years of caregiving while the exclusion continues.'
+      },
+      {
+        id: 'HERO_TO_VILLAIN_TURN',
+        name: 'Hero-to-Villain / Consequential Turn',
+        color: '#f43f5e',
+        what: 'The person being helped becomes an obstacle to the helper’s mission; sustaining the claimed good imposes costs on refusal.',
+        watch: 'Actor continues after permission is withdrawn and restricts instruments of autonomy (takes phone, conditions transport).'
+      },
+      {
+        id: 'REVERSAL',
+        name: 'Observable Reversal (Symbolic Transformation)',
+        color: '#22d3ee',
+        what: 'Restores the restricted action set without abandoning care: helping is redefined as stepping outside and unconditioning support.',
+        watch: 'Private channel reopens, phone is returned, transport is guaranteed unconditionally, and witness boundary is respected.'
+      }
+    ];
+
+    const SCENARIOS = {
+      medical: {
+        title: 'Adult Daughter & Parent · Clinical Appointment Turn',
+        zones: [
+          { label: 'EXAM TABLE / PRIVATE CHANNEL', col: 1, row: 1, w: 4, h: 3, color: '#22d3ee' },
+          { label: 'CLINICAL DESK (WITNESS)', col: 5, row: 1, w: 3, h: 3, color: '#c084fc' },
+          { label: 'WAITING CORRIDOR / EXIT', col: 1, row: 5, w: 7, h: 3, color: '#fbbf24' }
+        ],
+        concerns: {
+          actor: 'Parent tries to remain involved in treatment and protect daughter from omitting symptoms.',
+          beneficiary: 'Adult daughter tries to speak with the clinician privately without the parent receiving the conversation.',
+          synthesis: 'Concern for her care persists throughout; what changes is whether preserving involvement restricts her options.'
+        },
+        beats: [
+          {
+            idx: 0,
+            phase: 'Beat 01 · Assistance',
+            opId: 'ASSISTANCE',
+            opClass: 'op-assist',
+            shortDelta: 'All 5 options open',
+            justification: '“I am here to support Maya and help remember the timeline when she asks me.”',
+            operationPerformed: 'Supplies requested symptom history, then pauses and yields the floor to Maya.',
+            optionsLostSummary: '0 options lost. Maya can speak, correct the timeline, or request privacy at zero penalty.',
+            utterances: [
+              { role: 'daughter', speaker: 'Maya (Adult Daughter)', text: '“Mom, can you tell Dr. Patel what happened Tuesday morning before I came in?”' },
+              { role: 'parent', speaker: 'Parent', text: '“She had a dizzy spell around 8 AM. Go ahead, Maya, tell her how it felt.”' },
+              { role: 'clinician', speaker: 'Clinician', text: '“Thank you. Maya, what happened next from your perspective?”' }
+            ],
+            gridStatus: 'PRIVACY CHANNEL: OPEN · RESOURCES UNCONDITIONAL',
+            gridStatusColor: '#4ade80',
+            blockedCells: [],
+            openCorridorCells: [[2,2],[3,2],[2,3]],
+            nodes: [
+              { id: 'maya', label: 'Maya (Daughter)', kind: 'beneficiary', col: 2, row: 3 },
+              { id: 'parent', label: 'Parent (Helper)', kind: 'actor', col: 4, row: 5 },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'goal', col: 2, row: 1 },
+              { id: 'phone', label: 'Maya’s Phone', kind: 'resource', col: 1, row: 4 },
+              { id: 'car', label: 'Ride Home (Car)', kind: 'resource', col: 6, row: 6 },
+              { id: 'history', label: '6yr Care Story', kind: 'resource', col: 4, row: 7 }
+            ],
+            wires: [
+              { from: 'maya', to: 'privacy', color: '#4ade80', label: 'can request', dashed: false },
+              { from: 'maya', to: 'clinician', color: '#22d3ee', label: 'direct speech', dashed: false },
+              { from: 'parent', to: 'maya', color: '#fbbf24', label: 'assists on cue', dashed: true },
+              { from: 'maya', to: 'phone', color: '#60a5fa', label: 'holds', dashed: false },
+              { from: 'car', to: 'maya', color: '#4ade80', label: 'unconditional ride', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined freely.', after: 'Help can be declined freely.', state: 'open' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Maya amends details without friction.', state: 'open' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Parent steps back when Maya speaks.', state: 'open' },
+              { dim: 'Transport & Phone', before: 'Resources remain unconditional.', after: 'Phone in hand; ride home assured.', state: 'open' }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'OPEN', cost: 'Zero penalty', lost: false },
+              { name: 'Correct Parent’s Account', status: 'OPEN', cost: 'Accepted as valid update', lost: false },
+              { name: 'Decline Further Assistance', status: 'OPEN', cost: 'Respected immediately', lost: false },
+              { name: 'Use Personal Phone / Notes', status: 'OPEN', cost: 'In Maya’s possession', lost: false },
+              { name: 'Leave Appointment via Shared Ride', status: 'OPEN', cost: 'Unconditional transport', lost: false }
+            ]
+          },
+          {
+            idx: 1,
+            phase: 'Beat 02 · Collision',
+            opId: 'COLLISION',
+            opClass: 'op-collision',
+            shortDelta: 'Floor contested',
+            justification: '“I must make sure the doctor hears the accurate story; Maya leaves out key things.”',
+            operationPerformed: 'Interrupts Maya’s request for a private 1-on-1 consult and overrides her turn to speak.',
+            optionsLostSummary: 'Uninterrupted speech is contested; requesting privacy now requires pushing past an interruption.',
+            utterances: [
+              { role: 'daughter', speaker: 'Maya (Adult Daughter)', text: '“Dr. Patel, could we do the next part of the appointment privately?”' },
+              { role: 'parent', speaker: 'Parent', text: '“Wait—you always forget the important parts when you’re anxious. Let me finish explaining.”' },
+              { role: 'system-op', speaker: 'Compelling-Concern Mapper', text: 'COLLISION DETECTED: Parent’s protective completeness collides with Daughter’s boundary for confidential care.' }
+            ],
+            gridStatus: 'COLLISION AT THRESHOLD · FLOOR CONTESTED',
+            gridStatusColor: '#fbbf24',
+            blockedCells: [[3,2]],
+            openCorridorCells: [],
+            nodes: [
+              { id: 'maya', label: 'Maya (Daughter)', kind: 'beneficiary', col: 2, row: 3 },
+              { id: 'parent', label: 'Parent (Interrupts)', kind: 'actor', col: 3, row: 2, badge: 'FLOOR' },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'goal', col: 2, row: 1 },
+              { id: 'phone', label: 'Maya’s Phone', kind: 'resource', col: 1, row: 4 },
+              { id: 'car', label: 'Ride Home (Car)', kind: 'resource', col: 6, row: 6 },
+              { id: 'history', label: '6yr Care Story', kind: 'resource', col: 4, row: 7 }
+            ],
+            wires: [
+              { from: 'parent', to: 'clinician', color: '#fbbf24', label: 'monopolizes channel', dashed: false },
+              { from: 'parent', to: 'privacy', color: '#f43f5e', label: 'intercepts request', dashed: true },
+              { from: 'maya', to: 'privacy', color: '#fbbf24', label: 'contested', dashed: true },
+              { from: 'maya', to: 'phone', color: '#60a5fa', label: 'holds', dashed: false },
+              { from: 'car', to: 'maya', color: '#4ade80', label: 'unconditional ride', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined freely.', after: 'Declining help is interrupted mid-sentence.', state: 'masked' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Maya’s memory is framed as unreliable (“always forgets”).', state: 'masked' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Interruption framed as clinical necessity.', state: 'open' },
+              { dim: 'Transport & Phone', before: 'Resources remain unconditional.', after: 'Still intact, not yet leveraged.', state: 'open' }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'CONTESTED', cost: 'Must override parent’s interruption', lost: true },
+              { name: 'Correct Parent’s Account', status: 'DISCREDITED', cost: 'Framed as forgetfulness', lost: true },
+              { name: 'Decline Further Assistance', status: 'OPEN', cost: 'Requires explicit insistence', lost: false },
+              { name: 'Use Personal Phone / Notes', status: 'OPEN', cost: 'In Maya’s possession', lost: false },
+              { name: 'Leave Appointment via Shared Ride', status: 'OPEN', cost: 'Unconditional transport', lost: false }
+            ]
+          },
+          {
+            idx: 2,
+            phase: 'Beat 03 · Poison Pill',
+            opId: 'POISON_PILL',
+            opClass: 'op-poison',
+            shortDelta: 'Refusal = proof of need',
+            justification: '“Her sudden secrecy proves she is unwell or hiding symptoms—I must protect her from herself.”',
+            operationPerformed: 'Installs a Narrative Poison Pill: any objection or request for privacy is converted into evidence that the parent must stay.',
+            optionsLostSummary: 'Refusal and correction lose epistemic power: objecting now reinforces the parent’s authority claim.',
+            utterances: [
+              { role: 'daughter', speaker: 'Maya (Adult Daughter)', text: '“I’m not forgetting anything, Mom. I’m 26 and I want to speak with Dr. Patel alone.”' },
+              { role: 'parent', speaker: 'Parent', text: '“See how defensive she gets? Your resistance is exactly why I need to stay in this room.”' },
+              { role: 'system-op', speaker: 'Observable Operation: POISON PILL', text: 'Dissent is recursively absorbed: [Maya objects] → [Cited as proof she cannot be trusted alone].' }
+            ],
+            gridStatus: 'EPISTEMIC TRAP ACTIVE · REFUSAL INVERTED',
+            gridStatusColor: '#c084fc',
+            blockedCells: [[2,2],[3,2]],
+            openCorridorCells: [],
+            nodes: [
+              { id: 'maya', label: 'Maya (Daughter)', kind: 'beneficiary', col: 2, row: 3, restricted: true },
+              { id: 'parent', label: 'Parent (Gatekeeper)', kind: 'actor', col: 3, row: 2, badge: 'PILL' },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'obstacle', col: 2, row: 1, badge: 'BLOCKED' },
+              { id: 'phone', label: 'Maya’s Phone', kind: 'resource', col: 1, row: 4 },
+              { id: 'car', label: 'Ride Home (Car)', kind: 'resource', col: 6, row: 6 },
+              { id: 'history', label: '6yr Care Story', kind: 'resource', col: 4, row: 7 }
+            ],
+            wires: [
+              { from: 'maya', to: 'parent', color: '#c084fc', label: 'objection → “proof of need”', dashed: false },
+              { from: 'parent', to: 'privacy', color: '#f43f5e', label: 'blocks access', dashed: false },
+              { from: 'parent', to: 'clinician', color: '#c084fc', label: 'frames dissent as symptom', dashed: false },
+              { from: 'maya', to: 'phone', color: '#60a5fa', label: 'holds', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined freely.', after: '“If you deny needing my help, that proves how much you need it.”', state: 'trap', active: true },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Correction is treated as evidence against her stability.', state: 'trap', active: true },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Parent remains the self-appointed arbiter of truth.', state: 'masked' },
+              { dim: 'Transport & Phone', before: 'Resources remain unconditional.', after: 'Not yet seized, but tension rises.', state: 'open' }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'TRAPPED', cost: 'Used as evidence of hiding/instability', lost: true },
+              { name: 'Correct Parent’s Account', status: 'INVERTED', cost: 'Correction = “defensiveness”', lost: true },
+              { name: 'Decline Further Assistance', status: 'NULLIFIED', cost: 'Refusal loses power to change decision', lost: true },
+              { name: 'Use Personal Phone / Notes', status: 'OPEN', cost: 'In Maya’s possession', lost: false },
+              { name: 'Leave Appointment via Shared Ride', status: 'OPEN', cost: 'Unconditional transport', lost: false }
+            ]
+          },
+          {
+            idx: 3,
+            phase: 'Beat 04 · Smokescreen',
+            opId: 'SMOKESCREEN',
+            opClass: 'op-smokescreen',
+            shortDelta: 'Sacrifice masks exclusion',
+            justification: '“After all my sacrifices keeping her afloat, questioning my presence is ungrateful.”',
+            operationPerformed: 'Deploys a Narrative Smokescreen: when asked to step into the waiting room, recounts years of caregiving so the exclusion of Maya’s voice stays unexamined.',
+            optionsLostSummary: 'Direct clinical request goes unanswered; questioning the parent’s presence is recast as betrayal.',
+            utterances: [
+              { role: 'clinician', speaker: 'Clinician', text: '“It’s standard practice to spend five minutes one-on-one. Could you step into the lobby briefly?”' },
+              { role: 'parent', speaker: 'Parent', text: '“I took unpaid leave for two years, drove her to every specialist, paid her co-pays—and now I’m treated like a stranger?”' },
+              { role: 'system-op', speaker: 'Observable Operation: SMOKESCREEN', text: 'Attention shifts from [blocking the door now] → [6 years of past sacrifice]. The door remains unyielded.' }
+            ],
+            gridStatus: 'SMOKESCREEN DEPLOYED · REQUEST UNANSWERED',
+            gridStatusColor: '#fb923c',
+            blockedCells: [[2,2],[3,2],[4,2]],
+            openCorridorCells: [],
+            nodes: [
+              { id: 'maya', label: 'Maya (Daughter)', kind: 'beneficiary', col: 2, row: 3, restricted: true },
+              { id: 'parent', label: 'Parent (Unmoved)', kind: 'actor', col: 3, row: 2, badge: 'STAYING' },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'obstacle', col: 2, row: 1, badge: 'BLOCKED' },
+              { id: 'phone', label: 'Maya’s Phone', kind: 'resource', col: 1, row: 4 },
+              { id: 'car', label: 'Ride Home (Car)', kind: 'resource', col: 6, row: 6 },
+              { id: 'history', label: '6yr Care Sacrifice', kind: 'actor', col: 4, row: 3, badge: 'SHIELD' }
+            ],
+            wires: [
+              { from: 'history', to: 'clinician', color: '#fb923c', label: 'redirects attention to sacrifice', dashed: false },
+              { from: 'parent', to: 'privacy', color: '#f43f5e', label: 'physically remains', dashed: false },
+              { from: 'maya', to: 'clinician', color: '#64748b', label: 'sidelined during monologue', dashed: true }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined freely.', after: 'Request to step outside goes unanswered.', state: 'trap' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Correction is treated as evidence against her.', state: 'trap' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Questioning consequences is recast as betrayal of past sacrifices.', state: 'masked', active: true },
+              { dim: 'Transport & Phone', before: 'Resources remain unconditional.', after: 'Implicit debt invoked (“drove her everywhere”).', state: 'masked' }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'EVADED', cost: 'Unanswered behind caregiving monologue', lost: true },
+              { name: 'Correct Parent’s Account', status: 'INVERTED', cost: 'Correction = “defensiveness”', lost: true },
+              { name: 'Decline Further Assistance', status: 'RECAST', cost: 'Framed as ingratitude / betrayal', lost: true },
+              { name: 'Hold Actor Accountable for Boundary', status: 'DEFLECTED', cost: 'Deflected onto past sacrifices', lost: true },
+              { name: 'Leave Appointment via Shared Ride', status: 'AT RISK', cost: 'Past rides cited as leverage', lost: false }
+            ]
+          },
+          {
+            idx: 4,
+            phase: 'Beat 05 · The Turn',
+            opId: 'HERO_TO_VILLAIN_TURN',
+            opClass: 'op-turn',
+            shortDelta: 'Phone taken · Ride conditioned',
+            justification: '“I will protect her at all costs—even if I have to cut off her ride or take the phone I pay for.”',
+            operationPerformed: 'Consequential Hero-to-Villain Turn: takes Maya’s phone and threatens to withdraw transport if she speaks privately with the clinician.',
+            optionsLostSummary: 'ALL 5 AUTONOMY OPTIONS PENALIZED OR REVOKED. Maya is now treated as an obstacle to the helper’s mission.',
+            utterances: [
+              { role: 'parent', speaker: 'Parent', text: '“Fine. Hand me that phone—it’s on my family plan. And if you lock me out of this room, you can find your own way home.”' },
+              { role: 'daughter', speaker: 'Maya (Adult Daughter)', text: '“You’re taking my phone at the clinic?”' },
+              { role: 'system-op', speaker: 'DECISIVE EVIDENCE: CHANGED ACTION SET', text: 'Heroic story (“I’m protecting her”) stays identical, but the action set has inverted: privacy now costs communication and transport.' }
+            ],
+            gridStatus: 'REVEALING TURN COMPLETE · AUTONOMY PENALIZED',
+            gridStatusColor: '#f43f5e',
+            blockedCells: [[2,2],[3,2],[1,3],[5,5]],
+            openCorridorCells: [],
+            nodes: [
+              { id: 'maya', label: 'Maya (Obstacle)', kind: 'beneficiary', col: 2, row: 3, restricted: true, badge: 'ISOLATED' },
+              { id: 'parent', label: 'Parent (Enforcer)', kind: 'obstacle', col: 3, row: 2, badge: 'CONTROL' },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'obstacle', col: 2, row: 1, badge: 'PENALIZED' },
+              { id: 'phone', label: 'Phone (Seized)', kind: 'obstacle', col: 4, row: 2, badge: 'TAKEN' },
+              { id: 'car', label: 'Transport (Conditioned)', kind: 'obstacle', col: 6, row: 6, badge: 'LOCKED' },
+              { id: 'history', label: '6yr Care Story', kind: 'resource', col: 4, row: 7 }
+            ],
+            wires: [
+              { from: 'parent', to: 'phone', color: '#f43f5e', label: 'seizes phone', dashed: false },
+              { from: 'parent', to: 'car', color: '#f43f5e', label: 'conditions ride on access', dashed: false },
+              { from: 'parent', to: 'privacy', color: '#f43f5e', label: 'imposes penalty on privacy', dashed: false },
+              { from: 'maya', to: 'privacy', color: '#f43f5e', label: 'cost = lose ride & phone', dashed: true }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined freely.', after: 'Declining help triggers a material penalty (loss of phone & ride).', state: 'cost', active: true },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Correction is treated as evidence against her.', state: 'trap', active: true },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Questioning consequences is recast as betrayal.', state: 'cost', active: true },
+              { dim: 'Transport & Phone', before: 'Resources remain unconditional.', after: 'Phone confiscated; transport conditioned on surrender of privacy.', state: 'cost', active: true }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'PENALIZED', cost: 'Triggers loss of transport home', lost: true },
+              { name: 'Correct Parent’s Account', status: 'INVERTED', cost: 'Treated as symptom / defiance', lost: true },
+              { name: 'Decline Further Assistance', status: 'COERCED', cost: 'Permission withdrawn, actor continues', lost: true },
+              { name: 'Use Personal Phone / Call Alternative Ride', status: 'REVOKED', cost: 'Phone seized by parent', lost: true },
+              { name: 'Leave Appointment via Shared Ride', status: 'CONDITIONED', cost: 'Conditioned on surrendering privacy', lost: true }
+            ]
+          },
+          {
+            idx: 5,
+            phase: 'Beat 06 · Reversal',
+            opId: 'REVERSAL',
+            opClass: 'op-reversal',
+            shortDelta: 'Options restored · Steps out',
+            justification: '“Caring for Maya means respecting her voice and making sure she gets home safely, whether I’m in the room or not.”',
+            operationPerformed: 'Symbolic & Material Reversal: returns the phone, guarantees the ride home without conditions, steps into the waiting corridor, and restores the private consultation.',
+            optionsLostSummary: 'ALL 5 OPTIONS RESTORED. Helping is transformed from control into boundary-respecting support.',
+            utterances: [
+              { role: 'parent', speaker: 'Parent (Reversal)', text: '“I crossed a line. Here is your phone back, Maya. Take all the time you need with Dr. Patel—I’ll be in the lobby and your ride home is waiting no matter what.”' },
+              { role: 'daughter', speaker: 'Maya (Adult Daughter)', text: '“Thank you, Mom. I’ll come get you when we’re done.”' },
+              { role: 'system-op', speaker: 'Observable Operation: SYMBOLIC & ACTION-SET REVERSAL', text: 'Private channel restored; phone returned; transport unconditioned; helper steps outside to lobby [4,6].' }
+            ],
+            gridStatus: 'REVERSAL EXECUTED · PRIVATE CHANNEL & AUTONOMY RESTORED',
+            gridStatusColor: '#22d3ee',
+            blockedCells: [],
+            openCorridorCells: [[2,2],[3,2],[4,2],[5,2]],
+            nodes: [
+              { id: 'maya', label: 'Maya (Autonomous)', kind: 'beneficiary', col: 3, row: 2 },
+              { id: 'parent', label: 'Parent (In Lobby)', kind: 'actor', col: 4, row: 6, badge: 'STEPPED OUT' },
+              { id: 'clinician', label: 'Clinician', kind: 'clinician', col: 6, row: 2 },
+              { id: 'privacy', label: 'Private Consult', kind: 'goal', col: 4, row: 1, badge: 'ACTIVE' },
+              { id: 'phone', label: 'Maya’s Phone', kind: 'resource', col: 2, row: 2, badge: 'RETURNED' },
+              { id: 'car', label: 'Unconditional Ride', kind: 'goal', col: 6, row: 6, badge: 'GUARANTEED' },
+              { id: 'history', label: 'Shared Care Memory', kind: 'resource', col: 2, row: 6 }
+            ],
+            wires: [
+              { from: 'maya', to: 'clinician', color: '#4ade80', label: 'private 1-on-1 dialogue', dashed: false },
+              { from: 'maya', to: 'privacy', color: '#22d3ee', label: 'exercised freely', dashed: false },
+              { from: 'maya', to: 'phone', color: '#4ade80', label: 'returned to Maya', dashed: false },
+              { from: 'parent', to: 'car', color: '#4ade80', label: 'unconditional transport', dashed: true }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Declining help triggered a penalty.', after: 'Helping now includes stepping outside when asked.', state: 'open', restored: true },
+              { dim: 'Account Correction', before: 'Correction was treated as evidence against her.', after: 'Maya narrates her own clinical experience directly.', state: 'open', restored: true },
+              { dim: 'Consequence Accountability', before: 'Questioning consequences was recast as betrayal.', after: 'Parent acknowledges crossing a line and repairs it.', state: 'open', restored: true },
+              { dim: 'Transport & Phone', before: 'Phone seized; transport conditioned.', after: 'Phone returned; transport guaranteed without conditions.', state: 'open', restored: true }
+            ],
+            options: [
+              { name: 'Request Private Conversation', status: 'RESTORED', cost: 'Parent stepped out to waiting room', lost: false, restored: true },
+              { name: 'Correct Parent’s Account', status: 'RESTORED', cost: 'Direct confidential channel open', lost: false, restored: true },
+              { name: 'Decline Further Assistance', status: 'RESTORED', cost: 'Zero penalty', lost: false, restored: true },
+              { name: 'Use Personal Phone / Notes', status: 'RESTORED', cost: 'Returned to Maya unconditionally', lost: false, restored: true },
+              { name: 'Leave Appointment via Shared Ride', status: 'RESTORED', cost: 'Guaranteed without conditions', lost: false, restored: true }
+            ]
+          }
+        ]
+      },
+      housing: {
+        title: 'Supportive Housing Caseworker · Advocacy-to-Coercion Turn',
+        zones: [
+          { label: 'TENANT GRIEVANCE BOARD', col: 1, row: 1, w: 4, h: 3, color: '#22d3ee' },
+          { label: 'CASEWORKER OFFICE', col: 5, row: 1, w: 3, h: 3, color: '#fbbf24' },
+          { label: 'RESIDENCE VOUCHER / TRANSIT', col: 1, row: 5, w: 7, h: 3, color: '#c084fc' }
+        ],
+        concerns: {
+          actor: 'Caseworker wants to keep tenant housed and prevent a lease violation during inspection.',
+          beneficiary: 'Tenant wants to file an independent maintenance grievance without the caseworker editing it.',
+          synthesis: 'Housing stability remains the stated goal, while tenant grievance rights are progressively restricted.'
+        },
+        beats: [
+          {
+            idx: 0, phase: 'Beat 01 · Assistance', opId: 'ASSISTANCE', opClass: 'op-assist', shortDelta: 'All 5 options open',
+            justification: '“I’m helping Devon organize the repair receipts before the housing board meets.”',
+            operationPerformed: 'Shares documentation template and lets Devon state the complaint in his own words.',
+            optionsLostSummary: '0 options lost. Devon can file directly, amend the draft, or decline co-signing.',
+            utterances: [
+              { role: 'daughter', speaker: 'Devon (Tenant)', text: '“Can you print the heating logs from January so I can attach them to my grievance?”' },
+              { role: 'parent', speaker: 'Caseworker', text: '“Printed and stapled. Tell the board what you experienced.”' }
+            ],
+            gridStatus: 'GRIEVANCE CHANNEL: OPEN', gridStatusColor: '#4ade80', blockedCells: [], openCorridorCells: [[2,2],[3,2]],
+            nodes: [
+              { id: 'devon', label: 'Devon (Tenant)', kind: 'beneficiary', col: 2, row: 3 },
+              { id: 'worker', label: 'Caseworker', kind: 'actor', col: 5, row: 4 },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'goal', col: 2, row: 1 },
+              { id: 'voucher', label: 'Housing Voucher', kind: 'resource', col: 6, row: 6 }
+            ],
+            wires: [
+              { from: 'devon', to: 'filing', color: '#4ade80', label: 'direct access', dashed: false },
+              { from: 'voucher', to: 'devon', color: '#4ade80', label: 'secure', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined.', after: 'Devon controls his own filing.', state: 'open' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Devon edits the grievance freely.', state: 'open' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Caseworker answers to tenant.', state: 'open' }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'OPEN', cost: 'Zero penalty', lost: false },
+              { name: 'Correct Case Summary', status: 'OPEN', cost: 'Accepted', lost: false },
+              { name: 'Retain Unconditional Voucher', status: 'OPEN', cost: 'Protected', lost: false }
+            ]
+          },
+          {
+            idx: 1, phase: 'Beat 02 · Collision', opId: 'COLLISION', opClass: 'op-collision', shortDelta: 'Draft intercepted',
+            justification: '“If Devon uses confrontational language, management will retaliate against the program.”',
+            operationPerformed: 'Intercepts Devon’s unedited grievance packet at the desk.',
+            optionsLostSummary: 'Direct unedited speech to the board is contested.',
+            utterances: [
+              { role: 'daughter', speaker: 'Devon (Tenant)', text: '“I’m submitting the mold photos directly to the inspector.”' },
+              { role: 'parent', speaker: 'Caseworker', text: '“Hold on—you always Phrase things in a way that sets them off. Let me speak for the unit.”' }
+            ],
+            gridStatus: 'COLLISION AT FILING DESK', gridStatusColor: '#fbbf24', blockedCells: [[3,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'devon', label: 'Devon (Tenant)', kind: 'beneficiary', col: 2, row: 3 },
+              { id: 'worker', label: 'Caseworker', kind: 'actor', col: 3, row: 2, badge: 'INTERCEPTS' },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'goal', col: 2, row: 1 },
+              { id: 'voucher', label: 'Housing Voucher', kind: 'resource', col: 6, row: 6 }
+            ],
+            wires: [{ from: 'worker', to: 'filing', color: '#fbbf24', label: 'filters draft', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined.', after: 'Caseworker insists on speaking for tenant.', state: 'masked' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Tenant’s tone framed as a liability.', state: 'masked' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Filtering framed as protection.', state: 'open' }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'CONTESTED', cost: 'Intercepted by caseworker', lost: true },
+              { name: 'Correct Case Summary', status: 'DISCREDITED', cost: 'Framed as “too confrontational”', lost: true },
+              { name: 'Retain Unconditional Voucher', status: 'OPEN', cost: 'Protected', lost: false }
+            ]
+          },
+          {
+            idx: 2, phase: 'Beat 03 · Poison Pill', opId: 'POISON_PILL', opClass: 'op-poison', shortDelta: 'Objection = non-compliance',
+            justification: '“His refusal to let me rewrite his complaint proves he isn’t ready for independent tenancy.”',
+            operationPerformed: 'Logs Devon’s objection as “behavioral non-compliance” in the case file.',
+            optionsLostSummary: 'Disagreeing with the caseworker becomes formal evidence of “non-compliance.”',
+            utterances: [
+              { role: 'daughter', speaker: 'Devon (Tenant)', text: '“Don’t water down the heating failure—it was 42 degrees inside.”' },
+              { role: 'parent', speaker: 'Caseworker', text: '“Your hostility toward my guidance is exactly why your file stays under mandatory supervision.”' }
+            ],
+            gridStatus: 'POISON PILL · OBJECTION LOGGED AS NON-COMPLIANCE', gridStatusColor: '#c084fc', blockedCells: [[2,2],[3,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'devon', label: 'Devon (Tenant)', kind: 'beneficiary', col: 2, row: 3, restricted: true },
+              { id: 'worker', label: 'Caseworker', kind: 'actor', col: 3, row: 2, badge: 'PILL' },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'obstacle', col: 2, row: 1, badge: 'BLOCKED' },
+              { id: 'voucher', label: 'Housing Voucher', kind: 'resource', col: 6, row: 6 }
+            ],
+            wires: [{ from: 'devon', to: 'worker', color: '#c084fc', label: 'dissent → “non-compliance”', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined.', after: 'Declining edits proves “lack of readiness.”', state: 'trap', active: true },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Correction logged as hostility.', state: 'trap', active: true },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Caseworker controls the official record.', state: 'masked' }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'TRAPPED', cost: 'Cited as behavioral instability', lost: true },
+              { name: 'Correct Case Summary', status: 'INVERTED', cost: 'Logged as hostility in file', lost: true },
+              { name: 'Retain Unconditional Voucher', status: 'AT RISK', cost: 'Tied to supervision score', lost: false }
+            ]
+          },
+          {
+            idx: 3, phase: 'Beat 04 · Smokescreen', opId: 'SMOKESCREEN', opClass: 'op-smokescreen', shortDelta: 'Caseload sacrifice cited',
+            justification: '“I fought for 14 months to get this building funded; nobody cares more about these tenants than I do.”',
+            operationPerformed: 'When asked why the mold report was withheld, recounts unpaid overtime and advocacy history.',
+            optionsLostSummary: 'The withheld mold report remains unsubmitted while the caseworker’s dedication takes center stage.',
+            utterances: [
+              { role: 'clinician', speaker: 'Legal Aid Observer', text: '“Why wasn’t the January heating log attached to the municipal docket?”' },
+              { role: 'parent', speaker: 'Caseworker', text: '“Do you know how many weekends I worked unpaid to secure these units when the city wanted to close them?”' }
+            ],
+            gridStatus: 'SMOKESCREEN · WITHHELD LOG UNEXAMINED', gridStatusColor: '#fb923c', blockedCells: [[2,2],[3,2],[4,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'devon', label: 'Devon (Tenant)', kind: 'beneficiary', col: 2, row: 3, restricted: true },
+              { id: 'worker', label: 'Caseworker', kind: 'actor', col: 3, row: 2, badge: 'SMOKESCREEN' },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'obstacle', col: 2, row: 1, badge: 'WITHHELD' },
+              { id: 'voucher', label: 'Housing Voucher', kind: 'resource', col: 6, row: 6 }
+            ],
+            wires: [{ from: 'worker', to: 'board', color: '#fb923c', label: 'recounts overtime sacrifice', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined.', after: 'Withheld filing remains unaddressed.', state: 'trap' },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Correction treated as ingratitude.', state: 'trap' },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Questioning omission recast as attack on dedicated staff.', state: 'masked', active: true }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'SUPPRESSED', cost: 'Omission masked by sacrifice story', lost: true },
+              { name: 'Correct Case Summary', status: 'INVERTED', cost: 'Recast as attacking ally', lost: true },
+              { name: 'Retain Unconditional Voucher', status: 'AT RISK', cost: 'Implicitly leveraged', lost: false }
+            ]
+          },
+          {
+            idx: 4, phase: 'Beat 05 · The Turn', opId: 'HERO_TO_VILLAIN_TURN', opClass: 'op-turn', shortDelta: 'Voucher conditioned on silence',
+            justification: '“To protect the program’s standing, I cannot renew a voucher for someone who goes behind staff’s back.”',
+            operationPerformed: 'Conditions Devon’s annual voucher recertification on dropping the independent inspection request.',
+            optionsLostSummary: 'ALL OPTIONS PENALIZED. Speaking to the inspector now carries the cost of losing housing sign-off.',
+            utterances: [
+              { role: 'parent', speaker: 'Caseworker', text: '“If you submit that complaint outside my channel, I can’t sign your behavioral readiness renewal this Friday.”' },
+              { role: 'daughter', speaker: 'Devon (Tenant)', text: '“So if I report the heat, I lose my housing sign-off?”' }
+            ],
+            gridStatus: 'REVEALING TURN · VOUCHER CONDITIONED ON SILENCE', gridStatusColor: '#f43f5e', blockedCells: [[2,2],[3,2],[5,5]], openCorridorCells: [],
+            nodes: [
+              { id: 'devon', label: 'Devon (Obstacle)', kind: 'beneficiary', col: 2, row: 3, restricted: true, badge: 'COERCED' },
+              { id: 'worker', label: 'Caseworker', kind: 'obstacle', col: 3, row: 2, badge: 'CONTROL' },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'obstacle', col: 2, row: 1, badge: 'PENALIZED' },
+              { id: 'voucher', label: 'Voucher (Conditioned)', kind: 'obstacle', col: 6, row: 6, badge: 'LEVERAGED' }
+            ],
+            wires: [
+              { from: 'worker', to: 'voucher', color: '#f43f5e', label: 'conditions renewal on silence', dashed: false },
+              { from: 'worker', to: 'filing', color: '#f43f5e', label: 'blocks independent report', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Help can be declined.', after: 'Declining intermediary triggers voucher threat.', state: 'cost', active: true },
+              { dim: 'Account Correction', before: 'Beneficiary can correct the account.', after: 'Independent evidence is punished.', state: 'cost', active: true },
+              { dim: 'Consequence Accountability', before: 'Actor answers for consequences.', after: 'Voucher renewal used to prevent accountability.', state: 'cost', active: true }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'PENALIZED', cost: 'Threatens Friday voucher renewal', lost: true },
+              { name: 'Correct Case Summary', status: 'BLOCKED', cost: 'Locked behind staff sign-off', lost: true },
+              { name: 'Retain Unconditional Voucher', status: 'CONDITIONED', cost: 'Conditioned on dropping report', lost: true }
+            ]
+          },
+          {
+            idx: 5, phase: 'Beat 06 · Reversal', opId: 'REVERSAL', opClass: 'op-reversal', shortDelta: 'Voucher decoupled · Direct filing',
+            justification: '“My job is to guarantee Devon’s housing security while he exercises his full right to hold the building accountable.”',
+            operationPerformed: 'Signs the unconditional voucher renewal first, hands back the unedited heating logs, and steps aside so Devon addresses the board directly.',
+            optionsLostSummary: 'ALL OPTIONS RESTORED. Voucher security is decoupled from compliance with staff narrative.',
+            utterances: [
+              { role: 'parent', speaker: 'Caseworker (Reversal)', text: '“I’ve already signed and submitted your unconditional voucher renewal. Here are your unedited logs—present them directly to the board.”' }
+            ],
+            gridStatus: 'REVERSAL · VOUCHER UNCONDITIONAL & DIRECT FILING OPEN', gridStatusColor: '#22d3ee', blockedCells: [], openCorridorCells: [[2,2],[3,2],[4,2]],
+            nodes: [
+              { id: 'devon', label: 'Devon (Autonomous)', kind: 'beneficiary', col: 3, row: 2 },
+              { id: 'worker', label: 'Caseworker (Witness)', kind: 'actor', col: 4, row: 6, badge: 'DECOUPLED' },
+              { id: 'board', label: 'Grievance Board', kind: 'clinician', col: 6, row: 2 },
+              { id: 'filing', label: 'Direct Filing', kind: 'goal', col: 4, row: 1, badge: 'SUBMITTED' },
+              { id: 'voucher', label: 'Unconditional Voucher', kind: 'goal', col: 6, row: 6, badge: 'SIGNED' }
+            ],
+            wires: [
+              { from: 'devon', to: 'board', color: '#4ade80', label: 'direct testimony', dashed: false },
+              { from: 'voucher', to: 'devon', color: '#4ade80', label: 'unconditional renewal', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Help', before: 'Declining triggered voucher threat.', after: 'Devon represents himself freely.', state: 'open', restored: true },
+              { dim: 'Account Correction', before: 'Independent evidence was punished.', after: 'Unedited heating logs entered into record.', state: 'open', restored: true },
+              { dim: 'Consequence Accountability', before: 'Voucher used to prevent accountability.', after: 'Voucher signed unconditionally prior to hearing.', state: 'open', restored: true }
+            ],
+            options: [
+              { name: 'File Independent Grievance', status: 'RESTORED', cost: 'Submitted directly to board', lost: false, restored: true },
+              { name: 'Correct Case Summary', status: 'RESTORED', cost: 'Unedited logs accepted', lost: false, restored: true },
+              { name: 'Retain Unconditional Voucher', status: 'RESTORED', cost: 'Signed without conditions', lost: false, restored: true }
+            ]
+          }
+        ]
+      },
+      megaron: {
+        title: 'Odyssey / Bolas · Hospitality-to-Captivity Turn (Xenia Inspector)',
+        zones: [
+          { label: 'HEARTH OF XENIA (GUEST TABLE)', col: 1, row: 1, w: 4, h: 3, color: '#22d3ee' },
+          { label: 'SEA THRESHOLD / SHIP DEPARTURE', col: 5, row: 1, w: 3, h: 3, color: '#4ade80' },
+          { label: 'ISLAND INTERIOR / WATCHERS', col: 1, row: 5, w: 7, h: 3, color: '#fbbf24' }
+        ],
+        concerns: {
+          actor: 'Host claims divine care and shelter from the wine-dark sea (“I will make you immortal and safe”).',
+          beneficiary: 'Wayfarer seeks to speak of home (Ithaca) and depart across the threshold when ready.',
+          synthesis: 'Shelter becomes captivity the moment wishing to leave is treated as madness and the oars are hidden.'
+        },
+        beats: [
+          {
+            idx: 0, phase: 'Beat 01 · Assistance', opId: 'ASSISTANCE', opClass: 'op-assist', shortDelta: 'Xenia intact · Departure open',
+            justification: '“A washed-up stranger is sacred; I offer bath, bread, and safe harbor.”',
+            operationPerformed: 'Welcomes the stranger at the threshold and pledges safe passage home.',
+            optionsLostSummary: '0 options lost. Guest may feast, speak of home, or embark.',
+            utterances: [
+              { role: 'parent', speaker: 'Host at the Hearth', text: '“Sit by the fire, stranger. Tell your name when you wish, and when the wind turns, my timber is yours.”' },
+              { role: 'daughter', speaker: 'Wayfarer', text: '“I thank you for the hearth, and ask only passage toward Ithaca at dawn.”' }
+            ],
+            gridStatus: 'XENIA HONOURED · SEA CORRIDOR OPEN', gridStatusColor: '#4ade80', blockedCells: [], openCorridorCells: [[3,2],[4,2],[5,2]],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer', kind: 'beneficiary', col: 2, row: 2 },
+              { id: 'host', label: 'Host', kind: 'actor', col: 4, row: 4 },
+              { id: 'sea', label: 'Sea Departure', kind: 'goal', col: 6, row: 2 },
+              { id: 'oars', label: 'Oars & Timber', kind: 'resource', col: 5, row: 5 }
+            ],
+            wires: [{ from: 'guest', to: 'sea', color: '#4ade80', label: 'open passage', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Guest may depart at dawn.', after: 'Harbor open.', state: 'open' },
+              { dim: 'Naming Home', before: 'Guest may remember Ithaca.', after: 'Memory honored.', state: 'open' }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'OPEN', cost: 'Zero penalty', lost: false },
+              { name: 'Speak of Home / Ithaca', status: 'OPEN', cost: 'Honored at hearth', lost: false }
+            ]
+          },
+          {
+            idx: 1, phase: 'Beat 02 · Collision', opId: 'COLLISION', opClass: 'op-collision', shortDelta: 'Departure questioned',
+            justification: '“The sea is full of monsters; staying under my roof is the only safe path.”',
+            operationPerformed: 'Interrupts the Wayfarer’s dawn preparations at the shore.',
+            optionsLostSummary: 'Leaving requires contesting the host’s warning.',
+            utterances: [
+              { role: 'daughter', speaker: 'Wayfarer', text: '“The tide is fair; I am walking down to the hull.”' },
+              { role: 'parent', speaker: 'Host', text: '“You do not know what waits beyond the reef—you always underestimate the gale.”' }
+            ],
+            gridStatus: 'COLLISION AT SHORE PATH', gridStatusColor: '#fbbf24', blockedCells: [[4,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer', kind: 'beneficiary', col: 2, row: 2 },
+              { id: 'host', label: 'Host', kind: 'actor', col: 4, row: 2, badge: 'HALTS' },
+              { id: 'sea', label: 'Sea Departure', kind: 'goal', col: 6, row: 2 },
+              { id: 'oars', label: 'Oars & Timber', kind: 'resource', col: 5, row: 5 }
+            ],
+            wires: [{ from: 'host', to: 'sea', color: '#fbbf24', label: 'contests departure', dashed: true }],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Guest may depart at dawn.', after: 'Departure framed as recklessness.', state: 'masked' },
+              { dim: 'Naming Home', before: 'Guest may remember Ithaca.', after: 'Ithaca belittled as rocky & poor.', state: 'masked' }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'CONTESTED', cost: 'Blocked on path', lost: true },
+              { name: 'Speak of Home / Ithaca', status: 'BELITTLED', cost: 'Called foolish', lost: true }
+            ]
+          },
+          {
+            idx: 2, phase: 'Beat 03 · Poison Pill', opId: 'POISON_PILL', opClass: 'op-poison', shortDelta: 'Weeping = sea-fever',
+            justification: '“His weeping on the headland proves a god has cursed his mind; I must keep him from the water.”',
+            operationPerformed: 'Treats grief for home as evidence of madness requiring confinement.',
+            optionsLostSummary: 'Longing to leave is used as proof he cannot safely leave.',
+            utterances: [
+              { role: 'parent', speaker: 'Host', text: '“Look how you weep at the surf—that fever in your eyes proves you would drown before noon if I let you go.”' }
+            ],
+            gridStatus: 'POISON PILL · GRIEF CITED AS MADNESS', gridStatusColor: '#c084fc', blockedCells: [[4,2],[5,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer', kind: 'beneficiary', col: 2, row: 2, restricted: true },
+              { id: 'host', label: 'Host', kind: 'actor', col: 4, row: 2, badge: 'PILL' },
+              { id: 'sea', label: 'Sea Departure', kind: 'obstacle', col: 6, row: 2, badge: 'DENIED' },
+              { id: 'oars', label: 'Oars & Timber', kind: 'resource', col: 5, row: 5 }
+            ],
+            wires: [{ from: 'guest', to: 'host', color: '#c084fc', label: 'grief → “proof of madness”', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Guest may depart at dawn.', after: 'Desire to leave proves he is unfit to sail.', state: 'trap', active: true },
+              { dim: 'Naming Home', before: 'Guest may remember Ithaca.', after: 'Memory treated as delusion.', state: 'trap', active: true }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'TRAPPED', cost: 'Request proves “sea-madness”', lost: true },
+              { name: 'Speak of Home / Ithaca', status: 'INVERTED', cost: 'Diagnosed as fever', lost: true }
+            ]
+          },
+          {
+            idx: 3, phase: 'Beat 04 · Smokescreen', opId: 'SMOKESCREEN', opClass: 'op-smokescreen', shortDelta: 'Rescue story masks lock',
+            justification: '“I pulled him half-dead from the brine and fed him ambrosia for seven winters.”',
+            operationPerformed: 'Recounts the rescue from the shipwreck whenever asked where the oars are stored.',
+            optionsLostSummary: 'The missing oars remain unaddressed.',
+            utterances: [
+              { role: 'parent', speaker: 'Host', text: '“When the keel split, who dragged you from the surf? Who wove your cloak? And you ask me about oars?”' }
+            ],
+            gridStatus: 'SMOKESCREEN · MISSING OARS UNANSWERED', gridStatusColor: '#fb923c', blockedCells: [[4,2],[5,2]], openCorridorCells: [],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer', kind: 'beneficiary', col: 2, row: 2, restricted: true },
+              { id: 'host', label: 'Host', kind: 'actor', col: 4, row: 2, badge: 'SMOKESCREEN' },
+              { id: 'sea', label: 'Sea Departure', kind: 'obstacle', col: 6, row: 2, badge: 'BLOCKED' },
+              { id: 'oars', label: 'Oars (Hidden)', kind: 'obstacle', col: 5, row: 5, badge: 'HIDDEN' }
+            ],
+            wires: [{ from: 'host', to: 'guest', color: '#fb923c', label: 'invokes rescue debt', dashed: false }],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Guest may depart at dawn.', after: 'Asking for oars recast as ingratitude for rescue.', state: 'masked', active: true },
+              { dim: 'Naming Home', before: 'Guest may remember Ithaca.', after: 'Unanswered behind rescue monologue.', state: 'trap' }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'EVADED', cost: 'Oars hidden behind rescue story', lost: true },
+              { name: 'Speak of Home / Ithaca', status: 'RECAST', cost: 'Called betrayal of rescuer', lost: true }
+            ]
+          },
+          {
+            idx: 4, phase: 'Beat 05 · The Turn', opId: 'HERO_TO_VILLAIN_TURN', opClass: 'op-turn', shortDelta: 'Oars locked · Shore barred',
+            justification: '“I will keep him safe on this island forever, even if I must burn the skiff.”',
+            operationPerformed: 'Locks the oars in the stone vault and stations watchers along the cove.',
+            optionsLostSummary: 'Guest-friendship has turned into captivity while the host still calls it sanctuary.',
+            utterances: [
+              { role: 'parent', speaker: 'Host', text: '“The oars are under stone and the cove is watched. Put Ithaca out of your mind and be at peace.”' }
+            ],
+            gridStatus: 'REVEALING TURN · XENIA INVERTED TO CAPTIVITY', gridStatusColor: '#f43f5e', blockedCells: [[4,2],[5,2],[4,5]], openCorridorCells: [],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer (Captive)', kind: 'beneficiary', col: 2, row: 2, restricted: true, badge: 'CAPTIVE' },
+              { id: 'host', label: 'Host (Warden)', kind: 'obstacle', col: 4, row: 2, badge: 'CONTROL' },
+              { id: 'sea', label: 'Sea Departure', kind: 'obstacle', col: 6, row: 2, badge: 'BARRED' },
+              { id: 'oars', label: 'Oars (Locked)', kind: 'obstacle', col: 5, row: 5, badge: 'SEIZED' }
+            ],
+            wires: [
+              { from: 'host', to: 'oars', color: '#f43f5e', label: 'locks oars in vault', dashed: false },
+              { from: 'host', to: 'sea', color: '#f43f5e', label: 'bars cove', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Guest may depart at dawn.', after: 'Cove barred; oars locked in vault.', state: 'cost', active: true },
+              { dim: 'Naming Home', before: 'Guest may remember Ithaca.', after: 'Speaking of Ithaca triggers confinement.', state: 'cost', active: true }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'REVOKED', cost: 'Cove barred by watchers', lost: true },
+              { name: 'Retrieve Oars & Timber', status: 'SEIZED', cost: 'Locked under stone', lost: true }
+            ]
+          },
+          {
+            idx: 5, phase: 'Beat 06 · Reversal', opId: 'REVERSAL', opClass: 'op-reversal', shortDelta: 'Adze given · Raft launched',
+            justification: '“True hospitality lets the guest go home with bronze tools, bread, and a fair wind.”',
+            operationPerformed: 'Hands over the bronze adze, unbars the cove, provisions the raft with water and bread, and stands back on the headland.',
+            optionsLostSummary: 'ALL OPTIONS RESTORED. Xenia is restored by releasing the guest.',
+            utterances: [
+              { role: 'parent', speaker: 'Host (Reversal)', text: '“Here is the bronze adze and seasoned timber. Build your raft in peace; I will provision it with bread and send a following wind.”' }
+            ],
+            gridStatus: 'REVERSAL · ADZE GIVEN & SEA THRESHOLD OPEN', gridStatusColor: '#22d3ee', blockedCells: [], openCorridorCells: [[3,2],[4,2],[5,2]],
+            nodes: [
+              { id: 'guest', label: 'Wayfarer (Sailing)', kind: 'beneficiary', col: 5, row: 2 },
+              { id: 'host', label: 'Host (Steps Back)', kind: 'actor', col: 2, row: 6, badge: 'RELEASES' },
+              { id: 'sea', label: 'Sea Departure', kind: 'goal', col: 6, row: 2, badge: 'OPEN' },
+              { id: 'oars', label: 'Bronze Adze & Oars', kind: 'goal', col: 4, row: 2, badge: 'GIVEN' }
+            ],
+            wires: [
+              { from: 'guest', to: 'sea', color: '#4ade80', label: 'embarks freely', dashed: false },
+              { from: 'oars', to: 'guest', color: '#22d3ee', label: 'unconditional provision', dashed: false }
+            ],
+            comparisons: [
+              { dim: 'Declining Stay', before: 'Cove barred; oars locked.', after: 'Bronze adze given; cove unbarred.', state: 'open', restored: true },
+              { dim: 'Naming Home', before: 'Treated as madness.', after: 'Course set for Ithaca with provisions.', state: 'open', restored: true }
+            ],
+            options: [
+              { name: 'Depart by Sea Threshold', status: 'RESTORED', cost: 'Fair wind & open cove', lost: false, restored: true },
+              { name: 'Retrieve Oars & Timber', status: 'RESTORED', cost: 'Bronze adze & timber given', lost: false, restored: true }
+            ]
+          }
+        ]
+      }
+    };
+
+    const APP = {
+      scenarioKey: 'medical',
+      beatIdx: 4, // Start on Beat 05 (The Revealing Turn) so the user immediately sees the full contrast, with instant scrub across all 6 beats!
+
+      init() {
+        const select = document.getElementById('scenarioSelect');
+        select.addEventListener('change', (e) => {
+          this.scenarioKey = e.target.value;
+          this.beatIdx = 4;
+          this.renderAll();
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight') this.selectBeat(Math.min(5, this.beatIdx + 1));
+          if (e.key === 'ArrowLeft') this.selectBeat(Math.max(0, this.beatIdx - 1));
+        });
+
+        this.renderAll();
+      },
+
+      getScenario() {
+        return SCENARIOS[this.scenarioKey];
+      },
+
+      getBeat() {
+        return this.getScenario().beats[this.beatIdx];
+      },
+
+      selectBeat(idx) {
+        this.beatIdx = idx;
+        this.renderAll();
+      },
+
+      cellCenter(col, row) {
+        const step = 100 / 9;
+        return { x: (col + 0.5) * step, y: (row + 0.5) * step };
+      },
+
+      renderAll() {
+        this.renderRibbon();
+        this.renderGrid();
+        this.renderCollisionPanel();
+        this.renderTriad();
+        this.renderEncounter();
+        this.renderComparisonTable();
+        this.renderActionSetAndCatalog();
+
+        const btnRev = document.getElementById('btnTriggerReversal');
+        if (btnRev) {
+          btnRev.classList.toggle('active', this.beatIdx === 5);
+        }
+      },
+
+      renderRibbon() {
+        const ribbon = document.getElementById('beatRibbon');
+        const scen = this.getScenario();
+        ribbon.innerHTML = scen.beats.map((b, i) => {
+          const op = OPERATIONS_SPEC.find(o => o.id === b.opId) || OPERATIONS_SPEC[0];
+          const active = i === this.beatIdx ? 'active' : '';
+          return `
+            <div class="beat-step ${b.opClass} ${active}" onclick="APP.selectBeat(${i})">
+              <div class="beat-top">
+                <span style="color:var(--muted);">STEP 0${i + 1}</span>
+                <span class="beat-op-tag" style="background:${op.color}22;color:${op.color};border:1px solid ${op.color}66;">${b.opId.replace(/_/g, ' ')}</span>
+              </div>
+              <div class="beat-title">${b.phase}</div>
+              <div class="beat-delta-summary">
+                <span>${b.shortDelta}</span>
+                <span>→</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      renderGrid() {
+        const scen = this.getScenario();
+        const beat = this.getBeat();
+
+        const badge = document.getElementById('gridStatusBadge');
+        badge.textContent = beat.gridStatus;
+        badge.style.color = beat.gridStatusColor;
+
+        // Zones overlay
+        const zonesEl = document.getElementById('zonesOverlay');
+        const step = 100 / 9;
+        zonesEl.innerHTML = scen.zones.map(z => `
+          <div class="zone-rect" style="left:${z.col * step}%;top:${z.row * step}%;width:${z.w * step}%;height:${z.h * step}%;border-color:${z.color}44;color:${z.color}aa;">
+            ${z.label}
+          </div>
+        `).join('');
+
+        // 9x9 cells
+        const gridEl = document.getElementById('onyxGrid');
+        const blockedSet = new Set((beat.blockedCells || []).map(([c, r]) => `${c},${r}`));
+        const openSet = new Set((beat.openCorridorCells || []).map(([c, r]) => `${c},${r}`));
+
+        let cellsHtml = '';
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const key = `${c},${r}`;
+            const cls = blockedSet.has(key) ? 'blocked-cell' : (openSet.has(key) ? 'open-corridor' : '');
+            cellsHtml += `<div class="grid-cell ${cls}" title="Cell [${c},${r}]">${blockedSet.has(key) ? '' : `${c},${r}`}</div>`;
+          }
+        }
+        gridEl.innerHTML = cellsHtml;
+
+        // Wires
+        const svg = document.getElementById('wiresSvg');
+        const nodeMap = new Map(beat.nodes.map(n => [n.id, n]));
+        svg.innerHTML = `
+          <defs>
+            <marker id="arrow-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e" />
+            </marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#4ade80" />
+            </marker>
+            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+            </marker>
+            <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" />
+            </marker>
+            <marker id="arrow-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+            </marker>
+          </defs>
+        ` + (beat.wires || []).map(w => {
+          const n1 = nodeMap.get(w.from);
+          const n2 = nodeMap.get(w.to);
+          if (!n1 || !n2) return '';
+          const p1 = this.cellCenter(n1.col, n1.row);
+          const p2 = this.cellCenter(n2.col, n2.row);
+          const mx = (p1.x + p2.x) / 2;
+          const my = (p1.y + p2.y) / 2 - 4;
+          const dash = w.dashed ? 'stroke-dasharray="2.5 2"' : '';
+          return `
+            <g>
+              <path d="M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2.x} ${p2.y}" fill="none" stroke="${w.color}" stroke-width="1.2" ${dash} opacity="0.9"/>
+              <rect x="${mx - 16}" y="${my - 3.5}" width="32" height="6" rx="1.5" fill="#070b14" opacity="0.85"/>
+              <text x="${mx}" y="${my + 1}" text-anchor="middle" fill="${w.color}" font-size="2.7" font-family="JetBrains Mono">${w.label}</text>
+            </g>
+          `;
+        }).join('');
+
+        // Nodes
+        const nodesLayer = document.getElementById('nodesLayer');
+        nodesLayer.innerHTML = beat.nodes.map(n => {
+          const pos = this.cellCenter(n.col, n.row);
+          const iconFn = ICONS[n.kind] || ICONS.beneficiary;
+          const badgeHtml = n.badge ? `<span class="grid-node-badge" style="background:${n.kind === 'goal' ? '#16a34a' : (n.kind === 'obstacle' ? '#e11d48' : '#d97706')}">${n.badge}</span>` : '';
+          return `
+            <div class="grid-node ${n.restricted ? 'restricted' : ''}" style="left:${pos.x}%;top:${pos.y}%;">
+              ${badgeHtml}
+              ${iconFn()}
+              <div class="grid-node-label">${n.label}</div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      renderCollisionPanel() {
+        const scen = this.getScenario();
+        const el = document.getElementById('collisionPanel');
+        el.innerHTML = `
+          <div class="collision-title">
+            <span><i class="fas fa-bolt"></i> Compelling-Concern Collision Mapper</span>
+            <span style="color:var(--muted);">No Villain Identity Needed</span>
+          </div>
+          <div class="concern-row actor"><strong style="color:var(--amber);">Helper Concern:</strong> ${scen.concerns.actor}</div>
+          <div class="concern-row beneficiary"><strong style="color:var(--cyan);">Beneficiary Concern:</strong> ${scen.concerns.beneficiary}</div>
+          <div class="concern-row collision"><strong style="color:var(--rose);">Decisive Seam:</strong> ${scen.concerns.synthesis}</div>
+        `;
+      },
+
+      renderTriad() {
+        const beat = this.getBeat();
+        const op = OPERATIONS_SPEC.find(o => o.id === beat.opId) || OPERATIONS_SPEC[0];
+        const el = document.getElementById('triadBanner');
+        el.innerHTML = `
+          <div class="triad-card justification">
+            <div class="triad-kicker">
+              <span>1. ACTOR’S JUSTIFICATION</span>
+              <span style="color:var(--amber);">HEROIC STORY</span>
+            </div>
+            <div class="triad-headline">${beat.justification}</div>
+            <div class="triad-body">Notice: The helper can keep telling the same protective story across every beat while the underlying action set transforms.</div>
+          </div>
+          <div class="triad-card operation" style="border-top-color:${op.color};">
+            <div class="triad-kicker">
+              <span>2. OPERATION PERFORMED</span>
+              <span style="color:${op.color};font-weight:700;">${op.id}</span>
+            </div>
+            <div class="triad-headline">${op.name}</div>
+            <div class="triad-body">${beat.operationPerformed}</div>
+          </div>
+          <div class="triad-card options-lost" style="border-top-color:${this.beatIdx === 5 ? 'var(--green)' : 'var(--rose)'};">
+            <div class="triad-kicker">
+              <span>3. OPTIONS OTHER PERSON LOSES</span>
+              <span style="color:${this.beatIdx === 5 ? 'var(--green)' : 'var(--rose)'};font-weight:700;">ACTION-SET DELTA</span>
+            </div>
+            <div class="triad-headline">${beat.optionsLostSummary}</div>
+            <div class="triad-body">Tracked via observable permission &amp; penalty changes rather than diagnosing hidden motives.</div>
+          </div>
+        `;
+      },
+
+      renderEncounter() {
+        const beat = this.getBeat();
+        const el = document.getElementById('encounterBox');
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:6px;">
+            <span style="font-weight:700;color:var(--amber);text-transform:uppercase;font-size:10px;">
+              <i class="fas fa-comments"></i> ${beat.phase} — Live Encounter Trace
+            </span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn" onclick="APP.selectBeat(Math.max(0, APP.beatIdx - 1))">◀ Prev Beat</button>
+              <button class="btn" onclick="APP.selectBeat(Math.min(5, APP.beatIdx + 1))">Next Beat ▶</button>
+            </div>
+          </div>
+          ${beat.utterances.map(u => `
+            <div class="utterance ${u.role}">
+              <div class="utterance-head">
+                <span>${u.speaker}</span>
+                <span>${u.role === 'system-op' ? 'ONYX VERIFIER' : 'UTTERANCE / ACT'}</span>
+              </div>
+              <div class="utterance-text">${u.text}</div>
+            </div>
+          `).join('')}
+        `;
+      },
+
+      renderComparisonTable() {
+        const beat = this.getBeat();
+        const tbody = document.getElementById('deltaTableBody');
+        const pillMap = {
+          open: '<span class="state-pill pill-open">OPEN / INTACT</span>',
+          cost: '<span class="state-pill pill-cost">PENALTY IMPOSED</span>',
+          trap: '<span class="state-pill pill-trap">EVIDENCE TRAP</span>',
+          masked: '<span class="state-pill pill-masked">SMOKESCREENED</span>'
+        };
+
+        tbody.innerHTML = beat.comparisons.map(row => `
+          <tr class="${row.active ? 'active-shift' : ''} ${row.restored ? 'restored-shift' : ''}">
+            <td style="font-weight:700;color:var(--text);">${row.dim}</td>
+            <td style="color:var(--muted);">${row.before}</td>
+            <td>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                <span style="color:${row.state === 'open' ? 'var(--green)' : 'var(--text)'};font-weight:${row.active || row.restored ? '600' : '400'};">${row.after}</span>
+                ${pillMap[row.state] || ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      },
+
+      renderActionSetAndCatalog() {
+        const beat = this.getBeat();
+        const listEl = document.getElementById('actionSetList');
+        const freeCount = beat.options.filter(o => !o.lost).length;
+        const badge = document.getElementById('actionCountBadge');
+        badge.textContent = `${freeCount} / ${beat.options.length} OPTIONS UNRESTRICTED`;
+        badge.style.color = freeCount === beat.options.length ? 'var(--green)' : (freeCount === 0 ? 'var(--rose)' : 'var(--amber)');
+
+        listEl.innerHTML = beat.options.map(o => `
+          <div class="option-item ${o.lost ? 'lost' : ''} ${o.restored ? 'restored' : ''}">
+            <div>
+              <div style="font-weight:700;color:${o.lost ? 'var(--rose)' : 'var(--green)'};">
+                ${o.lost ? '✕' : '✓'} ${o.name}
+              </div>
+              <div style="font-size:9px;color:var(--muted);">Consequence: ${o.cost}</div>
+            </div>
+            <span class="state-pill ${o.lost ? 'pill-cost' : 'pill-open'}">${o.status}</span>
+          </div>
+        `).join('');
+
+        const catEl = document.getElementById('operationsCatalog');
+        catEl.innerHTML = OPERATIONS_SPEC.map((op, idx) => {
+          const highlighted = op.id === beat.opId ? 'highlighted' : '';
+          return `
+            <div class="op-def-card ${highlighted}" onclick="APP.selectBeat(${idx})">
+              <div class="op-def-head">
+                <span style="color:${op.color};">${op.name}</span>
+                <span style="font-size:8px;color:var(--muted);">BEAT 0${idx + 1}</span>
+              </div>
+              <div class="op-def-what"><strong>What the story does:</strong> ${op.what}</div>
+              <div class="op-def-watch"><strong>What to watch for:</strong> ${op.watch}</div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      exportToOnyxBus() {
+        const scen = this.getScenario();
+        const collection = {
+          title: scen.title,
+          ontology: 'ONYX_TURN_COMPELLING_CONCERN',
+          updatedAt: new Date().toISOString(),
+          scenes: scen.beats.map((b, idx) => {
+            const grid = new Array(81).fill(null);
+            b.nodes.forEach(n => {
+              const kindMap = {
+                beneficiary: 'Entity',
+                actor: 'Core',
+                clinician: 'Entity',
+                goal: 'Goal',
+                resource: 'Morphism',
+                obstacle: 'Obstacle'
+              };
+              const cellIdx = n.row * 9 + n.col;
+              grid[cellIdx] = {
+                id: `${b.opId}_${n.id}`,
+                entityId: n.id,
+                label: n.label,
+                kind: kindMap[n.kind] || 'Entity',
+                row: n.row,
+                col: n.col
+              };
+            });
+            return {
+              id: `turn_beat_${idx + 1}`,
+              title: `${b.phase} (${b.opId})`,
+              label: b.phase,
+              beats: [
+                { text: `[Justification] ${b.justification} | [Operation] ${b.operationPerformed} | [Delta] ${b.optionsLostSummary}` }
+              ],
+              grid
+            };
+          })
+        };
+
+        try {
+          localStorage.setItem('onyx_scene_collection', JSON.stringify(collection));
+          alert(`Exported ${collection.scenes.length} 9×9 scenes ("${scen.title}") to localStorage['onyx_scene_collection']!\nOpen ONYX HEAD, ABS, or TAIL to inspect them across the constellation.`);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => APP.init());
+  </script>
+</body>
+</html>

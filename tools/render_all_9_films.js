@@ -13,13 +13,13 @@ const FILMS_DIR = path.join(ROOT, 'films/shield-of-achilles');
 
 const FILMS = [
   { dir: '01-huashu-motion',     mp4: 'film-01-huashu-motion.mp4',     dur: 16, posterT: 2.1 },
-  { dir: '02-rossark-motion',    mp4: 'film-02-rossark-motion.mp4',    dur: 12, posterT: 4.5 },
+  { dir: '02-rossark-motion',    mp4: 'film-02-rossark-motion.mp4',    dur: 12, posterT: 7.5 },
   { dir: '03-take-one',          mp4: 'film-03-take-one.mp4',          dur: 16, posterT: 6.1 },
-  { dir: '04-reanimate',         mp4: 'film-04-reanimate.mp4',         dur: 14, posterT: 4.2 },
+  { dir: '04-reanimate',         mp4: 'film-04-reanimate.mp4',         dur: 14, posterT: 12.5 },
   { dir: '05-argo',              mp4: 'film-05-argo.mp4',              dur: 16, posterT: 6.1 },
-  { dir: '06-explainroo',        mp4: 'film-06-explainroo.mp4',        dur: 16, posterT: 9.8 },
-  { dir: '07-video-director',    mp4: 'film-07-video-director.mp4',    dur: 12, posterT: 9.5 },
-  { dir: '08-earshot',           mp4: 'film-08-earshot.mp4',           dur: 15, posterT: 4.5 },
+  { dir: '06-explainroo',        mp4: 'film-06-explainroo.mp4',        dur: 16, posterT: 13.8 },
+  { dir: '07-video-director',    mp4: 'film-07-video-director.mp4',    dur: 12, posterT: 2.0 },
+  { dir: '08-earshot',           mp4: 'film-08-earshot.mp4',           dur: 15, posterT: 7.5 },
   { dir: '09-behind-the-scenes', mp4: 'film-09-behind-the-scenes.mp4', dur: 16, posterT: 2.1 },
 ];
 

@@ -60,6 +60,7 @@ for dslug in (
     'shield-diorama-wedding', 'shield-diorama-agora', 'shield-diorama-ambush',
     'shield-diorama-sheepfold', 'shield-diorama-harvest', 'shield-diorama-vineyard',
     'shield-diorama-cattle', 'shield-diorama-choros', 'shield-diorama-office',
+    'shield-diorama-forge',
 ):
     B.HOTSPOTS[dslug] = DIORAMA_HOTSPOTS
 
@@ -116,8 +117,9 @@ BUNDLE_SPECS = [
     ('shield-diorama-harvest',   'set.shield-diorama-harvest',   'DIORAMA V (48×32)',    'The King’s Harvest, Thrice-Ploughed Glebe & Oak Feast', 1673),
     ('shield-diorama-vineyard',  'set.shield-diorama-vineyard',  'DIORAMA VI (48×32)',   'The Golden Vineyard, Kyanos Trench & Wine-Press Pavilion', 1809),
     ('shield-diorama-cattle',    'set.shield-diorama-cattle',    'DIORAMA VII (48×32)',  'Straight-Horned Cattle of Gold & Tin & Two Tawny Lions', 2168),
-    ('shield-diorama-choros',    'set.shield-diorama-choros',    'DIORAMA VIII (48×32)', 'The Choros of Daedalus, Knossian Palace & Tumblers', 1970),
-    ('shield-diorama-office',    'set.shield-diorama-office',    'DIORAMA IX (48×32)',   'The Agent Office — Hephaestus’s Cybernetic Foundry & Eleven Workstations', 2529),
+    ('shield-diorama-choros',    'set.shield-diorama-choros',    'DIORAMA VIII (48×32)', 'The Choros of Daedalus, Knossian Palace & Tumblers', 1895),
+    ('shield-diorama-office',    'set.shield-diorama-office',    'DIORAMA IX (48×32)',   'The Agent Office — Hephaestus’s Cybernetic Foundry & Eleven Workstations', 2074),
+    ('shield-diorama-forge',     'set.shield-diorama-forge',     'DIORAMA X (48×32)',    'The Bronze-Starred House & Forge of Hephaestus (Il. XVIII.369–489)', 1748),
 ]
 
 if __name__ == '__main__':
@@ -137,6 +139,8 @@ if __name__ == '__main__':
         bundle_ext[slug] = entry
         bundle_ext[card] = entry
         print(f"  Compiled {card:30s} -> {n_inst:5d} instances")
+    if 'shield-diorama-forge' in bundle_ext:
+        bundle_ext['achilles-forge'] = bundle_ext['shield-diorama-forge']
 
     ext_path = os.path.join(kitlib.ROOT, 'achilles/kits/shield-dioramas-bundle.js')
     with open(ext_path, 'w', encoding='utf-8') as f:

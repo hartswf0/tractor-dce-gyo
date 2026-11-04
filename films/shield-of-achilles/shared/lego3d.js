@@ -486,66 +486,124 @@
       float seamV = smoothstep(0.85, 0.985, gy) * (1.0 - step(0.65, abs(N.y)));
 
       // Stud base contact shadow ring (at r = 6 LDU -> r_norm = 6/20 = 0.30 in 20-LDU stud grid)
+      // + Molded stud top bevel highlight ring (at r_norm = 0.27) for authentic LEGO injection-molded stud crowns
       float studR = length(cellXZ);
-      float studRingAO = 1.0 - 0.22 * exp(-pow((studR - 0.30) / 0.065, 2.0)) * step(0.65, N.y);
+      float studRingAO = 1.0 - 0.24 * exp(-pow((studR - 0.30) / 0.062, 2.0)) * step(0.65, N.y);
+      float studCrown  = 0.16 * exp(-pow((studR - 0.26) / 0.028, 2.0)) * step(0.85, N.y);
       // Ground / Plinth vertical contact shadow
-      float groundAO = 0.86 + 0.14 * smoothstep(0.0, 28.0, vPos.y);
-      float cavity = (1.0 - (0.25 * isRect + 0.10 * (1.0 - isRect)) * max(seamH, seamV)) * studRingAO * groundAO;
+      float groundAO = 0.85 + 0.15 * smoothstep(0.0, 30.0, vPos.y);
+      float cavity = (1.0 - (0.26 * isRect + 0.11 * (1.0 - isRect)) * max(seamH, seamV)) * studRingAO * groundAO;
 
       // Directional normal shading so perpendicular brick faces & embossed 98283/15533 masonry grooves have strong 3D relief
-      float dirShade = 0.85 + 0.15 * (N.x * 0.62 + N.z * 0.38);
+      float dirShade = 0.84 + 0.16 * (N.x * 0.62 + N.z * 0.38);
 
       // Dynamic Torch / Forge Point Light
       vec3 toLight = uTorchPos - vPos;
       float lDist = length(toLight);
       vec3 Lp = toLight / max(lDist, 1.0);
-      float atten = uTorchStr / (1.0 + 0.0015 * lDist + 0.0000058 * lDist * lDist);
+      float atten = uTorchStr / (1.0 + 0.0014 * lDist + 0.0000052 * lDist * lDist);
       float dp = max((dot(N, Lp) + sssWrap) / (1.0 + sssWrap), 0.0) * atten;
 
       // Warm ABS subsurface scatter tint in shadow terminators
-      vec3 sssTint = base * vec3(1.12, 0.92, 0.78) * (1.0 - metal) * 0.07;
+      vec3 sssTint = base * vec3(1.14, 0.92, 0.76) * (1.0 - metal) * 0.08;
 
       vec3 diff = (base * cavity * dirShade + sssTint) * (
-        hemiCol * 0.27 +
-        uSunCol * d1 * 0.74 +
-        vec3(0.95, 0.91, 0.86) * d2 * 0.58 +
-        vec3(0.70, 0.80, 1.0) * d3 * 0.25 +
-        vec3(1.0, 0.87, 0.68) * d4 * 0.23 +
-        uTorchCol * dp * 1.05
+        hemiCol * 0.25 +
+        uSunCol * d1 * 0.82 +
+        vec3(0.92, 0.90, 0.88) * d2 * 0.52 +
+        vec3(0.68, 0.82, 1.0) * d3 * 0.26 +
+        vec3(1.0, 0.86, 0.64) * d4 * 0.28 +
+        uTorchCol * dp * 1.12
       );
 
-      // Dual opposing Blinn-Phong studio softbox highlights + clearcoat ABS gloss
+      // Dual opposing Blinn-Phong studio softbox highlights + clearcoat ABS gloss + stud crown glint
       vec3 H1 = normalize(L1 + V);
       vec3 H2 = normalize(L2 + V);
       vec3 H3 = normalize(L3 + V);
       vec3 H4 = normalize(L4 + V);
-      float shininess = mix(54.0, 84.0, metal);
-      float specStrength = mix(0.28, 1.42, metal);
-      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.45 + vec3(0.16), metal * 0.88);
+      float shininess = mix(58.0, 88.0, metal);
+      float specStrength = mix(0.32, 1.48, metal);
+      vec3 specCol = mix(vec3(1.0, 0.98, 0.95), base * 1.48 + vec3(0.18), metal * 0.88);
 
       float s1 = pow(max(dot(N, H1), 0.0), shininess);
       float s2 = pow(max(dot(N, H2), 0.0), shininess) * 0.85;
       float s3 = pow(max(dot(N, H3), 0.0), shininess * 0.55) * 0.35;
-      float s4 = pow(max(dot(N, H4), 0.0), shininess * 0.55) * 0.35;
-      vec3 spec = specCol * (s1 + s2 + s3 + s4) * specStrength;
+      float s4 = pow(max(dot(N, H4), 0.0), shininess * 0.55) * 0.38;
+      vec3 spec = specCol * ((s1 + s2 + s3 + s4) * specStrength + studCrown);
 
       // Studio environment reflection for metallic Gold (297), Silver (80/179), and Bronze (300)
       vec3 R = reflect(-V, N);
       float envBand = 0.5 + 0.5 * sin(R.y * 6.0 + R.x * 3.0 - R.z * 2.5);
       vec3 envCol = mix(vec3(0.16, 0.11, 0.06), vec3(1.0, 0.92, 0.72), smoothstep(-0.4, 0.75, R.y));
-      vec3 metalEnv = base * envCol * (0.34 + 0.66 * envBand) * metal;
+      vec3 metalEnv = base * envCol * (0.36 + 0.64 * envBand) * metal;
 
-      // Fresnel rim sheen for both ABS plastic and forged metal
-      float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.2);
-      vec3 rim = mix(vec3(0.88, 0.92, 1.0) * 0.10, base * 0.52, metal) * fresnel;
+      // Animal Logic Rim Backlight & Fresnel Sheen for sculpted ABS separation against the studio cyclorama
+      float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+      float backRim = max(dot(N, normalize(vec3(-0.32, 0.58, -0.75))), 0.0) * fresnel;
+      vec3 rim = mix(vec3(1.0, 0.91, 0.74) * (0.14 * fresnel + 0.22 * backRim), base * 0.58 * fresnel, metal);
 
       // Specular from point light
       vec3 Hp = normalize(Lp + V);
-      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 56.0) * atten * (0.28 + 0.72 * metal);
+      spec += uTorchCol * pow(max(dot(N, Hp), 0.0), 56.0) * atten * (0.30 + 0.70 * metal);
 
       vec3 linearOut = diff * mix(1.0, 0.38, metal) + metalEnv + spec + rim + base * vGlow * 1.35 + vec3(1.0, 0.78, 0.32) * vGlow * 0.42;
-      vec3 mapped = pow(acesFilm(linearOut * 0.97), vec3(1.0 / 2.2));
+      vec3 mapped = pow(acesFilm(linearOut * 0.98), vec3(1.0 / 2.2));
       gl_FragColor = vec4(mapped, 1.0);
+    }
+  `;
+
+  // Fullscreen Animal Logic Studio Cyclorama, Tabletop Reflection & Anamorphic Bokeh Backdrop Pass
+  const BG_VS_SRC = `
+    attribute vec2 aQuad;
+    varying vec2 vUv;
+    void main() {
+      vUv = aQuad * 0.5 + 0.5;
+      gl_Position = vec4(aQuad, 0.999, 1.0);
+    }
+  `;
+  const BG_FS_SRC = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform float uTime;
+    uniform vec3 uTorchCol;
+    uniform float uCamAz;
+
+    void main() {
+      vec2 uv = vUv;
+      // 1. Studio Cyclorama Sky + Warm Amber Horizon Rim + Tabletop Vignette
+      float horizon = exp(-pow((uv.y - 0.34) * 3.6, 2.0));
+      float tableZone = smoothstep(0.38, 0.08, uv.y);
+      vec3 skyTop = vec3(0.035, 0.055, 0.11);
+      vec3 skyMid = vec3(0.09, 0.13, 0.23);
+      vec3 horCol = mix(vec3(0.28, 0.19, 0.12), uTorchCol * 0.36, 0.55);
+      vec3 tableCol = vec3(0.05, 0.06, 0.09) + uTorchCol * 0.05 * exp(-pow((uv.x - 0.5) * 2.2, 2.0));
+
+      vec3 col = mix(skyMid, skyTop, smoothstep(0.32, 0.98, uv.y));
+      col += horCol * horizon * 0.85;
+      col = mix(col, tableCol, tableZone * 0.65);
+
+      // 2. Out-of-Focus Anamorphic Studio Bokeh Orbs (stepping on 2s at 12 fps with camera parallax!)
+      float qTime = floor(uTime * 12.0) / 12.0;
+      for (int i = 0; i < 12; i++) {
+        float fi = float(i);
+        float seed = fract(sin(fi * 12.9898 + 78.233) * 43758.5453);
+        float bx = fract(seed + uCamAz * (0.08 + 0.04 * fract(fi * 0.37)) + qTime * 0.004 * (mod(fi, 2.0) * 2.0 - 1.0));
+        float by = 0.28 + 0.54 * fract(sin(fi * 45.164) * 19341.7) + sin(qTime * 0.8 + fi) * 0.008;
+        vec2 d = (uv - vec2(bx, by)) * vec2(1.65, 1.0); // anamorphic oval bokeh aspect
+        float r = length(d);
+        float rad = 0.028 + 0.036 * fract(seed * 7.13);
+        // Soft disc + bright cat's-eye outer bokeh ring
+        float disc = smoothstep(rad, rad * 0.65, r);
+        float ring = smoothstep(rad * 0.55, rad * 0.88, r) * disc;
+        vec3 bCol = (mod(fi, 3.0) < 0.5)
+          ? vec3(1.0, 0.78, 0.36)
+          : ((mod(fi, 3.0) < 1.5) ? uTorchCol : vec3(0.48, 0.76, 1.0));
+        col += bCol * (disc * 0.035 + ring * 0.055);
+      }
+
+      // Subtle cinematic radial vignette
+      float vig = 1.0 - 0.28 * dot(uv - 0.5, uv - 0.5) * 2.2;
+      gl_FragColor = vec4(col * vig, 0.72);
     }
   `;
 
@@ -570,6 +628,21 @@
       gl.linkProgram(prog);
       gl.useProgram(prog);
       this.prog = prog;
+
+      const bgProg = gl.createProgram();
+      gl.attachShader(bgProg, compile(gl.VERTEX_SHADER, BG_VS_SRC));
+      gl.attachShader(bgProg, compile(gl.FRAGMENT_SHADER, BG_FS_SRC));
+      gl.linkProgram(bgProg);
+      this.bgProg = bgProg;
+      this.bgLocs = {
+        aQuad: gl.getAttribLocation(bgProg, 'aQuad'),
+        uTime: gl.getUniformLocation(bgProg, 'uTime'),
+        uTorchCol: gl.getUniformLocation(bgProg, 'uTorchCol'),
+        uCamAz: gl.getUniformLocation(bgProg, 'uCamAz')
+      };
+      this.bgVbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bgVbo);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
 
       this.locs = {
         aPos: gl.getAttribLocation(prog, 'aPos'),
@@ -755,6 +828,20 @@
         else if (meshTris[pid]) totalTris += meshTris[pid].length;
       }
 
+      // Animal Logic / The LEGO Movie Sculpted Brick-Built Sky Clouds in the upper background of 48x32 dioramas
+      const cloudBlocks = [];
+      if (String(slug).includes('diorama') || slug === 'achilles-forge') {
+        const cloudCenters = [[-310, 275, -420], [15, 305, -450], [320, 265, -410]];
+        for (const [cx, cy, cz] of cloudCenters) {
+          cloudBlocks.push(
+            { tris: buildRectTris([-60, 0, -20, 60, 16, 20], true),  pos: [cx, cy, cz],          rgba: [0.96, 0.97, 0.99, 2.0] },
+            { tris: buildRectTris([-40, 0, -20, 40, 24, 20], true),  pos: [cx - 10, cy + 24, cz], rgba: [0.99, 0.99, 1.0, 2.0] },
+            { tris: buildRectTris([-20, 0, -10, 30, 16, 10], true),  pos: [cx + 15, cy + 40, cz], rgba: [1.0, 1.0, 1.0, 2.0] }
+          );
+        }
+        for (const cb of cloudBlocks) totalTris += cb.tris.length;
+      }
+
       const STRIDE = 22;
       const buf = new Float32Array(totalTris * 3 * STRIDE);
       let ptr = 0;
@@ -829,6 +916,30 @@
         }
       }
 
+      // Append the floating brick-built LEGO sky clouds (role = 3.0 -> stepped hover on 2s at 12 fps!)
+      for (const cb of cloudBlocks) {
+        const [cx, cy, cz] = cb.pos;
+        const cxf = (v) => [cx + v[0], cy - v[1], cz + v[2]];
+        for (let k = 0; k < cb.tris.length; k++) {
+          const [p0, p1, p2] = cb.tris[k];
+          const A = cxf(p0), B = cxf(p2), C = cxf(p1);
+          const ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2];
+          const vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
+          let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+          const len = Math.hypot(nx, ny, nz) || 1;
+          nx /= len; ny /= len; nz /= len;
+          for (const P of [A, B, C]) {
+            buf[ptr++] = P[0]; buf[ptr++] = P[1]; buf[ptr++] = P[2];
+            buf[ptr++] = nx;   buf[ptr++] = ny;   buf[ptr++] = nz;
+            buf[ptr++] = cb.rgba[0]; buf[ptr++] = cb.rgba[1]; buf[ptr++] = cb.rgba[2]; buf[ptr++] = cb.rgba[3];
+            buf[ptr++] = cx;   buf[ptr++] = cy;   buf[ptr++] = cz;
+            buf[ptr++] = 0.96; buf[ptr++] = 0.0;  buf[ptr++] = 3.0;  buf[ptr++] = 0.0;
+            buf[ptr++] = 0.0;  buf[ptr++] = 0.0;
+            buf[ptr++] = cy;   buf[ptr++] = 1.0;  buf[ptr++] = 0.0;
+          }
+        }
+      }
+
       const loadedKeys = Object.keys(this.models);
       if (loadedKeys.length >= 1) {
         for (const oldKey of loadedKeys) {
@@ -873,6 +984,44 @@
       }
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+      const fovDeg = opts.fov || 30;
+      const eye = opts.eye || [0, 420, 680];
+      const target = opts.target || [0, 45, 0];
+      const time = opts.time || 0;
+      const build = opts.build !== undefined ? opts.build : 1.0;
+      const explode = opts.explode || 0.0;
+      const turnAngle = opts.turnAngle || 0.0;
+      const pulseR = opts.pulseR !== undefined ? opts.pulseR : -1.0;
+      const pulseAmp = opts.pulseAmp || 0.0;
+      const torchPos = opts.torchPos || [Math.sin(time * 1.5) * 180, 140, Math.cos(time * 1.5) * 180];
+      const torchCol = opts.torchCol || [1.0, 0.68, 0.25];
+      const torchStr = opts.torchStr !== undefined ? opts.torchStr : 1.05;
+      const sunCol = opts.sunCol || [1.0, 0.96, 0.89];
+
+      // 1. Animal Logic Studio Cyclorama, Horizon Rim & Out-of-Focus Anamorphic Bokeh Backdrop Pass
+      if (this.bgProg && !opts.clearColor) {
+        for (const loc of [this.locs.aPos, this.locs.aNorm, this.locs.aCol, this.locs.aCenter, this.locs.aMeta, this.locs.aPivot, this.locs.aRig]) {
+          if (loc >= 0) gl.disableVertexAttribArray(loc);
+        }
+        gl.disable(gl.DEPTH_TEST);
+        gl.depthMask(false);
+        gl.useProgram(this.bgProg);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.bgVbo);
+        if (this.bgLocs.aQuad >= 0) {
+          gl.enableVertexAttribArray(this.bgLocs.aQuad);
+          gl.vertexAttribPointer(this.bgLocs.aQuad, 2, gl.FLOAT, false, 0, 0);
+        }
+        const camAz = Math.atan2(eye[0] - target[0], eye[2] - target[2]) / (Math.PI * 2.0);
+        gl.uniform1f(this.bgLocs.uTime, time);
+        gl.uniform3fv(this.bgLocs.uTorchCol, new Float32Array(torchCol));
+        gl.uniform1f(this.bgLocs.uCamAz, camAz);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        if (this.bgLocs.aQuad >= 0) gl.disableVertexAttribArray(this.bgLocs.aQuad);
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+      }
+
+      // 2. Main 3D LEGO Scene Pass
       gl.useProgram(this.prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, model.vbo);
 
@@ -889,20 +1038,6 @@
       bind(this.locs.aMeta, 4, 13);
       bind(this.locs.aPivot, 2, 17);
       bind(this.locs.aRig, 3, 19);
-
-      const fovDeg = opts.fov || 30;
-      const eye = opts.eye || [0, 420, 680];
-      const target = opts.target || [0, 45, 0];
-      const time = opts.time || 0;
-      const build = opts.build !== undefined ? opts.build : 1.0;
-      const explode = opts.explode || 0.0;
-      const turnAngle = opts.turnAngle || 0.0;
-      const pulseR = opts.pulseR !== undefined ? opts.pulseR : -1.0;
-      const pulseAmp = opts.pulseAmp || 0.0;
-      const torchPos = opts.torchPos || [Math.sin(time * 1.5) * 180, 140, Math.cos(time * 1.5) * 180];
-      const torchCol = opts.torchCol || [1.0, 0.68, 0.25];
-      const torchStr = opts.torchStr !== undefined ? opts.torchStr : 1.05;
-      const sunCol = opts.sunCol || [1.0, 0.96, 0.89];
 
       gl.uniformMatrix4fv(this.locs.uProj, false, perspMat(fovDeg * Math.PI / 180, w / Math.max(1, h), 6.0, 8000.0));
       gl.uniformMatrix4fv(this.locs.uView, false, lookAtMat(eye, target, [0, 1, 0]));

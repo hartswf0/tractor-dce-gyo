@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX SANCTUARY // Facilitated Arrival-and-Belonging & Multi-Account Replay</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='%230b1121'/%3E%3Ctext x='50' y='65' font-size='52' text-anchor='middle' fill='%2322d3ee'%3E%E2%97%8E%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #070c14;
+      --panel: #0e1726;
+      --surface: #18253b;
+      --surface-2: #0a101b;
+      --border: #2c3e5a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --amber: #fbbf24;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --rose: #f43f5e;
+      --purple: #c084fc;
+      --orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 11.5px;
+    }
+
+    header {
+      height: 48px;
+      flex: 0 0 48px;
+      background: #04080f;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .brand-badge {
+      background: rgba(34, 211, 238, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .btn.primary {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    /* FACILITATOR OPERATIONS DECK (FIRST-CLASS SYSTEM ROLE) */
+    .facilitator-bar {
+      flex: 0 0 58px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    .fac-op-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fac-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 9.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .fac-btn:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+    .fac-btn.active {
+      background: rgba(251, 191, 36, 0.16);
+      border-color: var(--amber);
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    /* MAIN 3-COLUMN WORKSPACE */
+    main {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 380px 1fr 370px;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .col {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .col-header {
+      height: 34px;
+      flex: 0 0 34px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* LEFT: 2D ARRIVAL-AND-BELONGING SPATIAL STAGE + CULTURAL ADAPTATION MATRIX */
+    .left-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .grid-frame {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #060a12;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      position: relative;
+    }
+    .onyx-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 2px;
+    }
+    .g-cell {
+      background: rgba(24, 37, 59, 0.35);
+      border: 1px solid rgba(44, 62, 90, 0.45);
+      border-radius: 2px;
+      font-size: 7.5px;
+      color: rgba(148, 163, 184, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .g-cell.commons-zone {
+      background: rgba(34, 211, 238, 0.08);
+      border-color: rgba(34, 211, 238, 0.35);
+    }
+    .g-cell.authority-zone {
+      background: rgba(251, 191, 36, 0.08);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+    .g-cell.fork-highlight {
+      background: rgba(74, 222, 128, 0.14);
+      border-color: rgba(74, 222, 128, 0.55);
+    }
+
+    .grid-svg {
+      position: absolute;
+      inset: 6px;
+      width: calc(100% - 12px);
+      height: calc(100% - 12px);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .grid-nodes {
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .g-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 34px;
+      height: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .g-node.active-pov {
+      filter: drop-shadow(0 0 12px var(--cyan));
+      transform: translate(-50%, -50%) scale(1.14);
+    }
+    .g-node-label {
+      position: absolute;
+      bottom: -13px;
+      background: rgba(10, 16, 27, 0.94);
+      border: 1px solid var(--border);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 7.5px;
+      white-space: nowrap;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .g-node-role {
+      position: absolute;
+      top: -10px;
+      background: rgba(251, 191, 36, 0.2);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      padding: 0 3px;
+      border-radius: 2px;
+      font-size: 6.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* CULTURAL & INSTITUTIONAL RULE ADAPTATION CARD */
+    .adaptation-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rule-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .rule-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      font-size: 9.5px;
+      border-left: 2px solid var(--amber);
+    }
+
+    /* CENTER: PERSPECTIVE REPLAY + COEXISTING ACCOUNTS + VISIBLY DIFFERENT HISTORY */
+    .center-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pov-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .pov-tab {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .pov-tab:hover {
+      border-color: var(--cyan);
+    }
+    .pov-tab.active {
+      border-color: var(--cyan);
+      background: rgba(34, 211, 238, 0.11);
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.2);
+    }
+
+    /* COEXISTING ACCOUNTS MATRIX (PRESERVE FIRST ACCOUNT BESIDE SECOND) */
+    .accounts-comparison {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .account-col {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .account-col.focused {
+      border-color: var(--cyan);
+      box-shadow: inset 0 2px 0 var(--cyan);
+    }
+    .account-tag {
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    /* CHOICE & REPLAY FORK COMPARISON (CHANGED ACTION -> VISIBLY DIFFERENT HISTORY) */
+    .history-diff-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .choice-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .choice-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 9.5px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .choice-btn:hover {
+      border-color: var(--green);
+    }
+    .choice-btn.selected {
+      border-color: var(--green);
+      background: rgba(74, 222, 128, 0.12);
+    }
+
+    .branch-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .branch-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* RIGHT: WYGWYL COMMUNITY ARCHIVE + EPISTEMIC SEPARATION (NARRATIVE STATE VS CLAIMS ABOUT PEOPLE) */
+    .right-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .epistemic-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .state-meter-bar {
+      height: 6px;
+      background: #060a12;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 3px;
+    }
+    .state-meter-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 1180px) {
+      main { grid-template-columns: 1fr; overflow-y: auto; }
+      .col { overflow: visible; }
+      .accounts-comparison, .choice-buttons, .branch-comparison { grid-template-columns: 1fr; }
+    }
+  
+    @media (max-width: 1180px) {
+      html, body {
+        height: auto !important;
+        min-height: 100dvh !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+      header {
+        height: auto !important;
+        flex: 0 0 auto !important;
+        flex-wrap: wrap !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+      }
+      .brand {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .facilitator-bar {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        padding: 6px 10px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+      }
+      .facilitator-bar::-webkit-scrollbar { display: none !important; }
+      main {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .col {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .left-scroll, .center-scroll, .right-scroll {
+        overflow: visible !important;
+        height: auto !important;
+      }
+      .grid-frame {
+        width: min(100%, 358px) !important;
+        margin: 0 auto !important;
+      }
+      .pov-selector-row, .accounts-comparison, .choice-buttons, .branch-comparison {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-badge">ONYX // SANCTUARY</span>
+      <span>ARRIVAL-AND-BELONGING · MULTI-ACCOUNT REPLAY &amp; FACILITATOR INSTRUMENT</span>
+      <span style="color:var(--muted);font-size:10px;font-weight:400;">Inceptr × Small Futures × Halfworld COMMON × WYGWYL × ASAPS</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <select id="regimeSelect" class="btn" onchange="SANCTUARY.setRegime(this.value)">
+        <option value="bureaucratic">Cultural/Rule Regime 01 · Standard Institutional Gatekeeping</option>
+        <option value="common">Cultural/Rule Regime 02 · Halfworld COMMON (Shared Stewardship)</option>
+        <option value="kinship">Cultural/Rule Regime 03 · Elder &amp; Kinship Hospitality Circle</option>
+        <option value="sanctuary">Cultural/Rule Regime 04 · Facilitated Sanctuary Co-Authorship</option>
+      </select>
+      <button class="btn primary" onclick="SANCTUARY.exportToOnyxBus()">
+        <i class="fas fa-share-nodes"></i> Sync Multi-Account Scene to ONYX Bus
+      </button>
+      <a href="onyx-asaps.html" class="btn" style="text-decoration:none;">
+        <i class="fas fa-layer-group"></i> ASAPS Studio
+      </a>
+    </div>
+  </header>
+
+  <!-- FACILITATOR CONSOLE: FIRST-CLASS ROLE IN THE RUNNING SYSTEM -->
+  <div class="facilitator-bar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:9.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.08em;">
+        <i class="fas fa-user-shield"></i> Facilitator Operations:
+      </span>
+      <div class="fac-op-group" id="facilitatorOps">
+        <button class="fac-btn active" data-op="introduce" onclick="SANCTUARY.runFacilitatorOp('introduce')">
+          <i class="fas fa-door-open"></i> 1. Introduce Situation
+        </button>
+        <button class="fac-btn" data-op="pause" onclick="SANCTUARY.runFacilitatorOp('pause')">
+          <i class="fas fa-pause-circle"></i> 2. Pause &amp; Inspect Obligations
+        </button>
+        <button class="fac-btn" data-op="invite" onclick="SANCTUARY.runFacilitatorOp('invite')">
+          <i class="fas fa-comment-medical"></i> 3. Invite Another Account
+        </button>
+        <button class="fac-btn" data-op="replay" onclick="SANCTUARY.runFacilitatorOp('replay')">
+          <i class="fas fa-code-branch"></i> 4. Replay from Other Position
+        </button>
+        <button class="fac-btn" data-op="adapt" onclick="SANCTUARY.runFacilitatorOp('adapt')">
+          <i class="fas fa-sliders"></i> 5. Shift Cultural Rules
+        </button>
+        <button class="fac-btn" data-op="close" onclick="SANCTUARY.runFacilitatorOp('close')">
+          <i class="fas fa-clipboard-check"></i> 6. Close &amp; Debrief Session
+        </button>
+      </div>
+    </div>
+    <span id="facilitatorStatus" style="font-size:9.5px;color:var(--cyan);white-space:nowrap;">
+      FACILITATOR STATE: ACTIVE · 3 COEXISTING ACCOUNTS PRESERVED
+    </span>
+  </div>
+
+  <main>
+    <!-- LEFT: 2D ARRIVAL THRESHOLD MAP + CULTURAL ADAPTATION RULE ENGINE -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-map-location-dot"></i> 2D Arrival-and-Belonging Stage (9×9)</span>
+        <span id="activePovBadge" style="color:var(--cyan);">POV: SORA (NEWCOMER)</span>
+      </div>
+      <div class="left-scroll">
+        <div class="grid-frame">
+          <div class="onyx-grid" id="sanctuaryGrid"></div>
+          <svg class="grid-svg" id="sanctuarySvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div class="grid-nodes" id="sanctuaryNodes"></div>
+        </div>
+
+        <div class="adaptation-card" id="adaptationCard"></div>
+      </div>
+    </section>
+
+    <!-- CENTER: MULTI-PERSPECTIVE REPLAY + COEXISTING ACCOUNTS + VISIBLY DIFFERENT HISTORIES -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-people-arrows"></i> Multi-Position Replay · Coexisting Accounts (No Single Verdict)</span>
+        <span style="color:var(--amber);">1000-Small-Futures × ASAPS × WYGWYL</span>
+      </div>
+      <div class="center-scroll">
+        <!-- 3 PERSPECTIVE SWITCHERS -->
+        <div class="pov-tabs" id="povTabs"></div>
+
+        <!-- COEXISTING ACCOUNTS BESIDE ONE ANOTHER -->
+        <div class="accounts-comparison" id="accountsComparison"></div>
+
+        <!-- REVISIT A CHOICE -> VISIBLY DIFFERENT HISTORY -->
+        <div class="history-diff-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;">
+              <i class="fas fa-code-branch"></i> Revisit Threshold Choice · Produce a Visibly Different History
+            </span>
+            <span style="font-size:9px;color:var(--muted);">ASAPS Persistent Consequence Engine</span>
+          </div>
+          <div class="choice-buttons" id="choiceButtons"></div>
+          <div class="branch-comparison" id="branchComparison"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: WYGWYL CONTRIBUTED VOICES + STRICT EPISTEMIC SEPARATION -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-scale-unbalanced"></i> Epistemic Boundary &amp; WYGWYL Archive</span>
+        <span style="color:var(--green);">State ≠ Human Diagnosis</span>
+      </div>
+      <div class="right-scroll">
+        <!-- DISTINGUISH NARRATIVE STATE FROM CLAIMS ABOUT PEOPLE -->
+        <div class="epistemic-card" id="epistemicCard"></div>
+
+        <!-- WYGWYL CONTRIBUTED VOICE / ACCOUNT INPUT -->
+        <div class="epistemic-card">
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--purple);">
+            <span><i class="fas fa-microphone-lines"></i> WYGWYL // CONTRIBUTE COEXISTING ACCOUNT</span>
+            <span>MULTI-VOICE ARCHIVE</span>
+          </div>
+          <div style="font-size:9px;color:var(--muted);line-height:1.35;">
+            Facilitator or participant can attach a situated account to the current threshold moment. It is preserved alongside existing accounts without overwriting them.
+          </div>
+          <input id="contribSpeaker" type="text" placeholder="Contributor Role / Name (e.g., Night Custodian, Auntie Lin)..."
+                 style="background:#050911;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:inherit;font-size:9.5px;" />
+          <textarea id="contribText" rows="2" placeholder="How does this moment look from your obligations and partial knowledge?"
+                    style="background:#050911;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:inherit;font-size:9.5px;resize:none;"></textarea>
+          <button class="btn primary" onclick="SANCTUARY.addContributedAccount()">
+            <i class="fas fa-plus"></i> Preserve Account Alongside Others
+          </button>
+          <div id="contributedList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const CUBE = {
+      render(top, left, right) {
+        return `<svg viewBox="0 0 40 40" width="30" height="30">
+          <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${top}" stroke="#060a12" stroke-width="1.2"/>
+          <path d="M4 12 L20 20 L20 37 L4 29 Z" fill="${left}" stroke="#060a12" stroke-width="1.2"/>
+          <path d="M36 12 L20 20 L20 37 L36 29 Z" fill="${right}" stroke="#060a12" stroke-width="1.2"/>
+        </svg>`;
+      }
+    };
+
+    const CULTURAL_REGIMES = {
+      bureaucratic: {
+        name: 'Standard Institutional Gatekeeping',
+        authority: 'Intake Coordinator (Tomás) holds unilateral sign-off at desk [4,3].',
+        helpAvailable: 'Conditional on presenting verified ID & prior transcript first.',
+        actionCost: 'Speaking out of turn or lacking paperwork triggers a 14-day deferral.',
+        witnesses: '1-on-1 behind closed intake partition (low peer visibility).',
+        obligations: 'Steward is penalized by audit metrics if an unverified newcomer enters.'
+      },
+      common: {
+        name: 'Halfworld COMMON // Shared Resource & Peer Stewardship',
+        authority: 'Distributed between Steward (Tomás), Peer (Jun), and Newcomer (Sora).',
+        helpAvailable: 'Immediate provisional access to the Workshop Bench [6,4] via peer vouching.',
+        actionCost: 'Zero penalty for partial paperwork; requires co-signing a shared tool-care pact.',
+        witnesses: 'Open Commons Circle — Jun and community members witness the welcome.',
+        obligations: 'Everyone shares obligation to maintain the workshop bench and orient newcomers.'
+      },
+      kinship: {
+        name: 'Elder & Kinship Hospitality Circle',
+        authority: 'Anchored by Elder Witness (Auntie Mei) at the Tea Table [4,6].',
+        helpAvailable: 'Hospitality precedes questioning (tea and seating offered before intake).',
+        actionCost: 'Refusing to listen to the newcomer’s story carries community dishonor.',
+        witnesses: 'Intergenerational threshold circle witnesses both need and commitment.',
+        obligations: 'Long-term reciprocal relational care rather than one-time form completion.'
+      },
+      sanctuary: {
+        name: 'Inceptr / Sanctuary Nonclinical Co-Authorship',
+        authority: 'Facilitator holds the frame; participants co-author the threshold agreement.',
+        helpAvailable: 'Peer accompaniment + ability to pause, replay, and re-negotiate terms.',
+        actionCost: 'Declining a prompt or requesting another perspective carries zero penalty.',
+        witnesses: 'Facilitated group holds multiple interpretations without forcing one verdict.',
+        obligations: 'Confidentiality, mutual recognition, and honoring divergent lived accounts.'
+      }
+    };
+
+    const PERSPECTIVES = [
+      {
+        id: 'sora',
+        name: 'Sora (Arriving Newcomer)',
+        role: 'NEWCOMER',
+        color: '#22d3ee',
+        col: 2, row: 4,
+        obligations: 'Needs immediate access to the Community Studio to finish a trade certification before Friday; carries an incomplete transfer folder.',
+        partialKnowledge: 'Doesn’t know the studio lost two machines last month or that Tomás is under audit.',
+        firstAccount: '“When Tomás asked for my stamped transfer sheet before even saying hello, it felt like the door was already shut against people from my district.”',
+        wygwylCite: 'WYGWYL Voice #S-01 · “Standing at the glass counter with wet shoes.”'
+      },
+      {
+        id: 'tomas',
+        name: 'Tomás (Threshold Steward)',
+        role: 'STEWARD',
+        color: '#fbbf24',
+        col: 4, row: 3,
+        obligations: 'Must keep the neighborhood workshop open for 40 Youth members; city inspectors threatened closure if unlogged visitors use the lathes.',
+        partialKnowledge: 'Doesn’t know Sora’s previous school closed abruptly without issuing stamped transfers.',
+        firstAccount: '“I wasn’t trying to turn Sora away—I had the city auditor’s warning letter sitting on my clipboard and needed one verifiable line on the log.”',
+        wygwylCite: 'WYGWYL Image #T-04 · “Red audit notice taped beneath the sign-in ledger.”'
+      },
+      {
+        id: 'jun',
+        name: 'Jun (Peer at the Bench)',
+        role: 'PEER WITNESS',
+        color: '#c084fc',
+        col: 6, row: 5,
+        obligations: 'Sharing the last working workbench; promised to mentor new arrivals but worried about losing bench hours.',
+        partialKnowledge: 'Recognizes the tool roll in Sora’s bag from the Eastside Co-op, knowing Sora already knows safe lathe operation.',
+        firstAccount: '“Both of them were talking past each other at the counter—I could see Sora’s Eastside tool roll right there, which proves more than a paper stamp.”',
+        wygwylCite: 'WYGWYL Artifact #J-11 · “Canvas tool roll with Eastside Co-op brass stencil.”'
+      }
+    ];
+
+    const CHOICES = [
+      {
+        id: 'demand_paper',
+        title: 'Choice A (Initial Path) · Insist on Stamped Form at Counter',
+        actor: 'Tomás / Sora Collision',
+        originalHistory: 'Tomás withholds bench key pending official stamp → Sora leaves in silence → Jun never speaks up → Workshop loses a skilled peer.',
+        forkedHistory: 'Under Replay: Facilitator pauses at the counter so Jun can name the Eastside tool roll.',
+        soraShift: { col: 1, row: 7, status: 'WITHDRAWN TO EXIT' },
+        benchStatus: 'LOCKED BEHIND PAPERWORK',
+        fictionalMetrics: { trust: 28, belonging: 22, friction: 84 }
+      },
+      {
+        id: 'peer_vouch',
+        title: 'Choice B (Replayed from Jun’s Position) · Practical Tool-Roll Recognition',
+        actor: 'Jun + Tomás Co-Witness',
+        originalHistory: 'Previously: Sora turned away because paper transfer was missing.',
+        forkedHistory: 'Visibly Different History: Jun steps to [4,4], recognizes the Eastside tool roll, and co-signs a practical safety check with Tomás. Sora enters [6,4].',
+        soraShift: { col: 5, row: 4, status: 'CO-WORKING AT BENCH' },
+        benchStatus: 'OPEN VIA PEER + STEWARD PACT',
+        fictionalMetrics: { trust: 82, belonging: 88, friction: 24 }
+      },
+      {
+        id: 'provisional_commons',
+        title: 'Choice C (Cultural Rule Shift) · Provisional Commons Pairing',
+        actor: 'Facilitated Rule Adaptation',
+        originalHistory: 'Previously: Unilateral gatekeeping placed all risk on Tomás and all exclusion on Sora.',
+        forkedHistory: 'Visibly Different History: Authority shifts to a 48-hour Provisional Commons Pairing. Tomás satisfies the safety log via shared mentorship; Sora keeps full dignity.',
+        soraShift: { col: 6, row: 4, status: 'SHARED STEWARDSHIP' },
+        benchStatus: 'CO-GOVERNED COMMONS',
+        fictionalMetrics: { trust: 91, belonging: 94, friction: 15 }
+      }
+    ];
+
+    const SANCTUARY = {
+      regimeKey: 'common',
+      activePovId: 'sora',
+      activeChoiceId: 'peer_vouch',
+      activeFacOp: 'introduce',
+      contributedAccounts: [
+        {
+          speaker: 'Auntie Mei (Neighborhood Archivist)',
+          text: '“When the Eastside trade school flooded in ’24, half our best machinists arrived without stamped folders. Look at the hands and the tools, not just the seal.”',
+          time: 'Archival Pin #W-08'
+        }
+      ],
+
+      init() {
+        document.getElementById('regimeSelect').value = this.regimeKey;
+        this.renderAll();
+      },
+
+      setRegime(val) {
+        this.regimeKey = val;
+        this.renderAll();
+      },
+
+      setPov(id) {
+        this.activePovId = id;
+        this.renderAll();
+      },
+
+      setChoice(id) {
+        this.activeChoiceId = id;
+        this.renderAll();
+      },
+
+      runFacilitatorOp(op) {
+        this.activeFacOp = op;
+        document.querySelectorAll('.fac-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.op === op);
+        });
+
+        const statusMap = {
+          introduce: 'FACILITATOR: Situation introduced — Arrival at the Neighborhood Workshop Threshold.',
+          pause: 'FACILITATOR: Encounter PAUSED — Inspecting partial knowledge & competing institutional obligations.',
+          invite: 'FACILITATOR: Floor opened — Inviting another participant account into the WYGWYL ledger.',
+          replay: 'FACILITATOR: REPLAY MODE — Stepping into another character’s position while preserving the first account.',
+          adapt: 'FACILITATOR: RULE ADAPTATION — Perturbing authority, witness, and cost rules on the 2D grid.',
+          close: 'FACILITATOR: SESSION DEBRIEF — Comparing coexisting accounts & separating fictional state from human claims.'
+        };
+        document.getElementById('facilitatorStatus').textContent = statusMap[op] || '';
+
+        if (op === 'replay') {
+          const order = ['sora', 'tomas', 'jun'];
+          const next = order[(order.indexOf(this.activePovId) + 1) % order.length];
+          this.activePovId = next;
+        } else if (op === 'invite') {
+          document.getElementById('contribSpeaker').focus();
+        }
+        this.renderAll();
+      },
+
+      addContributedAccount() {
+        const spk = document.getElementById('contribSpeaker').value.trim() || 'Community Participant';
+        const txt = document.getElementById('contribText').value.trim();
+        if (!txt) return;
+        this.contributedAccounts.unshift({
+          speaker: spk,
+          text: `“${txt}”`,
+          time: `Added ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        });
+        document.getElementById('contribSpeaker').value = '';
+        document.getElementById('contribText').value = '';
+        this.renderContributed();
+      },
+
+      cellCenter(col, row) {
+        const step = 100 / 9;
+        return { x: (col + 0.5) * step, y: (row + 0.5) * step };
+      },
+
+      renderGrid() {
+        const gridEl = document.getElementById('sanctuaryGrid');
+        const svgEl = document.getElementById('sanctuarySvg');
+        const nodesEl = document.getElementById('sanctuaryNodes');
+        const choice = CHOICES.find(c => c.id === this.activeChoiceId);
+        const pov = PERSPECTIVES.find(p => p.id === this.activePovId);
+
+        document.getElementById('activePovBadge').textContent = `POV: ${pov.name.toUpperCase()}`;
+
+        let cells = '';
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const isAuth = (c === 4 && r >= 2 && r <= 5);
+            const isCommons = (c >= 5 && c <= 7 && r >= 3 && r <= 6);
+            const isFork = (c === choice.soraShift.col && r === choice.soraShift.row);
+            cells += `<div class="g-cell ${isAuth ? 'authority-zone' : ''} ${isCommons ? 'commons-zone' : ''} ${isFork ? 'fork-highlight' : ''}">${c},${r}</div>`;
+          }
+        }
+        gridEl.innerHTML = cells;
+
+        const soraPos = choice.soraShift;
+        const nodes = [
+          { id: 'sora_orig', label: 'Sora (Arrival [2,4])', role: 'BASELINE', col: 2, row: 4, colors: ['#67e8f9','#06b6d4','#0e7490'], ghost: true },
+          { id: 'sora', label: `Sora (${soraPos.status})`, role: 'NEWCOMER', col: soraPos.col, row: soraPos.row, colors: ['#22d3ee','#0891b2','#155e75'] },
+          { id: 'tomas', label: 'Tomás (Steward)', role: 'STEWARD', col: 4, row: 3, colors: ['#fde047','#eab308','#a16207'] },
+          { id: 'jun', label: 'Jun (Peer Witness)', role: 'PEER', col: 6, row: 5, colors: ['#d8b4fe','#a855f7','#6b21a8'] },
+          { id: 'bench', label: 'Shared Workbench', role: choice.benchStatus, col: 7, row: 4, colors: ['#86efac','#22c55e','#15803d'] },
+          { id: 'mei', label: 'Archive Table (WYGWYL)', role: 'MEMORY', col: 4, row: 6, colors: ['#fda4af','#f43f5e','#be123c'] }
+        ];
+
+        const map = new Map(nodes.map(n => [n.id, n]));
+        const wires = [
+          { from: 'sora_orig', to: 'sora', color: choice.id === 'demand_paper' ? '#f43f5e' : '#4ade80', label: 'replayed path', dashed: true },
+          { from: 'tomas', to: 'sora', color: '#fbbf24', label: this.regimeKey === 'bureaucratic' ? 'audit gate' : 'co-stewardship' },
+          { from: 'jun', to: 'sora', color: '#c084fc', label: 'recognizes tool-roll' },
+          { from: 'sora', to: 'bench', color: choice.id === 'demand_paper' ? '#f43f5e' : '#22d3ee', label: choice.benchStatus }
+        ];
+
+        svgEl.innerHTML = wires.map(w => {
+          const n1 = map.get(w.from);
+          const n2 = map.get(w.to);
+          if (!n1 || !n2) return '';
+          const p1 = this.cellCenter(n1.col, n1.row);
+          const p2 = this.cellCenter(n2.col, n2.row);
+          const mx = (p1.x + p2.x) / 2;
+          const my = (p1.y + p2.y) / 2 - 3.5;
+          return `
+            <g>
+              <path d="M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2.x} ${p2.y}" fill="none" stroke="${w.color}" stroke-width="1.3" ${w.dashed ? 'stroke-dasharray="2.5 2"' : ''}/>
+              <rect x="${mx - 18}" y="${my - 3}" width="36" height="5" rx="1" fill="#070c14" opacity="0.86"/>
+              <text x="${mx}" y="${my + 0.8}" text-anchor="middle" fill="${w.color}" font-size="2.6" font-family="JetBrains Mono">${w.label}</text>
+            </g>
+          `;
+        }).join('');
+
+        nodesEl.innerHTML = nodes.map(n => {
+          const pos = this.cellCenter(n.col, n.row);
+          const isPov = n.id === this.activePovId;
+          const [t, l, r] = n.colors;
+          return `
+            <div class="g-node ${isPov ? 'active-pov' : ''}" style="left:${pos.x}%;top:${pos.y}%;opacity:${n.ghost ? '0.42' : '1'};"
+                 onclick="if('${n.id}'==='sora'||'${n.id}'==='tomas'||'${n.id}'==='jun') SANCTUARY.setPov('${n.id}')">
+              <div class="g-node-role">${n.role}</div>
+              ${CUBE.render(t, l, r)}
+              <div class="g-node-label">${n.label}</div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      renderAdaptationCard() {
+        const reg = CULTURAL_REGIMES[this.regimeKey];
+        const el = document.getElementById('adaptationCard');
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--amber);">
+            <span><i class="fas fa-gears"></i> CULTURAL &amp; INSTITUTIONAL RULE ENGINE</span>
+            <span style="color:var(--cyan);">COMMON × Small Futures</span>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:var(--text);">${reg.name}</div>
+          <div class="rule-grid">
+            <div class="rule-row"><span style="color:var(--muted);">Who Has Authority:</span><span>${reg.authority}</span></div>
+            <div class="rule-row"><span style="color:var(--muted);">Help Available:</span><span>${reg.helpAvailable}</span></div>
+            <div class="rule-row"><span style="color:var(--muted);">Action Cost:</span><span>${reg.actionCost}</span></div>
+            <div class="rule-row"><span style="color:var(--muted);">Who Witnesses:</span><span>${reg.witnesses}</span></div>
+            <div class="rule-row"><span style="color:var(--muted);">Persistent Obligations:</span><span>${reg.obligations}</span></div>
+          </div>
+        `;
+      },
+
+      renderPovAndAccounts() {
+        const tabsEl = document.getElementById('povTabs');
+        tabsEl.innerHTML = PERSPECTIVES.map(p => `
+          <div class="pov-tab ${p.id === this.activePovId ? 'active' : ''}" onclick="SANCTUARY.setPov('${p.id}')">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:${p.color};font-weight:700;">
+              <span>POSITION: ${p.role}</span>
+              <span>CLICK TO REPLAY</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);">${p.name}</div>
+            <div style="font-size:8.5px;color:var(--muted);">Grid Anchor: [${p.col},${p.row}]</div>
+          </div>
+        `).join('');
+
+        const accEl = document.getElementById('accountsComparison');
+        accEl.innerHTML = PERSPECTIVES.map((p, idx) => `
+          <div class="account-col ${p.id === this.activePovId ? 'focused' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="account-tag" style="background:${p.color}22;color:${p.color};border:1px solid ${p.color}66;">
+                ACCOUNT 0${idx + 1} · ${p.role}
+              </span>
+              <span style="font-size:8px;color:var(--muted);">PRESERVED</span>
+            </div>
+            <div style="font-size:10.5px;font-weight:700;color:var(--text);">${p.name}</div>
+            <div style="font-size:9.5px;color:var(--text);line-height:1.4;background:var(--surface-2);padding:6px;border-radius:4px;border-left:2px solid ${p.color};">
+              ${p.firstAccount}
+            </div>
+            <div style="font-size:9px;color:var(--muted);line-height:1.35;">
+              <strong style="color:var(--amber);">Obligations:</strong> ${p.obligations}
+            </div>
+            <div style="font-size:9px;color:var(--muted);line-height:1.35;">
+              <strong style="color:var(--cyan);">Partial Knowledge:</strong> ${p.partialKnowledge}
+            </div>
+            <div style="font-size:8.5px;color:var(--purple);margin-top:auto;padding-top:4px;border-top:1px dashed var(--border);">
+              <i class="fas fa-bookmark"></i> ${p.wygwylCite}
+            </div>
+          </div>
+        `).join('');
+      },
+
+      renderHistoryDiff() {
+        const btnsEl = document.getElementById('choiceButtons');
+        btnsEl.innerHTML = CHOICES.map(c => `
+          <button class="choice-btn ${c.id === this.activeChoiceId ? 'selected' : ''}" onclick="SANCTUARY.setChoice('${c.id}')">
+            <div style="font-weight:700;color:${c.id === this.activeChoiceId ? 'var(--green)' : 'var(--text)'};margin-bottom:3px;">${c.title}</div>
+            <div style="font-size:8.5px;color:var(--muted);">Agency: ${c.actor}</div>
+          </button>
+        `).join('');
+
+        const choice = CHOICES.find(c => c.id === this.activeChoiceId);
+        const compEl = document.getElementById('branchComparison');
+        compEl.innerHTML = `
+          <div class="branch-box" style="border-left:3px solid var(--rose);">
+            <div style="font-size:9px;font-weight:700;color:var(--rose);text-transform:uppercase;">Account 1 Trace · Unrevisited Baseline History</div>
+            <div style="font-size:9.5px;color:var(--muted);line-height:1.4;">${choice.originalHistory}</div>
+          </div>
+          <div class="branch-box" style="border-left:3px solid var(--green);">
+            <div style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;">Account 2/3 Replay · Visibly Different History on Grid</div>
+            <div style="font-size:9.5px;color:var(--text);line-height:1.4;">${choice.forkedHistory}</div>
+          </div>
+        `;
+      },
+
+      renderEpistemicCard() {
+        const choice = CHOICES.find(c => c.id === this.activeChoiceId);
+        const m = choice.fictionalMetrics;
+        const el = document.getElementById('epistemicCard');
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--amber);">
+            <span><i class="fas fa-shield-halved"></i> EPISTEMIC BOUNDARY INSPECTOR</span>
+            <span>4TH DESIGN PRINCIPLE</span>
+          </div>
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:var(--cyan);margin-bottom:4px;">
+              A. FICTIONAL NARRATIVE STATE (GOVERNS IN-SIMULATION ENCOUNTER ONLY)
+            </div>
+            <div style="font-size:9px;display:flex;justify-content:space-between;"><span>Character Trust Meter (Sora ↔ Tomás)</span><span>${m.trust}%</span></div>
+            <div class="state-meter-bar"><div class="state-meter-fill" style="width:${m.trust}%;background:var(--cyan);"></div></div>
+            <div style="font-size:9px;display:flex;justify-content:space-between;margin-top:5px;"><span>Commons Belonging Access</span><span>${m.belonging}%</span></div>
+            <div class="state-meter-bar"><div class="state-meter-fill" style="width:${m.belonging}%;background:var(--green);"></div></div>
+            <div style="font-size:9px;display:flex;justify-content:space-between;margin-top:5px;"><span>Institutional Rule Friction</span><span>${m.friction}%</span></div>
+            <div class="state-meter-bar"><div class="state-meter-fill" style="width:${m.friction}%;background:var(--rose);"></div></div>
+          </div>
+          <div style="background:rgba(74, 222, 128, 0.06);border:1px solid rgba(74, 222, 128, 0.35);border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:var(--green);margin-bottom:4px;">
+              B. CLAIMS ABOUT PEOPLE // SEPARATE FACILITATION EVIDENCE REQUIRED
+            </div>
+            <div style="font-size:9px;color:var(--muted);line-height:1.4;">
+              A character’s trust meter governs the fictional encounter—it does <strong>not</strong> diagnose a participant’s real-world wellbeing.
+              Session log records only observable participation: <strong>3 perspectives rehearsed</strong>, <strong>${CULTURAL_REGIMES[this.regimeKey].name}</strong> rules inspected, and <strong>${this.contributedAccounts.length} community accounts</strong> preserved.
+            </div>
+          </div>
+        `;
+      },
+
+      renderContributed() {
+        const listEl = document.getElementById('contributedList');
+        listEl.innerHTML = this.contributedAccounts.map(c => `
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--purple);padding:6px 8px;border-radius:4px;font-size:9px;">
+            <div style="display:flex;justify-content:space-between;color:var(--purple);font-weight:700;">
+              <span>${c.speaker}</span>
+              <span style="color:var(--muted);font-size:8px;">${c.time}</span>
+            </div>
+            <div style="color:var(--text);margin-top:2px;line-height:1.35;">${c.text}</div>
+          </div>
+        `).join('');
+      },
+
+      renderAll() {
+        this.renderGrid();
+        this.renderAdaptationCard();
+        this.renderPovAndAccounts();
+        this.renderHistoryDiff();
+        this.renderEpistemicCard();
+        this.renderContributed();
+      },
+
+      exportToOnyxBus() {
+        const reg = CULTURAL_REGIMES[this.regimeKey];
+        const scenes = PERSPECTIVES.map((p, idx) => {
+          const grid = new Array(81).fill(null);
+          PERSPECTIVES.forEach(actor => {
+            grid[actor.row * 9 + actor.col] = {
+              id: `${p.id}_${actor.id}`,
+              entityId: actor.id,
+              label: `${actor.name}`,
+              kind: actor.id === p.id ? 'Core' : 'Entity',
+              row: actor.row,
+              col: actor.col
+            };
+          });
+          grid[4 * 9 + 7] = {
+            id: `${p.id}_bench`,
+            entityId: 'bench',
+            label: 'Shared Workbench',
+            kind: 'Goal',
+            row: 4,
+            col: 7
+          };
+          return {
+            id: `sanctuary_account_${idx + 1}`,
+            title: `Account 0${idx + 1} · ${p.name} (${reg.name})`,
+            beats: [{ text: `${p.firstAccount} | Obligations: ${p.obligations}` }],
+            grid
+          };
+        });
+
+        const collection = {
+          title: `Arrival-and-Belonging · ${reg.name}`,
+          ontology: 'ONYX_SANCTUARY_MULTI_ACCOUNT',
+          scenes
+        };
+        localStorage.setItem('onyx_scene_collection', JSON.stringify(collection));
+        alert(`Synced 3 Coexisting Perspective Accounts ("${reg.name}") to localStorage['onyx_scene_collection']!`);
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => SANCTUARY.init());
+  </script>
+</body>
+</html>

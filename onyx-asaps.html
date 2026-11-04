@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX × ASAPS Adaptation Studio // Constellation Architecture</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='%230b1121'/%3E%3Ctext x='50' y='64' font-size='54' text-anchor='middle' fill='%23fbbf24'%3EA%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #0b1121;
+      --surface: #151f38;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --amber: #fbbf24;
+      --cyan: #22d3ee;
+      --rose: #f43f5e;
+      --purple: #c084fc;
+      --green: #4ade80;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 11.5px;
+    }
+
+    header {
+      flex: 0 0 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: rgba(11, 17, 33, 0.98);
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .studio-title {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .studio-title span {
+      color: var(--amber);
+    }
+
+    .tool-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #050914;
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tool-tab {
+      border: none;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .tool-tab:hover {
+      color: #fff;
+    }
+    .tool-tab.active {
+      background: var(--amber);
+      color: #020617;
+      font-weight: 700;
+    }
+
+    main {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      background: var(--bg);
+    }
+
+    .frame-shell {
+      flex: 1 1 auto;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .studio-view {
+      flex: 1 1 auto;
+      border: none;
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow-y: auto;
+    }
+    .studio-view.visible {
+      display: block;
+    }
+
+    /* ATLAS VIEW LAYOUT */
+    .atlas-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 18px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .shot-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .shot-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+    .shot-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--amber);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .atlas-grid-section {
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .constellation-map-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .map-2d {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: radial-gradient(circle at center, #111c35 0%, #050914 75%);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layer-band {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.55);
+      pointer-events: none;
+    }
+
+    .sys-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-size: 9.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+      z-index: 10;
+    }
+    .sys-node:hover, .sys-node.selected {
+      transform: translate(-50%, -50%) scale(1.08);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+      border-color: var(--amber);
+    }
+
+    .correspondence-table-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    table.arch-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+    }
+    table.arch-table th {
+      background: #060a15;
+      color: var(--muted);
+      text-align: left;
+      padding: 9px 10px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      border-bottom: 1px solid var(--border);
+    }
+    table.arch-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.7);
+      vertical-align: top;
+      line-height: 1.4;
+    }
+    table.arch-table tr:hover {
+      background: rgba(251, 191, 36, 0.05);
+    }
+    table.arch-table tr.active-row {
+      background: rgba(251, 191, 36, 0.11);
+    }
+
+    @media (max-width: 1100px) {
+      .shot-cards, .atlas-grid-section { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 820px) {
+      header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 6px 10px;
+        gap: 6px;
+      }
+      .header-controls {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .tool-tabs {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      #btnSplit {
+        display: none;
+      }
+      .atlas-container {
+        padding: 12px 10px 28px;
+      }
+      .correspondence-table-card {
+        overflow-x: auto;
+      }
+    }
+  
+    @media (max-width: 960px) {
+      html, body { max-width: 100vw !important; overflow-x: hidden !important; }
+      header { flex-wrap: wrap !important; height: auto !important; padding: 8px 10px !important; gap: 6px !important; }
+      .header-controls, .tool-tabs { width: 100% !important; max-width: 100% !important; overflow-x: auto !important; scrollbar-width: none !important; }
+      .header-controls::-webkit-scrollbar, .tool-tabs::-webkit-scrollbar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="studio-title">
+      <span>ONYX × ASAPS</span> ADAPTATION STUDIO
+    </div>
+    <div class="header-controls" style="display:flex;align-items:center;gap:8px;">
+      <div class="tool-tabs" id="toolTabs">
+        <button class="tool-tab active" data-view="atlas">00 · ATLAS</button>
+        <button class="tool-tab" data-view="odyssey">01 · SLOPLING ODYSSEY (97 BEATS / FILM + 9×9)</button>
+        <button class="tool-tab" data-view="turn">02 · TURN (MEDICAL / CONCERN)</button>
+        <button class="tool-tab" data-view="dream">03 · DREAM-FORGE (METISIM)</button>
+        <button class="tool-tab" data-view="sanctuary">04 · SANCTUARY (INCEPTR / COMMON)</button>
+        <button class="tool-tab" data-view="head">ONYX HEAD</button>
+        <button class="tool-tab" data-view="tail">ONYX TAIL</button>
+        <button class="tool-tab" data-view="abs">ONYX ABS</button>
+      </div>
+      <button id="btnSplit" title="Toggle Split Comparison (Side-by-Side)"
+              onclick="STUDIO.toggleSplit()"
+              style="border:1px solid var(--border);background:var(--panel);color:var(--amber);border-radius:999px;padding:5px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">
+        ⧉ SPLIT VIEW
+      </button>
+      <a href="onyx-slopling-odyssey.html" style="text-decoration:none;border:1px solid var(--amber);border-radius:999px;padding:4px 9px;color:var(--amber);font-size:10px;font-weight:700;white-space:nowrap;">
+        Full Odyssey Stage ↗
+      </a>
+      <a href="onyx-studio.html" style="text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:4px 9px;color:var(--muted);font-size:10px;white-space:nowrap;">
+        Classic Studio
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="frame-shell">
+      <!-- VIEW 0: INTERACTIVE ARCHITECTURE & CORRESPONDENCE ATLAS -->
+      <div id="view-atlas" class="studio-view visible">
+        <div class="atlas-container">
+          <!-- FOUR EXECUTABLE 2D INTERFACE SHOTS -->
+          <div class="shot-cards" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="shot-card" style="border-top:3px solid var(--amber);" onclick="STUDIO.setView('odyssey')">
+              <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--amber);font-weight:700;">
+                <span>SHOT 00 // THE SLOPLING'S ODYSSEY (97 BEATS × 71 CUTOUTS)</span>
+                <span>LAUNCH FILM + 9×9 →</span>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);">
+                THE SLOPLING'S ODYSSEY · 9×9 Beat Grid &amp; Cardboard Film Stage
+              </div>
+              <div style="font-size:10px;color:var(--muted);line-height:1.45;">
+                Full 97-beat ASAPS tragicomedy (<em>I. The Call</em>, <em>II. The Voyage &amp; 10 Islands</em>, <em>II. The Underworld</em>, <em>III. The Return</em>, <em>Ithaca</em>) bound to all <strong>71 cardboard cutout portraits</strong>, 1,005 node staging directives, 4 Film Director Autoplay Cuts, and live 2D 9×9 ONYX spatial grids.
+              </div>
+            </div>
+
+            <div class="shot-card" style="border-top:3px solid var(--rose);" onclick="STUDIO.setView('turn')">
+              <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--rose);font-weight:700;">
+                <span>SHOT 01 // 1000-MEDICAL × ASAPS × ONYX</span>
+                <span>LAUNCH 2D SPACE →</span>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);">
+                ONYX TURN · Compelling-Concern &amp; Moral Turn Mapper
+              </div>
+              <div style="font-size:10px;color:var(--muted);line-height:1.45;">
+                Tracks when <em>“I will protect you”</em> becomes <em>“your disagreement proves I must control you.”</em> Keeps <strong>Justification</strong>, <strong>Narrative Operation</strong> (Poison Pill, Smokescreen, Turn, Reversal), and <strong>Options Lost</strong> visible simultaneously on a 9×9 grid.
+              </div>
+            </div>
+
+            <div class="shot-card" style="border-top:3px solid var(--purple);" onclick="STUDIO.setView('dream')">
+              <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--purple);font-weight:700;">
+                <span>SHOT 02 // METISIM (duviii-43) × WYGWYL × HALFWORLD</span>
+                <span>LAUNCH 2D SPACE →</span>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);">
+                ONYX DREAM-FORGE · Executable Symbolic Transformation Engine
+              </div>
+              <div style="font-size:10px;color:var(--muted);line-height:1.45;">
+                Closes the seam in <code>duviii-43.html</code>: Id/Ego/Superego pressures and transitions execute concrete scene mutations (<strong>Condensation</strong> retaining dual IDs, <strong>Displacement</strong>, <strong>Symbolization</strong>, <strong>Censorship</strong>, <strong>Secondary Revision</strong>) with participant Accept/Reject/Replace authorship.
+              </div>
+            </div>
+
+            <div class="shot-card" style="border-top:3px solid var(--cyan);" onclick="STUDIO.setView('sanctuary')">
+              <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--cyan);font-weight:700;">
+                <span>SHOT 03 // INCEPTR × SMALL FUTURES × COMMON</span>
+                <span>LAUNCH 2D SPACE →</span>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);">
+                ONYX SANCTUARY · Arrival-and-Belonging Multi-Account Replay
+              </div>
+              <div style="font-size:10px;color:var(--muted);line-height:1.45;">
+                Gives the <strong>Facilitator</strong> a running operational role, makes <strong>Cultural Adaptation</strong> change authority/witness/cost rules, preserves <strong>Coexisting Accounts</strong> side-by-side, and separates fictional state from claims about people.
+              </div>
+            </div>
+          </div>
+
+          <!-- 2D CONSTELLATION MAP + CORRESPONDENCE MATRIX -->
+          <div class="atlas-grid-section">
+            <div class="constellation-map-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:10.5px;font-weight:700;color:var(--amber);text-transform:uppercase;">
+                  <i class="fas fa-project-diagram"></i> 2D System Layer Topology (Click Node to Inspect)
+                </span>
+                <span style="font-size:9px;color:var(--muted);">ASAPS × Inceptr × Your Projects</span>
+              </div>
+              <div class="map-2d" id="constellationMap">
+                <div class="layer-band" style="top:8px;height:21%;">LAYER 1 · FACILITATION, DELIVERY &amp; INSTITUTIONAL RULES (INCEPTR / COMMON)</div>
+                <div class="layer-band" style="top:31%;height:22%;">LAYER 2 · NARRATIVE ORCHESTRATION &amp; SCENARIOS (ASAPS / 1000-SMALL-FUTURES / 1000-MEDICAL)</div>
+                <div class="layer-band" style="top:55%;height:21%;">LAYER 3 · EMBODIED PERFORMANCE &amp; ARCHIVAL MEMORY (HALFWORLD / WYGWYL / BOLAS)</div>
+                <div class="layer-band" style="top:78%;height:19%;">LAYER 4 · SYMBOLIC SUBSTRATE &amp; FORENSIC INSPECTION (METISIM duviii-43 / ONYX STUDIO)</div>
+                <svg id="mapWires" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></svg>
+                <div id="mapNodes"></div>
+              </div>
+              <div id="selectedNodeDetail" style="background:#060a15;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:10px;line-height:1.45;"></div>
+            </div>
+
+            <div class="correspondence-table-card">
+              <div style="padding:10px 12px;background:#060a15;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:10.5px;font-weight:700;color:var(--cyan);text-transform:uppercase;">
+                  <i class="fas fa-table"></i> Architectural Correspondence Matrix: ASAPS_New · Inceptr · Your Projects
+                </span>
+                <span style="font-size:9px;color:var(--muted);">Click any row to focus &amp; launch</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="arch-table">
+                  <thead>
+                    <tr>
+                      <th>Component / Repo</th>
+                      <th>Role in Stack</th>
+                      <th>Correspondence with ASAPS_New &amp; Inceptr</th>
+                      <th>Executable Contribution in Prototype</th>
+                    </tr>
+                  </thead>
+                  <tbody id="archTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IFRAME VIEWS -->
+      <iframe id="view-odyssey"   class="studio-view" src="onyx-slopling-odyssey.html" title="The Slopling's Odyssey"></iframe>
+      <iframe id="view-turn"      class="studio-view" src="onyx-turn.html"             title="ONYX Turn"></iframe>
+      <iframe id="view-dream"     class="studio-view" src="onyx-unconscious.html"      title="ONYX Dream-Forge"></iframe>
+      <iframe id="view-sanctuary" class="studio-view" src="onyx-sanctuary.html"        title="ONYX Sanctuary"></iframe>
+      <iframe id="view-head"      class="studio-view" src="onyx-head.html"             title="ONYX Head"></iframe>
+      <iframe id="view-tail"      class="studio-view" src="onyx-tail.html"             title="ONYX Tail"></iframe>
+      <iframe id="view-abs"       class="studio-view" src="onyx-abs.html"              title="ONYX Abs"></iframe>
+    </div>
+  </main>
+
+  <script>
+    const ARCH_NODES = [
+      {
+        id: 'inceptr',
+        label: 'Inceptr / Sanctuary',
+        x: 26, y: 18, color: '#22d3ee',
+        role: 'Facilitation, community authorship, contextual adaptation, nonclinical delivery.',
+        correspondence: 'Intellectual bridge via Hartmut Koenitz (ASAPS creator). Organizes narrative experiences around community needs & facilitator operations.',
+        contribution: 'Supplies the 6 Facilitator Operations (Introduce, Pause, Invite Account, Replay, Adapt Rules, Debrief) and epistemic separation in ONYX SANCTUARY.',
+        targetView: 'sanctuary'
+      },
+      {
+        id: 'common',
+        label: 'Halfworld: COMMON / Peer',
+        x: 74, y: 18, color: '#4ade80',
+        role: 'Institutional rules, trust, permissions, teaching, and shared resources.',
+        correspondence: 'Strongest institutional correspondence with Inceptr: makes collective rules and authority consequential.',
+        contribution: 'Powers the Cultural & Institutional Rule Adapter (changing authority, help available, action cost, witnesses, obligations).',
+        targetView: 'sanctuary'
+      },
+      {
+        id: 'asaps',
+        label: 'ASAPS_New (Koenitz)',
+        x: 50, y: 41, color: '#fbbf24',
+        role: 'Author encounters, beats, choices, preconditions, persistent consequences, and exits.',
+        correspondence: 'Core narrative state & beat orchestrator; powers the 97-beat Slopling’s Odyssey (`odyssey-tragic-comedy.json`) and 1000-small-futures.',
+        contribution: 'Executes all 97 beats, 16 conditionGates, 7 counters/sentiments, and 1,005 actor-node bindings in THE SLOPLING’S ODYSSEY.',
+        targetView: 'odyssey'
+      },
+      {
+        id: 'small_futures',
+        label: '1000-Small-Futures',
+        x: 20, y: 41, color: '#38bdf8',
+        role: 'Supply situations, roles, obstacles, and alternative perspectives.',
+        correspondence: 'Strongest scenario correspondence with ASAPS & Sanctuary: rehearsing difficult transitions across competing roles.',
+        contribution: 'Supplies the multi-perspective Arrival-and-Belonging role structure (Sora, Tomás, Jun) and forked histories.',
+        targetView: 'sanctuary'
+      },
+      {
+        id: 'medical',
+        label: '1000-Medical',
+        x: 80, y: 41, color: '#f43f5e',
+        role: 'Bounded clinical practitioner rehearsal, privacy collisions, and debriefing.',
+        correspondence: 'Exposes the revealing turn where protective justification (“I will protect you”) collides with patient autonomy.',
+        contribution: 'Drives ONYX TURN’s Compelling-Concern Mapper (Assistance → Collision → Poison Pill → Smokescreen → Turn → Reversal).',
+        targetView: 'turn'
+      },
+      {
+        id: 'halfworld',
+        label: 'Halfworld: Façade / Whispers',
+        x: 24, y: 65, color: '#a855f7',
+        role: 'Perform developments through bodies, speech, hesitation, gaze, distance, and space.',
+        correspondence: 'Translates ASAPS beats and Metisim internal pressures into observable spatial & interpersonal performance.',
+        contribution: 'Renders outward performance registers (Hesitation latency, Gaze deflection, Threshold distance) on the 2D stage.',
+        targetView: 'dream'
+      },
+      {
+        id: 'wygwyl',
+        label: 'WYGWYL Atlas / Cineosis',
+        x: 52, y: 65, color: '#fb923c',
+        role: 'Supply situated images, voices, cultural memory, and traceable archival origins.',
+        correspondence: 'Holds multiple coexisting accounts of an experience without collapsing them into a single narrator’s verdict.',
+        contribution: 'Tags every threshold object and perspective with traceable voice/image provenance (#WYGWYL-ARC).',
+        targetView: 'dream'
+      },
+      {
+        id: 'bolas',
+        label: 'Bolas / Slopling Odyssey Kits',
+        x: 80, y: 65, color: '#facc15',
+        role: 'Embodied threshold situations & 71 cardboard cutout performers: recognition, xenia, Scylla/Charybdis, Laertes’s Orchard.',
+        correspondence: 'Supplies the 71 cardboard cutout portraits (`Slopling_Odyssey_Cast_Roster.html`) and Homeric recognition tokens (Brass Calipers, Olive Bed, Orchard Trees).',
+        contribution: 'Drives the Cardboard Cutout Film Stage and 9×9 Beat Grid in THE SLOPLING’S ODYSSEY.',
+        targetView: 'odyssey'
+      },
+      {
+        id: 'metisim',
+        label: 'Metisim (duviii-43)',
+        x: 32, y: 88, color: '#e879f9',
+        role: 'Moving Id/Ego/Superego agents, 5 control sliders, state transitions, and symbolic operations.',
+        correspondence: 'Connects simulated psychic pressure to executable ASAPS/ONYX transformations (Condensation, Displacement, Symbolization, Censorship, Secondary Revision).',
+        contribution: 'Powers ONYX DREAM-FORGE’s live psychic canvas and executable symbolic morphisms.',
+        targetView: 'dream'
+      },
+      {
+        id: 'onyx',
+        label: 'ONYX Studio (Head/Abs/Tail)',
+        x: 70, y: 88, color: '#22d3ee',
+        role: 'Expose 9×9 spatial grids, entities, transformations, and resulting histories for inspection.',
+        correspondence: 'The forensic & facilitator instrument binding the entire constellation via localStorage["onyx_scene_collection"].',
+        contribution: 'Provides the 9×9 isometric grid substrate, Before/After event comparison tables, and cross-tool SceneCollection bus.',
+        targetView: 'head'
+      }
+    ];
+
+    const LINKS = [
+      ['inceptr', 'common'], ['inceptr', 'small_futures'], ['inceptr', 'asaps'],
+      ['small_futures', 'asaps'], ['medical', 'asaps'], ['common', 'asaps'],
+      ['asaps', 'halfworld'], ['asaps', 'wygwyl'], ['asaps', 'bolas'],
+      ['metisim', 'halfworld'], ['metisim', 'wygwyl'], ['metisim', 'asaps'],
+      ['onyx', 'asaps'], ['onyx', 'metisim'], ['onyx', 'wygwyl']
+    ];
+
+    const STUDIO = {
+      currentView: 'atlas',
+      selectedNodeId: 'asaps',
+      splitMode: false,
+
+      init() {
+        document.querySelectorAll('.tool-tab').forEach(tab => {
+          tab.addEventListener('click', () => this.setView(tab.dataset.view));
+        });
+        this.renderAtlas();
+      },
+
+      setView(viewName) {
+        this.currentView = viewName;
+        document.querySelectorAll('.tool-tab').forEach(t => {
+          t.classList.toggle('active', t.dataset.view === viewName);
+        });
+        this.applyVisibility();
+      },
+
+      toggleSplit() {
+        this.splitMode = !this.splitMode;
+        document.getElementById('btnSplit').style.background = this.splitMode ? 'var(--amber)' : 'var(--panel)';
+        document.getElementById('btnSplit').style.color = this.splitMode ? '#020617' : 'var(--amber)';
+        this.applyVisibility();
+      },
+
+      applyVisibility() {
+        const views = ['atlas', 'odyssey', 'turn', 'dream', 'sanctuary', 'head', 'tail', 'abs'];
+        if (this.splitMode) {
+          // Show active view on left, and ONYX HEAD (or ODYSSEY) on right for live comparison
+          const secondary = this.currentView === 'head' ? 'tail' : (this.currentView === 'atlas' ? 'odyssey' : 'head');
+          views.forEach(v => {
+            const el = document.getElementById(`view-${v}`);
+            if (el) el.classList.toggle('visible', v === this.currentView || v === secondary);
+          });
+        } else {
+          views.forEach(v => {
+            const el = document.getElementById(`view-${v}`);
+            if (el) el.classList.toggle('visible', v === this.currentView);
+          });
+        }
+      },
+
+      selectNode(id) {
+        this.selectedNodeId = id;
+        this.renderAtlas();
+      },
+
+      renderAtlas() {
+        const nodesEl = document.getElementById('mapNodes');
+        const wiresEl = document.getElementById('mapWires');
+        const detailEl = document.getElementById('selectedNodeDetail');
+        const tbody = document.getElementById('archTableBody');
+
+        const map = new Map(ARCH_NODES.map(n => [n.id, n]));
+        wiresEl.innerHTML = LINKS.map(([a, b]) => {
+          const n1 = map.get(a);
+          const n2 = map.get(b);
+          const active = (a === this.selectedNodeId || b === this.selectedNodeId);
+          return `<line x1="${n1.x}%" y1="${n1.y}%" x2="${n2.x}%" y2="${n2.y}%" stroke="${active ? '#fbbf24' : '#334155'}" stroke-width="${active ? '2' : '1'}" opacity="${active ? '0.9' : '0.45'}" />`;
+        }).join('');
+
+        nodesEl.innerHTML = ARCH_NODES.map(n => `
+          <div class="sys-node ${n.id === this.selectedNodeId ? 'selected' : ''}"
+               style="left:${n.x}%;top:${n.y}%;border-color:${n.color};color:${n.color};"
+               onclick="STUDIO.selectNode('${n.id}')">
+            ${n.label}
+          </div>
+        `).join('');
+
+        const sel = map.get(this.selectedNodeId) || ARCH_NODES[0];
+        detailEl.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <strong style="color:${sel.color};font-size:11px;">${sel.label}</strong>
+            <button onclick="STUDIO.setView('${sel.targetView}')" style="background:${sel.color}22;border:1px solid ${sel.color};color:${sel.color};padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer;font-weight:700;">
+              Open in ${sel.targetView.toUpperCase()} View →
+            </button>
+          </div>
+          <div style="color:var(--text);margin-bottom:3px;"><strong>Responsibility:</strong> ${sel.role}</div>
+          <div style="color:var(--muted);margin-bottom:3px;"><strong>Correspondence:</strong> ${sel.correspondence}</div>
+          <div style="color:var(--amber);"><strong>Executable Mechanism:</strong> ${sel.contribution}</div>
+        `;
+
+        tbody.innerHTML = ARCH_NODES.map(n => `
+          <tr class="${n.id === this.selectedNodeId ? 'active-row' : ''}" style="cursor:pointer;" onclick="STUDIO.selectNode('${n.id}')">
+            <td style="font-weight:700;color:${n.color};white-space:nowrap;">${n.label}</td>
+            <td>${n.role}</td>
+            <td style="color:var(--muted);">${n.correspondence}</td>
+            <td>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <span>${n.contribution}</span>
+                <button onclick="event.stopPropagation();STUDIO.setView('${n.targetView}')" style="background:var(--surface);border:1px solid var(--border);color:var(--amber);padding:2px 6px;border-radius:3px;font-family:inherit;font-size:8.5px;cursor:pointer;white-space:nowrap;">
+                  Launch
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => STUDIO.init());
+  </script>
+</body>
+</html>

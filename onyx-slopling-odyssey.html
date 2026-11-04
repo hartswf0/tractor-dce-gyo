@@ -1,0 +1,3764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Slopling's Odyssey — ONYX 9×9 Grid &amp; Cardboard Cutout Film Stage</title>
+<style>
+  :root {
+    --paper: #f5f1e8;
+    --paper-deep: #eae2d2;
+    --paper-stage: #fbf8f1;
+    --card: #fdfbf7;
+    --ink: #232825;
+    --ink-soft: #3d433e;
+    --muted: #636860;
+    --rule: #d5cbb8;
+    --rule-dark: #b8ab93;
+    --accent: #2f4b3c;
+    --accent-light: #e3ece6;
+    --amber: #985f22;
+    --amber-bg: #f9efe0;
+    --rust: #9b3b28;
+    --rust-bg: #fbeae6;
+    --cyan: #145960;
+    --cyan-bg: #e3f1f2;
+    --purple: #5b3b70;
+    --purple-bg: #f1eaf6;
+    --proscenium: #1c1814;
+    --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, select, input {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* App Shell */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Top Studio Header */
+  .top-header {
+    flex-shrink: 0;
+    background: var(--card);
+    border-bottom: 2px solid var(--rule-dark);
+    padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 30;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .header-row-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .back-pill {
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid #b6cbbd;
+    padding: 3px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .brand-title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .beat-Now-pill {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--amber);
+    background: var(--amber-bg);
+    border: 1px solid #dfc29d;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .view-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .view-tab {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.14s ease;
+  }
+
+  .view-tab:hover {
+    background: var(--paper-deep);
+    color: var(--ink);
+  }
+
+  .view-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-drawer-toggle {
+    display: none;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Chapter & Beat Bar */
+  .header-row-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chapter-strip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+    scrollbar-width: none;
+  }
+  .chapter-strip::-webkit-scrollbar { display: none; }
+
+  .chap-pill {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .chap-pill:hover {
+    border-color: var(--amber);
+    color: var(--ink);
+  }
+
+  .chap-pill.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+  }
+
+  .selector-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .studio-select {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 0.72rem;
+    color: var(--ink);
+    max-width: 220px;
+  }
+
+  /* Main Workspace */
+  .workspace {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100vw;
+    display: grid;
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .workspace[data-mode="film"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace[data-mode="film"] .grid-column,
+  .workspace[data-mode="film"] .roster-modal-panel,
+  .workspace[data-mode="film"] .riglab-modal-panel,
+  .workspace[data-mode="film"] .swarms-modal-panel {
+    display: none !important;
+  }
+
+  .workspace[data-mode="grid"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace[data-mode="grid"] .stage-column,
+  .workspace[data-mode="grid"] .roster-modal-panel,
+  .workspace[data-mode="grid"] .riglab-modal-panel,
+  .workspace[data-mode="grid"] .swarms-modal-panel {
+    display: none !important;
+  }
+
+  .workspace[data-mode="roster"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace[data-mode="roster"] .stage-column,
+  .workspace[data-mode="roster"] .grid-column,
+  .workspace[data-mode="roster"] .riglab-modal-panel,
+  .workspace[data-mode="roster"] .swarms-modal-panel {
+    display: none !important;
+  }
+  .workspace[data-mode="roster"] .roster-modal-panel {
+    display: flex !important;
+  }
+
+  .workspace[data-mode="riglab"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace[data-mode="riglab"] .stage-column,
+  .workspace[data-mode="riglab"] .grid-column,
+  .workspace[data-mode="riglab"] .roster-modal-panel,
+  .workspace[data-mode="riglab"] .swarms-modal-panel {
+    display: none !important;
+  }
+  .workspace[data-mode="riglab"] .riglab-modal-panel {
+    display: grid !important;
+  }
+
+  .workspace[data-mode="swarms"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace[data-mode="swarms"] .stage-column,
+  .workspace[data-mode="swarms"] .grid-column,
+  .workspace[data-mode="swarms"] .roster-modal-panel,
+  .workspace[data-mode="swarms"] .riglab-modal-panel {
+    display: none !important;
+  }
+  .workspace[data-mode="swarms"] .swarms-modal-panel {
+    display: flex !important;
+  }
+
+  /* Left Column: Cardboard Cutout Stage + Playable Script Deck */
+  .stage-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    border-right: 2px solid var(--rule-dark);
+    background: var(--paper);
+    overflow: hidden;
+  }
+
+  /* Cardboard Proscenium Stage */
+  .proscenium-box {
+    position: relative;
+    flex: 0 0 54%;
+    min-height: 250px;
+    max-height: 58%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+      radial-gradient(circle at 50% 44%, #fffdf9 0%, #f5eedf 62%, #e4d8c1 100%);
+    border-bottom: 3px solid #8c7658;
+    box-shadow: inset 0 0 0 6px #2a231c, inset 0 0 28px rgba(32, 22, 12, 0.16);
+    overflow: hidden;
+    padding: 8px 12px 0;
+    min-width: 0;
+  }
+
+  /* Stage Valance / Top Banner */
+  .stage-valance {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: rgba(253, 251, 247, 0.92);
+    border: 1px solid var(--rule-dark);
+    border-radius: 6px;
+    padding: 4px 10px;
+    z-index: 6;
+    min-width: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  .valance-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .valance-chap {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .valance-setting {
+    font-family: var(--font-serif);
+    font-size: 0.84rem;
+    font-style: italic;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .valance-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .stage-pill-btn {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .stage-pill-btn.active {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #fff;
+  }
+
+  /* Acting Cue Ribbon */
+  .acting-cue-ribbon {
+    margin-top: 4px;
+    width: 100%;
+    max-width: 100%;
+    background: rgba(249, 239, 224, 0.94);
+    border: 1px dashed #c8a273;
+    color: #5b3b14;
+    font-family: var(--font-mono);
+    font-size: 0.67rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+
+  /* Stage Performers Area */
+  .stage-floor-area {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(10px, 2.5vw, 28px);
+    padding: 4px 8px 36px;
+    z-index: 4;
+    overflow: hidden;
+  }
+
+  /* Wooden Stage Floor Plank Line */
+  .stage-floor-area::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 34px;
+    background: linear-gradient(180deg, #d7c5a6 0%, #bda580 100%);
+    border-top: 2px solid #967d59;
+    z-index: 1;
+  }
+
+  /* Individual Full-Body Cutout Standee */
+  .cutout-actor {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    max-height: 100%;
+    min-width: 68px;
+    max-width: 190px;
+    flex: 0 1 auto;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cutout-actor:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .cutout-actor.is-speaking {
+    z-index: 5;
+  }
+
+  .cutout-figure-wrap {
+    position: relative;
+    height: calc(100% - 32px);
+    min-height: 95px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .cutout-img {
+    height: 100%;
+    width: auto;
+    max-width: 175px;
+    object-fit: contain;
+    object-position: bottom center;
+    filter: drop-shadow(0 8px 12px rgba(28, 20, 10, 0.28));
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+
+  .cutout-actor.is-speaking .cutout-img {
+    filter: drop-shadow(0 10px 16px rgba(152, 95, 34, 0.42)) drop-shadow(0 0 6px rgba(255, 248, 224, 0.9));
+  }
+
+  .watson-rig-stage-canvas {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 2 / 3;
+    filter: drop-shadow(0 8px 12px rgba(28, 20, 10, 0.28));
+  }
+
+  /* Emotion Head Medallion overlay next to Watson figure */
+  .emotion-medallion {
+    position: absolute;
+    top: 2px;
+    right: -8px;
+    width: 36px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--card);
+    border: 1.5px solid var(--amber);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 6;
+  }
+
+  .emotion-medallion img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Cutout Baseplate Label */
+  .cutout-baseplate {
+    position: relative;
+    z-index: 6;
+    background: var(--card);
+    border: 1.5px solid #6b5840;
+    border-radius: 5px;
+    padding: 2px 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 150px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.16);
+    flex-shrink: 0;
+  }
+
+  .cutout-actor.is-speaking .cutout-baseplate {
+    background: #fff9ec;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 2px rgba(152, 95, 34, 0.24);
+  }
+
+  .baseplate-name-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+  }
+
+  .baseplate-name {
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .baseplate-state {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 700;
+    background: var(--amber);
+    color: #fff;
+    padding: 0 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .baseplate-cue {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 136px;
+  }
+
+  /* Stage Tableau Inset Card (for Orchard, Road, Wayfinding, Scylla/Charybdis) */
+  .stage-tableau-card {
+    position: relative;
+    z-index: 3;
+    height: calc(100% - 6px);
+    max-width: 220px;
+    background: rgba(253, 251, 247, 0.9);
+    border: 1.5px solid #8c7658;
+    border-radius: 8px;
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.14);
+  }
+
+  .stage-tableau-card img {
+    height: calc(100% - 18px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  }
+
+  .stage-tableau-label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--amber);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Die-Cut Stage Props Apron */
+  .stage-props-apron {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 3px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: none;
+    z-index: 7;
+    overflow: hidden;
+  }
+
+  .stage-prop-token {
+    pointer-events: auto;
+    background: rgba(253, 251, 247, 0.95);
+    border: 1px solid #8c724d;
+    border-radius: 5px;
+    padding: 1px 6px 1px 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.14);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .stage-prop-token img {
+    height: 19px;
+    width: 19px;
+    object-fit: contain;
+  }
+
+  .stage-prop-token span {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* Subtitle Overlay inside Stage (when Cinema Subtitles enabled) */
+  .stage-subtitle-overlay {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 34px;
+    background: rgba(24, 20, 16, 0.9);
+    color: #fdfbf7;
+    border: 1px solid #985f22;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-family: var(--font-serif);
+    font-size: 0.84rem;
+    line-height: 1.36;
+    z-index: 9;
+    display: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+  .stage-subtitle-overlay.visible {
+    display: block;
+  }
+
+  /* Bottom Half of Stage Column: Playable Script & Choice Deck */
+  .script-deck {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 14px 14px;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .script-header-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+  }
+
+  .script-speaker-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    max-width: 100%;
+  }
+
+  .script-speaker-pill .state-code {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .director-audit-badge {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    background: var(--rust-bg);
+    color: var(--rust);
+    border: 1px solid #d99b8e;
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+
+  /* Sub-node scrubber pills for dialogTree / choice beats */
+  .node-scrubber-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 2px 0;
+    scrollbar-width: none;
+    min-height: 26px;
+  }
+  .node-scrubber-bar:empty {
+    display: none;
+  }
+  .node-scrubber-bar::-webkit-scrollbar { display: none; }
+
+  .node-pill {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .node-pill.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+  }
+
+  .script-body-text {
+    flex-shrink: 0;
+    font-family: var(--font-serif);
+    font-size: 0.96rem;
+    line-height: 1.52;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  .script-body-text p + p {
+    margin-top: 8px;
+  }
+
+  /* Choices & Actions List */
+  .choices-deck {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .choice-card-btn {
+    width: 100%;
+    text-align: left;
+    background: var(--paper);
+    border: 1.5px solid var(--rule-dark);
+    border-left: 4px solid var(--accent);
+    border-radius: 7px;
+    padding: 8px 11px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: all 0.14s ease;
+  }
+
+  .choice-card-btn:hover {
+    background: var(--amber-bg);
+    border-color: var(--amber);
+    border-left-color: var(--amber);
+    transform: translateX(2px);
+  }
+
+  .choice-main-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: var(--ink);
+  }
+
+  .choice-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    color: var(--muted);
+  }
+
+  .choice-state-tag {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid #b6cbbd;
+    padding: 0 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  /* Right Column: 9×9 ONYX Beat Grid + Cell Inspector */
+  .grid-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    background: var(--paper-deep);
+    padding: 8px 10px;
+    gap: 7px;
+    overflow: hidden;
+  }
+
+  .grid-header-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .grid-title-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .grid-legend {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+  }
+
+  .legend-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  /* 9×9 ONYX Matrix */
+  .onyx-grid-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .onyx-grid {
+    width: 100%;
+    height: 100%;
+    max-width: min(100%, 540px);
+    max-height: min(100%, 540px);
+    aspect-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-template-rows: repeat(9, minmax(0, 1fr));
+    gap: 3px;
+    background: var(--rule-dark);
+    padding: 4px;
+    border-radius: 8px;
+    border: 2px solid #8c7658;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+
+  .onyx-cell {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 2px 3px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    cursor: pointer;
+    min-width: 0;
+    min-height: 0;
+    transition: transform 0.1s ease, border-color 0.1s ease;
+  }
+
+  .onyx-cell:hover {
+    transform: scale(1.05);
+    z-index: 5;
+    border-color: var(--ink);
+  }
+
+  .onyx-cell.selected {
+    outline: 2px solid var(--rust);
+    z-index: 6;
+  }
+
+  /* Cell ontological color coding */
+  .onyx-cell[data-kind="meta"] { background: #eef3ef; border-color: #b7cbbe; }
+  .onyx-cell[data-kind="cast"] { background: #fcf3e3; border-color: #d6b07d; }
+  .onyx-cell[data-kind="prop"] { background: #e8f3f4; border-color: #9ec6ca; }
+  .onyx-cell[data-kind="tableau"] { background: #f7ece8; border-color: #d7a698; }
+  .onyx-cell[data-kind="action"] { background: #fdfbf7; border-color: #d5cbb8; }
+  .onyx-cell[data-kind="emotion"] { background: #f3edf8; border-color: #c3add4; }
+  .onyx-cell[data-kind="node"] { background: #f8f4e8; border-color: #cbbd96; }
+  .onyx-cell[data-kind="exit"] { background: #e4efe8; border-color: #7ea88d; }
+  .onyx-cell[data-kind="audit"] { background: #fbeae6; border-color: #d48777; }
+
+  .cell-coord {
+    font-family: var(--font-mono);
+    font-size: 0.46rem;
+    color: var(--muted);
+    line-height: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 2px;
+  }
+
+  .cell-badge {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    font-weight: 800;
+    color: var(--amber);
+  }
+
+  .cell-thumb {
+    width: 100%;
+    height: 54%;
+    object-fit: contain;
+    margin: 0 auto;
+    pointer-events: none;
+  }
+
+  .cell-label {
+    font-size: 0.53rem;
+    font-weight: 700;
+    line-height: 1.08;
+    color: var(--ink);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  /* Cell Inspector Card below 9×9 Grid */
+  .cell-inspector {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1.5px solid var(--rule-dark);
+    border-radius: 7px;
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 68px;
+    max-height: 92px;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .inspector-thumb {
+    width: 48px;
+    height: 54px;
+    border-radius: 6px;
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .inspector-info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .inspector-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--amber);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .inspector-title {
+    font-weight: 800;
+    font-size: 0.78rem;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .inspector-desc {
+    font-family: var(--font-serif);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .inspector-action-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 9px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Full-Screen Cast & Kits Roster View */
+  .roster-modal-panel {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 14px;
+    gap: 14px;
+    background: var(--paper);
+  }
+
+  .roster-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--rule-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+  }
+
+  .roster-item-card {
+    background: var(--card);
+    border: 1px solid var(--rule-dark);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.14s ease, border-color 0.14s ease;
+  }
+
+  .roster-item-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--amber);
+  }
+
+  .roster-item-card img {
+    height: 120px;
+    width: 100%;
+    object-fit: contain;
+    background: var(--paper);
+    border-radius: 6px;
+    padding: 4px;
+  }
+
+  /* Embedded 15-Part Watson Joint Lab View */
+  .riglab-modal-panel {
+    display: none;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .riglab-sidebar {
+    padding: 14px;
+    background: var(--card);
+    border-right: 2px solid var(--rule-dark);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .riglab-stage-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: radial-gradient(circle at 50% 45%, #fffdf9 0%, #f1e8d6 70%, #dfd2ba 100%);
+    overflow: hidden;
+  }
+
+  .riglab-canvas {
+    width: min(100%, 460px);
+    height: min(100%, 620px);
+    aspect-ratio: 2 / 3;
+    border: 2px solid var(--rule-dark);
+    border-radius: 10px;
+    background: #f5f1e8;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  /* Bottom Transport Bar */
+  .transport-footer {
+    flex-shrink: 0;
+    height: 46px;
+    background: var(--card);
+    border-top: 2px solid var(--rule-dark);
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    z-index: 30;
+  }
+
+  .transport-btns {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .t-btn {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .t-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .t-btn.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+  }
+
+  .timeline-track-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .beat-range-slider {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .state-pills-strip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+  }
+
+  .var-pill {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .var-pill.on {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* SCION 8-Crew Assembly & Tribunal Ribbon */
+  .scion-crew-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: #efe7d6;
+    border-bottom: 1.5px solid var(--rule-dark);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    width: 100%;
+    min-width: 0;
+  }
+  .scion-crew-ribbon::-webkit-scrollbar { display: none; }
+
+  .tribunal-verdict-pill {
+    font-family: var(--font-mono);
+    font-size: 0.61rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid #1f3529;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tribunal-verdict-pill.warn {
+    background: var(--amber);
+    border-color: #704312;
+  }
+
+  .crew-telemetry-pill {
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: var(--card);
+    border: 1px solid var(--rule-dark);
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  .crew-telemetry-pill:hover {
+    border-color: var(--amber);
+    background: #fffdf8;
+    color: var(--ink);
+  }
+  .crew-telemetry-pill strong {
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .narrative-op-badge {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #e8f3f4;
+    border: 1px solid #8eb8be;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+
+  /* SCION 54-Swarm Operator & Assembly Console */
+  .swarms-modal-panel {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 12px;
+    gap: 12px;
+    background: var(--paper);
+  }
+
+  .scion-top-dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .scion-panel-card {
+    background: var(--card);
+    border: 1.5px solid var(--rule-dark);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .crews-matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .crew-card-box {
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    transition: all 0.12s ease;
+  }
+  .crew-card-box:hover, .crew-card-box.active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .swarms-studio-split {
+    display: grid;
+    grid-template-columns: minmax(260px, 350px) minmax(0, 1fr);
+    gap: 10px;
+    flex: 1 1 auto;
+    min-height: 420px;
+  }
+
+  .swarms-list-col {
+    background: var(--card);
+    border: 1.5px solid var(--rule-dark);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 62vh;
+    overflow: hidden;
+  }
+
+  .swarms-scroll-list {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 auto;
+  }
+
+  .swarm-choice-btn {
+    width: 100%;
+    text-align: left;
+    background: var(--paper);
+    border: 1px solid var(--rule-dark);
+    border-radius: 6px;
+    padding: 7px 9px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: all 0.12s ease;
+  }
+  .swarm-choice-btn:hover {
+    border-color: var(--amber);
+  }
+  .swarm-choice-btn.active {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  .swarm-detail-col {
+    background: var(--card);
+    border: 1.5px solid var(--rule-dark);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 62vh;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  .swarm-spec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .swarm-spec-box {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 0.75rem;
+    line-height: 1.38;
+  }
+  .swarm-spec-box strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .swarm-prompt-pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.48;
+    background: #181c1a;
+    color: #e6efe9;
+    padding: 10px 12px;
+    border-radius: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid #2f3b35;
+  }
+
+  /* Speech-cadence live pulse on speaking cutout */
+  .cutout-actor.is-speaking .cutout-figure-wrap {
+    transform: translateY(calc(var(--scion-speech-bob, 0px) * -1)) rotate(var(--scion-speech-tilt, 0deg));
+    transition: transform 0.06s linear;
+  }
+
+  /* Responsive Mobile Layout (<= 960px) */
+  @media (max-width: 960px) {
+    .top-header {
+      padding: 4px 6px;
+      gap: 4px;
+      width: 100%;
+      max-width: 100vw;
+      overflow: hidden;
+    }
+    .header-row-main {
+      flex-wrap: wrap;
+      gap: 4px;
+      width: 100%;
+    }
+    .brand-group {
+      flex: 1 1 calc(100% - 115px);
+      min-width: 0;
+      gap: 5px;
+    }
+    .brand-title {
+      font-size: 0.85rem;
+    }
+    .beat-Now-pill {
+      display: none;
+    }
+    .btn-drawer-toggle {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.63rem;
+      padding: 3px 6px;
+    }
+    .view-tabs {
+      flex: 0 0 100%;
+      width: 100%;
+      max-width: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 2px;
+    }
+    .view-tab {
+      text-align: center;
+      font-size: 0.58rem;
+      padding: 4px 1px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .header-row-sub {
+      display: none;
+    }
+    .header-row-sub.drawer-open {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      padding-top: 4px;
+      border-top: 1px solid var(--rule);
+      width: 100%;
+    }
+    .selector-controls {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4px;
+    }
+    .studio-select {
+      max-width: 100%;
+      width: 100%;
+      font-size: 0.66rem;
+    }
+    .workspace {
+      grid-template-columns: minmax(0, 1fr);
+      width: 100%;
+      max-width: 100vw;
+    }
+    /* On mobile, split mode defaults to showing stage-column cleanly unless grid is selected */
+    .workspace[data-mode="split"] .grid-column {
+      display: none;
+    }
+    .stage-column, .grid-column {
+      border-right: none;
+      width: 100%;
+      max-width: 100vw;
+    }
+    .proscenium-box {
+      flex: 0 0 42%;
+      min-height: 198px;
+      max-height: 44%;
+      padding: 4px 6px 0;
+      box-shadow: inset 0 0 0 3px #2a231c;
+      width: 100%;
+      max-width: 100vw;
+    }
+    .stage-valance {
+      padding: 2px 6px;
+      gap: 4px;
+    }
+    .valance-chap {
+      font-size: 0.58rem;
+      padding: 1px 4px;
+    }
+    .valance-setting {
+      font-size: 0.68rem;
+    }
+    .stage-pill-btn {
+      font-size: 0.56rem;
+      padding: 2px 4px;
+    }
+    .acting-cue-ribbon {
+      font-size: 0.57rem;
+      padding: 2px 6px;
+      margin-top: 2px;
+    }
+    .scion-crew-ribbon {
+      padding: 3px 6px;
+      gap: 4px;
+    }
+    .stage-floor-area {
+      padding: 2px 4px 30px;
+      gap: 6px;
+    }
+    .stage-floor-area::after {
+      height: 28px;
+    }
+    .cutout-actor {
+      min-width: 52px;
+      max-width: 120px;
+    }
+    .emotion-medallion {
+      width: 28px;
+      height: 32px;
+      right: -4px;
+    }
+    .cutout-baseplate {
+      padding: 1px 4px;
+      max-width: 108px;
+    }
+    .baseplate-name {
+      font-size: 0.58rem;
+    }
+    .baseplate-cue {
+      font-size: 0.48rem;
+      max-width: 96px;
+    }
+    .stage-tableau-card {
+      max-width: 130px;
+    }
+    .stage-props-apron {
+      bottom: 2px;
+      height: 24px;
+      gap: 4px;
+    }
+    .stage-prop-token {
+      height: 20px;
+      padding: 1px 4px 1px 2px;
+    }
+    .stage-prop-token img {
+      height: 15px;
+      width: 15px;
+    }
+    .stage-prop-token span {
+      font-size: 0.5rem;
+    }
+    .script-deck {
+      padding: 6px 8px 10px;
+      gap: 5px;
+      width: 100%;
+      max-width: 100vw;
+    }
+    .script-body-text {
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .choice-card-btn {
+      padding: 6px 8px;
+    }
+    .choice-main-line {
+      font-size: 0.78rem;
+    }
+    .riglab-modal-panel {
+      grid-template-columns: minmax(0, 1fr);
+      overflow-y: auto;
+    }
+    .riglab-sidebar {
+      border-right: none;
+      border-bottom: 2px solid var(--rule-dark);
+    }
+    .scion-top-dashboard {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .crews-matrix-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .swarms-studio-split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .swarms-list-col {
+      max-height: 240px;
+    }
+    .swarm-detail-col {
+      max-height: none;
+    }
+    .swarm-spec-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .state-pills-strip {
+      display: none;
+    }
+    .transport-footer {
+      padding: 0 6px;
+      height: 42px;
+      gap: 4px;
+      width: 100%;
+      max-width: 100vw;
+    }
+    .transport-btns {
+      gap: 3px;
+    }
+    .t-btn {
+      padding: 4px 5px;
+      font-size: 0.6rem;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- TOP HEADER -->
+  <header class="top-header">
+    <div class="header-row-main">
+      <div class="brand-group">
+        <a href="onyx-asaps.html" class="back-pill" title="Back to ONYX × ASAPS Hub">← HUB</a>
+        <h1 class="brand-title">The Slopling's Odyssey</h1>
+        <span class="beat-Now-pill" id="headerBeatPill">Beat 2 / 97</span>
+      </div>
+      <button class="btn-drawer-toggle" id="btnMobDrawer" onclick="toggleMobileHudDrawer()">☰ BEATS &amp; CUTS</button>
+      <nav class="view-tabs" aria-label="View Mode">
+        <button class="view-tab active" data-viewmode="split" id="tabSplit" onclick="setWorkspaceMode('split')">⊞ Split</button>
+        <button class="view-tab" data-viewmode="film" id="tabFilm" onclick="setWorkspaceMode('film')">🎬 Stage</button>
+        <button class="view-tab" data-viewmode="grid" id="tabGrid" onclick="setWorkspaceMode('grid')">🎛 9×9</button>
+        <button class="view-tab" data-viewmode="roster" id="tabRoster" onclick="setWorkspaceMode('roster')">🎭 Cast</button>
+        <button class="view-tab" data-viewmode="riglab" id="tabRigLab" onclick="setWorkspaceMode('riglab')">🦴 Rig</button>
+        <button class="view-tab" data-viewmode="swarms" id="tabSwarms" onclick="setWorkspaceMode('swarms')">🐝 Swarms</button>
+      </nav>
+    </div>
+
+    <div class="header-row-sub" id="hudSelectDrawer">
+      <div class="chapter-strip" id="chapterStrip"></div>
+      <div class="selector-controls">
+        <select class="studio-select" id="beatSelect" aria-label="Jump to Beat" onchange="jumpToBeat(this.value)"></select>
+        <select class="studio-select" id="actorFilterSelect" aria-label="Filter by Cast Member" onchange="filterByActor(this.value)">
+          <option value="">🎭 All 71 Cast &amp; Kits…</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="workspace" id="workspace" data-mode="split">
+    <!-- LEFT: CARDBOARD CUTOUT STAGE + PLAYABLE SCRIPT DECK -->
+    <section class="stage-column" aria-label="Cardboard Cutout Stage and Interactive Script">
+      <div class="proscenium-box" id="stageProscenium">
+        <div class="stage-valance">
+          <div class="valance-left">
+            <span class="valance-chap" id="stageChapterTag">I. The Call</span>
+            <span class="valance-setting" id="stageSettingText">Dana’s office / promotion conversation</span>
+          </div>
+          <div class="valance-right">
+            <button class="stage-pill-btn" id="btnStageGilliam" onclick="triggerStageGilliam()" title="SCION-TERRY-GILLIAM: Trigger Cutout Physical Comedy Operator">⚡ Cutout Gag</button>
+            <button class="stage-pill-btn" id="btnStageAtmo" onclick="cycleAtmosphereState()" title="SCION-YURI-NORSTEIN: Cycle Multiplane Atmosphere (Reveal / Obscure / Lure / Suspend)">🌫 Reveal</button>
+            <button class="stage-pill-btn" id="btnLiveRig" onclick="toggleLiveWatsonRig()" title="SCION-RIG: Toggle Live 15-Part Articulated Canvas Rig + Mounted E00–E17 Head">🦴 15-Part Rig</button>
+            <button class="stage-pill-btn" id="btnCinemaSub" onclick="toggleCinemaSubtitles()" title="Toggle On-Stage Cinema Subtitles">📺 Subs</button>
+          </div>
+        </div>
+
+        <div class="acting-cue-ribbon" id="stageActingCue">🎬 Cue: D warm, brisk, encouraging; open-palm invitation to sit. W hesitant attention.</div>
+
+        <div class="stage-floor-area" id="stageActorsRow"></div>
+
+        <div class="stage-props-apron" id="stagePropsApron"></div>
+
+        <div class="stage-subtitle-overlay" id="stageSubtitleBox"></div>
+      </div>
+
+      <!-- LIVE 8-CREW SCION SWARM ASSEMBLY & TRIBUNAL STRIP -->
+      <div class="scion-crew-ribbon" id="scionCrewRibbon" aria-label="SCION 8-Crew Live Assembly Telemetry"></div>
+
+      <div class="script-deck" id="scriptDeck">
+        <div class="script-header-bar">
+          <div class="script-speaker-pill" id="scriptSpeakerBadge">
+            <span id="scriptSpeakerName">Dana</span>
+            <span class="state-code" id="scriptSpeakerState">E14 · Recognition warmth</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+            <span class="narrative-op-badge" id="stateOpBadge" title="SCION-STATE-PROVENANCE: Observable Narrative Operation & Autonomous Reaction">⚙️ Op: Collision</span>
+            <div class="director-audit-badge" id="directorAuditBadge" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="node-scrubber-bar" id="nodeScrubberBar"></div>
+
+        <div class="script-body-text" id="scriptBodyText"></div>
+
+        <div class="choices-deck" id="choicesDeck"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT: 9×9 ONYX STRUCTURAL BEAT GRID -->
+    <section class="grid-column" aria-label="ONYX 9x9 Beat Grid">
+      <div class="grid-header-strip">
+        <span class="grid-title-label" id="gridHeaderTitle">ONYX 9×9 SPATIAL MATRIX · BEAT 2</span>
+        <div class="grid-legend">
+          <span class="legend-dot" style="background:#fcf3e3;border:1px solid #d6b07d;">🎭 Cast</span>
+          <span class="legend-dot" style="background:#e8f3f4;border:1px solid #9ec6ca;">🛠 Prop</span>
+          <span class="legend-dot" style="background:#f3edf8;border:1px solid #c3add4;">😊 E00-E17</span>
+          <span class="legend-dot" style="background:#e4efe8;border:1px solid #7ea88d;">➔ Exit</span>
+        </div>
+      </div>
+
+      <div class="onyx-grid-frame">
+        <div class="onyx-grid" id="onyxGrid" role="grid" aria-label="9 by 9 ONYX Beat Matrix"></div>
+      </div>
+
+      <div class="cell-inspector" id="cellInspector">
+        <img class="inspector-thumb" id="inspectorThumb" src="odyssey/slopling-cast/watson-heads/E04.png" alt="Selected cell preview">
+        <div class="inspector-info">
+          <div class="inspector-kicker" id="inspectorKicker">[4,4] · CAST ENTITY</div>
+          <div class="inspector-title" id="inspectorTitle">Slopling Watson · E04 Self doubt</div>
+          <div class="inspector-desc" id="inspectorDesc">Tap any cell in the 9×9 ONYX grid to inspect its cutout asset, E00–E17 emotion state, or jump to a dialogue branch.</div>
+        </div>
+        <button class="inspector-action-btn" id="inspectorActionBtn" style="display:none;">Act →</button>
+      </div>
+    </section>
+
+    <!-- FULL-SCREEN CAST & KITS ROSTER -->
+    <section class="roster-modal-panel" id="rosterPanel" aria-label="Cast and Cutout Kits Roster">
+      <div class="roster-filter-bar">
+        <div>
+          <strong style="font-family:var(--font-serif);font-size:1.05rem;">Cardboard Cutout Archive — 110 Full-Body Poses, 18 Emotions, 36 Props &amp; 16 Tableaux</strong>
+          <div style="font-size:0.76rem;color:var(--muted);">Click any cutout card to jump directly to its beat or filter the Odyssey by character.</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="rosterCategoryTabs">
+          <button class="t-btn active" onclick="renderRosterGallery('poses', this)">🧍 Full-Body Cutouts (27 Kits)</button>
+          <button class="t-btn" onclick="renderRosterGallery('emotions', this)">😊 Watson E00–E17 Heads (18)</button>
+          <button class="t-btn" onclick="renderRosterGallery('tableaux', this)">🖼 Scene Tableaux (16)</button>
+          <button class="t-btn" onclick="renderRosterGallery('props', this)">🛠 Die-Cut Props (36)</button>
+          <button class="t-btn" onclick="renderRosterGallery('portraits', this)">🎭 All 71 Cast Cards</button>
+        </div>
+      </div>
+      <div class="roster-grid" id="rosterGrid"></div>
+    </section>
+
+    <!-- EMBEDDED 15-PART WATSON JOINT LAB -->
+    <section class="riglab-modal-panel" id="rigLabPanel" aria-label="15-Part Articulated Watson Joint Lab">
+      <div class="riglab-sidebar">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:0.68rem;font-weight:700;color:var(--amber);text-transform:uppercase;">SCION-RIG · Master Cut v2 · 15 Polygon-Masked Parts</div>
+          <h2 style="font-family:var(--font-serif);font-size:1.25rem;margin-top:2px;">Watson Articulated Joint Lab</h2>
+          <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;line-height:1.4;">Powered by <strong>SCION-FORWARD-KINEMATICS</strong>, <strong>SCION-SECONDARY-DYNAMICS</strong>, and <strong>SCION-FACE-LANDMARK</strong>. Mounts live E00–E17 heads onto neck pivot <code>[512, 302]</code> with damped spring inertia.</p>
+        </div>
+
+        <div>
+          <div style="font-family:var(--font-mono);font-size:0.66rem;font-weight:700;color:var(--ink-soft);margin-bottom:5px;">1. VIEW MODE &amp; E00–E17 HEAD MOUNT</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <button class="t-btn active" id="rigViewAssembled" onclick="setRigLabView('assembled')">Assembled</button>
+            <button class="t-btn" id="rigViewJoints" onclick="setRigLabView('joints')">Joints &amp; Pivots</button>
+            <button class="t-btn" id="rigViewExploded" onclick="setRigLabView('exploded')">Exploded 15-Part Kit</button>
+            <button class="t-btn active" id="rigMountEmoBtn" onclick="toggleRigEmotionMount()">😊 Mount E00–E17 Head</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-family:var(--font-mono);font-size:0.66rem;font-weight:700;color:var(--ink-soft);margin-bottom:5px;">2. SCION 12-POSE ACTING LIBRARY</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;" id="rigPoseButtons">
+            <button class="t-btn active" data-rigpose="neutral" onclick="setRigLabPose('neutral')">Neutral Stand</button>
+            <button class="t-btn" data-rigpose="arm_bend" onclick="setRigLabPose('arm_bend')">Measure / Calipers</button>
+            <button class="t-btn" data-rigpose="foot_lift" onclick="setRigLabPose('foot_lift')">Departure Step</button>
+            <button class="t-btn" data-rigpose="reach" onclick="setRigLabPose('reach')">Extend Hand</button>
+            <button class="t-btn" data-rigpose="refuse" onclick="setRigLabPose('refuse')">Measured Refusal</button>
+            <button class="t-btn" data-rigpose="recoil" onclick="setRigLabPose('recoil')">Alarm Recoil</button>
+            <button class="t-btn" data-rigpose="graft" onclick="setRigLabPose('graft')">Orchard Graft</button>
+            <button class="t-btn" data-rigpose="bow_draw" onclick="setRigLabPose('bow_draw')">Draw Great Bow</button>
+            <button class="t-btn" data-rigpose="listen" onclick="setRigLabPose('listen')">Guild Listen</button>
+            <button class="t-btn" data-rigpose="proclaim" onclick="setRigLabPose('proclaim')">Stage Address</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.68rem;font-weight:700;margin-bottom:4px;">
+            <span>3. ARTICULATION &amp; SPRING TARGET</span>
+            <span id="rigAmountLabel">85%</span>
+          </div>
+          <input type="range" min="0" max="100" value="85" class="beat-range-slider" id="rigAmountSlider" oninput="setRigLabAmount(this.value)">
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="t-btn primary" id="btnRigPlayCycle" onclick="toggleRigLabLoop()">▶ Spring Physics Loop</button>
+            <button class="t-btn" onclick="setWorkspaceMode('split');toggleLiveWatsonRig(true);">🎬 Send Live Rig to Stage</button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);padding-top:8px;font-family:var(--font-mono);font-size:0.66rem;color:var(--muted);line-height:1.45;" id="rigPartsReadout">
+          15 Rig Parts Loaded: pelvis, torso, head, upper_arm_L/R, forearm_L/R, hand_L/R, thigh_L/R, shin_L/R, boot_L/R + E00–E17 Neck Anchor [512, 302].
+        </div>
+      </div>
+      <div class="riglab-stage-wrap">
+        <canvas class="riglab-canvas" id="rigLabCanvas" width="600" height="900"></canvas>
+      </div>
+    </section>
+
+    <!-- FULL-SCREEN SCION 54-SWARM OPERATOR & ASSEMBLY CONSOLE -->
+    <section class="swarms-modal-panel" id="swarmsPanel" aria-label="SCION 54 Animation Lineage Swarms Operator">
+      <div class="scion-top-dashboard">
+        <div class="scion-panel-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.64rem;font-weight:800;color:var(--amber);text-transform:uppercase;">SCION / LINEAGE FORGE · 8 ACTIVE ASSEMBLY CREWS</div>
+              <strong style="font-family:var(--font-serif);font-size:1.05rem;">Division of Labor — How the 54 Swarms Assemble Every Beat</strong>
+            </div>
+            <button class="t-btn" onclick="filterSwarmsByCrew('ALL')">Show All 54 Swarms</button>
+          </div>
+          <div class="crews-matrix-grid" id="scionCrewsMatrix"></div>
+        </div>
+
+        <div class="scion-panel-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.64rem;font-weight:800;color:var(--accent);text-transform:uppercase;">DOCTRINE #9 · INDEPENDENT CRITIC TRIBUNAL</div>
+              <strong style="font-family:var(--font-serif);font-size:1.02rem;" id="tribunalHeaderTitle">Beat 2 Tribunal Audit</strong>
+            </div>
+            <span class="tribunal-verdict-pill" id="tribunalPanelBadge">PASS 5/5</span>
+          </div>
+          <div id="tribunalInvariantsList" style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:0.65rem;"></div>
+          <div id="refusalAxesBox" style="border-top:1px solid var(--rule);padding-top:6px;display:flex;flex-wrap:wrap;gap:4px;font-family:var(--font-mono);font-size:0.62rem;"></div>
+        </div>
+      </div>
+
+      <div class="swarms-studio-split">
+        <div class="swarms-list-col">
+          <input type="search" id="swarmSearchInput" class="studio-select" style="max-width:100%;width:100%;padding:6px 9px;font-size:0.76rem;" placeholder="Search 54 swarms (Gilliam, Norstein, IK, Rive, Provenance)…" oninput="renderSwarmsList()">
+          <div style="font-family:var(--font-mono);font-size:0.64rem;color:var(--muted);" id="swarmListCount">54 Animation Lineage Swarms</div>
+          <div class="swarms-scroll-list" id="swarmsScrollList"></div>
+        </div>
+
+        <article class="swarm-detail-col" id="swarmDetailArticle">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.66rem;font-weight:800;color:var(--amber);" id="swarmDetailKicker">CREW-CUTOUT · ARTISTS &amp; DIRECTORS</div>
+              <h2 style="font-family:var(--font-serif);font-size:1.22rem;margin:2px 0;" id="swarmDetailTitle">1. Terry Gilliam — Comic Cutout Metamorphosis</h2>
+              <div style="font-size:0.75rem;color:var(--muted);" id="swarmDetailLineage">1974 BBC cutout demonstration; Monty Python collage interludes</div>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <button class="t-btn primary" id="btnRunSwarmOnStage" onclick="testActiveSwarmOnStage()">⚡ Run This Swarm on Stage</button>
+              <button class="t-btn" onclick="copyActiveSwarmPrompt()">📋 Copy Prompt</button>
+              <button class="t-btn" onclick="downloadActiveSwarmMd()">⬇ Save .md</button>
+            </div>
+          </div>
+
+          <div class="swarm-spec-box" style="background:var(--accent-light);border-color:var(--accent);">
+            <strong style="color:var(--accent);">ASSIGNED ODYSSEY ASSEMBLY JOB (LIVE RUNTIME CONTRACT)</strong>
+            <div id="swarmDetailOdysseyJob" style="font-weight:700;color:var(--ink);"></div>
+          </div>
+
+          <div class="swarm-spec-grid">
+            <div class="swarm-spec-box">
+              <strong>1 · Creative Theorem to Prove</strong>
+              <div id="swarmDetailTheorem"></div>
+            </div>
+            <div class="swarm-spec-box">
+              <strong>2 · Native Formal Language Primitives</strong>
+              <div id="swarmDetailPrimitives"></div>
+            </div>
+            <div class="swarm-spec-box">
+              <strong>3 · Smallest Capable Sub-Agent Swarm</strong>
+              <div id="swarmDetailAgents"></div>
+            </div>
+            <div class="swarm-spec-box">
+              <strong>4 &amp; 5 · Hard Proof Scene &amp; Acceptance Tribunal Bar</strong>
+              <div id="swarmDetailProofBar"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--font-mono);font-size:0.64rem;font-weight:700;color:var(--muted);margin-bottom:4px;">COMPLETE SCION STANDALONE OPERATOR PROMPT</div>
+            <pre class="swarm-prompt-pre" id="swarmDetailPromptPre"></pre>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- TRANSPORT FOOTER -->
+  <footer class="transport-footer">
+    <div class="transport-btns">
+      <button class="t-btn" onclick="stepBeat(-1)" title="Previous Beat">⏮ Prev</button>
+      <button class="t-btn primary" id="btnAutoFilm" onclick="toggleAutoPlay()">▶ Auto-Film</button>
+      <button class="t-btn" onclick="stepBeat(1)" title="Next Beat">⏭ Next</button>
+      <button class="t-btn active" id="btnFoleyAudio" onclick="toggleFoleyEngine()" title="SCION-SONIC-DRAMATURG: Toggle Procedural WebAudio Cutout Foley, Chapter Ambience &amp; 30fps Viseme Cadence">🥁 Foley</button>
+      <button class="t-btn" id="btnVoiceTts" onclick="toggleVoiceReadout()" title="Toggle Browser Speech Synthesis">🔊 TTS</button>
+    </div>
+
+    <div class="timeline-track-wrap">
+      <input type="range" class="beat-range-slider" id="beatTimelineSlider" min="0" max="96" value="2" oninput="jumpToBeatByIndex(this.value)" aria-label="Story Timeline Scrubber">
+    </div>
+
+    <div class="state-pills-strip" id="stateVarsStrip"></div>
+  </footer>
+</div>
+
+<script src="odyssey/slopling-cast/slopling-odyssey-data.js"></script>
+<script src="odyssey/slopling-cast/watson-rig-manifest.js"></script>
+<script src="odyssey/slopling-cast/scion-swarm-operator-data.js"></script>
+<script src="odyssey/slopling-cast/scion-tribunal-engine.js"></script>
+<script src="odyssey/slopling-cast/scion-multiplane-stage.js"></script>
+<script src="odyssey/slopling-cast/scion-kinetic-puppeteer.js"></script>
+<script src="odyssey/slopling-cast/scion-sonic-dramaturg.js"></script>
+<script src="odyssey/slopling-cast/scion-state-provenance.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const DATA = window.SLOPLING_ODYSSEY_DATA || window.SLOPLING_ODYSSEY;
+  if (!DATA || !DATA.story) {
+    document.body.innerHTML = '<div style="padding:24px;font-family:monospace;">Error: odyssey/slopling-cast/slopling-odyssey-data.js failed to load.</div>';
+    return;
+  }
+
+  const BEATS = DATA.story.beats || [];
+  const BEAT_MAP = new Map(BEATS.map((b, idx) => [b.id, { beat: b, index: idx }]));
+  const BINDINGS_LIST = (DATA.performanceBindings && DATA.performanceBindings.beats) || [];
+  const BINDINGS_MAP = new Map(BINDINGS_LIST.map(b => [b.beat_id, b]));
+  const EMOTIONS_LIST = (DATA.performanceBindings && DATA.performanceBindings.emotions) || [];
+  const EMOTIONS_MAP = new Map(EMOTIONS_LIST.map(e => [e.id, e]));
+  const FINDINGS_LIST = (DATA.actingReview && DATA.actingReview.findings) || [];
+  const FINDINGS_BY_QID = new Map(FINDINGS_LIST.map(f => [f.qualified_id, f]));
+  const POSES_INDEX = DATA.posesIndex || {};
+  const TABLEAUX_INDEX = DATA.tableauxIndex || {};
+  const PROP_MAP = DATA.propMap || {};
+  const ACTORS_LIST = DATA.actors || [];
+
+  // Initialize SCION Kinetic Puppeteer presets & styles
+  if (window.ScionKineticPuppeteer) {
+    window.ScionKineticPuppeteer.installPresetsIntoWatsonRig();
+    window.ScionKineticPuppeteer.injectKineticStyles();
+  }
+
+  // Load 15-part WatsonRig images + 18 E00-E17 emotion head images asynchronously
+  const rigImages = {};
+  const emotionHeadImages = {};
+  let rigLoaded = false;
+
+  if (window.WATSON_RIG_MANIFEST && Array.isArray(window.WATSON_RIG_MANIFEST.parts)) {
+    const partPromises = window.WATSON_RIG_MANIFEST.parts.map(p => new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => { rigImages[p.id] = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = p.data;
+    }));
+    const headPromises = EMOTIONS_LIST.map(e => new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => { emotionHeadImages[e.id] = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = `odyssey/slopling-cast/watson-heads/${e.id}.png`;
+    }));
+    Promise.all([...partPromises, ...headPromises]).then(() => {
+      rigLoaded = Object.keys(rigImages).length === window.WATSON_RIG_MANIFEST.parts.length;
+      renderStage();
+      renderRigLabCanvas();
+    });
+  }
+
+  // Chapter & Episode quick-jump definitions (mapped to exact authored beat IDs)
+  const CHAPTERS = [
+    { id: 'I', label: 'I. The Call (Dana)', startBeat: 'beat_2' },
+    { id: 'II', label: 'II. Departure & Circe', startBeat: 'beat_19' },
+    { id: 'III', label: 'III. Islands & Sirens', startBeat: 'beat_34' },
+    { id: 'IV', label: 'IV. Craft Masters', startBeat: 'beat_42' },
+    { id: 'V', label: 'V. The Road', startBeat: 'beat_47' },
+    { id: 'VI', label: 'VI. Wayfinding (Mau)', startBeat: 'beat_48' },
+    { id: 'VII', label: 'VII. The Cyclops', startBeat: 'beat_51' },
+    { id: 'VIII', label: 'VIII. Underworld (Ajax)', startBeat: 'beat_71' },
+    { id: 'IX', label: 'IX. The Suitors', startBeat: 'beat_77' },
+    { id: 'X', label: 'X. Father’s Orchard', startBeat: 'beat_94' }
+  ];
+
+  const state = {
+    currentBeatId: 'beat_2',
+    currentNodeIndex: 0,
+    activeDialogNode: null,
+    workspaceMode: window.innerWidth <= 960 ? 'film' : 'split',
+    useLiveWatsonRig: false,
+    showCinemaSubs: false,
+    autoPlaying: false,
+    foleyEnabled: true,
+    voiceEnabled: false,
+    selectedCellCoord: '4,4',
+    actorFilter: '',
+    choiceHistory: [],
+    activeCrewFilter: 'ALL',
+    selectedSwarmId: 1,
+    atmosphereIndex: 0,
+    storyVars: {
+      promotionAccepted: false,
+      sirensPlugged: false,
+      cyclopsBlinded: false,
+      threadKept: true,
+      molyTaken: true,
+      orchardReached: false
+    },
+    rigLab: {
+      view: 'assembled',
+      pose: 'arm_bend',
+      amount: 0.85,
+      mountEmotionHead: true,
+      emotionCode: 'E17',
+      looping: false,
+      animId: null
+    }
+  };
+
+  let autoTimer = null;
+  let stageRigCanvasEl = null;
+  let activeWatsonEmoCode = 'E04';
+  const stageKineticState = window.ScionKineticPuppeteer
+    ? window.ScionKineticPuppeteer.createKineticState('listen', { breathing: true })
+    : null;
+  const rigLabKineticState = window.ScionKineticPuppeteer
+    ? window.ScionKineticPuppeteer.createKineticState('arm_bend', { breathing: true })
+    : null;
+
+  // Mount SCION Multiplane Stage onto #stageProscenium
+  const prosceniumEl = document.getElementById('stageProscenium');
+  if (window.ScionMultiplaneStage && prosceniumEl) {
+    window.ScionMultiplaneStage.mount(prosceniumEl);
+  }
+
+  // Continuous 60fps Damped Spring-Physics Loop for Stage Rig & Joint Lab
+  let lastPhysicsTick = performance.now();
+  function tickKineticPhysics(now) {
+    const dt = Math.min(0.05, Math.max(0.004, (now - lastPhysicsTick) / 1000));
+    lastPhysicsTick = now;
+
+    if (rigLoaded && window.ScionKineticPuppeteer && window.WATSON_RIG_MANIFEST) {
+      if (state.useLiveWatsonRig && stageRigCanvasEl && stageKineticState) {
+        window.ScionKineticPuppeteer.stepPhysics(stageKineticState, dt);
+        const emoImg = emotionHeadImages[activeWatsonEmoCode] || null;
+        window.ScionKineticPuppeteer.renderAnimatedWatson(
+          stageRigCanvasEl.getContext('2d'),
+          window.WATSON_RIG_MANIFEST,
+          rigImages,
+          emoImg,
+          stageKineticState,
+          { view: 'assembled', background: null, mountEmotionHead: true }
+        );
+      }
+      if (state.workspaceMode === 'riglab' && state.rigLab.looping && rigLabKineticState) {
+        window.ScionKineticPuppeteer.stepPhysics(rigLabKineticState, dt);
+        const cnv = document.getElementById('rigLabCanvas');
+        if (cnv) {
+          const emoImg = state.rigLab.mountEmotionHead ? (emotionHeadImages[state.rigLab.emotionCode] || emotionHeadImages.E17) : null;
+          window.ScionKineticPuppeteer.renderAnimatedWatson(
+            cnv.getContext('2d'),
+            window.WATSON_RIG_MANIFEST,
+            rigImages,
+            emoImg,
+            rigLabKineticState,
+            { view: state.rigLab.view, background: '#f5f1e8', mountEmotionHead: state.rigLab.mountEmotionHead }
+          );
+        }
+      }
+    }
+    requestAnimationFrame(tickKineticPhysics);
+  }
+  requestAnimationFrame(tickKineticPhysics);
+
+  // Map entity_id to human display name
+  const ENTITY_NAMES = {
+    char_player: 'Slopling Watson',
+    char_dana: 'Dana (Engineering Director)',
+    char_father: 'Laertes (Father in the Orchard)',
+    char_chad: 'Chad (Greeks on the Beach)',
+    char_dougie: 'Dougie (Staff Engineer)',
+    char_ines: 'Ines (Product Peer)',
+    char_karpathi: 'Karpathi (Voyage Herald)',
+    circe: 'Circe (Transformation Architect)',
+    extra_circe: 'Circe (Transformation Architect)',
+    mau: 'Mau Piailug (Master Navigator)',
+    extra_mau: 'Mau Piailug (Master Navigator)',
+    etienne_wenger: 'Etienne Wenger (Community of Practice)',
+    extra_etienne_wenger: 'Etienne Wenger (Community of Practice)',
+    jean_lave: 'Jean Lave (Situated Learning)',
+    extra_jean_lave: 'Jean Lave (Situated Learning)',
+    odysseus_home: 'Odysseus Returned',
+    extra_odysseus: 'Odysseus Returned',
+    odysseus_son: 'Telemachus',
+    extra_odysseus_son: 'Telemachus',
+    worker_a: 'Master Carpenter (Compagnons)',
+    extra_compagnons: 'Master Carpenter (Compagnons)',
+    worker_b: 'Master Stonemason (Road)',
+    worker_c: 'Master Potter (Road)',
+    extra_potter: 'Master Potter (Road)',
+    worker_d: 'Ise Jingu Shrinewright',
+    extra_ise_builders: 'Ise Jingu Shrinewright',
+    extra_ijazah_chain: 'Ijazah Master Scholar',
+    char_ajax: 'Ajax (The Silent Builder)',
+    char_brookes: 'Fred Brookes (Mythical Month)',
+    char_carmick: 'Jon Carmick (Exile Workshop)',
+    char_hassaby: 'Denis Hassaby (Charter Room)',
+    char_knuthe: 'Don Knuthe (Literate Cave)',
+    char_newall: 'Gabe Newall (Flat Island)',
+    char_shanning: 'Claude Shanning (Bell Garden)',
+    char_sutskov: 'Ilya Sutskov (Scaling Oracle)',
+    char_tomson: 'Ken Tomson (Unix Master)',
+    char_torwald: 'Linos Torwald (The Siren)',
+    creature_cyclops: 'Polyphemus (Dashboard Cyclops)',
+    extra_dashboard_cyclops: 'Polyphemus (Dashboard Cyclops)',
+    extra_kpi_sheep: 'KPI Metric Sheep',
+    extra_theseus_mouse: 'Theseus Maze Mouse',
+    extra_swine_leads: 'Transformed Swine Leads',
+    creature_scylla: 'Scylla (Six-Headed Incident)',
+    creature_charybdis: 'Charybdis (Refactoring Vortex)',
+    extra_office_chorus: 'Open-Plan Office Chorus'
+  };
+
+  function getEntityDisplayName(entityId) {
+    if (ENTITY_NAMES[entityId]) return ENTITY_NAMES[entityId];
+    return String(entityId || 'Character').replace(/^char_|^creature_|^extra_/g, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // Resolve full-body cutout pose image for any entity + emotion state + node index
+  function resolveFullBodyCutout(entityId, emotionState, nodeStep) {
+    const step = Number(nodeStep) || 0;
+    if (entityId === 'char_player') {
+      const playerPoses = POSES_INDEX.char_player || [];
+      const byId = Object.fromEntries(playerPoses.map(p => [p.id, p.url]));
+      if (['E01'].includes(emotionState)) return byId.bench_focus || playerPoses[1]?.url;
+      if (['E05', 'E12'].includes(emotionState)) return byId.polite_strain || playerPoses[2]?.url;
+      if (['E04', 'E08', 'E10', 'E11'].includes(emotionState)) return byId.doubt || playerPoses[3]?.url;
+      if (['E09', 'E16', 'E17'].includes(emotionState)) return byId.boundary || playerPoses[4]?.url;
+      if (['E06', 'E07', 'E13', 'E15'].includes(emotionState)) return byId.show_work || playerPoses[5]?.url;
+      return byId.listen || playerPoses[0]?.url || 'odyssey/slopling-cast/poses/char_player_listen.png';
+    }
+
+    if (entityId === 'creature_cyclops' || entityId === 'extra_dashboard_cyclops' || /cyclops/i.test(entityId)) {
+      return step % 2 === 1 ? PROP_MAP.cyclops_alarm : PROP_MAP.cyclops_open;
+    }
+    if (entityId === 'extra_kpi_sheep' || /sheep/i.test(entityId)) return PROP_MAP.kpi_sheep;
+    if (entityId === 'extra_theseus_mouse' || /mouse/i.test(entityId)) return PROP_MAP.theseus_mouse;
+    if (entityId === 'extra_swine_leads' || /swine/i.test(entityId)) return PROP_MAP.swine_lead;
+    if (entityId === 'creature_scylla' || /scylla/i.test(entityId)) {
+      return TABLEAUX_INDEX.scylla_assembled || PROP_MAP.scylla_rock_body;
+    }
+    if (entityId === 'creature_charybdis' || /charybdis/i.test(entityId)) {
+      return TABLEAUX_INDEX.charybdis_assembled || PROP_MAP.charybdis_vortex;
+    }
+
+    if (POSES_INDEX[entityId] && POSES_INDEX[entityId].length) {
+      const list = POSES_INDEX[entityId];
+      const stateNum = parseInt(String(emotionState || 'E00').replace(/\D/g, ''), 10) || 0;
+      const idx = (stateNum + step) % list.length;
+      return list[idx].url;
+    }
+
+    const fallbackKitMap = {
+      extra_circe: 'circe',
+      extra_mau: 'mau',
+      extra_hawaiian_navigators: 'mau',
+      extra_compagnons: 'worker_a',
+      extra_potter: 'worker_c',
+      extra_ise_builders: 'worker_d',
+      extra_ijazah_chain: 'etienne_wenger',
+      extra_etienne_wenger: 'etienne_wenger',
+      extra_jean_lave: 'jean_lave',
+      extra_odysseus: 'odysseus_home',
+      extra_odysseus_son: 'odysseus_son',
+      extra_office_chorus: 'char_chad',
+      extra_hr_pair: 'char_dana',
+      extra_researcher_circle: 'char_sutskov',
+      extra_vane_colleagues: 'char_newall',
+      extra_hidden_engineers: 'worker_b',
+      extra_reorg_shades: 'char_ajax',
+      extra_ajax_apprentices: 'worker_a',
+      extra_next_junior: 'char_ines',
+      extra_vp: 'char_dana',
+      extra_client: 'char_chad',
+      extra_neighbours: 'worker_c',
+      chorus_sirens: 'char_karpathi',
+      chorus_greeks: 'char_dougie',
+      chorus_swine: 'circe',
+      master_carpenter: 'worker_a',
+      master_stonemason: 'worker_b',
+      master_potter: 'worker_c',
+      ise_shrinewright: 'worker_d',
+      ijazah_master: 'etienne_wenger'
+    };
+    const mapped = fallbackKitMap[entityId];
+    if (mapped && POSES_INDEX[mapped] && POSES_INDEX[mapped].length) {
+      const list = POSES_INDEX[mapped];
+      const stateNum = parseInt(String(emotionState || 'E00').replace(/\D/g, ''), 10) || 0;
+      return list[(stateNum + step) % list.length].url;
+    }
+
+    const genericList = POSES_INDEX.char_ines || POSES_INDEX.char_dana || [];
+    return genericList[0]?.url || 'odyssey/slopling-cast/poses/char_dana_p0.png';
+  }
+
+  // Resolve scene tableau if current beat matches Orchard, Road, Wayfinding, or Scylla/Charybdis
+  function resolveBeatTableau(beatId, binding) {
+    const bNum = parseInt(String(beatId).replace('beat_', ''), 10);
+    const title = ((binding && binding.name) || '').toLowerCase();
+    const setting = ((binding && binding.setting) || '').toLowerCase();
+
+    if (bNum >= 93 || setting.includes('orchard') || title.includes('orchard') || title.includes('trees') || title.includes('telemachus')) {
+      if (beatId === 'beat_93') return { id: 'orchard_journal', label: 'Orchard · Graft Journal', url: TABLEAUX_INDEX.orchard_journal };
+      if (beatId === 'beat_94') return { id: 'orchard_calipers', label: 'Orchard · Calipers Tableau', url: TABLEAUX_INDEX.orchard_calipers };
+      if (beatId === 'beat_100' || title.includes('tree')) return { id: 'orchard_trees', label: 'Orchard · Naming the Trees', url: TABLEAUX_INDEX.orchard_trees };
+      if (beatId === 'beat_101') return { id: 'orchard_hand', label: 'Orchard · Guided Hand', url: TABLEAUX_INDEX.orchard_hand };
+      if (beatId === 'beat_102' || beatId === 'beat_103') return { id: 'orchard_embrace', label: 'Orchard · Reconciliation', url: TABLEAUX_INDEX.orchard_embrace };
+      return { id: 'orchard_silence', label: 'Orchard · Shared Silence', url: TABLEAUX_INDEX.orchard_silence };
+    }
+    if (beatId === 'beat_47' || title.includes('road of older ladders')) {
+      const roadTableaux = [
+        { id: 'road_carpenter', label: 'The Road · Master Carpenter', url: TABLEAUX_INDEX.road_carpenter },
+        { id: 'road_stonemason', label: 'The Road · Master Stonemason', url: TABLEAUX_INDEX.road_stonemason },
+        { id: 'road_potter', label: 'The Road · Master Potter', url: TABLEAUX_INDEX.road_potter },
+        { id: 'road_ise', label: 'The Road · Ise Jingu Rebuild', url: TABLEAUX_INDEX.road_ise },
+        { id: 'road_ijazah', label: 'The Road · Ijazah Transmission', url: TABLEAUX_INDEX.road_ijazah }
+      ];
+      return roadTableaux[state.currentNodeIndex % roadTableaux.length];
+    }
+    if (beatId === 'beat_48' || beatId === 'beat_49' || beatId === 'beat_75' || setting.includes('water') || setting.includes('canoe')) {
+      if (beatId === 'beat_48') return { id: 'wayfinding_swells', label: 'Wayfinding · Reading Swells', url: TABLEAUX_INDEX.wayfinding_swells };
+      if (beatId === 'beat_49') return { id: 'wayfinding_share', label: 'Wayfinding · Shared Canoe', url: TABLEAUX_INDEX.wayfinding_share };
+      return { id: 'wayfinding_keep', label: 'Wayfinding · Star Compass', url: TABLEAUX_INDEX.wayfinding_keep };
+    }
+    if (title.includes('scylla') || beatId === 'beat_24') {
+      return { id: 'scylla_assembled', label: 'Scylla · Six-Headed Hazard', url: TABLEAUX_INDEX.scylla_assembled };
+    }
+    if (title.includes('charybdis') || beatId === 'beat_33a' || beatId === 'beat_33b') {
+      return { id: 'charybdis_assembled', label: 'Charybdis · Inbox Vortex', url: TABLEAUX_INDEX.charybdis_assembled };
+    }
+    return null;
+  }
+
+  // Resolve die-cut props for any beat
+  function resolveBeatProps(beatId, binding) {
+    const rawProps = (binding && binding.props_and_fx) || [];
+    const matched = [];
+    const seen = new Set();
+    const addProp = (key, label) => {
+      if (PROP_MAP[key] && !seen.has(key)) {
+        seen.add(key);
+        matched.push({ key, label: label || key.replace(/_/g, ' '), url: PROP_MAP[key] });
+      }
+    };
+
+    rawProps.forEach(p => {
+      const s = p.toLowerCase();
+      if (s.includes('laptop') || s.includes('code') || s.includes('keyboard') || s.includes('terminal')) addProp('keyboard', p);
+      if (s.includes('offer') || s.includes('letter') || s.includes('chart') || s.includes('paper')) addProp('offer_letter', p);
+      if (s.includes('phone') || s.includes('slack') || s.includes('calendar')) addProp('phone', p);
+      if (s.includes('badge') || s.includes('title')) addProp('lead_badge', p);
+      if (s.includes('lanyard')) addProp('lanyard', p);
+      if (s.includes('coffee') || s.includes('flat white') || s.includes('espresso')) addProp('flatwhite', p);
+      if (s.includes('headset') || s.includes('ear') || s.includes('wax') || s.includes('siren')) addProp('wireless_headset', p);
+      if (s.includes('cyclops') || s.includes('eye') || s.includes('dashboard')) addProp('cyclops_open', p);
+      if (s.includes('sheep') || s.includes('kpi') || s.includes('ticket')) addProp('kpi_sheep', p);
+      if (s.includes('maze') || s.includes('labyrinth') || s.includes('thread')) addProp('maze', p);
+      if (s.includes('mouse') || s.includes('theseus')) addProp('theseus_mouse', p);
+      if (s.includes('cup') || s.includes('potion') || s.includes('circe')) addProp('framework_cup', p);
+      if (s.includes('moly') || s.includes('herb') || s.includes('root')) addProp('moly_herb', p);
+      if (s.includes('swine') || s.includes('pig')) addProp('swine_lead', p);
+      if (s.includes('scylla')) addProp('scylla_head_neck', p);
+      if (s.includes('charybdis') || s.includes('vortex')) addProp('charybdis_vortex', p);
+      if (s.includes('plane') || s.includes('wood') || s.includes('timber')) addProp('hand_plane', p);
+      if (s.includes('joinery') || s.includes('beam')) addProp('timber_joinery_piece', p);
+      if (s.includes('chisel') || s.includes('stone')) addProp('chisel', p);
+      if (s.includes('mallet')) addProp('wooden_mallet', p);
+      if (s.includes('potter') || s.includes('wheel') || s.includes('clay')) addProp('pottery_wheel', p);
+      if (s.includes('pot') || s.includes('vessel')) addProp('clay_pot', p);
+      if (s.includes('canoe') || s.includes('hull') || s.includes('outrigger')) addProp('wayfinding_canoe', p);
+      if (s.includes('paddle') || s.includes('swell')) addProp('wayfinding_paddle', p);
+      if (s.includes('journal') || s.includes('notebook') || s.includes('ledger')) addProp('journal', p);
+      if (s.includes('caliper')) addProp('calipers', p);
+      if (s.includes('knife') || s.includes('graft')) addProp('grafting_knife', p);
+      if (s.includes('branch') || s.includes('scion') || s.includes('tree') || s.includes('orchard')) addProp('graft_branch', p);
+      if (s.includes('shield') || s.includes('ajax')) addProp('ajax_shield', p);
+    });
+
+    const bNum = parseInt(String(beatId).replace('beat_', ''), 10) || 0;
+    if (matched.length < 2) {
+      if (bNum <= 17) { addProp('offer_letter', 'Offer Letter'); addProp('keyboard', 'Workstation'); addProp('lead_badge', 'Team Lead Badge'); }
+      else if (bNum <= 24) { addProp('framework_cup', 'Framework Cup'); addProp('moly_herb', 'Moly Herb'); addProp('swine_lead', 'Swine Lead'); }
+      else if (bNum <= 46) { addProp('wireless_headset', 'Siren Canceller'); addProp('maze', 'Architecture Maze'); addProp('theseus_mouse', 'Theseus Mouse'); }
+      else if (bNum === 47) { addProp('hand_plane', 'Hand Plane'); addProp('timber_joinery_piece', 'Timber Joinery'); addProp('clay_pot', 'Thrown Vessel'); }
+      else if (bNum === 48 || bNum === 49) { addProp('wayfinding_canoe', 'Wayfinding Canoe'); addProp('wayfinding_paddle', 'Steering Paddle'); }
+      else if (bNum === 50 || bNum === 51) { addProp('cyclops_open', 'KPI Cyclops'); addProp('kpi_sheep', 'Metric Sheep'); }
+      else if (bNum >= 70 && bNum <= 76) { addProp('ajax_shield', 'Ajax Shield'); addProp('craft_hammer', 'Craft Hammer'); }
+      else if (bNum >= 77 && bNum <= 92) { addProp('lead_badge', 'Team Lead Badge'); addProp('phone', 'Slack Poll'); }
+      else { addProp('calipers', 'Brass Calipers'); addProp('grafting_knife', 'Grafting Knife'); addProp('journal', 'Orchard Journal'); }
+    }
+    return matched.slice(0, 4);
+  }
+
+  // Extract readable paragraphs and interactive choices from a beat
+  function getBeatContent(beat, binding) {
+    const params = beat.parameters || {};
+    const nodes = (binding && binding.nodes) || [];
+    const currentNode = nodes[state.currentNodeIndex] || nodes[0] || null;
+
+    let paragraphs = [];
+    let choices = [];
+    let speakerEntity = 'char_player';
+    let speakerState = 'E00';
+    let speakerCue = 'attentive listening';
+    let qualifiedId = beat.id;
+
+    if (beat.type === 'titleScreen') {
+      paragraphs = [
+        'An interactive tragicomedy of craft, management, and returning to the orchard — assembled by 8 SCION Animation Lineage Swarms across 110 full-body cardboard cutouts, 18 Watson emotion heads (E00–E17), 36 die-cut props, and a 9×9 ONYX structural matrix.',
+        'Begin at Beat 1 (The Slopling), Beat 2 (Dana’s Promotion Offer), or jump to any of the X Chapters above.'
+      ];
+      choices = [
+        { label: '▶ Begin Beat 1: The Slopling (Workstation)', target: 'beat_1', state: 'E01', cue: 'absorbed focus at the bench' },
+        { label: '⚡ Jump to Beat 2: Dana’s Offer (Interactive Dialogue)', target: 'beat_2', state: 'E02', cue: 'curious question' },
+        { label: '🌳 Jump to Beat 94: In the Orchard (Father & Son)', target: 'beat_94', state: 'E14', cue: 'recognition warmth' }
+      ];
+    } else if (beat.type === 'dialogTree' && nodes.length > 0) {
+      const activeNode = currentNode || nodes[0];
+      qualifiedId = activeNode.qualified_id;
+      paragraphs = [activeNode.source_text || beat.name];
+      if (activeNode.performances && activeNode.performances.length) {
+        const primary = activeNode.performances[0];
+        speakerEntity = primary.entity_id || 'char_dana';
+        speakerState = (primary.states && primary.states[0] && primary.states[0].state) || 'E14';
+        speakerCue = (primary.states && primary.states[0] && primary.states[0].cue) || activeNode.acting_cue || '';
+      }
+      const choiceNodes = nodes.filter((n, idx) => n.kind === 'choice' && idx > state.currentNodeIndex);
+      if (state.currentNodeIndex + 1 < nodes.length) {
+        const nextN = nodes[state.currentNodeIndex + 1];
+        const nextState = (nextN.performances && nextN.performances[0] && nextN.performances[0].states && nextN.performances[0].states[0]) || { state: 'E02', cue: nextN.acting_cue || 'respond' };
+        choices.push({
+          label: nextN.kind === 'choice' ? `💬 "${nextN.source_text}"` : `▶ Continue Dialogue (${nextN.qualified_id.split('::')[1]})`,
+          nodeIndex: state.currentNodeIndex + 1,
+          state: nextState.state,
+          cue: nextState.cue
+        });
+      }
+      choiceNodes.slice(0, 3).forEach(cn => {
+        const idx = nodes.indexOf(cn);
+        if (idx !== state.currentNodeIndex + 1) {
+          const st = (cn.performances && cn.performances[0] && cn.performances[0].states && cn.performances[0].states[0]) || { state: 'E03', cue: cn.acting_cue || 'branch' };
+          choices.push({
+            label: `↳ Branch: "${cn.source_text}"`,
+            nodeIndex: idx,
+            state: st.state,
+            cue: st.cue
+          });
+        }
+      });
+      const exitTargets = (binding && binding.source_targets) || [];
+      exitTargets.forEach(t => {
+        const tb = BEAT_MAP.get(t);
+        choices.push({
+          label: `⏭ Proceed to ${tb ? tb.beat.name : t}`,
+          target: t,
+          state: 'E16',
+          cue: 'advance scene'
+        });
+      });
+    } else {
+      if (Array.isArray(params.text)) {
+        paragraphs = params.text.map(t => typeof t === 'string' ? t : (t.text || '')).filter(Boolean);
+      } else if (typeof params.text === 'string') {
+        paragraphs = [params.text];
+      } else if (nodes.length > 0) {
+        paragraphs = nodes.map(n => n.source_text).filter(Boolean);
+      }
+      if (!paragraphs.length) {
+        paragraphs = [(binding && binding.interpretation_note) || `${beat.name} — ${binding ? binding.setting : 'Scene'}`];
+      }
+
+      if (binding && binding.cast && binding.cast.length) {
+        const c0 = binding.cast[0];
+        speakerEntity = c0.entity_id;
+        const sp0 = (c0.suggested_performances && c0.suggested_performances[0]) || { state: 'E00', cue: 'present on stage' };
+        speakerState = sp0.state;
+        speakerCue = sp0.cue;
+      }
+
+      if (Array.isArray(params.choices) && params.choices.length) {
+        params.choices.forEach((ch, cIdx) => {
+          const matchingNode = nodes[cIdx];
+          const pState = (matchingNode && matchingNode.performances && matchingNode.performances[0] && matchingNode.performances[0].states && matchingNode.performances[0].states[0]) || { state: 'E16', cue: matchingNode ? matchingNode.acting_cue : 'decision' };
+          const reviewOverride = matchingNode ? FINDINGS_BY_QID.get(matchingNode.qualified_id) : null;
+          const finalState = (reviewOverride && reviewOverride.recommended_states && reviewOverride.recommended_states[0]) || pState.state;
+          choices.push({
+            label: ch.text || ch.label || `Option ${cIdx + 1}`,
+            target: ch.target || (binding && binding.source_targets && binding.source_targets[cIdx]) || (binding && binding.source_targets && binding.source_targets[0]),
+            state: finalState,
+            cue: pState.cue,
+            overrideReason: reviewOverride ? reviewOverride.reason : null
+          });
+        });
+      } else {
+        const targets = (binding && binding.source_targets) || [];
+        if (targets.length) {
+          targets.forEach(t => {
+            const tb = BEAT_MAP.get(t);
+            choices.push({
+              label: `▶ Continue to ${tb ? tb.beat.name : t}`,
+              target: t,
+              state: speakerState || 'E00',
+              cue: 'next beat'
+            });
+          });
+        } else {
+          const entry = BEAT_MAP.get(beat.id);
+          if (entry && entry.index + 1 < BEATS.length) {
+            const nextBeat = BEATS[entry.index + 1];
+            choices.push({
+              label: `▶ Next Beat: ${nextBeat.name}`,
+              target: nextBeat.id,
+              state: 'E00',
+              cue: 'advance'
+            });
+          }
+        }
+      }
+    }
+
+    return { paragraphs, choices, speakerEntity, speakerState, speakerCue, qualifiedId, nodes, currentNode };
+  }
+
+  // Render the Cardboard Cutout Proscenium Stage + Playable Script Deck + SCION 8-Crew Ribbon
+  function renderStage() {
+    const entry = BEAT_MAP.get(state.currentBeatId) || BEAT_MAP.get('beat_2') || { beat: BEATS[0], index: 0 };
+    const beat = entry.beat;
+    const binding = BINDINGS_MAP.get(beat.id) || BINDINGS_LIST[entry.index] || {};
+    const content = getBeatContent(beat, binding);
+
+    // Update top header counter & sliders
+    document.getElementById('headerBeatPill').textContent = `Beat ${entry.index} / ${BEATS.length - 1} · ${beat.name}`;
+    const beatSelect = document.getElementById('beatSelect');
+    if (beatSelect && beatSelect.value !== beat.id) beatSelect.value = beat.id;
+    const slider = document.getElementById('beatTimelineSlider');
+    if (slider) slider.value = entry.index;
+
+    // Highlight active chapter pill
+    const chapPrefix = ((binding.chapter || 'I.').split('.')[0] || 'I').trim();
+    document.querySelectorAll('.chap-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.chap === chapPrefix);
+    });
+
+    // Update Stage Valance
+    document.getElementById('stageChapterTag').textContent = binding.chapter || 'I. The Call';
+    document.getElementById('stageSettingText').textContent = `${beat.name} — ${binding.setting || 'Cardboard Stage'}`;
+
+    const activeCueText = (content.currentNode && content.currentNode.acting_cue) ||
+      (binding.actions && binding.actions[0]) ||
+      binding.interpretation_note ||
+      content.speakerCue;
+    document.getElementById('stageActingCue').textContent = `🎬 ${activeCueText}`;
+
+    // Update SCION Multiplane Stage (`CREW-MULTIPLANE`)
+    if (window.ScionMultiplaneStage) {
+      window.ScionMultiplaneStage.updateBeat(beat, chapPrefix, { setting: binding.setting, title: beat.name });
+    }
+
+    // Update SCION Sonic Dramaturg chapter ambience (`CREW-SONIC`)
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.setChapterAmbience(chapPrefix);
+    }
+
+    // Determine Stage Cast to display as full-body cardboard cutouts
+    let castList = (binding.cast && binding.cast.length) ? binding.cast.slice() : [{ entity_id: 'char_player', suggested_performances: [{ state: 'E00', cue: 'attentive' }] }];
+    if (beat.id === 'beat_0' && castList.length === 1) {
+      castList = [
+        { entity_id: 'char_player', suggested_performances: [{ state: 'E16', cue: 'quiet resolve' }] },
+        { entity_id: 'char_dana', suggested_performances: [{ state: 'E14', cue: 'warm promotion pitch' }] },
+        { entity_id: 'char_father', suggested_performances: [{ state: 'E07', cue: 'patient orchard craft' }] }
+      ];
+    }
+
+    const nodePerfMap = new Map();
+    if (content.currentNode && Array.isArray(content.currentNode.performances)) {
+      content.currentNode.performances.forEach(p => {
+        if (p.entity_id && p.states && p.states[0]) {
+          nodePerfMap.set(p.entity_id, p.states[0]);
+        }
+      });
+    }
+
+    const actorsRow = document.getElementById('stageActorsRow');
+    actorsRow.innerHTML = '';
+    stageRigCanvasEl = null;
+
+    const tableau = resolveBeatTableau(beat.id, binding);
+    const maxStageActors = tableau ? (window.innerWidth <= 960 ? 2 : 3) : (window.innerWidth <= 960 ? 3 : 4);
+
+    castList.slice(0, maxStageActors).forEach((member, idx) => {
+      const entityId = member.entity_id;
+      const nodePerf = nodePerfMap.get(entityId);
+      const perf = nodePerf || (member.suggested_performances && member.suggested_performances[state.currentNodeIndex % member.suggested_performances.length]) || { state: 'E00', cue: 'on stage' };
+      const emoState = perf.state || 'E00';
+      const emoInfo = EMOTIONS_MAP.get(emoState) || { name: emoState, cue: perf.cue || '' };
+      const isSpeaking = entityId === content.speakerEntity || (nodePerf && idx === 0);
+
+      if (entityId === 'char_player') {
+        activeWatsonEmoCode = emoState;
+      }
+
+      const actorEl = document.createElement('div');
+      actorEl.className = 'cutout-actor' + (isSpeaking ? ' is-speaking' : '');
+      actorEl.dataset.entityId = entityId;
+      actorEl.onclick = () => inspectCastOnStage(entityId, emoState, perf.cue || emoInfo.cue);
+
+      const figWrap = document.createElement('div');
+      figWrap.className = 'cutout-figure-wrap';
+
+      if (entityId === 'char_player' && state.useLiveWatsonRig && rigLoaded && window.WatsonRig) {
+        const cnv = document.createElement('canvas');
+        cnv.width = 320;
+        cnv.height = 480;
+        cnv.className = 'watson-rig-stage-canvas';
+        figWrap.appendChild(cnv);
+        stageRigCanvasEl = cnv;
+
+        const poseKey = window.ScionKineticPuppeteer
+          ? window.ScionKineticPuppeteer.posePresetForEmotionAndCue(emoState, perf.cue || activeCueText, beat.id)
+          : (['E09', 'E16', 'E17'].includes(emoState) ? 'boundary_stance' : 'arm_bend');
+
+        if (window.ScionKineticPuppeteer && stageKineticState) {
+          window.ScionKineticPuppeteer.setTargetPose(stageKineticState, poseKey, 0.9);
+          const emoImg = emotionHeadImages[emoState] || null;
+          window.ScionKineticPuppeteer.renderAnimatedWatson(
+            cnv.getContext('2d'),
+            window.WATSON_RIG_MANIFEST,
+            rigImages,
+            emoImg,
+            stageKineticState,
+            { view: 'assembled', background: null, mountEmotionHead: true }
+          );
+        } else {
+          const rots = window.WatsonRig.poseFor(poseKey, 0.85);
+          window.WatsonRig.draw(cnv.getContext('2d'), window.WATSON_RIG_MANIFEST, rigImages, rots, { view: 'assembled', background: null });
+        }
+      } else {
+        const img = document.createElement('img');
+        img.className = 'cutout-img';
+        img.src = resolveFullBodyCutout(entityId, emoState, state.currentNodeIndex);
+        img.alt = `${getEntityDisplayName(entityId)} (${emoState})`;
+        figWrap.appendChild(img);
+      }
+
+      // Attach E00–E17 emotion head medallion badge for Slopling Watson
+      if (entityId === 'char_player') {
+        const med = document.createElement('div');
+        med.className = 'emotion-medallion';
+        med.title = `${emoState}: ${emoInfo.name} — ${emoInfo.cue}`;
+        const medImg = document.createElement('img');
+        medImg.src = `odyssey/slopling-cast/watson-heads/${emoState}.png`;
+        medImg.alt = emoState;
+        med.appendChild(medImg);
+        figWrap.appendChild(med);
+      }
+
+      const baseplate = document.createElement('div');
+      baseplate.className = 'cutout-baseplate';
+      baseplate.innerHTML = `
+        <div class="baseplate-name-row">
+          <span class="baseplate-name">${getEntityDisplayName(entityId).split(' (')[0]}</span>
+          <span class="baseplate-state">${emoState}</span>
+        </div>
+        <div class="baseplate-cue">${perf.cue || emoInfo.name}</div>
+      `;
+
+      actorEl.appendChild(figWrap);
+      actorEl.appendChild(baseplate);
+      actorsRow.appendChild(actorEl);
+
+      // Apply SCION-TERRY-GILLIAM physical cutout comedy operator on speaking/entering actor (`CREW-CUTOUT`)
+      if (window.ScionKineticPuppeteer) {
+        const opName = isSpeaking
+          ? window.ScionKineticPuppeteer.gilliamOperatorForCue(perf.cue || activeCueText, emoState)
+          : (state.currentNodeIndex === 0 ? 'drop_in' : 'paper_flip');
+        window.ScionKineticPuppeteer.applyGilliamOperator(actorEl, opName);
+      }
+    });
+
+    // If beat has a Scene Tableau (Orchard, Road, Wayfinding, Scylla/Charybdis), render it on stage!
+    if (tableau && tableau.url) {
+      const tabCard = document.createElement('div');
+      tabCard.className = 'stage-tableau-card';
+      tabCard.innerHTML = `
+        <img src="${tableau.url}" alt="${tableau.label}">
+        <span class="stage-tableau-label">🖼 ${tableau.label}</span>
+      `;
+      actorsRow.appendChild(tabCard);
+    }
+
+    // Sync grounded contact shadows (`CREW-MULTIPLANE`)
+    if (window.ScionMultiplaneStage && typeof window.ScionMultiplaneStage.syncContactShadows === 'function') {
+      window.ScionMultiplaneStage.syncContactShadows();
+    }
+
+    // Render Die-Cut Stage Props on the Proscenium Apron
+    const propsApron = document.getElementById('stagePropsApron');
+    propsApron.innerHTML = '';
+    const stageProps = resolveBeatProps(beat.id, binding);
+    stageProps.forEach(p => {
+      const tok = document.createElement('div');
+      tok.className = 'stage-prop-token';
+      tok.title = `Die-Cut Stage Prop: ${p.label}`;
+      tok.innerHTML = `<img src="${p.url}" alt="${p.label}"><span>${p.label}</span>`;
+      tok.onclick = () => {
+        if (window.ScionSonicDramaturg && state.foleyEnabled) {
+          window.ScionSonicDramaturg.playFoley(p.key.includes('caliper') ? 'caliper_click' : 'paper_snap');
+        }
+        const trace = window.ScionStateProvenance
+          ? window.ScionStateProvenance.traceArtifact('prop', p.key, beat.id, content.qualifiedId, DATA)
+          : null;
+        const provDesc = trace
+          ? `Source: ${trace.sourceArchive} · Method: ${trace.extractionMethod} · Rule: ${trace.bindingRule}`
+          : `Authored stage prop for ${beat.name} (${binding.setting || 'Scene'}).`;
+        updateInspectorCard(`[PROP] · DIE-CUT STAGE ARTIFACT`, p.label, provDesc, p.url, null);
+      };
+      propsApron.appendChild(tok);
+    });
+
+    // Cinema Subtitle Overlay
+    const subBox = document.getElementById('stageSubtitleBox');
+    subBox.classList.toggle('visible', state.showCinemaSubs);
+    subBox.textContent = content.paragraphs[0] || '';
+
+    // Script Speaker Header, State-Provenance Narrative Operation & Director Audit Override Badge
+    const emoObj = EMOTIONS_MAP.get(content.speakerState) || { name: 'Attentive' };
+    document.getElementById('scriptSpeakerName').textContent = getEntityDisplayName(content.speakerEntity);
+    document.getElementById('scriptSpeakerState').textContent = `${content.speakerState} · ${emoObj.name}`;
+
+    // Compute 5-Axis Refusal State Machine & Narrative Operation (`CREW-STATE`)
+    const stateReport = window.ScionStateProvenance
+      ? window.ScionStateProvenance.computeStateForBeat(beat, state.choiceHistory, DATA)
+      : null;
+    const opBadge = document.getElementById('stateOpBadge');
+    if (opBadge && stateReport) {
+      const opLabel = stateReport.activeNarrativeOperation || 'Encounter';
+      const reactCode = stateReport.reactionCode || 'OBSERVE';
+      opBadge.textContent = `⚙️ ${opLabel} · ${reactCode}`;
+      opBadge.title = `SCION State Machine (#48): ${opLabel} | Before: ${stateReport.beforeOptions || 'Open'} → After: ${stateReport.afterOptions || 'Changed'}`;
+    }
+
+    const auditFinding = FINDINGS_BY_QID.get(content.qualifiedId) ||
+      FINDINGS_LIST.find(f => f.qualified_id.startsWith(beat.id + '::'));
+    const auditBadge = document.getElementById('directorAuditBadge');
+    if (auditFinding) {
+      auditBadge.style.display = 'inline-block';
+      auditBadge.textContent = `⚡ Director Note (${auditFinding.priority}): ${auditFinding.current_states.join(',')} → ${auditFinding.recommended_states.join(',')}`;
+      auditBadge.title = auditFinding.reason;
+    } else {
+      auditBadge.style.display = 'none';
+    }
+
+    // Sub-node scrubber bar (for dialogTree / multi-node beats)
+    const scrubber = document.getElementById('nodeScrubberBar');
+    scrubber.innerHTML = '';
+    if (content.nodes && content.nodes.length > 1) {
+      content.nodes.forEach((n, idx) => {
+        const pill = document.createElement('button');
+        pill.className = 'node-pill' + (idx === state.currentNodeIndex ? ' active' : '');
+        const shortId = (n.qualified_id || '').split('::')[1] || `n${idx}`;
+        const pSt = (n.performances && n.performances[0] && n.performances[0].states && n.performances[0].states[0] && n.performances[0].states[0].state) || '';
+        pill.textContent = `${shortId}${pSt ? ' · ' + pSt : ''}`;
+        pill.onclick = () => {
+          state.currentNodeIndex = idx;
+          if (window.ScionSonicDramaturg && state.foleyEnabled) {
+            window.ScionSonicDramaturg.playFoley('brad_click');
+          }
+          renderStage();
+          renderOnyxGrid();
+        };
+        scrubber.appendChild(pill);
+      });
+    }
+
+    // Script Body Text
+    const bodyEl = document.getElementById('scriptBodyText');
+    bodyEl.innerHTML = content.paragraphs.map(p => `<p>${p}</p>`).join('');
+
+    // Interactive Choices Deck
+    const choicesEl = document.getElementById('choicesDeck');
+    choicesEl.innerHTML = '';
+    content.choices.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-card-btn';
+      const stInfo = EMOTIONS_MAP.get(ch.state) || { name: 'Action' };
+      btn.innerHTML = `
+        <div class="choice-main-line">
+          <span>${ch.label}</span>
+          <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--accent);">${ch.target ? '→ ' + ch.target : '↳ Node'}</span>
+        </div>
+        <div class="choice-meta-line">
+          <span class="choice-state-tag">${ch.state || 'E00'} · ${stInfo.name}</span>
+          <span>${ch.cue || ''}</span>
+          ${ch.overrideReason ? `<span style="color:var(--rust);font-weight:700;">★ Director Override: ${ch.overrideReason}</span>` : ''}
+        </div>
+      `;
+      btn.onclick = () => {
+        if (window.ScionSonicDramaturg && state.foleyEnabled) {
+          window.ScionSonicDramaturg.playFoley('choice_commit');
+        }
+        state.choiceHistory.push({ beatId: beat.id, label: ch.label, target: ch.target, state: ch.state });
+        if (typeof ch.nodeIndex === 'number') {
+          state.currentNodeIndex = ch.nodeIndex;
+          renderStage();
+          renderOnyxGrid();
+        } else if (ch.target) {
+          jumpToBeat(ch.target);
+        }
+      };
+      choicesEl.appendChild(btn);
+    });
+
+    // Run SCION Sound-to-Action 30fps Viseme & Gesture Cadence (`CREW-SONIC` + `CREW-PERFORMANCE`)
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      const speakLine = content.paragraphs[0] || beat.name;
+      window.ScionSonicDramaturg.speakNode(
+        { text: speakLine, id: content.qualifiedId },
+        content.speakerEntity,
+        content.speakerState,
+        (amp, viseme, tickMeta) => {
+          const speakingEl = document.querySelector('#stageActorsRow .cutout-actor.is-speaking');
+          if (speakingEl) {
+            speakingEl.style.setProperty('--scion-speech-bob', `${(amp * 5.5).toFixed(2)}px`);
+            speakingEl.style.setProperty('--scion-speech-tilt', `${((amp - 0.3) * 2.2).toFixed(2)}deg`);
+          }
+          if (window.ScionKineticPuppeteer && stageKineticState) {
+            window.ScionKineticPuppeteer.applySpeechImpulse(stageKineticState, amp);
+          }
+        }
+      );
+    }
+
+    // Run SCION Independent Critic Tribunal & 8-Crew Telemetry (`CREW-TRIBUNAL`)
+    renderScionCrewRibbonAndTribunal(beat, binding, content, stateReport);
+    renderStateVariablesStrip(stateReport);
+
+    if (state.voiceEnabled && window.speechSynthesis) {
+      speakText(content.paragraphs.join(' '));
+    }
+  }
+
+  // Render the 8-Crew SCION Assembly Strip below the stage + update Swarms Console Tribunal
+  function renderScionCrewRibbonAndTribunal(beat, binding, content, stateReport) {
+    const ribbon = document.getElementById('scionCrewRibbon');
+    if (!ribbon || !window.ScionTribunal) return;
+
+    const report = window.ScionTribunal.evaluateBeat(beat, content.qualifiedId, {
+      storyVars: state.storyVars,
+      useLiveWatsonRig: state.useLiveWatsonRig,
+      odysseyData: DATA
+    });
+
+    const isPass = report.verdict === 'PASS';
+    const crewHtml = (report.crewTelemetry || []).map(c => {
+      const shortCrew = c.crewId.replace('CREW-', '');
+      return `<button class="crew-telemetry-pill" onclick="openSwarmsConsoleForCrew('${c.crewId}')" title="${c.name} (${c.leadSwarm}): ${c.activeJob}">
+        <strong>${shortCrew}</strong> ${c.artifactProduced}
+      </button>`;
+    }).join('');
+
+    ribbon.innerHTML = `
+      <button class="tribunal-verdict-pill ${isPass ? '' : 'warn'}" onclick="setWorkspaceMode('swarms')" title="Click to open SCION 54-Swarm Operator &amp; Independent Critic Tribunal">
+        ✓ TRIBUNAL ${report.verdict} (${report.score})
+      </button>
+      ${crewHtml}
+    `;
+
+    // Also update the Tribunal & Crew cards inside `#swarmsPanel` if present
+    const tTitle = document.getElementById('tribunalHeaderTitle');
+    const tBadge = document.getElementById('tribunalPanelBadge');
+    const tList = document.getElementById('tribunalInvariantsList');
+    const rBox = document.getElementById('refusalAxesBox');
+    if (tTitle) tTitle.textContent = `${beat.id.toUpperCase()} · ${beat.name} (${content.qualifiedId})`;
+    if (tBadge) {
+      tBadge.textContent = `${report.verdict} · ${report.score}`;
+      tBadge.className = 'tribunal-verdict-pill' + (isPass ? '' : ' warn');
+    }
+    if (tList && Array.isArray(report.invariants)) {
+      tList.innerHTML = report.invariants.map(inv => `
+        <div style="display:flex;justify-content:space-between;gap:8px;padding:3px 6px;background:var(--paper);border-radius:4px;border:1px solid var(--rule);">
+          <span><strong>${inv.passed ? '✓' : '⚠'} [${inv.type}]</strong> ${inv.label}</span>
+          <span style="color:var(--accent);font-weight:700;">${inv.value}</span>
+        </div>
+      `).join('');
+    }
+    if (rBox && stateReport && stateReport.registers) {
+      const regs = stateReport.registers;
+      rBox.innerHTML = `
+        <span class="var-pill on">Craft: ${regs.craftAutonomy}%</span>
+        <span class="var-pill on">Refusal: ${regs.refusalCapacity}%</span>
+        <span class="var-pill">Slop: ${regs.slopEntanglement}%</span>
+        <span class="var-pill on">Lineage: ${regs.lineageMemory}%</span>
+        <span class="var-pill on">Openness: ${regs.actionSetOpenness}%</span>
+      `;
+    }
+
+    const crewsMatrix = document.getElementById('scionCrewsMatrix');
+    if (crewsMatrix && window.SCION_SWARM_DATA && Array.isArray(window.SCION_SWARM_DATA.crews)) {
+      const telemetryMap = new Map((report.crewTelemetry || []).map(t => [t.crewId, t]));
+      crewsMatrix.innerHTML = window.SCION_SWARM_DATA.crews.map(crew => {
+        const live = telemetryMap.get(crew.id) || {};
+        const isActive = state.activeCrewFilter === crew.id;
+        return `
+          <div class="crew-card-box ${isActive ? 'active' : ''}" onclick="filterSwarmsByCrew('${crew.id}')">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.6rem;font-weight:800;color:var(--amber);">
+              <span>${crew.id}</span>
+              <span>${(crew.swarmIds || []).length} swarms</span>
+            </div>
+            <div style="font-weight:800;font-size:0.74rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${crew.name}</div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">⚡ ${live.artifactProduced || crew.runtimeModule}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // Build and render the 81-cell (9×9) ONYX Structural Beat Grid
+  function renderOnyxGrid() {
+    const entry = BEAT_MAP.get(state.currentBeatId) || BEAT_MAP.get('beat_2') || { beat: BEATS[0], index: 0 };
+    const beat = entry.beat;
+    const binding = BINDINGS_MAP.get(beat.id) || BINDINGS_LIST[entry.index] || {};
+    const content = getBeatContent(beat, binding);
+    const props = resolveBeatProps(beat.id, binding);
+    const tableau = resolveBeatTableau(beat.id, binding);
+
+    document.getElementById('gridHeaderTitle').textContent = `ONYX 9×9 SPATIAL MATRIX · ${beat.id.toUpperCase()} (${beat.name})`;
+
+    const cells = Array.from({ length: 81 }, (_, i) => ({
+      row: Math.floor(i / 9),
+      col: i % 9,
+      kind: 'action',
+      badge: '',
+      title: 'Stage Space',
+      desc: `Spatial coordinate [${Math.floor(i / 9)},${i % 9}] in ${binding.setting || beat.name}.`,
+      img: '',
+      artifactId: '',
+      action: null
+    }));
+
+    const setCell = (r, c, data) => {
+      const idx = r * 9 + c;
+      if (cells[idx]) Object.assign(cells[idx], data);
+    };
+
+    // Row 0: Structural Topology & Metadata
+    setCell(0, 0, { kind: 'meta', badge: 'CHAP', title: binding.chapter || 'I. The Call', desc: `Chapter container for ${beat.name}.` });
+    setCell(0, 1, { kind: 'meta', badge: beat.id, title: beat.name, desc: `Beat ID ${beat.id} (${beat.type}). Source: ${binding.source_pointer || '/story/beats/' + entry.index}` });
+    setCell(0, 2, { kind: 'meta', badge: 'TYPE', title: beat.type, desc: `ASAPS Beat Type: ${beat.type} (${binding.render_mode || 'stage_scene'}).` });
+    setCell(0, 3, { kind: 'meta', badge: 'SET', title: binding.setting || 'Stage', desc: `Authored Setting: ${binding.setting || 'Proscenium'}` });
+    setCell(0, 4, { kind: 'meta', badge: 'MODE', title: binding.render_mode || 'stage_scene', desc: `Production render mode: ${binding.render_mode || 'stage_scene'}` });
+    setCell(0, 5, { kind: 'meta', badge: 'CAST#', title: `${(binding.cast || []).length} Actors`, desc: `Active cast entities bound to this beat.` });
+    setCell(0, 6, { kind: 'meta', badge: 'PROP#', title: `${props.length} Props`, desc: `Die-cut cardboard props placed on stage.` });
+    setCell(0, 7, { kind: 'meta', badge: 'NODE#', title: `${(binding.nodes || []).length} Nodes`, desc: `Sub-beat dialogue/choice performance nodes.` });
+    setCell(0, 8, { kind: 'meta', badge: 'EXIT#', title: `${(binding.source_targets || []).length} Exits`, desc: `Outbound narrative transitions from ${beat.id}.` });
+
+    // Rows 1–2: Stage Actions, Blocking & Narrative Paragraphs
+    const actionsList = (binding.actions && binding.actions.length) ? binding.actions : ['Characters take position on the craft-paper stage.'];
+    for (let c = 0; c < 9; c++) {
+      const act = actionsList[c % actionsList.length];
+      setCell(1, c, {
+        kind: 'action',
+        badge: `ACT ${c + 1}`,
+        title: act,
+        desc: `Stage Blocking / Action Direction: "${act}"`
+      });
+    }
+    for (let c = 0; c < 9; c++) {
+      const pText = content.paragraphs[c % content.paragraphs.length] || beat.name;
+      setCell(2, c, {
+        kind: 'action',
+        badge: `TXT ${c + 1}`,
+        title: pText,
+        desc: pText
+      });
+    }
+
+    // Rows 3–5: Spatial Stage Encounter (Cast Cutouts, Die-Cut Props, Tableaux, Emotion Heads)
+    const cast = (binding.cast && binding.cast.length) ? binding.cast : [{ entity_id: 'char_player', suggested_performances: [{ state: 'E00', cue: 'attentive' }] }];
+    const castPositions = [[4, 4], [4, 2], [4, 6], [3, 4], [5, 4], [3, 2], [3, 6]];
+    cast.slice(0, castPositions.length).forEach((member, idx) => {
+      const [r, c] = castPositions[idx];
+      const sp = (member.suggested_performances && member.suggested_performances[0]) || { state: 'E00', cue: 'on stage' };
+      const cutoutUrl = resolveFullBodyCutout(member.entity_id, sp.state, state.currentNodeIndex);
+      setCell(r, c, {
+        kind: 'cast',
+        badge: sp.state,
+        artifactId: member.entity_id,
+        title: getEntityDisplayName(member.entity_id).split(' (')[0],
+        desc: `${getEntityDisplayName(member.entity_id)} · State ${sp.state} (${sp.cue}). Basis: ${member.basis || 'authored'}`,
+        img: cutoutUrl
+      });
+    });
+
+    const propCoords = [[3, 1], [3, 7], [5, 1], [5, 7], [4, 0], [4, 8]];
+    props.forEach((p, idx) => {
+      if (idx < propCoords.length) {
+        const [r, c] = propCoords[idx];
+        setCell(r, c, {
+          kind: 'prop',
+          badge: 'PROP',
+          artifactId: p.key,
+          title: p.label,
+          desc: `Die-Cut Stage Prop: ${p.label} (${p.url})`,
+          img: p.url
+        });
+      }
+    });
+
+    if (tableau) {
+      setCell(3, 3, {
+        kind: 'tableau',
+        badge: 'TABL',
+        artifactId: tableau.id,
+        title: tableau.label,
+        desc: `Full-Scene Cardboard Tableau: ${tableau.label}`,
+        img: tableau.url
+      });
+    } else {
+      const wPose = resolveFullBodyCutout('char_player', content.speakerState, 1);
+      setCell(3, 3, {
+        kind: 'cast',
+        badge: 'RIG',
+        artifactId: 'torso',
+        title: 'Watson Cutout Rig',
+        desc: '15-Part Articulated Cardboard Cutout of Slopling Watson.',
+        img: wPose
+      });
+    }
+
+    const allSuggested = cast.flatMap(m => (m.suggested_performances || []).map(sp => ({
+      entity_id: m.entity_id,
+      state: sp.state,
+      cue: sp.cue
+    })));
+    let sugIdx = 0;
+    for (let r = 3; r <= 5; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = cells[r * 9 + c];
+        if (cell.kind === 'action') {
+          const sp = allSuggested[sugIdx % Math.max(1, allSuggested.length)] || { entity_id: 'char_player', state: 'E00', cue: 'listening' };
+          const emo = EMOTIONS_MAP.get(sp.state) || { name: sp.state, cue: sp.cue };
+          sugIdx++;
+          setCell(r, c, {
+            kind: 'emotion',
+            badge: sp.state,
+            artifactId: sp.state,
+            title: `${sp.state} · ${emo.name}`,
+            desc: `${getEntityDisplayName(sp.entity_id)} performance state ${sp.state} (${emo.name}): "${sp.cue}" — ${emo.cue}`,
+            img: `odyssey/slopling-cast/watson-heads/${sp.state}.png`
+          });
+        }
+      }
+    }
+
+    // Row 6: Acting Direction Audit & E00–E17 Palette
+    const beatFindings = FINDINGS_LIST.filter(f => f.qualified_id === beat.id || f.qualified_id.startsWith(beat.id + '::'));
+    for (let c = 0; c < 9; c++) {
+      if (c < beatFindings.length) {
+        const f = beatFindings[c];
+        const recState = (f.recommended_states && f.recommended_states[0]) || 'E16';
+        setCell(6, c, {
+          kind: 'audit',
+          badge: `FIX:${recState}`,
+          artifactId: recState,
+          title: `Audit: ${f.current_states.join(',')}→${recState}`,
+          desc: `[${f.priority.toUpperCase()}] ${f.reason}`,
+          img: `odyssey/slopling-cast/watson-heads/${recState}.png`
+        });
+      } else {
+        const emo = EMOTIONS_LIST[(entry.index + c) % EMOTIONS_LIST.length] || { id: 'E00', name: 'Neutral', cue: '' };
+        setCell(6, c, {
+          kind: 'emotion',
+          badge: emo.id,
+          artifactId: emo.id,
+          title: emo.name,
+          desc: `${emo.id} (${emo.name}): ${emo.cue}`,
+          img: `odyssey/slopling-cast/watson-heads/${emo.id}.png`
+        });
+      }
+    }
+
+    // Row 7: Sub-Beat Dialogue & Performance Nodes
+    const nodes = (binding.nodes && binding.nodes.length) ? binding.nodes : [];
+    for (let c = 0; c < 9; c++) {
+      if (c < nodes.length) {
+        const n = nodes[c];
+        const st = (n.performances && n.performances[0] && n.performances[0].states && n.performances[0].states[0] && n.performances[0].states[0].state) || 'E00';
+        const shortId = (n.qualified_id || '').split('::')[1] || `n${c}`;
+        setCell(7, c, {
+          kind: 'node',
+          badge: `${shortId}·${st}`,
+          artifactId: st,
+          title: n.source_text || n.acting_cue || shortId,
+          desc: `Node ${n.qualified_id} (${n.kind}): "${n.source_text}" — Cue: ${n.acting_cue}`,
+          img: `odyssey/slopling-cast/watson-heads/${st}.png`,
+          action: { label: `Play ${shortId}`, fn: () => { state.currentNodeIndex = c; renderStage(); renderOnyxGrid(); } }
+        });
+      } else {
+        setCell(7, c, {
+          kind: 'node',
+          badge: 'NOTE',
+          title: binding.interpretation_note || 'Staging Note',
+          desc: binding.interpretation_note || 'Authored stage scene.'
+        });
+      }
+    }
+
+    // Row 8: Interactive Choices & Outbound Target Beats
+    for (let c = 0; c < 9; c++) {
+      const ch = content.choices[c % Math.max(1, content.choices.length)];
+      if (ch) {
+        setCell(8, c, {
+          kind: 'exit',
+          badge: ch.target || 'STEP',
+          artifactId: ch.state || 'E00',
+          title: ch.label,
+          desc: `Interactive Branch (${ch.state || 'E00'} · ${ch.cue || 'advance'}): ${ch.label}`,
+          img: ch.state ? `odyssey/slopling-cast/watson-heads/${ch.state}.png` : '',
+          action: {
+            label: ch.target ? `Jump → ${ch.target}` : 'Run Branch',
+            fn: () => {
+              if (typeof ch.nodeIndex === 'number') {
+                state.currentNodeIndex = ch.nodeIndex;
+                renderStage();
+                renderOnyxGrid();
+              } else if (ch.target) {
+                jumpToBeat(ch.target);
+              }
+            }
+          }
+        });
+      }
+    }
+
+    const gridEl = document.getElementById('onyxGrid');
+    gridEl.innerHTML = '';
+
+    const enrichWithProvenance = (cell) => {
+      if (!window.ScionStateProvenance || !cell.artifactId) return cell.desc;
+      const typeMap = { cast: 'cast', prop: 'prop', tableau: 'tableau', emotion: 'emotion', audit: 'emotion', node: 'emotion' };
+      const aType = typeMap[cell.kind];
+      if (!aType) return cell.desc;
+      const tr = window.ScionStateProvenance.traceArtifact(aType, cell.artifactId, beat.id, content.qualifiedId, DATA);
+      if (!tr) return cell.desc;
+      return `${cell.desc} · [Provenance: ${tr.sourceArchive} → ${tr.directorAudit}]`;
+    };
+
+    cells.forEach(cell => {
+      const coord = `${cell.row},${cell.col}`;
+      const el = document.createElement('div');
+      el.className = 'onyx-cell' + (state.selectedCellCoord === coord ? ' selected' : '');
+      el.dataset.kind = cell.kind;
+      el.setAttribute('role', 'gridcell');
+      el.innerHTML = `
+        <div class="cell-coord">
+          <span>${coord}</span>
+          <span class="cell-badge">${cell.badge}</span>
+        </div>
+        ${cell.img ? `<img class="cell-thumb" src="${cell.img}" alt="${cell.title}">` : ''}
+        <div class="cell-label">${cell.title}</div>
+      `;
+      el.onclick = () => {
+        state.selectedCellCoord = coord;
+        if (window.ScionSonicDramaturg && state.foleyEnabled) {
+          window.ScionSonicDramaturg.playFoley('brad_click');
+        }
+        document.querySelectorAll('.onyx-cell.selected').forEach(n => n.classList.remove('selected'));
+        el.classList.add('selected');
+        updateInspectorCard(
+          `[${coord}] · ${cell.kind.toUpperCase()} · ${cell.badge}`,
+          cell.title,
+          enrichWithProvenance(cell),
+          cell.img || `odyssey/slopling-cast/watson-heads/${content.speakerState || 'E00'}.png`,
+          cell.action
+        );
+      };
+      gridEl.appendChild(el);
+    });
+
+    const [sr, sc] = state.selectedCellCoord.split(',').map(Number);
+    const activeCell = cells[(sr || 4) * 9 + (sc || 4)] || cells[40];
+    if (activeCell) {
+      updateInspectorCard(
+        `[${activeCell.row},${activeCell.col}] · ${activeCell.kind.toUpperCase()} · ${activeCell.badge}`,
+        activeCell.title,
+        enrichWithProvenance(activeCell),
+        activeCell.img || `odyssey/slopling-cast/watson-heads/${content.speakerState || 'E00'}.png`,
+        activeCell.action
+      );
+    }
+  }
+
+  function updateInspectorCard(kicker, title, desc, imgUrl, actionObj) {
+    document.getElementById('inspectorKicker').textContent = kicker;
+    document.getElementById('inspectorTitle').textContent = title;
+    document.getElementById('inspectorDesc').textContent = desc;
+    const thumb = document.getElementById('inspectorThumb');
+    if (imgUrl) thumb.src = imgUrl;
+    const btn = document.getElementById('inspectorActionBtn');
+    if (actionObj && typeof actionObj.fn === 'function') {
+      btn.style.display = 'inline-block';
+      btn.textContent = actionObj.label || 'Act →';
+      btn.onclick = actionObj.fn;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  function inspectCastOnStage(entityId, emoState, cue) {
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley('paper_snap');
+    }
+    const imgUrl = resolveFullBodyCutout(entityId, emoState, state.currentNodeIndex);
+    const tr = window.ScionStateProvenance
+      ? window.ScionStateProvenance.traceArtifact('cast', entityId, state.currentBeatId, null, DATA)
+      : null;
+    const provInfo = tr ? ` · Source: ${tr.sourceArchive} (${tr.extractionMethod})` : '';
+    updateInspectorCard(
+      `STAGE CUTOUT · ${emoState}`,
+      `${getEntityDisplayName(entityId)} (${emoState})`,
+      `Full-body brass-brad cardboard cutout on stage. Active cue: "${cue}"${provInfo}.`,
+      imgUrl,
+      null
+    );
+  }
+
+  // Stage SCION Interactive Controls (Gilliam Gag & Norstein Atmosphere)
+  const GILLIAM_OPS = ['drop_in', 'paper_flip', 'recoil', 'enlarge_reveal', 'stamp_interrupt', 'hold_freeze'];
+  let gilliamOpCursor = 0;
+  window.triggerStageGilliam = function() {
+    const op = GILLIAM_OPS[gilliamOpCursor % GILLIAM_OPS.length];
+    gilliamOpCursor++;
+    const btn = document.getElementById('btnStageGilliam');
+    if (btn) btn.textContent = `⚡ ${op.replace('_', ' ')}`;
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley(op === 'stamp_interrupt' ? 'stage_thud' : op === 'recoil' ? 'alarm_sting' : 'paper_snap');
+    }
+    document.querySelectorAll('#stageActorsRow .cutout-actor').forEach(el => {
+      if (window.ScionKineticPuppeteer) {
+        window.ScionKineticPuppeteer.applyGilliamOperator(el, op);
+      }
+    });
+  };
+
+  const ATMO_STATES = ['reveal', 'obscure', 'lure', 'suspend'];
+  window.cycleAtmosphereState = function() {
+    state.atmosphereIndex = (state.atmosphereIndex + 1) % ATMO_STATES.length;
+    const mode = ATMO_STATES[state.atmosphereIndex];
+    const btn = document.getElementById('btnStageAtmo');
+    if (btn) btn.textContent = `🌫 ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+    if (window.ScionMultiplaneStage) {
+      window.ScionMultiplaneStage.setAtmosphereState(mode);
+    }
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley(mode === 'reveal' ? 'reveal_chord' : 'brad_click');
+    }
+  };
+
+  // Render Cast & Cutout Kits Gallery
+  window.renderRosterGallery = function(category, btnEl) {
+    if (btnEl) {
+      document.querySelectorAll('#rosterCategoryTabs .t-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+    }
+    const grid = document.getElementById('rosterGrid');
+    grid.innerHTML = '';
+
+    if (category === 'poses') {
+      Object.entries(POSES_INDEX).forEach(([charId, poses]) => {
+        const firstPose = poses[0];
+        if (!firstPose) return;
+        const card = document.createElement('div');
+        card.className = 'roster-item-card';
+        card.innerHTML = `
+          <img src="${firstPose.url}" alt="${charId}">
+          <div style="font-weight:800;font-size:0.8rem;text-align:center;">${getEntityDisplayName(charId)}</div>
+          <div style="font-family:var(--font-mono);font-size:0.64rem;color:var(--amber);">${poses.length} Full-Body Poses</div>
+        `;
+        card.onclick = () => {
+          const matchBeat = BINDINGS_LIST.find(b => (b.cast || []).some(c => c.entity_id === charId));
+          setWorkspaceMode(window.innerWidth <= 960 ? 'film' : 'split');
+          if (matchBeat) jumpToBeat(matchBeat.beat_id);
+        };
+        grid.appendChild(card);
+      });
+    } else if (category === 'emotions') {
+      EMOTIONS_LIST.forEach(emo => {
+        const card = document.createElement('div');
+        card.className = 'roster-item-card';
+        card.innerHTML = `
+          <img src="odyssey/slopling-cast/watson-heads/${emo.id}.png" alt="${emo.id}">
+          <div style="font-weight:800;font-size:0.8rem;">${emo.id} · ${emo.name}</div>
+          <div style="font-size:0.68rem;color:var(--muted);text-align:center;">${emo.cue}</div>
+        `;
+        card.onclick = () => {
+          state.rigLab.emotionCode = emo.id;
+          const matchBeat = BINDINGS_LIST.find(b => (b.cast || []).some(c => (c.suggested_performances || []).some(s => s.state === emo.id)));
+          setWorkspaceMode(window.innerWidth <= 960 ? 'film' : 'split');
+          if (matchBeat) jumpToBeat(matchBeat.beat_id);
+        };
+        grid.appendChild(card);
+      });
+    } else if (category === 'tableaux') {
+      Object.entries(TABLEAUX_INDEX).forEach(([id, url]) => {
+        const card = document.createElement('div');
+        card.className = 'roster-item-card';
+        card.innerHTML = `
+          <img src="${url}" alt="${id}">
+          <div style="font-weight:800;font-size:0.8rem;">${id.replace(/_/g, ' ').toUpperCase()}</div>
+          <div style="font-family:var(--font-mono);font-size:0.64rem;color:var(--amber);">Multi-Character Tableau</div>
+        `;
+        card.onclick = () => {
+          const targetBeat = id.startsWith('orchard') ? 'beat_94' :
+                             id.startsWith('road') ? 'beat_47' :
+                             id.startsWith('wayfinding') ? 'beat_48' :
+                             id.startsWith('scylla') ? 'beat_24' : 'beat_33a';
+          setWorkspaceMode(window.innerWidth <= 960 ? 'film' : 'split');
+          jumpToBeat(targetBeat);
+        };
+        grid.appendChild(card);
+      });
+    } else if (category === 'props') {
+      Object.entries(PROP_MAP).forEach(([id, url]) => {
+        const card = document.createElement('div');
+        card.className = 'roster-item-card';
+        card.innerHTML = `
+          <img src="${url}" alt="${id}">
+          <div style="font-weight:800;font-size:0.8rem;">${id.replace(/_/g, ' ')}</div>
+          <div style="font-family:var(--font-mono);font-size:0.64rem;color:var(--cyan);">Die-Cut Prop Token</div>
+        `;
+        grid.appendChild(card);
+      });
+    } else {
+      ACTORS_LIST.forEach(act => {
+        const card = document.createElement('div');
+        card.className = 'roster-item-card';
+        card.innerHTML = `
+          <img src="${act.img}" alt="${act.name}">
+          <div style="font-weight:800;font-size:0.78rem;text-align:center;">${act.name}</div>
+          <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);">${act.chapter || ''}</div>
+        `;
+        card.onclick = () => {
+          setWorkspaceMode(window.innerWidth <= 960 ? 'film' : 'split');
+          if (act.beats && act.beats[0]) jumpToBeat(act.beats[0]);
+        };
+        grid.appendChild(card);
+      });
+    }
+  };
+
+  // Interactive 15-Part Watson Joint Lab Controls (`CREW-RIG` + `CREW-RECAST`)
+  function renderRigLabCanvas() {
+    const cnv = document.getElementById('rigLabCanvas');
+    if (!cnv || !rigLoaded || !window.WatsonRig) return;
+    const ctx = cnv.getContext('2d');
+    if (window.ScionKineticPuppeteer && rigLabKineticState) {
+      window.ScionKineticPuppeteer.setTargetPose(rigLabKineticState, state.rigLab.pose, state.rigLab.amount);
+      window.ScionKineticPuppeteer.stepPhysics(rigLabKineticState, 0.08);
+      const emoImg = state.rigLab.mountEmotionHead ? (emotionHeadImages[state.rigLab.emotionCode] || emotionHeadImages.E17) : null;
+      window.ScionKineticPuppeteer.renderAnimatedWatson(
+        ctx,
+        window.WATSON_RIG_MANIFEST,
+        rigImages,
+        emoImg,
+        rigLabKineticState,
+        { view: state.rigLab.view, background: '#f5f1e8', mountEmotionHead: state.rigLab.mountEmotionHead }
+      );
+    } else {
+      const rots = window.WatsonRig.poseFor(state.rigLab.pose, state.rigLab.amount);
+      window.WatsonRig.draw(ctx, window.WATSON_RIG_MANIFEST, rigImages, rots, {
+        view: state.rigLab.view,
+        background: '#f5f1e8'
+      });
+    }
+  }
+
+  window.setRigLabView = function(v) {
+    state.rigLab.view = v;
+    document.getElementById('rigViewAssembled').classList.toggle('active', v === 'assembled');
+    document.getElementById('rigViewJoints').classList.toggle('active', v === 'joints');
+    document.getElementById('rigViewExploded').classList.toggle('active', v === 'exploded');
+    renderRigLabCanvas();
+  };
+
+  window.toggleRigEmotionMount = function() {
+    state.rigLab.mountEmotionHead = !state.rigLab.mountEmotionHead;
+    const btn = document.getElementById('rigMountEmoBtn');
+    if (btn) btn.classList.toggle('active', state.rigLab.mountEmotionHead);
+    renderRigLabCanvas();
+  };
+
+  window.setRigLabPose = function(pose) {
+    state.rigLab.pose = pose;
+    document.querySelectorAll('#rigPoseButtons .t-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.rigpose === pose);
+    });
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley('brad_click');
+    }
+    renderRigLabCanvas();
+  };
+
+  window.setRigLabAmount = function(val) {
+    state.rigLab.amount = Math.max(0, Math.min(1, Number(val) / 100));
+    document.getElementById('rigAmountLabel').textContent = `${Math.round(state.rigLab.amount * 100)}%`;
+    renderRigLabCanvas();
+  };
+
+  window.toggleRigLabLoop = function() {
+    state.rigLab.looping = !state.rigLab.looping;
+    const btn = document.getElementById('btnRigPlayCycle');
+    btn.textContent = state.rigLab.looping ? '⏸ Pause Spring Loop' : '▶ Spring Physics Loop';
+  };
+
+  // SCION 54-Swarm Operator Console (`#swarmsPanel`)
+  window.openSwarmsConsoleForCrew = function(crewId) {
+    state.activeCrewFilter = crewId || 'ALL';
+    window.setWorkspaceMode('swarms');
+    window.filterSwarmsByCrew(state.activeCrewFilter);
+  };
+
+  window.filterSwarmsByCrew = function(crewId) {
+    state.activeCrewFilter = crewId || 'ALL';
+    renderStage();
+    window.renderSwarmsList();
+  };
+
+  window.renderSwarmsList = function() {
+    if (!window.SCION_SWARM_DATA || !Array.isArray(window.SCION_SWARM_DATA.swarms)) return;
+    const q = ((document.getElementById('swarmSearchInput') && document.getElementById('swarmSearchInput').value) || '').toLowerCase().trim();
+    const filtered = window.SCION_SWARM_DATA.swarms.filter(s => {
+      if (state.activeCrewFilter !== 'ALL' && s.crewId !== state.activeCrewFilter) return false;
+      if (!q) return true;
+      const hay = `${s.id} ${s.title} ${s.family} ${s.lineage} ${s.odysseyJob || ''} ${s.theorem || ''}`.toLowerCase();
+      return hay.includes(q);
+    });
+
+    const countEl = document.getElementById('swarmListCount');
+    if (countEl) {
+      countEl.textContent = `${filtered.length} / ${window.SCION_SWARM_DATA.swarms.length} Swarms (${state.activeCrewFilter})`;
+    }
+
+    const listEl = document.getElementById('swarmsScrollList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    filtered.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'swarm-choice-btn' + (s.id === state.selectedSwarmId ? ' active' : '');
+      btn.innerHTML = `
+        <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.58rem;color:var(--amber);font-weight:700;">
+          <span>#${s.id} · ${s.crewId || 'SCION'}</span>
+          <span>${s.family}</span>
+        </div>
+        <div style="font-weight:800;font-size:0.78rem;margin:2px 0;">${s.title}</div>
+        <div style="font-size:0.66rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">⚡ ${s.odysseyJob || s.lineage}</div>
+      `;
+      btn.onclick = () => selectScionSwarm(s.id);
+      listEl.appendChild(btn);
+    });
+
+    if (filtered.length && !filtered.some(s => s.id === state.selectedSwarmId)) {
+      selectScionSwarm(filtered[0].id);
+    } else {
+      selectScionSwarm(state.selectedSwarmId);
+    }
+  };
+
+  function selectScionSwarm(swarmId) {
+    if (!window.SCION_SWARM_DATA) return;
+    const s = window.SCION_SWARM_DATA.getSwarmById
+      ? window.SCION_SWARM_DATA.getSwarmById(swarmId)
+      : window.SCION_SWARM_DATA.swarms.find(x => x.id === swarmId) || window.SCION_SWARM_DATA.swarms[0];
+    if (!s) return;
+    state.selectedSwarmId = s.id;
+
+    document.querySelectorAll('#swarmsScrollList .swarm-choice-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', btn.textContent.includes(`#${s.id} ·`));
+    });
+
+    document.getElementById('swarmDetailKicker').textContent = `${s.crewId || 'SCION'} · ${s.operatorCode || ''} · ${(s.family || '').toUpperCase()}`;
+    document.getElementById('swarmDetailTitle').textContent = `${s.id}. ${s.title}`;
+    document.getElementById('swarmDetailLineage').textContent = s.lineage || '';
+    document.getElementById('swarmDetailOdysseyJob').textContent = s.odysseyJob || 'Active SCION Odyssey production swarm.';
+    document.getElementById('swarmDetailTheorem').textContent = s.theorem || '';
+    document.getElementById('swarmDetailPrimitives').textContent = s.primitives || '';
+    document.getElementById('swarmDetailAgents').textContent = Array.isArray(s.agents) ? s.agents.join(' · ') : (s.agents || '');
+    document.getElementById('swarmDetailProofBar').textContent = `${s.hardProof || ''} — Bar: ${s.acceptanceBar || ''}`;
+    document.getElementById('swarmDetailPromptPre').textContent = s.prompt || '';
+  }
+
+  window.testActiveSwarmOnStage = function() {
+    if (!window.SCION_SWARM_DATA) return;
+    const s = window.SCION_SWARM_DATA.swarms.find(x => x.id === state.selectedSwarmId) || window.SCION_SWARM_DATA.swarms[0];
+    if (!s) return;
+    const crewTargetBeat = {
+      'CREW-CUTOUT': 'beat_2',
+      'CREW-RIG': 'beat_94',
+      'CREW-MULTIPLANE': 'beat_48',
+      'CREW-PERFORMANCE': 'beat_47',
+      'CREW-RECAST': 'beat_19',
+      'CREW-SONIC': 'beat_34',
+      'CREW-STATE': 'beat_51',
+      'CREW-TRIBUNAL': 'beat_94'
+    };
+    if (s.crewId === 'CREW-RIG' || s.crewId === 'CREW-RECAST') {
+      state.useLiveWatsonRig = true;
+      document.getElementById('btnLiveRig').classList.add('active');
+    }
+    const targetBeat = crewTargetBeat[s.crewId] || 'beat_2';
+    window.setWorkspaceMode(window.innerWidth <= 960 ? 'film' : 'split');
+    window.jumpToBeat(targetBeat);
+    if (s.crewId === 'CREW-CUTOUT') window.triggerStageGilliam();
+    if (s.crewId === 'CREW-MULTIPLANE') window.cycleAtmosphereState();
+  };
+
+  window.copyActiveSwarmPrompt = function() {
+    const pre = document.getElementById('swarmDetailPromptPre');
+    if (pre && navigator.clipboard) {
+      navigator.clipboard.writeText(pre.textContent);
+    }
+  };
+
+  window.downloadActiveSwarmMd = function() {
+    const pre = document.getElementById('swarmDetailPromptPre');
+    if (!pre) return;
+    const blob = new Blob([pre.textContent], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `scion-swarm-${state.selectedSwarmId}.md`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 500);
+  };
+
+  // Navigation & Controls
+  window.jumpToBeat = function(beatId) {
+    if (!BEAT_MAP.has(beatId)) return;
+    state.currentBeatId = beatId;
+    state.currentNodeIndex = 0;
+
+    const idx = BEAT_MAP.get(beatId).index;
+    state.storyVars.sirensPlugged = idx >= 20;
+    state.storyVars.cyclopsBlinded = idx >= 32;
+    state.storyVars.molyTaken = idx >= 52;
+    state.storyVars.orchardReached = idx >= 88;
+
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley('stage_thud');
+    }
+
+    renderStage();
+    renderOnyxGrid();
+  };
+
+  window.jumpToBeatByIndex = function(index) {
+    const b = BEATS[Number(index)];
+    if (b) window.jumpToBeat(b.id);
+  };
+
+  window.stepBeat = function(delta) {
+    const entry = BEAT_MAP.get(state.currentBeatId) || { index: 0 };
+    const nextIdx = Math.max(0, Math.min(BEATS.length - 1, entry.index + delta));
+    window.jumpToBeat(BEATS[nextIdx].id);
+  };
+
+  window.setWorkspaceMode = function(mode) {
+    state.workspaceMode = mode;
+    document.getElementById('workspace').dataset.mode = mode;
+    document.querySelectorAll('.view-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.viewmode === mode);
+    });
+    if (mode === 'roster') window.renderRosterGallery('poses');
+    if (mode === 'riglab') setTimeout(renderRigLabCanvas, 30);
+    if (mode === 'swarms') window.renderSwarmsList();
+  };
+
+  window.toggleMobileHudDrawer = function() {
+    const drawer = document.getElementById('hudSelectDrawer');
+    if (drawer) drawer.classList.toggle('drawer-open');
+  };
+
+  window.toggleLiveWatsonRig = function(forceVal) {
+    state.useLiveWatsonRig = typeof forceVal === 'boolean' ? forceVal : !state.useLiveWatsonRig;
+    document.getElementById('btnLiveRig').classList.toggle('active', state.useLiveWatsonRig);
+    if (window.ScionSonicDramaturg && state.foleyEnabled) {
+      window.ScionSonicDramaturg.playFoley('brad_click');
+    }
+    renderStage();
+  };
+
+  window.toggleCinemaSubtitles = function() {
+    state.showCinemaSubs = !state.showCinemaSubs;
+    document.getElementById('btnCinemaSub').classList.toggle('active', state.showCinemaSubs);
+    document.getElementById('stageSubtitleBox').classList.toggle('visible', state.showCinemaSubs);
+  };
+
+  window.toggleFoleyEngine = function() {
+    state.foleyEnabled = !state.foleyEnabled;
+    const btn = document.getElementById('btnFoleyAudio');
+    if (btn) btn.classList.toggle('active', state.foleyEnabled);
+    if (window.ScionSonicDramaturg) {
+      window.ScionSonicDramaturg.setMuted(!state.foleyEnabled);
+      if (state.foleyEnabled) {
+        window.ScionSonicDramaturg.ensureContext();
+        window.ScionSonicDramaturg.playFoley('paper_snap');
+      }
+    }
+  };
+
+  // Dramaturgically timed Auto-Film (`CREW-SONIC` getRecommendedHoldMs)
+  function scheduleNextAutoStep() {
+    if (!state.autoPlaying) return;
+    const entry = BEAT_MAP.get(state.currentBeatId) || { beat: BEATS[0], index: 0 };
+    const binding = BINDINGS_MAP.get(state.currentBeatId);
+    const content = getBeatContent(entry.beat, binding);
+    const holdMs = (window.ScionSonicDramaturg && typeof window.ScionSonicDramaturg.getRecommendedHoldMs === 'function')
+      ? window.ScionSonicDramaturg.getRecommendedHoldMs({ text: content.paragraphs[0] || '', id: content.qualifiedId }, content.speakerState)
+      : 3400;
+
+    autoTimer = setTimeout(() => {
+      if (!state.autoPlaying) return;
+      if (binding && binding.nodes && state.currentNodeIndex + 1 < binding.nodes.length) {
+        state.currentNodeIndex++;
+        if (window.ScionSonicDramaturg && state.foleyEnabled) {
+          window.ScionSonicDramaturg.playFoley('brad_click');
+        }
+        renderStage();
+        renderOnyxGrid();
+      } else {
+        window.stepBeat(1);
+      }
+      scheduleNextAutoStep();
+    }, holdMs);
+  }
+
+  window.toggleAutoPlay = function() {
+    state.autoPlaying = !state.autoPlaying;
+    const btn = document.getElementById('btnAutoFilm');
+    btn.classList.toggle('active', state.autoPlaying);
+    btn.textContent = state.autoPlaying ? '⏸ Pause Film' : '▶ Auto-Film';
+    if (autoTimer) clearTimeout(autoTimer);
+    if (state.autoPlaying) {
+      scheduleNextAutoStep();
+    }
+  };
+
+  window.toggleVoiceReadout = function() {
+    state.voiceEnabled = !state.voiceEnabled;
+    document.getElementById('btnVoiceTts').classList.toggle('active', state.voiceEnabled);
+    if (!state.voiceEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+  };
+
+  function speakText(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.slice(0, 280));
+    u.rate = 1.04;
+    window.speechSynthesis.speak(u);
+  }
+
+  window.filterByActor = function(entityId) {
+    state.actorFilter = entityId;
+    if (!entityId) return;
+    const matchBeat = BINDINGS_LIST.find(b => (b.cast || []).some(c => c.entity_id === entityId));
+    if (matchBeat) window.jumpToBeat(matchBeat.beat_id);
+  };
+
+  function renderStateVariablesStrip(stateReport) {
+    const strip = document.getElementById('stateVarsStrip');
+    if (!strip) return;
+    if (stateReport && stateReport.registers) {
+      const r = stateReport.registers;
+      strip.innerHTML = `
+        <span class="var-pill on" title="SCION State Machine: Craft Autonomy">Craft ${r.craftAutonomy}%</span>
+        <span class="var-pill on" title="SCION State Machine: Refusal Capacity">Refusal ${r.refusalCapacity}%</span>
+        <span class="var-pill" title="SCION State Machine: Slop Entanglement">Slop ${r.slopEntanglement}%</span>
+        <span class="var-pill on" title="SCION State Machine: Lineage Memory">Lineage ${r.lineageMemory}%</span>
+      `;
+    } else {
+      strip.innerHTML = Object.entries(state.storyVars).map(([k, v]) =>
+        `<span class="var-pill ${v ? 'on' : ''}">${k}: ${v ? 'YES' : 'no'}</span>`
+      ).join('');
+    }
+  }
+
+  // Initialize Chapter Strip, Beat Selector, Cast Filter, and 54-Swarm Console
+  function initSelectors() {
+    const chapStrip = document.getElementById('chapterStrip');
+    chapStrip.innerHTML = '';
+    CHAPTERS.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'chap-pill';
+      btn.dataset.chap = ch.id;
+      btn.textContent = ch.label;
+      btn.onclick = () => window.jumpToBeat(ch.startBeat);
+      chapStrip.appendChild(btn);
+    });
+
+    const beatSel = document.getElementById('beatSelect');
+    beatSel.innerHTML = BEATS.map((b, i) => {
+      const bind = BINDINGS_MAP.get(b.id);
+      const ch = bind ? bind.chapter.split('.')[0] : '';
+      return `<option value="${b.id}">#${i} [${ch}] ${b.name} (${b.type})</option>`;
+    }).join('');
+
+    const actorSel = document.getElementById('actorFilterSelect');
+    const castIds = Object.keys(POSES_INDEX);
+    actorSel.innerHTML = `<option value="">🎭 Jump by Character Cutout (${castIds.length} Kits)…</option>` +
+      castIds.map(id => `<option value="${id}">${getEntityDisplayName(id)}</option>`).join('');
+
+    window.renderSwarmsList();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'ArrowRight') window.stepBeat(1);
+    if (e.key === 'ArrowLeft') window.stepBeat(-1);
+  });
+
+  initSelectors();
+  const params = new URLSearchParams(window.location.search);
+  const initMode = params.get('mode') || (window.innerWidth <= 960 ? 'film' : 'split');
+  const initBeat = params.get('beat') || 'beat_2';
+  if (params.get('rig') === '1') {
+    state.useLiveWatsonRig = true;
+    const btn = document.getElementById('btnLiveRig');
+    if (btn) btn.classList.add('active');
+  }
+  if (params.get('crew')) state.activeCrewFilter = params.get('crew');
+  if (params.get('swarm')) state.selectedSwarmId = Number(params.get('swarm')) || 1;
+  window.jumpToBeat(initBeat);
+  window.setWorkspaceMode(initMode);
+})();
+</script>
+</body>
+</html>

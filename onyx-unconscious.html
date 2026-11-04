@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX DREAM-FORGE // Metisim × ASAPS × Halfworld Executable Symbolic Engine</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='%230b1121'/%3E%3Ctext x='50' y='65' font-size='52' text-anchor='middle' fill='%23c084fc'%3E%CE%A8%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #060913;
+      --panel: #0d1324;
+      --surface: #172036;
+      --surface-2: #090e1c;
+      --border: #2b3954;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --amber: #fbbf24;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --rose: #f43f5e;
+      --purple: #c084fc;
+      --orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 11.5px;
+    }
+
+    header {
+      height: 48px;
+      flex: 0 0 48px;
+      background: #04060d;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .brand-badge {
+      background: rgba(192, 132, 252, 0.16);
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      border-color: var(--purple);
+      color: #fff;
+    }
+    .btn.primary {
+      background: rgba(192, 132, 252, 0.16);
+      border-color: var(--purple);
+      color: var(--purple);
+      font-weight: 600;
+    }
+    .btn.accept {
+      background: rgba(74, 222, 128, 0.16);
+      border-color: var(--green);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .btn.reject {
+      background: rgba(244, 63, 94, 0.16);
+      border-color: var(--rose);
+      color: var(--rose);
+      font-weight: 600;
+    }
+    .btn.replace {
+      background: rgba(251, 191, 36, 0.16);
+      border-color: var(--amber);
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    /* SNAPSHOT TIMELINE BAR */
+    .snapshot-bar {
+      height: 52px;
+      flex: 0 0 52px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      overflow-x: auto;
+    }
+    .snap-chip {
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--panel);
+      font-size: 9.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .snap-chip.active {
+      border-color: var(--purple);
+      background: rgba(192, 132, 252, 0.15);
+      color: #fff;
+    }
+
+    /* 3-COLUMN MAIN WORKSPACE */
+    main {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 340px 1fr 390px;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .col {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .col-header {
+      height: 34px;
+      flex: 0 0 34px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* LEFT COLUMN: METISIM PSYCHIC FIELD (duviii-43) + SLIDERS + HALFWORLD WHISPERS */
+    .left-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .psychic-canvas-wrap {
+      width: 100%;
+      height: 175px;
+      background: #040711;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    #psychicCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .agent-legend {
+      position: absolute;
+      bottom: 6px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5px;
+      background: rgba(6, 9, 19, 0.82);
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(43, 57, 84, 0.7);
+    }
+
+    .sliders-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 78px 1fr 30px;
+      align-items: center;
+      gap: 8px;
+      font-size: 9.5px;
+    }
+    .slider-row input[type="range"] {
+      accent-color: var(--purple);
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .whispers-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .whisper-meter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.5px;
+      padding: 4px 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      border-left: 2px solid var(--cyan);
+    }
+
+    /* CENTER COLUMN: EXECUTABLE SYMBOLIC OPERATIONS + BEFORE/AFTER 2D ONYX THRESHOLD STAGE */
+    .center-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ops-toolbar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .op-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      transition: all 0.16s ease;
+      text-align: left;
+    }
+    .op-btn:hover {
+      border-color: var(--purple);
+      transform: translateY(-1px);
+    }
+    .op-btn.active {
+      border-color: var(--purple);
+      background: rgba(192, 132, 252, 0.14);
+      box-shadow: 0 0 14px rgba(192, 132, 252, 0.25);
+    }
+    .op-btn-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--purple);
+      text-transform: uppercase;
+    }
+    .op-btn-desc {
+      font-size: 8.5px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
+    /* DUAL OR SINGLE 9x9 STAGE: BEFORE vs AFTER INSPECTION */
+    .stage-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .stage-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stage-panel.after-panel {
+      border-color: rgba(192, 132, 252, 0.65);
+    }
+
+    .stage-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 4px;
+    }
+
+    .grid-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      background: #070b16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .mini-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 1.5px;
+    }
+    .mini-cell {
+      background: rgba(30, 41, 59, 0.3);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 1.5px;
+      font-size: 7px;
+      color: rgba(148, 163, 184, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-cell.threshold-band {
+      background: rgba(251, 191, 36, 0.08);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+    .mini-cell.censored-cell {
+      background: repeating-linear-gradient(45deg, rgba(244, 63, 94, 0.22) 0 4px, rgba(15, 23, 42, 0.7) 4px 8px);
+      border-color: var(--rose);
+    }
+
+    .stage-svg {
+      position: absolute;
+      inset: 4px;
+      width: calc(100% - 8px);
+      height: calc(100% - 8px);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .stage-nodes {
+      position: absolute;
+      inset: 4px;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .stage-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .stage-node-label {
+      position: absolute;
+      bottom: -12px;
+      background: rgba(9, 14, 28, 0.94);
+      border: 1px solid var(--border);
+      padding: 0.5px 4px;
+      border-radius: 2px;
+      font-size: 7.5px;
+      white-space: nowrap;
+      color: var(--text);
+    }
+    .stage-node-origin {
+      position: absolute;
+      top: -10px;
+      background: rgba(192, 132, 252, 0.22);
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      padding: 0px 3px;
+      border-radius: 2px;
+      font-size: 6.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* PARTICIPANT INTERPRETATION BAR (INCEPTR AUTHORSHIP LOOP) */
+    .authorship-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--amber);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* RIGHT COLUMN: WYGWYL ARCHIVE PROVENANCE + DREAM RECORD + SECONDARY REVISION */
+    .right-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .archive-card, .dream-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .trace-code {
+      background: #040711;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 9px;
+      color: var(--cyan);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      font-family: inherit;
+    }
+
+    .recognition-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 9.5px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 1150px) {
+      main { grid-template-columns: 1fr; overflow-y: auto; }
+      .col { overflow: visible; }
+      .stage-comparison { grid-template-columns: 1fr; }
+    }
+  
+    @media (max-width: 1150px) {
+      html, body {
+        height: auto !important;
+        min-height: 100dvh !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+      header {
+        height: auto !important;
+        flex: 0 0 auto !important;
+        flex-wrap: wrap !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+      }
+      .brand {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .snapshot-bar {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        padding: 6px 10px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+      }
+      .snapshot-bar::-webkit-scrollbar { display: none !important; }
+      main {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .col {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .left-scroll, .center-scroll, .right-scroll {
+        overflow: visible !important;
+        height: auto !important;
+      }
+      .ops-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .stage-comparison {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-badge">ONYX // DREAM-FORGE</span>
+      <span>EXECUTABLE SYMBOLIC TRANSFORMATION ENGINE</span>
+      <span style="color:var(--muted);font-size:10px;font-weight:400;">Metisim (duviii-43) × WYGWYL × Halfworld Whispers × ASAPS</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <select id="objectSelect" class="btn" onchange="ENGINE.selectThresholdObject(this.value)">
+        <option value="key">Threshold Object 01 · The Rusted Brass Key (WYGWYL #A-14)</option>
+        <option value="envelope">Threshold Object 02 · Unopened Clinic Referral (WYGWYL #M-09)</option>
+        <option value="olive">Threshold Object 03 · Olive-Wood Carving (WYGWYL #O-23)</option>
+      </select>
+      <button class="btn primary" onclick="ENGINE.syncToOnyxStudio()">
+        <i class="fas fa-share-nodes"></i> Export Before/After to ONYX Bus
+      </button>
+      <a href="onyx-asaps.html" class="btn" style="text-decoration:none;">
+        <i class="fas fa-layer-group"></i> ASAPS Studio
+      </a>
+    </div>
+  </header>
+
+  <!-- SNAPSHOT TIMELINE FOR SCRUBBING EMERGENT SYMBOLIC HISTORY -->
+  <div class="snapshot-bar" id="snapshotBar"></div>
+
+  <main>
+    <!-- LEFT: METISIM MOVING AGENTS + CONTROL SURFACE + HALFWORLD WHISPERS -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-wave-square"></i> Metisim Psychic Field (duviii-43)</span>
+        <span id="activeTransitionBadge" style="color:var(--purple);">STATE: CONDENSATION</span>
+      </div>
+      <div class="left-scroll">
+        <div class="psychic-canvas-wrap">
+          <canvas id="psychicCanvas" width="320" height="175"></canvas>
+          <div class="agent-legend">
+            <span style="color:#f43f5e;">● ID (Drive)</span>
+            <span style="color:#22d3ee;">● EGO (Mediator)</span>
+            <span style="color:#fbbf24;">● SUPEREGO (Censor)</span>
+          </div>
+        </div>
+
+        <div class="sliders-box">
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:var(--amber);">
+            <span>CONTROL SURFACE (PERTURB UPDATE RULES)</span>
+            <span id="pressureIndexLabel">P = 0.68</span>
+          </div>
+          <div class="slider-row">
+            <span>Drive</span>
+            <input type="range" min="0" max="100" value="72" oninput="ENGINE.updateSlider('drive', this.value)" />
+            <span id="val-drive">72</span>
+          </div>
+          <div class="slider-row">
+            <span>Repression</span>
+            <input type="range" min="0" max="100" value="64" oninput="ENGINE.updateSlider('repression', this.value)" />
+            <span id="val-repression">64</span>
+          </div>
+          <div class="slider-row">
+            <span>Stress</span>
+            <input type="range" min="0" max="100" value="78" oninput="ENGINE.updateSlider('stress', this.value)" />
+            <span id="val-stress">78</span>
+          </div>
+          <div class="slider-row">
+            <span>Resilience</span>
+            <input type="range" min="0" max="100" value="45" oninput="ENGINE.updateSlider('resilience', this.value)" />
+            <span id="val-resilience">45</span>
+          </div>
+          <div class="slider-row">
+            <span>Coping</span>
+            <input type="range" min="0" max="100" value="52" oninput="ENGINE.updateSlider('coping', this.value)" />
+            <span id="val-coping">52</span>
+          </div>
+        </div>
+
+        <div class="whispers-box">
+          <div style="font-size:9.5px;font-weight:700;color:var(--cyan);display:flex;justify-content:space-between;">
+            <span>HALFWORLD // WHISPERS PERFORMANCE REGISTERS</span>
+            <span style="color:var(--muted);">Outward Body Rules</span>
+          </div>
+          <div id="whispersMeters" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER: EXECUTABLE SYMBOLIC MORPHISMS + BEFORE/AFTER 9x9 THRESHOLD SCENE -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-wand-magic-sparkles"></i> Executable Symbolic Operations · Gathering at a Threshold</span>
+        <span style="color:var(--amber);">Seam Closed: State Transition → Scene Mutation</span>
+      </div>
+      <div class="center-scroll">
+        <!-- 5 EXECUTABLE OPERATIONS -->
+        <div class="ops-toolbar" id="opsToolbar"></div>
+
+        <!-- BEFORE / AFTER 9x9 ONYX GRIDS -->
+        <div class="stage-comparison">
+          <div class="stage-panel">
+            <div class="stage-title">
+              <span style="color:var(--muted);">BEFORE // Baseline Threshold Scene</span>
+              <span style="font-size:8.5px;color:var(--cyan);">5 Distinct Entities</span>
+            </div>
+            <div class="grid-wrap">
+              <div class="mini-grid" id="beforeGrid"></div>
+              <svg class="stage-svg" id="beforeSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+              <div class="stage-nodes" id="beforeNodes"></div>
+            </div>
+            <div id="beforeCaption" style="font-size:9px;color:var(--muted);line-height:1.35;"></div>
+          </div>
+
+          <div class="stage-panel after-panel">
+            <div class="stage-title">
+              <span style="color:var(--purple);" id="afterStageTitle">AFTER // Executed Symbolic Operation</span>
+              <span style="font-size:8.5px;color:var(--amber);" id="afterProvenanceTag">Traceable Origin</span>
+            </div>
+            <div class="grid-wrap">
+              <div class="mini-grid" id="afterGrid"></div>
+              <svg class="stage-svg" id="afterSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+              <div class="stage-nodes" id="afterNodes"></div>
+            </div>
+            <div id="afterCaption" style="font-size:9px;color:var(--text);line-height:1.35;"></div>
+          </div>
+        </div>
+
+        <!-- INCEPTR COMMUNITY AUTHORSHIP: ACCEPT / REJECT / REPLACE SYMBOLISM -->
+        <div class="authorship-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;">
+              <i class="fas fa-users-cog"></i> Community / Player Symbolic Verdict (Authored Action in ASAPS)
+            </span>
+            <span id="verdictStatusBadge" style="font-size:9px;color:var(--cyan);">AWAITING PARTICIPANT VERDICT</span>
+          </div>
+          <div style="font-size:9.5px;color:var(--muted);line-height:1.4;">
+            Participants can <strong>accept</strong>, <strong>reject</strong>, or <strong>replace</strong> Metisim’s proposed symbolism. Interpretation becomes an authored action with a recorded ASAPS consequence.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn accept" onclick="ENGINE.recordVerdict('ACCEPTED')">
+              <i class="fas fa-check"></i> Accept Proposed Symbolism
+            </button>
+            <button class="btn reject" onclick="ENGINE.recordVerdict('REJECTED')">
+              <i class="fas fa-ban"></i> Reject Symbolism (Keep Raw Conflict)
+            </button>
+            <input id="replaceSymbolInput" type="text" placeholder="Or replace symbol (e.g., Shared Lantern)..."
+                   style="flex:1;min-width:160px;background:#040711;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:inherit;font-size:9.5px;" />
+            <button class="btn replace" onclick="ENGINE.recordVerdict('REPLACED')">
+              <i class="fas fa-exchange-alt"></i> Replace Symbol
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: WYGWYL ARCHIVAL ORIGIN + MULTIPLE RECOGNITIONS + DREAM RECORD -->
+    <section class="col">
+      <div class="col-header">
+        <span><i class="fas fa-box-archive"></i> WYGWYL Provenance &amp; Dream Record</span>
+        <span style="color:var(--cyan);">ai_latent_space_trace</span>
+      </div>
+      <div class="right-scroll">
+        <div class="archive-card" id="archiveCard"></div>
+        <div class="archive-card" id="recognitionsCard"></div>
+        <div class="dream-card" id="dreamRecordCard"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const ISO = {
+      cube(top, left, right) {
+        return `<svg viewBox="0 0 40 40" width="28" height="28">
+          <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${top}" stroke="#090e1c" stroke-width="1.3"/>
+          <path d="M4 12 L20 20 L20 37 L4 29 Z" fill="${left}" stroke="#090e1c" stroke-width="1.3"/>
+          <path d="M36 12 L20 20 L20 37 L36 29 Z" fill="${right}" stroke="#090e1c" stroke-width="1.3"/>
+        </svg>`;
+      }
+    };
+
+    const THRESHOLD_OBJECTS = {
+      key: {
+        id: 'obj_brass_key',
+        label: 'Rusted Brass Key',
+        archiveId: 'WYGWYL-ARC-14',
+        voiceSource: 'Oral History #14 · Grandmother’s Porch Lock (Recorded 2024, 01:18)',
+        imageSource: 'Plate 09 · Corroded brass ward key on threshold stone',
+        passage: '“She kept the key even after the porch door was taken off its hinges.”',
+        recognitions: [
+          { who: 'Arriving Traveler (Eli)', sees: 'A promise of return and rightful inheritance.' },
+          { who: 'Threshold Steward (Maren)', sees: 'An expired claim to a room now shared by three families.' },
+          { who: 'Elder Witness (Soli)', sees: 'The night the lock was changed during the winter eviction.' }
+        ]
+      },
+      envelope: {
+        id: 'obj_referral',
+        label: 'Unopened Referral',
+        archiveId: 'WYGWYL-MED-09',
+        voiceSource: 'Voice Memo #09 · Intake Corridor Whisper (Recorded 2025, 00:47)',
+        imageSource: 'Scan 22 · Creased manila envelope with red triage stamp',
+        passage: '“If I don’t break the seal, nobody in the waiting room can read the code on page two.”',
+        recognitions: [
+          { who: 'Arriving Patient (Eli)', sees: 'A shield keeping a private diagnosis from family surveillance.' },
+          { who: 'Threshold Steward (Maren)', sees: 'A required intake credential delaying triage.' },
+          { who: 'Elder Witness (Soli)', sees: 'A bureaucratic label that follows a person for ten years.' }
+        ]
+      },
+      olive: {
+        id: 'obj_olive_token',
+        label: 'Olive-Wood Token',
+        archiveId: 'WYGWYL-ODY-23',
+        voiceSource: 'Choros Recitation #23 · Root & Bedpost Stanza (02:04)',
+        imageSource: 'Frame 41 · Carved root-grain token from the living bedpost',
+        passage: '“Cut from the living trunk that clutches the chamber to the earth.”',
+        recognitions: [
+          { who: 'Arriving Traveler (Eli)', sees: 'Proof of identity that only the household’s keeper knows.' },
+          { who: 'Threshold Steward (Maren)', sees: 'A dangerous relic that could upend the suitors’ truce.' },
+          { who: 'Elder Witness (Soli)', sees: 'The living tree beneath the stone floor.' }
+        ]
+      }
+    };
+
+    const SYMBOLIC_OPS = [
+      {
+        id: 'CONDENSATION',
+        name: 'Condensation',
+        short: 'Fuse 2 entities into 1 composite figure; retain both source IDs.',
+        transitionState: 'Condensation',
+        archetype: 'The Composite Guardian (Janus-Steward)'
+      },
+      {
+        id: 'DISPLACEMENT',
+        name: 'Displacement',
+        short: 'Transfer established conflict/consequence wire to threshold object.',
+        transitionState: 'Displacement',
+        archetype: 'The Burdened Talisman'
+      },
+      {
+        id: 'SYMBOLIZATION',
+        name: 'Symbolization',
+        short: 'Give selected conflict a manipulable 2D place/object on the grid.',
+        transitionState: 'Symbolization',
+        archetype: 'The Counter-Threshold Altar'
+      },
+      {
+        id: 'CENSORSHIP',
+        name: 'Censorship',
+        short: 'Withhold a line, obscure an object, or block an available route.',
+        transitionState: 'Repression',
+        archetype: 'The Redacted Corridor'
+      },
+      {
+        id: 'SECONDARY_REVISION',
+        name: 'Secondary Revision',
+        short: 'Assemble smoothed account while preserving underlying raw record.',
+        transitionState: 'Secondary Revision',
+        archetype: 'The Smoothed Chronicle'
+      }
+    ];
+
+    const ENGINE = {
+      objectKey: 'key',
+      activeOp: 'CONDENSATION',
+      sliders: { drive: 72, repression: 64, stress: 78, resilience: 45, coping: 52 },
+      verdict: 'PROPOSED (UNCOMMITTED)',
+      customSymbolLabel: '',
+      snapshots: [],
+      activeSnapIdx: 0,
+      agents: [
+        { name: 'ID', x: 70, y: 90, vx: 1.4, vy: 1.1, color: '#f43f5e', energy: 0.82, anxiety: 0.65 },
+        { name: 'EGO', x: 160, y: 85, vx: -1.1, vy: 0.9, color: '#22d3ee', energy: 0.64, anxiety: 0.58 },
+        { name: 'SUPEREGO', x: 245, y: 95, vx: 0.9, vy: -1.2, color: '#fbbf24', energy: 0.74, anxiety: 0.71 }
+      ],
+
+      init() {
+        this.recordSnapshot('Initial Threshold Gathering');
+        this.renderAll();
+        this.startPsychicLoop();
+      },
+
+      selectThresholdObject(val) {
+        this.objectKey = val;
+        this.recordSnapshot(`Loaded ${THRESHOLD_OBJECTS[val].label}`);
+        this.renderAll();
+      },
+
+      selectOp(opId) {
+        this.activeOp = opId;
+        this.verdict = 'PROPOSED (UNCOMMITTED)';
+        this.recordSnapshot(`Executed ${opId}`);
+        this.renderAll();
+      },
+
+      updateSlider(key, val) {
+        this.sliders[key] = Number(val);
+        document.getElementById(`val-${key}`).textContent = val;
+        const p = ((this.sliders.drive * 0.3 + this.sliders.stress * 0.4 + this.sliders.repression * 0.3) / 100).toFixed(2);
+        document.getElementById('pressureIndexLabel').textContent = `P = ${p}`;
+        this.renderWhispers();
+        this.renderDreamRecord();
+      },
+
+      recordVerdict(status) {
+        if (status === 'REPLACED') {
+          const inp = document.getElementById('replaceSymbolInput');
+          const custom = (inp && inp.value.trim()) ? inp.value.trim() : 'Community Counter-Token';
+          this.customSymbolLabel = custom;
+          this.verdict = `REPLACED BY PARTICIPANT → "${custom}"`;
+        } else {
+          this.customSymbolLabel = '';
+          this.verdict = status;
+        }
+        document.getElementById('verdictStatusBadge').textContent = `ASAPS RECORDED: ${this.verdict}`;
+        this.recordSnapshot(`Verdict: ${this.verdict}`);
+        this.renderAll();
+      },
+
+      recordSnapshot(label) {
+        const snap = {
+          id: `snap_${Date.now()}_${Math.random().toString(36).slice(2,5)}`,
+          time: new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' }),
+          label,
+          objectKey: this.objectKey,
+          activeOp: this.activeOp,
+          sliders: { ...this.sliders },
+          verdict: this.verdict,
+          customSymbolLabel: this.customSymbolLabel
+        };
+        this.snapshots.push(snap);
+        if (this.snapshots.length > 8) this.snapshots.shift();
+        this.activeSnapIdx = this.snapshots.length - 1;
+        this.renderSnapshots();
+      },
+
+      restoreSnapshot(idx) {
+        const snap = this.snapshots[idx];
+        if (!snap) return;
+        this.activeSnapIdx = idx;
+        this.objectKey = snap.objectKey;
+        this.activeOp = snap.activeOp;
+        this.sliders = { ...snap.sliders };
+        this.verdict = snap.verdict;
+        this.customSymbolLabel = snap.customSymbolLabel;
+        document.getElementById('objectSelect').value = this.objectKey;
+        Object.entries(this.sliders).forEach(([k, v]) => {
+          const el = document.getElementById(`val-${k}`);
+          if (el) el.textContent = v;
+        });
+        this.renderAll();
+      },
+
+      renderSnapshots() {
+        const bar = document.getElementById('snapshotBar');
+        bar.innerHTML = `<span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;"><i class="fas fa-clock-rotate-left"></i> Snapshot Timeline:</span>` +
+          this.snapshots.map((s, i) => `
+            <div class="snap-chip ${i === this.activeSnapIdx ? 'active' : ''}" onclick="ENGINE.restoreSnapshot(${i})">
+              <span style="color:var(--purple);font-weight:700;">#${i + 1}</span>
+              <span>${s.label}</span>
+              <span style="color:var(--muted);font-size:8px;">${s.time}</span>
+            </div>
+          `).join('');
+      },
+
+      getBaselineScene() {
+        const obj = THRESHOLD_OBJECTS[this.objectKey];
+        return {
+          nodes: [
+            { id: 'eli', label: 'Eli (Arriving)', col: 1, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'ACTOR-01' },
+            { id: obj.id, label: obj.label, col: 3, row: 4, color: ['#fde047','#eab308','#a16207'], origin: obj.archiveId },
+            { id: 'maren', label: 'Maren (Steward)', col: 5, row: 3, color: ['#fda4af','#f43f5e','#be123c'], origin: 'STEWARD-02' },
+            { id: 'soli', label: 'Soli (Witness)', col: 5, row: 6, color: ['#d8b4fe','#a855f7','#6b21a8'], origin: 'ELDER-03' },
+            { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'GOAL-SPACE' }
+          ],
+          wires: [
+            { from: 'eli', to: obj.id, color: '#fbbf24', label: 'carries to threshold' },
+            { from: 'maren', to: 'eli', color: '#f43f5e', label: 'questions authority' },
+            { from: 'soli', to: obj.id, color: '#c084fc', label: 'remembers origin' },
+            { from: 'eli', to: 'sanctum', color: '#22d3ee', label: 'seeks entry', dashed: true }
+          ],
+          censoredCells: [],
+          caption: `Baseline: Eli arrives at the threshold [4,y] carrying "${obj.label}" (${obj.archiveId}). Maren and Soli recognize the object differently.`
+        };
+      },
+
+      getTransformedScene() {
+        const obj = THRESHOLD_OBJECTS[this.objectKey];
+        const symName = this.customSymbolLabel || obj.label;
+
+        if (this.activeOp === 'CONDENSATION') {
+          return {
+            nodes: [
+              { id: 'eli', label: 'Eli (Arriving)', col: 1, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'ACTOR-01' },
+              { id: obj.id, label: symName, col: 3, row: 4, color: ['#fde047','#eab308','#a16207'], origin: obj.archiveId },
+              { id: 'condensed_maren_soli', label: 'Maren⊕Soli (Janus Keeper)', col: 5, row: 4, color: ['#e879f9','#c026d3','#86198f'], origin: 'SRC:[STEWARD-02 + ELDER-03]' },
+              { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'GOAL-SPACE' }
+            ],
+            wires: [
+              { from: 'eli', to: obj.id, color: '#fbbf24', label: 'presents object' },
+              { from: 'condensed_maren_soli', to: obj.id, color: '#e879f9', label: 'dual gatekeeper + memory' },
+              { from: 'condensed_maren_soli', to: 'sanctum', color: '#22d3ee', label: 'holds composite key' }
+            ],
+            censoredCells: [],
+            caption: `CONDENSATION EXECUTED: Maren (Institutional Rule) and Soli (Archival Memory) fuse into one figure [5,4] retaining both source IDs (STEWARD-02 + ELDER-03).`
+          };
+        }
+
+        if (this.activeOp === 'DISPLACEMENT') {
+          return {
+            nodes: [
+              { id: 'eli', label: 'Eli (Arriving)', col: 1, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'ACTOR-01' },
+              { id: obj.id, label: `${symName} (Charged)`, col: 4, row: 2, color: ['#fda4af','#f43f5e','#be123c'], origin: `${obj.archiveId} · DISPLACED` },
+              { id: 'maren', label: 'Maren (Steward)', col: 5, row: 4, color: ['#93c5fd','#3b82f6','#1d4ed8'], origin: 'STEWARD-02' },
+              { id: 'soli', label: 'Soli (Witness)', col: 5, row: 6, color: ['#d8b4fe','#a855f7','#6b21a8'], origin: 'ELDER-03' },
+              { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'GOAL-SPACE' }
+            ],
+            wires: [
+              { from: 'maren', to: obj.id, color: '#f43f5e', label: 'transferred conflict → object' },
+              { from: 'eli', to: 'maren', color: '#4ade80', label: 'de-escalated interpersonal link', dashed: true },
+              { from: obj.id, to: 'sanctum', color: '#fbbf24', label: 'consequence bound to object' }
+            ],
+            censoredCells: [],
+            caption: `DISPLACEMENT EXECUTED: The interpersonal conflict wire between Maren and Eli is transferred onto "${symName}" at [4,2], allowing direct dialogue while the object carries the taboo.`
+          };
+        }
+
+        if (this.activeOp === 'SYMBOLIZATION') {
+          const spawnedLabel = this.customSymbolLabel || 'Threshold Ledger Stone';
+          return {
+            nodes: [
+              { id: 'eli', label: 'Eli (Arriving)', col: 1, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'ACTOR-01' },
+              { id: obj.id, label: obj.label, col: 3, row: 3, color: ['#fde047','#eab308','#a16207'], origin: obj.archiveId },
+              { id: 'spawned_sym', label: spawnedLabel, col: 4, row: 4, color: ['#67e8f9','#0891b2','#155e75'], origin: 'SPAWNED-SYMBOL' },
+              { id: 'maren', label: 'Maren (Steward)', col: 6, row: 3, color: ['#fda4af','#f43f5e','#be123c'], origin: 'STEWARD-02' },
+              { id: 'soli', label: 'Soli (Witness)', col: 5, row: 6, color: ['#d8b4fe','#a855f7','#6b21a8'], origin: 'ELDER-03' },
+              { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'GOAL-SPACE' }
+            ],
+            wires: [
+              { from: 'eli', to: 'spawned_sym', color: '#22d3ee', label: 'places object upon' },
+              { from: 'maren', to: 'spawned_sym', color: '#fbbf24', label: 'negotiates via artifact' },
+              { from: 'spawned_sym', to: 'sanctum', color: '#4ade80', label: 'unlocks conditional exit' }
+            ],
+            censoredCells: [],
+            caption: `SYMBOLIZATION EXECUTED: The abstract gatekeeping conflict is materialized into a manipulable 2D object ("${spawnedLabel}") at threshold center [4,4].`
+          };
+        }
+
+        if (this.activeOp === 'CENSORSHIP') {
+          return {
+            nodes: [
+              { id: 'eli', label: 'Eli (Arriving)', col: 1, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'ACTOR-01' },
+              { id: obj.id, label: '[REDACTED OBJECT]', col: 3, row: 4, color: ['#64748b','#475569','#1e293b'], origin: 'CENSORED' },
+              { id: 'maren', label: 'Maren (Steward)', col: 5, row: 3, color: ['#fda4af','#f43f5e','#be123c'], origin: 'STEWARD-02' },
+              { id: 'soli', label: 'Soli (Line Withheld)', col: 5, row: 6, color: ['#64748b','#475569','#1e293b'], origin: 'SILENCED' },
+              { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'ROUTE BLOCKED' }
+            ],
+            wires: [
+              { from: 'maren', to: obj.id, color: '#f43f5e', label: 'obscures provenance' },
+              { from: 'eli', to: 'sanctum', color: '#f43f5e', label: 'route [4,4] blocked', dashed: true }
+            ],
+            censoredCells: [[4,3],[4,4],[4,5]],
+            caption: `CENSORSHIP EXECUTED: Threshold corridor [4,3..5] is blocked, Soli’s archival testimony line is withheld, and the object’s WYGWYL origin is obscured.`
+          };
+        }
+
+        // SECONDARY_REVISION
+        return {
+          nodes: [
+            { id: 'eli', label: 'Eli (Official Guest)', col: 2, row: 4, color: ['#67e8f9','#06b6d4','#0e7490'], origin: 'REVISED-01' },
+            { id: obj.id, label: `${symName} (Catalogued)`, col: 4, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: `${obj.archiveId} · ARCHIVED` },
+            { id: 'maren', label: 'Maren (Host)', col: 6, row: 3, color: ['#fde047','#eab308','#a16207'], origin: 'STEWARD-02' },
+            { id: 'soli', label: 'Soli (Co-Signer)', col: 6, row: 5, color: ['#d8b4fe','#a855f7','#6b21a8'], origin: 'ELDER-03' },
+            { id: 'sanctum', label: 'Inner Commons', col: 7, row: 4, color: ['#86efac','#22c55e','#15803d'], origin: 'GOAL-SPACE' }
+          ],
+          wires: [
+            { from: 'eli', to: obj.id, color: '#4ade80', label: 'official handover' },
+            { from: obj.id, to: 'sanctum', color: '#22d3ee', label: 'smoothed admission' },
+            { from: 'soli', to: 'eli', color: '#c084fc', label: 'raw trace preserved beneath', dashed: true }
+          ],
+          censoredCells: [],
+          caption: `SECONDARY REVISION EXECUTED: Assembles an orderly institutional account of welcome while preserving the underlying contested event trace in the ONYX inspector.`
+        };
+      },
+
+      cellCenter(col, row) {
+        const step = 100 / 9;
+        return { x: (col + 0.5) * step, y: (row + 0.5) * step };
+      },
+
+      renderStage(prefix, sceneData) {
+        const gridEl = document.getElementById(`${prefix}Grid`);
+        const svgEl = document.getElementById(`${prefix}Svg`);
+        const nodesEl = document.getElementById(`${prefix}Nodes`);
+        const capEl = document.getElementById(`${prefix}Caption`);
+
+        const censoredSet = new Set((sceneData.censoredCells || []).map(([c, r]) => `${c},${r}`));
+        let html = '';
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const isThresh = c === 4;
+            const isCensored = censoredSet.has(`${c},${r}`);
+            html += `<div class="mini-cell ${isThresh ? 'threshold-band' : ''} ${isCensored ? 'censored-cell' : ''}">${isCensored ? '✕' : ''}</div>`;
+          }
+        }
+        gridEl.innerHTML = html;
+
+        const map = new Map(sceneData.nodes.map(n => [n.id, n]));
+        svgEl.innerHTML = (sceneData.wires || []).map(w => {
+          const n1 = map.get(w.from);
+          const n2 = map.get(w.to);
+          if (!n1 || !n2) return '';
+          const p1 = this.cellCenter(n1.col, n1.row);
+          const p2 = this.cellCenter(n2.col, n2.row);
+          const mx = (p1.x + p2.x) / 2;
+          const my = (p1.y + p2.y) / 2 - 4;
+          return `
+            <g>
+              <path d="M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2.x} ${p2.y}" fill="none" stroke="${w.color}" stroke-width="1.3" ${w.dashed ? 'stroke-dasharray="2.5 2"' : ''}/>
+              <rect x="${mx - 18}" y="${my - 3.5}" width="36" height="5.5" rx="1.5" fill="#060913" opacity="0.88"/>
+              <text x="${mx}" y="${my + 0.8}" text-anchor="middle" fill="${w.color}" font-size="2.7" font-family="JetBrains Mono">${w.label}</text>
+            </g>
+          `;
+        }).join('');
+
+        nodesEl.innerHTML = sceneData.nodes.map(n => {
+          const pos = this.cellCenter(n.col, n.row);
+          const [t, l, r] = n.color;
+          return `
+            <div class="stage-node" style="left:${pos.x}%;top:${pos.y}%;">
+              <div class="stage-node-origin">${n.origin}</div>
+              ${ISO.cube(t, l, r)}
+              <div class="stage-node-label">${n.label}</div>
+            </div>
+          `;
+        }).join('');
+
+        capEl.textContent = sceneData.caption;
+      },
+
+      renderWhispers() {
+        const { drive, repression, stress, resilience, coping } = this.sliders;
+        const hesitation = Math.min(99, Math.round((repression * 0.5 + stress * 0.4) * 0.9));
+        const gazeAversion = Math.min(99, Math.round((repression * 0.6 + (100 - resilience) * 0.3)));
+        const thresholdDist = (1.2 + (stress - coping) / 45).toFixed(1);
+        const cadence = stress > 70 ? 'Fragmented / Halting (Ellipses + Pauses)' : 'Measured / Co-present';
+
+        const el = document.getElementById('whispersMeters');
+        el.innerHTML = `
+          <div class="whisper-meter"><span>Hesitation Latency</span><strong style="color:var(--amber);">${hesitation}0 ms</strong></div>
+          <div class="whisper-meter"><span>Gaze Vector Deflection</span><strong style="color:var(--purple);">${gazeAversion}° off-axis</strong></div>
+          <div class="whisper-meter"><span>Interpersonal Threshold Distance</span><strong style="color:var(--cyan);">${thresholdDist} grid units</strong></div>
+          <div class="whisper-meter"><span>Speech Register</span><strong style="color:var(--green);">${cadence}</strong></div>
+        `;
+      },
+
+      renderOpsToolbar() {
+        const el = document.getElementById('opsToolbar');
+        el.innerHTML = SYMBOLIC_OPS.map(op => `
+          <button class="op-btn ${op.id === this.activeOp ? 'active' : ''}" onclick="ENGINE.selectOp('${op.id}')">
+            <span class="op-btn-name">${op.name}</span>
+            <span class="op-btn-desc">${op.short}</span>
+          </button>
+        `).join('');
+
+        const spec = SYMBOLIC_OPS.find(o => o.id === this.activeOp);
+        document.getElementById('activeTransitionBadge').textContent = `STATE: ${spec.transitionState.toUpperCase()}`;
+        document.getElementById('afterStageTitle').textContent = `AFTER // ${spec.name.toUpperCase()} EXECUTED`;
+      },
+
+      renderRightColumn() {
+        const obj = THRESHOLD_OBJECTS[this.objectKey];
+        const archEl = document.getElementById('archiveCard');
+        archEl.innerHTML = `
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--amber);">
+            <span><i class="fas fa-fingerprint"></i> WYGWYL ARCHIVAL ORIGIN</span>
+            <span>${obj.archiveId}</span>
+          </div>
+          <div style="font-size:9.5px;color:var(--text);"><strong>Object:</strong> ${obj.label}</div>
+          <div style="font-size:9px;color:var(--muted);"><strong>Voice Source:</strong> ${obj.voiceSource}</div>
+          <div style="font-size:9px;color:var(--muted);"><strong>Situated Image:</strong> ${obj.imageSource}</div>
+          <div style="font-size:9.5px;color:var(--cyan);font-style:italic;border-left:2px solid var(--cyan);padding-left:6px;margin-top:2px;">
+            ${obj.passage}
+          </div>
+        `;
+
+        const recEl = document.getElementById('recognitionsCard');
+        recEl.innerHTML = `
+          <div style="font-size:10px;font-weight:700;color:var(--cyan);">
+            <i class="fas fa-eye"></i> DIVERGENT THRESHOLD RECOGNITIONS
+          </div>
+          ${obj.recognitions.map(r => `
+            <div class="recognition-item">
+              <strong style="color:var(--purple);">${r.who}:</strong> ${r.sees}
+            </div>
+          `).join('')}
+        `;
+
+        this.renderDreamRecord();
+      },
+
+      renderDreamRecord() {
+        const obj = THRESHOLD_OBJECTS[this.objectKey];
+        const spec = SYMBOLIC_OPS.find(o => o.id === this.activeOp);
+        const record = {
+          agent: this.activeOp === 'CENSORSHIP' ? 'Superego' : (this.activeOp === 'SECONDARY_REVISION' ? 'Ego' : 'Id⊕Ego'),
+          timestamp: new Date().toISOString().slice(11, 19),
+          archetype: spec.archetype,
+          executable_morphism: spec.id,
+          wygwyl_provenance: obj.archiveId,
+          retained_source_ids: this.activeOp === 'CONDENSATION' ? ['STEWARD-02', 'ELDER-03'] : [obj.id, 'ACTOR-01'],
+          participant_verdict: this.verdict,
+          ai_latent_space_trace: {
+            lens: '35mm anamorphic threshold low-key',
+            lighting: this.sliders.repression > 60 ? 'chiaroscuro doorwayocclusion' : 'warm amber threshold fill',
+            prompt: `A threshold gathering where ${obj.label} (${obj.archiveId}) undergoes executable ${spec.name}; outward performance shows ${this.sliders.stress}% pressure.`
+          }
+        };
+
+        const el = document.getElementById('dreamRecordCard');
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--purple);">
+            <span><i class="fas fa-file-code"></i> STRUCTURED DREAM RECORD</span>
+            <span>CONSUMABLE BY ASAPS / ONYX</span>
+          </div>
+          <pre class="trace-code">${JSON.stringify(record, null, 2)}</pre>
+        `;
+      },
+
+      renderAll() {
+        this.renderOpsToolbar();
+        this.renderWhispers();
+        this.renderStage('before', this.getBaselineScene());
+        this.renderStage('after', this.getTransformedScene());
+        this.renderRightColumn();
+      },
+
+      startPsychicLoop() {
+        const canvas = document.getElementById('psychicCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const step = () => {
+          const w = canvas.width;
+          const h = canvas.height;
+          ctx.fillStyle = 'rgba(4, 7, 17, 0.28)';
+          ctx.fillRect(0, 0, w, h);
+
+          // Draw threshold divider
+          ctx.strokeStyle = 'rgba(192, 132, 252, 0.22)';
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(w / 2, 0);
+          ctx.lineTo(w / 2, h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const speedMult = 0.4 + (this.sliders.drive + this.sliders.stress) / 140;
+
+          // Connect agents
+          ctx.strokeStyle = 'rgba(34, 211, 238, 0.18)';
+          ctx.beginPath();
+          this.agents.forEach((a, i) => {
+            const next = this.agents[(i + 1) % this.agents.length];
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(next.x, next.y);
+          });
+          ctx.stroke();
+
+          this.agents.forEach(a => {
+            a.x += a.vx * speedMult;
+            a.y += a.vy * speedMult;
+            if (a.x < 22 || a.x > w - 22) a.vx *= -1;
+            if (a.y < 22 || a.y > h - 30) a.vy *= -1;
+
+            // Outer anxiety ring
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, 12 + (this.sliders.stress / 14), 0, Math.PI * 2);
+            ctx.strokeStyle = a.color + '44';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Core agent
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = a.color;
+            ctx.fill();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '9px JetBrains Mono';
+            ctx.fillText(a.name, a.x + 9, a.y + 3);
+          });
+
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      },
+
+      syncToOnyxStudio() {
+        const before = this.getBaselineScene();
+        const after = this.getTransformedScene();
+        const obj = THRESHOLD_OBJECTS[this.objectKey];
+
+        const toGrid = (scene) => {
+          const g = new Array(81).fill(null);
+          scene.nodes.forEach(n => {
+            g[n.row * 9 + n.col] = {
+              id: n.id,
+              entityId: n.id,
+              label: `${n.label} [${n.origin}]`,
+              kind: n.id.includes('sanctum') ? 'Goal' : (n.origin.includes('STEWARD') ? 'Obstacle' : 'Entity'),
+              row: n.row,
+              col: n.col
+            };
+          });
+          return g;
+        };
+
+        const collection = {
+          title: `Threshold Gathering · ${obj.label} (${this.activeOp})`,
+          ontology: 'ONYX_METISIM_DREAM_FORGE',
+          scenes: [
+            {
+              id: 'threshold_before',
+              title: `Before · ${obj.label} at Threshold`,
+              beats: [{ text: before.caption }],
+              grid: toGrid(before)
+            },
+            {
+              id: 'threshold_after',
+              title: `After · ${this.activeOp} (${this.verdict})`,
+              beats: [{ text: after.caption }],
+              grid: toGrid(after)
+            }
+          ]
+        };
+
+        localStorage.setItem('onyx_scene_collection', JSON.stringify(collection));
+        alert(`Synced Before & After 9×9 Threshold Scenes (${this.activeOp}) to localStorage['onyx_scene_collection']!`);
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => ENGINE.init());
+  </script>
+</body>
+</html>

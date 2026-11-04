@@ -98,9 +98,9 @@ def pack_plates(cells_col, yup, axis='x'):
     return rows
 
 
-def pack_bricks(cells_col, yup, axis='x', masonry=True):
+def pack_bricks(cells_col, yup, axis='x', masonry=True, arch_cells=set()):
     """Pack {(i, k): col} at `yup` with full 24-LDU LEGO bricks, using embossed profile masonry bricks
-    (`98283` 1x2 and `15533` 1x4) when `masonry=True` so walls have tactile 3D ashlar mortar courses."""
+    (`98283` 1x2 and `15533` 1x4) when `masonry=True` and `3659` 1x4 Stone Arch Bricks over `arch_cells`."""
     rows = []
     rem = dict(cells_col)
     if axis == 'x':
@@ -117,7 +117,11 @@ def pack_bricks(cells_col, yup, axis='x', masonry=True):
             if all(c in rem and rem[c] == col for c in sub):
                 for c in sub:
                     del rem[c]
-                rows.append(L.block(col, kind, i, k, w, d, yup))
+                if arch_cells and (w, d) in ((4, 1), (1, 4)) and all(c in arch_cells for c in sub):
+                    m_arch = None if (w, d) == (4, 1) else RY(math.pi * 0.5)
+                    rows.append(put(col, (i + w * 0.5) * S, yup + B, (k + d * 0.5) * S, '3659', m_arch))
+                else:
+                    rows.append(L.block(col, kind, i, k, w, d, yup))
                 break
     return rows
 
@@ -451,7 +455,8 @@ def pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', chimney=False,
                         rows.append(L.block(LBG, 'brick', i, k_lo, 1, 1, y_cur))
                         rows.append(L.block(DBG, 'brick', i, k_lo, 1, 1, y_cur + B))
                         rows.append(on(DORANGE, (i + 0.5) * S, y_cur + 2 * B, (k_lo + 0.5) * S, '3062b'))
-                        rows.append(on(LBG, (i + 0.5) * S, y_cur + 3 * B, (k_lo + 0.5) * S, '98138'))
+                        rows.append(on(WHITE, (i + 0.5) * S, y_cur + 3 * B, (k_lo + 0.5) * S, '3062b'))
+                        rows.append(on(WHITE, (i + 0.5) * S, y_cur + 4 * B, (k_lo + 0.5) * S, '98138'))
                     else:
                         rows.append(on(c1, (i + 0.5) * S, y_cur, (k_lo + 0.5) * S, '54200', math.pi))
                     rows.append(on(c2, (i + 0.5) * S, y_cur, (k_hi + 0.5) * S, '54200', 0.0))
@@ -469,7 +474,8 @@ def pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', chimney=False,
                         rows.append(L.block(LBG, 'brick', i, k_lo, 1, 1, y_cur + P))
                         rows.append(L.block(DBG, 'brick', i, k_lo, 1, 1, y_cur + P + B))
                         rows.append(on(DORANGE, (i + 0.5) * S, y_cur + P + 2 * B, (k_lo + 0.5) * S, '3062b'))
-                        rows.append(on(LBG, (i + 0.5) * S, y_cur + P + 3 * B, (k_lo + 0.5) * S, '98138'))
+                        rows.append(on(WHITE, (i + 0.5) * S, y_cur + P + 3 * B, (k_lo + 0.5) * S, '3062b'))
+                        rows.append(on(WHITE, (i + 0.5) * S, y_cur + P + 4 * B, (k_lo + 0.5) * S, '98138'))
                     else:
                         cr = DORANGE if i % 2 == 0 else MNOUGAT
                         rows.append(on(cr, (i + 0.5) * S, y_cur + P, (k_lo + 0.5) * S, '98138' if i % 2 == 0 else '3070b'))
@@ -578,6 +584,9 @@ def build_coursed_box_walls(i0, k0, w, d, y0, courses, door_cells=set(), win_cel
             else:
                 col = wall_color(i, c, k, seed)
             brick_cells[(i, k)] = col
+        if c == 3 and lintel_span:
+            arch_sub = {ck: brick_cells.pop(ck) for ck in list(brick_cells) if ck in lintel_span}
+            rows += pack_bricks(arch_sub, y_c, axis='x', masonry=True, arch_cells=lintel_span)
         rows += pack_bricks(brick_cells, y_c, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
     return rows
 
@@ -664,14 +673,17 @@ def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
     for c in range(3):
         canvas.rows.append(L.block(RB, 'brick', rec_i, mid_k + 1, 1, 1, y0 + c * B))
 
-    # Woman standing in the front threshold doorway marvelling (Reference Image 1!)
+    # Woman standing on the front threshold doorway marvelling (Reference Image 1!)
     for di in (front_i - 1, front_i):
-        for dk in (k0 + d - 2, k0 + d - 1):
-            canvas.keep_studs.add((di, dk))
+        for dk in (k0 + d - 1, k0 + d):
+            if (di, dk) in canvas.h_map:
+                canvas.keep_studs.add((di, dk))
     d_card = 'character.penelope' if side == 'left' else 'character.eurycleia'
     d_sub  = 'penelope' if side == 'left' else 'eurycleia'
-    canvas.add_fig_at(d_card, d_sub, (front_i - 0.5) * S, y0, (k0 + d - 1 + 0.5) * S, rot=math.pi,
-                      hips=WHITE, legs=WHITE, torso=('973', TAN if side == 'left' else WHITE), held_r=('98138', GOLD))
+    canvas.add_fig_at(d_card, d_sub, (front_i - 0.5) * S, y0, (k0 + d + 0.5) * S, rot=math.pi,
+                      hips=WHITE, legs=WHITE,
+                      torso=('973pd13' if side == 'left' else '973p88', TAN if side == 'left' else WHITE),
+                      held_r=('98138', GOLD))
 
     # Climbing vines with white blossoms flanking the front doorway
     for vi in (i0, i0 + w - 1):
@@ -725,7 +737,7 @@ def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
                       (bi_stand + 0.5) * S, y_u0, (mid_k + 0.5) * S, rot=rot_w,
                       hips=WHITE if side == 'left' else TAN,
                       legs=WHITE if side == 'left' else TAN,
-                      torso=('973', WHITE if side == 'left' else DGREEN))
+                      torso=('973p0w' if side == 'left' else '973pmc', WHITE if side == 'left' else DGREEN))
 
     # Upper floor walls: 3 brick courses (72 LDU) from y_u0 to y_eave
     canvas.rows += build_coursed_box_walls(i0, k0, w, d, y_u0, 3, door_cells=set(),

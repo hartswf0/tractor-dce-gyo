@@ -122,6 +122,15 @@
       .studio-title {
         font-size: 10px;
       }
+      .header-controls {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tool-tabs {
+        overflow-x: auto;
+        max-width: 100%;
+      }
       main {
         height: calc(100vh - 64px);
         height: calc(100dvh - 64px);
@@ -134,16 +143,22 @@
     <div class="studio-title">
       <span>ONYX</span> STUDIO
     </div>
-    <div style="display:flex;align-items:center;gap:10px;">
+    <div class="header-controls" style="display:flex;align-items:center;gap:10px;">
       <div class="tool-tabs" id="tool-tabs">
         <button class="tool-tab active" data-tool="head">HEAD</button>
         <button class="tool-tab" data-tool="abs">ABS</button>
         <button class="tool-tab" data-tool="tail">TAIL</button>
+        <button class="tool-tab" data-tool="odyssey" title="The Slopling's Odyssey — 97-Beat ONYX Grid & Cardboard Film Stage">ODYSSEY</button>
+        <button class="tool-tab" data-tool="turn" title="Compelling-Concern & Moral Turn Mapper">TURN</button>
+        <button class="tool-tab" data-tool="dream" title="Metisim × ASAPS Executable Symbolic Engine">DREAM</button>
+        <button class="tool-tab" data-tool="sanctuary" title="Inceptr × Small Futures Facilitated Replay">SANCTUARY</button>
         <button class="tool-tab" data-tool="branch">BRANCH</button>
         <button class="tool-tab" data-tool="arch">ARCH</button>
         <button class="tool-tab" data-tool="gs2p">GS2P</button>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:10px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;white-space:nowrap;">
+        <a href="onyx-slopling-odyssey.html" style="text-decoration:none;border:1px solid #fbbf24;border-radius:999px;padding:3px 8px;color:#fbbf24;letter-spacing:0.12em;text-transform:uppercase;">Slopling Odyssey</a>
+        <a href="onyx-asaps.html" style="text-decoration:none;border:1px solid #fbbf24;border-radius:999px;padding:3px 8px;color:#fbbf24;letter-spacing:0.12em;text-transform:uppercase;">ASAPS Atlas</a>
         <a href="onyx-studio-tutorial.html" style="text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--tab-muted);letter-spacing:0.12em;text-transform:uppercase;">Tutorial</a>
         <a href="onyx-studio-slides.html" style="text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--tab-muted);letter-spacing:0.12em;text-transform:uppercase;">Slides</a>
       </div>
@@ -155,12 +170,16 @@
 
   <main>
     <div class="frame-shell">
-      <iframe id="frame-head"   class="studio-frame visible" src="onyx-head.html"        title="ONYX Head"></iframe>
-      <iframe id="frame-abs"    class="studio-frame"         src="onyx-abs.html"         title="ONYX Abs"></iframe>
-      <iframe id="frame-tail"   class="studio-frame"         src="onyx-tail.html"        title="ONYX Tail"></iframe>
-      <iframe id="frame-branch" class="studio-frame"         src="brick-branch.html"     title="Brick Branch"></iframe>
-      <iframe id="frame-arch"   class="studio-frame"         src="brick-architect.html"  title="Brick Architect"></iframe>
-      <iframe id="frame-gs2p"   class="studio-frame"         src="lgi-brickbender.html"  title="LGI Brickbender"></iframe>
+      <iframe id="frame-head"      class="studio-frame visible" src="onyx-head.html"             title="ONYX Head"></iframe>
+      <iframe id="frame-abs"       class="studio-frame"         src="onyx-abs.html"              title="ONYX Abs"></iframe>
+      <iframe id="frame-tail"      class="studio-frame"         src="onyx-tail.html"             title="ONYX Tail"></iframe>
+      <iframe id="frame-odyssey"   class="studio-frame"         src="onyx-slopling-odyssey.html" title="The Slopling's Odyssey"></iframe>
+      <iframe id="frame-turn"      class="studio-frame"         src="onyx-turn.html"             title="ONYX Turn"></iframe>
+      <iframe id="frame-dream"     class="studio-frame"         src="onyx-unconscious.html"      title="ONYX Dream-Forge"></iframe>
+      <iframe id="frame-sanctuary" class="studio-frame"         src="onyx-sanctuary.html"        title="ONYX Sanctuary"></iframe>
+      <iframe id="frame-branch"    class="studio-frame"         src="brick-branch.html"          title="Brick Branch"></iframe>
+      <iframe id="frame-arch"      class="studio-frame"         src="brick-architect.html"       title="Brick Architect"></iframe>
+      <iframe id="frame-gs2p"      class="studio-frame"         src="lgi-brickbender.html"       title="LGI Brickbender"></iframe>
     </div>
   </main>
 
@@ -168,12 +187,16 @@
     (function() {
       const tabs = document.querySelectorAll('.tool-tab');
       const frames = {
-        head:   document.getElementById('frame-head'),
-        abs:    document.getElementById('frame-abs'),
-        tail:   document.getElementById('frame-tail'),
-        branch: document.getElementById('frame-branch'),
-        arch:   document.getElementById('frame-arch'),
-        gs2p:   document.getElementById('frame-gs2p')
+        head:      document.getElementById('frame-head'),
+        abs:       document.getElementById('frame-abs'),
+        tail:      document.getElementById('frame-tail'),
+        odyssey:   document.getElementById('frame-odyssey'),
+        turn:      document.getElementById('frame-turn'),
+        dream:     document.getElementById('frame-dream'),
+        sanctuary: document.getElementById('frame-sanctuary'),
+        branch:    document.getElementById('frame-branch'),
+        arch:      document.getElementById('frame-arch'),
+        gs2p:      document.getElementById('frame-gs2p')
       };
 
       let currentTool = 'head';
@@ -181,10 +204,11 @@
       function applyLayout() {
         const split = document.body.classList.contains('split-mode');
         if (split) {
-          // In split mode, show HEAD and TAIL side by side
+          // In split mode, show current tool and TAIL (or HEAD) side by side
+          const partner = currentTool === 'head' ? 'tail' : 'head';
           Object.entries(frames).forEach(([key, frame]) => {
             if (!frame) return;
-            const visible = (key === 'head' || key === 'tail');
+            const visible = (key === currentTool || key === partner);
             frame.classList.toggle('visible', visible);
           });
         } else {

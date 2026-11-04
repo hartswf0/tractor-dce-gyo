@@ -121,33 +121,33 @@ def build_diorama_wedding():
 
     # 5. Cast: Bride & Bridegroom on central dais, Bridesmaids under canopy, Torchbearers, 4 Ring-Dancers, and Musicians
     C.add_fig('character.helen', 'helen', -1, -4, rot=math.pi,
-              hips=WHITE, legs=WHITE, torso=('973', WHITE), crown=('98138', GOLD), held_r=('24866', WHITE))
+              hips=WHITE, legs=WHITE, torso=('973p0w', WHITE), crown=('98138', GOLD), held_r=('24866', WHITE))
     C.add_fig('character.telemachus', 'telemachus', 1, -4, rot=math.pi,
-              hips=WHITE, legs=WHITE, torso=('973', KYANOS), held_r=('30374', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973pmc', KYANOS), held_r=('30374', GOLD))
     # Guests under the rear canopy
     C.add_fig('character.arete', 'arete', -2, -10, rot=math.pi,
-              hips=WHITE, legs=WHITE, torso=('973', TAN), held_r=('98138', DGREEN))
+              hips=WHITE, legs=WHITE, torso=('973p0w', TAN), held_r=('98138', DGREEN))
     C.add_fig('character.laodamas', 'laodamas', 2, -10, rot=math.pi,
-              hips=TAN, legs=TAN, torso=('973', MBLUE), held_r=('3959', TORANGE))
+              hips=TAN, legs=TAN, torso=('973p3y', MBLUE), held_r=('3959', TORANGE))
     # Torchbearers & Flower-bearers flanking the Bride & Groom
     C.add_fig('character.laodamas', 'laodamas', -5, -1, rot=-math.pi * 0.85,
-              hips=WHITE, legs=WHITE, torso=('973', OLIVE), held_r=('3959', TORANGE))
+              hips=WHITE, legs=WHITE, torso=('973p3y', OLIVE), held_r=('3959', TORANGE))
     C.add_fig('character.euryalus', 'euryalus', 4, -1, rot=math.pi * 0.85,
-              hips=TAN, legs=TAN, torso=('973', DGREEN), held_r=('24866', WHITE))
+              hips=TAN, legs=TAN, torso=('973p4v', DGREEN), held_r=('24866', WHITE))
     # Ring of 4 Whirling Youthful Dancers in left-center foreground (matching Reference Image 1!)
     C.add_fig('character.helen', 'helen', -7, 6, rot=-math.pi * 0.4,
-              hips=WHITE, legs=WHITE, torso=('973', WHITE))
+              hips=WHITE, legs=WHITE, torso=('973p0w', WHITE))
     C.add_fig('character.telemachus', 'telemachus', -4, 8, rot=-math.pi * 0.1,
-              hips=MBLUE, legs=MBLUE, torso=('973', MBLUE))
+              hips=MBLUE, legs=MBLUE, torso=('973p3y', MBLUE))
     C.add_fig('character.odysseus', 'odysseus', -1, 7, rot=math.pi * 0.3,
-              hips=DRED, legs=DRED, torso=('973', DRED), headgear=('3901', DB))
+              hips=DRED, legs=DRED, torso=('973pmc', DRED), headgear=('3901', DB))
     C.add_fig('character.penelope', 'penelope', -4, 4, rot=math.pi * 0.85,
-              hips=DORANGE, legs=DORANGE, torso=('973', DRED))
+              hips=DORANGE, legs=DORANGE, torso=('973pd13', DRED))
     # Right-Center Foreground Musicians: Aulos-player & Golden Phorminx/Lyre-player (matching Reference Image 1!)
     C.add_fig('character.demodocus', 'demodocus', 4, 6, rot=math.pi * 0.75,
-              hips=WHITE, legs=WHITE, torso=('973', DRED), held_r=('3959', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973pmc', DRED), held_r=('3959', GOLD))
     C.add_fig('character.phemius', 'phemius', 7, 9, rot=math.pi * 0.75,
-              hips=WHITE, legs=WHITE, torso=('973', WHITE), held_r=('3959', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973pmc', WHITE), held_r=('3959', GOLD))
 
     return C.finalize()
 
@@ -192,7 +192,7 @@ def build_diorama_agora():
         C.reserve(ti, tk, 3, 2)
         sx, sy, sz = build_elder_throne(C, ti, tk, y_ex)
         C.add_fig_at(card, sub, sx, sy, sz, rot=math.pi,
-                     hips=lcol, legs=lcol, torso=('973', tcol), held_r=('95049', GOLD))
+                     hips=lcol, legs=lcol, torso=('973pmc', tcol), held_r=('95049', GOLD))
 
     # 4. Right Rear (+x, i in 12..20, k in -11..0): Shaded 4-Column Stone & Cloth-Awning Pergola Pavilion + Olive Tree
     C.add_tree('olive', 12, -13, seed=27)
@@ -225,21 +225,21 @@ def build_diorama_agora():
     # 7. Cast: Two Disputants at the Sacred Circle, Two Heralds with Golden Standards, and 6 Cheering Citizens
     y_disp = FLOOR + 2 * P  # 32 (on the TAN plates at (-5, 2) and (4, 2))
     C.add_fig_at('character.odysseus', 'odysseus', (-5 + 0.5) * S, y_disp, (2 + 0.5) * S,
-                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', DRED), headgear=('3901', DB))
+                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973pmc', DRED), headgear=('3901', DB))
     C.add_fig_at('character.euryalus', 'euryalus', (4 + 0.5) * S, y_disp, (2 + 0.5) * S,
-                 rot=math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', KYANOS))
+                 rot=math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973pmc', KYANOS))
     # Two Heralds holding tall golden standards flanking the circle
     C.add_fig('character.medon', 'medon', -13, -1, rot=-math.pi * 0.65,
-              hips=WHITE, legs=WHITE, torso=('973', TAN), held_r=('95049', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973p4v', TAN), held_r=('95049', GOLD))
     C.add_fig('character.dolius', 'dolius', 12, -1, rot=math.pi * 0.65,
-              hips=WHITE, legs=WHITE, torso=('973', TAN), held_r=('95049', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973p4v', TAN), held_r=('95049', GOLD))
     # Citizens cheering on both sides of the foreground cavea
-    C.add_fig('character.laertes', 'laertes', -14, 5, rot=-math.pi * 0.7, hips=WHITE, legs=WHITE, torso=('973', TAN))
-    C.add_fig('character.telemachus', 'telemachus', -11, 5, rot=-math.pi * 0.75, hips=TAN, legs=TAN, torso=('973', DRED))
-    C.add_fig('character.alkinoos' if False else 'character.alcinous', 'alcinous', -8, 6, rot=-math.pi * 0.8, hips=DTAN, legs=DTAN, torso=('973', MBLUE))
-    C.add_fig('character.eumaeus', 'eumaeus', 8, 6, rot=math.pi * 0.8, hips=WHITE, legs=WHITE, torso=('973', KYANOS))
-    C.add_fig('character.philoetius', 'philoetius', 11, 5, rot=math.pi * 0.75, hips=TAN, legs=TAN, torso=('973', OLIVE))
-    C.add_fig('character.laodamas', 'laodamas', 14, 5, rot=math.pi * 0.7, hips=WHITE, legs=WHITE, torso=('973', RB))
+    C.add_fig('character.laertes', 'laertes', -14, 5, rot=-math.pi * 0.7, hips=WHITE, legs=WHITE, torso=('973pmc', TAN))
+    C.add_fig('character.telemachus', 'telemachus', -11, 5, rot=-math.pi * 0.75, hips=TAN, legs=TAN, torso=('973p3y', DRED))
+    C.add_fig('character.alkinoos' if False else 'character.alcinous', 'alcinous', -8, 6, rot=-math.pi * 0.8, hips=DTAN, legs=DTAN, torso=('973pmc', MBLUE))
+    C.add_fig('character.eumaeus', 'eumaeus', 8, 6, rot=math.pi * 0.8, hips=WHITE, legs=WHITE, torso=('973p4v', KYANOS))
+    C.add_fig('character.philoetius', 'philoetius', 11, 5, rot=math.pi * 0.75, hips=TAN, legs=TAN, torso=('973p4v', OLIVE))
+    C.add_fig('character.laodamas', 'laodamas', 14, 5, rot=math.pi * 0.7, hips=WHITE, legs=WHITE, torso=('973p3y', RB))
 
     return C.finalize()
 
@@ -311,11 +311,11 @@ def build_diorama_ambush():
 
     # The Three Fates (Keres): Crimson-Robed Ker in center, Dark-Robed Sisters flanking (at y_sf + P)
     C.add_fig_at('character.circe', 'circe', 0.5 * S, y_sf + P, -10.5 * S, rot=math.pi,
-                 hips=DRED, legs=DRED, torso=('973', DRED), held_r=('30374', DRED))
+                 hips=DRED, legs=DRED, torso=('973p0w', DRED), held_r=('30374', DRED))
     C.add_fig_at('character.arete', 'arete', -3.5 * S, y_sf + P, -10.5 * S, rot=math.pi,
-                 hips=BLK, legs=BLK, torso=('973', BLK), headgear=BLK, held_r=('3959', SILVER))
+                 hips=BLK, legs=BLK, torso=('973p0w', BLK), headgear=BLK, held_r=('3959', SILVER))
     C.add_fig_at('character.penelope', 'penelope', 3.5 * S, y_sf + P, -10.5 * S, rot=math.pi,
-                 hips=BLK, legs=BLK, torso=('973', BLK), headgear=BLK, held_r=('2343', GOLD))
+                 hips=BLK, legs=BLK, torso=('973p0w', BLK), headgear=BLK, held_r=('2343', GOLD))
 
     # 3. Left Bank (-x): Giant Gnarled Olive Tree, Stepped Craggy Ambush Boulders, Reeds & Two Crouching Scouts
     C.add_tree('olive', -19, -5, seed=31)
@@ -342,9 +342,9 @@ def build_diorama_ambush():
 
     # Two Bronze-Helmed Scouts crouching in the rock cleft behind the ambush boulders (at i=-16, k=0 and i=-15, k=2)
     C.add_fig('character.odysseus', 'odysseus', -17, 0, rot=-math.pi * 0.65,
-              hips=DB, legs=BRONZE, torso=('973', BRONZE), headgear=('3844', BRONZE), held_r=('4499', BRONZE), held_l=('3846', GOLD))
+              hips=DB, legs=BRONZE, torso=('973pc2g', BRONZE), headgear=('3844', BRONZE), held_r=('4499', BRONZE), held_l=('3846', GOLD))
     C.add_fig('character.telemachus', 'telemachus', -15, 2, rot=-math.pi * 0.70,
-              hips=DGREEN, legs=DB, torso=('973', DGREEN), headgear=('3844', DGREEN), held_r=('4499', BRONZE), held_l=('3846', BRONZE))
+              hips=DGREEN, legs=DB, torso=('973p4i', DGREEN), headgear=('3844', DGREEN), held_r=('4499', BRONZE), held_l=('3846', BRONZE))
 
     # 4. Right Bank (+x): Towering Stepped Stone City Rampart, Two Cypresses, Golden Ares & Athena, and 6-Warrior Phalanx
     wall_back = [(i, -13) for i in range(11, 22)]
@@ -358,10 +358,10 @@ def build_diorama_ambush():
 
     # Golden Ares & Golden Athena leading the Bronze Phalanx on the right bank
     C.add_fig('character.odysseus-restored', 'odysseus-restored', 11, -5, rot=math.pi * 0.35,
-              hips=GOLD, legs=GOLD, torso=('973', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
+              hips=GOLD, legs=GOLD, torso=('973pc2g', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
               headgear=('3844', DRED), held_r=('4499', GOLD), held_l=('3846', GOLD))
     C.add_fig('character.athena', 'athena', 15, -6, rot=math.pi * 0.35,
-              hips=GOLD, legs=GOLD, torso=('973', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
+              hips=GOLD, legs=GOLD, torso=('973p5e', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
               headgear=('3844', GOLD), held_r=('4499', GOLD), held_l=('75902', GOLD))
 
     phalanx = [
@@ -373,13 +373,13 @@ def build_diorama_ambush():
     ]
     for (wi, wk, wcard, wsub, wt, wl, wsh) in phalanx:
         C.add_fig(wcard, wsub, wi, wk, rot=math.pi * 0.35,
-                  hips=wl, legs=wl, torso=('973', wt), headgear=('3844', GOLD), held_r=('4499', BRONZE), held_l=('3846', wsh))
+                  hips=wl, legs=wl, torso=('973pc2g', wt), headgear=('3844', GOLD), held_r=('4499', BRONZE), held_l=('3846', wsh))
 
     # 5. Center Foreground: Two Piping Herdsmen Driving Flock of 6 Woolly Sheep, 2 Brown Goats & Ox to the Ford
     C.add_fig('character.eumaeus', 'eumaeus', 2, 5, rot=math.pi * 0.25,
-              hips=TAN, legs=TAN, torso=('973', DB), held_r=('3959', GOLD))
+              hips=TAN, legs=TAN, torso=('973p4v', DB), held_r=('3959', GOLD))
     C.add_fig('character.philoetius', 'philoetius', 6, 6, rot=math.pi * 0.25,
-              hips=TAN, legs=TAN, torso=('973', DRED), held_r=('3959', GOLD))
+              hips=TAN, legs=TAN, torso=('973p4v', DRED), held_r=('3959', GOLD))
     flock_specs = [
         ( 8,  6, 0.4, False), (12,  6, 0.5, False), (10, 10, 0.3, False),
         (14,  9, 0.5, False), ( 6, 10, 0.4, True),  (12, 12, 0.5, True),
@@ -454,7 +454,7 @@ def build_diorama_sheepfold():
 
     # 5. Cast: Bearded Shepherd with Crooked Staff, Sheepdog & Flock of 10 Brick-Built Woolly White Sheep & Lambs
     C.add_fig('character.eumaeus', 'eumaeus', -2, -1, rot=math.pi,
-              hips=TAN, legs=TAN, torso=('973', DTAN), held_r=('95049', DB))
+              hips=TAN, legs=TAN, torso=('973p4v', DTAN), held_r=('95049', DB))
     C.free_rows += dog_beast((-5 + 0.5) * S, C.surf_y(-5, -1), (-1 + 0.5) * S, rot=-2.6)
 
     flock = [
@@ -520,9 +520,9 @@ def build_diorama_harvest():
     C.free_rows += ox_beast(-10.5 * S, C.surf_y(-10, -1), -1.0 * S, rot=-math.pi * 0.5, body_col=RB, horn_col=TAN)
     C.free_rows += ox_beast( -8.5 * S, C.surf_y( -8,  5),  5.0 * S, rot= math.pi * 0.5, body_col=DTAN, horn_col=WHITE)
     C.free_rows += ox_beast(-14.5 * S, C.surf_y(-14,  8),  8.0 * S, rot=-math.pi * 0.5, body_col=TAN, horn_col=SILVER)
-    C.add_fig('character.eumaeus', 'eumaeus', -4, -1, rot=math.pi * 0.5, hips=DB, legs=DB, torso=('973', RB), held_r=('95049', DB))
-    C.add_fig('character.philoetius', 'philoetius', -14, 4, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973', DTAN), held_r=('95049', DB))
-    C.add_fig('character.medon', 'medon', -17, -2, rot=-math.pi * 0.6, hips=WHITE, legs=WHITE, torso=('973', TAN), held_r=('2343', GOLD))
+    C.add_fig('character.eumaeus', 'eumaeus', -4, -1, rot=math.pi * 0.5, hips=DB, legs=DB, torso=('973p4v', RB), held_r=('95049', DB))
+    C.add_fig('character.philoetius', 'philoetius', -14, 4, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973p4v', DTAN), held_r=('95049', DB))
+    C.add_fig('character.medon', 'medon', -17, -2, rot=-math.pi * 0.6, hips=WHITE, legs=WHITE, torso=('973pmc', TAN), held_r=('2343', GOLD))
 
     # 4. Right Rear (+x): Great Spreading Oak Tree (landscape.oak), Stone Sacrifice Altar & Barley-Feast Table
     C.add_tree('oak', 16, -11, seed=55)
@@ -540,9 +540,9 @@ def build_diorama_harvest():
         C.rows.append(L.block(TAN, 'brick', ti, 3, 1, 1, yt))
         C.rows.append(on(WHITE if ti in (16, 17) else GOLD, (ti + 0.5) * S, yt + B, 3.5 * S, '98138'))
 
-    C.add_fig('character.dolius', 'dolius', 13, -2, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973', TAN), held_r=('3847', BRONZE))
-    C.add_fig('character.eurycleia', 'eurycleia', 19, 1, rot=math.pi, hips=WHITE, legs=WHITE, torso=('973', WHITE), held_r=('98138', WHITE))
-    C.add_fig('character.penelope', 'penelope', 16, 5, rot=0.0, hips=WHITE, legs=WHITE, torso=('973', TAN), held_r=('98138', WHITE))
+    C.add_fig('character.dolius', 'dolius', 13, -2, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973p4v', TAN), held_r=('3847', BRONZE))
+    C.add_fig('character.eurycleia', 'eurycleia', 19, 1, rot=math.pi, hips=WHITE, legs=WHITE, torso=('973p88', WHITE), held_r=('98138', WHITE))
+    C.add_fig('character.penelope', 'penelope', 16, 5, rot=0.0, hips=WHITE, legs=WHITE, torso=('973pd13', TAN), held_r=('98138', WHITE))
 
     # 5. Right Field: Standing Golden Wheat Rows (i in 2..11, k in {-9, -4, 1}) & 5 Sculpted Bound Golden Sheaves
     for wk in (-9, -4, 1):
@@ -564,10 +564,10 @@ def build_diorama_harvest():
     # Reapers with sickles, Sheaf-Binders & The Silent King on a raised stone dais
     C.set_ground(1, 7, 3, 3, t='p', h=3)
     C.add_fig('character.menelaus', 'menelaus', 2, 8, rot=0.0,
-              hips=GOLD, legs=GOLD, torso=('973', DRED), crown=('98138', GOLD), held_r=('95049', GOLD))
-    C.add_fig('character.laodamas', 'laodamas', 3, -6, rot=-math.pi * 0.5, hips=DTAN, legs=DTAN, torso=('973', TAN), held_r=('3847', BRONZE))
-    C.add_fig('character.euryalus', 'euryalus', 9, -1, rot=math.pi * 0.5, hips=RB, legs=RB, torso=('973', DTAN), held_r=('3847', BRONZE))
-    C.add_fig('character.telemachus', 'telemachus', 11, 6, rot=0.0, hips=DB, legs=DB, torso=('973', TAN))
+              hips=GOLD, legs=GOLD, torso=('973p1p', DRED), crown=('98138', GOLD), held_r=('95049', GOLD))
+    C.add_fig('character.laodamas', 'laodamas', 3, -6, rot=-math.pi * 0.5, hips=DTAN, legs=DTAN, torso=('973p3y', TAN), held_r=('3847', BRONZE))
+    C.add_fig('character.euryalus', 'euryalus', 9, -1, rot=math.pi * 0.5, hips=RB, legs=RB, torso=('973p4v', DTAN), held_r=('3847', BRONZE))
+    C.add_fig('character.telemachus', 'telemachus', 11, 6, rot=0.0, hips=DB, legs=DB, torso=('973p3y', TAN))
 
     return C.finalize()
 
@@ -636,19 +636,19 @@ def build_diorama_vineyard():
     # 6. Central Raised Stone Musicians' Dais & Cast: Boy with Golden Phorminx + 6 Dancing Youths & Maidens
     C.set_ground(-3, -2, 6, 6, t='p', h=3)
     C.add_fig('character.phemius', 'phemius', 0, 0, rot=math.pi,
-              hips=WHITE, legs=WHITE, torso=('973', GOLD), held_r=('3959', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973pmc', GOLD), held_r=('3959', GOLD))
     C.add_fig('character.helen', 'helen', -2, 2, rot=-math.pi * 0.75,
-              hips=WHITE, legs=WHITE, torso=('973', DRED), held_r=('98138', DPURPLE))
+              hips=WHITE, legs=WHITE, torso=('973p0w', DRED), held_r=('98138', DPURPLE))
     C.add_fig('character.penelope', 'penelope', 1, 2, rot=math.pi * 0.75,
-              hips=WHITE, legs=WHITE, torso=('973', MBLUE), held_r=('98138', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973pd13', MBLUE), held_r=('98138', GOLD))
     C.add_fig('character.laodamas', 'laodamas', -8, 0, rot=-math.pi * 0.6,
-              hips=TAN, legs=TAN, torso=('973', WHITE), held_r=('2343', GOLD))
+              hips=TAN, legs=TAN, torso=('973p3y', WHITE), held_r=('2343', GOLD))
     C.add_fig('character.telemachus', 'telemachus', 7, 0, rot=math.pi * 0.6,
-              hips=TAN, legs=TAN, torso=('973', OLIVE), held_r=('2343', GOLD))
+              hips=TAN, legs=TAN, torso=('973p3y', OLIVE), held_r=('2343', GOLD))
     C.add_fig('character.arete', 'arete', -6, 6, rot=-math.pi * 0.8,
-              hips=WHITE, legs=WHITE, torso=('973', TAN))
+              hips=WHITE, legs=WHITE, torso=('973p0w', TAN))
     C.add_fig('character.euryalus', 'euryalus', 5, 6, rot=math.pi * 0.8,
-              hips=TAN, legs=TAN, torso=('973', DRED))
+              hips=TAN, legs=TAN, torso=('973p4v', DRED))
 
     return C.finalize()
 
@@ -719,7 +719,7 @@ def build_diorama_cattle():
     ]
     for (hi, hk, hsub, hrot) in herdsmen:
         C.add_fig('character.' + hsub, hsub, hi, hk, rot=hrot,
-                  hips=TAN, legs=TAN, torso=('973', GOLD), held_r=('4499', BRONZE))
+                  hips=TAN, legs=TAN, torso=('973p4v', GOLD), held_r=('4499', BRONZE))
 
     dogs = [
         (-6, -4, -1.8), (-7, 0, -1.6), (-7, 3, -1.5), (-8, 6, -1.7), (-9, 9, -1.9),
@@ -812,10 +812,10 @@ def build_diorama_choros():
                 C.rows.append(on(WHITE if (li + lk) % 2 == 0 else TAN, (li + 0.5) * S, y_roof, (lk + 0.5) * S, '3070b'))
         if side_name == 'left':
             C.add_fig_at('character.arete', 'arete', (-13.5 + 0.5) * S, y_roof + P, (-11 + 0.5) * S, rot=math.pi,
-                         hips=WHITE, legs=WHITE, torso=('973', DRED), crown=('98138', GOLD))
+                         hips=WHITE, legs=WHITE, torso=('973p0w', DRED), crown=('98138', GOLD))
         else:
             C.add_fig_at('character.alcinous', 'alcinous', (12.5 + 0.5) * S, y_roof + P, (-11 + 0.5) * S, rot=math.pi,
-                         hips=GOLD, legs=GOLD, torso=('973', DPURPLE), crown=('98138', GOLD))
+                         hips=GOLD, legs=GOLD, torso=('973p1p', DPURPLE), crown=('98138', GOLD))
 
     # Build Central Cosmic Vault of Hephaestus (Sun, Moon, Pleiades, Hyades, Orion, Bear)
     for c in range(2):
@@ -856,20 +856,20 @@ def build_diorama_choros():
     # 4. Cast: Ring of Youths & Maidens, Divine Bard with Golden Phorminx, and Two Tumbling Acrobats
     y_ring = FLOOR + 2 * P  # 32 (on the TAN plates at (4, 2) and (-5, 2))
     C.add_fig_at('character.laodamas', 'laodamas', (4 + 0.5) * S, y_ring, (2 + 0.5) * S,
-                 rot=math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', GOLD), held_r=('3847', GOLD))
+                 rot=math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973p3y', GOLD), held_r=('3847', GOLD))
     C.add_fig_at('character.helen', 'helen', (-5 + 0.5) * S, y_ring, (2 + 0.5) * S,
-                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', WHITE), crown=('98138', GOLD))
+                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973p0w', WHITE), crown=('98138', GOLD))
 
     dancers_outer = [
-        ( 6, -3, 'character.telemachus', 'telemachus',  math.pi * 0.75, GOLD,  TAN,   ('3847', GOLD)),
-        (-7, -3, 'character.penelope',   'penelope',   -math.pi * 0.75, WHITE, WHITE, None),
-        ( 6,  6, 'character.arete',      'arete',       math.pi * 0.25, WHITE, TAN,   None),
-        (-7,  6, 'character.euryalus',   'euryalus',   -math.pi * 0.25, GOLD,  WHITE, ('3847', GOLD)),
-        ( 2,  9, 'character.odysseus',   'odysseus',    0.0,            DRED,  GOLD,  ('3847', GOLD)),
-        (-3,  9, 'character.eurycleia',  'eurycleia',   0.0,            WHITE, WHITE, None),
+        ( 6, -3, 'character.telemachus', 'telemachus',  math.pi * 0.75, GOLD,  TAN,   ('3847', GOLD), '973p3y'),
+        (-7, -3, 'character.penelope',   'penelope',   -math.pi * 0.75, WHITE, WHITE, None,           '973pd13'),
+        ( 6,  6, 'character.arete',      'arete',       math.pi * 0.25, WHITE, TAN,   None,           '973p0w'),
+        (-7,  6, 'character.euryalus',   'euryalus',   -math.pi * 0.25, GOLD,  WHITE, ('3847', GOLD), '973p4v'),
+        ( 2,  9, 'character.odysseus',   'odysseus',    0.0,            DRED,  GOLD,  ('3847', GOLD), '973pmc'),
+        (-3,  9, 'character.eurycleia',  'eurycleia',   0.0,            WHITE, WHITE, None,           '973p88'),
     ]
-    for (di, dk, dcard, dsub, drot, dt, dl, dheld) in dancers_outer:
-        kw = {'hips': dl, 'legs': dl, 'torso': ('973', dt)}
+    for (di, dk, dcard, dsub, drot, dt, dl, dheld, tpid) in dancers_outer:
+        kw = {'hips': dl, 'legs': dl, 'torso': (tpid, dt)}
         if 'odysseus' in dcard:
             kw['headgear'] = ('3901', DB)
         if dsub in ('penelope', 'arete', 'eurycleia'):
@@ -879,11 +879,11 @@ def build_diorama_choros():
         C.add_fig(dcard, dsub, di, dk, rot=drot, **kw)
 
     C.add_fig('character.demodocus', 'demodocus', 0, -5, rot=math.pi,
-              hips=GOLD, legs=GOLD, torso=('973', DRED), held_r=('3959', GOLD))
+              hips=GOLD, legs=GOLD, torso=('973pmc', DRED), held_r=('3959', GOLD))
     C.add_fig('character.phemius', 'phemius', -12, 4, rot=-math.pi * 0.6,
-              hips=WHITE, legs=WHITE, torso=('973', MBLUE))
+              hips=WHITE, legs=WHITE, torso=('973p3y', MBLUE))
     C.add_fig('character.menelaus', 'menelaus', 11, 4, rot=math.pi * 0.6,
-              hips=GOLD, legs=GOLD, torso=('973', DPURPLE), crown=('98138', GOLD))
+              hips=GOLD, legs=GOLD, torso=('973p1p', DPURPLE), crown=('98138', GOLD))
 
     return C.finalize()
 
@@ -967,10 +967,10 @@ def build_diorama_office():
 
     # Place Maestro (Hephaestus) and Auditor (Athena) + Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) on the Command Gallery
     C.add_fig_at('character.odysseus', 'odysseus', (-4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
-                 rot=math.pi, hips=DB, legs=GOLD, torso=('973', BRONZE), headgear=('3901', DB),
+                 rot=math.pi, hips=DB, legs=GOLD, torso=('973pc2g', BRONZE), headgear=('3901', DB),
                  crown=('98138', GOLD), held_r=('4589', GOLD))
     C.add_fig_at('character.athena', 'athena', (4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
-                 rot=math.pi, hips=GOLD, legs=GOLD, torso=('973', GOLD),
+                 rot=math.pi, hips=GOLD, legs=GOLD, torso=('973p5e', GOLD),
                  held_r=('4497', GOLD), held_l=('3846', GOLD))
     C.free_rows += bird_perch(7.5 * S, y_kan_top + P, -10.5 * S, rot=math.pi, kind='owl', col=WHITE)
 
@@ -1035,12 +1035,12 @@ def build_diorama_office():
 
     # 3. LEFT STUDIO WING: 4 Isolated Git Worktree Agent Desks (i in -19..-10, k in -4..8)
     desk_specs = [
-        (-19, -4, GOLD,   MBLUE,   'character.telemachus', 'telemachus', 0.0,           MBLUE,  TAN),     # Desk 1: huashu / rossark
-        (-13, -4, BRONZE, TORANGE, 'character.penelope',   'penelope',   0.0,           DRED,   WHITE),   # Desk 2: take-one / reanimate
-        (-19,  3, TIN,    TLBLUE,  'character.phemius',    'phemius',    0.0,           DPURPLE, WHITE),  # Desk 3: argo / explainroo
-        (-13,  3, GOLD,   GREEN,   'character.demodocus',  'demodocus',  0.0,           GOLD,   DB),      # Desk 4: video-director / earshot
+        (-19, -4, GOLD,   MBLUE,   'character.telemachus', 'telemachus', 0.0,           MBLUE,   TAN,   '973p3y'),  # Desk 1: huashu / rossark
+        (-13, -4, BRONZE, TORANGE, 'character.penelope',   'penelope',   0.0,           DRED,    WHITE, '973pd13'), # Desk 2: take-one / reanimate
+        (-19,  3, TIN,    TLBLUE,  'character.phemius',    'phemius',    0.0,           DPURPLE, WHITE, '973pmc'),  # Desk 3: argo / explainroo
+        (-13,  3, GOLD,   GREEN,   'character.demodocus',  'demodocus',  0.0,           GOLD,    DB,    '973pmc'),  # Desk 4: video-director / earshot
     ]
-    for (di, dk, dcol, scol, fcard, fsub, frot, ftorso, flegs) in desk_specs:
+    for (di, dk, dcol, scol, fcard, fsub, frot, ftorso, flegs, ftpid) in desk_specs:
         # 4x2 Desk at (di..di+3, dk..dk+1)
         for ii in range(di, di + 4):
             for kk in range(dk, dk + 2):
@@ -1065,7 +1065,7 @@ def build_diorama_office():
                     C.rows.append(on(TAN if (ii + kk) % 2 == 0 else LBG, (ii + 0.5) * S, y_top, (kk + 0.5) * S, '3070b'))
         # Place the specialist coding agent directly behind/in front of their worktree desk
         C.add_fig(fcard, fsub, di + 1, dk + 3, rot=math.pi,
-                  hips=flegs, legs=flegs, torso=('973', ftorso), held_r=('3847', GOLD))
+                  hips=flegs, legs=flegs, torso=(ftpid, ftorso), held_r=('3847', GOLD))
 
     # 4. RIGHT STUDIO WING: Cross-Model Auditor Inspection Table & The Espresso/Ambrosia Bar (i in 9..20, k in -4..8)
     # 4a. Auditor's Cross-Model Inspection Table at (i in 9..13, k in -3..-1)
@@ -1087,9 +1087,9 @@ def build_diorama_office():
 
     # 3D Office Engineer (Daedalus / menelaus) & Cross-Model Reviewer (arete) inspecting the worktree module
     C.add_fig('character.menelaus', 'menelaus', 10, 1, rot=math.pi,
-              hips=GOLD, legs=GOLD, torso=('973', DPURPLE), crown=('98138', GOLD), held_r=('3959', GOLD))
+              hips=GOLD, legs=GOLD, torso=('973p1p', DPURPLE), crown=('98138', GOLD), held_r=('3959', GOLD))
     C.add_fig('character.arete', 'arete', 13, 1, rot=math.pi,
-              hips=WHITE, legs=WHITE, torso=('973', DRED), crown=('98138', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973p0w', DRED), crown=('98138', GOLD))
 
     # 4b. The Espresso / Ambrosia Coffee Bar at (i in 15..19, k in 2..5) for idle agents waiting on 55m auto-compact
     for ii in range(15, 20):
@@ -1112,9 +1112,9 @@ def build_diorama_office():
 
     # Two idle agents chatting over coffee at the lounge bar
     C.add_fig('character.euryalus', 'euryalus', 15, 6, rot=math.pi * 0.75,
-              hips=TAN, legs=TAN, torso=('973', OLIVE))
+              hips=TAN, legs=TAN, torso=('973p4v', OLIVE))
     C.add_fig('character.laodamas', 'laodamas', 18, 6, rot=-math.pi * 0.75,
-              hips=WHITE, legs=WHITE, torso=('973', MBLUE))
+              hips=WHITE, legs=WHITE, torso=('973p3y', MBLUE))
 
     # 5. Flanking Studio Cypress Trees & Foreground Director / Cinematographer on the Bouleau Armature Floor
     C.add_tree('cypress', -21, 9, seed=91)
@@ -1123,9 +1123,160 @@ def build_diorama_office():
     torch_post(C,  6,  6, h_bricks=2)
 
     C.add_fig('character.alcinous', 'alcinous', -3, 8, rot=math.pi * 0.85,
-              hips=GOLD, legs=GOLD, torso=('973', DRED), crown=('98138', GOLD), held_r=('3959', GOLD))
+              hips=GOLD, legs=GOLD, torso=('973p1p', DRED), crown=('98138', GOLD), held_r=('3959', GOLD))
     C.add_fig('character.helen', 'helen', 3, 8, rot=-math.pi * 0.85,
-              hips=WHITE, legs=WHITE, torso=('973', GOLD), crown=('98138', GOLD))
+              hips=WHITE, legs=WHITE, torso=('973p0w', GOLD), crown=('98138', GOLD))
+
+    return C.finalize()
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# KIT 10: THE BRONZE-STARRED HOUSE & FORGE OF HEPHAESTUS (48x32, Iliad XVIII.369-489)
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+def build_diorama_forge():
+    """Iliad XVIII.369-489: The imperishable, starry bronze house of Hephaestus among the immortals:
+    - Rear Starry Bronze & Pearl Gold Colonnade of Olympus with 6 fluted bronze/gold columns & cosmic pediment.
+    - Left Wing: The Great Blazing Crucible Furnace & 20 Bellows (`physai eikosi pasai`) blowing into the melting pots of
+      unwearying bronze, tin, precious gold, and silver, with rising white LEGO smoke clouds.
+    - Center Stage: The Great Anvil Block (`akmotheton`) & the Five-Fold Shield of Achilles on the Work-Bench, with
+      Hephaestus wielding massive hammer & tongs, flanked by his Two Living Golden Maidens (`Kourai Khryseiai`).
+    - Right Wing: Silver-Footed Thetis & Charis of the Shining Veil in the Reception Loggia beside the self-wheeling
+      Golden Tripods (`tripodas automata`)."""
+    C = DioramaCanvas(48, 32, seed=1010)
+    C.set_ground(-22, -14, 44, 28, t='p', h=2)
+    # Central Forge Dais (i in -6..5, k in -4..5) raised 1 plate higher (h=3 -> yup=40)
+    C.set_ground(-6, -4, 12, 10, t='c', h=3)
+
+    # 1. Rear Starry Bronze & Gold Colonnade of Hephaestus's House (i in -18..17, k in -13..-8)
+    C.set_ground(-18, -13, 36, 5, t='p', h=4)
+    C.reserve(-18, -13, 36, 5)
+    y_pal = C.surf_y(0, -11)  # 48
+
+    for c in range(4):
+        w_layer = {(i, -13): (GOLD if (i + c) % 4 == 0 else (BRONZE if c in (1, 2) else KYANOS))
+                   for i in range(-18, 18)}
+        C.rows += pack_bricks(w_layer, y_pal + c * B, axis='x', masonry=True)
+
+    col_is = [-16, -10, -4, 2, 8, 14]
+    col_cells = set()
+    for ci in col_is:
+        cx, cz = (ci + 1) * S, (-10 + 1) * S
+        for di in (0, 1):
+            for dk in (0, 1):
+                col_cells.add((ci + di, -10 + dk))
+        C.rows.append(put(GOLD, cx, y_pal + P, cz, '4032a'))
+        for c in range(3):
+            C.rows.append(put(BRONZE if c == 1 else GOLD, cx, y_pal + P + (c + 1) * B, cz, '3941'))
+        C.rows.append(put(KYANOS, cx, y_pal + 2 * P + 3 * B, cz, '4032a'))
+        C.rows.append(put(GOLD, cx, y_pal + 3 * P + 3 * B, cz, '3022'))
+
+    pal_tiles = {(i, k): (GOLD if (i + k) % 3 == 0 else (KYANOS if (i + k) % 2 == 0 else TAN))
+                 for i in range(-18, 18) for k in range(-12, -8)
+                 if (i, k) not in col_cells}
+    C.rows += pack_tiles(pal_tiles, y_pal)
+
+    y_ent = y_pal + 4 * B
+    ent1 = {(i, k): BRONZE for i in range(-18, 18) for k in range(-13, -8)}
+    ent2 = {(i, k): (GOLD if k in (-13, -9) else KYANOS) for i in range(-18, 18) for k in range(-13, -8)}
+    C.rows += pack_plates(ent1, y_ent, axis='x')
+    C.rows += pack_plates(ent2, y_ent + P, axis='z')
+    y_roof = y_ent + 2 * P
+    roof_tiles = {(i, k): (GOLD if (i + k) % 4 == 0 else KYANOS) for i in range(-18, 18) for k in range(-13, -8)}
+    C.rows += pack_tiles(roof_tiles, y_roof)
+
+    # 2. Left Wing (-x, i in -19..-10, k in -5..4): The Great Blazing Crucible Furnace, 20 Bellows & Rising Smoke
+    furn_cells = [(i, k) for i in range(-18, -10) for k in range(-4, 4)]
+    for (i, k) in furn_cells:
+        C.reserve(i, k, 1, 1)
+    y_f0 = C.surf_y(-14, 0)  # 32
+    for c in range(4):
+        yc = y_f0 + c * B
+        f_layer = {}
+        for (i, k) in furn_cells:
+            is_mouth = (k == 3 and -16 <= i <= -13 and c in (1, 2))
+            if is_mouth:
+                f_layer[(i, k)] = TORANGE if (i + c) % 2 == 0 else RED
+            elif i in (-18, -11) or k in (-4, 3):
+                f_layer[(i, k)] = DBG if (i + k + c) % 2 == 0 else BRONZE
+            else:
+                f_layer[(i, k)] = TORANGE if c >= 2 else DBG
+        C.rows += pack_bricks(f_layer, yc, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
+    y_ftop = y_f0 + 4 * B
+    for (i, k) in furn_cells:
+        if -16 <= i <= -13 and -2 <= k <= 1:
+            # Roaring crucible fire & rising white/grey forge smoke!
+            C.rows.append(L.block(RED if (i + k) % 2 == 0 else TORANGE, 'plate', i, k, 1, 1, y_ftop))
+            C.rows.append(on(TORANGE, (i + 0.5) * S, y_ftop + P, (k + 0.5) * S, '3062b'))
+            if (i, k) in ((-15, -1), (-14, 0)):
+                C.rows.append(on(WHITE, (i + 0.5) * S, y_ftop + P + B, (k + 0.5) * S, '3062b'))
+                C.rows.append(on(WHITE, (i + 0.5) * S, y_ftop + P + 2 * B, (k + 0.5) * S, '98138'))
+            else:
+                C.rows.append(on(BYELLOW, (i + 0.5) * S, y_ftop + P + B, (k + 0.5) * S, '4589'))
+        else:
+            C.rows.append(on(BRONZE if (i + k) % 2 == 0 else DBG, (i + 0.5) * S, y_ftop, (k + 0.5) * S, '3070b'))
+
+    # Raw Metal Ingot Rack (Bronze, Tin, Precious Gold, Silver — Iliad XVIII.474-475) at (i in -18..-15, k in 6..7)
+    for ii in range(-18, -14):
+        for kk in (6, 7):
+            C.reserve(ii, kk, 1, 1)
+            ym = C.surf_y(ii, kk)
+            mcol = [BRONZE, TIN, GOLD, SILVER][(ii + 18) % 4]
+            C.rows.append(L.block(DBG, 'plate', ii, kk, 1, 1, ym))
+            C.rows.append(on(mcol, (ii + 0.5) * S, ym + P, (kk + 0.5) * S, '3070b'))
+
+    # 3. Center Stage (i in -6..5, k in -4..5): The Great Anvil Block & The Five-Fold Shield of Achilles on the Work-Stand
+    for (i, k) in [(-4, 0), (-3, 0), (-4, 1), (-3, 1)]:
+        C.reserve(i, k, 1, 1)
+        ya = C.surf_y(i, k)
+        C.rows.append(L.block(DBG, 'brick', i, k, 1, 1, ya))
+        C.rows.append(L.block(TIN if i == -4 else SILVER, 'plate', i, k, 1, 1, ya + B))
+        C.rows.append(on(SILVER, (i + 0.5) * S, ya + B + P, (k + 0.5) * S, '3070b'))
+
+    # The Five-Fold Shield of Achilles being wrought on the Golden Tripod Pedestal at (i in 1..4, k in -1..2)
+    for ii in range(1, 5):
+        for kk in range(-1, 3):
+            C.reserve(ii, kk, 1, 1)
+            ys = C.surf_y(ii, kk)
+            C.rows.append(L.block(BRONZE, 'brick', ii, kk, 1, 1, ys))
+            is_rim = (ii in (1, 4) or kk in (-1, 2))
+            C.rows.append(L.block(KYANOS if is_rim else GOLD, 'plate', ii, kk, 1, 1, ys + B))
+            C.rows.append(on(GOLD if (ii + kk) % 2 == 0 else (TLBLUE if is_rim else TORANGE),
+                             (ii + 0.5) * S, ys + B + P, (kk + 0.5) * S, '98138'))
+
+    # Hephaestus at the Anvil + His Two Living Golden Maidens (`Kourai Khryseiai`, Iliad XVIII.417-420)
+    C.add_fig('character.odysseus', 'odysseus', -1, 0, rot=math.pi * 0.5,
+              hips=DB, legs=BRONZE, torso=('973pc2g', BRONZE), headgear=('3901', DB),
+              held_r=('4589', GOLD), held_l=('3959', SILVER))
+    C.add_fig('character.helen', 'helen', -4, -3, rot=0.0,
+              hips=GOLD, legs=GOLD, torso=('973p5e', GOLD), arms=GOLD, hands=GOLD,
+              head=('3626bp02', GOLD), crown=('98138', GOLD), held_r=('3959', GOLD))
+    C.add_fig('character.arete', 'arete', 3, -3, rot=0.0,
+              hips=GOLD, legs=GOLD, torso=('973p5e', GOLD), arms=GOLD, hands=GOLD,
+              head=('3626bp02', GOLD), crown=('98138', GOLD), held_r=('2343', GOLD))
+
+    # 4. Right Wing (+x, i in 9..19, k in -4..6): Reception Loggia with Silver-Footed Thetis, Charis & Wheeled Golden Tripods
+    for (ti, tk) in ((10, -2), (16, -2), (13, 6)):
+        C.reserve(ti, tk, 1, 1)
+        yt = C.surf_y(ti, tk)
+        C.rows.append(on(GOLD, (ti + 0.5) * S, yt, (tk + 0.5) * S, '3062b'))
+        C.rows.append(on(GOLD, (ti + 0.5) * S, yt + B, (tk + 0.5) * S, '3062b'))
+        C.rows.append(on(TORANGE, (ti + 0.5) * S, yt + 2 * B, (tk + 0.5) * S, '98138'))
+
+    # Silver-Footed Thetis pleading for her son Achilles, welcomed by Charis of the Shining Veil
+    C.add_fig('character.penelope', 'penelope', 10, 2, rot=-math.pi * 0.6,
+              hips=WHITE, legs=SILVER, torso=('973p0w', KYANOS), crown=('98138', SILVER), held_r=('30374', GOLD))
+    C.add_fig('character.circe', 'circe', 15, 2, rot=math.pi * 0.6,
+              hips=WHITE, legs=WHITE, torso=('973p5e', GOLD), crown=('98138', GOLD), held_r=('2343', GOLD))
+    # Achilles's Immortal Myrmidon Armour (Corselet brighter than fire, Crested Helmet, Greaves of pliant tin) on display
+    C.add_fig('character.odysseus-restored', 'odysseus-restored', 18, -1, rot=math.pi * 0.75,
+              hips=TIN, legs=TIN, torso=('973pc2g', GOLD), headgear=('3844', GOLD),
+              held_r=('4499', BRONZE), held_l=('3846', GOLD))
+
+    # 5. Flanking Olympus Cypresses & Blazing Forge Braziers
+    C.add_tree('cypress', -21, -12, seed=101)
+    C.add_tree('cypress',  19, -12, seed=102)
+    torch_post(C, -7,  7, h_bricks=2)
+    torch_post(C,  6,  7, h_bricks=2)
 
     return C.finalize()
 
@@ -1140,6 +1291,7 @@ DIORAMA_KITS = [
     ('set.shield-diorama-cattle',    'The Herd of Cattle, Two Lions & River Byre (Il. XVIII.573-586)', build_diorama_cattle),
     ('set.shield-diorama-choros',    'The Dancing Floor of Daedalus & Cosmic Vault (Il. XVIII.590-608)', build_diorama_choros),
     ('set.shield-diorama-office',    'The Multiplane Forge & 3D Agent Office (Behind the Scenes)',     build_diorama_office),
+    ('set.shield-diorama-forge',     'The Bronze-Starred House & Forge of Hephaestus (Il. XVIII.369-489)', build_diorama_forge),
 ]
 
 
