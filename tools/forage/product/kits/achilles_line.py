@@ -91,7 +91,6 @@ def lion_beast(x, yup, z, rot=0):
         place_local(M_b, RB,   10, 48, -10, '54200', RY( math.pi * 0.5)),
         place_local(M_b, DTAN, -10, 48, 10, '54200', RY( math.pi)),
         place_local(M_b, DTAN,  10, 48, 10, '54200', RY( math.pi)),
-        row(RB, mat_mul(M_b, mat_mul(T(0.0, -96.9, -71.5), RX(0.45))), '53451'),
     ]
 
 
@@ -108,9 +107,7 @@ def sheep_beast(x, yup, z, rot=0):
     M_b = mat_mul(T(x, -yup, z), RY(rot + 0.12))
     return [
         place_local(M_b, WHITE, 0,  0,  0, '95341p03'),
-        place_local(M_b, WHITE, 0, 48,  5, '3023', RY(math.pi * 0.5)),
-        place_local(M_b, WHITE, 0, 56, -5, '54200'),
-        place_local(M_b, WHITE, 0, 56, 15, '54200', RY(math.pi)),
+        place_local(M_b, WHITE, 0, 48,  0, '98138'),
     ]
 
 
@@ -1193,8 +1190,8 @@ def build_master_shield():
     rows.append(on(DRED, 140, R2_Y + 24, -100, '3941'))
     rows.append(on(GOLD, 140, R2_Y + 48, -100, '4032a'))
     rows.append(L.block(WHITE, 'brick', 6, 3, 2, 2, R2_Y))
-    rows.append(on(GOLD, 130, R2_Y + 24, 80, '3069b'))
-    rows.append(on(GOLD, 150, R2_Y + 24, 80, '3069b'))
+    rows.append(on(GOLD, 130, R2_Y + 24, 80, '3069b', math.pi / 2))
+    rows.append(on(GOLD, 150, R2_Y + 24, 80, '3069b', math.pi / 2))
     # B. City of War (-x): Crenellated Cyclopean Bastion Tower at (-140, -100)
     rows.append(L.block(DBG, 'brick', -8, -6, 2, 2, R2_Y))
     rows.append(L.block(DRED, 'brick', -8, -6, 2, 2, R2_Y + 24))

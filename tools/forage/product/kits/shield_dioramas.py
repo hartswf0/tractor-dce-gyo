@@ -137,7 +137,7 @@ def build_diorama_wedding():
     C.add_fig('character.telemachus', 'telemachus', -4, 8, rot=-math.pi * 0.1,
               hips=MBLUE, legs=MBLUE, torso=('973', MBLUE))
     C.add_fig('character.odysseus', 'odysseus', -1, 7, rot=math.pi * 0.3,
-              hips=DRED, legs=DRED, torso=('973', DRED), headgear=None)
+              hips=DRED, legs=DRED, torso=('973', DRED), headgear=('3901', DB))
     C.add_fig('character.penelope', 'penelope', -4, 4, rot=math.pi * 0.85,
               hips=DORANGE, legs=DORANGE, torso=('973', DRED))
     # Right-Center Foreground Musicians: Aulos-player & Golden Phorminx/Lyre-player (matching Reference Image 1!)
@@ -222,7 +222,7 @@ def build_diorama_agora():
     # 7. Cast: Two Disputants at the Sacred Circle, Two Heralds with Golden Standards, and 6 Cheering Citizens
     y_disp = FLOOR + 2 * P  # 32 (on the TAN plates at (-5, 2) and (4, 2))
     C.add_fig_at('character.odysseus', 'odysseus', (-5 + 0.5) * S, y_disp, (2 + 0.5) * S,
-                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', DRED), headgear=None)
+                 rot=-math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', DRED), headgear=('3901', DB))
     C.add_fig_at('character.euryalus', 'euryalus', (4 + 0.5) * S, y_disp, (2 + 0.5) * S,
                  rot=math.pi * 0.5, hips=WHITE, legs=WHITE, torso=('973', KYANOS))
     # Two Heralds holding tall golden standards flanking the circle
@@ -379,13 +379,13 @@ def build_diorama_ambush():
     C.add_fig('character.philoetius', 'philoetius', 6, 6, rot=math.pi * 0.25,
               hips=TAN, legs=TAN, torso=('973', DRED), held_r=('3959', GOLD))
     flock_specs = [
-        ( 9,  7, 0.4, False), (12,  7, 0.5, False), (10, 10, 0.3, False),
-        (14,  9, 0.6, False), ( 7, 10, 0.4, True),  (13, 11, 0.5, True),
+        ( 8,  6, 0.4, False), (12,  6, 0.5, False), (10, 10, 0.3, False),
+        (14,  9, 0.5, False), ( 6, 10, 0.4, True),  (12, 12, 0.5, True),
     ]
     for (sx, sk, srot, slamb) in flock_specs:
         C.free_rows += woolly_sheep((sx + 0.5) * S, C.surf_y(sx, sk), (sk + 0.5) * S, rot=srot, lamb=slamb)
-    C.free_rows += brown_goat((16 + 0.5) * S, C.surf_y(16, 9), (9 + 0.5) * S, rot=0.5)
-    C.free_rows += brown_goat((18 + 0.5) * S, C.surf_y(18, 7), (7 + 0.5) * S, rot=0.4)
+    C.free_rows += brown_goat((17 + 0.5) * S, C.surf_y(17, 10), (10 + 0.5) * S, rot=0.5)
+    C.free_rows += brown_goat((19 + 0.5) * S, C.surf_y(19, 7), (7 + 0.5) * S, rot=0.4)
     # Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) perched atop the right rampart watching over Athena
     C.free_rows += bird_perch(20.5 * S, C.surf_y(20, -13) + 4 * B + P, -12.5 * S, rot=math.pi * 0.25, kind='owl', col=WHITE)
 
@@ -866,7 +866,7 @@ def build_diorama_choros():
     for (di, dk, dcard, dsub, drot, dt, dl, dheld) in dancers_outer:
         kw = {'hips': dl, 'legs': dl, 'torso': ('973', dt)}
         if 'odysseus' in dcard:
-            kw['headgear'] = None
+            kw['headgear'] = ('3901', DB)
         if dsub in ('penelope', 'arete', 'eurycleia'):
             kw['crown'] = ('98138', GOLD)
         if dheld:
@@ -963,7 +963,7 @@ def build_diorama_office():
 
     # Place Maestro (Hephaestus) and Auditor (Athena) + Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) on the Command Gallery
     C.add_fig_at('character.odysseus', 'odysseus', (-4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
-                 rot=math.pi, hips=DB, legs=GOLD, torso=('973', BRONZE), headgear=None,
+                 rot=math.pi, hips=DB, legs=GOLD, torso=('973', BRONZE), headgear=('3901', DB),
                  crown=('98138', GOLD), held_r=('4589', GOLD))
     C.add_fig_at('character.athena', 'athena', (4.5 + 0.5) * S, y_kan_top + P, (-11 + 0.5) * S,
                  rot=math.pi, hips=GOLD, legs=GOLD, torso=('973', GOLD),

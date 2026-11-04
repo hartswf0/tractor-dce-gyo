@@ -33,7 +33,9 @@ const FPS = 30;
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   const page = await context.newPage();
 
+  const filters = process.argv.slice(2);
   for (const f of FILMS) {
+    if (filters.length > 0 && !filters.some((flt) => f.dir.includes(flt))) continue;
     const fdir = path.join(FILMS_DIR, f.dir);
     const htmlPath = path.join(fdir, 'index.html');
     const outMp4 = path.join(FILMS_DIR, f.mp4);

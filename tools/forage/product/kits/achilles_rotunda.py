@@ -668,10 +668,10 @@ def concourse_kiosk(xc, yup, zc):
     out.append(put(TAN, xc, yup + P, zc, '3031'))
     out.append(put(DTAN, xc, yup + P + B, zc - 30, '3010'))
     out.append(put(TAN, xc, yup + P + B, zc + 30, '3010'))
-    out.append(put(WHITE, xc - 10, yup + 2 * P + B, zc - 30, '3069b'))
+    out.append(put(WHITE, xc - 10, yup + 2 * P + B, zc - 30, '3070b'))
     out.append(on(GOLD, xc + 10, yup + P + B, zc - 30, '2343'))
     out.append(on(SILVER, xc + 30, yup + P + B, zc - 30, '98138'))
-    out.append(put(WHITE, xc - 10, yup + 2 * P + B, zc + 30, '3069b'))
+    out.append(put(WHITE, xc - 10, yup + 2 * P + B, zc + 30, '3070b'))
     out.append(on(GOLD, xc + 10, yup + P + B, zc + 30, '2343'))
     out.append(on(SILVER, xc + 30, yup + P + B, zc + 30, '98138'))
     # Central display plinth inside the kiosk
@@ -873,8 +873,8 @@ def populate_rotunda_world():
             studs.add((altar_i + di, altar_k + dk))
     ax, az = (altar_i + 1) * S, (altar_k + 1) * S
     out.append(put(WHITE, ax, Y_STUD + B, az, '3003'))
-    out.append(put(GOLD, ax - 10, Y_STUD + B + P, az, '3069b'))
-    out.append(put(GOLD, ax + 10, Y_STUD + B + P, az, '3069b'))
+    out.append(put(GOLD, ax - 10, Y_STUD + B + P, az, '3069b', RY(math.pi / 2)))
+    out.append(put(GOLD, ax + 10, Y_STUD + B + P, az, '3069b', RY(math.pi / 2)))
 
     outer_peace_figs = [
         (-580, -70, 0.0, WHITE, WHITE, ('3901', WHITE), ('95049', GOLD), WHITE),
@@ -922,7 +922,7 @@ def populate_rotunda_world():
     # Craggy Grey Rock & Boulder Gorge (Outer Ring at 3:00-3:45, deg in -3..+14, r = 27.5..32.8 studs)
     # Build layered grey/dark-slate craggy boulders right on the gorge floor studs!
     gorge_boulders = [
-        (28, -1, 3, 2, 3, DBG), (29, 1, 3, 3, 4, LBG), (27, 2, 2, 2, 2, DBG),
+        (28, -1, 3, 2, 3, DBG), (29, 1, 2, 2, 4, LBG), (27, 2, 2, 2, 2, DBG),
         (30, 4, 2, 2, 3, DBG), (28, 5, 3, 2, 2, LBG), (30, -1, 2, 2, 2, DTAN),
     ]
     for (bi, bk, bw, bd, bh, bcol) in gorge_boulders:

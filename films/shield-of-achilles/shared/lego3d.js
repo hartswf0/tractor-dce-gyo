@@ -152,10 +152,12 @@
   // Head-mounted accessories that yaw with the minifigure head (3626*) on the neck stud
   const HEAD_ACC = new Set([
     '3901', '39262', '3844', '98366', '11256', '12890', '13251', '32602',
-    '11264', '33322', '93562', '10048', '10053', '10054', '4592', '93223', '60749'
+    '11264', '33322', '93562', '10048', '10053', '10054', '4592', '93223', '60749',
+    '60750', '93069', '11255', '20595', '27059', '30381', '40239', '40251',
+    '4505a', '60747', '60751', '62711', '88283', '98138'
   ]);
-  // Torso-mounted accessories (capes, armor)
-  const TORSO_ACC = new Set(['4524', '10052']);
+  // Torso-mounted accessories (capes, armor, neck brackets)
+  const TORSO_ACC = new Set(['4524', '10052', '2526', '3840', '42446']);
 
   function classifyRole(pid, col, wy, rDist, grpInfo) {
     if (grpInfo) return grpInfo.subRole; // 1.0..1.6 articulated minifigure or animal sub-part
@@ -287,32 +289,43 @@
         float latZ = aRig.z;
 
         if (role > 1.55) {
-          // 1.6: Quadruped Animal (horse, lion, hound, bull) rearing/galloping on 2s
-          float rearAng = sin(qTime * 5.2 + seed * 6.283) * 0.19;
+          // 1.6: Quadruped Animal (ox, lion, sheep, goat, hound, horse) natural grazing/cantering on 2s
+          // Kept strictly within the creature's footprint so horns, manes & fleece never collide with neighbors!
+          float rearAng = sin(qTime * 3.8 + seed * 6.283) * 0.075 + sin(qTime * 1.9 + seed * 2.1) * 0.03;
           rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rearAng);
-          p.y += abs(sin(qTime * 5.2 + seed * 6.283)) * 3.2;
+          float animYaw = sin(qTime * 1.8 + seed * 4.71) * 0.045;
+          float ac = cos(animYaw), as = sin(animYaw);
+          float adx = p.x - aCenter.x, adz = p.z - aCenter.z;
+          p.x = aCenter.x + adx * ac - adz * as;
+          p.z = aCenter.z + adx * as + adz * ac;
+          float anx = n.x * ac - n.z * as;
+          float anz = n.x * as + n.z * ac;
+          n.x = anx; n.z = anz;
+          p.y += abs(sin(qTime * 3.8 + seed * 6.283)) * 1.5;
         } else {
-          // 1.1..1.5: Articulated Minifigure Limb Sub-Part Rotations (prior to whole-body turn)
-          float walkCycle = sin(qTime * 6.4 + seed * 6.283);
-          float actCycle  = sin(qTime * 4.2 + seed * 11.13);
+          // 1.0..1.5: Oscar-Worthy Articulated Minifigure Acting (rossark-motion-skill + Animal Logic on 2s)
+          // Small, footprint-safe amplitudes with phase-delayed follow-through & asymmetric counterpoint!
+          float walkCycle = sin(qTime * 5.2 + seed * 6.283);
+          float actR      = sin(qTime * 3.1 + seed * 11.13) + 0.35 * sin(qTime * 6.2 + seed * 5.71);
+          float actL      = sin((qTime - 0.18) * 2.6 + seed * 7.89);
 
           if (role > 1.05 && role < 1.15) {
-            // 1.1: Right Leg (3816c) swings around hip axle
-            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, walkCycle * 0.42);
+            // 1.1: Right Leg (3816c) swings within 1x1 stud footprint (±9.2 deg, zero throne/wall clipping)
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, walkCycle * 0.16);
           } else if (role > 1.15 && role < 1.25) {
             // 1.2: Left Leg (3817c) swings in opposite stride around hip axle
-            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, -walkCycle * 0.42);
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, -walkCycle * 0.16);
           } else if (role > 1.25 && role < 1.35) {
-            // 1.3: Right Arm + Right Hand + Held Weapon/Staff/Hammer swings at shoulder socket
-            float rArmAng = 0.18 + actCycle * 0.46 + walkCycle * 0.18;
+            // 1.3: Right Arm + Right Hand + Held Weapon/Staff/Lyre gestures at shoulder socket
+            float rArmAng = 0.06 + actR * 0.14 + walkCycle * 0.06;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rArmAng);
           } else if (role > 1.35 && role < 1.45) {
-            // 1.4: Left Arm + Left Hand + Held Torch/Shield/Cup swings in counterpoint at shoulder socket
-            float lArmAng = 0.12 - actCycle * 0.36 - walkCycle * 0.18;
+            // 1.4: Left Arm + Left Hand + Held Torch/Shield/Cup moves in phase-delayed counterpoint
+            float lArmAng = 0.04 - actL * 0.12 - walkCycle * 0.06;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, lArmAng);
           } else if (role > 1.45 && role < 1.55) {
-            // 1.5: Head + Beard + Hair + Crown + Helmet yaws left/right on the cylindrical neck stud
-            float headYaw = sin(qTime * 2.7 + seed * 9.42) * 0.46;
+            // 1.5: Head + Beard + Hair + Crown + Helmet expressive two-harmonic gaze & subtle nod on neck stud
+            float headYaw = sin(qTime * 2.2 + seed * 9.42) * 0.24 + sin(qTime * 1.05 + seed * 3.7) * 0.09;
             float hc = cos(headYaw), hs = sin(headYaw);
             float hdx = p.x - aCenter.x, hdz = p.z - aCenter.z;
             p.x = aCenter.x + hdx * hc - hdz * hs;
@@ -320,28 +333,30 @@
             float hnx = n.x * hc - n.z * hs;
             float hnz = n.x * hs + n.z * hc;
             n.x = hnx; n.z = hnz;
+            float headNod = sin((qTime - 0.12) * 2.8 + seed * 6.283) * 0.035;
+            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, headNod);
           }
 
-          // Subtle upper-body hip-hinge lean during stride (applies to torso, arms, head)
+          // Cohesive upper-body hip-hinge breathing/lean around hipY (aCenter.y) for torso, arms & head
           if (role < 1.05 || role > 1.25) {
-            float torsoLean = sin(qTime * 3.2 + seed * 6.283) * 0.08;
+            float torsoLean = sin(qTime * 2.8 + seed * 6.283) * 0.042;
             rotateLimbX(p, n, aCenter.x, aCenter.y, aCenter.z, latX, latZ, torsoLean);
           }
+
+          // Grounded whole-minifigure weight shift (±6.3 deg) & crisp 12-fps plastic stud-hop
+          float figAng = sin(qTime * 1.5 + seed * 6.283) * 0.08 + sin(qTime * 0.75 + seed * 2.4) * 0.03;
+          float fc = cos(figAng), fs = sin(figAng);
+          float fdx = p.x - aCenter.x;
+          float fdz = p.z - aCenter.z;
+          p.x = aCenter.x + fdx * fc - fdz * fs;
+          p.z = aCenter.z + fdx * fs + fdz * fc;
+          float fnx = n.x * fc - n.z * fs;
+          float fnz = n.x * fs + n.z * fc;
+          n.x = fnx; n.z = fnz;
+
+          float stepHop = abs(sin(qTime * 5.2 + seed * 6.283));
+          p.y += stepHop * 1.2;
         }
-
-        // Whole-actor stepped stop-motion body turn & plastic stud-hop
-        float figAng = sin(qTime * 1.25 + seed * 6.283) * 0.68;
-        float fc = cos(figAng), fs = sin(figAng);
-        float fdx = p.x - aCenter.x;
-        float fdz = p.z - aCenter.z;
-        p.x = aCenter.x + fdx * fc - fdz * fs;
-        p.z = aCenter.z + fdx * fs + fdz * fc;
-        float fnx = n.x * fc - n.z * fs;
-        float fnz = n.x * fs + n.z * fc;
-        n.x = fnx; n.z = fnz;
-
-        float stepHop = abs(sin(qTime * 6.4 + seed * 6.283));
-        p.y += stepHop * 2.2;
       } else if (role > 1.75 && role < 2.5) {
         // 2.0: Stop-Motion Replacement Flame / Forge Spark (stepped at 12 fps!)
         float seed = fract(sin(aCenter.x * 0.11 + aCenter.z * 0.17) * 19341.2);
@@ -600,27 +615,34 @@
       // Group contiguous minifigure parts in data.inst by anchoring each head (3626*) back to its
       // hips/skirt/torso root (3815*/36036/973) and forward through its hair/beard/crown/helmet/cape
       // and hand-held weapons/scepters/torches/tools, assigning each sub-part its anatomical limb role & pivot!
+      const cleanPid = (s) => String(s).toLowerCase().replace(/\.dat$/, '').replace(/_s$/, '');
       const rawInst = data.inst;
       const actorGroups = new Array(rawInst.length).fill(null);
       for (let i = 0; i < rawInst.length; i++) {
-        const p = String(rawInst[i][1]).toLowerCase();
+        const p = cleanPid(rawInst[i][1]);
         if (p.startsWith('3626')) {
           const [hx, hy, hz, ma, mb, mc, md, me, mf, mg, mh, mi] = rawInst[i][2];
           let rootIdx = i;
           for (let j = i - 1; j >= Math.max(0, i - 24); j--) {
             if (actorGroups[j]) break;
-            const pj = String(rawInst[j][1]).toLowerCase();
+            const pj = cleanPid(rawInst[j][1]);
             const [jx, jy, jz] = rawInst[j][2];
-            if ((pj.startsWith('3815') || pj === '36036' || pj === '973') && Math.hypot(hx - jx, hz - jz) < 42) {
+            if ((pj.startsWith('3815') || pj === '36036' || pj.startsWith('973')) && Math.hypot(hx - jx, hz - jz) < 42) {
               rootIdx = j;
               if (pj.startsWith('3815') || pj === '36036') break;
             }
           }
           let endIdx = i;
           for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 10); k++) {
-            const pk = String(rawInst[k][1]).toLowerCase();
-            if (pk.startsWith('3815') || pk === '36036' || pk === '973' || pk.startsWith('3626') || ANIMAL_ROOTS.has(pk) || data.rect[pk]) break;
+            const pk = cleanPid(rawInst[k][1]);
+            const rawPk = String(rawInst[k][1]).toLowerCase();
+            if (pk.startsWith('3815') || pk === '36036' || pk.startsWith('973') || pk.startsWith('3626') || ANIMAL_ROOTS.has(pk) || data.rect[rawPk]) break;
             const [kx, ky, kz] = rawInst[k][2];
+            if (pk === '98138' || pk === '3062b' || pk === '3024' || pk === '4073') {
+              const onHead = Math.hypot(kx - hx, kz - hz) < 6.0 && (-ky) >= (-hy) - 4;
+              const inHand = Math.hypot(kx - hx, kz - hz) >= 6.0 && Math.hypot(kx - hx, kz - hz) < 28.0 && (-ky) >= (-hy) - 48 && (-ky) <= (-hy) + 12;
+              if (!onHead && !inHand) break;
+            }
             if (Math.hypot(kx - hx, kz - hz) < 42 && (-ky) >= (-hy) - 68) {
               endIdx = k;
             } else {
@@ -633,7 +655,7 @@
           let shoulderY = -hy - 24;
           const neckY = -hy;
           for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
-            const pm = String(rawInst[mIdx][1]).toLowerCase();
+            const pm = cleanPid(rawInst[mIdx][1]);
             const pos = rawInst[mIdx][2];
             if (pm.startsWith('3816') || pm.startsWith('3817')) hipY = -pos[1];
             if (pm === '3818') { rArmPos = [pos[0], -pos[1], pos[2]]; shoulderY = -pos[1]; }
@@ -648,18 +670,24 @@
           latX /= lLen; latZ /= lLen;
 
           const rootY = -rawInst[rootIdx][2][1];
+          const figHipY = hipY || rootY;
           const rootTT = rawInst[rootIdx][3];
           const zNudge = (String(slug).includes('wedding') && Math.abs(hz - 110) < 3 && Math.abs(hx) > 200) ? 18.0 : 0.0;
           for (let mIdx = rootIdx; mIdx <= endIdx; mIdx++) {
-            const pm = String(rawInst[mIdx][1]).toLowerCase();
+            const pm = cleanPid(rawInst[mIdx][1]);
             const pos = rawInst[mIdx][2];
-            let subRole = 1.0, pivY = rootY;
-            if (pm.startsWith('3816')) { subRole = 1.1; pivY = hipY; }
-            else if (pm.startsWith('3817')) { subRole = 1.2; pivY = hipY; }
+            const isCenterline = Math.hypot(pos[0] - hx, pos[2] - hz) < 5.0;
+            let subRole = 1.0, pivY = figHipY;
+            if (pm.startsWith('3816')) { subRole = 1.1; pivY = figHipY; }
+            else if (pm.startsWith('3817')) { subRole = 1.2; pivY = figHipY; }
             else if (pm === '3818') { subRole = 1.3; pivY = shoulderY; }
             else if (pm === '3819') { subRole = 1.4; pivY = shoulderY; }
-            else if (pm.startsWith('3626') || HEAD_ACC.has(pm)) { subRole = 1.5; pivY = neckY; }
-            else if (pm === '973' || pm.startsWith('3815') || pm === '36036' || TORSO_ACC.has(pm)) { subRole = 1.0; pivY = rootY; }
+            else if (pm.startsWith('3626') || HEAD_ACC.has(pm) || (isCenterline && (-pos[1]) >= neckY - 4)) {
+              subRole = 1.5; pivY = neckY;
+            }
+            else if (pm.startsWith('973') || pm.startsWith('3815') || pm === '36036' || TORSO_ACC.has(pm) || isCenterline) {
+              subRole = 1.0; pivY = figHipY;
+            }
             else {
               // Hand (3820) or held prop (scepter, hammer, spear, sword, goblet, torch): attach to closer arm socket!
               const dR = rArmPos ? Math.hypot(pos[0] - rArmPos[0], pos[2] - rArmPos[2]) : 999;
@@ -667,7 +695,7 @@
               subRole = dR <= dL ? 1.3 : 1.4;
               pivY = shoulderY;
             }
-            actorGroups[mIdx] = { ax: hx, ay: rootY, az: hz + zNudge, startIdx: rootIdx, subRole, pivY, latX, latZ, ttIdx: rootTT, zNudge };
+            actorGroups[mIdx] = { ax: hx, ay: figHipY, az: hz + zNudge, startIdx: rootIdx, subRole, pivY, latX, latZ, ttIdx: rootTT, zNudge };
           }
         } else if (ANIMAL_ROOTS.has(p) && !actorGroups[i]) {
           const [ax, ay, az, ma, mb, mc, md, me, mf, mg] = rawInst[i][2];
@@ -679,11 +707,11 @@
             ttIdx: rawInst[i][3], zNudge: 0.0
           };
           actorGroups[i] = aGrp;
-          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 6); k++) {
-            const pk = String(rawInst[k][1]).toLowerCase();
+          for (let k = i + 1; k <= Math.min(rawInst.length - 1, i + 7); k++) {
+            const pk = cleanPid(rawInst[k][1]);
             if (!ANIMAL_SUBPARTS.has(pk) || actorGroups[k]) break;
             const [kx, ky, kz] = rawInst[k][2];
-            if (Math.hypot(kx - ax, kz - az) < 95 && (-ky) >= (-ay) - 12 && (-ky) <= (-ay) + 64) {
+            if (Math.hypot(kx - ax, kz - az) < 110 && (-ky) >= (-ay) - 12 && (-ky) <= (-ay) + 115) {
               actorGroups[k] = aGrp;
             } else {
               break;
@@ -900,7 +928,7 @@
 
     const slugStr = String(active.slug || '');
     const isCircular = !slugStr.includes('diorama');
-    const orbitArc = active.orbitArc !== undefined ? active.orbitArc : (isCircular ? Math.PI * 0.85 : 0.44);
+    const orbitArc = active.orbitArc !== undefined ? active.orbitArc : (isCircular ? Math.PI * 0.72 : 0.28);
     const orbitAngle = Math.sin((u - 0.5) * Math.PI) * (orbitArc * 0.5);
     const dx = baseEye[0] - target[0];
     const dz = baseEye[2] - target[2];
@@ -912,20 +940,19 @@
     ];
 
     // LEGO Movie / Trevor Carlee Macro Telephoto Hero Close-Up:
-    // Just like a physical DSLR macro lens on a LEGO stop-motion table (which cannot pass through LEGO roofs/walls),
-    // we rack the lens focal length (narrowing FOV down to 20.5 deg) with a gentle sightline push so minifigures
-    // fill the frame without ever clipping behind colonnade architraves or townhouse roofs!
+    // Smoothly racks focal length (FOV down to 22.5 deg) and elevates eye height without step jumps
+    // so minifigures and LDraw creatures fill the frame with generous headroom and zero roof/wall occlusion!
     const buildVal = active.buildFn ? active.buildFn(u, t) : lerp(active.build0 ?? 1, active.build1 ?? 1, u);
     const explodeVal = active.explodeFn ? active.explodeFn(u, t) : lerp(active.explode0 ?? 0, active.explode1 ?? 0, e);
     if (explodeVal < 0.05 && buildVal > 0.85 && !active.noCloseUp) {
       const closeWindow = Math.sin(clamp((u - 0.35) / 0.45, 0.0, 1.0) * Math.PI);
-      const zoomFactor = closeWindow * (isCircular ? 0.30 : 0.34);
+      const zoomFactor = closeWindow * (isCircular ? 0.26 : 0.28);
       eye = [
-        lerp(eye[0], target[0] + (eye[0] - target[0]) * 0.86, zoomFactor),
-        Math.max(eye[1], isCircular ? 240 : 330),
-        lerp(eye[2], target[2] + (eye[2] - target[2]) * 0.86, zoomFactor)
+        lerp(eye[0], target[0] + (eye[0] - target[0]) * 0.88, zoomFactor),
+        lerp(eye[1], Math.max(eye[1], isCircular ? 220 : 295), zoomFactor),
+        lerp(eye[2], target[2] + (eye[2] - target[2]) * 0.88, zoomFactor)
       ];
-      fov = lerp(fov, 21.0, zoomFactor);
+      fov = lerp(fov, 22.5, zoomFactor);
     }
 
     // Subtle stop-motion handheld camera micro-breath

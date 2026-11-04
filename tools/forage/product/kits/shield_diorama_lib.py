@@ -906,9 +906,7 @@ def woolly_sheep(x, yup, z, rot=0.0, lamb=False):
         ]
     return [
         place_local(M_b, WHITE, 0, 0, 0, '95341p03'),
-        place_local(M_b, WHITE, 0, 48, 5, '3023', RY(math.pi * 0.5)),
-        place_local(M_b, WHITE, 0, 56, -5, '54200'),
-        place_local(M_b, WHITE, 0, 56, 15, '54200', RY(math.pi)),
+        place_local(M_b, WHITE, 0, 48, 0, '98138'),
     ]
 
 
@@ -943,7 +941,6 @@ def lion_beast(x, yup, z, rot=0, body_col=TAN):
         place_local(M_b, RB,    10, 48, -10, '54200', RY( math.pi * 0.5)),
         place_local(M_b, DTAN, -10, 48,  10, '54200', RY( math.pi)),
         place_local(M_b, DTAN,  10, 48,  10, '54200', RY( math.pi)),
-        row(RB, mat_mul(M_b, mat_mul(T(0.0, -96.9, -71.5), RX(0.45))), '53451'),
     ]
 
 
