@@ -26,7 +26,7 @@ from kits.shield_diorama_lib import (
     pitched_terracotta_roof, build_coursed_box_walls, build_climbing_vine,
     build_raised_tree_planter, build_townhouse_2storey,
     build_stone_cottage, build_timber_sheep_shed, build_wine_press_pavilion,
-    build_doric_stoa, build_elder_throne, build_sacred_circle_floor,
+    build_doric_stoa, build_castle_fortress, build_elder_throne, build_sacred_circle_floor,
     woolly_sheep, brown_goat, ox_beast, lion_beast, dog_beast, bird_perch,
 )
 
@@ -87,15 +87,15 @@ def build_diorama_wedding():
     rear_line = [(i, -14) for i in range(-10, 10)]
     for (i, k) in rear_line:
         C.reserve(i, k, 1, 1)
-    C.rows += L.masonry(rear_line, C.surf_y(0, -14), 3, seed=33)
+    C.rows += L.masonry(rear_line, C.surf_y(0, -14), 4, seed=33)
 
     can_poles = [(-5, -12), (4, -12), (-5, -7), (4, -7)]
     y_can_base = C.surf_y(0, -10)
     for (pi, pk) in can_poles:
         C.reserve(pi, pk, 1, 1)
-        for c in range(4):
+        for c in range(5):
             C.rows.append(on(GOLD, (pi + 0.5) * S, y_can_base + c * B, (pk + 0.5) * S, '3062b'))
-    y_can_top = y_can_base + 4 * B
+    y_can_top = y_can_base + 5 * B
     for dk in (0, 2, 4):
         C.rows.append(L.block(TAN, 'plate', -5, -12 + dk, 8, 2, y_can_top))
         C.rows.append(L.block(TAN, 'plate',  3, -12 + dk, 2, 2, y_can_top))
@@ -176,9 +176,9 @@ def build_diorama_agora():
     for seg in (ex_back, ex_left, ex_right):
         for (wi, wk) in seg:
             C.reserve(wi, wk, 1, 1)
-    C.rows += L.masonry(ex_back, C.surf_y(0, -13), 3, seed=23, shades=[(TAN, 5), (LBG, 3), (DTAN, 2)])
-    C.rows += L.masonry(ex_left, C.surf_y(-11, -10), 2, seed=24, shades=[(TAN, 5), (LBG, 3)])
-    C.rows += L.masonry(ex_right, C.surf_y(10, -10), 2, seed=25, shades=[(TAN, 5), (LBG, 3)])
+    C.rows += L.masonry(ex_back, C.surf_y(0, -13), 4, seed=23, shades=[(TAN, 5), (LBG, 3), (DTAN, 2)])
+    C.rows += L.masonry(ex_left, C.surf_y(-11, -10), 3, seed=24, shades=[(TAN, 5), (LBG, 3)])
+    C.rows += L.masonry(ex_right, C.surf_y(10, -10), 3, seed=25, shades=[(TAN, 5), (LBG, 3)])
     C.add_tree('cypress', -13, -13, seed=22)
 
     # Three Sculpted High-Backed Stone Thrones on the Exedra (at h=4, surf_y = 48)
@@ -200,9 +200,9 @@ def build_diorama_agora():
     y_pg = C.surf_y(16, -4)
     for (pi, pk) in perg_posts:
         C.reserve(pi, pk, 1, 1)
-        for c in range(4):
-            C.rows.append(on(TAN if c < 3 else GOLD, (pi + 0.5) * S, y_pg + c * B, (pk + 0.5) * S, '3062b'))
-    y_aw = y_pg + 4 * B
+        for c in range(5):
+            C.rows.append(on(TAN if c < 4 else GOLD, (pi + 0.5) * S, y_pg + c * B, (pk + 0.5) * S, '3062b'))
+    y_aw = y_pg + 5 * B
     for dk in (0, 2, 4, 6):
         C.rows.append(L.block(RB, 'plate', 13, -8 + dk, 8, 2, y_aw))
     for i in range(13, 21):
@@ -286,8 +286,8 @@ def build_diorama_ambush():
     y_sf = y_sanct + P
     s_cols = [(-5, -13), (-2, -13), (1, -13), (4, -13), (-5, -8), (4, -8)]
     for (ci, ck) in s_cols:
-        for c in range(3):
-            C.rows.append(on(GOLD if c in (0, 2) else TAN, (ci + 0.5) * S, y_sf + c * B, (ck + 0.5) * S, '3062b'))
+        for c in range(5):
+            C.rows.append(on(GOLD if c in (0, 2, 4) else TAN, (ci + 0.5) * S, y_sf + c * B, (ck + 0.5) * S, '3062b'))
     # Golden ritual chalices along the sanctuary front ledge
     brass_cells = [(-3, -8), (0, -8), (2, -8)]
     for (bi, bk) in brass_cells:
@@ -301,8 +301,8 @@ def build_diorama_ambush():
                for i in range(-6, 6) for k in range(-14, -7)
                if (i, k) not in set(s_cols) and (i, k) not in set(brass_cells) and (i, k) not in fate_cells}
     C.rows += pack_tiles(s_tiles, y_sf)
-    # Golden architrave & central Golden Arch over crimson Ker
-    y_sent = y_sf + 3 * B
+    # Golden architrave at y_sent = y_sf + 5*B (120 LDU — full Vitruvian clearance above the Three Fates!)
+    y_sent = y_sf + 5 * B
     C.rows.append(L.block(GOLD, 'plate', -5, -13, 10, 1, y_sent))
     C.rows.append(L.block(TAN,  'plate', -5, -8,  10, 1, y_sent))
     for i in range(-5, 5):
@@ -317,8 +317,9 @@ def build_diorama_ambush():
     C.add_fig_at('character.penelope', 'penelope', 3.5 * S, y_sf + P, -10.5 * S, rot=math.pi,
                  hips=BLK, legs=BLK, torso=('973p0w', BLK), headgear=BLK, held_r=('2343', GOLD))
 
-    # 3. Left Bank (-x): Giant Gnarled Olive Tree, Stepped Craggy Ambush Boulders, Reeds & Two Crouching Scouts
+    # 3. Left Bank (-x): Giant Gnarled Olive Tree, Cypress, Stepped Craggy Ambush Boulders, Reeds & Two Crouching Scouts
     C.add_tree('olive', -19, -5, seed=31)
+    C.add_tree('cypress', -19, -12, seed=42)
     boulder_specs = [
         (-19,  3, 3, LBG), (-18,  3, 4, DBG), (-17,  4, 3, LBG), (-16,  4, 2, DTAN),
         (-14,  3, 3, DBG), (-13,  2, 4, LBG), (-13,  1, 3, DBG), (-13,  0, 2, LBG),
@@ -340,56 +341,51 @@ def build_diorama_ambush():
     C.add_reeds(  2,   1, 3, 2, seed=38)
     C.add_reeds(  3,   8, 2, 3, seed=39)
 
-    # Two Bronze-Helmed Scouts crouching in the rock cleft behind the ambush boulders (at i=-16, k=0 and i=-15, k=2)
+    # Two Bronze-Helmed Scouts crouching in the rock cleft behind the ambush boulders (at i=-17, k=0 and i=-15, k=2)
     C.add_fig('character.odysseus', 'odysseus', -17, 0, rot=-math.pi * 0.65,
               hips=DB, legs=BRONZE, torso=('973pc2g', BRONZE), headgear=('3844', BRONZE), held_r=('4499', BRONZE), held_l=('3846', GOLD))
     C.add_fig('character.telemachus', 'telemachus', -15, 2, rot=-math.pi * 0.70,
               hips=DGREEN, legs=DB, torso=('973p4i', DGREEN), headgear=('3844', DGREEN), held_r=('4499', BRONZE), held_l=('3846', BRONZE))
 
-    # 4. Right Bank (+x): Towering Stepped Stone City Rampart, Two Cypresses, Golden Ares & Athena, and 6-Warrior Phalanx
-    wall_back = [(i, -13) for i in range(11, 22)]
-    wall_side = [(21, k) for k in range(-12, -3)]
-    for seg_i, seg in enumerate((wall_back, wall_side)):
-        for (wi, wk) in seg:
-            C.reserve(wi, wk, 1, 1)
-        C.rows += L.masonry(seg, C.surf_y(*seg[0]), 4, seed=40 + seg_i, shades=[(TAN, 5), (LBG, 3), (DTAN, 2)])
-    C.add_tree('cypress',  7, -12, seed=42)
-    C.add_tree('cypress', 10, -10, seed=43)
+    # 4. Right Bank (+x): Monumental Vitruvian Besieged Castle Citadel (`build_castle_fortress`), Cypress,
+    #    Golden Ares & Athena, and Bronze Phalanx
+    y_keep_top = build_castle_fortress(C, i0=8, k0=-14, w=14, d=8, seed=340)
+    C.add_tree('cypress', 6, -13, seed=43)
 
-    # Golden Ares & Golden Athena leading the Bronze Phalanx on the right bank
-    C.add_fig('character.odysseus-restored', 'odysseus-restored', 11, -5, rot=math.pi * 0.35,
+    # Golden Ares & Golden Athena leading the Bronze Phalanx on the right bank in front of the Castle Gatehouse
+    C.add_fig('character.odysseus-restored', 'odysseus-restored', 9, -4, rot=math.pi * 0.35,
               hips=GOLD, legs=GOLD, torso=('973pc2g', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
               headgear=('3844', DRED), held_r=('4499', GOLD), held_l=('3846', GOLD))
-    C.add_fig('character.athena', 'athena', 15, -6, rot=math.pi * 0.35,
+    C.add_fig('character.athena', 'athena', 13, -5, rot=math.pi * 0.35,
               hips=GOLD, legs=GOLD, torso=('973p5e', GOLD), arms=GOLD, hands=GOLD, head=('3626bp01', GOLD),
               headgear=('3844', GOLD), held_r=('4499', GOLD), held_l=('75902', GOLD))
 
     phalanx = [
-        (12, -1, 'character.menelaus',     'menelaus',     DRED,   BRONZE, KYANOS),
-        (16, -2, 'character.laodamas',     'laodamas',     BRONZE, DRED,   GOLD),
-        (19, -3, 'character.euryalus',     'euryalus',     BRONZE, TAN,    BRONZE),
-        (15,  2, 'character.alcinous',     'alcinous',     DRED,   BRONZE, GOLD),
-        (19,  1, 'character.laodamas', 'laodamas', BRONZE, DRED,   SILVER),
+        (17, -4, 'character.menelaus', 'menelaus', DRED,   BRONZE, KYANOS),
+        (11, -1, 'character.laodamas', 'laodamas', BRONZE, DRED,   GOLD),
+        (15, -1, 'character.euryalus', 'euryalus', BRONZE, TAN,    BRONZE),
+        (19, -1, 'character.alcinous', 'alcinous', DRED,   BRONZE, GOLD),
+        (16,  3, 'character.laodamas', 'laodamas', BRONZE, DRED,   SILVER),
     ]
     for (wi, wk, wcard, wsub, wt, wl, wsh) in phalanx:
         C.add_fig(wcard, wsub, wi, wk, rot=math.pi * 0.35,
                   hips=wl, legs=wl, torso=('973pc2g', wt), headgear=('3844', GOLD), held_r=('4499', BRONZE), held_l=('3846', wsh))
 
-    # 5. Center Foreground: Two Piping Herdsmen Driving Flock of 6 Woolly Sheep, 2 Brown Goats & Ox to the Ford
-    C.add_fig('character.eumaeus', 'eumaeus', 2, 5, rot=math.pi * 0.25,
+    # 5. Center Foreground: Two Piping Herdsmen Driving Flock of 6 Woolly Sheep & 2 Brown Goats to the Ford
+    C.add_fig('character.eumaeus', 'eumaeus', 1, 5, rot=math.pi * 0.25,
               hips=TAN, legs=TAN, torso=('973p4v', DB), held_r=('3959', GOLD))
-    C.add_fig('character.philoetius', 'philoetius', 6, 6, rot=math.pi * 0.25,
+    C.add_fig('character.philoetius', 'philoetius', 5, 6, rot=math.pi * 0.25,
               hips=TAN, legs=TAN, torso=('973p4v', DRED), held_r=('3959', GOLD))
     flock_specs = [
-        ( 8,  6, 0.4, False), (12,  6, 0.5, False), (10, 10, 0.3, False),
-        (14,  9, 0.5, False), ( 6, 10, 0.4, True),  (12, 12, 0.5, True),
+        ( 8,  6, 0.4, False), (12,  5, 0.5, False), (10, 10, 0.3, False),
+        (14,  8, 0.5, False), ( 6, 10, 0.4, True),  (13, 12, 0.5, True),
     ]
     for (sx, sk, srot, slamb) in flock_specs:
         C.free_rows += woolly_sheep((sx + 0.5) * S, C.surf_y(sx, sk), (sk + 0.5) * S, rot=srot, lamb=slamb)
     C.free_rows += brown_goat((17 + 0.5) * S, C.surf_y(17, 10), (10 + 0.5) * S, rot=0.5)
-    C.free_rows += brown_goat((19 + 0.5) * S, C.surf_y(19, 7), (7 + 0.5) * S, rot=0.4)
-    # Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) perched atop the right rampart watching over Athena
-    C.free_rows += bird_perch(20.5 * S, C.surf_y(20, -13) + 4 * B + P, -12.5 * S, rot=math.pi * 0.25, kind='owl', col=WHITE)
+    C.free_rows += brown_goat((20 + 0.5) * S, C.surf_y(20, 7), (7 + 0.5) * S, rot=0.4)
+    # Athena's Spread-Wing Owl (67632p01, LDraw Update 2025-08) perched atop the highest East Keep Castle Merlon!
+    C.free_rows += bird_perch(21.5 * S, y_keep_top + P, -13.5 * S, rot=math.pi * 0.25, kind='owl', col=WHITE)
 
     return C.finalize()
 
@@ -399,12 +395,12 @@ def build_diorama_ambush():
 # ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 def build_diorama_sheepfold():
     """Iliad XVIII.587-589: A great pasture in a fair mountain glen of white-fleeced sheep, folds, roofed sheds,
-    and cottages — matching Reference Image 5 at full 48x32 architectural scale."""
+    and cottages — matching Reference Image 5 at full 48x32 Vitruvian architectural scale."""
     C = DioramaCanvas(48, 32, seed=404)
     C.set_ground(-22, -14, 44, 28, t='m', h=2)
     C.set_ground(-10, -4, 22, 15, t='e', h=2)
 
-    # 1. Coursed Dry-Stone Perimeter Wall around all 4 sides (with wildflower verge outside) + Slatted Wooden Gate at front
+    # 1. Coursed Dry-Stone Perimeter Wall around all 4 sides (3 courses = 72 LDU) + Slatted Wooden Gate at front
     back_w = [(i, -13) for i in range(-20, 20)]
     left_w = [(-20, k) for k in range(-12, 11)]
     right_w = [(19, k) for k in range(-12, 11)]
@@ -413,7 +409,7 @@ def build_diorama_sheepfold():
     for seg_idx, seg in enumerate((back_w, left_w, right_w, front_l, front_r)):
         for (wi, wk) in seg:
             C.reserve(wi, wk, 1, 1)
-        C.rows += L.masonry(seg, C.surf_y(*seg[0]), 2, seed=41 + seg_idx, shades=[(LBG, 5), (DBG, 2), (TAN, 2), (DTAN, 1)])
+        C.rows += L.masonry(seg, C.surf_y(*seg[0]), 3, seed=41 + seg_idx, shades=[(LBG, 5), (DBG, 2), (TAN, 2), (DTAN, 1)])
 
     # 6-stud-wide Reddish Brown 3-rail slatted wooden gate at front center (k = 11, i in -3..2)
     y_gate = C.surf_y(0, 11)
@@ -422,7 +418,8 @@ def build_diorama_sheepfold():
         if gi in (-3, 2):
             C.rows.append(L.block(LBG, 'brick', gi, 11, 1, 1, y_gate))
             C.rows.append(L.block(DBG, 'brick', gi, 11, 1, 1, y_gate + B))
-            C.rows.append(on(TAN, (gi + 0.5) * S, y_gate + 2 * B, 11.5 * S, '98138'))
+            C.rows.append(L.block(LBG, 'brick', gi, 11, 1, 1, y_gate + 2 * B))
+            C.rows.append(on(TAN, (gi + 0.5) * S, y_gate + 3 * B, 11.5 * S, '98138'))
         else:
             C.rows.append(L.block(RB, 'plate', gi, 11, 1, 1, y_gate))
             C.rows.append(L.block(DB, 'plate', gi, 11, 1, 1, y_gate + P))
@@ -443,7 +440,7 @@ def build_diorama_sheepfold():
     C.reserve(-6, -3, 1, 1)
     C.rows += amphora(-5.5 * S, C.surf_y(-6, -3), -2.5 * S, DORANGE)
 
-    # 4. Right Side (+x): Gnarled Spreading Olive Tree (landscape.olive) & Stone Spring Drinking Trough
+    # 4. Right Side (+x): Gnarled Spreading Olive Tree (vitruvian_olive) & Stone Spring Drinking Trough
     C.add_tree('olive', 14, -4, seed=48)
     for ti in range(9, 13):
         for tk in (-10, -9):
@@ -452,8 +449,8 @@ def build_diorama_sheepfold():
             C.rows.append(L.block(LBG, 'plate', ti, tk, 1, 1, yt))
             C.rows.append(on(TLBLUE if ti in (10, 11) else LBG, (ti + 0.5) * S, yt + P, (tk + 0.5) * S, '3070b'))
 
-    # 5. Cast: Bearded Shepherd with Crooked Staff, Sheepdog & Flock of 10 Brick-Built Woolly White Sheep & Lambs
-    C.add_fig('character.eumaeus', 'eumaeus', -2, -1, rot=math.pi,
+    # 5. Cast: Bearded Shepherd with Crooked Staff, Sheepdog & Flock of 10 Woolly White Sheep & Lambs
+    C.add_fig('character.eumaeus', 'eumaeus', -1, -1, rot=math.pi,
               hips=TAN, legs=TAN, torso=('973p4v', DTAN), held_r=('95049', DB))
     C.free_rows += dog_beast((-5 + 0.5) * S, C.surf_y(-5, -1), (-1 + 0.5) * S, rot=-2.6)
 
@@ -472,7 +469,7 @@ def build_diorama_sheepfold():
     for (si, sk, srot, slamb) in flock:
         C.free_rows += woolly_sheep((si + 0.5) * S, C.surf_y(si, sk), (sk + 0.5) * S, rot=srot, lamb=slamb)
     # Printed Songbird (41835p01, LDraw Update 2024-08) perched on the dry-stone gate pier
-    C.free_rows += bird_perch(2.5 * S, C.surf_y(2, 11) + 2 * B + P, 11.5 * S, rot=math.pi * 0.8, kind='songbird', col=MBLUE)
+    C.free_rows += bird_perch(2.5 * S, C.surf_y(2, 11) + 3 * B + P, 11.5 * S, rot=math.pi * 0.8, kind='songbird', col=MBLUE)
 
     return C.finalize()
 
@@ -508,21 +505,21 @@ def build_diorama_harvest():
         C.reserve(ai, ak, 1, 1)
         C.rows += amphora((ai + 0.5) * S, C.surf_y(ai, ak), (ak + 0.5) * S, DORANGE)
 
-    # 2. Rear Coursed Dry-Stone Estate Boundary Wall & Twin Tall Pencil Cypresses
+    # 2. Rear Coursed Dry-Stone Estate Boundary Wall (4 courses = 96 LDU) & Twin Tall Pencil Cypresses
     rear_w = [(i, -13) for i in range(-11, 13)]
     for (wi, wk) in rear_w:
         C.reserve(wi, wk, 1, 1)
-    C.rows += L.masonry(rear_w, C.surf_y(0, -13), 3, seed=52, shades=[(LBG, 4), (TAN, 4), (DTAN, 2)])
+    C.rows += L.masonry(rear_w, C.surf_y(0, -13), 4, seed=52, shades=[(LBG, 4), (TAN, 4), (DTAN, 2)])
     C.add_tree('cypress', -10, -12, seed=53)
     C.add_tree('cypress',   0, -12, seed=54)
 
-    # 3. Left Field: Three Sculpted Plough-Oxen, Ploughmen & Headland Cup-Bearer with Golden Chalice
-    C.free_rows += ox_beast(-10.5 * S, C.surf_y(-10, -1), -1.0 * S, rot=-math.pi * 0.5, body_col=RB, horn_col=TAN)
-    C.free_rows += ox_beast( -8.5 * S, C.surf_y( -8,  5),  5.0 * S, rot= math.pi * 0.5, body_col=DTAN, horn_col=WHITE)
-    C.free_rows += ox_beast(-14.5 * S, C.surf_y(-14,  8),  8.0 * S, rot=-math.pi * 0.5, body_col=TAN, horn_col=SILVER)
+    # 3. Left Field: Three Sculpted Plough-Oxen, Ploughmen & Headland Cup-Bearer with Golden Chalice (spaced >= 75 LDU!)
+    C.free_rows += ox_beast(-11.5 * S, C.surf_y(-11, -1), -1.0 * S, rot=-math.pi * 0.5, body_col=RB, horn_col=TAN)
+    C.free_rows += ox_beast( -7.5 * S, C.surf_y( -7,  4),  4.0 * S, rot= math.pi * 0.5, body_col=DTAN, horn_col=WHITE)
+    C.free_rows += ox_beast(-13.5 * S, C.surf_y(-13,  9),  9.0 * S, rot=-math.pi * 0.5, body_col=TAN, horn_col=SILVER)
     C.add_fig('character.eumaeus', 'eumaeus', -4, -1, rot=math.pi * 0.5, hips=DB, legs=DB, torso=('973p4v', RB), held_r=('95049', DB))
-    C.add_fig('character.philoetius', 'philoetius', -14, 4, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973p4v', DTAN), held_r=('95049', DB))
-    C.add_fig('character.medon', 'medon', -17, -2, rot=-math.pi * 0.6, hips=WHITE, legs=WHITE, torso=('973pmc', TAN), held_r=('2343', GOLD))
+    C.add_fig('character.philoetius', 'philoetius', -16, 4, rot=-math.pi * 0.5, hips=RB, legs=RB, torso=('973p4v', DTAN), held_r=('95049', DB))
+    C.add_fig('character.medon', 'medon', -19, -2, rot=-math.pi * 0.6, hips=WHITE, legs=WHITE, torso=('973pmc', TAN), held_r=('2343', GOLD))
 
     # 4. Right Rear (+x): Great Spreading Oak Tree (landscape.oak), Stone Sacrifice Altar & Barley-Feast Table
     C.add_tree('oak', 16, -11, seed=55)
@@ -614,16 +611,16 @@ def build_diorama_vineyard():
         C.reserve(ai, ak, 1, 1)
         C.rows += amphora((ai + 0.5) * S, C.surf_y(ai, ak), (ak + 0.5) * S, DORANGE)
 
-    # 5. Six Trellised Grapevine Rows on Pearl Silver Poles with Golden Overhead Trellises & Hanging Dark Grape Clusters
-    for vk in (-2, 3, 8):
+    # 5. Six Trellised Grapevine Arbors on 5-Brick (120 LDU) Pearl Silver Poles with Golden Overhead Trellises & Hanging Dark Grapes
+    for vk in (-3, 3, 9):
         for side_i0, side_i1 in ((-12, -5), (4, 11)):
             stakes = [side_i0, side_i0 + 4, side_i1]
             y_v = C.surf_y(side_i0, vk)
             for si in stakes:
                 C.reserve(si, vk, 1, 1)
-                for c in range(3):
+                for c in range(5):
                     C.rows.append(on(SILVER, (si + 0.5) * S, y_v + c * B, (vk + 0.5) * S, '3062b'))
-            y_rail = y_v + 3 * B
+            y_rail = y_v + 5 * B
             C.rows.append(L.block(GOLD, 'plate', side_i0, vk, 8, 1, y_rail))
             for i in range(side_i0, side_i1 + 1):
                 if i % 2 == 0:
@@ -633,9 +630,9 @@ def build_diorama_vineyard():
                 if i not in stakes and i % 2 == 1:
                     C.rows.append(on(BLK if (i + vk) % 3 == 0 else DPURPLE, (i + 0.5) * S, y_rail - B, (vk + 0.5) * S, '3062b'))
 
-    # 6. Central Raised Stone Musicians' Dais & Cast: Boy with Golden Phorminx + 6 Dancing Youths & Maidens
+    # 6. Central Raised Stone Musicians' Dais & Cast: Boy with Golden Phorminx + 6 Dancing Youths & Maidens in Wide Open Lanes
     C.set_ground(-3, -2, 6, 6, t='p', h=3)
-    C.add_fig('character.phemius', 'phemius', 0, 0, rot=math.pi,
+    C.add_fig('character.phemius', 'phemius', 0, -1, rot=math.pi,
               hips=WHITE, legs=WHITE, torso=('973pmc', GOLD), held_r=('3959', GOLD))
     C.add_fig('character.helen', 'helen', -2, 2, rot=-math.pi * 0.75,
               hips=WHITE, legs=WHITE, torso=('973p0w', DRED), held_r=('98138', DPURPLE))
@@ -645,9 +642,9 @@ def build_diorama_vineyard():
               hips=TAN, legs=TAN, torso=('973p3y', WHITE), held_r=('2343', GOLD))
     C.add_fig('character.telemachus', 'telemachus', 7, 0, rot=math.pi * 0.6,
               hips=TAN, legs=TAN, torso=('973p3y', OLIVE), held_r=('2343', GOLD))
-    C.add_fig('character.arete', 'arete', -6, 6, rot=-math.pi * 0.8,
+    C.add_fig('character.arete', 'arete', -7, 6, rot=-math.pi * 0.8,
               hips=WHITE, legs=WHITE, torso=('973p0w', TAN))
-    C.add_fig('character.euryalus', 'euryalus', 5, 6, rot=math.pi * 0.8,
+    C.add_fig('character.euryalus', 'euryalus', 6, 6, rot=math.pi * 0.8,
               hips=TAN, legs=TAN, torso=('973p4v', DRED))
 
     return C.finalize()
@@ -659,7 +656,7 @@ def build_diorama_vineyard():
 def build_diorama_cattle():
     """Iliad XVIII.573-586: The herd of straight-horned cattle of gold and tin rushing from the byre to pasture
     beside a sounding river and reed-bed; two terrible lions seize the bellowing bull at the front while four
-    golden herdsmen and nine swift dogs pursue."""
+    golden herdsmen and swift dogs pursue."""
     C = DioramaCanvas(48, 32, seed=707)
 
     for i in range(C.in_i0, C.in_i1 + 1):
@@ -679,11 +676,11 @@ def build_diorama_cattle():
     build_stone_cottage(C, -21, -13, 14, 9, door_side='+z', chimney=True, bench=True, seed=71)
     C.add_tree('cypress', -6, -12, seed=72)
     C.add_tree('cypress', -21, -2, seed=73)
-    # Stone Corral Wall & Cattle Drinking Trough outside the Byre
+    # Stone Corral Wall (3 courses = 72 LDU) & Cattle Drinking Trough outside the Byre
     corral_w = [(i, -13) for i in range(-4, 7)]
     for (wi, wk) in corral_w:
         C.reserve(wi, wk, 1, 1)
-    C.rows += L.masonry(corral_w, C.surf_y(0, -13), 2, seed=74)
+    C.rows += L.masonry(corral_w, C.surf_y(0, -13), 3, seed=74)
     for ti in range(-18, -14):
         C.reserve(ti, -2, 1, 1)
         yt = C.surf_y(ti, -2)
@@ -700,30 +697,30 @@ def build_diorama_cattle():
     C.add_reeds(5,   3, 3, 2, seed=79)
     C.add_reeds(7,   9, 3, 2, seed=80)
 
-    # 3. Center Pasture: Bellowing Bull Dragged Down by Two Tawny Lions + 4 More Gold & Tin Horned Cattle
-    C.free_rows += ox_beast(1.5 * S, C.surf_y(1, 4), 4.0 * S, rot=-2.2, body_col=BRONZE, horn_col=GOLD)
-    C.free_rows += lion_beast(4.5 * S, C.surf_y(4, 2), 2.0 * S, rot=0.8)
-    C.free_rows += lion_beast(-1.5 * S, C.surf_y(-1, 6), 6.0 * S, rot=-2.6)
+    # 3. Center Pasture: Bellowing Bull Flanked by Two Tawny Lions + 4 Gold & Tin Horned Cattle (100% 3D AABB disjoint!)
+    C.free_rows += ox_beast( 1.5 * S, C.surf_y( 1,  4),  4.0 * S, rot=-math.pi * 0.5, body_col=BRONZE, horn_col=GOLD)
+    C.free_rows += lion_beast( 3.5 * S, C.surf_y( 3,  0),  0.0 * S, rot= 0.3)
+    C.free_rows += lion_beast(-0.5 * S, C.surf_y(-1,  8),  8.0 * S, rot=-2.8)
 
-    C.free_rows += ox_beast( 1.5 * S, C.surf_y( 1, -7), -7.0 * S, rot=-1.9, body_col=GOLD, horn_col=SILVER)
-    C.free_rows += ox_beast(-3.5 * S, C.surf_y(-3, -2), -2.0 * S, rot=-1.6, body_col=TIN,  horn_col=GOLD)
-    C.free_rows += ox_beast(-4.5 * S, C.surf_y(-4,  9),  9.0 * S, rot=-2.1, body_col=GOLD, horn_col=SILVER)
-    C.free_rows += ox_beast( 2.5 * S, C.surf_y( 2, 10), 10.0 * S, rot=-1.8, body_col=TIN,  horn_col=GOLD)
+    C.free_rows += ox_beast( 1.5 * S, C.surf_y( 1, -8), -8.0 * S, rot=-1.8, body_col=GOLD, horn_col=SILVER)
+    C.free_rows += ox_beast(-3.5 * S, C.surf_y(-3, -3), -3.0 * S, rot=-1.6, body_col=TIN,  horn_col=GOLD)
+    C.free_rows += ox_beast(-4.5 * S, C.surf_y(-4, 11), 11.0 * S, rot=-1.7, body_col=GOLD, horn_col=SILVER)
+    C.free_rows += ox_beast( 4.5 * S, C.surf_y( 4, 11), 11.0 * S, rot=-1.6, body_col=TIN,  horn_col=GOLD)
 
-    # 4. Four Golden Herdsmen & Nine Swift Hunting Hounds Charging from the Byre
+    # 4. Four Golden Herdsmen & Seven Swift Hunting Hounds Charging from the Byre (spaced >= 55 LDU!)
     herdsmen = [
-        (-10, -2, 'eumaeus',    -math.pi * 0.55),
-        (-14,  1, 'philoetius', -math.pi * 0.50),
-        (-11,  5, 'odysseus',   -math.pi * 0.45),
-        (-16,  7, 'telemachus', -math.pi * 0.50),
+        (-11, -1, 'eumaeus',    -math.pi * 0.55),
+        (-16,  2, 'philoetius', -math.pi * 0.50),
+        (-12,  6, 'odysseus',   -math.pi * 0.45),
+        (-18,  8, 'telemachus', -math.pi * 0.50),
     ]
     for (hi, hk, hsub, hrot) in herdsmen:
         C.add_fig('character.' + hsub, hsub, hi, hk, rot=hrot,
                   hips=TAN, legs=TAN, torso=('973p4v', GOLD), held_r=('4499', BRONZE))
 
     dogs = [
-        (-6, -4, -1.8), (-7, 0, -1.6), (-7, 3, -1.5), (-8, 6, -1.7), (-9, 9, -1.9),
-        (-10, -6, -1.7), (-13, -3, -1.6), (-14, 4, -1.5), (-16, 10, -1.8),
+        (-7, -6, -1.7), (-7, -1, -1.6), (-7,  3, -1.5), (-8,  7, -1.7),
+        (-10, 11, -1.8), (-14, -2, -1.6), (-15, 6, -1.5),
     ]
     for (di, dk, drot) in dogs:
         C.free_rows += dog_beast((di + 0.5) * S, C.surf_y(di, dk), (dk + 0.5) * S, rot=drot)
@@ -751,12 +748,12 @@ def build_diorama_choros():
     C.reserve(-16, -13, 32, 6)
     y_stoa = C.surf_y(0, -10)  # FLOOR + 4*P = 48
 
-    # Rear frescoed palace wall (4 brick courses high)
-    for c in range(4):
-        w_layer = {(i, -13): (DRED if c in (1, 2) else (WHITE if ((i + c) // 2) % 2 == 0 else TAN)) for i in range(-16, 16)}
+    # Rear frescoed palace wall (5 brick courses = 120 LDU high for Vitruvian scale!)
+    for c in range(5):
+        w_layer = {(i, -13): (DRED if c in (1, 2, 3) else (WHITE if ((i + c) // 2) % 2 == 0 else TAN)) for i in range(-16, 16)}
         C.rows += pack_bricks(w_layer, y_stoa + c * B, axis='x', masonry=True)
 
-    # 8 Minoan Red-and-Gold Columns along k in -9..-8
+    # 8 Minoan Red-and-Gold Columns along k in -9..-8 (5 bricks = 120 LDU high)
     col_is = [-15, -11, -7, -3, 2, 6, 10, 14]
     col_cells = set()
     for ci in col_is:
@@ -765,18 +762,18 @@ def build_diorama_choros():
             for dk in (0, 1):
                 col_cells.add((ci + di, -9 + dk))
         C.rows.append(put(GOLD, cx, y_stoa + P, cz, '4032a'))
-        for c in range(3):
+        for c in range(4):
             C.rows.append(put(DRED if c != 1 else GOLD, cx, y_stoa + P + (c + 1) * B, cz, '3941'))
-        C.rows.append(put(BLK, cx, y_stoa + 2 * P + 3 * B, cz, '4032a'))
-        C.rows.append(put(GOLD, cx, y_stoa + 3 * P + 3 * B, cz, '3022'))
+        C.rows.append(put(BLK, cx, y_stoa + 2 * P + 4 * B, cz, '4032a'))
+        C.rows.append(put(GOLD, cx, y_stoa + 3 * P + 4 * B, cz, '3022'))
 
     stoa_tiles = {(i, k): (WHITE if (i + k) % 2 == 0 else TAN)
                   for i in range(-16, 16) for k in range(-12, -7)
                   if (i, k) not in col_cells}
     C.rows += pack_tiles(stoa_tiles, y_stoa)
 
-    # Entablature & Roof Deck at y_ent = y_stoa + 4 * B
-    y_ent = y_stoa + 4 * B
+    # Entablature & Roof Deck at y_ent = y_stoa + 5 * B (120 LDU)
+    y_ent = y_stoa + 5 * B
     ent1 = {(i, k): TAN for i in range(-16, 16) for k in range(-13, -7)}
     ent2 = {(i, k): (GOLD if k == -8 else WHITE) for i in range(-16, 16) for k in range(-13, -7)}
     C.rows += pack_plates(ent1, y_ent, axis='x')
@@ -1152,8 +1149,8 @@ def build_diorama_forge():
     C.reserve(-18, -13, 36, 5)
     y_pal = C.surf_y(0, -11)  # 48
 
-    for c in range(4):
-        w_layer = {(i, -13): (GOLD if (i + c) % 4 == 0 else (BRONZE if c in (1, 2) else KYANOS))
+    for c in range(5):
+        w_layer = {(i, -13): (GOLD if (i + c) % 4 == 0 else (BRONZE if c in (1, 2, 3) else KYANOS))
                    for i in range(-18, 18)}
         C.rows += pack_bricks(w_layer, y_pal + c * B, axis='x', masonry=True)
 
@@ -1165,17 +1162,17 @@ def build_diorama_forge():
             for dk in (0, 1):
                 col_cells.add((ci + di, -10 + dk))
         C.rows.append(put(GOLD, cx, y_pal + P, cz, '4032a'))
-        for c in range(3):
-            C.rows.append(put(BRONZE if c == 1 else GOLD, cx, y_pal + P + (c + 1) * B, cz, '3941'))
-        C.rows.append(put(KYANOS, cx, y_pal + 2 * P + 3 * B, cz, '4032a'))
-        C.rows.append(put(GOLD, cx, y_pal + 3 * P + 3 * B, cz, '3022'))
+        for c in range(4):
+            C.rows.append(put(BRONZE if c in (1, 2) else GOLD, cx, y_pal + P + (c + 1) * B, cz, '3941'))
+        C.rows.append(put(KYANOS, cx, y_pal + 2 * P + 4 * B, cz, '4032a'))
+        C.rows.append(put(GOLD, cx, y_pal + 3 * P + 4 * B, cz, '3022'))
 
     pal_tiles = {(i, k): (GOLD if (i + k) % 3 == 0 else (KYANOS if (i + k) % 2 == 0 else TAN))
                  for i in range(-18, 18) for k in range(-12, -8)
                  if (i, k) not in col_cells}
     C.rows += pack_tiles(pal_tiles, y_pal)
 
-    y_ent = y_pal + 4 * B
+    y_ent = y_pal + 5 * B
     ent1 = {(i, k): BRONZE for i in range(-18, 18) for k in range(-13, -8)}
     ent2 = {(i, k): (GOLD if k in (-13, -9) else KYANOS) for i in range(-18, 18) for k in range(-13, -8)}
     C.rows += pack_plates(ent1, y_ent, axis='x')

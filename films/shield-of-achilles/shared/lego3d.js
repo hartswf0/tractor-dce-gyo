@@ -294,11 +294,12 @@
         float latZ = aRig.z;
 
         if (role > 1.55) {
-          // 1.6: Quadruped Animal (ox, lion, sheep, goat, hound, horse) natural grazing/cantering on 2s
-          // Kept strictly within the creature's footprint so horns, manes & fleece never collide with neighbors!
-          float rearAng = sin(qTime * 3.8 + seed * 6.283) * 0.075 + sin(qTime * 1.9 + seed * 2.1) * 0.03;
-          rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rearAng);
-          float animYaw = sin(qTime * 1.8 + seed * 4.71) * 0.045;
+          // 1.6: Quadruped Animal (ox, lion, sheep, goat, hound, horse) grounded on 2s
+          // Hooves remain 100% locked onto ground studs (deltaY = 0); only upper body/head breathes & grazes within AABB!
+          float upperW = clamp((p.y - (pivY - 12.0)) / 24.0, 0.0, 1.0);
+          float grazePitch = (sin(qTime * 2.8 + seed * 6.283) * 0.032 + sin(qTime * 1.4 + seed * 2.1) * 0.015) * upperW;
+          rotateLimbX(p, n, aCenter.x, pivY - 12.0, aCenter.z, latX, latZ, grazePitch);
+          float animYaw = sin(qTime * 1.6 + seed * 4.71) * 0.028 * upperW;
           float ac = cos(animYaw), as = sin(animYaw);
           float adx = p.x - aCenter.x, adz = p.z - aCenter.z;
           p.x = aCenter.x + adx * ac - adz * as;
@@ -306,31 +307,24 @@
           float anx = n.x * ac - n.z * as;
           float anz = n.x * as + n.z * ac;
           n.x = anx; n.z = anz;
-          p.y += abs(sin(qTime * 3.8 + seed * 6.283)) * 1.5;
         } else {
-          // 1.0..1.5: Oscar-Worthy Articulated Minifigure Acting (rossark-motion-skill + Animal Logic on 2s)
-          // Small, footprint-safe amplitudes with phase-delayed follow-through & asymmetric counterpoint!
-          float walkCycle = sin(qTime * 5.2 + seed * 6.283);
-          float actR      = sin(qTime * 3.1 + seed * 11.13) + 0.35 * sin(qTime * 6.2 + seed * 5.71);
-          float actL      = sin((qTime - 0.18) * 2.6 + seed * 7.89);
+          // 1.0..1.5: Grounded Stop-Motion Minifigure Acting on 2s (Zero Vertical Bouncing!)
+          // Feet & legs (1.1, 1.2) and hips remain 100% clicked onto their baseplate studs (deltaY = 0).
+          // Upper body, arms (1.3, 1.4), and head (1.5) articulate within collision-safe personal AABB envelopes.
+          float actR = sin(qTime * 2.8 + seed * 11.13) + 0.30 * sin(qTime * 5.6 + seed * 5.71);
+          float actL = sin((qTime - 0.18) * 2.4 + seed * 7.89);
 
-          if (role > 1.05 && role < 1.15) {
-            // 1.1: Right Leg (3816c) swings within 1x1 stud footprint (±9.2 deg, zero throne/wall clipping)
-            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, walkCycle * 0.16);
-          } else if (role > 1.15 && role < 1.25) {
-            // 1.2: Left Leg (3817c) swings in opposite stride around hip axle
-            rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, -walkCycle * 0.16);
-          } else if (role > 1.25 && role < 1.35) {
-            // 1.3: Right Arm + Right Hand + Held Weapon/Staff/Lyre gestures at shoulder socket
-            float rArmAng = 0.06 + actR * 0.14 + walkCycle * 0.06;
+          if (role > 1.25 && role < 1.35) {
+            // 1.3: Right Arm + Right Hand + Held Tool/Staff/Lyre gestures at shoulder socket within AABB
+            float rArmAng = 0.04 + actR * 0.095;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, rArmAng);
           } else if (role > 1.35 && role < 1.45) {
-            // 1.4: Left Arm + Left Hand + Held Torch/Shield/Cup moves in phase-delayed counterpoint
-            float lArmAng = 0.04 - actL * 0.12 - walkCycle * 0.06;
+            // 1.4: Left Arm + Left Hand + Held Shield/Cup moves in phase-delayed counterpoint within AABB
+            float lArmAng = 0.03 - actL * 0.085;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, lArmAng);
           } else if (role > 1.45 && role < 1.55) {
             // 1.5: Head + Beard + Hair + Crown + Helmet expressive two-harmonic gaze & subtle nod on neck stud
-            float headYaw = sin(qTime * 2.2 + seed * 9.42) * 0.24 + sin(qTime * 1.05 + seed * 3.7) * 0.09;
+            float headYaw = sin(qTime * 2.0 + seed * 9.42) * 0.18 + sin(qTime * 0.95 + seed * 3.7) * 0.06;
             float hc = cos(headYaw), hs = sin(headYaw);
             float hdx = p.x - aCenter.x, hdz = p.z - aCenter.z;
             p.x = aCenter.x + hdx * hc - hdz * hs;
@@ -338,29 +332,23 @@
             float hnx = n.x * hc - n.z * hs;
             float hnz = n.x * hs + n.z * hc;
             n.x = hnx; n.z = hnz;
-            float headNod = sin((qTime - 0.12) * 2.8 + seed * 6.283) * 0.035;
+            float headNod = sin((qTime - 0.12) * 2.4 + seed * 6.283) * 0.028;
             rotateLimbX(p, n, aCenter.x, pivY, aCenter.z, latX, latZ, headNod);
           }
 
-          // Cohesive upper-body hip-hinge breathing/lean around hipY (aCenter.y) for torso, arms & head
-          if (role < 1.05 || role > 1.25) {
-            float torsoLean = sin(qTime * 2.8 + seed * 6.283) * 0.042;
-            rotateLimbX(p, n, aCenter.x, aCenter.y, aCenter.z, latX, latZ, torsoLean);
+          // Upper-body waist-hinge breathing & subtle torso twist above hipY (aCenter.y), keeping legs 100% locked to studs!
+          if ((role < 1.05 && p.y > aCenter.y + 2.0) || role > 1.25) {
+            float torsoLean = sin(qTime * 2.2 + seed * 6.283) * 0.028;
+            rotateLimbX(p, n, aCenter.x, aCenter.y + 4.0, aCenter.z, latX, latZ, torsoLean);
+            float torsoYaw = sin(qTime * 1.4 + seed * 6.283) * 0.038;
+            float tc = cos(torsoYaw), ts = sin(torsoYaw);
+            float tdx = p.x - aCenter.x, tdz = p.z - aCenter.z;
+            p.x = aCenter.x + tdx * tc - tdz * ts;
+            p.z = aCenter.z + tdx * ts + tdz * tc;
+            float tnx = n.x * tc - n.z * ts;
+            float tnz = n.x * ts + n.z * tc;
+            n.x = tnx; n.z = tnz;
           }
-
-          // Grounded whole-minifigure weight shift (±6.3 deg) & crisp 12-fps plastic stud-hop
-          float figAng = sin(qTime * 1.5 + seed * 6.283) * 0.08 + sin(qTime * 0.75 + seed * 2.4) * 0.03;
-          float fc = cos(figAng), fs = sin(figAng);
-          float fdx = p.x - aCenter.x;
-          float fdz = p.z - aCenter.z;
-          p.x = aCenter.x + fdx * fc - fdz * fs;
-          p.z = aCenter.z + fdx * fs + fdz * fc;
-          float fnx = n.x * fc - n.z * fs;
-          float fnz = n.x * fs + n.z * fc;
-          n.x = fnx; n.z = fnz;
-
-          float stepHop = abs(sin(qTime * 5.2 + seed * 6.283));
-          p.y += stepHop * 1.2;
         }
       } else if (role > 1.75 && role < 2.5) {
         // 2.0: Stop-Motion Replacement Flame / Forge Spark (stepped at 12 fps!)
@@ -411,14 +399,14 @@
       }
 
       // 5. Acoustic / Forge Radial Shockwave (for beat hits & Earshot onsets)
-      // Keeps baseplates & floor masonry 100% rigid (no floor-plate tilting!) while pulsing actors & rim glow
+      // Keeps baseplates, actors, animals & masonry 100% locked to their studs (zero vertical bounce!) while pulsing flames & Master Builder rim glow
       if (uPulseR >= 0.0 && uPulseAmp > 0.001) {
         float r = length(aCenter.xz);
         float dist = abs(r - uPulseR);
         if (dist < 140.0) {
           float w = exp(-(dist * dist) / (2.0 * 48.0 * 48.0)) * uPulseAmp;
-          if (role > 0.5) p.y += w * 4.0;
-          glow = max(glow, w * 0.35);
+          if (role > 1.75 && role < 2.5) p.y += w * 3.5;
+          glow = max(glow, w * 0.32);
         }
       }
 

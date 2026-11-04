@@ -334,7 +334,8 @@ class DioramaCanvas:
         self.rows += cobbles + meadow_flowers
 
     def add_tree(self, kind, i0, k0, y_override=None, seed=None):
-        """Plant a landscape.py tree (`olive`, `cypress`, `oak`, `willow`, `poplar`, `fig`, `pine`) on 2x2 cells at (i0, k0)."""
+        """Plant a Vitruvian-scale 100% botanical 3D tree (`olive`, `cypress`, `oak`, `willow`) on 2x2 cells at (i0, k0),
+        with 4 to 5 bricks (96-128 LDU) of clear cylindrical trunk and layered 3D botanical leaf fronds (`4727`, `2417`, `2423`, `32607`)."""
         s = self.seed + (seed if seed is not None else (i0 * 31 + k0 * 17))
         if y_override is None:
             h = self.h_map.get((i0, k0), 2)
@@ -345,11 +346,20 @@ class DioramaCanvas:
             y_surf = FLOOR + h * P
         else:
             y_surf = y_override
-        L.avoid(self.rows)
-        fn = mediterranean_cypress if kind == 'cypress' else getattr(L, kind)
-        p = fn(i0 * S, k0 * S, y_surf, s)
-        self.rows += p.rows
-        L.avoid(p.rows)
+        tree_builders = {
+            'cypress': vitruvian_cypress,
+            'olive':   vitruvian_olive,
+            'oak':     vitruvian_oak,
+            'willow':  vitruvian_willow,
+            'poplar':  vitruvian_cypress,
+            'fig':     vitruvian_olive,
+            'pine':    vitruvian_cypress,
+        }
+        fn = tree_builders.get(kind, vitruvian_olive)
+        grid_rows, free_rows = fn(i0 * S, k0 * S, y_surf, s)
+        self.rows += grid_rows
+        self.free_rows += free_rows
+        L.avoid(grid_rows)
 
     def add_reeds(self, i0, k0, w=3, d=2, seed=None):
         """Plant a clump of river reeds (landscape.reeds) on w x d cells at (i0, k0)."""
@@ -507,27 +517,146 @@ def pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', chimney=False,
     return rows
 
 
-def mediterranean_cypress(x, z, yup=4, seed=0):
-    """Build a dense, tapered Mediterranean Pencil Cypress spire on a 2x2 root at (x, z, yup) using `L.Grow` and `L.tiers`:
-    alternates `4727` 2x2 rosettes with 4x4 -> 2x4 -> 4x2 -> 2x2 tiers fringed with `2423` (4x3 leaves), `32607` (3-leaf
-    clusters), and `98138` foliage buds in Dark Green, Green, and Olive, crowned by a `3942c` tapered cone."""
-    g = L.Grow(seed)
-    i0, k0, y = L._root(g, x, z, yup)
-    y = L._bole(g, i0, k0, y, [RB, DB], 2)
-    pal = [(DGREEN, 5), (GREEN, 2), (OLIVE, 1)]
-    plan = [
-        ('gap', '4727', DGREEN), (4, 4), (2, 4),
-        ('gap', '4727', GREEN),  (4, 4), (4, 2),
-        ('gap', '4727', DGREEN), (4, 2), (2, 2),
-        ('gap', '4727', GREEN),  (2, 4), (2, 2),
-        ('gap', '4727', DGREEN), (2, 2),
-        ('gap', '4727', DGREEN),
+def _radial_fronds(cx, y, cz, pid, cols, seed=0):
+    """Radiate 4 organic 3D botanical leaf fronds (`2417` 6x5, `2423` 4x3, or `32607` 3-leaf cluster) outward from
+    the 4 studs of a 2x2 round core at `(cx, y, cz)` at non-orthogonal organic angles."""
+    rows = []
+    h_seat, local = L.SEAT[pid]
+    studs = [
+        (-10, -10, -math.pi * 0.75),
+        ( 10, -10, -math.pi * 0.25),
+        ( 10,  10,  math.pi * 0.25),
+        (-10,  10,  math.pi * 0.75),
     ]
-    L.tiers(g, i0, k0, y, plan, pal, core=2, spacer=RB,
-            plate_pal=[(DGREEN, 3), (GREEN, 1)],
-            small=[(DGREEN, 4), (GREEN, 2), (OLIVE, 1)],
-            top_cone=(DGREEN, '3942c'))
-    return g.finish(fallback=(DGREEN, '98138'), dress=L._dress(pal))
+    for idx, (dx, dz, base_ang) in enumerate(studs):
+        ang = base_ang + 0.21 + ((idx + seed) % 3 - 1) * 0.16
+        col = cols[(idx + seed) % len(cols)]
+        rows.append(put(col, cx + dx, y + h_seat, cz + dz, pid, RY(L.aim(local, ang))))
+    return rows
+
+
+def vitruvian_olive(x, z, yup=4, seed=0):
+    """Vitruvian-scale Gnarled Homeric Olive Tree (239 LDU = 10 bricks tall, 104 LDU clear trunk headroom,
+    zero rectangular plates — 100% cylindrical `4032a`/`3941` bole + `4727` rosettes + radial `2417`/`2423`/`32607` leaf fronds)."""
+    cx, cz = x + S, z + S
+    grid_rows, free_rows = [], []
+    y = yup
+    grid_rows.append(on(DB, cx, y, cz, '4032a'))
+    y += 8
+    for c in range(4):
+        grid_rows.append(on(RB if c % 2 == 0 else DB, cx, y, cz, '3941'))
+        y += 24
+    tiers = [
+        (OLIVE,     '2423', [SANDGREEN, OLIVE, DGREEN], RB),
+        (DGREEN,    '2417', [OLIVE, SANDGREEN, DGREEN], DB),
+        (OLIVE,     '2417', [SANDGREEN, DGREEN, OLIVE], OLIVE),
+        (SANDGREEN, '2423', [OLIVE, SANDGREEN, DGREEN], DGREEN),
+    ]
+    for idx, (rcol, fpid, fcols, pcol) in enumerate(tiers):
+        grid_rows.append(on(rcol, cx, y, cz, '4727'))
+        y += 19
+        free_rows += _radial_fronds(cx, y, cz, fpid, fcols, seed=seed + idx * 3)
+        grid_rows.append(on(pcol, cx, y, cz, '4032a'))
+        y += 8
+    grid_rows.append(on(OLIVE, cx, y, cz, '4727'))
+    y += 19
+    free_rows += _radial_fronds(cx, y, cz, '32607', [SANDGREEN, OLIVE, DGREEN], seed=seed + 17)
+    grid_rows.append(on(SANDGREEN, cx, y, cz, '4032a'))
+    y += 8
+    return grid_rows, free_rows
+
+
+def vitruvian_oak(x, z, yup=4, seed=0):
+    """Vitruvian-scale Royal Homeric Oak Tree (263 LDU = 11 bricks tall, 128 LDU = 5.33 bricks clear trunk headroom
+    so King Agamemnon and his heralds can feast beneath the boughs; zero rectangular plates)."""
+    cx, cz = x + S, z + S
+    grid_rows, free_rows = [], []
+    y = yup
+    grid_rows.append(on(DB, cx, y, cz, '4032a'))
+    y += 8
+    for c in range(5):
+        grid_rows.append(on(DB if c % 2 == 0 else RB, cx, y, cz, '3941'))
+        y += 24
+    tiers = [
+        (DGREEN, '2417', [DGREEN, GREEN, OLIVE], DB),
+        (GREEN,  '2417', [GREEN, DGREEN, OLIVE], RB),
+        (DGREEN, '2417', [DGREEN, OLIVE, GREEN], DGREEN),
+        (OLIVE,  '2423', [GREEN, DGREEN, OLIVE], GREEN),
+    ]
+    for idx, (rcol, fpid, fcols, pcol) in enumerate(tiers):
+        grid_rows.append(on(rcol, cx, y, cz, '4727'))
+        y += 19
+        free_rows += _radial_fronds(cx, y, cz, fpid, fcols, seed=seed + idx * 5)
+        grid_rows.append(on(pcol, cx, y, cz, '4032a'))
+        y += 8
+    grid_rows.append(on(DGREEN, cx, y, cz, '4727'))
+    y += 19
+    free_rows += _radial_fronds(cx, y, cz, '32607', [DGREEN, GREEN, OLIVE], seed=seed + 23)
+    grid_rows.append(on(GREEN, cx, y, cz, '4032a'))
+    y += 8
+    return grid_rows, free_rows
+
+
+def vitruvian_cypress(x, z, yup=4, seed=0):
+    """Vitruvian-scale Mediterranean Pencil Cypress Spire (282 LDU = 11.75 bricks tall, zero rectangular plates —
+    `3941` bole + 6 stacked `4727` rosette tiers + radial `2423`/`32607` fronds + `3942c` tapered spire cone)."""
+    cx, cz = x + S, z + S
+    grid_rows, free_rows = [], []
+    y = yup
+    grid_rows.append(on(DB, cx, y, cz, '4032a'))
+    y += 8
+    for c in range(3):
+        grid_rows.append(on(RB if c % 2 == 0 else DB, cx, y, cz, '3941'))
+        y += 24
+    tiers = [
+        (DGREEN, '2423',  [DGREEN, GREEN, OLIVE], DGREEN),
+        (GREEN,  '2423',  [DGREEN, OLIVE, GREEN], DGREEN),
+        (DGREEN, '2423',  [GREEN, DGREEN, OLIVE], GREEN),
+        (OLIVE,  '32607', [DGREEN, GREEN, OLIVE], DGREEN),
+        (DGREEN, '32607', [DGREEN, OLIVE, GREEN], GREEN),
+    ]
+    for idx, (rcol, fpid, fcols, pcol) in enumerate(tiers):
+        grid_rows.append(on(rcol, cx, y, cz, '4727'))
+        y += 19
+        free_rows += _radial_fronds(cx, y, cz, fpid, fcols, seed=seed + idx * 7)
+        grid_rows.append(on(pcol, cx, y, cz, '4032a'))
+        y += 8
+    grid_rows.append(on(DGREEN, cx, y, cz, '4727'))
+    y += 19
+    grid_rows.append(on(DGREEN, cx, y, cz, '3942c'))
+    y += 48
+    return grid_rows, free_rows
+
+
+def vitruvian_willow(x, z, yup=4, seed=0):
+    """Vitruvian-scale Riverside Willow Tree (239 LDU = 10 bricks tall, 104 LDU clear trunk headroom,
+    zero rectangular plates — `3941` bole + `4727` rosettes + cascading radial `2417`/`2423`/`32607` fronds)."""
+    cx, cz = x + S, z + S
+    grid_rows, free_rows = [], []
+    y = yup
+    grid_rows.append(on(DB, cx, y, cz, '4032a'))
+    y += 8
+    for c in range(4):
+        grid_rows.append(on(RB if c % 2 == 0 else DB, cx, y, cz, '3941'))
+        y += 24
+    tiers = [
+        (OLIVE,     '2417', [OLIVE, SANDGREEN, GREEN], RB),
+        (SANDGREEN, '2417', [SANDGREEN, OLIVE, DGREEN], OLIVE),
+        (GREEN,     '2423', [OLIVE, GREEN, SANDGREEN], SANDGREEN),
+        (OLIVE,     '2423', [SANDGREEN, OLIVE, GREEN], DGREEN),
+    ]
+    for idx, (rcol, fpid, fcols, pcol) in enumerate(tiers):
+        grid_rows.append(on(rcol, cx, y, cz, '4727'))
+        y += 19
+        free_rows += _radial_fronds(cx, y, cz, fpid, fcols, seed=seed + idx * 5)
+        grid_rows.append(on(pcol, cx, y, cz, '4032a'))
+        y += 8
+    grid_rows.append(on(SANDGREEN, cx, y, cz, '4727'))
+    y += 19
+    free_rows += _radial_fronds(cx, y, cz, '32607', [OLIVE, SANDGREEN, GREEN], seed=seed + 19)
+    grid_rows.append(on(OLIVE, cx, y, cz, '4032a'))
+    y += 8
+    return grid_rows, free_rows
 
 
 def wall_color(i, c, k, seed=0):
@@ -545,11 +674,12 @@ def wall_color(i, c, k, seed=0):
 def build_coursed_box_walls(i0, k0, w, d, y0, courses, door_cells=set(), win_cells=set(), win_courses=range(2, 4), seed=0):
     """Build a 1-stud-thick coursed masonry box around the perimeter of (i0..i0+w-1, k0..k0+d-1) for `courses` brick courses
     using full 24-LDU LEGO bricks and embossed profile masonry bricks (`98283` 1x2 and `15533` 1x4) in staggered running bond,
-    with internal cross-wall ribs, LBG corner quoins, stone doorway lintels, and recessed timber window sills."""
+    with internal cross-wall ribs, LBG corner quoins, 4-brick (96 LDU) Vitruvian doorways spanned by `3659` 1x4 Stone Arch lintels,
+    and recessed timber window sills."""
     rows = []
+    door_h = 4 if (courses >= 5 and door_cells) else 3
     perim = [(i, k) for i in range(i0, i0 + w) for k in range(k0, k0 + d)
              if i in (i0, i0 + w - 1, i0 + w // 2) or k in (k0, k0 + d - 1, k0 + d // 2)]
-    # Identify jambs adjacent to doorways so the c==3 stone lintel spans across both jambs (4-stud 15533 lintel!)
     lintel_span = set(door_cells)
     for (di, dk) in door_cells:
         for (ni, nk) in ((di - 1, dk), (di + 1, dk), (di, dk - 1), (di, dk + 1)):
@@ -561,18 +691,16 @@ def build_coursed_box_walls(i0, k0, w, d, y0, courses, door_cells=set(), win_cel
         brick_cells = {}
         for (i, k) in perim:
             is_ext = i in (i0, i0 + w - 1) or k in (k0, k0 + d - 1)
-            if is_ext and (i, k) in door_cells and c < 3:
+            if is_ext and (i, k) in door_cells and c < door_h:
                 continue
-            if is_ext and (i, k) in lintel_span and c == 3:
-                brick_cells[(i, k)] = LBG  # heavy 1x4 embossed stone lintel spanning doorway & jambs
+            if is_ext and (i, k) in lintel_span and c == door_h:
+                brick_cells[(i, k)] = LBG  # 1x4 3659 stone arch lintel spanning doorway & jambs
                 continue
             if is_ext and (i, k) in win_cells and c in win_courses:
                 if c == min(win_courses):
-                    # Timber window sill plate + smooth stone sill tile inside window opening
                     rows.append(L.block(RB, 'plate', i, k, 1, 1, y_c))
                     rows.append(on(TAN, (i + 0.5) * S, y_c + P, (k + 0.5) * S, '3070b'))
                 continue
-            # Alternating X/Z corner quoins on even/odd courses so corners interlock in 3D ashlar running bond
             if c % 2 == 0:
                 is_quoin = (i in (i0, i0 + 1, i0 + w - 2, i0 + w - 1) and k in (k0, k0 + d - 1))
             else:
@@ -584,14 +712,14 @@ def build_coursed_box_walls(i0, k0, w, d, y0, courses, door_cells=set(), win_cel
             else:
                 col = wall_color(i, c, k, seed)
             brick_cells[(i, k)] = col
-        if c == 3 and lintel_span:
+        if c == door_h and lintel_span:
             arch_sub = {ck: brick_cells.pop(ck) for ck in list(brick_cells) if ck in lintel_span}
             rows += pack_bricks(arch_sub, y_c, axis='x', masonry=True, arch_cells=lintel_span)
         rows += pack_bricks(brick_cells, y_c, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
     return rows
 
 
-def build_climbing_vine(canvas, i, k, y0, height_bricks=3, seed=0):
+def build_climbing_vine(canvas, i, k, y0, height_bricks=4, seed=0):
     """Build a botanical climbing ivy/vine column with woody base stem (`3062b`), stepped leaf plates,
     spreading 3-leaf clusters (`32607`), and 5-petal LEGO blossoms (`24866`) at cell (i, k) from `y0`."""
     canvas.reserve(i, k, 1, 1)
@@ -650,9 +778,10 @@ def build_raised_tree_planter(canvas, i0, k0, w, d, tree_kind='olive', bricks=2,
 
 
 def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
-    """Build a monumental two-storey Mediterranean townhouse (Reference Image 1) with recessed doorways,
-    threshold woman holding an offering bowl, climbing ivy with white blossoms, projecting second-storey stone
-    balcony with Royal Blue + Gold tapestry, balcony amphora, marvelling balcony figure, and pitched terracotta roof."""
+    """Build a monumental Vitruvian two-storey Mediterranean townhouse (9 bricks = 216 LDU wall height, ~280 LDU to ridge):
+    5-brick (120 LDU) ground storey with 4-brick (96 LDU) doorway spanned by a `3659` 1x4 Stone Arch lintel,
+    threshold woman holding an offering bowl, climbing ivy, projecting second-storey stone balcony with Royal Blue + Gold
+    tapestry, marvelling balcony figure, 4-brick (96 LDU) upper storey, and pitched terracotta barrel-tile roof."""
     canvas.reserve(i0, k0, w, d)
     y0 = canvas.surf_y(i0, k0)
     in_i = i0 + w - 1 if i0 < 0 else i0
@@ -664,13 +793,13 @@ def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
     win_g_cells = {(in_i, k0 + 2), (in_i, k0 + d - 3)}
     win_u_cells = {(in_i, mid_k), (in_i, mid_k + 1), (front_i - 1, k0 + d - 1), (front_i, k0 + d - 1)}
 
-    # Ground floor: 4 brick courses (96 LDU)
-    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y0, 4, door_cells=door_cells,
-                                           win_cells=win_g_cells, win_courses=range(1, 3), seed=seed)
+    # Ground floor: 5 brick courses (120 LDU) with 4-brick (96 LDU) doorway + 3659 arch at c==4
+    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y0, 5, door_cells=door_cells,
+                                           win_cells=win_g_cells, win_courses=range(2, 4), seed=seed)
 
-    # Recessed wooden door leaf inside the inner street doorway (at mid_k + 1, off the mid_k cross-rib)
+    # Recessed wooden door leaf inside the inner street doorway (at mid_k + 1, 4 bricks = 96 LDU tall)
     rec_i = in_i - balc_dir
-    for c in range(3):
+    for c in range(4):
         canvas.rows.append(L.block(RB, 'brick', rec_i, mid_k + 1, 1, 1, y0 + c * B))
 
     # Woman standing on the front threshold doorway marvelling (Reference Image 1!)
@@ -685,14 +814,14 @@ def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
                       torso=('973pd13' if side == 'left' else '973p88', TAN if side == 'left' else WHITE),
                       held_r=('98138', GOLD))
 
-    # Climbing vines with white blossoms flanking the front doorway
+    # Climbing vines with white blossoms flanking the front doorway (4 bricks = 96 LDU tall)
     for vi in (i0, i0 + w - 1):
         vk = k0 + d
         if (vi, vk) in canvas.h_map:
-            build_climbing_vine(canvas, vi, vk, y0, height_bricks=3, seed=seed + vi)
+            build_climbing_vine(canvas, vi, vk, y0, height_bricks=4, seed=seed + vi)
 
-    # Balcony + Second-floor slab at y_balc = y0 + 4 * B (2 plates thick = 16 LDU)
-    y_balc = y0 + 4 * B
+    # Balcony + Second-floor slab at y_balc = y0 + 5 * B (2 plates thick = 16 LDU)
+    y_balc = y0 + 5 * B
     slab1 = {(i, k): RB for i in range(i0, i0 + w) for k in range(k0, k0 + d)}
     slab2 = {(i, k): TAN for i in range(i0, i0 + w) for k in range(k0, k0 + d)}
     balc_ks = range(mid_k - 3, mid_k + 5)
@@ -739,16 +868,17 @@ def build_townhouse_2storey(canvas, i0, k0, w, d, side='left', seed=0):
                       legs=WHITE if side == 'left' else TAN,
                       torso=('973p0w' if side == 'left' else '973pmc', WHITE if side == 'left' else DGREEN))
 
-    # Upper floor walls: 3 brick courses (72 LDU) from y_u0 to y_eave
-    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y_u0, 3, door_cells=set(),
+    # Upper floor walls: 4 brick courses (96 LDU) from y_u0 to y_eave
+    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y_u0, 4, door_cells=set(),
                                            win_cells=win_u_cells, win_courses=range(1, 3), seed=seed + 50)
-    y_eave = y_u0 + 3 * B
+    y_eave = y_u0 + 4 * B
     canvas.rows += pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='z', seed=seed + 99)
 
 
-def build_stone_cottage(canvas, i0, k0, w, d, door_side='+z', chimney=True, bench=True, seed=0):
-    """Build a vernacular Mediterranean stone cottage (stathmos, Reference Image 5) in Tan/DTan/LBG with recessed
-    wooden door, shuttered windows, exterior wooden bench, stone chimney, and pitched terracotta barrel-tile roof."""
+def build_stone_cottage(canvas, i0, k0, w, d, door_side='+z', chimney=True, bench=True, bricks=6, seed=0):
+    """Build a Vitruvian-proportioned Mediterranean stone cottage / granary / byre (6 bricks = 144 LDU wall height,
+    ~220-240 LDU total height with roof & chimney): 4-brick (96 LDU) doorway spanned by a `3659` 1x4 Stone Arch at c==4
+    and crowned by a solid ashlar frieze course at c==5, recessed wooden door, shuttered windows, and terracotta roof."""
     canvas.reserve(i0, k0, w, d)
     y0 = canvas.surf_y(i0, k0)
     mid_i = i0 + w // 2
@@ -756,17 +886,18 @@ def build_stone_cottage(canvas, i0, k0, w, d, door_side='+z', chimney=True, benc
     door_cells = {(mid_i - 1, door_k), (mid_i, door_k)}
     win_cells = {(i0 + 2, door_k), (i0 + w - 3, door_k)}
 
-    # 4 brick courses (96 LDU) of coursed limestone walls with LBG quoins
-    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y0, 4, door_cells=door_cells,
-                                           win_cells=win_cells, win_courses=range(1, 3), seed=seed)
-    # Recessed wooden door leaf inside the doorway (at mid_i - 1, beside the internal rib at mid_i)
+    # 6 brick courses (144 LDU) of coursed limestone walls with LBG quoins & 4-brick arched doorway
+    canvas.rows += build_coursed_box_walls(i0, k0, w, d, y0, bricks, door_cells=door_cells,
+                                           win_cells=win_cells, win_courses=range(2, 4), seed=seed)
+    # Recessed wooden door leaf inside the doorway (4 bricks = 96 LDU tall)
     inner_dk = door_k - 1 if door_side == '+z' else door_k + 1
-    for c in range(3):
+    door_h = 4 if bricks >= 5 else 3
+    for c in range(door_h):
         canvas.rows.append(L.block(RB, 'brick', mid_i - 1, inner_dk, 1, 1, y0 + c * B))
     # Grounded recessed dark window shutter piers behind the windows
     for wi in (i0 + 2, i0 + w - 3):
         if wi != mid_i and inner_dk != k0 + d // 2:
-            for c in range(3):
+            for c in range(door_h):
                 canvas.rows.append(L.block(DB, 'brick', wi, inner_dk, 1, 1, y0 + c * B))
 
     # Optional exterior wooden bench & climbing vines in front of the cottage (Reference Image 5!)
@@ -778,16 +909,16 @@ def build_stone_cottage(canvas, i0, k0, w, d, door_side='+z', chimney=True, benc
             canvas.rows.append(on(RB, (bi + 0.5) * S, y0 + P, (front_k + 0.5) * S, '3070b'))
         for vi in (i0, i0 + w - 1):
             if (vi, front_k) in canvas.h_map:
-                build_climbing_vine(canvas, vi, front_k, y0, height_bricks=3, seed=seed + vi)
+                build_climbing_vine(canvas, vi, front_k, y0, height_bricks=4, seed=seed + vi)
 
-    y_eave = y0 + 4 * B
+    y_eave = y0 + bricks * B
     canvas.rows += pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', chimney=chimney, seed=seed + 33)
 
 
-def build_timber_sheep_shed(canvas, i0, k0, w, d, seed=0):
-    """Build the open-fronted timber-post Roofed Sheep Shed (klisie katerephes, Reference Image 5) with
-    Tan stone & Reddish Brown timber posts, coursed stone rear & gable walls, two wooden slatted hay mangers
-    filled with golden hay, and a continuous pitched terracotta barrel-tile roof."""
+def build_timber_sheep_shed(canvas, i0, k0, w, d, bricks=5, seed=0):
+    """Build the Vitruvian open-fronted timber-post Roofed Sheep Shed (klisie katerephes, 5 bricks = 120 LDU post height
+    for full minifigure headroom) with Tan stone & Reddish Brown timber posts, coursed stone rear & gable walls,
+    two wooden slatted hay mangers filled with golden hay, and a continuous pitched terracotta barrel-tile roof."""
     posts = [
         (i0, k0), (i0 + w // 2, k0), (i0 + w - 1, k0),
         (i0, k0 + d // 3), (i0 + w - 1, k0 + d // 3),
@@ -802,13 +933,13 @@ def build_timber_sheep_shed(canvas, i0, k0, w, d, seed=0):
 
     for (wi, wk) in set(back_wall):
         if (wi, wk) not in posts:
-            canvas.rows.append(L.block(LBG if (wi + wk) % 2 == 0 else TAN, 'brick', wi, wk, 1, 1, y0))
-            canvas.rows.append(L.block(TAN if (wi + wk) % 2 == 0 else DTAN, 'brick', wi, wk, 1, 1, y0 + B))
-            canvas.rows.append(L.block(LBG if (wi + wk) % 2 == 0 else TAN, 'brick', wi, wk, 1, 1, y0 + 2 * B))
+            for c in range(bricks):
+                col_w = (LBG if (wi + wk) % 2 == 0 else TAN) if c % 2 == 0 else (TAN if (wi + wk) % 2 == 0 else DTAN)
+                canvas.rows.append(L.block(col_w, 'brick', wi, wk, 1, 1, y0 + c * B))
 
     for (pi, pk) in set(posts):
-        for c in range(3):
-            col_p = TAN if c < 2 else RB
+        for c in range(bricks):
+            col_p = TAN if c < 3 else RB
             canvas.rows.append(L.block(col_p, 'brick', pi, pk, 1, 1, y0 + c * B))
 
     # Two brick-built wooden hay mangers inside the shed filled with golden straw
@@ -820,13 +951,14 @@ def build_timber_sheep_shed(canvas, i0, k0, w, d, seed=0):
         canvas.rows.append(L.block(RB, 'brick', mi, mk, 1, 1, y0))
         canvas.rows.append(on(GOLD if mk % 2 == 0 else BYELLOW, (mi + 0.5) * S, y0 + B, (mk + 0.5) * S, '54200', math.pi * 0.5))
 
-    y_eave = y0 + 3 * B
+    y_eave = y0 + bricks * B
     canvas.rows += pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='z', seed=seed)
 
 
-def build_wine_press_pavilion(canvas, i0, k0, w, d, seed=0):
-    """Build a roofed Stone Wine-Treading Pavilion (lenos) with 4 stone corner pillars, pitched terracotta roof,
-    coursed stone grape-treading vat filled with crushed Dark Red & Dark Purple grapes, and golden must spout."""
+def build_wine_press_pavilion(canvas, i0, k0, w, d, bricks=5, seed=0):
+    """Build a Vitruvian roofed Stone Wine-Treading Pavilion (lenos, 5 bricks = 120 LDU pillar height for full
+    minifigure headroom) with 6 stone & timber pillars, pitched terracotta roof, coursed stone grape-treading vat
+    filled with crushed Dark Red & Dark Purple grapes, and golden must spout."""
     canvas.reserve(i0, k0, w, d)
     y0 = canvas.surf_y(i0, k0)
     pillars = [
@@ -834,8 +966,9 @@ def build_wine_press_pavilion(canvas, i0, k0, w, d, seed=0):
         (i0, k0 + d - 1), (i0 + w // 2, k0 + d - 1), (i0 + w - 1, k0 + d - 1),
     ]
     for (pi, pk) in pillars:
-        for c in range(3):
-            canvas.rows.append(L.block(LBG if c == 0 else (TAN if c == 1 else RB), 'brick', pi, pk, 1, 1, y0 + c * B))
+        for c in range(bricks):
+            col_p = LBG if c == 0 else (TAN if c < 3 else RB)
+            canvas.rows.append(L.block(col_p, 'brick', pi, pk, 1, 1, y0 + c * B))
 
     # Stone treading vat inside (i0+1 .. i0+w-2, k0+1 .. k0+d-2)
     for i in range(i0 + 1, i0 + w - 1):
@@ -858,13 +991,14 @@ def build_wine_press_pavilion(canvas, i0, k0, w, d, seed=0):
             if (i, k) not in pillars:
                 canvas.rows.append(on(TAN if k % 2 == 0 else LBG, (i + 0.5) * S, y0, (k + 0.5) * S, '3070b'))
 
-    y_eave = y0 + 3 * B
+    y_eave = y0 + bricks * B
     canvas.rows += pitched_terracotta_roof(i0, k0, w, d, y_eave, ridge_axis='x', seed=seed)
 
 
-def build_doric_stoa(canvas, i0, k0, w, d, col_side=None, face_dir=None, n_cols=4, roof=True, seed=0):
-    """Build a classical Doric Stoa colonnade (Reference Image 2) with stepped stone stylobate, rear ashlar wall,
-    2x2 round columns with capitals, gold-boss triglyph-metope frieze, and optional pitched terracotta roof."""
+def build_doric_stoa(canvas, i0, k0, w, d, col_side=None, face_dir=None, n_cols=4, roof=True, bricks=5, seed=0):
+    """Build a Vitruvian classical Doric Stoa colonnade (5 bricks = 120 LDU column & wall height for full minifigure headroom)
+    with stepped stone stylobate, rear ashlar wall, 2x2 round columns with capitals, gold-boss triglyph-metope frieze,
+    and optional pitched terracotta roof."""
     side = face_dir or col_side or ('+x' if i0 < 0 else '-x')
     canvas.reserve(i0, k0, w, d)
     y0 = canvas.surf_y(i0, k0)
@@ -876,29 +1010,30 @@ def build_doric_stoa(canvas, i0, k0, w, d, col_side=None, face_dir=None, n_cols=
 
     wall_i = i0 + w - 1 if side == '-x' else i0
     col_i0 = i0 if side == '-x' else i0 + w - 2
-    for c in range(4):
+    for c in range(bricks):
         w_cells = {(wall_i, k): (TAN if ((k + c) // 2) % 2 == 0 else LBG) for k in range(k0, k0 + d)}
         canvas.rows += pack_bricks(w_cells, y_fl + c * B, axis='z', masonry=True)
 
     col_ks = [k0 + 1 + round(n * (d - 4) / max(1, n_cols - 1)) for n in range(n_cols)]
     col_footprint = set()
+    n_drums = bricks - 1
     for ck in col_ks:
         cx, cz = (col_i0 + 1) * S, (ck + 1) * S
         for di in (0, 1):
             for dk in (0, 1):
                 col_footprint.add((col_i0 + di, ck + dk))
         canvas.rows.append(put(LBG, cx, y_fl + P, cz, '4032a'))
-        for c in range(3):
+        for c in range(n_drums):
             canvas.rows.append(put(TAN if c % 2 == 0 else WHITE, cx, y_fl + P + (c + 1) * B, cz, '3941'))
-        canvas.rows.append(put(GOLD, cx, y_fl + 2 * P + 3 * B, cz, '4032a'))
-        canvas.rows.append(put(LBG, cx, y_fl + 3 * P + 3 * B, cz, '3022'))
+        canvas.rows.append(put(GOLD, cx, y_fl + 2 * P + n_drums * B, cz, '4032a'))
+        canvas.rows.append(put(LBG, cx, y_fl + 3 * P + n_drums * B, cz, '3022'))
 
     fl_tiles = {(i, k): (TAN if (i + k) % 2 == 0 else LBG)
                 for i in range(i0, i0 + w) for k in range(k0, k0 + d)
                 if i != wall_i and (i, k) not in col_footprint}
     canvas.rows += pack_tiles(fl_tiles, y_fl)
 
-    y_ent = y_fl + 4 * B
+    y_ent = y_fl + bricks * B
     ent1 = {(i, k): TAN for i in range(i0, i0 + w) for k in range(k0, k0 + d)}
     ent2 = {(i, k): (GOLD if (k % 2 == 0 and i in (col_i0, col_i0 + 1)) else LBG)
             for i in range(i0, i0 + w) for k in range(k0, k0 + d)}
@@ -911,6 +1046,127 @@ def build_doric_stoa(canvas, i0, k0, w, d, col_side=None, face_dir=None, n_cols=
     else:
         top_t = {(i, k): (TAN if (i + k) % 2 == 0 else LBG) for i in range(i0, i0 + w) for k in range(k0, k0 + d)}
         canvas.rows += pack_tiles(top_t, y_ent + 3 * P)
+
+
+def build_castle_fortress(canvas, i0=8, k0=-14, w=14, d=8, seed=340):
+    """Monumental Vitruvian Besieged Castle Citadel (*De architectura* Book I, Ch. 5) with:
+    - West Projecting Bastion Watchtower (4x8 studs, 7 bricks = 168 LDU + crenellated merlons = 192 LDU + flaming beacon)
+    - Central Crenellated Curtain Wall & Scaean Gatehouse (6x7 studs, 6 bricks = 144 LDU + merlons = 168 LDU,
+      4-brick 3659 Arched Gateway with recessed iron-bound timber portcullis, and Rampart Defender sentry on the allure)
+    - East Corner Citadel Keep Tower (4x8 studs, 8 bricks = 192 LDU + crenellated merlons = 216 LDU!)."""
+    canvas.set_ground(i0, k0, w, d, t='p', h=4)
+    canvas.reserve(i0, k0, w, d)
+    y0 = canvas.surf_y(i0, k0)
+
+    gate_door = {(i0 + 6, k0 + d - 2), (i0 + 7, k0 + d - 2)}
+    gate_arch = {(i0 + 5, k0 + d - 2), (i0 + 6, k0 + d - 2), (i0 + 7, k0 + d - 2), (i0 + 8, k0 + d - 2)}
+
+    for c in range(8):
+        yc = y0 + c * B
+        layer = {}
+        # 1. West Bastion Watchtower (i0..i0+3, k0..k0+d-1): 7 courses (c in 0..6)
+        if c < 7:
+            for i in range(i0, i0 + 4):
+                for k in range(k0, k0 + d):
+                    is_ext = i in (i0, i0 + 3) or k in (k0, k0 + d - 1)
+                    if not is_ext:
+                        layer[(i, k)] = RB
+                        continue
+                    if k == k0 + d - 1 and i == i0 + 1 and c in (3, 4):
+                        layer[(i, k)] = DBG  # recessed arrow loop
+                        continue
+                    is_q = (i in (i0, i0 + 3) and k in (k0, k0 + d - 1))
+                    layer[(i, k)] = (LBG if c % 2 == 0 else TAN) if is_q else wall_color(i, c, k, seed)
+
+        # 2. Central Scaean Gatehouse & Curtain Wall (i0+4..i0+9, k0..k0+d-2): 6 courses (c in 0..5)
+        if c < 6:
+            kf = k0 + d - 2
+            for i in range(i0 + 4, i0 + 10):
+                for k in range(k0, kf + 1):
+                    is_ext = k in (k0, kf) or i in (i0 + 4, i0 + 9)
+                    if k == kf and (i, k) in gate_door and c < 4:
+                        continue
+                    if k == kf - 1 and i in (i0 + 6, i0 + 7) and c < 4:
+                        layer[(i, k)] = DB if (c + i) % 2 == 0 else RB  # recessed timber portcullis leaf
+                        continue
+                    if not is_ext:
+                        layer[(i, k)] = RB
+                        continue
+                    if k == kf and (i, k) in gate_arch and c == 4:
+                        layer[(i, k)] = LBG  # 3659 1x4 Stone Arch lintel over Scaean Gate
+                        continue
+                    layer[(i, k)] = wall_color(i, c, k, seed + 17)
+
+        # 3. East Citadel Keep Tower (i0+10..i0+13, k0..k0+d-1): 8 courses (c in 0..7)
+        for i in range(i0 + 10, i0 + 14):
+            for k in range(k0, k0 + d):
+                is_ext = i in (i0 + 10, i0 + 13) or k in (k0, k0 + d - 1)
+                if not is_ext:
+                    layer[(i, k)] = RB
+                    continue
+                if k == k0 + d - 1 and i == i0 + 11 and c in (3, 4, 5):
+                    layer[(i, k)] = DBG  # recessed arrow loop
+                    continue
+                is_q = (i in (i0 + 10, i0 + 13) and k in (k0, k0 + d - 1))
+                layer[(i, k)] = (LBG if c % 2 == 0 else TAN) if is_q else wall_color(i, c, k, seed + 31)
+
+        if c == 4:
+            arch_sub = {ck: layer.pop(ck) for ck in list(layer) if ck in gate_arch}
+            canvas.rows += pack_bricks(arch_sub, yc, axis='x', masonry=True, arch_cells=gate_arch)
+        canvas.rows += pack_bricks(layer, yc, axis=('x' if c % 2 == 0 else 'z'), masonry=True)
+
+    # A. Central Curtain Wall Allure & Crenellated Merlons at y_w = y0 + 6*B
+    y_w = y0 + 6 * B
+    kf = k0 + d - 2
+    sentry_cell = (i0 + 6, kf - 2)
+    w_tiles = {}
+    for i in range(i0 + 4, i0 + 10):
+        for k in range(k0, kf + 1):
+            if k == kf and i % 2 == 0:
+                canvas.rows.append(L.block(LBG, 'brick', i, k, 1, 1, y_w))
+                canvas.rows.append(on(TAN, (i + 0.5) * S, y_w + B, (k + 0.5) * S, '54200', 0.0))
+            elif k == k0 and i % 2 == 1:
+                canvas.rows.append(L.block(TAN, 'brick', i, k, 1, 1, y_w))
+                canvas.rows.append(on(LBG, (i + 0.5) * S, y_w + B, (k + 0.5) * S, '3070b'))
+            elif (i, k) != sentry_cell:
+                w_tiles[(i, k)] = TAN if (i + k) % 2 == 0 else LBG
+    canvas.rows += pack_tiles(w_tiles, y_w)
+
+    # Rampart Defender Sentry standing on the crenellated curtain wall walk above the Scaean Gate!
+    canvas.add_fig_at('character.menelaus', 'menelaus',
+                      (sentry_cell[0] + 0.5) * S, y_w, (sentry_cell[1] + 0.5) * S, rot=math.pi,
+                      hips=BRONZE, legs=BRONZE, torso=('973pc2g', DRED),
+                      headgear=('3844', BRONZE), held_r=('4499', BRONZE), held_l=('3846', GOLD))
+
+    # B. West Bastion Watchtower Battlements & Flaming Beacon Brazier at y_wt = y0 + 7*B
+    y_wt = y0 + 7 * B
+    wt_tiles = {}
+    for i in range(i0, i0 + 4):
+        for k in range(k0, k0 + d):
+            is_rim = i in (i0, i0 + 3) or k in (k0, k0 + d - 1)
+            if is_rim and (i + k) % 2 == 0:
+                canvas.rows.append(L.block(LBG if i in (i0, i0 + 3) else TAN, 'brick', i, k, 1, 1, y_wt))
+                canvas.rows.append(on(TAN if i in (i0, i0 + 3) else LBG, (i + 0.5) * S, y_wt + B, (k + 0.5) * S, '3070b'))
+            elif (i, k) == (i0 + 1, k0 + d - 3):
+                canvas.rows.append(on(GOLD, (i + 0.5) * S, y_wt, (k + 0.5) * S, '3062b'))
+                canvas.rows.append(on(TORANGE, (i + 0.5) * S, y_wt + B, (k + 0.5) * S, '6126b'))
+            else:
+                wt_tiles[(i, k)] = LBG if (i + k) % 2 == 0 else TAN
+    canvas.rows += pack_tiles(wt_tiles, y_wt)
+
+    # C. East Citadel Keep Tower Battlements at y_et = y0 + 8*B (192-216 LDU above acropolis!)
+    y_et = y0 + 8 * B
+    et_tiles = {}
+    for i in range(i0 + 10, i0 + 14):
+        for k in range(k0, k0 + d):
+            is_rim = i in (i0 + 10, i0 + 13) or k in (k0, k0 + d - 1)
+            if is_rim and (i + k) % 2 == 0:
+                canvas.rows.append(L.block(TAN if i in (i0 + 10, i0 + 13) else LBG, 'brick', i, k, 1, 1, y_et))
+                canvas.rows.append(on(GOLD if k == k0 + d - 1 else LBG, (i + 0.5) * S, y_et + B, (k + 0.5) * S, '3070b'))
+            else:
+                et_tiles[(i, k)] = TAN if (i + k) % 2 == 0 else LBG
+    canvas.rows += pack_tiles(et_tiles, y_et)
+    return y_et + B
 
 
 def build_elder_throne(canvas, i0, k0, y0, face_rot=math.pi):
