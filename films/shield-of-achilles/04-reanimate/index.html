@@ -68,11 +68,11 @@
   <canvas id="gl" width="1920" height="1080"></canvas>
 
   <div class="letterbox-top">
-    <div class="hdr-title" id="sceneTitle">ILIAD XVIII.490–496 · SCENE 1/5 — THE BRIDAL TORCH-PROCESSION &amp; HYMENAIOS</div>
+    <div class="hdr-title" id="sceneTitle">ILIAD XVIII.490–496 · SCENE 1/5 — BRIDAL TORCH-PROCESSION &amp; HYMENAIOS</div>
     <div class="hdr-meta">
-      <span>SOURCE: <strong>HOMER · ILIAD BOOK XVIII</strong></span>
+      <span>THESIS: <strong>IMAGETEXT → WORLDTEXT (§3–4)</strong></span>
       <span>SCENE: <strong id="modelSlug">set.shield-diorama-wedding.mpd</strong></span>
-      <span>EKPHRASIS: <strong>GREEK HEXAMETER + 3D ACTING</strong></span>
+      <span>COMPILER: <strong>GEERTZ 6-LAYER THICK PROMPT</strong></span>
     </div>
   </div>
 
@@ -80,13 +80,13 @@
     <img id="refImg" src="../../../odyssey/kits/shield-of-achilles/ref_wedding.jpg" alt="Reference">
     <div class="ref-pip-cap">
       <span id="refName">ILIAD XVIII.490–496 · WEDDING</span>
-      <span style="color:#4ade80;">HOMERIC EKPHRASIS</span>
+      <span style="color:#4ade80;">2D IMAGETEXT → 3D WORLDTEXT</span>
     </div>
   </div>
 
   <div class="letterbox-bot">
     <div class="verse" id="verseLine">«Νύμφας δ᾽ ἐκ θαλάμων δαΐδων ὕπο λαμπομενάων ἠγίνεον ἀνὰ ἄστυ, πολὺς δ᾽ ὑμέναιος ὀρώρει…» — Iliad XVIII.492–493</div>
-    <div class="diff-badge" id="diffReadout">ILIAD XVIII.490–496 · BRIDAL TORCHES &amp; PHORMINX</div>
+    <div class="diff-badge" id="diffReadout">OPERATION DESCRIBE §3–4 · THICK PROMPT → 3D WORLDTEXT</div>
   </div>
 </div>
 
@@ -178,7 +178,7 @@ function renderFrame(sec) {
     imgEl.setAttribute('data-src', s.ref);
   }
   const built = Math.round(s.pieces * st.build);
-  document.getElementById('diffReadout').textContent = `3D BRICK RECONSTRUCTION: ${built.toLocaleString()} / ${s.pieces.toLocaleString()} PARTS · compare.ts 0.00% DIFF`;
+  document.getElementById('diffReadout').textContent = `IMAGETEXT → WORLDTEXT (§3–4): ${built.toLocaleString()} / ${s.pieces.toLocaleString()} BRICKS · GEERTZ 6-LAYER THICK PROMPT`;
 
   engine.render({
     slug: st.slug,

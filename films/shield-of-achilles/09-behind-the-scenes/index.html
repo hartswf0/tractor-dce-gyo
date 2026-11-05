@@ -118,29 +118,29 @@
 
   <div class="kanban-strip">
     <div class="kanban-title">
-      <span>HOMER · ILIAD BOOK XVIII · THE FIVE RINGS</span>
-      <span id="cacheTxt">LINES 369–608</span>
+      <span>OPERATION DESCRIBE · IMAGETEXT → WORLDTEXT</span>
+      <span id="cacheTxt">FINAL_SHIPWORTHY §1–§7</span>
     </div>
     <div class="kanban-cols">
       <div class="k-col" id="kc0">
-        <div class="k-col-head">I. FORGE (369–482)</div>
-        <div class="k-card">Thetis’s Plea</div>
-        <div class="k-card">20 Bellows &amp; Anvil</div>
+        <div class="k-col-head">I. ENARGEIA (§2)</div>
+        <div class="k-card">Iliad XVIII Greek</div>
+        <div class="k-card">Hearing → Sight</div>
       </div>
       <div class="k-col" id="kc1">
-        <div class="k-col-head">II. COSMOS &amp; CITIES</div>
-        <div class="k-card">Earth, Sky, Sea</div>
-        <div class="k-card">Wedding &amp; Ambush</div>
+        <div class="k-col-head">II. IMAGETEXT (§3)</div>
+        <div class="k-card">Bajohr Collapse</div>
+        <div class="k-card">Thick Prompting</div>
       </div>
       <div class="k-col" id="kc2">
-        <div class="k-col-head">III. HERD &amp; LIONS</div>
-        <div class="k-card">Two Tawny Lions</div>
-        <div class="k-card">Bellowing Bull</div>
+        <div class="k-col-head">III. COMPILER (§6)</div>
+        <div class="k-card">Neurosymbolic LDraw</div>
+        <div class="k-card">Context Stack L0–L6</div>
       </div>
       <div class="k-col" id="kc3">
-        <div class="k-col-head">IV. CHOROS &amp; RIM</div>
-        <div class="k-card">Knossos Dance</div>
-        <div class="k-card">River Oceanus</div>
+        <div class="k-col-head">IV. WORLDTEXT (§7)</div>
+        <div class="k-card">Vision·Memory·Ctrl</div>
+        <div class="k-card">Habitable Cosmos</div>
       </div>
     </div>
   </div>
@@ -306,8 +306,8 @@ function renderFrame(sec) {
   document.getElementById('brickCount').textContent = `${builtCount.toLocaleString()} / ${s.pieces.toLocaleString()}`;
   document.getElementById('homericLine').textContent = s.verse;
   document.getElementById('shotTelemetry').textContent = `${s.cam} · t=${t.toFixed(2)}s`;
-  const ringRanges = ['ILIAD XVIII.369–482', 'ILIAD XVIII.483–572', 'ILIAD XVIII.573–589', 'ILIAD XVIII.590–608'];
-  document.getElementById('cacheTxt').textContent = ringRanges[s.actIdx] || 'ILIAD XVIII.369–608';
+  const ringRanges = ['THRESHOLD I · ENARGEIA (§2)', 'THRESHOLD II · IMAGETEXT (§3–4)', 'COMPILER · NEUROSYMBOLIC (§6)', 'THRESHOLD III · WORLDTEXT (§7)'];
+  document.getElementById('cacheTxt').textContent = ringRanges[s.actIdx] || 'IMAGETEXT → WORLDTEXT';
   cols.forEach((c, idx) => c.classList.toggle('active', idx === s.actIdx));
 
   engine.render({

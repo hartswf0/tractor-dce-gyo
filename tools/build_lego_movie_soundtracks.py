@@ -328,10 +328,10 @@ FILM_DESIGNS = [
         "aulos_notes": [(8.3, "aulos_D5"), (8.8, "aulos_F5"), (9.3, "aulos_A5"), (9.8, "aulos_G5")],
         "lyre_notes": [(8.2, "lyre_D4"), (8.7, "lyre_F4"), (9.2, "lyre_A4"), (9.7, "lyre_D5"), (10.2, "lyre_C5"), (10.7, "lyre_A4"), (12.4, "lyre_G4"), (13.2, "lyre_A4"), (14.0, "lyre_D5")],
         "lines": [
-            (0.15, "Daniel", 184, -1.0, "Homer, Iliad Book Eighteen, line four hundred seventy-eight! First Hephaestus fashioned the Shield of Achilles, great and sturdy, and set around it a shining triple rim!"),
-            (4.18, "Reed (English (US))", 186, 0.0, "Therein he wrought the Earth, the Sky, and the Sea, the unwearying Sun, the full Moon, the Pleiades, the Hyades, and Orion!"),
-            (8.18, "Moira", 186, 0.0, "In the city at peace, brides are led from their chambers beneath blazing torches while flutes and phorminx lyres resound!"),
-            (12.18, "Daniel", 184, -1.0, "And around the uttermost rim of the Shield of Achilles, he set the mighty stream of River Oceanus!")
+            (0.12, "Daniel", 190, -1.0, "Iliad Book Eighteen, line four seventy-eight! In Operation Describe, Hephaestus's forge is an operative ekphrasis compiling Homeric verse into a three-D worldtext!"),
+            (4.15, "Reed (English (US))", 190, 0.0, "Earth, Sky, Sea, Sun, Moon, and the Great Bear collapse word and image into an imagetext, then expand into a habitable cosmos!"),
+            (8.15, "Moira", 190, 0.0, "In the city at peace, brides beneath blazing torches and phorminx lyres move from static ornament to living world model!"),
+            (12.15, "Daniel", 190, -1.0, "And around the uttermost rim, River Oceanus seals the Shield of Achilles as a self-contained worldtext!")
         ]
     },
     {
@@ -345,10 +345,10 @@ FILM_DESIGNS = [
         "aulos_notes": [(3.3, "aulos_E5"), (3.8, "aulos_G5"), (4.3, "aulos_A5")],
         "lyre_notes": [(3.2, "lyre_D4"), (3.6, "lyre_G4"), (4.0, "lyre_A4"), (4.4, "lyre_D5"), (6.2, "lyre_F4"), (6.6, "lyre_A4"), (7.0, "lyre_C5"), (7.4, "lyre_D5"), (9.4, "lyre_A4"), (10.2, "lyre_D5")],
         "lines": [
-            (0.12, "Daniel", 188, -1.0, "Iliad Book Eighteen, line four hundred eighty-seven! On the Shield of Achilles, the Great Bear revolves and alone never bathes in Oceanus!"),
-            (3.12, "Samantha", 190, 0.0, "On the dancing-floor of Daedalus in wide Knossos, youths and maidens whirl like a potter testing his wheel!"),
-            (6.12, "Reed (English (UK))", 188, 0.0, "In the golden vineyard with silver poles, a boy plays his clear-toned phorminx and sings the sweet Linus song!"),
-            (9.12, "Daniel", 188, -1.0, "And around the five concentric rings of Achilles' Shield flows the deep-eddying stream of Oceanus!")
+            (0.10, "Daniel", 194, -1.0, "Parry and Lord showed Homer's oral formulas are a generative engine: the Great Bear revolves and never bathes in Oceanus!"),
+            (3.10, "Samantha", 194, 0.0, "Lessing saw that when time enters the Shield, the picture becomes a world: Knossos dancers whirl like a potter's wheel!"),
+            (6.10, "Reed (English (UK))", 194, 0.0, "In the golden vineyard, the boy's clear phorminx and Linus song turn frozen bronze into temporal worldtext!"),
+            (9.10, "Daniel", 194, -1.0, "Five concentric rings of Iliad Book Eighteen run as a live procedural simulation bounded by Oceanus!")
         ]
     },
     {
@@ -363,10 +363,10 @@ FILM_DESIGNS = [
         "bow_volleys": [8.45, 9.15, 9.85, 10.65, 11.25],
         "lyre_notes": [(0.5, "lyre_D4"), (1.1, "lyre_A4"), (1.7, "lyre_D5"), (4.4, "lyre_F4"), (5.0, "lyre_A4"), (5.5, "glock_A5"), (5.8, "glock_D6")],
         "lines": [
-            (0.15, "Daniel", 184, -1.0, "Homer, Iliad Book Eighteen, line four hundred ninety! On the Shield of Achilles he wrought two cities of mortal men: marriage-feasts and blazing torches!"),
-            (4.15, "Reed (English (UK))", 188, 0.0, "In the Agora law-court, Claimant Odysseus vows he paid the blood-price, while Euryalus refuses before Elder Nestor and the Two Talents of Gold!"),
-            (8.15, "Samantha", 188, 0.0, "Around the besieged city, golden Ares and Pallas Athena lead the ambush by the river ford where archers loose their bronze arrows!"),
-            (12.15, "Daniel", 184, -1.0, "Thus on the Shield of Achilles stand the two cities of Peace and War, encircled by the stream of Oceanus!")
+            (0.12, "Daniel", 190, -1.0, "Iliad Book Eighteen, line four ninety! The new paragone pits human intent against statistical distribution across two cities of mortal men!"),
+            (4.12, "Reed (English (UK))", 190, 0.0, "In the Agora law-court, Odysseus and Euryalus debate the blood-price before Elder Nestor and the Two Talents of Gold!"),
+            (8.12, "Samantha", 190, 0.0, "At the river ambush, golden Ares, Pallas Athena, and bronze-tipped arrows prune generic averages into specific Homeric truth!"),
+            (12.12, "Daniel", 190, -1.0, "From imagetext to worldtext, every brick on the Shield of Achilles answers to Homeric intent!")
         ]
     },
     {
@@ -383,11 +383,11 @@ FILM_DESIGNS = [
         "sheep_bleats": [11.4, 12.1, 12.8, 13.4],
         "lyre_notes": [(1.2, "lyre_D4"), (4.0, "lyre_F4"), (6.8, "lyre_G4"), (9.6, "lyre_A4"), (12.4, "lyre_D5")],
         "lines": [
-            (0.12, "Reed (English (US))", 192, 0.0, "Five scenes from Homer's Shield of Achilles in Iliad Book Eighteen! First, brides led beneath blazing torches to flutes and lyres!"),
-            (2.90, "Daniel", 192, -1.0, "Second, the Agora trial: two men debating the blood-price of a slain man before the Two Talents of Gold!"),
-            (5.70, "Samantha", 192, 0.0, "Third, the river ambush: golden Ares and Athena where herdsmen pipe on reeds and archers loose bronze arrows!"),
-            (8.50, "Reed (English (UK))", 192, 0.0, "Fourth, the royal harvest: reapers cutting tall grain with sickles while the silent King holds his sceptre!"),
-            (11.30, "Daniel", 192, -1.0, "Fifth, in a fair mountain glen, Hephaestus wrought a great pasture of bleating white sheep and roofed folds!")
+            (0.10, "Reed (English (US))", 196, 0.0, "Geertz's thick description becomes thick prompting! First, two-D wedding imagetext compiles into three-D torches and lyres!"),
+            (2.88, "Daniel", 196, -1.0, "Second, the Agora blood-price dispute compiles from flat picture into polished stones and Two Talents of Gold!"),
+            (5.68, "Samantha", 196, 0.0, "Third, the river ambush compiles golden Ares, Athena, reed-pipes, and flying arrows into spatial worldtext!"),
+            (8.48, "Reed (English (UK))", 196, 0.0, "Fourth, the royal harvest compiles keen sickles, bound sheaves, and the silent King holding his sceptre!"),
+            (11.28, "Daniel", 196, -1.0, "Fifth, like Cohen's sheep in Iliad Eighteen, the mountain glen pasture of bleating white sheep becomes habitable!")
         ]
     },
     {
@@ -404,10 +404,10 @@ FILM_DESIGNS = [
         "dog_barks": [13.10, 13.55, 14.80, 15.25],
         "lyre_notes": [(1.5, "lyre_D4"), (5.5, "lyre_A4"), (9.5, "glock_A5"), (13.5, "lyre_D5")],
         "lines": [
-            (0.15, "Samantha", 184, 0.0, "Behold the Shield of Achilles from Homer's Iliad Book Eighteen: Earth, Sky, Sea, Sun, Moon, and the five concentric rings forged by Hephaestus!"),
-            (4.15, "Reed (English (US))", 186, 0.0, "In the first city of mortal men, brides are led from their chambers beneath blazing torches while the bridal song arises!"),
-            (8.15, "Daniel", 186, -1.0, "In the sacred circle of the Agora, elders sit on polished stones holding heralds' sceptres before the Two Talents of Gold!"),
-            (12.15, "Samantha", 186, 0.0, "And by the sounding river, two terrible lions seize the loud-bellowing bull while four herdsmen and nine hounds rush to bay!")
+            (0.12, "Samantha", 188, 0.0, "Image generation asks what a sentence makes visible; world generation asks what Homer's Iliad Book Eighteen makes habitable!"),
+            (4.12, "Reed (English (US))", 188, 0.0, "In Ha and Schmidhuber's world model, Vision renders the blazing bridal torches and dancing-chorus in three-D space!"),
+            (8.12, "Daniel", 188, -1.0, "Memory holds the procedural law of the Agora elders seated on polished stones before the Two Talents of Gold!"),
+            (12.12, "Samantha", 188, 0.0, "And the Controller navigates where two terrible lions seize the loud-bellowing bull as nine hounds rush to bay!")
         ]
     },
     {
@@ -422,10 +422,10 @@ FILM_DESIGNS = [
         "sickle_swaths": [12.4, 13.1, 13.8, 14.5],
         "lyre_notes": [(2.0, "lyre_D4"), (6.0, "lyre_A4"), (10.0, "lyre_C5"), (14.0, "lyre_D5")],
         "lines": [
-            (0.15, "Reed (English (UK))", 184, 0.0, "In Iliad Book Eighteen, line four hundred sixty-eight, Hephaestus turned his twenty bellows to the fire and cast bronze, tin, gold, and silver on the anvil!"),
-            (4.15, "Daniel", 184, -1.0, "Five folds the lame god welded for the Shield of Achilles: two of bronze, two inside of tin, and one of pure gold!"),
-            (8.15, "Moira", 186, 0.0, "By the river ford, golden Ares and Pallas Athena lead the ambush while scouts loose bronze-tipped arrows across the stream!"),
-            (12.15, "Reed (English (UK))", 184, 0.0, "In the thrice-ploughed field and royal harvest, reapers ply keen sickles while the King stands in silence holding his sceptre!")
+            (0.12, "Reed (English (UK))", 188, 0.0, "In Iliad Book Eighteen, Hephaestus's twenty bellows and four metals act as a neurosymbolic compiler from text to geometry!"),
+            (4.12, "Daniel", 188, -1.0, "Across the L-zero to L-six context stack, five metallic folds weld neural vision to symbolic LDraw coordinates!"),
+            (8.12, "Moira", 188, 0.0, "At the river ford ambush, golden Ares, Athena, and bronze arrows obey deterministic collision and sightline rules!"),
+            (12.12, "Reed (English (UK))", 188, 0.0, "In the thrice-ploughed field, reapers ply keen sickles while the silent King rejoices inside a compiled worldtext!")
         ]
     },
     {
@@ -444,9 +444,9 @@ FILM_DESIGNS = [
         "sheep_bleats": [4.30, 5.15, 6.00, 6.75],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_F4"), (5.0, "lyre_G4"), (6.0, "lyre_A4"), (8.8, "lyre_D5"), (9.3, "glock_A5"), (9.8, "glock_D6")],
         "lines": [
-            (0.15, "Daniel", 188, -1.0, "Iliad Book Eighteen, line five hundred seventy-nine! Two terrible lions hold the loud-bellowing bull while nine dogs bark by the river!"),
-            (4.12, "Samantha", 190, 0.0, "In the fair glen of white sheep on Achilles' Shield, the pasture hushes before the Choros of Daedalus."),
-            (8.62, "Reed (English (US))", 190, 0.0, "Now on the Choros of wide Knossos, youths, maidens, and two tumblers whirl as Oceanus seals the Shield!")
+            (0.12, "Daniel", 192, -1.0, "An image has no consequences; a world does! In Iliad Eighteen, two lions seize the bellowing bull as nine dogs bark!"),
+            (4.10, "Samantha", 194, 0.0, "In the fair glen of bleating white sheep, the worldtext holds its breath before the Choros strike."),
+            (8.60, "Reed (English (US))", 192, 0.0, "Now on Daedalus's Choros in Knossos, youths, maidens, and tumblers whirl as Oceanus seals the world!")
         ]
     },
     {
@@ -461,11 +461,11 @@ FILM_DESIGNS = [
         "bow_volleys": [7.15, 7.85, 8.45],
         "lyre_notes": [(0.37, "lyre_G4"), (1.43, "lyre_A4"), (3.54, "glock_A5"), (4.46, "lyre_D5"), (6.55, "lyre_F4"), (9.48, "lyre_C5"), (10.37, "lyre_D5"), (12.77, "glock_D6"), (13.38, "lyre_D5")],
         "lines": [
-            (0.12, "Daniel", 192, -1.0, "Iliad Book Eighteen! Fold One of Achilles' Shield: twenty bellows roar and Hephaestus strikes the bronze anvil!"),
-            (3.12, "Reed (English (UK))", 192, 0.0, "Fold Two: the Agora sacred circle where elders judge the blood-price before Two Talents of Gold!"),
-            (6.12, "Samantha", 192, 0.0, "Fold Three: syrinx reed-pipes, bowstrings, and golden Ares and Athena at the river ambush!"),
-            (9.12, "Moira", 192, 0.0, "Fold Four: the Choros dancing-floor of Daedalus for Ariadne in wide Knossos!"),
-            (12.12, "Daniel", 192, -1.0, "Fold Five: the mighty strength of River Oceanus around the uttermost rim of the Shield of Achilles!")
+            (0.10, "Daniel", 194, -1.0, "Ancient enargeia turns hearing into sight! Fold One of Iliad Eighteen: twenty bellows roar at Hephaestus's bronze anvil!"),
+            (3.10, "Reed (English (UK))", 194, 0.0, "Fold Two: cross-modal embedding in the Agora circle where elders judge the blood-price before Two Talents of Gold!"),
+            (6.10, "Samantha", 194, 0.0, "Fold Three: syrinx reed-pipes and whistling arrows at the river ambush led by golden Ares and Athena!"),
+            (9.10, "Moira", 194, 0.0, "Fold Four: acoustic and spatial worldtext on Daedalus's Choros dancing-floor in wide Knossos!"),
+            (12.10, "Daniel", 194, -1.0, "Fold Five: the mighty stream of River Oceanus encloses the five-fold Shield of Achilles!")
         ]
     },
     {
@@ -481,10 +481,10 @@ FILM_DESIGNS = [
         "dog_barks": [9.15, 9.55, 10.75, 11.40],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_A4"), (5.0, "lyre_F4"), (6.0, "lyre_C5"), (9.0, "lyre_G4"), (10.0, "lyre_D5"), (13.0, "glock_A5"), (14.2, "glock_D6")],
         "lines": [
-            (0.15, "Samantha", 184, 0.0, "Homer, Iliad Book Eighteen, line three hundred sixty-nine! Silver-footed Thetis implores Hephaestus at his blazing anvil to forge a shield for Achilles!"),
-            (4.15, "Daniel", 184, -1.0, "Upon the five-fold shield he wrought Earth, Sky, and Sea, the unwearying Sun, the full Moon, the Two Cities, Plough, and Vineyard!"),
-            (8.15, "Reed (English (US))", 186, 0.0, "By the sounding river and swaying reeds, two tawny lions seize the loud-bellowing bull while four herdsmen and nine hounds rush in!"),
-            (12.15, "Daniel", 184, -1.0, "And around the Choros of Daedalus in Knossos, Hephaestus poured the mighty strength of River Oceanus along the rim of the Shield!")
+            (0.12, "Samantha", 188, 0.0, "Threshold One, Ancient Enargeia! In Iliad Eighteen, Thetis implores Hephaestus at his blazing anvil to forge Achilles' Shield!"),
+            (4.12, "Daniel", 188, -1.0, "Threshold Two, Imagetext! Word and image collapse across Earth, Sky, Sea, the Two Cities, Plough, and Vineyard!"),
+            (8.12, "Reed (English (US))", 188, 0.0, "Neurosymbolic compilation! By the sounding river, two tawny lions seize the loud-bellowing bull as nine hounds rush in!"),
+            (12.12, "Daniel", 188, -1.0, "Threshold Three, Worldtext! Homer already knew: the Shield of Achilles was always a worldtext, and now we have the substrate to run it!")
         ]
     }
 ]
