@@ -70,15 +70,15 @@
   <canvas id="gl" width="1920" height="1080"></canvas>
 
   <div class="letterbox-top">
-    <div class="hdr-title" id="sceneHdr">EXPLAINROO SCENE 1/4 · STEPPED 96×96 FRAME &amp; LOW DIVIDERS (2,754 BRICKS)</div>
+    <div class="hdr-title" id="sceneHdr">ILIAD XVIII.468–478 · THE FORGE OF HEPHAESTUS &amp; TWENTY BELLOWS</div>
     <div class="hdr-meta">
-      <span>SKILL: <strong>VINCENTSCH / EXPLAINROO</strong></span>
-      <span>MODEL: <strong id="modelSlug">set.shield-frame.mpd</strong></span>
-      <span>CHECKER: <strong>clicks.py → 0 LOOSE · 0 CLASHES</strong></span>
+      <span>EPIC: <strong>HOMER · ILIAD BOOK XVIII</strong></span>
+      <span>SCENE: <strong id="modelSlug">set.shield-diorama-forge.mpd</strong></span>
+      <span>EKPHRASIS: <strong>THE SHIELD OF ACHILLES (478–608)</strong></span>
     </div>
   </div>
 
-  <div class="rule-chip" id="ruleChip">CRAFT RULE #1: 1-Plate + 1-Tile Dividers (No Tall Maze Walls)</div>
+  <div class="rule-chip" id="ruleChip">«Ποίει δὲ πρώτιστα σάκος μέγα τε στιβαρόν τε…» — Iliad XVIII.478</div>
 
   <div class="sub-bar">
     <div class="sub-words" id="subWords"></div>
@@ -93,21 +93,21 @@ const engine = new LegoCinema.Engine(canvas);
 const SCENES = [
   {
     t0: 0.0, t1: 4.0,
-    slug: 'shield-frame', pieces: 2754,
-    hdr: 'EXPLAINROO SCENE 1/4 · STEPPED 96×96 FRAME & LOW DIVIDERS (2,754 REAL BRICKS)',
-    rule: 'CRAFT RULE #1: Stepped 5-Ring Relief Dome (+64 LDU Boss) & 1-Plate+Tile Dividers',
-    words: ['Why', 'do', 'giant', 'LEGO', 'sets', 'fail?', 'Tall', 'maze', 'walls', 'bury', 'the', 'scenes—so', 'shield_frame.py', 'uses', 'low', 'one-plate', 'and', 'tile', 'ring', 'dividers.'],
-    eye0: [-340, 620, 960], eye1: [320, 480, 820],
-    target0: [0, 45, 0], target1: [0, 50, 0],
-    buildFn: (u) => Math.min(1.0, 0.30 + u * 1.4),
+    slug: 'shield-diorama-forge', pieces: 1748,
+    hdr: 'ILIAD XVIII.468–478 · HEPHAESTUS CASTS BRONZE, TIN, GOLD & SILVER IN THE FIRE',
+    rule: '«Χαλκὸν δ’ ἐν πυρὶ βάλλεν ἀτειρέα κασσίτερόν τε καὶ χρυσὸν τιμῆντα καὶ ἄργυρον…» — Il. XVIII.474–475',
+    words: ['He', 'cast', 'on', 'the', 'fire', 'tough', 'bronze', 'and', 'tin', 'and', 'precious', 'gold', 'and', 'silver,', 'and', 'set', 'the', 'great', 'anvil', 'on', 'the', 'block.'],
+    eye0: [-240, 340, 680], eye1: [230, 250, 600],
+    target0: [-20, 95, -10], target1: [20, 90, -10],
+    buildFn: (u) => Math.min(1.0, 0.35 + u * 1.4),
     explodeFn: () => 0.0
   },
   {
     t0: 4.0, t1: 8.0,
     slug: 'shield-of-achilles', pieces: 7522,
-    hdr: 'EXPLAINROO SCENE 2/4 · TEN MODULAR LIFT-OUT KITS M0–M9 (7,522 REAL BRICKS)',
-    rule: 'CRAFT RULE #2: Cross-Bonded 2-Layer Plate Bases That Lift Out in One Piece',
-    words: ['Each', 'of', 'the', 'ten', 'sections', 'M0', 'through', 'M9', 'is', 'built', 'on', 'a', 'cross-bonded', 'base', 'that', 'lifts', 'out', 'and', 'clicks', 'into', 'place.'],
+    hdr: 'ILIAD XVIII.479–489 · FIVE FOLDS OF THE SHIELD — EARTH, SKY, SEA, SUN, MOON & BEAR',
+    rule: '«Πέντε δ’ ἄρ’ αὐτοῦ ἔσαν σάκεος πτύχες· ἐν μὲν γαῖαν ἔτευξ’, ἐν δ’ οὐρανόν, ἐν δὲ θάλασσαν…» — Il. XVIII.481–483',
+    words: ['Five', 'folds', 'were', 'there', 'of', 'the', 'shield', 'itself;', 'therein', 'he', 'wrought', 'the', 'Earth,', 'the', 'Sky,', 'the', 'Sea,', 'and', 'the', 'unbathed', 'Bear.'],
     eye0: [420, 820, 1140], eye1: [-240, 520, 840],
     target0: [0, 95, 0], target1: [0, 65, 0],
     buildFn: () => 1.0,
@@ -116,9 +116,9 @@ const SCENES = [
   {
     t0: 8.0, t1: 12.0,
     slug: 'shield-diorama-ambush', pieces: 1957,
-    hdr: 'EXPLAINROO SCENE 3/4 · 1.6× BRICK-BUILT GOLDEN GODS & ASHLAR COURSING (1,957 BRICKS)',
-    rule: 'CRAFT RULE #3: Gods Larger in Pearl Gold (297) & Coursed Masonry Walls',
-    words: ['Homer’s', 'Ares', 'and', 'Athena', 'stand', 'at', 'one-point-six', 'times', 'mortal', 'scale', 'in', 'Pearl', 'Gold', 'beside', 'the', 'coursed', 'Scaean', 'Gate.'],
+    hdr: 'ILIAD XVIII.509–538 · THE CITY AT WAR — GOLDEN ARES & ATHENA AND THE RIVER AMBUSH',
+    rule: '«Ἦρχε δ’ ἄρα σφιν Ἄρης καὶ Παλλὰς Ἀθήνη, ἄμφω χρυσείω, χρύσεια δὲ εἵματα ἕσθην…» — Il. XVIII.516–517',
+    words: ['Around', 'the', 'other', 'city', 'lay', 'two', 'gleaming', 'armies,', 'led', 'by', 'golden', 'Ares', 'and', 'Pallas', 'Athena,', 'down', 'to', 'the', 'river', 'ambush.'],
     eye0: [-250, 350, 720], eye1: [230, 240, 620],
     target0: [-30, 110, -15], target1: [30, 95, -10],
     buildFn: () => 1.0,
@@ -127,9 +127,9 @@ const SCENES = [
   {
     t0: 12.0, t1: 16.0,
     slug: 'shield-diorama-harvest', pieces: 1673,
-    hdr: 'EXPLAINROO SCENE 4/4 · MACHINE-VERIFIED WITH CLICKS.PY: 0 LOOSE, 0 CLASHES (1,673 BRICKS)',
-    rule: 'CRAFT RULE #4: Furrowed Fields, 54200 Terracotta Roofs & 0 Volumetric Clashes',
-    words: ['Every', 'furrow,', 'reaper,', 'and', 'terracotta', 'gable', 'passes', 'kitlib.check', 'with', 'zero', 'unclicked', 'parts', 'and', 'zero', 'volumetric', 'clashes.'],
+    hdr: 'ILIAD XVIII.541–560 · THE THRICE-PLOUGHED DARKENING FIELD & THE SILENT KING’S HARVEST',
+    rule: '«Βασιλεὺς δ’ ἐν τοῖσι σιωπῇ σκῆπτρον ἔχων ἑστήκει ἐπ’ ὄγμου γηθόσυνος κῆρ…» — Il. XVIII.556–557',
+    words: ['The', 'ploughed', 'gold', 'darkened', 'behind', 'the', 'oxen;', 'reapers', 'cut', 'the', 'swath', 'with', 'sickles,', 'and', 'the', 'silent', 'King', 'rejoiced', 'with', 'his', 'sceptre.'],
     eye0: [250, 360, 730], eye1: [-230, 260, 640],
     target0: [30, 105, -15], target1: [-30, 95, -10],
     buildFn: () => 1.0,

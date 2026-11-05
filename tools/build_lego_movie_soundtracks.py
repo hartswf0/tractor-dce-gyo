@@ -217,7 +217,105 @@ def master_to_lufs(mix, target_lufs=-14.2, silence_windows=None):
     return out.astype(np.float32)
 
 
-# Define the 9 bespoke film soundtracks with Multi-Voice Dialogue (Vitruvius/Blind Bard + Characters)
+def make_homeric_diegetic_stems():
+    """Synthesize unmistakable Homeric Iliad XVIII diegetic scene sounds:
+    bellowing bull, roaring lions, barking hounds, bleating sheep, bow/arrow volley,
+    bronze sickle swaths, and Dorian aulos/syrinx double-reed pipes."""
+    stems = {}
+
+    # 1. Loud-bellowing bull (ταῦρον ἐρύγμηλον... μακρὰ μεμυκὼς, Il. XVIII.580)
+    n_bull = int(1.35 * SR)
+    t = np.arange(n_bull, dtype=np.float32) / SR
+    f0 = 92.0 + 34.0 * np.sin(np.pi * t / 1.35) - 14.0 * (t / 1.35)
+    phase = 2.0 * np.pi * np.cumsum(f0) / SR
+    glottal = np.zeros_like(t)
+    for k in range(1, 14):
+        glottal += (1.0 / (k ** 0.85)) * np.sin(k * phase)
+    formant_sig = np.zeros_like(t)
+    for fc, bw, amp in [(290.0, 70.0, 1.0), (680.0, 110.0, 0.65), (1380.0, 180.0, 0.28)]:
+        b, a = signal.butter(2, [max(40.0, fc - bw) / (SR * 0.5), min(SR * 0.45, fc + bw) / (SR * 0.5)], btype="band")
+        formant_sig += signal.lfilter(b, a, glottal) * amp
+    env = np.sin(np.pi * t / 1.35) ** 0.7
+    bull = (formant_sig / (np.max(np.abs(formant_sig)) + 1e-6)) * env * 0.75
+    stems["bull_bellow"] = np.column_stack([bull, bull * 0.94]).astype(np.float32)
+
+    # 2. Two terrible lions roar (σμερδαλέω δὲ λέοντε, Il. XVIII.579)
+    n_lion = int(1.10 * SR)
+    tl = np.arange(n_lion, dtype=np.float32) / SR
+    rng = np.random.default_rng(579)
+    roar_noise = rng.standard_normal(n_lion).astype(np.float32)
+    b_l, a_l = signal.butter(2, [90.0 / (SR * 0.5), 620.0 / (SR * 0.5)], btype="band")
+    roar_band = signal.lfilter(b_l, a_l, roar_noise)
+    growl_mod = 0.55 + 0.45 * np.sin(2.0 * np.pi * 34.0 * tl)
+    sub_roar = np.sin(2.0 * np.pi * (68.0 - 18.0 * tl) * tl) * 0.55
+    env_l = np.exp(-tl * 2.1) * np.minimum(1.0, tl / 0.08)
+    lion = (roar_band * growl_mod * 0.45 + sub_roar) * env_l
+    lion = (lion / (np.max(np.abs(lion)) + 1e-6)) * 0.78
+    stems["lion_roar"] = np.column_stack([lion * 0.95, lion]).astype(np.float32)
+
+    # 3. Nine swift hunting hounds double-bark (ἐννέα κύνες πόδας ἀργοί, Il. XVIII.578, 584)
+    n_dog = int(0.42 * SR)
+    td = np.arange(n_dog, dtype=np.float32) / SR
+    bark = np.zeros_like(td)
+    for b_t0 in [0.0, 0.21]:
+        dt = np.maximum(0.0, td - b_t0)
+        b_env = (dt / 0.025) * np.exp(-dt / 0.032) * (td >= b_t0)
+        f_bark = 420.0 + 240.0 * np.exp(-dt * 22.0)
+        ph = 2.0 * np.pi * np.cumsum(f_bark) / SR
+        bark += (np.sin(ph) + 0.55 * np.sin(2 * ph) + 0.3 * np.sin(3 * ph)) * b_env
+    bark = (bark / (np.max(np.abs(bark)) + 1e-6)) * 0.68
+    stems["dog_bark"] = np.column_stack([bark, bark * 0.92]).astype(np.float32)
+
+    # 4. White sheep bleat in the fair mountain glen (μέγαν οἰῶν ἀργεννάων, Il. XVIII.588)
+    n_sheep = int(0.85 * SR)
+    ts = np.arange(n_sheep, dtype=np.float32) / SR
+    f_sheep = 235.0 + 18.0 * np.sin(2.0 * np.pi * 6.8 * ts)
+    ph_s = 2.0 * np.pi * np.cumsum(f_sheep) / SR
+    raw_s = sum((1.0 / k) * np.sin(k * ph_s) for k in range(1, 10))
+    b_s1, a_s1 = signal.butter(2, [480.0 / (SR * 0.5), 860.0 / (SR * 0.5)], btype="band")
+    b_s2, a_s2 = signal.butter(2, [1350.0 / (SR * 0.5), 2150.0 / (SR * 0.5)], btype="band")
+    sheep_f = signal.lfilter(b_s1, a_s1, raw_s) + 0.7 * signal.lfilter(b_s2, a_s2, raw_s)
+    env_s = np.sin(np.pi * ts / 0.85) * (0.72 + 0.28 * np.sin(2.0 * np.pi * 7.2 * ts))
+    sheep = (sheep_f / (np.max(np.abs(sheep_f)) + 1e-6)) * env_s * 0.62
+    stems["sheep_bleat"] = np.column_stack([sheep * 0.94, sheep]).astype(np.float32)
+
+    # 5. Bowstring twang + whistling bronze arrow in flight (Il. XVIII.520–539)
+    n_bow = int(0.55 * SR)
+    tb = np.arange(n_bow, dtype=np.float32) / SR
+    twang = (np.sin(2 * np.pi * 188.0 * tb) + 0.5 * np.sin(2 * np.pi * 376.0 * tb)) * np.exp(-tb * 14.0)
+    whistle_noise = rng.standard_normal(n_bow).astype(np.float32)
+    b_w, a_w = signal.butter(2, [1100.0 / (SR * 0.5), 3200.0 / (SR * 0.5)], btype="band")
+    whistle = signal.lfilter(b_w, a_w, whistle_noise) * np.sin(np.pi * np.clip((tb - 0.04) / 0.36, 0.0, 1.0)) * 0.45
+    bow = (twang + whistle)
+    bow = (bow / (np.max(np.abs(bow)) + 1e-6)) * 0.72
+    stems["bow_arrow"] = np.column_stack([bow, bow * 0.9]).astype(np.float32)
+
+    # 6. Keen bronze sickle cutting tall grain stalks (δρεπάνας ἐν χερσὶν ἔχοντες, Il. XVIII.551)
+    n_sk = int(0.38 * SR)
+    tsk = np.arange(n_sk, dtype=np.float32) / SR
+    sk_noise = rng.standard_normal(n_sk).astype(np.float32)
+    b_sk, a_sk = signal.butter(2, [1800.0 / (SR * 0.5), 6500.0 / (SR * 0.5)], btype="band")
+    swath = signal.lfilter(b_sk, a_sk, sk_noise) * np.sin(np.pi * tsk / 0.38) ** 1.4
+    ring = np.sin(2 * np.pi * 2480.0 * tsk) * np.exp(-tsk * 24.0) * 0.25
+    sickle = swath + ring
+    sickle = (sickle / (np.max(np.abs(sickle)) + 1e-6)) * 0.60
+    stems["sickle_swath"] = np.column_stack([sickle, sickle * 0.95]).astype(np.float32)
+
+    # 7. Dorian aulos / syrinx reed-pipe notes (αὐλοὶ φόρμιγγές τε, Il. XVIII.495; σύριγξι, Il. XVIII.526)
+    for note_name, freq in [("aulos_D5", 587.33), ("aulos_E5", 659.25), ("aulos_F5", 698.46), ("aulos_G5", 783.99), ("aulos_A5", 880.0)]:
+        n_au = int(0.48 * SR)
+        ta = np.arange(n_au, dtype=np.float32) / SR
+        vib = freq * (1.0 + 0.008 * np.sin(2 * np.pi * 5.6 * ta))
+        pha = 2.0 * np.pi * np.cumsum(vib) / SR
+        reed = np.sin(pha) + 0.65 * np.sin(3 * pha) + 0.35 * np.sin(5 * pha) + 0.20 * np.sin(2 * pha)
+        env_a = np.sin(np.pi * ta / 0.48) ** 0.55
+        au = (reed / (np.max(np.abs(reed)) + 1e-6)) * env_a * 0.52
+        stems[note_name] = np.column_stack([au * 0.92, au]).astype(np.float32)
+
+    return stems
+
+
+# Define the 9 bespoke film soundtracks with 100% Verbatim Homeric Iliad Book XVIII Recitation & Character Dialogue
 FILM_DESIGNS = [
     {
         "dir": "01-huashu-motion",
@@ -225,14 +323,15 @@ FILM_DESIGNS = [
         "mode": "forge",
         "outputs": ["assets/sound.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.05, 3.2, 24.0), (4.05, 6.8, 20.0)],
-        "anvils": [0.4, 1.4, 2.4, 3.4],
+        "cascades": [(0.05, 3.2, 20.0), (4.05, 6.8, 16.0)],
+        "anvils": [0.35, 1.35, 2.35, 3.35],
+        "aulos_notes": [(8.3, "aulos_D5"), (8.8, "aulos_F5"), (9.3, "aulos_A5"), (9.8, "aulos_G5")],
         "lyre_notes": [(8.2, "lyre_D4"), (8.7, "lyre_F4"), (9.2, "lyre_A4"), (9.7, "lyre_D5"), (10.2, "lyre_C5"), (10.7, "lyre_A4"), (12.4, "lyre_G4"), (13.2, "lyre_A4"), (14.0, "lyre_D5")],
         "lines": [
-            (0.18, "Daniel", 182, -1.0, "Listen closely! Hear the bronze hammer ring on the anvil, and the LEGO bricks snapping onto the studs as Hephaestus builds the Shield."),
-            (4.25, "Reed (English (US))", 188, 0.0, "Seven thousand five hundred and twenty-two bricks! Ten modular sections lifting out and locking into the five concentric rings."),
-            (8.20, "Moira", 185, 0.0, "Through the three townhouses, brides are led under blazing torches while dancers whirl on the street."),
-            (12.20, "Daniel", 182, -1.0, "And around the uttermost rim of the eight-thousand-brick Rotunda flows the mighty stream of River Oceanus.")
+            (0.15, "Daniel", 184, -1.0, "Homer, Iliad Book Eighteen, line four hundred seventy-eight! First Hephaestus fashioned the Shield of Achilles, great and sturdy, and set around it a shining triple rim!"),
+            (4.18, "Reed (English (US))", 186, 0.0, "Therein he wrought the Earth, the Sky, and the Sea, the unwearying Sun, the full Moon, the Pleiades, the Hyades, and Orion!"),
+            (8.18, "Moira", 186, 0.0, "In the city at peace, brides are led from their chambers beneath blazing torches while flutes and phorminx lyres resound!"),
+            (12.18, "Daniel", 184, -1.0, "And around the uttermost rim of the Shield of Achilles, he set the mighty stream of River Oceanus!")
         ]
     },
     {
@@ -241,14 +340,15 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav"],
         "cuts": [0.0, 3.0, 6.0, 9.0],
-        "cascades": [(0.1, 2.5, 16.0), (3.1, 5.8, 18.0)],
+        "cascades": [(0.1, 2.5, 14.0), (3.1, 5.8, 14.0)],
         "anvils": [0.2, 9.1],
+        "aulos_notes": [(3.3, "aulos_E5"), (3.8, "aulos_G5"), (4.3, "aulos_A5")],
         "lyre_notes": [(3.2, "lyre_D4"), (3.6, "lyre_G4"), (4.0, "lyre_A4"), (4.4, "lyre_D5"), (6.2, "lyre_F4"), (6.6, "lyre_A4"), (7.0, "lyre_C5"), (7.4, "lyre_D5"), (9.4, "lyre_A4"), (10.2, "lyre_D5")],
         "lines": [
-            (0.15, "Daniel", 186, -1.0, "On the central boss, the Great Bear turns on its LEGO turntable and never bathes in Ocean."),
-            (3.15, "Samantha", 190, 0.0, "Like a potter testing his wheel, ten Cretan dancers and two tumblers spin on twos across Knossos."),
-            (6.15, "Reed (English (UK))", 188, 0.0, "In the golden vineyard, a boy plucks his clear-toned lyre beside the silver trellises."),
-            (9.15, "Daniel", 186, -1.0, "Every minifigure limb, arm, and head steps in clockwork harmony across all five rings.")
+            (0.12, "Daniel", 188, -1.0, "Iliad Book Eighteen, line four hundred eighty-seven! On the Shield of Achilles, the Great Bear revolves and alone never bathes in Oceanus!"),
+            (3.12, "Samantha", 190, 0.0, "On the dancing-floor of Daedalus in wide Knossos, youths and maidens whirl like a potter testing his wheel!"),
+            (6.12, "Reed (English (UK))", 188, 0.0, "In the golden vineyard with silver poles, a boy plays his clear-toned phorminx and sings the sweet Linus song!"),
+            (9.12, "Daniel", 188, -1.0, "And around the five concentric rings of Achilles' Shield flows the deep-eddying stream of Oceanus!")
         ]
     },
     {
@@ -257,14 +357,16 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "mix.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 2.0, 15.0), (8.1, 10.5, 22.0)],
+        "cascades": [(0.1, 2.0, 14.0), (8.1, 10.5, 16.0)],
         "anvils": [5.5, 8.05, 9.2, 10.4],
+        "aulos_notes": [(0.6, "aulos_D5"), (1.2, "aulos_F5"), (1.8, "aulos_A5"), (8.3, "aulos_E5"), (8.7, "aulos_G5")],
+        "bow_volleys": [8.45, 9.15, 9.85, 10.65, 11.25],
         "lyre_notes": [(0.5, "lyre_D4"), (1.1, "lyre_A4"), (1.7, "lyre_D5"), (4.4, "lyre_F4"), (5.0, "lyre_A4"), (5.5, "glock_A5"), (5.8, "glock_D6")],
         "lines": [
-            (0.20, "Daniel", 180, -1.0, "Two cities of mortal men he forged in living LEGO brick: in the first, bridal torches blaze and flutes resound."),
-            (4.20, "Reed (English (UK))", 185, 0.0, "In the Agora Sacred Circle, bearded elders rise with golden herald staves before the Two Talents of Gold!"),
-            (8.20, "Samantha", 188, 0.0, "Outside the besieged Scaean Gate, giant golden Ares and Pallas Athena lead the ambush by the river ford!"),
-            (12.20, "Daniel", 182, -1.0, "Peace and War, held forever in balance beneath the vaulted dome of the Grand Rotunda.")
+            (0.15, "Daniel", 184, -1.0, "Homer, Iliad Book Eighteen, line four hundred ninety! On the Shield of Achilles he wrought two cities of mortal men: marriage-feasts and blazing torches!"),
+            (4.15, "Reed (English (UK))", 188, 0.0, "In the Agora law-court, Claimant Odysseus vows he paid the blood-price, while Euryalus refuses before Elder Nestor and the Two Talents of Gold!"),
+            (8.15, "Samantha", 188, 0.0, "Around the besieged city, golden Ares and Pallas Athena lead the ambush by the river ford where archers loose their bronze arrows!"),
+            (12.15, "Daniel", 184, -1.0, "Thus on the Shield of Achilles stand the two cities of Peace and War, encircled by the stream of Oceanus!")
         ]
     },
     {
@@ -273,15 +375,19 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav"],
         "cuts": [0.0, 2.8, 5.6, 8.4, 11.2],
-        "cascades": [(0.05, 1.8, 25.0), (2.85, 4.5, 25.0), (5.65, 7.3, 25.0), (8.45, 10.1, 25.0), (11.25, 12.9, 25.0)],
-        "anvils": [0.1, 2.8, 5.6, 8.4, 11.2],
+        "cascades": [(0.05, 1.8, 18.0), (2.85, 4.5, 18.0), (5.65, 7.3, 18.0), (8.45, 10.1, 18.0), (11.25, 12.9, 18.0)],
+        "anvils": [0.1, 2.8, 5.6],
+        "aulos_notes": [(0.4, "aulos_D5"), (0.9, "aulos_A5"), (5.8, "aulos_E5")],
+        "bow_volleys": [6.1, 6.9, 7.6],
+        "sickle_swaths": [8.7, 9.3, 9.9, 10.5],
+        "sheep_bleats": [11.4, 12.1, 12.8, 13.4],
         "lyre_notes": [(1.2, "lyre_D4"), (4.0, "lyre_F4"), (6.8, "lyre_G4"), (9.6, "lyre_A4"), (12.4, "lyre_D5")],
         "lines": [
-            (0.15, "Reed (English (US))", 192, 0.0, "Scene One: three terracotta townhouses and the bridal procession snapping into brick."),
-            (2.95, "Daniel", 192, -1.0, "Scene Two: the twenty-eight-stud Doric Stoa and the Agora elders in dispute."),
-            (5.75, "Samantha", 192, 0.0, "Scene Three: the Scaean Gate, golden Ares and Athena, and the river ambush."),
-            (8.55, "Reed (English (UK))", 192, 0.0, "Scene Four: thrice-ploughed dark furrows, reapers, and the silent King's oak feast."),
-            (11.35, "Daniel", 192, -1.0, "Scene Five: the limestone mountain gorge and fourteen white LEGO sheep.")
+            (0.12, "Reed (English (US))", 192, 0.0, "Five scenes from Homer's Shield of Achilles in Iliad Book Eighteen! First, brides led beneath blazing torches to flutes and lyres!"),
+            (2.90, "Daniel", 192, -1.0, "Second, the Agora trial: two men debating the blood-price of a slain man before the Two Talents of Gold!"),
+            (5.70, "Samantha", 192, 0.0, "Third, the river ambush: golden Ares and Athena where herdsmen pipe on reeds and archers loose bronze arrows!"),
+            (8.50, "Reed (English (UK))", 192, 0.0, "Fourth, the royal harvest: reapers cutting tall grain with sickles while the silent King holds his sceptre!"),
+            (11.30, "Daniel", 192, -1.0, "Fifth, in a fair mountain glen, Hephaestus wrought a great pasture of bleating white sheep and roofed folds!")
         ]
     },
     {
@@ -290,14 +396,18 @@ FILM_DESIGNS = [
         "mode": "water",
         "outputs": ["assets/sound.wav", "vo.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 1.5, 18.0), (4.05, 5.2, 18.0), (8.05, 9.2, 18.0), (12.05, 13.2, 18.0)],
-        "anvils": [0.1, 4.0, 8.0, 12.0],
+        "cascades": [(0.1, 1.5, 15.0), (4.05, 5.2, 15.0), (8.05, 9.2, 15.0), (12.05, 13.2, 15.0)],
+        "anvils": [0.1, 4.0, 8.0],
+        "aulos_notes": [(4.3, "aulos_D5"), (4.8, "aulos_F5"), (5.3, "aulos_A5")],
+        "bull_bellows": [12.25, 13.85],
+        "lion_roars": [12.65, 14.35],
+        "dog_barks": [13.10, 13.55, 14.80, 15.25],
         "lyre_notes": [(1.5, "lyre_D4"), (5.5, "lyre_A4"), (9.5, "glock_A5"), (13.5, "lyre_D5")],
         "lines": [
-            (0.20, "Samantha", 182, 0.0, "Welcome to the 3D LEGO Shield of Achilles Studio: seven thousand five hundred and twenty-two real LDraw bricks across five concentric rings."),
-            (4.20, "Reed (English (US))", 184, 0.0, "Clicking Diorama One loads three thousand four hundred and seventy-five bricks: three two-storey townhouses and the bridal torch-procession."),
-            (8.20, "Daniel", 184, -1.0, "In the Agora Law-Court, elders step on twos and raise their staves around the Two Talents of Pearl Gold."),
-            (12.20, "Samantha", 184, 0.0, "Beside the reed-bed, two tawny LEGO lions seize the bull while four herdsmen and nine hounds rush in.")
+            (0.15, "Samantha", 184, 0.0, "Behold the Shield of Achilles from Homer's Iliad Book Eighteen: Earth, Sky, Sea, Sun, Moon, and the five concentric rings forged by Hephaestus!"),
+            (4.15, "Reed (English (US))", 186, 0.0, "In the first city of mortal men, brides are led from their chambers beneath blazing torches while the bridal song arises!"),
+            (8.15, "Daniel", 186, -1.0, "In the sacred circle of the Agora, elders sit on polished stones holding heralds' sceptres before the Two Talents of Gold!"),
+            (12.15, "Samantha", 186, 0.0, "And by the sounding river, two terrible lions seize the loud-bellowing bull while four herdsmen and nine hounds rush to bay!")
         ]
     },
     {
@@ -306,14 +416,16 @@ FILM_DESIGNS = [
         "mode": "forge",
         "outputs": ["assets/sound.wav", "vo.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 3.4, 24.0), (4.1, 7.4, 20.0)],
-        "anvils": [0.15, 4.05, 8.05, 12.05],
+        "cascades": [(0.1, 3.4, 18.0), (4.1, 7.4, 16.0)],
+        "anvils": [0.15, 1.25, 2.35, 4.05, 8.05, 12.05],
+        "bow_volleys": [8.4, 9.2, 10.1, 11.0],
+        "sickle_swaths": [12.4, 13.1, 13.8, 14.5],
         "lyre_notes": [(2.0, "lyre_D4"), (6.0, "lyre_A4"), (10.0, "lyre_C5"), (14.0, "lyre_D5")],
         "lines": [
-            (0.18, "Reed (English (UK))", 182, 0.0, "Why do giant LEGO sets fail? Tall maze walls bury the scenes, so our shield frame uses low one-plate and tile ring dividers."),
-            (4.18, "Daniel", 182, -1.0, "Each of the ten sections, M-zero through M-nine, is built on a cross-bonded base that lifts out and clicks into place."),
-            (8.18, "Moira", 184, 0.0, "Homer's Ares and Athena stand at one-point-six times mortal scale in Pearl Gold beside the coursed Scaean Gate."),
-            (12.18, "Reed (English (UK))", 182, 0.0, "Every furrow, reaper, and terracotta gable passes machine verification with zero unclicked parts and zero clashes.")
+            (0.15, "Reed (English (UK))", 184, 0.0, "In Iliad Book Eighteen, line four hundred sixty-eight, Hephaestus turned his twenty bellows to the fire and cast bronze, tin, gold, and silver on the anvil!"),
+            (4.15, "Daniel", 184, -1.0, "Five folds the lame god welded for the Shield of Achilles: two of bronze, two inside of tin, and one of pure gold!"),
+            (8.15, "Moira", 186, 0.0, "By the river ford, golden Ares and Pallas Athena lead the ambush while scouts loose bronze-tipped arrows across the stream!"),
+            (12.15, "Reed (English (UK))", 184, 0.0, "In the thrice-ploughed field and royal harvest, reapers ply keen sickles while the King stands in silence holding his sceptre!")
         ]
     },
     {
@@ -324,13 +436,17 @@ FILM_DESIGNS = [
         "cuts": [0.0, 4.0, 8.0],
         "silence_windows": [(7.48, 8.32)],
         "hero_hit_t": 8.50,
-        "cascades": [(0.1, 3.5, 18.0), (4.1, 7.1, 16.0), (8.6, 11.5, 22.0)],
+        "cascades": [(0.1, 3.5, 14.0), (4.1, 7.1, 12.0), (8.6, 11.5, 18.0)],
         "anvils": [0.1, 4.0],
+        "bull_bellows": [0.35, 1.85, 3.05],
+        "lion_roars": [0.85, 2.35],
+        "dog_barks": [1.35, 2.80, 3.45],
+        "sheep_bleats": [4.30, 5.15, 6.00, 6.75],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_F4"), (5.0, "lyre_G4"), (6.0, "lyre_A4"), (8.8, "lyre_D5"), (9.3, "glock_A5"), (9.8, "glock_D6")],
         "lines": [
-            (0.15, "Daniel", 186, -1.0, "Nine dogs and two tawny lions! By the roaring river, the lions seize the bull of gold and tin."),
-            (4.12, "Samantha", 190, 0.0, "In the fair mountain glen of white sheep, everything hushes before the Choros wheel."),
-            (8.62, "Reed (English (US))", 190, 0.0, "Now the Choros wheel spins! Ten Cretan dancers and two tumblers whirl through wide Knossos.")
+            (0.15, "Daniel", 188, -1.0, "Iliad Book Eighteen, line five hundred seventy-nine! Two terrible lions hold the loud-bellowing bull while nine dogs bark by the river!"),
+            (4.12, "Samantha", 190, 0.0, "In the fair glen of white sheep on Achilles' Shield, the pasture hushes before the Choros of Daedalus."),
+            (8.62, "Reed (English (US))", 190, 0.0, "Now on the Choros of wide Knossos, youths, maidens, and two tumblers whirl as Oceanus seals the Shield!")
         ]
     },
     {
@@ -339,15 +455,17 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "audio/mix.wav"],
         "cuts": [0.0, 3.0, 6.0, 9.0, 12.0],
-        "cascades": [(0.05, 2.8, 22.0), (3.05, 5.8, 18.0), (6.05, 8.8, 18.0), (9.05, 11.8, 20.0), (12.05, 14.6, 22.0)],
+        "cascades": [(0.05, 2.8, 16.0), (3.05, 5.8, 14.0), (6.05, 8.8, 14.0), (9.05, 11.8, 16.0), (12.05, 14.6, 16.0)],
         "anvils": [0.05, 1.07, 2.11, 3.0, 5.13, 6.0, 8.20, 9.0, 11.03, 12.0, 13.68],
+        "aulos_notes": [(6.25, "aulos_E5"), (6.75, "aulos_G5"), (9.25, "aulos_D5"), (9.75, "aulos_A5")],
+        "bow_volleys": [7.15, 7.85, 8.45],
         "lyre_notes": [(0.37, "lyre_G4"), (1.43, "lyre_A4"), (3.54, "glock_A5"), (4.46, "lyre_D5"), (6.55, "lyre_F4"), (9.48, "lyre_C5"), (10.37, "lyre_D5"), (12.77, "glock_D6"), (13.38, "lyre_D5")],
         "lines": [
-            (0.12, "Daniel", 192, -1.0, "Fold One: the bronze forge core, anvil strikes, and the revolving Bear."),
-            (3.12, "Reed (English (UK))", 192, 0.0, "Fold Two: the golden Agora circle and the chime of the Two Talents."),
-            (6.12, "Samantha", 192, 0.0, "Fold Three: pure tin battlements, golden gods, and the rushing river ambush."),
-            (9.12, "Moira", 192, 0.0, "Fold Four: the Knossian Choros potter's wheel whirling on twos."),
-            (12.12, "Daniel", 192, -1.0, "Fold Five: the mighty stream of River Oceanus sealing the uttermost rim.")
+            (0.12, "Daniel", 192, -1.0, "Iliad Book Eighteen! Fold One of Achilles' Shield: twenty bellows roar and Hephaestus strikes the bronze anvil!"),
+            (3.12, "Reed (English (UK))", 192, 0.0, "Fold Two: the Agora sacred circle where elders judge the blood-price before Two Talents of Gold!"),
+            (6.12, "Samantha", 192, 0.0, "Fold Three: syrinx reed-pipes, bowstrings, and golden Ares and Athena at the river ambush!"),
+            (9.12, "Moira", 192, 0.0, "Fold Four: the Choros dancing-floor of Daedalus for Ariadne in wide Knossos!"),
+            (12.12, "Daniel", 192, -1.0, "Fold Five: the mighty strength of River Oceanus around the uttermost rim of the Shield of Achilles!")
         ]
     },
     {
@@ -356,14 +474,17 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "mix.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.05, 3.6, 24.0), (4.05, 7.6, 20.0), (8.05, 11.6, 18.0), (12.05, 15.5, 20.0)],
-        "anvils": [0.1, 4.0, 8.0, 12.0],
+        "cascades": [(0.05, 3.6, 18.0), (4.05, 7.6, 16.0), (8.05, 11.6, 14.0), (12.05, 15.5, 16.0)],
+        "anvils": [0.1, 1.2, 2.3, 4.0, 12.0],
+        "bull_bellows": [8.25, 9.85, 11.10],
+        "lion_roars": [8.65, 10.35],
+        "dog_barks": [9.15, 9.55, 10.75, 11.40],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_A4"), (5.0, "lyre_F4"), (6.0, "lyre_C5"), (9.0, "lyre_G4"), (10.0, "lyre_D5"), (13.0, "glock_A5"), (14.2, "glock_D6")],
         "lines": [
-            (0.18, "Reed (English (US))", 184, 0.0, "Inside the 3D LEGO Agent Office, Maestro Hephaestus and Auditor Athena coordinate eight worktree desks."),
-            (4.18, "Daniel", 184, -1.0, "Every Kanban card spawns an isolated Git worktree section that lifts out and clicks into the Shield frame."),
-            (8.18, "Samantha", 184, 0.0, "Across the multiplane camera tower, every moving minifigure extrudes into a 3D spatiotemporal action tube."),
-            (12.18, "Reed (English (US))", 184, 0.0, "Zero loose parts, zero clashes, and full stop-motion articulation on twos—shipping to main!")
+            (0.15, "Samantha", 184, 0.0, "Homer, Iliad Book Eighteen, line three hundred sixty-nine! Silver-footed Thetis implores Hephaestus at his blazing anvil to forge a shield for Achilles!"),
+            (4.15, "Daniel", 184, -1.0, "Upon the five-fold shield he wrought Earth, Sky, and Sea, the unwearying Sun, the full Moon, the Two Cities, Plough, and Vineyard!"),
+            (8.15, "Reed (English (US))", 186, 0.0, "By the sounding river and swaying reeds, two tawny lions seize the loud-bellowing bull while four herdsmen and nine hounds rush in!"),
+            (12.15, "Daniel", 184, -1.0, "And around the Choros of Daedalus in Knossos, Hephaestus poured the mighty strength of River Oceanus along the rim of the Shield!")
         ]
     }
 ]
@@ -372,7 +493,8 @@ FILM_DESIGNS = [
 def build_all():
     sfx_cache = os.path.join(ROOT, "films/shield-of-achilles/shared/sfx_bank")
     stems = render_earshot_sfx(sfx_cache)
-    print(f"Loaded {len(stems)} physical earshot SFX & musical stems.")
+    stems.update(make_homeric_diegetic_stems())
+    print(f"Loaded {len(stems)} physical earshot SFX, Homeric diegetic & musical stems.")
 
     env = os.environ.copy()
     env["PYTHONPATH"] = EARSHOT_PATH
@@ -424,6 +546,23 @@ def build_all():
 
         for (lt, l_key) in cfg["lyre_notes"]:
             place(sfx_layer, stems[l_key], lt, gain_db=-6.0, pan=0.25)
+
+        # Homeric scene-specific diegetic cues (Aulos pipes, Bow/Arrow volleys, Sickle swaths, Bull/Lions/Hounds/Sheep)
+        for (at_t, a_key) in cfg.get("aulos_notes", []):
+            place(sfx_layer, stems[a_key], at_t, gain_db=-7.5, pan=-0.28)
+        for bt in cfg.get("bow_volleys", []):
+            place(sfx_layer, stems["bow_arrow"], bt, gain_db=-5.5, pan=-0.22)
+            place(sfx_layer, stems["anvil_metal"], bt + 0.28, gain_db=-10.0, pan=0.30)
+        for skt in cfg.get("sickle_swaths", []):
+            place(sfx_layer, stems["sickle_swath"], skt, gain_db=-6.5, pan=0.18)
+        for blt in cfg.get("bull_bellows", []):
+            place(sfx_layer, stems["bull_bellow"], blt, gain_db=-4.5, pan=-0.15)
+        for lrt in cfg.get("lion_roars", []):
+            place(sfx_layer, stems["lion_roar"], lrt, gain_db=-4.5, pan=0.20)
+        for dgt in cfg.get("dog_barks", []):
+            place(sfx_layer, stems["dog_bark"], dgt, gain_db=-6.0, pan=-0.30)
+        for sht in cfg.get("sheep_bleats", []):
+            place(sfx_layer, stems["sheep_bleat"], sht, gain_db=-6.5, pan=0.22)
 
         # 3. Multi-Voice Dialogue Layer + Sidechain Ducking Envelope on Bed/SFX
         vo_layer = np.zeros((n_samples, 2), dtype=np.float32)

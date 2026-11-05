@@ -867,6 +867,18 @@
 
       this.models = {};
       this.activeSlug = null;
+
+      this.textCanvas = null;
+      this.textCtx = null;
+      if (typeof document !== 'undefined' && canvas && canvas.parentElement && canvas.width >= 1200) {
+        const tc = document.createElement('canvas');
+        tc.width = canvas.width;
+        tc.height = canvas.height;
+        tc.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;';
+        canvas.parentElement.appendChild(tc);
+        this.textCanvas = tc;
+        this.textCtx = tc.getContext('2d');
+      }
     }
 
     loadModel(slug) {
@@ -1329,8 +1341,10 @@
       bind(this.locs.aPivot, 2, 17);
       bind(this.locs.aRig, 3, 19);
 
-      gl.uniformMatrix4fv(this.locs.uProj, false, perspMat(fovDeg * Math.PI / 180, w / Math.max(1, h), 6.0, 8000.0));
-      gl.uniformMatrix4fv(this.locs.uView, false, lookAtMat(eye, target, [0, 1, 0]));
+      const projMat = perspMat(fovDeg * Math.PI / 180, w / Math.max(1, h), 6.0, 8000.0);
+      const viewMat = lookAtMat(eye, target, [0, 1, 0]);
+      gl.uniformMatrix4fv(this.locs.uProj, false, projMat);
+      gl.uniformMatrix4fv(this.locs.uView, false, viewMat);
       gl.uniform1f(this.locs.uTime, time);
       gl.uniform1f(this.locs.uBuild, build);
       gl.uniform1f(this.locs.uExplode, explode);
@@ -1344,8 +1358,299 @@
       gl.uniform3fv(this.locs.uSunCol, new Float32Array(sunCol));
 
       gl.drawArrays(gl.TRIANGLES, 0, model.vertCount);
+
+      if (this.textCtx) {
+        this.drawHomericScrolls(slug, projMat, viewMat, time, w, h);
+      }
+    }
+
+    drawHomericScrolls(slug, P, V, time, w, h) {
+      const ctx = this.textCtx;
+      ctx.clearRect(0, 0, w, h);
+      const key = String(slug).replace(/^set\./, '');
+      const scrolls = HOMERIC_3D_SCROLLS[key] || HOMERIC_3D_SCROLLS['shield-of-achilles'];
+      if (!scrolls || !scrolls.length) return;
+
+      const proj3D = (wx, wy, wz) => {
+        const vx = V[0] * wx + V[4] * wy + V[8] * wz + V[12];
+        const vy = V[1] * wx + V[5] * wy + V[9] * wz + V[13];
+        const vz = V[2] * wx + V[6] * wy + V[10] * wz + V[14];
+        const vw = V[3] * wx + V[7] * wy + V[11] * wz + V[15];
+        const cx = P[0] * vx + P[4] * vy + P[8] * vz + P[12] * vw;
+        const cy = P[1] * vx + P[5] * vy + P[9] * vz + P[13] * vw;
+        const cw = P[3] * vx + P[7] * vy + P[11] * vz + P[15] * vw;
+        if (cw <= 10.0) return null;
+        return [
+          ((cx / cw) * 0.5 + 0.5) * w,
+          (0.5 - (cy / cw) * 0.5) * h
+        ];
+      };
+
+      const isFilm07 = typeof document !== 'undefined' && !!document.getElementById('hud');
+      const qTime = Math.floor(time * 12.0) / 12.0;
+
+      for (let i = 0; i < scrolls.length; i++) {
+        const sc = scrolls[i];
+        const [ax3, ay3, az3] = sc.pos;
+        const liftY = Math.sin(qTime * 2.2 + i * 2.1) * 8.0;
+        const pAnchor = proj3D(ax3, ay3, az3);
+        const pHead = proj3D(ax3, ay3 + 85.0 + liftY, az3);
+        if (!pAnchor || !pHead) continue;
+
+        const boxW = 630;
+        const boxH = 84;
+        const side = i === 0 ? -1 : 1;
+        let bx = side < 0 ? clamp(pHead[0] - boxW * 0.55, 42, w * 0.5 - boxW - 18) : clamp(pHead[0] - boxW * 0.45, w * 0.5 + 18, w - boxW - 42);
+        let minTop = (isFilm07 && side < 0 && time < 8.0) ? 375 : 84;
+        let by = clamp(pHead[1] - boxH - 18, minTop, 178 + (minTop > 200 ? 225 : 0));
+
+        const stemX = clamp(pAnchor[0], bx + 28, bx + boxW - 28);
+        const stemY = by + boxH;
+
+        ctx.save();
+        // 1. Glowing 3D Golden Leader Filament from the acting character/landmark to the Homeric Verse Scroll
+        const grad = ctx.createLinearGradient(pAnchor[0], pAnchor[1], stemX, stemY);
+        grad.addColorStop(0.0, 'rgba(250, 204, 21, 0.95)');
+        grad.addColorStop(1.0, 'rgba(229, 189, 67, 0.45)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(pAnchor[0], pAnchor[1]);
+        ctx.lineTo(stemX, stemY);
+        ctx.stroke();
+
+        // Stud target ring at character's 3D anchor
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(pAnchor[0], pAnchor[1], 4.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.65)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(pAnchor[0], pAnchor[1], 9.0 + Math.sin(qTime * 6.0 + i) * 2.0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 2. Translucent Obsidian-and-Gold Homeric Ekphrasis Scroll Plaque
+        ctx.fillStyle = 'rgba(7, 11, 20, 0.84)';
+        ctx.strokeStyle = 'rgba(229, 189, 67, 0.82)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(bx, by, boxW, boxH, 8);
+        } else {
+          ctx.rect(bx, by, boxW, boxH);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Left golden book-spine accent bar
+        ctx.fillStyle = '#e5bd43';
+        ctx.fillRect(bx, by + 6, 4, boxH - 12);
+
+        // Line 1: Homeric Book & Line Citation + Character Action Tag
+        ctx.fillStyle = '#facc15';
+        ctx.font = '800 11.5px "SF Mono", Menlo, monospace';
+        ctx.fillText(sc.cite, bx + 14, by + 19);
+
+        // Line 2: Original Homeric Ancient Greek Hexameter
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'italic 600 14.5px Georgia, "Times New Roman", serif';
+        ctx.fillText(sc.grc, bx + 14, by + 43, boxW - 24);
+
+        // Line 3: Verbatim English Translation from Iliad Book XVIII
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '500 13.5px Georgia, "Times New Roman", serif';
+        ctx.fillText(sc.eng, bx + 14, by + 67, boxW - 24);
+        ctx.restore();
+      }
     }
   }
+
+  // 3D-Anchored Original Homeric Greek & Verbatim English Ekphrasis Scrolls (Iliad XVIII.369–608)
+  const HOMERIC_3D_SCROLLS = {
+    'shield-diorama-forge': [
+      {
+        pos: [-30, 85, 0],
+        cite: 'HOMER · ILIAD XVIII.474–478 · HEPHAESTUS AT THE GREAT ANVIL',
+        grc: '«Χαλκὸν δ’ ἐν πυρὶ βάλλεν ἀτειρέα κασσίτερόν τε καὶ χρυσὸν τιμῆντα καὶ ἄργυρον…»',
+        eng: '“He cast on the fire tough bronze and tin and precious gold and silver, and forged a great shield!”'
+      },
+      {
+        pos: [200, 85, 30],
+        cite: 'HOMER · ILIAD XVIII.417–458 · THETIS & THE GOLDEN HANDMAIDENS (KOURAI)',
+        grc: '«Χρύσειαι ζωῇσι νεήνισιν εἰοικυῖαι… υἱεῖ ἐμῷ ὠκυμόρῳ δὸς ἀσπίδα καὶ τρυφάλειαν»',
+        eng: '“Living handmaidens of gold supported the King, while silver-footed Thetis begged a shield for Achilles!”'
+      }
+    ],
+    'achilles-forge': [
+      {
+        pos: [-45, 75, 45],
+        cite: 'HOMER · ILIAD XVIII.470–478 · THE TWENTY BELLOWS & ANVIL OF HEPHAESTUS',
+        grc: '«Φῦσαι δ’ ἐν χοάνοισιν ἐείκοσι πᾶσαι ἐφύσων… Ποίει δὲ πρώτιστα σάκος μέγα τε στιβαρόν τε»',
+        eng: '“Twenty bellows blew into the crucibles; and first he forged a shield both great and strong!”'
+      },
+      {
+        pos: [0, 175, -160],
+        cite: 'HOMER · ILIAD XVIII.483–489 · THE REVOLVING BEAR (ARKTOS) & ORION',
+        grc: '«Ἄρκτον θ’, ἣν καὶ Ἄμαξαν ἐπίκλησιν καλέουσιν, ἥ τ’ αὐτοῦ στρέφεται καί τ’ Ὠρίωνα δοκεύει»',
+        eng: '“And the Bear, which men call the Wain, that turns in one place watching Orion and never bathes in Ocean!”'
+      }
+    ],
+    'shield-diorama-wedding': [
+      {
+        pos: [-80, 90, 20],
+        cite: 'HOMER · ILIAD XVIII.491–493 · CITY AT PEACE: THE BRIDAL TORCH-PROCESSION',
+        grc: '«Νύμφας δ’ ἐκ θαλάμων δαΐδων ὕπο λαμπομενάων ἠγίνεον ἀνὰ ἄστυ, πολὺς δ’ ὑμέναιος ὀρώρει·»',
+        eng: '“Brides from their chambers under blazing torches they led through the city, and loud rose the bridal song!”'
+      },
+      {
+        pos: [90, 90, 60],
+        cite: 'HOMER · ILIAD XVIII.494–496 · WHIRLING DANCERS, FLUTES, LYRES & DOORWAY WOMEN',
+        grc: '«Κοῦροι δ’ ὀρχηστῆρες ἐδίνεον, ἐν δ’ ἄρα τοῖσιν αὐλοὶ φόρμιγγές τε βοὴν ἔχον· αἱ δὲ γυναῖκες θαύμαζον»',
+        eng: '“Youthful dancers whirled as flutes and lyres sounded, and women stood marvelling at every doorway!”'
+      }
+    ],
+    'shield-diorama-agora': [
+      {
+        pos: [-90, 85, 45],
+        cite: 'HOMER · ILIAD XVIII.497–500 · BLOOD-PRICE DISPUTE: THE CLAIMANT SPEAKS',
+        grc: '«Δύο δ’ ἄνδρες ἐνείκεον εἵνεκα ποινῆς ἀνδρὸς ἀποφθιμένου· ὁ μὲν εὔχετο πάντ’ ἀποδοῦναι…»',
+        eng: '“Two men contended in the Agora over the blood-price of a slain man: the one vowed he had paid all!”'
+      },
+      {
+        pos: [80, 95, -20],
+        cite: 'HOMER · ILIAD XVIII.500–508 · THE DEFENDANT’S REFUSAL & TWO TALENTS OF GOLD',
+        grc: '«Ὁ δ’ ἀναίνετο μηδὲν ἑλέσθαι… κεῖτο δ’ ἄρ’ ἐν μέσσοισι δύω χρυσοῖο τάλαντα»',
+        eng: '“The other refused to take anything; and in the Sacred Circle lay Two Talents of Gold for the straightest judgment!”'
+      }
+    ],
+    'shield-diorama-ambush': [
+      {
+        pos: [-290, 85, 20],
+        cite: 'HOMER · ILIAD XVIII.520–526 · THE RIVERBED AMBUSH & TWO PIPING HERDSMEN',
+        grc: '«Ἐν ποταμῷ, ὅθι τ’ ἀρδμὸς ἔην πάντεσσι βοτοῖσιν, ἔνθ’ ἄρα τοί γ’ ἵζοντ’ εἰλυμένοι αἴθοπι χαλκῷ·»',
+        eng: '“By the river watering-place the scouts crouched in gleaming bronze as two herdsmen piped on reeds!”'
+      },
+      {
+        pos: [210, 110, -50],
+        cite: 'HOMER · ILIAD XVIII.516–535 · GOLDEN ARES & ATHENA, THE WALL & DEADLY KER',
+        grc: '«Ἦρχε δ’ ἄρα σφιν Ἄρης καὶ Παλλὰς Ἀθήνη, ἄμφω χρυσείω… Ἐν δ’ Ἔρις, ἐν δὲ Κυδοιμὸς, ἐν δ’ ὀλοὴ Κήρ»',
+        eng: '“Golden Ares and Pallas Athena led them; and Strife, Tumult, and Deadly Fate dragged the fallen!”'
+      }
+    ],
+    'shield-diorama-harvest': [
+      {
+        pos: [-200, 85, 20],
+        cite: 'HOMER · ILIAD XVIII.541–549 · THE THRICE-PLOUGHED FIELD THAT DARKENS IN GOLD',
+        grc: '«Ἐν δ’ ἐτίθει νειὸν μαλακὴν, πίειραν ἄρουραν, εὐρεῖαν τρίπολον… ἡ δὲ μελαίνετ’ ὄπισθεν, χρυσείη περ ἐοῦσα»',
+        eng: '“He wrought a thrice-ploughed fallow that darkened behind the plough like real earth, though wrought of gold!”'
+      },
+      {
+        pos: [120, 95, -20],
+        cite: 'HOMER · ILIAD XVIII.550–557 · SICKLE REAPERS & THE SILENT KING WITH SCEPTRE',
+        grc: '«Ἔριθοι ἤμων ὀξείας δρεπάνας ἐν χερσὶν ἔχοντες… βασιλεὺς δ’ ἐν τοῖσι σιωπῇ σκῆπτρον ἔχων ἑστήκει»',
+        eng: '“Reapers reaped with sharp sickles; and among them the King stood in silence with his sceptre, rejoicing!”'
+      }
+    ],
+    'shield-diorama-vineyard': [
+      {
+        pos: [-160, 85, 20],
+        cite: 'HOMER · ILIAD XVIII.561–565 · GOLDEN VINEYARD, SILVER POLES & KYANOS TRENCH',
+        grc: '«Ἐν δ’ ἐτίθει σταφυλῇσι μέγα βρίθουσαν ἀλωὴν καλὴν χρυσείην… ἀμφὶ δὲ κυανέην κάπετον, περὶ δ’ ἕρκος κασσιτέρου»',
+        eng: '“He set a golden vineyard heavy with black grapes on silver poles, with a kyanos trench and fence of tin!”'
+      },
+      {
+        pos: [40, 95, -20],
+        cite: 'HOMER · ILIAD XVIII.569–572 · THE BOY WITH THE PHORMINX SINGING THE LINUS-SONG',
+        grc: '«Τοῖσιν δ’ ἐν μέσσοισι πάϊς φόρμιγγι λιγείῃ ἱμερόεν κιθάριζε, λίνον δ’ ὑπὸ καλὸν ἄειδε λεπταλέῃ φωνῇ»',
+        eng: '“In their midst a boy made sweet music on a clear-toned lyre and sang the fair Linus-song as they danced!”'
+      }
+    ],
+    'shield-diorama-cattle': [
+      {
+        pos: [-220, 85, 40],
+        cite: 'HOMER · ILIAD XVIII.573–578 · STRAIGHT-HORNED CATTLE OF GOLD & TIN AND NINE DOGS',
+        grc: '«Αἱ δὲ βόες χρυσοῖο τετεύχατο κασσιτέρου τε… χρύσειοι δὲ νομῆες τέσσαρες, ἐννέα δέ σφι κύνες πόδας ἀργοὶ ἕποντο»',
+        eng: '“He wrought cattle of gold and tin by the sounding river, with four golden herdsmen and nine swift dogs!”'
+      },
+      {
+        pos: [50, 85, 50],
+        cite: 'HOMER · ILIAD XVIII.579–581 · TWO TERRIBLE LIONS SEIZING THE BELLOWING BULL',
+        grc: '«Σμερδαλέω δὲ λέοντε δύ’ ἐν πρώτοισι βόεσσι ταῦρον ἐρύγμηλον ἐχέτην· ὁ δὲ μακρὰ μεμυκὼς ἕλκετο»',
+        eng: '“Two terrible lions among the foremost cattle seized a loud-lowing bull, and bellowing he was dragged away!”'
+      }
+    ],
+    'shield-diorama-sheepfold': [
+      {
+        pos: [-150, 85, 20],
+        cite: 'HOMER · ILIAD XVIII.587–588 · THE FAIR MOUNTAIN GLEN OF WHITE-FLEECED SHEEP',
+        grc: '«Ἐν δὲ νομὸν ποίησε περικλυτὸς Ἀμφιγυήεις ἐν καλῇ βήσσῃ μέγαν οἰῶν ἀργεννάων»',
+        eng: '“And the famous lame god wrought a great pasture of white sheep in a fair mountain glen!”'
+      },
+      {
+        pos: [120, 95, -20],
+        cite: 'HOMER · ILIAD XVIII.589 · STEADINGS, ROOFED SHEPHERD HUTS & WATTLED FOLDS',
+        grc: '«Σταθμούς τε κλισίας τε κατηρεφέας ἰδὲ σηκούς· ποιμὴν δ’ ἐν προθύροισι σὺν κυσὶν φυλάσσει»',
+        eng: '“With steadings, roofed huts, and wattled sheepfolds where the shepherd tends his white flock!”'
+      }
+    ],
+    'shield-diorama-choros': [
+      {
+        pos: [-120, 95, 30],
+        cite: 'HOMER · ILIAD XVIII.590–592 · THE DANCING-FLOOR OF DAEDALUS FOR ARIADNE',
+        grc: '«Ἐν δὲ χορὸν ποίκιλλε περικλυτὸς Ἀμφιγυήεις, τῷ ἴκελον οἷόν ποτ’ ἐνὶ Κνωσῷ εὐρείῃ Δαίδαλος ἤσκησεν Ἀριάδνῃ»',
+        eng: '“He wrought a dancing-floor like that which in wide Knossos Daedalus contrived for fair-tressed Ariadne!”'
+      },
+      {
+        pos: [120, 95, 30],
+        cite: 'HOMER · ILIAD XVIII.599–606 · THE POTTER’S WHEEL, DIVINE BARD & TWO TUMBLERS',
+        grc: '«Ὡς ὅτε τις τροχὸν ἄρμενον ἐν παλάμῃσιν ἑζόμενος κεραμεὺς πειρήσεται… δοιὼ δὲ κυβιστητῆρε ἐδίνευον»',
+        eng: '“They ran round lightly as when a sitting potter tries his wheel, while two tumblers whirled in the midst!”'
+      }
+    ],
+    'shield-m0': [
+      {
+        pos: [-55, 85, 0],
+        cite: 'HOMER · ILIAD XVIII.483–485 · EARTH, SKY, SEA, UNTIRING SUN & FULL MOON',
+        grc: '«Ἐν μὲν γαῖαν ἔτευξ’, ἐν δ’ οὐρανόν, ἐν δὲ θάλασσαν, ἠέλιόν τ’ ἀκάμαντα σελήνην τε πλήθουσαν»',
+        eng: '“Therein he wrought the Earth, the Sky, the Sea, the untiring Sun, and the Moon at her full!”'
+      },
+      {
+        pos: [55, 85, 0],
+        cite: 'HOMER · ILIAD XVIII.486–489 · PLEIADES, HYADES, ORION & THE UNBATHED BEAR',
+        grc: '«Πληϊάδας θ’ Ὑάδας τε τό τε σθένος Ὠρίωνος Ἄρκτον θ’, ἥ τ’ αὐτοῦ στρέφεται καί τ’ Ὠρίωνα δοκεύει»',
+        eng: '“Pleiades, Hyades, mighty Orion, and the Bear that turns in one place and never bathes in Oceanus!”'
+      }
+    ],
+    'shield-of-achilles': [
+      {
+        pos: [-160, 85, 0],
+        cite: 'HOMER · ILIAD XVIII.478–484 · THE FIVE-FOLD COSMIC SHIELD OF ACHILLES',
+        grc: '«Πέντε δ’ ἄρ’ αὐτοῦ ἔσαν σάκεος πτύχες· αὐτὰρ ἐν αὐτῷ ποίει δαίδαλα πολλὰ ἰδυίῃσι πραπίδεσσιν»',
+        eng: '“Five folds were there of the shield itself; and therein he wrought Earth, Sky, Sea, and two cities of men!”'
+      },
+      {
+        pos: [160, 85, 180],
+        cite: 'HOMER · ILIAD XVIII.607–608 · THE MIGHTY STRENGTH OF RIVER OCEANUS ON THE RIM',
+        grc: '«Ἐν δ’ ἐτίθει ποταμοῖο μέγα σθένος Ὠκεανοῖο ἄντυγα πὰρ πυμάτην σάκεος πύκα ποιητοῖο.»',
+        eng: '“And around the uttermost rim of the strongly-built shield he set the mighty strength of River Oceanus!”'
+      }
+    ],
+    'achilles-rotunda': [
+      {
+        pos: [-160, 95, 0],
+        cite: 'HOMER · ILIAD XVIII.490–540 · THE TWIN CITIES OF MORTAL MEN: PEACE & WAR',
+        grc: '«Ἐν δὲ δύω ποίησε πόλεις μερόπων ἀνθρώπων καλὰς· ἐν τῇ μέν ῥα γάμοι τ’ ἔσαν, τὴν δ’ ἑτέρην ἀμφὶ δύω στρατοὶ»',
+        eng: '“Therein he wrought two fair cities of mortal men: one of bridal song and law, the other besieged in war!”'
+      },
+      {
+        pos: [160, 95, 180],
+        cite: 'HOMER · ILIAD XVIII.607–608 · RIVER OCEANUS ENCIRCLING THE LIVING WORLD',
+        grc: '«Ἐν δ’ ἐτίθει ποταμοῖο μέγα σθένος Ὠκεανοῖο ἄντυγα πὰρ πυμάτην σάκεος πύκα ποιητοῖο.»',
+        eng: '“And around the uttermost rim of the strongly-built shield he set the mighty strength of River Oceanus!”'
+      }
+    ]
+  };
 
   // Evaluate a sequence of camera shots with Trevor Carlee / LEGO Movie multi-angle staging:
   // Supports intimate character close-ups (during the middle of a shot or via closeUp beats)

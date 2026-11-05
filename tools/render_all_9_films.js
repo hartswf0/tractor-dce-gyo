@@ -37,6 +37,11 @@ const FPS = 30;
   for (const f of FILMS) {
     if (filters.length > 0 && !filters.some((flt) => f.dir.includes(flt))) continue;
     const fdir = path.join(FILMS_DIR, f.dir);
+    const sharedLego3d = path.join(FILMS_DIR, 'shared/lego3d.js');
+    const vendorLego3d = path.join(fdir, 'vendor/lego3d.js');
+    if (fs.existsSync(sharedLego3d) && fs.existsSync(path.dirname(vendorLego3d))) {
+      fs.copyFileSync(sharedLego3d, vendorLego3d);
+    }
     const htmlPath = path.join(fdir, 'index.html');
     const outMp4 = path.join(FILMS_DIR, f.mp4);
     const posterPath = path.join(fdir, 'poster.png');
