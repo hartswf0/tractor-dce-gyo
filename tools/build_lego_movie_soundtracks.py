@@ -24,8 +24,14 @@ import numpy as np
 import soundfile as sf
 from scipy import signal
 
+import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EARSHOT_PATH = os.path.join(ROOT, "tools/video-skills/earshot")
+KOKORO_STUDIO_PATH = "/Users/gaia/WORLDFUL/studio"
+if KOKORO_STUDIO_PATH not in sys.path:
+    sys.path.insert(0, KOKORO_STUDIO_PATH)
+import kokoro_tts
+
 SR = 48000
 
 
@@ -72,28 +78,42 @@ def render_earshot_sfx(sfx_dir):
     return stems
 
 
-def synth_voice_line(text, voice="Daniel", rate=175, pitch_shift_semitones=0.0):
-    """Synthesize a clean spoken line using macOS TTS + ffmpeg 48kHz stereo conversion."""
-    with tempfile.TemporaryDirectory() as td:
-        aiff_p = os.path.join(td, "line.aiff")
-        wav_p = os.path.join(td, "line.wav")
-        subprocess.run(["say", "-v", voice, "-r", str(rate), "-o", aiff_p, text], check=True)
-        af = "highpass=f=85,lowpass=f=11000,acompressor=threshold=-18dB:ratio=3:attack=5:release=60"
-        if abs(pitch_shift_semitones) > 0.05:
-            factor = 2.0 ** (pitch_shift_semitones / 12.0)
-            af = f"asetrate=48000*{factor:.4f},aresample=48000,atempo={1.0/factor:.4f}," + af
-        subprocess.run(
-            ["ffmpeg", "-y", "-i", aiff_p, "-af", af, "-ar", str(SR), "-ac", "2", wav_p],
-            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-        data, _ = sf.read(wav_p, dtype="float32")
-        if data.ndim == 1:
-            data = np.stack([data, data], axis=-1)
-        # Normalize peak of voice clip to 0.72
-        pk = float(np.max(np.abs(data)))
-        if pk > 1e-4:
-            data = data * (0.72 / pk)
-        return data
+def synth_voice_line(text, voice="bm_george", speed=0.84, pitch_shift_semitones=-0.8):
+    """Synthesize ancient Homeric rhapsode speech using Native Kokoro-82M v1.0 ONNX
+    with warm chest resonance and subtle stone-megaron early reflection."""
+    raw = kokoro_tts.speak(text, voice=voice, speed=float(speed), target_sr=SR).astype(np.float32)
+    if len(raw) < 240:
+        return np.zeros((240, 2), dtype=np.float32)
+
+    # Optional subtle pitch-deepening for ancient Homeric gravitas
+    if abs(pitch_shift_semitones) > 0.05:
+        factor = 2.0 ** (pitch_shift_semitones / 12.0)
+        n_pitched = int(round(len(raw) / factor))
+        if n_pitched > 240:
+            raw = signal.resample(raw, n_pitched).astype(np.float32)
+
+    # Warm chest resonance (+2.8 dB low-shelf below 195 Hz) + clean presence
+    b_low, a_low = signal.butter(2, 195.0 / (SR * 0.5), btype="low")
+    chest = signal.lfilter(b_low, a_low, raw) * 0.36
+    b_hp, a_hp = signal.butter(2, 72.0 / (SR * 0.5), btype="high")
+    voiced = signal.lfilter(b_hp, a_hp, raw + chest).astype(np.float32)
+
+    # Subtle stone-megaron early reflections (34ms Left, 49ms Right at -17 dB) for spatial gravitas
+    d_l = int(0.034 * SR)
+    d_r = int(0.049 * SR)
+    pad = max(d_l, d_r) + int(0.08 * SR)
+    st_l = np.zeros(len(voiced) + pad, dtype=np.float32)
+    st_r = np.zeros(len(voiced) + pad, dtype=np.float32)
+    st_l[:len(voiced)] += voiced
+    st_r[:len(voiced)] += voiced
+    st_l[d_l:d_l + len(voiced)] += voiced * 0.14
+    st_r[d_r:d_r + len(voiced)] += voiced * 0.12
+
+    data = np.column_stack([st_l, st_r]).astype(np.float32)
+    pk = float(np.max(np.abs(data)))
+    if pk > 1e-4:
+        data = data * (0.74 / pk)
+    return data
 
 
 def place(mix, clip, t_sec, gain_db=0.0, pan=0.0):
@@ -328,10 +348,10 @@ FILM_DESIGNS = [
         "aulos_notes": [(8.3, "aulos_D5"), (8.8, "aulos_F5"), (9.3, "aulos_A5"), (9.8, "aulos_G5")],
         "lyre_notes": [(8.2, "lyre_D4"), (8.7, "lyre_F4"), (9.2, "lyre_A4"), (9.7, "lyre_D5"), (10.2, "lyre_C5"), (10.7, "lyre_A4"), (12.4, "lyre_G4"), (13.2, "lyre_A4"), (14.0, "lyre_D5")],
         "lines": [
-            (0.12, "Daniel", 190, -1.0, "Iliad Book Eighteen, line four seventy-eight! In Operation Describe, Hephaestus's forge is an operative ekphrasis compiling Homeric verse into a three-D worldtext!"),
-            (4.15, "Reed (English (US))", 190, 0.0, "Earth, Sky, Sea, Sun, Moon, and the Great Bear collapse word and image into an imagetext, then expand into a habitable cosmos!"),
-            (8.15, "Moira", 190, 0.0, "In the city at peace, brides beneath blazing torches and phorminx lyres move from static ornament to living world model!"),
-            (12.15, "Daniel", 190, -1.0, "And around the uttermost rim, River Oceanus seals the Shield of Achilles as a self-contained worldtext!")
+            (0.18, "bm_george", 0.84, -0.8, "First, Hephaestus forged a shield both great and strong."),
+            (4.18, "bm_fable", 0.84, -0.5, "Therein he wrought the Earth, the Sky, the Sea, and the untiring Sun."),
+            (8.18, "af_aoede", 0.85, -0.3, "Beneath blazing torches, brides were led through the city as lyres sounded."),
+            (12.18, "bm_george", 0.84, -0.8, "And around the uttermost rim flowed the mighty stream of Oceanus.")
         ]
     },
     {
@@ -340,15 +360,15 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav"],
         "cuts": [0.0, 3.0, 6.0, 9.0],
-        "cascades": [(0.1, 2.5, 14.0), (3.1, 5.8, 14.0)],
+        "cascades": [(0.1, 1.4, 14.0), (3.1, 4.4, 14.0)],
         "anvils": [0.2, 9.1],
         "aulos_notes": [(3.3, "aulos_E5"), (3.8, "aulos_G5"), (4.3, "aulos_A5")],
         "lyre_notes": [(3.2, "lyre_D4"), (3.6, "lyre_G4"), (4.0, "lyre_A4"), (4.4, "lyre_D5"), (6.2, "lyre_F4"), (6.6, "lyre_A4"), (7.0, "lyre_C5"), (7.4, "lyre_D5"), (9.4, "lyre_A4"), (10.2, "lyre_D5")],
         "lines": [
-            (0.10, "Daniel", 194, -1.0, "Parry and Lord showed Homer's oral formulas are a generative engine: the Great Bear revolves and never bathes in Oceanus!"),
-            (3.10, "Samantha", 194, 0.0, "Lessing saw that when time enters the Shield, the picture becomes a world: Knossos dancers whirl like a potter's wheel!"),
-            (6.10, "Reed (English (UK))", 194, 0.0, "In the golden vineyard, the boy's clear phorminx and Linus song turn frozen bronze into temporal worldtext!"),
-            (9.10, "Daniel", 194, -1.0, "Five concentric rings of Iliad Book Eighteen run as a live procedural simulation bounded by Oceanus!")
+            (0.12, "bm_george", 0.86, -0.8, "The Great Bear turns in one place, and alone never bathes in Ocean."),
+            (3.12, "af_aoede", 0.86, -0.3, "In wide Knossos, dancers whirl like a potter testing his wheel."),
+            (6.12, "bm_fable", 0.86, -0.5, "Among the golden vines, a boy sings the sweet Linus song."),
+            (9.12, "bm_george", 0.86, -0.8, "When time enters the bronze, the picture becomes a living world.")
         ]
     },
     {
@@ -357,16 +377,16 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "mix.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 2.0, 14.0), (8.1, 10.5, 16.0)],
+        "cascades": [(0.1, 1.8, 14.0), (8.1, 9.8, 16.0)],
         "anvils": [5.5, 8.05, 9.2, 10.4],
         "aulos_notes": [(0.6, "aulos_D5"), (1.2, "aulos_F5"), (1.8, "aulos_A5"), (8.3, "aulos_E5"), (8.7, "aulos_G5")],
         "bow_volleys": [8.45, 9.15, 9.85, 10.65, 11.25],
         "lyre_notes": [(0.5, "lyre_D4"), (1.1, "lyre_A4"), (1.7, "lyre_D5"), (4.4, "lyre_F4"), (5.0, "lyre_A4"), (5.5, "glock_A5"), (5.8, "glock_D6")],
         "lines": [
-            (0.12, "Daniel", 190, -1.0, "Iliad Book Eighteen, line four ninety! The new paragone pits human intent against statistical distribution across two cities of mortal men!"),
-            (4.12, "Reed (English (UK))", 190, 0.0, "In the Agora law-court, Odysseus and Euryalus debate the blood-price before Elder Nestor and the Two Talents of Gold!"),
-            (8.12, "Samantha", 190, 0.0, "At the river ambush, golden Ares, Pallas Athena, and bronze-tipped arrows prune generic averages into specific Homeric truth!"),
-            (12.12, "Daniel", 190, -1.0, "From imagetext to worldtext, every brick on the Shield of Achilles answers to Homeric intent!")
+            (0.18, "bm_george", 0.84, -0.8, "Upon the Shield he wrought two fair cities of mortal men."),
+            (4.18, "am_onyx", 0.84, -0.6, "In the sacred circle, two men strove over the blood-price before Two Talents of Gold."),
+            (8.18, "af_aoede", 0.85, -0.3, "By the river ford, golden Ares and Athena led the ambush in gleaming bronze."),
+            (12.18, "bm_george", 0.84, -0.8, "Every spoken verse becomes a law of the world it builds.")
         ]
     },
     {
@@ -375,7 +395,7 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav"],
         "cuts": [0.0, 2.8, 5.6, 8.4, 11.2],
-        "cascades": [(0.05, 1.8, 18.0), (2.85, 4.5, 18.0), (5.65, 7.3, 18.0), (8.45, 10.1, 18.0), (11.25, 12.9, 18.0)],
+        "cascades": [(0.05, 1.3, 16.0), (2.85, 4.1, 16.0), (5.65, 6.9, 16.0), (8.45, 9.7, 16.0), (11.25, 12.5, 16.0)],
         "anvils": [0.1, 2.8, 5.6],
         "aulos_notes": [(0.4, "aulos_D5"), (0.9, "aulos_A5"), (5.8, "aulos_E5")],
         "bow_volleys": [6.1, 6.9, 7.6],
@@ -383,11 +403,11 @@ FILM_DESIGNS = [
         "sheep_bleats": [11.4, 12.1, 12.8, 13.4],
         "lyre_notes": [(1.2, "lyre_D4"), (4.0, "lyre_F4"), (6.8, "lyre_G4"), (9.6, "lyre_A4"), (12.4, "lyre_D5")],
         "lines": [
-            (0.10, "Reed (English (US))", 196, 0.0, "Geertz's thick description becomes thick prompting! First, two-D wedding imagetext compiles into three-D torches and lyres!"),
-            (2.88, "Daniel", 196, -1.0, "Second, the Agora blood-price dispute compiles from flat picture into polished stones and Two Talents of Gold!"),
-            (5.68, "Samantha", 196, 0.0, "Third, the river ambush compiles golden Ares, Athena, reed-pipes, and flying arrows into spatial worldtext!"),
-            (8.48, "Reed (English (UK))", 196, 0.0, "Fourth, the royal harvest compiles keen sickles, bound sheaves, and the silent King holding his sceptre!"),
-            (11.28, "Daniel", 196, -1.0, "Fifth, like Cohen's sheep in Iliad Eighteen, the mountain glen pasture of bleating white sheep becomes habitable!")
+            (0.10, "bm_fable", 0.88, -0.5, "Brides beneath blazing torches step forth from flat engraving into stone."),
+            (2.88, "am_onyx", 0.88, -0.6, "In the Agora, elders rise on polished stones to judge the blood-price."),
+            (5.68, "af_aoede", 0.88, -0.3, "At the watering-ford, reed-pipes sound while bronze arrows fly."),
+            (8.48, "bm_lewis", 0.88, -0.5, "Reapers ply keen sickles while the silent King rejoices in his heart."),
+            (11.28, "bm_george", 0.88, -0.8, "And in a fair mountain glen, white sheep dwell in roofed folds.")
         ]
     },
     {
@@ -396,7 +416,7 @@ FILM_DESIGNS = [
         "mode": "water",
         "outputs": ["assets/sound.wav", "vo.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 1.5, 15.0), (4.05, 5.2, 15.0), (8.05, 9.2, 15.0), (12.05, 13.2, 15.0)],
+        "cascades": [(0.1, 1.5, 14.0), (4.05, 5.2, 14.0), (8.05, 9.2, 14.0), (12.05, 13.2, 14.0)],
         "anvils": [0.1, 4.0, 8.0],
         "aulos_notes": [(4.3, "aulos_D5"), (4.8, "aulos_F5"), (5.3, "aulos_A5")],
         "bull_bellows": [12.25, 13.85],
@@ -404,10 +424,10 @@ FILM_DESIGNS = [
         "dog_barks": [13.10, 13.55, 14.80, 15.25],
         "lyre_notes": [(1.5, "lyre_D4"), (5.5, "lyre_A4"), (9.5, "glock_A5"), (13.5, "lyre_D5")],
         "lines": [
-            (0.12, "Samantha", 188, 0.0, "Image generation asks what a sentence makes visible; world generation asks what Homer's Iliad Book Eighteen makes habitable!"),
-            (4.12, "Reed (English (US))", 188, 0.0, "In Ha and Schmidhuber's world model, Vision renders the blazing bridal torches and dancing-chorus in three-D space!"),
-            (8.12, "Daniel", 188, -1.0, "Memory holds the procedural law of the Agora elders seated on polished stones before the Two Talents of Gold!"),
-            (12.12, "Samantha", 188, 0.0, "And the Controller navigates where two terrible lions seize the loud-bellowing bull as nine hounds rush to bay!")
+            (0.18, "af_aoede", 0.84, -0.3, "An image asks what a verse makes visible; a world asks what it makes habitable."),
+            (4.18, "bm_fable", 0.84, -0.5, "Vision kindles the bridal torches and sets the dancers whirling."),
+            (8.18, "am_onyx", 0.84, -0.6, "Memory holds the law of the elders before the Two Talents of Gold."),
+            (12.18, "bm_george", 0.84, -0.8, "And consequence strikes where two lions seize the loud-bellowing bull.")
         ]
     },
     {
@@ -416,16 +436,16 @@ FILM_DESIGNS = [
         "mode": "forge",
         "outputs": ["assets/sound.wav", "vo.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.1, 3.4, 18.0), (4.1, 7.4, 16.0)],
+        "cascades": [(0.1, 1.8, 16.0), (4.1, 5.8, 15.0)],
         "anvils": [0.15, 1.25, 2.35, 4.05, 8.05, 12.05],
         "bow_volleys": [8.4, 9.2, 10.1, 11.0],
         "sickle_swaths": [12.4, 13.1, 13.8, 14.5],
         "lyre_notes": [(2.0, "lyre_D4"), (6.0, "lyre_A4"), (10.0, "lyre_C5"), (14.0, "lyre_D5")],
         "lines": [
-            (0.12, "Reed (English (UK))", 188, 0.0, "In Iliad Book Eighteen, Hephaestus's twenty bellows and four metals act as a neurosymbolic compiler from text to geometry!"),
-            (4.12, "Daniel", 188, -1.0, "Across the L-zero to L-six context stack, five metallic folds weld neural vision to symbolic LDraw coordinates!"),
-            (8.12, "Moira", 188, 0.0, "At the river ford ambush, golden Ares, Athena, and bronze arrows obey deterministic collision and sightline rules!"),
-            (12.12, "Reed (English (UK))", 188, 0.0, "In the thrice-ploughed field, reapers ply keen sickles while the silent King rejoices inside a compiled worldtext!")
+            (0.18, "bm_lewis", 0.84, -0.5, "He cast on the fire tough bronze and tin, and precious gold and silver."),
+            (4.18, "bm_george", 0.84, -0.8, "Five folds he welded: Earth, Sky, Sea, and the unbathed Bear."),
+            (8.18, "af_aoede", 0.85, -0.3, "Around the besieged city, golden Ares and Athena led the ambush."),
+            (12.18, "bm_fable", 0.84, -0.5, "Behind the oxen, the ploughed gold darkened like living earth.")
         ]
     },
     {
@@ -436,7 +456,7 @@ FILM_DESIGNS = [
         "cuts": [0.0, 4.0, 8.0],
         "silence_windows": [(7.48, 8.32)],
         "hero_hit_t": 8.50,
-        "cascades": [(0.1, 3.5, 14.0), (4.1, 7.1, 12.0), (8.6, 11.5, 18.0)],
+        "cascades": [(0.1, 1.8, 14.0), (4.1, 5.6, 12.0), (8.6, 10.4, 16.0)],
         "anvils": [0.1, 4.0],
         "bull_bellows": [0.35, 1.85, 3.05],
         "lion_roars": [0.85, 2.35],
@@ -444,9 +464,9 @@ FILM_DESIGNS = [
         "sheep_bleats": [4.30, 5.15, 6.00, 6.75],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_F4"), (5.0, "lyre_G4"), (6.0, "lyre_A4"), (8.8, "lyre_D5"), (9.3, "glock_A5"), (9.8, "glock_D6")],
         "lines": [
-            (0.12, "Daniel", 192, -1.0, "An image has no consequences; a world does! In Iliad Eighteen, two lions seize the bellowing bull as nine dogs bark!"),
-            (4.10, "Samantha", 194, 0.0, "In the fair glen of bleating white sheep, the worldtext holds its breath before the Choros strike."),
-            (8.60, "Reed (English (US))", 192, 0.0, "Now on Daedalus's Choros in Knossos, youths, maidens, and tumblers whirl as Oceanus seals the world!")
+            (0.14, "bm_george", 0.86, -0.8, "Two terrible lions seized a loud-bellowing bull, while nine hounds followed after."),
+            (4.12, "af_aoede", 0.86, -0.3, "In the fair mountain glen, the white flock hushes before the dance."),
+            (8.62, "bm_fable", 0.86, -0.5, "On Daedalus's floor in Knossos, two tumblers whirl as Oceanus seals the world.")
         ]
     },
     {
@@ -455,17 +475,17 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "audio/mix.wav"],
         "cuts": [0.0, 3.0, 6.0, 9.0, 12.0],
-        "cascades": [(0.05, 2.8, 16.0), (3.05, 5.8, 14.0), (6.05, 8.8, 14.0), (9.05, 11.8, 16.0), (12.05, 14.6, 16.0)],
+        "cascades": [(0.05, 1.4, 15.0), (3.05, 4.4, 14.0), (6.05, 7.4, 14.0), (9.05, 10.4, 15.0), (12.05, 13.4, 15.0)],
         "anvils": [0.05, 1.07, 2.11, 3.0, 5.13, 6.0, 8.20, 9.0, 11.03, 12.0, 13.68],
         "aulos_notes": [(6.25, "aulos_E5"), (6.75, "aulos_G5"), (9.25, "aulos_D5"), (9.75, "aulos_A5")],
         "bow_volleys": [7.15, 7.85, 8.45],
         "lyre_notes": [(0.37, "lyre_G4"), (1.43, "lyre_A4"), (3.54, "glock_A5"), (4.46, "lyre_D5"), (6.55, "lyre_F4"), (9.48, "lyre_C5"), (10.37, "lyre_D5"), (12.77, "glock_D6"), (13.38, "lyre_D5")],
         "lines": [
-            (0.10, "Daniel", 194, -1.0, "Ancient enargeia turns hearing into sight! Fold One of Iliad Eighteen: twenty bellows roar at Hephaestus's bronze anvil!"),
-            (3.10, "Reed (English (UK))", 194, 0.0, "Fold Two: cross-modal embedding in the Agora circle where elders judge the blood-price before Two Talents of Gold!"),
-            (6.10, "Samantha", 194, 0.0, "Fold Three: syrinx reed-pipes and whistling arrows at the river ambush led by golden Ares and Athena!"),
-            (9.10, "Moira", 194, 0.0, "Fold Four: acoustic and spatial worldtext on Daedalus's Choros dancing-floor in wide Knossos!"),
-            (12.10, "Daniel", 194, -1.0, "Fold Five: the mighty stream of River Oceanus encloses the five-fold Shield of Achilles!")
+            (0.10, "am_onyx", 0.87, -0.6, "Fold One of Bronze: twenty bellows breathe upon the anvil."),
+            (3.10, "bm_lewis", 0.87, -0.5, "Fold Two of Gold: elders judge the blood-price in the sacred circle."),
+            (6.10, "af_aoede", 0.87, -0.3, "Fold Three of Tin: reed-pipes and bronze arrows by the river ford."),
+            (9.10, "bm_fable", 0.87, -0.5, "Fold Four: the whirling Choros of Daedalus in wide Knossos."),
+            (12.10, "bm_george", 0.87, -0.8, "Fold Five: the deep-eddying strength of River Oceanus.")
         ]
     },
     {
@@ -474,17 +494,17 @@ FILM_DESIGNS = [
         "mode": "all",
         "outputs": ["assets/sound.wav", "mix.wav"],
         "cuts": [0.0, 4.0, 8.0, 12.0],
-        "cascades": [(0.05, 3.6, 18.0), (4.05, 7.6, 16.0), (8.05, 11.6, 14.0), (12.05, 15.5, 16.0)],
+        "cascades": [(0.05, 1.8, 16.0), (4.05, 5.8, 15.0), (8.05, 9.8, 14.0), (12.05, 13.8, 15.0)],
         "anvils": [0.1, 1.2, 2.3, 4.0, 12.0],
         "bull_bellows": [8.25, 9.85, 11.10],
         "lion_roars": [8.65, 10.35],
         "dog_barks": [9.15, 9.55, 10.75, 11.40],
         "lyre_notes": [(1.0, "lyre_D4"), (2.0, "lyre_A4"), (5.0, "lyre_F4"), (6.0, "lyre_C5"), (9.0, "lyre_G4"), (10.0, "lyre_D5"), (13.0, "glock_A5"), (14.2, "glock_D6")],
         "lines": [
-            (0.12, "Samantha", 188, 0.0, "Threshold One, Ancient Enargeia! In Iliad Eighteen, Thetis implores Hephaestus at his blazing anvil to forge Achilles' Shield!"),
-            (4.12, "Daniel", 188, -1.0, "Threshold Two, Imagetext! Word and image collapse across Earth, Sky, Sea, the Two Cities, Plough, and Vineyard!"),
-            (8.12, "Reed (English (US))", 188, 0.0, "Neurosymbolic compilation! By the sounding river, two tawny lions seize the loud-bellowing bull as nine hounds rush in!"),
-            (12.12, "Daniel", 188, -1.0, "Threshold Three, Worldtext! Homer already knew: the Shield of Achilles was always a worldtext, and now we have the substrate to run it!")
+            (0.18, "af_aoede", 0.84, -0.3, "Silver-footed Thetis stood by the anvil, and begged a world for her mortal son."),
+            (4.18, "bm_george", 0.84, -0.8, "So the smith spoke in bronze and gold: Earth, Sky, Sea, and the two cities of men."),
+            (8.18, "am_onyx", 0.84, -0.6, "An image has no consequences; here the lions seize the bull, and the hounds give chase."),
+            (12.18, "bm_george", 0.84, -0.8, "Homer already knew: the Shield was always a worldtext, spoken into being.")
         ]
     }
 ]
@@ -568,8 +588,8 @@ def build_all():
         vo_layer = np.zeros((n_samples, 2), dtype=np.float32)
         duck_env = np.ones(n_samples, dtype=np.float32)
 
-        for (lt, voice_name, rate, pitch_st, text) in cfg["lines"]:
-            v_clip = synth_voice_line(text, voice=voice_name, rate=rate, pitch_shift_semitones=pitch_st)
+        for (lt, voice_name, speed_val, pitch_st, text) in cfg["lines"]:
+            v_clip = synth_voice_line(text, voice=voice_name, speed=speed_val, pitch_shift_semitones=pitch_st)
             # Ensure voice clip doesn't bleed into silence windows
             if cfg.get("silence_windows"):
                 for (w0, w1) in cfg["silence_windows"]:

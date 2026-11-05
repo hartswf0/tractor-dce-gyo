@@ -1387,130 +1387,144 @@
       };
 
       const isFilm07 = typeof document !== 'undefined' && !!document.getElementById('hud');
+      const isFilm05 = typeof document !== 'undefined' && !!document.getElementById('argoTag');
+      const isFilm06 = typeof document !== 'undefined' && !!document.getElementById('subWords');
+      const isFilm08 = typeof document !== 'undefined' && !!document.getElementById('wave');
       const qTime = Math.floor(time * 12.0) / 12.0;
+      const shotU = typeof lastShotU === 'number' ? lastShotU : ((time % 4.0) / 4.0);
 
-      // Top-center Operation Describe (Bolter & Hartsoe 2026) Imagetext -> Worldtext Transformation Ribbon
+      // Sleek, unobtrusive top-center Operation Describe (Bolter & Hartsoe 2026) Transformation Ribbon
       if (!isFilm07) {
         ctx.save();
-        const ribW = 1020, ribH = 26;
-        const rx = (w - ribW) * 0.5, ry = 68;
-        ctx.fillStyle = 'rgba(6, 10, 19, 0.86)';
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
-        ctx.lineWidth = 1.2;
+        const ribW = 880, ribH = 22;
+        const rx = (w - ribW) * 0.5, ry = 67;
+        ctx.fillStyle = 'rgba(5, 9, 17, 0.76)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)';
+        ctx.lineWidth = 1.0;
         ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(rx, ry, ribW, ribH, 13);
+        if (ctx.roundRect) ctx.roundRect(rx, ry, ribW, ribH, 11);
         else ctx.rect(rx, ry, ribW, ribH);
         ctx.fill();
         ctx.stroke();
 
-        const stageIdx = Math.floor((time * 0.9) % 3);
+        const stageIdx = shotU < 0.36 ? 0 : (shotU < 0.68 ? 1 : 2);
         const stages = [
-          { lbl: '1. ENARGEIA (ILIAD XVIII GREEK)', col: '#fef08a' },
-          { lbl: '2. IMAGETEXT (THICK PROMPT / COMPILER)', col: '#38bdf8' },
-          { lbl: '3. WORLDTEXT: 3D LDRAW WORLD MODEL (V·M·C)', col: '#4ade80' }
+          { lbl: 'I. ENARGEIA (HOMERIC GREEK)', col: '#fef08a' },
+          { lbl: 'II. IMAGETEXT (THICK PROMPT)', col: '#38bdf8' },
+          { lbl: 'III. WORLDTEXT (3D WORLD MODEL V·M·C)', col: '#4ade80' }
         ];
-        ctx.font = '800 11px "SF Mono", Menlo, monospace';
+        ctx.font = '800 10.5px "SF Mono", Menlo, monospace';
         ctx.fillStyle = '#e5bd43';
-        ctx.fillText('OPERATION DESCRIBE:', rx + 16, ry + 17);
-        let curX = rx + 168;
+        ctx.fillText('OPERATION DESCRIBE:', rx + 16, ry + 15);
+        let curX = rx + 162;
         for (let s = 0; s < stages.length; s++) {
           const active = s === stageIdx;
-          ctx.fillStyle = active ? stages[s].col : 'rgba(203, 213, 225, 0.68)';
-          ctx.fillText(stages[s].lbl, curX, ry + 17);
+          ctx.fillStyle = active ? stages[s].col : 'rgba(203, 213, 225, 0.55)';
+          ctx.fillText(stages[s].lbl, curX, ry + 15);
           curX += ctx.measureText(stages[s].lbl).width + 12;
           if (s < 2) {
-            ctx.fillStyle = '#e5bd43';
-            ctx.fillText('──►', curX, ry + 17);
-            curX += 34;
+            ctx.fillStyle = 'rgba(229, 189, 67, 0.75)';
+            ctx.fillText('──►', curX, ry + 15);
+            curX += 32;
           }
         }
         ctx.restore();
       }
 
-      for (let i = 0; i < scrolls.length; i++) {
-        const sc = scrolls[i];
+      // Render ONE un-cramped, spacious Homeric Worldtext Stele at a time:
+      // Phase 1 (u < 0.50): Speaks the world into being (Scroll 0)
+      // Phase 2 (u >= 0.50): Chronicles the living consequence (Scroll 1)
+      const activeIdx = (scrolls.length > 1 && shotU >= 0.50) ? 1 : 0;
+      const sc = scrolls[activeIdx];
+      if (sc) {
         const [ax3, ay3, az3] = sc.pos;
-        const liftY = Math.sin(qTime * 2.2 + i * 2.1) * 8.0;
         const pAnchor = proj3D(ax3, ay3, az3);
-        const pHead = proj3D(ax3, ay3 + 85.0 + liftY, az3);
-        if (!pAnchor || !pHead) continue;
+        if (pAnchor) {
+          const boxW = 600;
+          const boxH = 96;
+          // Dock cleanly in negative space so the 3D actors and architecture breathe
+          let bx = activeIdx === 0 ? 46 : (w - boxW - 46);
+          let by = h - boxH - 98;
+          if (isFilm05 || isFilm06 || isFilm08) {
+            // Films 05, 06, 08 have bottom callout/subtitle bars, so dock gently at top-left
+            bx = 46;
+            by = 98;
+          } else if (isFilm07) {
+            // Film 07 has top-left OCR cards, so dock at bottom-right
+            bx = w - boxW - 46;
+            by = h - boxH - 92;
+          }
 
-        const boxW = 640;
-        const boxH = 104;
-        const side = i === 0 ? -1 : 1;
-        let bx = side < 0 ? clamp(pHead[0] - boxW * 0.55, 42, w * 0.5 - boxW - 18) : clamp(pHead[0] - boxW * 0.45, w * 0.5 + 18, w - boxW - 42);
-        let minTop = (isFilm07 && side < 0 && time < 8.0) ? 375 : 100;
-        let by = clamp(pHead[1] - boxH - 18, minTop, 186 + (minTop > 200 ? 225 : 0));
+          const stemX = clamp(pAnchor[0], bx + 28, bx + boxW - 28);
+          const stemY = by > pAnchor[1] ? by : (by + boxH);
 
-        const stemX = clamp(pAnchor[0], bx + 28, bx + boxW - 28);
-        const stemY = by + boxH;
+          ctx.save();
+          // 1. Delicate 3D Golden Leader Filament to the acting character/landmark
+          const grad = ctx.createLinearGradient(pAnchor[0], pAnchor[1], stemX, stemY);
+          grad.addColorStop(0.0, 'rgba(250, 204, 21, 0.82)');
+          grad.addColorStop(1.0, 'rgba(56, 189, 248, 0.32)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(pAnchor[0], pAnchor[1]);
+          ctx.lineTo(stemX, stemY);
+          ctx.stroke();
 
-        ctx.save();
-        // 1. Glowing 3D Golden Leader Filament from the acting character/landmark to the Homeric Verse Scroll
-        const grad = ctx.createLinearGradient(pAnchor[0], pAnchor[1], stemX, stemY);
-        grad.addColorStop(0.0, 'rgba(250, 204, 21, 0.95)');
-        grad.addColorStop(1.0, 'rgba(56, 189, 248, 0.55)');
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 2.0;
-        ctx.beginPath();
-        ctx.moveTo(pAnchor[0], pAnchor[1]);
-        ctx.lineTo(stemX, stemY);
-        ctx.stroke();
+          // Subtle stud target ring at character's 3D anchor
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.arc(pAnchor[0], pAnchor[1], 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(pAnchor[0], pAnchor[1], 7.5 + Math.sin(qTime * 4.0) * 1.5, 0, Math.PI * 2);
+          ctx.stroke();
 
-        // Stud target ring at character's 3D anchor
-        ctx.fillStyle = '#facc15';
-        ctx.beginPath();
-        ctx.arc(pAnchor[0], pAnchor[1], 4.2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(250, 204, 21, 0.65)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(pAnchor[0], pAnchor[1], 9.0 + Math.sin(qTime * 6.0 + i) * 2.0, 0, Math.PI * 2);
-        ctx.stroke();
+          // 2. Translucent Museum-Grade Obsidian & Gold Homeric Worldtext Stele
+          ctx.fillStyle = 'rgba(6, 10, 18, 0.82)';
+          ctx.strokeStyle = 'rgba(229, 189, 67, 0.72)';
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(bx, by, boxW, boxH, 8);
+          } else {
+            ctx.rect(bx, by, boxW, boxH);
+          }
+          ctx.fill();
+          ctx.stroke();
 
-        // 2. Translucent Obsidian-and-Gold Homeric Ekphrasis & Worldtext Scroll Plaque
-        ctx.fillStyle = 'rgba(7, 11, 20, 0.87)';
-        ctx.strokeStyle = 'rgba(229, 189, 67, 0.84)';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(bx, by, boxW, boxH, 8);
-        } else {
-          ctx.rect(bx, by, boxW, boxH);
-        }
-        ctx.fill();
-        ctx.stroke();
-
-        // Left golden/cyan dual book-spine accent bar (Imagetext Gold -> Worldtext Cyan)
-        ctx.fillStyle = '#e5bd43';
-        ctx.fillRect(bx, by + 6, 4, 62);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(bx, by + 68, 4, boxH - 74);
-
-        // Line 1: Homeric Book & Line Citation + Character Action Tag
-        ctx.fillStyle = '#facc15';
-        ctx.font = '800 11.5px "SF Mono", Menlo, monospace';
-        ctx.fillText(sc.cite, bx + 14, by + 18, boxW - 24);
-
-        // Line 2: Original Homeric Ancient Greek Hexameter (Enargeia)
-        ctx.fillStyle = '#fef08a';
-        ctx.font = 'italic 600 14px Georgia, "Times New Roman", serif';
-        ctx.fillText(sc.grc, bx + 14, by + 40, boxW - 24);
-
-        // Line 3: Verbatim English Translation from Iliad Book XVIII (Imagetext)
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = '500 13px Georgia, "Times New Roman", serif';
-        ctx.fillText(sc.eng, bx + 14, by + 62, boxW - 24);
-
-        // Line 4: Operation Describe (Bolter & Hartsoe 2026) Imagetext -> Worldtext Compiler Layer
-        if (sc.wt) {
-          ctx.fillStyle = 'rgba(14, 30, 48, 0.85)';
-          ctx.fillRect(bx + 10, by + 72, boxW - 20, 24);
+          // Dual book-spine accent bar (Imagetext Gold -> Worldtext Cyan)
+          ctx.fillStyle = '#e5bd43';
+          ctx.fillRect(bx, by + 6, 3.5, 56);
           ctx.fillStyle = '#38bdf8';
-          ctx.font = '700 11px "SF Mono", Menlo, monospace';
-          ctx.fillText(sc.wt, bx + 16, by + 88, boxW - 32);
+          ctx.fillRect(bx, by + 62, 3.5, boxH - 68);
+
+          // Line 1: Homeric Book & Line Citation + Character Action Tag
+          ctx.fillStyle = '#facc15';
+          ctx.font = '800 11px "SF Mono", Menlo, monospace';
+          ctx.fillText(sc.cite, bx + 14, by + 18, boxW - 24);
+
+          // Line 2: Original Homeric Ancient Greek Hexameter (Enargeia)
+          ctx.fillStyle = '#fef08a';
+          ctx.font = 'italic 600 13.5px Georgia, "Times New Roman", serif';
+          ctx.fillText(sc.grc, bx + 14, by + 38, boxW - 24);
+
+          // Line 3: Verbatim English Translation from Iliad Book XVIII (Imagetext)
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '500 12.5px Georgia, "Times New Roman", serif';
+          ctx.fillText(sc.eng, bx + 14, by + 58, boxW - 24);
+
+          // Line 4: Operation Describe (Bolter & Hartsoe 2026) Imagetext -> Worldtext Layer
+          if (sc.wt) {
+            ctx.fillStyle = 'rgba(12, 26, 44, 0.82)';
+            ctx.fillRect(bx + 10, by + 66, boxW - 20, 22);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '700 10.5px "SF Mono", Menlo, monospace';
+            ctx.fillText(sc.wt, bx + 16, by + 81, boxW - 32);
+          }
+          ctx.restore();
         }
-        ctx.restore();
       }
     }
   }
@@ -1727,6 +1741,8 @@
     ]
   };
 
+  let lastShotU = 0.0;
+
   // Evaluate a sequence of camera shots with Trevor Carlee / LEGO Movie multi-angle staging:
   // Supports intimate character close-ups (during the middle of a shot or via closeUp beats)
   // plus two-sided orbital azimuth sweeps so both faces and action of every minifigure are seen!
@@ -1739,6 +1755,7 @@
       }
     }
     const u = clamp((t - active.t0) / Math.max(0.001, active.t1 - active.t0), 0, 1);
+    lastShotU = u;
     const e = active.linear ? u : easeInOutCubic(u);
     let baseEye = lerp3(active.eye0, active.eye1 || active.eye0, e);
     let target = lerp3(active.target0, active.target1 || active.target0, e);
@@ -1757,10 +1774,12 @@
       target[2] + dx * sa + dz * ca
     ];
 
-    // LEGO Movie / Trevor Carlee Macro Telephoto Hero Close-Up:
-    // Smoothly racks focal length (FOV down to 22.5 deg) and elevates eye height without step jumps
-    // so minifigures and LDraw creatures fill the frame with generous headroom and zero roof/wall occlusion!
-    const buildVal = active.buildFn ? active.buildFn(u, t) : lerp(active.build0 ?? 1, active.build1 ?? 1, u);
+    // Speaking the World into Being (Enargeia -> Worldtext):
+    // During the opening 42% of each shot, as the Kokoro rhapsode recites the Homeric verse,
+    // the 3D LDraw bricks materialize and snap into place with the voice, then hold at 100%
+    // so the living scene has un-rushed space to act out its consequences.
+    const spokenBuild = Math.min(1.0, 0.25 + easeInOutCubic(Math.min(1.0, u / 0.42)) * 0.75);
+    const buildVal = active.buildFn ? active.buildFn(u, t) : spokenBuild;
     const explodeVal = active.explodeFn ? active.explodeFn(u, t) : lerp(active.explode0 ?? 0, active.explode1 ?? 0, e);
     if (explodeVal < 0.05 && buildVal > 0.85 && !active.noCloseUp) {
       const closeWindow = Math.sin(clamp((u - 0.35) / 0.45, 0.0, 1.0) * Math.PI);
