@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Shield of Achilles — Full Final Worldtext (Directorial Gardener Edition · Iliad XVIII.478–608)</title>
+<link rel="icon" type="image/svg+xml" href="shield-of-achilles-favicon.svg" />
+<style>
+  :root {
+    --bg: #080706;
+    --panel: #12100d;
+    --panel-2: #191612;
+    --panel-3: #221d17;
+    --ink: #f4efe4;
+    --muted: #a69b88;
+    --gold: #e0b841;
+    --gold-bright: #f8d66d;
+    --gold-soft: rgba(224, 184, 65, 0.28);
+    --cyan: #38bdf8;
+    --crimson: #d94646;
+    --green: #4ade80;
+    --rule: #2c251d;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    line-height: 1.68;
+    padding-bottom: 96px;
+  }
+  a { color: var(--gold-bright); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8, 7, 6, 0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gold-soft);
+    padding: 12px 24px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .topbar-brand {
+    font-family: var(--mono); font-size: 13px; font-weight: 800;
+    letter-spacing: 0.1em; color: var(--gold-bright);
+  }
+  .topbar-nav { display: flex; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 11.5px; }
+  .topbar-nav a {
+    padding: 5px 11px; border-radius: 5px;
+    background: rgba(224, 184, 65, 0.1); border: 1px solid var(--gold-soft);
+    color: var(--ink); text-decoration: none;
+  }
+  .topbar-nav a:hover { background: rgba(224, 184, 65, 0.25); color: #fff; }
+
+  .container { max-width: 1420px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Hero & Gardener Treatment */
+  .hero {
+    background: radial-gradient(circle at 20% 15%, rgba(224, 184, 65, 0.15), rgba(18, 16, 13, 0.98) 72%);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.15em;
+    color: var(--cyan); text-transform: uppercase; margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(30px, 3.8vw, 50px);
+    color: #fff; line-height: 1.12; margin-bottom: 14px;
+  }
+  .hero-lead {
+    font-size: 19px; color: #dfd7c6; max-width: 1060px; margin-bottom: 26px;
+  }
+  .treatment-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px;
+  }
+  .treatment-card {
+    background: rgba(8, 7, 6, 0.82);
+    border: 1px solid var(--gold-soft);
+    border-radius: 12px; padding: 20px 22px;
+  }
+  .treatment-tag {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    color: var(--gold-bright); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .treatment-body { font-size: 15.5px; color: var(--ink); line-height: 1.58; }
+
+  /* Master Film & 3D Worldtext Split Stage */
+  .master-stage {
+    display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 1100px) { .master-stage { grid-template-columns: 1fr; } }
+
+  .stage-card {
+    background: var(--panel);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 16px; padding: 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .stage-card h2 {
+    font-size: 22px; color: #fff; font-weight: 700;
+  }
+  .video-box {
+    background: #000; border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--gold-soft);
+  }
+  .video-box video, .video-box iframe {
+    width: 100%; aspect-ratio: 16 / 9; display: block; border: none; background: #000;
+  }
+  .chapter-pills {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 8px;
+  }
+  .chap-btn {
+    text-align: left; padding: 9px 12px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--rule);
+    color: var(--ink); cursor: pointer; font-family: var(--sans); transition: all 0.15s;
+  }
+  .chap-btn:hover, .chap-btn.active {
+    border-color: var(--gold); background: rgba(224, 184, 65, 0.16);
+  }
+  .chap-btn .ts { font-family: var(--mono); font-size: 10.5px; color: var(--cyan); display: block; }
+  .chap-btn .lbl { font-size: 12.5px; font-weight: 700; color: #fff; }
+
+  /* Emergent Chronicle Acts */
+  .act-banner {
+    background: linear-gradient(90deg, rgba(224, 184, 65, 0.18), rgba(18, 16, 13, 0.92));
+    border-left: 4px solid var(--gold-bright);
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin: 38px 0 22px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .act-banner h2 { font-size: 26px; color: #fff; }
+  .act-gestalt {
+    font-family: var(--mono); font-size: 11.5px; color: var(--gold-bright);
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--gold-soft);
+    background: rgba(8, 7, 6, 0.7);
+  }
+
+  .zone-chronicle {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 30px 34px;
+    margin-bottom: 26px;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 980px) { .zone-chronicle { grid-template-columns: 1fr; } }
+
+  .zone-kicker {
+    font-family: var(--mono); font-size: 11.5px; color: var(--gold-bright);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .zone-title { font-size: 26px; color: #fff; margin-bottom: 14px; line-height: 1.2; }
+
+  .greek-stele {
+    background: rgba(8, 7, 6, 0.85);
+    border-left: 3px solid var(--gold);
+    padding: 12px 16px; border-radius: 6px; margin-bottom: 18px;
+  }
+  .greek-stele .grk {
+    font-style: italic; font-size: 15px; color: #efe5cf; margin-bottom: 4px;
+  }
+  .greek-stele .eng {
+    font-size: 13.5px; color: var(--muted); font-family: var(--sans); line-height: 1.45;
+  }
+
+  .prose-block p {
+    font-size: 18px; color: var(--ink); margin-bottom: 16px;
+  }
+  .therefore-pill {
+    display: inline-block;
+    font-family: var(--mono); font-size: 12px; font-weight: 800;
+    color: #080706; background: var(--gold-bright);
+    padding: 1px 7px; border-radius: 4px; margin-right: 4px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+
+  .zone-meta-col {
+    display: flex; flex-direction: column; gap: 14px;
+    font-family: var(--sans);
+  }
+  .meta-box {
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .meta-box h4 {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--cyan); margin-bottom: 8px;
+  }
+  .meta-box p { font-size: 13.5px; color: #d8d0c1; line-height: 1.5; margin-bottom: 6px; }
+  .meta-box p:last-child { margin-bottom: 0; }
+  .meta-box audio { width: 100%; height: 36px; margin-top: 6px; }
+
+  .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .btn-act {
+    font-family: var(--mono); font-size: 11.5px;
+    padding: 6px 11px; border-radius: 5px;
+    background: rgba(224, 184, 65, 0.14); border: 1px solid var(--gold-soft);
+    color: var(--gold-bright); cursor: pointer; text-decoration: none;
+  }
+  .btn-act:hover { background: var(--gold); color: #080706; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">★ THE SHIELD OF ACHILLES · FULL FINAL WORLDTEXT (ILIAD XVIII.478–608)</div>
+  <nav class="topbar-nav">
+    <a href="shield-of-achilles.html">← TRUBADOR Studio</a>
+    <a href="achilles-forage.html">3D Worldtext Forage (63 Cards)</a>
+    <a href="shield-films.html">9-Film Cinema Suite</a>
+    <a href="shield-cubism.html">3D Spatiotemporal Worm V(u,v,τ)</a>
+    <a href="WORLDTEXT-FINAL.md" target="_blank">📄 WORLDTEXT-FINAL.md</a>
+    <a href="https://hartswf0.github.io/operation-describe/Dry-Dock/FINAL_SHIPWORTHY.html" target="_blank" style="color:var(--gold-bright);font-weight:700;">FINAL_SHIPWORTHY.html ↗</a>
+  </nav>
+</header>
+
+<main class="container">
+  <!-- Phase 1 & 2: THE_GARDENER_TREATMENT -->
+  <section class="hero" id="gardener-treatment">
+    <div class="eyebrow">THE DIRECTORIAL GARDENER TAKEOVER · OPERATIVE EKPHRASIS: FROM IMAGETEXT TO WORLDTEXT</div>
+    <h1>Speaking the Shield into Being: The Full Final Worldtext</h1>
+    <p class="hero-lead">
+      Every spoken hexameter is a metallurgical strike that compiles raw bronze, tin, silver, and gold into a living, self-governing 3D cosmos before the syllable decays. Voiced in <strong>Native Kokoro-82M v1.0 ONNX</strong> (<code>bm_george</code>, <code>am_onyx</code>, <code>af_aoede</code>, <code>bm_fable</code>, <code>bm_lewis</code> at <code>-14.2 LUFS</code>) with unhurried rhapsode gravitas, stone-megaron resonance, and 12,462 LDraw bricks across 63 verified cards.
+    </p>
+
+    <div class="treatment-grid">
+      <div class="treatment-card">
+        <div class="treatment-tag">01 · THE_NORTH_STAR (2-Sentence Visual &amp; Narrative Bible)</div>
+        <div class="treatment-body">
+          Every spoken hexameter is a metallurgical strike that compiles raw bronze, tin, silver, and gold into a living, self-governing 3D cosmos before the syllable decays. We do not illustrate a static shield; we witness a lame-footed god forge a miniature civilization whose inhabitants immediately act upon their own pride, hunger, and mortal terror inside the cooling metal.
+        </div>
+      </div>
+
+      <div class="treatment-card">
+        <div class="treatment-tag">02 · THE_SEED (The High-Tension Starting Point)</div>
+        <div class="treatment-body">
+          A grieving sea-goddess kneels on the soot-blackened threshold of Olympus demanding armor for a son who will die the moment he wears it—and Hephaestus, refusing to hammer a mere plate of war, pours the entire peacetime and wartime world Achilles is forfeiting into five concentric rings of molten metal.
+        </div>
+      </div>
+
+      <div class="treatment-card">
+        <div class="treatment-tag">03 · ENERGY_TRAJECTORY (The 3-Act Sensory &amp; Acoustic Gestalt)</div>
+        <div class="treatment-body">
+          <strong>Act I (Staccato · 00:00–00:20):</strong> White-hot bellows, percussive anvil strikes, fivefold lamination.<br>
+          <strong>Act II (Grounded / Sustained · 00:20–01:41):</strong> Polyphonic breathing space across bridal torches, Agora gold, river reeds, darkening golden furrows, and roaring lions.<br>
+          <strong>Act III (Inevitable Climax · 01:41–02:02):</strong> Potter’s-wheel centrifuge sealed shut by the River Oceanus.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Master 122s Film + Live 3D Worldtext Split Stage -->
+  <section class="master-stage">
+    <div class="stage-card">
+      <div class="eyebrow">UNABRIDGED 1080P MASTER WORLDTEXT FILM (122.0s · -14.2 LUFS · KOKORO-82M)</div>
+      <h2>Master Film: All Five Concentric Rings Spoken into 3D Being</h2>
+      <div class="video-box">
+        <video id="worldtextMasterVideo" controls preload="metadata" poster="films/shield-of-achilles/01-huashu-motion/poster.png" src="films/shield-of-achilles/film-worldtext-final.mp4"></video>
+      </div>
+      <div class="chapter-pills">
+        <button class="chap-btn active" onclick="seekMaster(0, 'Z01', this)">
+          <span class="ts">ACT I · 00:00–00:20 · Z01</span>
+          <span class="lbl">I. The Crucible &amp; Cosmic Boss</span>
+        </button>
+        <button class="chap-btn" onclick="seekMaster(20, 'Z02', this)">
+          <span class="ts">ACT II · 00:20–00:40 · Z02</span>
+          <span class="lbl">II. Bridal Torches &amp; Agora Trial</span>
+        </button>
+        <button class="chap-btn" onclick="seekMaster(40, 'Z03', this)">
+          <span class="ts">ACT II · 00:40–01:00 · Z03</span>
+          <span class="lbl">III. Siege Walls &amp; River Ambush</span>
+        </button>
+        <button class="chap-btn" onclick="seekMaster(60, 'Z04', this)">
+          <span class="ts">ACT II · 01:00–01:21 · Z04</span>
+          <span class="lbl">IV. Golden Glebe, King &amp; Vineyard</span>
+        </button>
+        <button class="chap-btn" onclick="seekMaster(81, 'Z05', this)">
+          <span class="ts">ACT II · 01:21–01:41 · Z05</span>
+          <span class="lbl">V. Cattle, Two Lions &amp; Nine Dogs</span>
+        </button>
+        <button class="chap-btn" onclick="seekMaster(101, 'Z06', this)">
+          <span class="ts">ACT III · 01:41–02:02 · Z06</span>
+          <span class="lbl">VI. Knossos Choros &amp; Oceanus Rim</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="stage-card">
+      <div class="eyebrow">LIVE INTERACTIVE 3D LDRAW WORLDTEXT FORAGE (63 CARDS · 12,462 PIECES)</div>
+      <h2>Habitable 3D World Model (Vision · Memory · Controller)</h2>
+      <div class="video-box" style="flex:1;min-height:360px;">
+        <iframe id="forageFrame" src="achilles-forage.html?card=ACH-WORLD-SHIELD" style="height:100%;min-height:360px;" title="Interactive 3D LDraw Shield Worldtext"></iframe>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:11.5px;color:var(--muted);">
+        <span>Master Kokoro-82M Rhapsode Track (122.0s):</span>
+        <audio controls preload="metadata" src="achilles/audio/ACH-WORLD-SHIELD.mp3" style="height:32px;width:320px;"></audio>
+      </div>
+    </div>
+  </section>
+
+  <!-- Phase 3: THE_EMERGENT_CHRONICLE -->
+  <section id="emergent-chronicle">
+    <div class="act-banner">
+      <h2>Act I — The Crucible and the First Word</h2>
+      <span class="act-gestalt">GESTALT: HIGH ENERGY · STACCATO · BELLOWS &amp; ANVIL · 00:00–00:20</span>
+    </div>
+
+    <!-- Zone I -->
+    <article class="zone-chronicle" id="zone-Z01">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE I · FOLD 1 (CENTER BOSS) · ILIAD XVIII.468–490</div>
+        <h3 class="zone-title">The Forge of Hephaestus &amp; The Unbathing Bear</h3>
+        <div class="greek-stele">
+          <div class="grk">Ποίει δὲ πρώτιστα σάκος μέγα τε στιβαρόν τε πάντοσε δαιδάλλων… Ἄρκτον θ᾽, ἣν καὶ Ἄμαξαν ἐπίκλησιν καλέουσιν, ἥ τ᾽ αὐτοῦ στρέφεται καί τ᾽ Ὠρίωνα δοκεύει, οἴη δ᾽ ἄμμορός ἐστι λοετρῶν Ὠκεανοῖο.</div>
+          <div class="eng">“First of all he forged a shield both great and strong, adorning it all over… and the Bear, which men also call the Wain, who revolves in her place and watches Orion, and alone has no share in the baths of Ocean.”</div>
+        </div>
+        <p>
+          Salt-water dries into white crust along Thetis’s ankles as she grips the bronze doorpost of the forge; to her eyes, every spark rising from the hearth is already the funeral pyre of Achilles. <span class="therefore-pill">Therefore →</span> she does not ask Hephaestus for shelter or longevity—she asks only for a surface brilliant enough to blind the Trojans before her son’s brief season expires.
+        </p>
+        <p>
+          Hephaestus hears the fatal bargain in her voice and feels the old shame of his own twisted gait—the lame artisan who can never march beside the spears he makes, yet outlives every hero who carries them. <span class="therefore-pill">Therefore →</span> he refuses to forge a mute wall of defensive bronze; if Achilles must trade the whole breadth of mortal life for a single afternoon of glory, the god will trap the entirety of that forfeited world inside the curvature of the buckler.
+        </p>
+        <p>
+          He turns his heavy torso toward the fire and commands the twenty leather bellows. <span class="therefore-pill">Therefore →</span> the nozzles flare of their own intelligence, jetting staccato blasts of oxygen into the crucibles until stubborn bronze, pale tin, precious gold, and silver slump into a single blinding broth. Because the central boss is still too small to hold a mortal quarrel, Hephaestus strikes the navel of the bronze first. <span class="therefore-pill">Therefore →</span> the metal remembers the sky before it remembers the earth: the untiring Sun, the full-bellied Moon, the Pleiades, the Hyades, and the Bear—who alone watches Orion from her cold arctic pivot and never tastes the bath of Ocean—spring upward in high-relief gold and silver studs.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone I (20.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>af_aoede</code> (Thetis) · <code>am_onyx</code> (Hephaestus) · <code>bm_george</code> (Homer)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z01.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>Thetis &amp; Hephaestus:</strong> Grief-salted maternal urgency colliding with lame-footed artisanal immortality; furnace sparks perceived as funeral embers, answered by fivefold metallic permanence.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z01-S01 &amp; S02</h4>
+          <p><strong>Vision (V):</strong> 512 LDraw pieces across twenty golden-wheeled tripods, basalt anvil, and central kyanos/gold cosmic boss.</p>
+          <p><strong>Memory (M):</strong> Polar invariance law—the Bear (<code>Ἄρκτος</code>) orbits perpetually watching Orion without dipping below the horizon of Oceanus.</p>
+          <p><strong>Controller (C):</strong> Spoken hexameter drives <code>spokenBuild (0.25 → 1.0)</code>, locking the central boss before the outer rings cool.</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z01-S01')">Inspect Forge 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z01-S02')">Inspect Cosmic Boss 3D (S02)</button>
+            <button class="btn-act" onclick="seekMaster(0, 'Z01')">▶ Screen in Master Film</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="act-banner">
+      <h2>Act II — The Rings of Consequence</h2>
+      <span class="act-gestalt">GESTALT: GROUNDED · SUSTAINED · POLYPHONIC BREATHING SPACE · 00:20–01:41</span>
+    </div>
+
+    <!-- Zone II -->
+    <article class="zone-chronicle" id="zone-Z02">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE II · FOLD 2 NORTH · ILIAD XVIII.491–508</div>
+        <h3 class="zone-title">City at Peace: Torchlit Brides &amp; The Two Talents of Gold</h3>
+        <div class="greek-stele">
+          <div class="grk">Ἐν δὲ δύω ποίησε πόλεις μερόπων ἀνθρώπων καλάς… οἱ δὲ γέροντες εἵατ᾽ ἐπὶ ξεστοῖσι λίθοισ᾽ ἱερῷ ἐνὶ κύκλῳ… κεῖτο δ᾽ ἄρ᾽ ἐν μέσσοισι δύω χρυσοῖο τάλαντα, τῷ δόμεν ὃς μετὰ τοῖσι δίκην ἰθύντατα εἴποι.</div>
+          <div class="eng">“Therein he fashioned two fair cities of mortal men… the elders sat on polished stones in a sacred circle… and in the midst lay two talents of gold, to be given to him who among them should speak the straightest judgment.”</div>
+        </div>
+        <p>
+          The celestial dome now casts light downward onto the empty second terrace of cooling bronze, demanding witnesses below. <span class="therefore-pill">Therefore →</span> Hephaestus parts his tongs and speaks two cities of mortal men into the middle ring—not as twins, but as divergent answers to the same human blood.
+        </p>
+        <p>
+          In the first city, brides walk beneath pine torches whose resinous smoke stains the dark metal air, while young men whirl in tight geometric arcs to the double-reed aulos and the tortoiseshell phorminx. Yet the noise of their celebration carries down the narrow lane into the Agora, where two men stand face to face over the blood-price of a slain kinsman. The killer, his jaw rigid with public desperation, swears before the crowd that he has paid every drachma; the dead man’s brother, staring only at the empty threshold of his house, swears he will accept nothing short of blood or full satisfaction.
+        </p>
+        <p>
+          <span class="therefore-pill">Therefore →</span> the shouting citizens split into two roaring factions, forcing the white-haired heralds to thrust their staves between the crowd so the elders, seated on polished stones in the sacred circle, can rise one by one with the speaker’s scepter. And because no elder can judge by force alone, two talents of solid gold lie waiting in the dead center of the flagstones—not for the litigant who shouts loudest, but for the judge who speaks the straightest doom.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone II (20.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>bm_george</code> (Homer) · <code>bm_fable</code> (Litigant) · <code>bm_lewis</code> (Elder Judge)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z02.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>The Litigants &amp; Elders:</strong> Public desperation of the payer colliding with bereaved refusal of the kinsman, contained by the polished stone ring of civic arbitration.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z02-S01 &amp; S02</h4>
+          <p><strong>Vision (V):</strong> 437 LDraw pieces—marble colonnades, trans-orange torches, eight polished stone seats, and two gleaming talents of gold on the central altar.</p>
+          <p><strong>Memory (M):</strong> Procedural legal state machine: elders rise in turn (<code>ἀμοιβηδὶς</code>) with the herald’s scepter to convert blood-vendetta into straight judgment (<code>δίκην ἰθύντατα</code>).</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z02-S01')">Inspect Wedding 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z02-S02')">Inspect Agora Trial 3D (S02)</button>
+            <button class="btn-act" onclick="seekMaster(20, 'Z02')">▶ Screen in Master Film</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Zone III -->
+    <article class="zone-chronicle" id="zone-Z03">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE III · FOLD 2 SOUTH · ILIAD XVIII.509–540</div>
+        <h3 class="zone-title">City at War: Siege Walls, Tall Gods &amp; The River Ambush</h3>
+        <div class="greek-stele">
+          <div class="grk">Τὴν δ᾽ ἑτέρην πόλιν ἀμφὶ δύω στρατοὶ εἵατο λαῶν τεύχεσι λαμπόμενοι… ἐν ποταμῷ, ὅθι τ᾽ ἀρδμὸς ἔην πάντεσσι βοτοῖσιν, ἔνθ᾽ ἄρα τοί γ᾽ ἵζοντ᾽ εἰλυμένοι αἴθοπι χαλκῷ… ἐν δ᾽ Ἔρις ἐν δὲ Κυδοιμὸς ὁμίλεον, ἐν δ᾽ ὀλοὴ Κήρ.</div>
+          <div class="eng">“Around the other city sat two armies glittering in arms… by a river, where was a watering-place for all cattle, there they crouched wrapped in Ruddy Bronze… and among them mingled Strife, Tumult, and destructive Fate.”</div>
+        </div>
+        <p>
+          Across the bronze ridge, the second city sees that same golden wealth gleaming on the battlements and covets it. <span class="therefore-pill">Therefore →</span> two armies in flashing armor clamp a siege around the walls, divided in their own War-Council between sacking the citadel outright or splitting the town’s storehouses in half. The besieged citizens, looking down from their ramparts at their wives, young children, and tottering old men, refuse the humiliating partition; they oil their greaves in silence and slip through a postern gate toward the river where every herd must drink.
+        </p>
+        <p>
+          Because the river-bed is choked with tall reeds and marsh-sedge, the scouts crouch invisible in their burnished bronze until they hear the pan-pipes of two unwitting herdsmen. The herdsmen are enchanted by their own reed-melodies, watching only the fat sheep and shambling crooked-horned cattle; they see no glint of spear-points in the sedge.
+        </p>
+        <p>
+          <span class="therefore-pill">Therefore →</span> the ambushing city springs from the reeds in a single converging arc, slaughtering the shepherds before the flute-notes finish echoing across the water. Hearing the bellowing of the dying oxen from their assembly place, the besieging horsemen vault onto their high-stepping chariots and race to the riverbank—turning the watering-place into a tangled knot of bronze spear-shafts, where Strife, Tumult, and deadly Fate drag the wounded by the heels through the red mud.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone III (20.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>bm_george</code> (Homer) · <code>am_onyx</code> (Commander) · <code>bm_fable</code> (Scout)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z03.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>The Scouts &amp; Piping Shepherds:</strong> Crouched bronze tension in the river sedge vs. pastoral obliviousness enchanted by syrinx reed-pipes moments before slaughter.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z03-S01 &amp; S02</h4>
+          <p><strong>Vision (V):</strong> 543 LDraw pieces—hieratic 11-brick golden Ares and Athena towering over 4-brick mortals, kyanos river ford, and crimson-cloaked Ker.</p>
+          <p><strong>Memory (M):</strong> Causal fork (<code>sack</code> vs. <code>divide</code>) rejected → covert sortie to river watering-place → acoustic ambush triggered by pan-pipes.</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z03-S01')">Inspect Siege Walls 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z03-S02')">Inspect River Ambush 3D (S02)</button>
+            <button class="btn-act" onclick="seekMaster(40, 'Z03')">▶ Screen in Master Film</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Zone IV -->
+    <article class="zone-chronicle" id="zone-Z04">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE IV · FOLD 3 (MIDDLE RING) · ILIAD XVIII.541–572</div>
+        <h3 class="zone-title">The Thrice-Ploughed Golden Glebe, The Silent King &amp; The Vineyard</h3>
+        <div class="greek-stele">
+          <div class="grk">Ἐν δ᾽ ἐτίθει νειὸν μαλακὴν, πίειραν ἄρουραν, εὐρεῖαν τρίπολον… ἡ δὲ μελαίνετο ὄπισθεν, ἀρηρομένῃ δὲ ἐῴκει χρυσείη περ ἐοῦσα· τὸ δὴ περὶ θαῦμα τέτυκτο… βασιλεὺς δ᾽ ἐν τοῖσι σιωπῇ σκῆπτρον ἔχων ἑστήκει ἐπ᾽ ὄγμου γηθόσυνος κῆρ.</div>
+          <div class="eng">“Therein he placed a soft fallow field, rich glebe, wide, thrice-ploughed… and it grew black behind, and looked like ploughed earth, though wrought of gold; that was a very great marvel… and among them the King stood in silence with his scepter along the swath, rejoicing in his heart.”</div>
+        </div>
+        <p>
+          Hephaestus’s thumb presses outward into the third concentric furrow, seeking relief from the stench of river-blood. <span class="therefore-pill">Therefore →</span> he pours soft, thrice-ploughed fallow land around the warring cities, wide and deep-soiled. Ploughmen wheel their yokes back and forth across the strip; and because each man strains toward the headland where a steward waits with a two-handled goblet of honey-sweet wine, the metal itself performs the supreme miracle of the forge: the field grows black behind the share like real turned earth, though it is wrought of pure gold.
+        </p>
+        <p>
+          Beside the furrow, the barley stands waist-high and dry in the summer heat. Reapers swing freshly whetted sickles in a steady, sustained cadence; handfuls fall along the swath while three binders twist straw-ropes and children, their arms scratched by the awns, gather the sheaves too fast for the binders to tie. Among them stands the King in utter silence, his scepter planted upright in the stubble. He speaks not a word—to his eyes, the unbroken line of grain-bundles is the proof that famine cannot touch his house this winter—while beneath a spreading oak his heralds dress a great ox and women whiten the barley-meal for the laborers’ noon.
+        </p>
+        <p>
+          Further along the ring, the vintage hangs heavy and purple on silver vine-props, guarded by a ditch of dark-blue enamel and a fence of tin. Only a single narrow causeway leads through the vineyard, where girls and youths carry the honey-sweet fruit in woven baskets while a boy in their midst plucks a clear-toned lyre and sings the delicate Linus-song in a high, fragile voice. <span class="therefore-pill">Therefore →</span> the vintagers’ feet beat the packed earth in unison with his string, their joy held safe inside the tin palisade.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone IV (21.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>bm_george</code> (Homer) · <code>am_onyx</code> (Hephaestus) · <code>af_aoede</code> (Linus Singer)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z04.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>The Ploughman &amp; The Silent King:</strong> Muscular thirst straining toward the headland wine-goblet; royal silence reading winter survival in the geometry of bound sheaves.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z04-S01, S02 &amp; S03</h4>
+          <p><strong>Vision (V):</strong> 650 LDraw pieces—golden plates flipping to dark niello earth behind the bronze share, royal oak feast, and five-metal vineyard (gold vines, black clusters, silver poles, kyanos trench, tin fence).</p>
+          <p><strong>Memory (M):</strong> Neurosymbolic state mutation (<code>ἡ δὲ μελαίνετο ὄπισθεν</code>): material gold executing the optical state-change of dark ploughed soil.</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z04-S01')">Ploughed Glebe 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z04-S02')">Silent King 3D (S02)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z04-S03')">Vineyard 3D (S03)</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Zone V -->
+    <article class="zone-chronicle" id="zone-Z05">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE V · FOLD 4 WEST · ILIAD XVIII.573–589</div>
+        <h3 class="zone-title">Cattle of Gold and Tin &amp; The Two Terrible Lions</h3>
+        <div class="greek-stele">
+          <div class="grk">Ἐν δ᾽ ἀγέλην ποίησε βοῶν ὀρθοκραιράων· αἱ δὲ βόες χρυσοῖο τετεύχατο κασσιτέρου τε… σμερδαλέω δὲ λέοντε δύ᾽ ἐν πρώτῃσι βόεσσιν ταῦρον ἐρύγμηλον ἐχέτην… ἵσταντο δὲ μάλ᾽ ἐγγύς, ὑλάοντές τε καὶ ἐκτὸς ἀλυσκάζοντες.</div>
+          <div class="eng">“Therein he fashioned a herd of straight-horned oxen of gold and tin… but two terrible lions among the foremost cattle seized a loud-bellowing bull… and the dogs stood very near, barking and darting back.”</div>
+        </div>
+        <p>
+          Just beyond the tin fence, four golden herdsmen drive a herd of straight-horned cattle worked in tin and gold toward the roaring river. Two terrible lions, starving and tawny-eyed, crouch in the reed-brake ahead of the herd. They do not care for the nine swift-footed dogs trotting behind the rear-guard; they leap straight into the van, seize the mightiest bellowing bull by the throat, and drag him down as his lowing echoes off the bronze banks.
+        </p>
+        <p>
+          <span class="therefore-pill">Therefore →</span> the young herdsmen and their nine hounds rush forward in a panic to rescue the bull—yet the moment they smell the hot blood as the lions tear open the tough hide and lap the dark entrails, the dogs halt just beyond claw-reach, barking furiously, darting in and backing away in the cowardice of survival.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone V (20.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>bm_george</code> (Homer) · <code>bm_fable</code> (Herdsman) · <code>bm_lewis</code> (Witness)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z05.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>The Lions &amp; The Nine Hounds:</strong> Unapologetic tawny hunger tearing the hide vs. the barking oscillation of hounds caught between their masters' shouts and the smell of raw entrails.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z05-S01 &amp; S02</h4>
+          <p><strong>Vision (V):</strong> 412 LDraw pieces—gold and tin oxen, two tawny lions mauling the bull, nine swift hounds, and the mountain glen of white sheep.</p>
+          <p><strong>Memory (M):</strong> Repulsion-boundary oscillation (<code>ὑλάοντές τε καὶ ἐκτὸς ἀλυσκάζοντες</code>): hounds advance on command, hit the claw-radius, and dart back barking.</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z05-S01')">Cattle &amp; Lions 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z05-S02')">Sheep Glen 3D (S02)</button>
+            <button class="btn-act" onclick="seekMaster(81, 'Z05')">▶ Screen in Master Film</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="act-banner">
+      <h2>Act III — The Wheel and the Rim of Ocean</h2>
+      <span class="act-gestalt">GESTALT: CENTRIFUGAL · ECSTATIC · POTTER’S WHEEL &amp; TERMINAL WELD · 01:41–02:02</span>
+    </div>
+
+    <!-- Zone VI -->
+    <article class="zone-chronicle" id="zone-Z06">
+      <div class="prose-block">
+        <div class="zone-kicker">ZONE VI · FOLD 4 EAST &amp; FOLD 5 RIM · ILIAD XVIII.590–608</div>
+        <h3 class="zone-title">The Knossos Choros Wheel &amp; The River Oceanus</h3>
+        <div class="greek-stele">
+          <div class="grk">Ἐν δὲ χορὸν ποίκιλλε περικλυτὸς Ἀμφιγυήεις, τῷ ἴκελον οἷόν ποτ᾽ ἐνὶ Κνωσῷ εὐρείῃ Δαίδαλος ἤσκησεν καλλιπλοκάμῳ Ἀριάδνῃ… ὡς ὅτε τις τροχὸν ἄρμενον ἐν παλάμῃσιν ἑζόμενος κεραμεὺς πειρήσεται… Ἐν δ᾽ ἐτίθει ποταμοῖο μέγα σθένος Ὠκεανοῖο ἄντυγα πὰρ πυμάτην σάκεος πύκα ποιητοῖο.</div>
+          <div class="eng">“Therein the famous Lame God wrought a dancing-floor like that which Daedalus once made in wide Knossos for Ariadne of the lovely tresses… as when a seated potter trials his wheel fitted between his palms… and therein he placed the mighty strength of the River Oceanus around the uttermost rim of the strongly-wrought shield.”</div>
+        </div>
+        <p>
+          The metal is cooling fast from the center outward, and the weight of law, ambush, harvest, and predation threatens to fracture the disc unless its kinetic energy is bound into a single, unbroken rotation. <span class="therefore-pill">Therefore →</span> on the fourth band Hephaestus hammers out a dancing-floor like the one Daedalus once engineered in wide Knossos for Ariadne of the lovely tresses.
+        </p>
+        <p>
+          Young men with golden daggers hanging from silver baldrics lock wrists with maidens crowned in fresh garlands, their linen tunics shining with the gloss of olive oil. At first they run in disciplined rows; then, as the divine minstrel strikes his lyre at the center and two tumblers spin head-over-heels through the middle of the measure, the two lines fuse into a single wheel. They spin as swiftly as a crouched potter tests his wheel between his palms to see if it will run true. <span class="therefore-pill">Therefore →</span> the individual faces of bride, litigant, scout, reaper, and herdsman blur into one continuous golden centrifuge—an entire civilization dancing on the lip of the abyss.
+        </p>
+        <p>
+          Only the outermost edge remains raw and jagged, where the spinning dance would fly off into the void of the Trojan plain. <span class="therefore-pill">Therefore →</span> Hephaestus takes his heaviest hammer and welds the mighty strength of the River Oceanus around the uttermost rim. The great circular stream closes upon itself, locking sun, moon, court, siege, furrow, lion, and dancer inside an inescapable ring of water.
+        </p>
+        <p>
+          The last echo of the rhapsode’s voice dies against the stone walls of the forge. The twenty bellows collapse into silence. What rests across the anvil is no longer a story being told; it is a cold, five-layered disk of lethal metal, waiting for Thetis to lift the entire breathing world in her arms and carry it down to the son who will wear it into the dust.
+        </p>
+      </div>
+
+      <div class="zone-meta-col">
+        <div class="meta-box">
+          <h4>Kokoro-82M Rhapsode Voiceover · Zone VI (21.0s · -14.2 LUFS)</h4>
+          <p>Voices: <code>af_aoede</code> (Muse) · <code>bm_george</code> (Homer) · <code>am_onyx</code> (Hephaestus)</p>
+          <audio controls preload="metadata" src="achilles/audio/Z06.mp3"></audio>
+        </div>
+        <div class="meta-box">
+          <h4>The_Mask_Filter (Internal Sensory Lens)</h4>
+          <p><strong>The Choros Dancers &amp; Hephaestus:</strong> Ecstatic kinetic abandon spinning on the lip of the abyss, sealed by the god’s final, coldly terminal hammer-weld.</p>
+        </div>
+        <div class="meta-box">
+          <h4>3D World Model (V · M · C) · Cards ACH-Z06-S01 &amp; S02</h4>
+          <p><strong>Vision (V):</strong> 580 LDraw pieces—Daedalean mosaic dancing floor, youths with golden swords on silver belts, two acrobatic tumblers, and the triple-glittering Oceanus rim.</p>
+          <p><strong>Memory (M):</strong> Dual-mode choreographic state machine (potter’s wheel centrifuge ↔ linear rows) enclosed by the closed topological boundary of Oceanus.</p>
+          <div class="action-row">
+            <button class="btn-act" onclick="loadForageCard('ACH-Z06-S01')">Knossos Choros 3D (S01)</button>
+            <button class="btn-act" onclick="loadForageCard('ACH-Z06-S02')">Oceanus Rim 3D (S02)</button>
+            <button class="btn-act" onclick="seekMaster(101, 'Z06')">▶ Screen in Master Film</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+const masterVid = document.getElementById('worldtextMasterVideo');
+const forageFrame = document.getElementById('forageFrame');
+
+const ZONE_PRIMARY_CARD = {
+  Z01: 'ACH-Z01-S01',
+  Z02: 'ACH-Z02-S02',
+  Z03: 'ACH-Z03-S02',
+  Z04: 'ACH-Z04-S01',
+  Z05: 'ACH-Z05-S01',
+  Z06: 'ACH-Z06-S01'
+};
+
+function seekMaster(sec, zoneId, btnEl) {
+  if (btnEl) {
+    document.querySelectorAll('.chap-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+  if (masterVid) {
+    masterVid.currentTime = sec;
+    masterVid.play();
+    masterVid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  if (zoneId && ZONE_PRIMARY_CARD[zoneId]) {
+    loadForageCard(ZONE_PRIMARY_CARD[zoneId], false);
+  }
+}
+
+function loadForageCard(cardId, scroll = true) {
+  if (forageFrame) {
+    forageFrame.src = 'achilles-forage.html?card=' + encodeURIComponent(cardId);
+    if (scroll) {
+      forageFrame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+</script>
+</body>
+</html>

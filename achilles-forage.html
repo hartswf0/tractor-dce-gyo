@@ -776,9 +776,10 @@
 
     <div class="header-links">
       <button class="btn primary" id="btn-load-master" title="Load Full 84×84 Stud 5-Fold Concentric Shield">◎ Master Shield World</button>
+      <a class="btn primary" href="worldtext.html" target="_top" title="Open Full Final Worldtext (Directorial Gardener Chronicle + 122s Master Film)">★ Full Final Worldtext</a>
       <a class="btn" href="achilles-kit.html">⚒ Forge Kit (50)</a>
-      <a class="btn" href="shield-of-achilles.html">◫ TRUBADOR Studio</a>
-      <a class="btn" href="achilles/FORAGE.md" target="_blank">📄 FORAGE.md</a>
+      <a class="btn" href="shield-of-achilles.html" target="_top">◫ TRUBADOR Studio</a>
+      <a class="btn" href="WORLDTEXT-FINAL.md" target="_blank">📄 WORLDTEXT-FINAL.md</a>
     </div>
   </header>
 
@@ -1037,10 +1038,49 @@
   const packCache = new Map();
   const wagChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('wag-frank') : null;
 
-  // WebAudio procedural Homeric synthesizer
-  let audioCtx = null;
+  // Native Kokoro-82M Homeric Rhapsode Audio Player + Spoken-Into-Being Brick Assembly
+  let rhapsodeAudio = null;
   let audioEnabled = false;
-  let audioTimer = null;
+  let spokenBuildStart = 0;
+
+  const GARDENER_RIPPLES = {
+    ALL: "THE NORTH STAR: Every spoken hexameter is a metallurgical strike that compiles raw bronze, tin, silver, and gold into a living 3D cosmos before the syllable decays.",
+    Z01: "THEREFORE → Salt-water dries on Thetis's ankles; Hephaestus commands the 20 bellows and strikes the central boss so the Great Bear revolves forever without tasting the bath of Ocean.",
+    Z02: "THEREFORE → The shouting citizens split into two factions in the Agora; elders rise in turn from polished stones toward two talents of gold for him who speaks the straightest judgment.",
+    Z03: "THEREFORE → Refusing to split their city's wealth, bronze scouts crouch by the river reeds; when two piping shepherds pass, the ambush springs and crimson Ker drags the slain.",
+    Z04: "THEREFORE → As ploughmen strain toward the headland wine-cup, the golden metal turns black behind the share like real ploughed earth while the King stands in silent joy among the sheaves.",
+    Z05: "THEREFORE → Two terrible lions leap from the reed-brake and seize the bellowing bull; the nine swift hounds rush up, smell the hot entrails, and halt just beyond claw-reach, barking and darting back.",
+    Z06: "THEREFORE → Youths and maidens spin like a potter's trial wheel on Daedalus's floor until Hephaestus welds the mighty River Oceanus around the uttermost rim, sealing a living world inside a mortal weapon."
+  };
+
+  function toggleSoundscape() {
+    audioEnabled = !audioEnabled;
+    const btn = document.getElementById('btn-sound');
+    btn.textContent = audioEnabled ? '♪ Kokoro Rhapsode: ON' : '♪ Kokoro Rhapsode: OFF';
+    btn.classList.toggle('active', audioEnabled);
+
+    if (!audioEnabled) {
+      if (rhapsodeAudio) {
+        rhapsodeAudio.pause();
+      }
+      return;
+    }
+    playZoneRhapsode(currentCard ? currentCard.zone : 'ALL');
+  }
+
+  function playZoneRhapsode(zoneKey) {
+    const fileKey = (zoneKey && zoneKey !== 'ALL') ? zoneKey : 'ACH-WORLD-SHIELD';
+    const src = `achilles/audio/${fileKey}.mp3`;
+    if (!rhapsodeAudio) {
+      rhapsodeAudio = new Audio();
+    }
+    if (!rhapsodeAudio.src.endsWith(src)) {
+      rhapsodeAudio.src = src;
+    }
+    rhapsodeAudio.currentTime = 0;
+    spokenBuildStart = performance.now();
+    rhapsodeAudio.play().catch(err => console.warn('Audio autoplay prevented:', err));
+  }
 
   function initThree() {
     const wrap = document.getElementById('viewport-wrap');
@@ -1551,6 +1591,15 @@
     const expSlider = document.getElementById('explode-slider');
     expSlider.value = 0;
     explodeAmount = 0;
+    spokenBuildStart = performance.now();
+
+    // Inject Directorial Gardener Therefore Ripple into controller readout
+    const zRipple = GARDENER_RIPPLES[card.zone] || GARDENER_RIPPLES.ALL;
+    document.getElementById('wm-controller').textContent = `${zRipple} · (` + (wm.controller || 'Operative 3D Worldtext') + ')';
+
+    if (audioEnabled) {
+      playZoneRhapsode(card.zone);
+    }
 
     loadCard3D(card);
   }
@@ -1583,52 +1632,6 @@
     const orig = btn.textContent;
     btn.textContent = '✓ Sent to Studio';
     setTimeout(() => { btn.textContent = orig; }, 1600);
-  }
-
-  // Synthesize Homeric Soundscape (Phorminx Lyre / Aulos / Forge Anvil)
-  function toggleSoundscape() {
-    audioEnabled = !audioEnabled;
-    const btn = document.getElementById('btn-sound');
-    btn.textContent = audioEnabled ? '♪ Audio: ON' : '♪ Audio: OFF';
-    btn.classList.toggle('active', audioEnabled);
-
-    if (!audioEnabled) {
-      if (audioTimer) clearInterval(audioTimer);
-      audioTimer = null;
-      return;
-    }
-
-    if (!audioCtx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    // Dorian / Phrygian Homeric phorminx scale (Hz)
-    const scale = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0, 440.0];
-    const playPluck = () => {
-      if (!audioEnabled || !audioCtx) return;
-      const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const zone = currentCard ? currentCard.zone : 'Z01';
-
-      const freq = scale[Math.floor(Math.random() * scale.length)] * (zone === 'Z03' ? 0.5 : 1.0);
-      osc.type = zone === 'Z01' ? 'triangle' : (zone === 'Z03' ? 'sawtooth' : 'sine');
-      osc.frequency.setValueAtTime(freq, now);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.15);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 1.2);
-    };
-
-    playPluck();
-    audioTimer = setInterval(playPluck, 680);
   }
 
   async function init() {
