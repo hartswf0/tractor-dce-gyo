@@ -20,7 +20,9 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT_MP4 = path.join(ROOT, 'films', 'shield-of-achilles', 'film-worldtext-final.mp4');
-const AUDIO_WAV = path.join(ROOT, 'achilles', 'audio', 'ACH-WORLD-SHIELD.wav');
+const AUDIO_WAV = fs.existsSync(path.join(ROOT, 'achilles', 'audio', 'ACH-WORLD-SHIELD.wav'))
+  ? path.join(ROOT, 'achilles', 'audio', 'ACH-WORLD-SHIELD.wav')
+  : path.join(ROOT, 'achilles', 'audio', 'ACH-WORLD-SHIELD.mp3');
 const FRAMES_DIR = path.join('/tmp', 'worldtext_master_frames');
 const ARTIFACT_DIR = '/Users/gaia/.gemini/antigravity/brain/d8a4c224-935e-4162-8570-670291acacf3';
 
@@ -151,12 +153,14 @@ async function main() {
     '-i', path.join(FRAMES_DIR, 'frame_%05d.jpg'),
     '-i', AUDIO_WAV,
     '-c:v', 'libx264',
-    '-preset', 'fast',
-    '-crf', '22',
+    '-preset', 'medium',
+    '-crf', '28',
+    '-maxrate', '2350k',
+    '-bufsize', '4700k',
     '-r', '24',
     '-pix_fmt', 'yuv420p',
     '-c:a', 'aac',
-    '-b:a', '192k',
+    '-b:a', '160k',
     '-shortest',
     '-movflags', '+faststart',
     OUT_MP4

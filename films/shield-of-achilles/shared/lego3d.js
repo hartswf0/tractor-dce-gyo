@@ -260,24 +260,21 @@
       float role = aMeta.z;
       float secId = aMeta.w;
 
-      // 1. Master-Builder Flying Brick Assembly (Word-by-Word Homeric helical snap-in!)
-      float span = 0.024;
+      // 1. Grounded Anvil Stud-Lock Assembly (Clear, non-occluding bottom-up materialization!)
+      float span = 0.045;
       float localB = clamp((uBuild * (1.0 + span) - buildOrder) / span, 0.0, 1.0);
       if (localB <= 0.001) {
         gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
         return;
       }
+      float forgeGlow = 0.0;
       if (localB < 1.0) {
-        // Quantize assembly on 2s (12 fps) for authentic stop-motion Master Building
-        float qB = floor(localB * 10.0) / 10.0;
         float inv = 1.0 - localB;
-        float dropY = inv * inv * 320.0 - sin(localB * 3.14159) * 16.0 * inv;
-        float swirl = inv * 2.4 * (fract(buildOrder * 97.3) - 0.5);
-        float cs = cos(swirl), ss = sin(swirl);
-        float bx = p.x - aCenter.x, bz = p.z - aCenter.z;
-        p.x = aCenter.x + bx * cs - bz * ss + sin(qB * 6.283 + buildOrder * 31.0) * 28.0 * inv;
-        p.z = aCenter.z + bx * ss + bz * cs + cos(qB * 6.283 + buildOrder * 31.0) * 28.0 * inv;
-        p.y += dropY;
+        float easeB = localB * localB * (3.0 - 2.0 * localB);
+        float sc = mix(0.22, 1.0, easeB);
+        p = aCenter + (p - aCenter) * sc;
+        p.y += inv * inv * 18.0;
+        forgeGlow = sin(localB * 3.14159) * 0.68;
       }
 
       // 2. Modular Section Lift-Out (Exploded view of M0..M9 above frame)
@@ -291,7 +288,7 @@
 
       // 3. Trevor Carlee Non-Destructive "Animating on 2s" (12 fps Stepped Interpolation)
       //    + Character-Specific Acting Archetypes (actStyle 1..9), 3D Ballistic Arrows (5.0) & Anvil Sparks (6.0)
-      float glow = 0.0;
+      float glow = forgeGlow;
       float actStyleF = floor(role / 10.0 + 0.01);
       int actStyle = int(actStyleF);
       float baseRole = role - actStyleF * 10.0;
@@ -1386,7 +1383,11 @@
       gl.drawArrays(gl.TRIANGLES, 0, model.vertCount);
 
       if (this.textCtx) {
-        this.drawHomericScrolls(slug, projMat, viewMat, time, w, h);
+        if (opts.noHud) {
+          this.textCtx.clearRect(0, 0, w, h);
+        } else {
+          this.drawHomericScrolls(slug, projMat, viewMat, time, w, h);
+        }
       }
     }
 
