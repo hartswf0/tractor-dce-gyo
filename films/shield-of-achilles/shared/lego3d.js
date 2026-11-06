@@ -182,19 +182,26 @@
     return 0.0;
   }
 
-  // Compute radial section ID (0..10) for 96x96 circular shield lift-out animation
-  function computeSectionId(wx, wy, wz) {
+  // Compute Homeric Section ID (0..10) matching Iliad XVIII.478-608 (Foundation + M0..M9)
+  function computeSectionId(wx, wy, wz, col) {
     const r = Math.hypot(wx, wz) / 20.0;
-    if (wy < 14.0) return 0.0;
-    if (r <= 10.5) return 1.0;
-    if (r <= 21.5) return wx < 0 ? 2.0 : 3.0;
-    if (r <= 32.5) {
-      if (wz < -80) return 4.0;
-      return wx < 0 ? 5.0 : 6.0;
+    // 10: Ring 5 — M9 River Oceanus Rim (Il. 18.607-608)
+    if (r > 39.5 && wy > 24.0 && col !== 0 && col !== 72) return 10.0;
+    // 0: 5-Fold Metallic Shield Foundation & Structural Rings (Il. 18.478-482)
+    if (wy <= 28.0 || col === 0) return 0.0;
+    // 1: M0 Central Cosmic Boss — Earth, Sky, Sea, Sun, Moon, Bear (Il. 18.483-489)
+    if (r <= 7.2) return 1.0;
+    // 2 & 3: Ring 2 — M1 Bridal Procession (wx < 0) & M2 Agora Trial (wx >= 0) (Il. 18.490-508)
+    if (r <= 17.5) return wx < 0 ? 2.0 : 3.0;
+    // 4, 5, 6: Ring 3 — M3 War/Ambush (wx<0, wz<150), M4 Plough (wx>=0, wz<150), M5 King Harvest (wz>=150) (Il. 18.509-560)
+    if (r <= 28.5) {
+      if (wz >= 150) return 6.0;
+      return wx < 0 ? 4.0 : 5.0;
     }
-    if (r <= 41.5) {
-      if (wz < -80) return 7.0;
-      return wx < 0 ? 8.0 : 9.0;
+    // 7, 8, 9: Ring 4 — M6 Vineyard (wx<0, wz>-200), M7 Cattle & Lions (wz<=-200), M8 Sheep & Choros (wx>=0, wz>-200) (Il. 18.561-606)
+    if (r <= 39.5) {
+      if (wz <= -200) return 8.0;
+      return wx < 0 ? 7.0 : 9.0;
     }
     return 10.0;
   }
@@ -253,8 +260,8 @@
       float role = aMeta.z;
       float secId = aMeta.w;
 
-      // 1. Master-Builder Flying Brick Assembly (The LEGO Movie style helical snap-in!)
-      float span = 0.14;
+      // 1. Master-Builder Flying Brick Assembly (Word-by-Word Homeric helical snap-in!)
+      float span = 0.024;
       float localB = clamp((uBuild * (1.0 + span) - buildOrder) / span, 0.0, 1.0);
       if (localB <= 0.001) {
         gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
@@ -1077,7 +1084,10 @@
         }
       }
 
-      // Sort instances bottom-to-top (by world Y = -y_ldraw, then radial distance) so buildProgress constructs from baseplate upward!
+      // Sort instances: for the Master Shield (shield-of-achilles), sort by Homeric Section (0..10)
+      // so the 11 movements of Iliad XVIII.478-608 assemble in exact poetic sequence as each word is spoken!
+      const isCircularShield = !String(slug).includes('diorama');
+      const isMasterHomericShield = String(slug).includes('shield-of-achilles');
       const indexedInst = rawInst.map((item, idx) => {
         const [col, pid, m, rawTT] = item;
         const grp = actorGroups[idx];
@@ -1086,11 +1096,24 @@
         const wy = grp ? grp.ay : -m[1];
         const wz = grp ? grp.az : m[2];
         const rDist = Math.hypot(wx, wz);
-        return { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx: idx, grp };
+        const secId = isCircularShield ? computeSectionId(wx, wy, wz, col) : 0.0;
+        return { col, pid, m, ttIdx, wx, wy, wz, rDist, secId, origIdx: idx, grp };
       });
-      indexedInst.sort((a, b) => (a.wy - b.wy) || (a.rDist - b.rDist));
+      if (isMasterHomericShield) {
+        indexedInst.sort((a, b) => (a.secId - b.secId) || (a.wy - b.wy) || (a.rDist - b.rDist));
+      } else {
+        indexedInst.sort((a, b) => (a.wy - b.wy) || (a.rDist - b.rDist));
+      }
 
       const totalInst = Math.max(1, indexedInst.length);
+      const secCounts = new Array(11).fill(0);
+      const secSeen = new Array(11).fill(0);
+      if (isMasterHomericShield) {
+        for (let idx = 0; idx < indexedInst.length; idx++) {
+          const s = Math.min(10, Math.max(0, Math.round(indexedInst[idx].secId)));
+          secCounts[s]++;
+        }
+      }
 
       let totalTris = 0;
       for (let idx = 0; idx < indexedInst.length; idx++) {
@@ -1123,7 +1146,7 @@
       // Stride = 22 floats:
       // aPos(3), aNorm(3), aCol(4), aCenter(3), aMeta(4), aPivot(2), aRig(3)
       for (let idx = 0; idx < indexedInst.length; idx++) {
-        const { col, pid, m, ttIdx, wx, wy, wz, rDist, origIdx, grp } = indexedInst[idx];
+        const { col, pid, m, ttIdx, wx, wy, wz, rDist, secId, origIdx, grp } = indexedInst[idx];
         const baseRgba = colMap[String(col)] || [0.7, 0.7, 0.7, 0.0];
         const [x, y, z, a, b, c, d, e, f, g, h, i] = m;
         const turnFlag = ttIdx >= 0 ? 1.0 : 0.0;
@@ -1131,15 +1154,18 @@
         const pivZ = (ttIdx >= 0 && data.tt && data.tt[ttIdx]) ? data.tt[ttIdx][1] : 0.0;
 
         let buildOrder = idx / totalInst;
+        if (isMasterHomericShield) {
+          const s = Math.min(10, Math.max(0, Math.round(secId)));
+          const kInSec = secSeen[s]++;
+          buildOrder = (s + (kInSec / Math.max(1, secCounts[s]))) / 11.0;
+        }
         if (grp) {
           const sKey = grp.startIdx;
           if (!actorBuildMap.has(sKey)) actorBuildMap.set(sKey, buildOrder);
           buildOrder = actorBuildMap.get(sKey);
         }
 
-        const isCircularShield = !String(slug).includes('diorama');
         const role = classifyRole(pid, col, wy, rDist, grp);
-        const secId = isCircularShield ? computeSectionId(wx, wy, wz) : 0.0;
         const limbPivY = grp ? grp.pivY : wy;
         const latX = grp ? grp.latX : 1.0;
         const latZ = grp ? grp.latZ : 0.0;
