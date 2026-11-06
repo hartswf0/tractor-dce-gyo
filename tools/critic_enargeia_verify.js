@@ -93,14 +93,13 @@ async function main() {
   for (const c of checks) {
     const metrics = await renderPage.evaluate((s) => {
       window.renderFrame(s);
-      const topBar = document.querySelector('.cinema-letterbox-top').getBoundingClientRect();
-      const botBar = document.querySelector('.cinema-letterbox-bot').getBoundingClientRect();
-      const clearHeight = botBar.top - topBar.bottom;
+      const botBar = document.querySelector('.subtitle-bar').getBoundingClientRect();
+      const clearHeight = botBar.top;
       const clearPct = (clearHeight / window.innerHeight) * 100;
-      const sightText = document.getElementById('subSightTag').textContent;
+      const sightText = document.getElementById('renderWatermark').textContent;
       const subText = document.getElementById('subEnglish').innerText;
       return {
-        topBarH: Math.round(topBar.height),
+        topBarH: 0,
         botBarH: Math.round(botBar.height),
         clearHeight: Math.round(clearHeight),
         clearPct: Number(clearPct.toFixed(1)),
@@ -145,7 +144,7 @@ async function main() {
   await uiPage.waitForTimeout(100);
   await uiPage.screenshot({ path: path.join(ARTIFACT_DIR, 'worldtext_cinema_ui_agora.png') });
 
-  await uiPage.evaluate(() => { window.openCriticTab(); window.seekToTime(190.0, false); });
+  await uiPage.evaluate(() => { window.toggleDrawer('critic'); window.seekToTime(190.0, false); });
   await uiPage.waitForTimeout(100);
   await uiPage.screenshot({ path: path.join(ARTIFACT_DIR, 'worldtext_cinema_ui_critic_tab.png') });
 

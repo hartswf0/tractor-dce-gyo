@@ -270,11 +270,8 @@
       float forgeGlow = 0.0;
       if (localB < 1.0) {
         float inv = 1.0 - localB;
-        float easeB = localB * localB * (3.0 - 2.0 * localB);
-        float sc = mix(0.22, 1.0, easeB);
-        p = aCenter + (p - aCenter) * sc;
-        p.y += inv * inv * 18.0;
-        forgeGlow = sin(localB * 3.14159) * 0.68;
+        p.y += inv * inv * 12.0;
+        forgeGlow = sin(localB * 3.14159) * 0.65;
       }
 
       // 2. Modular Section Lift-Out (Exploded view of M0..M9 above frame)
@@ -1099,7 +1096,7 @@
       if (isMasterHomericShield) {
         indexedInst.sort((a, b) => (a.secId - b.secId) || (a.wy - b.wy) || (a.rDist - b.rDist));
       } else {
-        indexedInst.sort((a, b) => (a.wy - b.wy) || (a.rDist - b.rDist));
+        indexedInst.sort((a, b) => ((a.grp ? 1 : 0) - (b.grp ? 1 : 0)) || (a.rDist - b.rDist) || (a.wy - b.wy));
       }
 
       const totalInst = Math.max(1, indexedInst.length);
